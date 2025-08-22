@@ -1,0 +1,569 @@
+{
+  "enemy_types": {
+    "fire": {
+      "basic": {
+        "Fire Guardian": {
+          "abilities": ["flame_strike", "burning_aura"],
+          "ai_behavior": "aggressive",
+          "special_traits": ["burn_on_hit"]
+        },
+        "Flame Warden": {
+          "abilities": ["fire_shield", "ember_shot"],
+          "ai_behavior": "defensive",
+          "special_traits": ["fire_resistance"]
+        },
+        "Ember Spirit": {
+          "abilities": ["ignite", "flame_dash"],
+          "ai_behavior": "speed",
+          "special_traits": ["evasive"]
+        },
+        "Lava Golem": {
+          "abilities": ["molten_slam", "hardened_skin"],
+          "ai_behavior": "tank",
+          "special_traits": ["high_defense"]
+        }
+      },
+      "leader": {
+        "Inferno Commander": {
+          "abilities": ["rally_flames", "fire_command", "scorching_wave"],
+          "ai_behavior": "support",
+          "special_traits": ["buff_allies", "burn_aura"]
+        }
+      },
+      "elite": {
+        "Phoenix Lord": {
+          "abilities": ["rebirth", "phoenix_dive", "flame_tornado", "burning_wings"],
+          "ai_behavior": "hybrid",
+          "special_traits": ["resurrect_once", "flying", "burn_trail"]
+        }
+      },
+      "boss": {
+        "Fire Overlord": {
+          "abilities": ["inferno_domain", "volcanic_eruption", "flame_prison", "apocalypse_flame", "molten_armor"],
+          "ai_behavior": "boss_pattern",
+          "special_traits": ["phase_transitions", "summon_adds", "rage_mode"],
+          "phase_abilities": {
+            "phase_1": ["inferno_domain", "flame_prison"],
+            "phase_2": ["volcanic_eruption", "molten_armor"],
+            "phase_3": ["apocalypse_flame", "summon_adds"]
+          }
+        }
+      }
+    },
+    "water": {
+      "basic": {
+        "Water Guardian": {
+          "abilities": ["water_bolt", "tidal_shield"],
+          "ai_behavior": "balanced",
+          "special_traits": ["healing_waters"]
+        },
+        "Tidal Warden": {
+          "abilities": ["wave_crash", "aqua_barrier"],
+          "ai_behavior": "defensive",
+          "special_traits": ["damage_reduction"]
+        },
+        "Aqua Spirit": {
+          "abilities": ["heal_splash", "purify"],
+          "ai_behavior": "healer",
+          "special_traits": ["support_focus"]
+        }
+      },
+      "leader": {
+        "Frost Commander": {
+          "abilities": ["ice_shards", "frozen_armor", "blizzard"],
+          "ai_behavior": "control",
+          "special_traits": ["freeze_chance", "slow_aura"]
+        }
+      },
+      "elite": {
+        "Leviathan Lord": {
+          "abilities": ["tsunami", "deep_freeze", "water_prison", "tidal_rage"],
+          "ai_behavior": "area_control",
+          "special_traits": ["massive_aoe", "freeze_immune"]
+        }
+      },
+      "boss": {
+        "Ocean Overlord": {
+          "abilities": ["oceanic_wrath", "maelstrom", "frozen_domain", "summon_tide", "absolute_zero"],
+          "ai_behavior": "boss_pattern",
+          "special_traits": ["phase_transitions", "environmental_effects"],
+          "phase_abilities": {
+            "phase_1": ["oceanic_wrath", "summon_tide"],
+            "phase_2": ["maelstrom", "frozen_domain"],
+            "phase_3": ["absolute_zero", "tsunami_finale"]
+          }
+        }
+      }
+    },
+    "earth": {
+      "basic": {
+        "Earth Guardian": {
+          "abilities": ["stone_throw", "fortify"],
+          "ai_behavior": "tank",
+          "special_traits": ["sturdy"]
+        },
+        "Stone Warden": {
+          "abilities": ["earthquake", "stone_skin"],
+          "ai_behavior": "defensive",
+          "special_traits": ["immovable"]
+        },
+        "Terra Spirit": {
+          "abilities": ["nature_heal", "root_snare"],
+          "ai_behavior": "support",
+          "special_traits": ["regeneration"]
+        }
+      },
+      "leader": {
+        "Mountain Commander": {
+          "abilities": ["landslide", "granite_shield", "rally_earth"],
+          "ai_behavior": "defensive_support",
+          "special_traits": ["defense_aura", "taunt"]
+        }
+      },
+      "elite": {
+        "Titan Lord": {
+          "abilities": ["colossal_slam", "stone_prison", "earthen_rage", "mountain_call"],
+          "ai_behavior": "bruiser",
+          "special_traits": ["unstoppable", "area_stun"]
+        }
+      },
+      "boss": {
+        "Earth Overlord": {
+          "abilities": ["tectonic_shift", "stone_army", "diamond_skin", "continental_crush", "gaia_wrath"],
+          "ai_behavior": "boss_pattern",
+          "special_traits": ["summon_golems", "damage_reduction_stacking"],
+          "phase_abilities": {
+            "phase_1": ["tectonic_shift", "stone_army"],
+            "phase_2": ["diamond_skin", "continental_crush"],
+            "phase_3": ["gaia_wrath", "eternal_stone"]
+          }
+        }
+      }
+    },
+    "lightning": {
+      "basic": {
+        "Storm Guardian": {
+          "abilities": ["lightning_bolt", "static_field"],
+          "ai_behavior": "aggressive",
+          "special_traits": ["chain_attacks"]
+        },
+        "Lightning Warden": {
+          "abilities": ["thunder_strike", "electric_barrier"],
+          "ai_behavior": "burst",
+          "special_traits": ["stun_chance"]
+        },
+        "Volt Spirit": {
+          "abilities": ["spark", "energize"],
+          "ai_behavior": "speed",
+          "special_traits": ["high_speed"]
+        }
+      },
+      "leader": {
+        "Thunder Commander": {
+          "abilities": ["storm_call", "lightning_field", "overcharge"],
+          "ai_behavior": "area_damage",
+          "special_traits": ["chain_lightning", "energize_allies"]
+        }
+      },
+      "elite": {
+        "Tempest Lord": {
+          "abilities": ["thunder_god_strike", "storm_prison", "electric_domain", "chain_devastation"],
+          "ai_behavior": "burst_aoe",
+          "special_traits": ["multi_strike", "paralysis"]
+        }
+      },
+      "boss": {
+        "Storm Overlord": {
+          "abilities": ["tempest_fury", "lightning_cage", "thunder_realm", "storm_avatar", "apocalypse_storm"],
+          "ai_behavior": "boss_pattern",
+          "special_traits": ["speed_scaling", "chain_everything"],
+          "phase_abilities": {
+            "phase_1": ["tempest_fury", "lightning_cage"],
+            "phase_2": ["thunder_realm", "storm_avatar"],
+            "phase_3": ["apocalypse_storm", "infinite_storm"]
+          }
+        }
+      }
+    },
+    "light": {
+      "basic": {
+        "Light Guardian": {
+          "abilities": ["holy_bolt", "blessing"],
+          "ai_behavior": "support",
+          "special_traits": ["heal_allies"]
+        },
+        "Radiant Warden": {
+          "abilities": ["divine_shield", "purge"],
+          "ai_behavior": "defensive",
+          "special_traits": ["cleanse_effects"]
+        },
+        "Divine Spirit": {
+          "abilities": ["heal_light", "sanctuary"],
+          "ai_behavior": "healer",
+          "special_traits": ["resurrection"]
+        }
+      },
+      "leader": {
+        "Celestial Commander": {
+          "abilities": ["heaven_strike", "divine_protection", "angel_summon"],
+          "ai_behavior": "balanced_support",
+          "special_traits": ["buff_holy", "debuff_immunity"]
+        }
+      },
+      "elite": {
+        "Seraph Lord": {
+          "abilities": ["judgment", "divine_wrath", "holy_nova", "angel_wings"],
+          "ai_behavior": "hybrid",
+          "special_traits": ["flying", "blind_enemies", "heal_and_damage"]
+        }
+      },
+      "boss": {
+        "Divine Overlord": {
+          "abilities": ["heaven_gate", "divine_judgment", "celestial_army", "god_rays", "rapture"],
+          "ai_behavior": "boss_pattern",
+          "special_traits": ["summon_angels", "invulnerability_phases"],
+          "phase_abilities": {
+            "phase_1": ["heaven_gate", "god_rays"],
+            "phase_2": ["divine_judgment", "celestial_army"],
+            "phase_3": ["rapture", "divine_intervention"]
+          }
+        }
+      }
+    },
+    "dark": {
+      "basic": {
+        "Shadow Guardian": {
+          "abilities": ["shadow_bolt", "fade"],
+          "ai_behavior": "stealth",
+          "special_traits": ["dodge_boost"]
+        },
+        "Dark Warden": {
+          "abilities": ["curse", "dark_shield"],
+          "ai_behavior": "debuffer",
+          "special_traits": ["apply_curse"]
+        },
+        "Umbral Spirit": {
+          "abilities": ["life_drain", "fear"],
+          "ai_behavior": "vampire",
+          "special_traits": ["lifesteal"]
+        }
+      },
+      "leader": {
+        "Void Commander": {
+          "abilities": ["void_call", "shadow_realm", "dark_empowerment"],
+          "ai_behavior": "control",
+          "special_traits": ["debuff_aura", "summon_shadows"]
+        }
+      },
+      "elite": {
+        "Abyssal Lord": {
+          "abilities": ["void_prison", "nightmare", "shadow_devastation", "dark_metamorphosis"],
+          "ai_behavior": "assassin",
+          "special_traits": ["execute_low_hp", "untargetable_phases"]
+        }
+      },
+      "boss": {
+        "Shadow Overlord": {
+          "abilities": ["eternal_darkness", "void_collapse", "nightmare_realm", "shadow_legion", "oblivion"],
+          "ai_behavior": "boss_pattern",
+          "special_traits": ["summon_nightmares", "steal_buffs", "dark_mirror"],
+          "phase_abilities": {
+            "phase_1": ["eternal_darkness", "shadow_legion"],
+            "phase_2": ["void_collapse", "nightmare_realm"],
+            "phase_3": ["oblivion", "final_darkness"]
+          }
+        }
+      }
+    }
+  },
+
+  "enemy_abilities": {
+    "basic_abilities": {
+      "flame_strike": {
+        "damage_multiplier": 1.2,
+        "effects": ["burn"],
+        "cooldown": 2,
+        "ai_priority": "high"
+      },
+      "water_bolt": {
+        "damage_multiplier": 1.0,
+        "effects": [],
+        "cooldown": 0,
+        "ai_priority": "medium"
+      },
+      "stone_throw": {
+        "damage_multiplier": 1.1,
+        "effects": ["slow"],
+        "cooldown": 2,
+        "ai_priority": "medium"
+      },
+      "lightning_bolt": {
+        "damage_multiplier": 1.15,
+        "effects": ["stun"],
+        "chance": 0.25,
+        "cooldown": 3,
+        "ai_priority": "high"
+      },
+      "holy_bolt": {
+        "damage_multiplier": 0.9,
+        "healing_multiplier": 0.5,
+        "cooldown": 2,
+        "ai_priority": "situational"
+      },
+      "shadow_bolt": {
+        "damage_multiplier": 1.0,
+        "effects": ["curse"],
+        "cooldown": 2,
+        "ai_priority": "medium"
+      }
+    },
+    
+    "boss_abilities": {
+      "inferno_domain": {
+        "description": "Creates a burning field that damages all enemies each turn",
+        "damage_multiplier": 0.3,
+        "duration": 5,
+        "affects": "all_enemies",
+        "ai_priority": "opener"
+      },
+      "apocalypse_flame": {
+        "description": "Devastating attack that increases in power each phase",
+        "damage_multiplier": 3.0,
+        "affects": "all_enemies",
+        "charge_time": 2,
+        "ai_priority": "finisher"
+      },
+      "divine_intervention": {
+        "description": "Fully heals and grants immunity for 1 turn",
+        "healing_multiplier": 1.0,
+        "effects": ["damage_immunity", "debuff_immunity"],
+        "once_per_battle": true,
+        "ai_priority": "emergency"
+      },
+      "oblivion": {
+        "description": "Attempts to instantly defeat the lowest HP enemy",
+        "execute_threshold": 0.5,
+        "affects": "lowest_hp_enemy",
+        "cooldown": 5,
+        "ai_priority": "execute"
+      }
+    }
+  },
+
+  "enemy_scaling": {
+    "stat_calculation": {
+      "formula": "base_stat + (level * stat_per_level * role_multiplier * tier_multiplier)",
+      "stage_scaling": "stats * (1 + stage_number * 0.1)",
+      "territory_tier_bonus": {
+        "1": 1.0,
+        "2": 1.3,
+        "3": 1.6
+      }
+    },
+    
+    "base_stats": {
+      "hp": 200,
+      "attack": 50,
+      "defense": 30,
+      "speed": 80,
+      "crit_chance": 0.05,
+      "crit_damage": 1.5,
+      "accuracy": 0.85,
+      "resistance": 0.15
+    },
+    
+    "per_level_growth": {
+      "hp": 60,
+      "attack": 12,
+      "defense": 8,
+      "speed": 6,
+      "crit_chance": 0.002,
+      "accuracy": 0.01,
+      "resistance": 0.005
+    }
+  },
+
+  "enemy_roles": {
+    "basic": {
+      "stat_multipliers": {
+        "hp": 0.8,
+        "attack": 0.9,
+        "defense": 0.8,
+        "speed": 1.0
+      },
+      "ability_slots": 2,
+      "spawn_weight": 70,
+      "ai_complexity": "simple",
+      "threat_level": 1
+    },
+    "leader": {
+      "stat_multipliers": {
+        "hp": 1.1,
+        "attack": 1.0,
+        "defense": 0.9,
+        "speed": 1.0
+      },
+      "ability_slots": 3,
+      "spawn_weight": 20,
+      "min_stage": 4,
+      "ai_complexity": "moderate",
+      "threat_level": 2,
+      "special_mechanics": ["buff_nearby_allies", "coordinate_attacks"]
+    },
+    "elite": {
+      "stat_multipliers": {
+        "hp": 1.3,
+        "attack": 1.1,
+        "defense": 1.0,
+        "speed": 1.1
+      },
+      "ability_slots": 4,
+      "spawn_weight": 10,
+      "min_stage": 7,
+      "ai_complexity": "advanced",
+      "threat_level": 3,
+      "special_mechanics": ["unique_abilities", "resistance_to_cc"]
+    },
+    "boss": {
+      "stat_multipliers": {
+        "hp": 1.8,
+        "attack": 1.5,
+        "defense": 1.3,
+        "speed": 1.2
+      },
+      "ability_slots": 5,
+      "spawn_weight": 100,
+      "only_final_stage": true,
+      "ai_complexity": "boss_ai",
+      "threat_level": 5,
+      "special_mechanics": ["phase_transitions", "enrage_timer", "summon_minions", "special_resistances"]
+    }
+  },
+
+  "stage_modifiers": {
+    "1-2": {
+      "title_suffix": "",
+      "stat_multiplier": 1.0,
+      "enemy_abilities": "basic_only"
+    },
+    "3-4": {
+      "title_suffix": " Veteran",
+      "stat_multiplier": 1.2,
+      "enemy_abilities": "basic_plus"
+    },
+    "5-6": {
+      "title_suffix": " Elite",
+      "stat_multiplier": 1.4,
+      "enemy_abilities": "advanced",
+      "special_mechanics": ["coordinated_attacks"]
+    },
+    "7-8": {
+      "title_suffix": " Champion",
+      "stat_multiplier": 1.6,
+      "enemy_abilities": "advanced_plus",
+      "special_mechanics": ["rage_mode", "last_stand"]
+    },
+    "9-10": {
+      "title_suffix": " Overlord",
+      "stat_multiplier": 1.8,
+      "enemy_abilities": "master",
+      "special_mechanics": ["adaptive_ai", "counter_tactics"]
+    },
+    "11-12": {
+      "title_suffix": " Master",
+      "stat_multiplier": 2.0,
+      "enemy_abilities": "master_plus",
+      "special_mechanics": ["perfect_coordination", "weakness_exploitation"]
+    },
+    "13-15": {
+      "title_suffix": " Legendary",
+      "stat_multiplier": 2.5,
+      "enemy_abilities": "legendary",
+      "special_mechanics": ["mythic_powers", "reality_distortion"]
+    }
+  },
+
+  "formations": {
+    "standard": {
+      "description": "Balanced enemy formation",
+      "composition": "random",
+      "positioning": "standard"
+    },
+    "boss_stage": {
+      "description": "Single powerful boss enemy",
+      "enemy_count": 1,
+      "force_boss": true,
+      "boss_buffs": ["increased_stats", "cc_resistance"]
+    },
+    "elite_squad": {
+      "description": "Multiple elite enemies working together",
+      "stages": [8, 9, 12, 13],
+      "min_elites": 2,
+      "max_elites": 3,
+      "synergy_bonus": 0.15
+    },
+    "swarm": {
+      "description": "Many weak enemies",
+      "stages": [5, 10],
+      "extra_enemies": 2,
+      "force_basic": true,
+      "stat_reduction": 0.2,
+      "overwhelm_bonus": true
+    },
+    "leader_pack": {
+      "description": "Leader with coordinated followers",
+      "leader_count": 1,
+      "basic_count": "2-4",
+      "coordination_bonus": 0.2
+    },
+    "elemental_chaos": {
+      "description": "Mixed elements for no weaknesses",
+      "force_mixed_elements": true,
+      "resistance_bonus": 0.1
+    }
+  },
+
+  "ai_behaviors": {
+    "aggressive": {
+      "target_priority": ["lowest_hp", "highest_attack", "random"],
+      "ability_priority": ["damage", "debuff", "self_buff"],
+      "aggression": 0.8
+    },
+    "defensive": {
+      "target_priority": ["highest_threat", "targeting_ally", "highest_attack"],
+      "ability_priority": ["shield", "heal", "buff", "damage"],
+      "aggression": 0.3
+    },
+    "support": {
+      "target_priority": ["debuffed_ally", "lowest_hp_ally", "random_enemy"],
+      "ability_priority": ["heal_ally", "buff_ally", "cleanse", "damage"],
+      "aggression": 0.2
+    },
+    "healer": {
+      "target_priority": ["lowest_hp_ally", "debuffed_ally", "self"],
+      "ability_priority": ["emergency_heal", "heal", "cleanse", "shield"],
+      "heal_threshold": 0.5
+    },
+    "tank": {
+      "target_priority": ["highest_attack", "targeting_ally", "random"],
+      "ability_priority": ["taunt", "shield", "defense_buff", "damage"],
+      "protection_focus": true
+    },
+    "burst": {
+      "target_priority": ["lowest_hp", "no_shields", "highest_value"],
+      "ability_priority": ["execute", "nuke", "damage", "debuff"],
+      "aggression": 1.0
+    },
+    "control": {
+      "target_priority": ["highest_speed", "highest_threat", "no_debuffs"],
+      "ability_priority": ["stun", "slow", "silence", "debuff"],
+      "disruption_focus": true
+    },
+    "boss_pattern": {
+      "uses_phases": true,
+      "pattern_based": true,
+      "adaptive": true,
+      "special_targeting": true
+    }
+  }
+}

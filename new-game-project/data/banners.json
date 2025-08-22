@@ -1,0 +1,216 @@
+{
+  "banners": {
+    "standard_banner": {
+      "id": "standard",
+      "name": "Divine Pantheon",
+      "description": "Standard summon with all gods available",
+      "type": "standard",
+      "active": true,
+      "start_date": "2024-01-01",
+      "end_date": null,
+      "featured_gods": [],
+      "rate_up": {},
+      "costs": {
+        "single": { "divine_essence": 100 },
+        "ten_pull": { "divine_essence": 900 }
+      }
+    },
+    
+    "greek_pantheon_banner": {
+      "id": "greek_featured",
+      "name": "Olympian Legends",
+      "description": "Increased rates for Greek gods",
+      "type": "featured",
+      "active": false,
+      "start_date": "2024-08-01",
+      "end_date": "2024-08-31",
+      "featured_gods": ["zeus", "poseidon", "hades", "athena", "apollo", "artemis", "ares", "hermes"],
+      "rate_up": {
+        "featured_multiplier": 2.0,
+        "legendary_rate_bonus": 0.5
+      },
+      "costs": {
+        "single": { "divine_essence": 120 },
+        "ten_pull": { "divine_essence": 1000 }
+      }
+    },
+    
+    "norse_pantheon_banner": {
+      "id": "norse_featured",
+      "name": "Valhalla Warriors",
+      "description": "Increased rates for Norse gods",
+      "type": "featured",
+      "active": false,
+      "start_date": "2024-09-01",
+      "end_date": "2024-09-30",
+      "featured_gods": ["odin", "thor", "freya", "loki", "baldur", "tyr", "heimdall", "frigg"],
+      "rate_up": {
+        "featured_multiplier": 2.0,
+        "legendary_rate_bonus": 0.5
+      },
+      "costs": {
+        "single": { "divine_essence": 120 },
+        "ten_pull": { "divine_essence": 1000 }
+      }
+    },
+    
+    "egyptian_pantheon_banner": {
+      "id": "egyptian_featured",
+      "name": "Pharaoh's Blessing",
+      "description": "Increased rates for Egyptian gods",
+      "type": "featured",
+      "active": false,
+      "start_date": "2024-10-01",
+      "end_date": "2024-10-31",
+      "featured_gods": ["ra", "anubis", "isis", "thoth"],
+      "rate_up": {
+        "featured_multiplier": 2.0,
+        "legendary_rate_bonus": 0.5
+      },
+      "costs": {
+        "single": { "divine_essence": 120 },
+        "ten_pull": { "divine_essence": 1000 }
+      }
+    },
+    
+    "legendary_banner": {
+      "id": "legendary_focus",
+      "name": "Legendary Focus",
+      "description": "Higher legendary rates, premium currency only",
+      "type": "premium",
+      "active": true,
+      "start_date": "2024-01-01",
+      "end_date": null,
+      "featured_gods": [],
+      "rate_up": {
+        "legendary_multiplier": 3.0
+      },
+      "costs": {
+        "single": { "crystals": 100 },
+        "ten_pull": { "crystals": 900 }
+      },
+      "restrictions": {
+        "min_legendary_rate": 5.0,
+        "no_common": true
+      }
+    }
+  },
+  
+  "special_summons": {
+    "daily_free": {
+      "id": "daily_free",
+      "name": "Daily Free Summon",
+      "description": "One free summon per day",
+      "type": "free",
+      "cooldown": "daily",
+      "uses_standard_rates": true,
+      "costs": {}
+    },
+    
+    "weekly_premium": {
+      "id": "weekly_premium",
+      "name": "Weekly Premium",
+      "description": "One discounted premium summon per week",
+      "type": "discounted",
+      "cooldown": "weekly",
+      "original_cost": { "divine_essence": 500 },
+      "discounted_cost": { "divine_essence": 250 }
+    },
+    
+    "starter_guaranteed": {
+      "id": "starter_guaranteed",
+      "name": "Starter Guaranteed Epic",
+      "description": "First-time guaranteed epic summon for new players",
+      "type": "one_time",
+      "guaranteed_tier": "epic",
+      "costs": { "divine_essence": 300 },
+      "restrictions": {
+        "new_players_only": true,
+        "max_uses": 1
+      }
+    }
+  },
+  
+  "events": {
+    "anniversary_event": {
+      "id": "anniversary_2024",
+      "name": "Divine Anniversary",
+      "description": "Special anniversary celebration with bonus rewards",
+      "type": "celebration",
+      "active": false,
+      "start_date": "2024-12-01",
+      "end_date": "2024-12-31",
+      "bonuses": {
+        "double_summon_tickets": true,
+        "bonus_ascension_materials": 2.0,
+        "legendary_pity_reduction": 0.8
+      },
+      "special_banner": "anniversary_banner"
+    },
+    
+    "element_focus_week": {
+      "id": "element_week",
+      "name": "Elemental Focus",
+      "description": "Rotating weekly element focus with bonuses",
+      "type": "rotating",
+      "active": false,
+      "duration": "7_days",
+      "rotation_schedule": ["fire", "water", "earth", "lightning", "light", "dark"],
+      "bonuses": {
+        "element_rate_bonus": 3.0,
+        "element_summon_discount": 0.2
+      }
+    }
+  },
+  
+  "progression_rewards": {
+    "summon_milestones": {
+      "10_summons": {
+        "reward": { "summon_tickets": 1, "divine_essence": 100 }
+      },
+      "50_summons": {
+        "reward": { "summon_tickets": 3, "ascension_materials": 10 }
+      },
+      "100_summons": {
+        "reward": { "summon_tickets": 5, "crystals": 500, "guaranteed_epic": 1 }
+      },
+      "500_summons": {
+        "reward": { "summon_tickets": 10, "crystals": 2000, "guaranteed_legendary": 1 }
+      }
+    },
+    
+    "first_time_bonuses": {
+      "first_legendary": {
+        "reward": { "crystals": 1000, "ascension_materials": 25 }
+      },
+      "collection_milestones": {
+        "10_unique_gods": { "reward": { "summon_tickets": 2 } },
+        "25_unique_gods": { "reward": { "crystals": 500 } },
+        "50_unique_gods": { "reward": { "guaranteed_legendary": 1 } }
+      }
+    }
+  },
+  
+  "pity_system_config": {
+    "soft_pity": {
+      "enabled": true,
+      "legendary": {
+        "starts_at": 75,
+        "rate_increase_per_summon": 0.5
+      },
+      "epic": {
+        "starts_at": 35,
+        "rate_increase_per_summon": 1.0
+      }
+    },
+    
+    "hard_pity": {
+      "legendary": 100,
+      "epic": 50,
+      "rare": 10
+    },
+    
+    "pity_carries_over": true,
+    "pity_resets_on_tier_obtained": true
+  }
+}

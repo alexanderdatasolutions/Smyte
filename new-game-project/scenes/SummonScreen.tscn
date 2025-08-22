@@ -1,0 +1,140 @@
+[gd_scene load_steps=3 format=3 uid="uid://c7bmxesdp6kfa"]
+
+[ext_resource type="Script" uid="uid://c04jprppny8y6" path="res://scripts/ui/SummonScreen.gd" id="1_summon"]
+[ext_resource type="Script" uid="uid://dkl6lpcqoqw2" path="res://scripts/ui/ResourceDisplay.gd" id="2_jjidi"]
+
+[node name="SummonScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+script = ExtResource("1_summon")
+
+[node name="Background" type="NinePatchRect" parent="."]
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 17.0
+offset_top = 650.0
+offset_right = 97.0
+offset_bottom = 690.0
+text = "← Back"
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 20.0
+offset_right = 100.0
+offset_bottom = 70.0
+grow_horizontal = 2
+text = "SUMMON TEMPLE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MainContainer" type="HSplitContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 50.0
+offset_top = 80.0
+offset_right = -50.0
+offset_bottom = -80.0
+grow_horizontal = 2
+grow_vertical = 2
+split_offset = 350
+
+[node name="LeftPanel" type="VBoxContainer" parent="MainContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.3
+
+[node name="SummonTitle" type="Label" parent="MainContainer/LeftPanel"]
+layout_mode = 2
+text = "⚡ DIVINE SUMMONS ⚡"
+horizontal_alignment = 1
+
+[node name="SummonContainer" type="VBoxContainer" parent="MainContainer/LeftPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+alignment = 1
+
+[node name="RightPanel" type="VBoxContainer" parent="MainContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.7
+
+[node name="ShowcaseTitle" type="Label" parent="MainContainer/RightPanel"]
+layout_mode = 2
+text = "🎁 SUMMON SHOWCASE 🎁"
+horizontal_alignment = 1
+
+[node name="ShowcaseContainer" type="ScrollContainer" parent="MainContainer/RightPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ShowcaseContent" type="VBoxContainer" parent="MainContainer/RightPanel/ShowcaseContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+
+[node name="DefaultMessage" type="Label" parent="MainContainer/RightPanel/ShowcaseContainer/ShowcaseContent"]
+layout_mode = 2
+text = "✨ Your summoned gods will appear here! ✨
+
+Try a summon to see the magic happen!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ResourceDisplay" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -400.0
+offset_top = 18.0
+offset_right = -50.0
+offset_bottom = 58.0
+grow_horizontal = 0
+alignment = 1
+script = ExtResource("2_jjidi")
+
+[node name="EssenceLabel" type="Label" parent="ResourceDisplay"]
+layout_mode = 2
+text = "Divine Essence: 1000"
+horizontal_alignment = 1
+
+[node name="VSeparator" type="VSeparator" parent="ResourceDisplay"]
+visible = false
+layout_mode = 2
+
+[node name="CrystalLabel" type="Label" parent="ResourceDisplay"]
+layout_mode = 2
+text = "Crystals: 0"
+horizontal_alignment = 1
+
+[node name="VSeparator2" type="VSeparator" parent="ResourceDisplay"]
+visible = false
+layout_mode = 2
+
+[node name="TicketLabel" type="Label" parent="ResourceDisplay"]
+layout_mode = 2
+text = "Tickets: 0"
+horizontal_alignment = 1
+
+[node name="VSeparator3" type="VSeparator" parent="ResourceDisplay"]
+visible = false
+layout_mode = 2
+
+[node name="MaterialLabel" type="Label" parent="ResourceDisplay"]
+layout_mode = 2
+text = "Materials: 0"
+horizontal_alignment = 1

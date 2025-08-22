@@ -1,0 +1,356 @@
+{
+  "awakened_gods": {
+    "athena_awakened": {
+      "id": "athena_awakened",
+      "name": "Athena, The Strategist",
+      "pantheon": "greek",
+      "element": "light",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 1600,
+        "attack": 780,
+        "defense": 920,
+        "speed": 102
+      },
+      "resource_generation": 20,
+      "active_abilities": [
+        {
+          "id": "divine_strategy",
+          "name": "Divine Strategy",
+          "description": "Grants all allies perfect positioning and increased critical hit rate for 3 turns.",
+          "damage_type": "none",
+          "targets": "all_allies",
+          "special_effects": ["critical_rate_buff", "accuracy_buff", "strategic_positioning"],
+          "cooldown": 6,
+          "awakened_only": true
+        },
+        {
+          "id": "aegis_protection",
+          "name": "Aegis Protection",
+          "description": "Creates an unbreakable shield that absorbs damage and reflects attacks.",
+          "damage_type": "none",
+          "targets": "self",
+          "special_effects": ["shield", "damage_reflect", "immunity"],
+          "cooldown": 5
+        },
+        {
+          "id": "wisdom_strike",
+          "name": "Wisdom Strike",
+          "description": "Attacks with strategic precision, ignoring defense and applying wisdom debuff.",
+          "damage_type": "light",
+          "base_damage": 350,
+          "targets": "single_enemy",
+          "special_effects": ["ignore_defense", "wisdom_debuff"],
+          "cooldown": 4
+        }
+      ],
+      "passive_abilities": [
+        {
+          "id": "tactical_mastery",
+          "name": "Tactical Mastery",
+          "description": "Team gains 35% defense and 50% resistance to debuffs. Greek allies gain additional 15% all stats.",
+          "effects": ["team_defense_boost_35", "debuff_resistance_50", "greek_pantheon_boost_15"]
+        }
+      ],
+      "leader_skill": {
+        "name": "Goddess of Strategy",
+        "effect": "All allies gain 50% defense and immunity to crowd control effects for first 2 turns.",
+        "pantheon_bonus": "greek",
+        "territory_effect": "Territory defense is doubled"
+      },
+      "description": "The awakened form of Athena, embodying perfect strategy and wisdom in battle.",
+      "summon_weight": 0,
+      "base_god_id": "athena",
+      "awakening_materials": {
+        "light_powder_high": 15,
+        "greek_relics": 8,
+        "divine_crystals": 75,
+        "awakening_stones": 4
+      }
+    },
+    
+    "apollo_awakened": {
+      "id": "apollo_awakened",
+      "name": "Apollo, The Radiant",
+      "pantheon": "greek",
+      "element": "light",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 1400,
+        "attack": 950,
+        "defense": 650,
+        "speed": 115
+      },
+      "resource_generation": 22,
+      "active_abilities": [
+        {
+          "id": "solar_devastation",
+          "name": "Solar Devastation",
+          "description": "Unleashes the full power of the sun, dealing massive damage to all enemies.",
+          "damage_type": "light",
+          "base_damage": 420,
+          "targets": "all_enemies",
+          "special_effects": ["burn", "blind", "solar_mark"],
+          "cooldown": 7,
+          "awakened_only": true
+        },
+        {
+          "id": "healing_light",
+          "name": "Healing Light",
+          "description": "Restores all allies to full health and grants regeneration.",
+          "damage_type": "none",
+          "targets": "all_allies",
+          "special_effects": ["full_heal", "regeneration", "purify"],
+          "cooldown": 6
+        },
+        {
+          "id": "prophecy_arrow",
+          "name": "Prophecy Arrow",
+          "description": "Fires an arrow that never misses and reveals enemy weaknesses.",
+          "damage_type": "light",
+          "base_damage": 380,
+          "targets": "single_enemy",
+          "special_effects": ["always_hit", "armor_break", "vulnerability"],
+          "cooldown": 4
+        }
+      ],
+      "passive_abilities": [
+        {
+          "id": "radiant_aura",
+          "name": "Radiant Aura",
+          "description": "All allies gain 40% attack and speed. Light element allies gain additional 25% critical damage.",
+          "effects": ["team_attack_boost_40", "team_speed_boost_40", "light_element_crit_boost_25"]
+        }
+      ],
+      "leader_skill": {
+        "name": "God of the Sun",
+        "effect": "All allies gain 60% attack and cannot be blinded or debuffed.",
+        "pantheon_bonus": "greek",
+        "territory_effect": "Territory generates 4x resources during day"
+      },
+      "description": "The awakened form of Apollo, radiating the pure power of the sun itself.",
+      "summon_weight": 0,
+      "base_god_id": "apollo",
+      "awakening_materials": {
+        "light_powder_high": 18,
+        "greek_relics": 10,
+        "divine_crystals": 85,
+        "awakening_stones": 5
+      }
+    },
+    
+    "loki_awakened": {
+      "id": "loki_awakened",
+      "name": "Loki, The Worldbreaker",
+      "pantheon": "norse",
+      "element": "fire",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 1500,
+        "attack": 890,
+        "defense": 720,
+        "speed": 125
+      },
+      "resource_generation": 25,
+      "active_abilities": [
+        {
+          "id": "ragnarok_chaos",
+          "name": "Ragnarok Chaos",
+          "description": "Brings the chaos of Ragnarok to the battlefield, randomly affecting all units with powerful effects.",
+          "damage_type": "fire",
+          "base_damage": 300,
+          "targets": "all_units",
+          "special_effects": ["random_chaos", "ragnarok_mark", "reality_distortion"],
+          "cooldown": 8,
+          "awakened_only": true
+        },
+        {
+          "id": "master_shapeshifter",
+          "name": "Master Shapeshifter",
+          "description": "Copies a random enemy ability and gains their element temporarily.",
+          "damage_type": "varies",
+          "targets": "varies",
+          "special_effects": ["ability_copy", "element_shift", "adaptation"],
+          "cooldown": 5
+        },
+        {
+          "id": "trickster_illusion",
+          "name": "Trickster Illusion",
+          "description": "Creates illusions that confuse enemies and redirect attacks to random targets.",
+          "damage_type": "none",
+          "targets": "all_enemies",
+          "special_effects": ["confusion", "misdirection", "illusion_creation"],
+          "cooldown": 6
+        }
+      ],
+      "passive_abilities": [
+        {
+          "id": "chaos_incarnate",
+          "name": "Chaos Incarnate",
+          "description": "Each turn has a 30% chance to trigger random beneficial effects for team. Speed increases by 10% each turn.",
+          "effects": ["chaos_trigger_30", "speed_ramp_10", "unpredictability"]
+        }
+      ],
+      "leader_skill": {
+        "name": "Herald of Ragnarok",
+        "effect": "All abilities have 25% chance to trigger twice. Team gains immunity to predictable patterns.",
+        "pantheon_bonus": "norse",
+        "territory_effect": "Territory effects change randomly each hour"
+      },
+      "description": "The awakened form of Loki, embracing his role as the catalyst of Ragnarok.",
+      "summon_weight": 0,
+      "base_god_id": "loki",
+      "awakening_materials": {
+        "fire_powder_high": 20,
+        "norse_relics": 12,
+        "divine_crystals": 95,
+        "awakening_stones": 6
+      }
+    },
+    
+    "ares_awakened": {
+      "id": "ares_awakened",
+      "name": "Ares, The Warmonger",
+      "pantheon": "greek",
+      "element": "fire",
+      "tier": "rare",
+      "base_stats": {
+        "hp": 1800,
+        "attack": 1050,
+        "defense": 800,
+        "speed": 90
+      },
+      "resource_generation": 18,
+      "active_abilities": [
+        {
+          "id": "eternal_warfare",
+          "name": "Eternal Warfare",
+          "description": "Enters a berserker state where each kill extends the duration and increases power.",
+          "damage_type": "fire",
+          "base_damage": 400,
+          "targets": "single_enemy",
+          "special_effects": ["berserker_state", "kill_extension", "power_ramp"],
+          "cooldown": 7,
+          "awakened_only": true
+        },
+        {
+          "id": "battle_frenzy",
+          "name": "Battle Frenzy",
+          "description": "All allies gain attack speed and lifesteal for 4 turns.",
+          "damage_type": "none",
+          "targets": "all_allies",
+          "special_effects": ["attack_speed_buff", "lifesteal", "battle_fury"],
+          "cooldown": 5
+        },
+        {
+          "id": "devastating_charge",
+          "name": "Devastating Charge",
+          "description": "Charges through enemy lines, dealing damage to all and gaining attack for each hit.",
+          "damage_type": "fire",
+          "base_damage": 250,
+          "targets": "all_enemies",
+          "special_effects": ["charge_attack", "attack_stack", "armor_penetration"],
+          "cooldown": 4
+        }
+      ],
+      "passive_abilities": [
+        {
+          "id": "god_of_war",
+          "name": "God of War",
+          "description": "Gains 20% attack for each enemy defeated. All allies gain 25% attack and critical hit rate.",
+          "effects": ["kill_attack_stack_20", "team_attack_boost_25", "team_crit_boost_25"]
+        }
+      ],
+      "leader_skill": {
+        "name": "Eternal Conflict",
+        "effect": "All allies gain 45% attack and 30% lifesteal. Battles cannot end in draws.",
+        "pantheon_bonus": "greek",
+        "territory_effect": "Territory automatically declares war on adjacent territories"
+      },
+      "description": "The awakened form of Ares, embodying pure warfare and endless conflict.",
+      "summon_weight": 0,
+      "base_god_id": "ares",
+      "awakening_materials": {
+        "fire_powder_high": 12,
+        "greek_relics": 6,
+        "divine_crystals": 60,
+        "awakening_stones": 3
+      }
+    },
+    
+    "brahma_awakened": {
+      "id": "brahma_awakened",
+      "name": "Brahma, The Origin",
+      "pantheon": "hindu",
+      "element": "light",
+      "tier": "legendary",
+      "base_stats": {
+        "hp": 1800,
+        "attack": 920,
+        "defense": 740,
+        "speed": 108
+      },
+      "resource_generation": 25,
+      "active_abilities": [
+        {
+          "id": "universal_genesis",
+          "name": "Universal Genesis",
+          "description": "Recreates the battlefield in Brahma's image. Resets all cooldowns and heals all allies to full.",
+          "damage_type": "none",
+          "targets": "all_allies",
+          "special_effects": ["reset_cooldowns", "full_heal_allies", "cleanse_debuffs"],
+          "cooldown": 8,
+          "awakened_only": true
+        },
+        {
+          "id": "creation_burst",
+          "name": "Creation Burst", 
+          "description": "Creates beneficial effects for all allies. Grants attack and defense buffs.",
+          "damage_type": "none",
+          "targets": "all_allies",
+          "special_effects": ["attack_buff", "defense_buff", "immunity"],
+          "cooldown": 5
+        },
+        {
+          "id": "reality_shaping",
+          "name": "Reality Shaping",
+          "description": "Manipulates the battlefield to benefit Hindu pantheon allies.",
+          "damage_type": "light",
+          "base_damage": 400,
+          "targets": "enemy_team", 
+          "special_effects": ["pantheon_synergy_hindu"],
+          "cooldown": 6
+        }
+      ],
+      "passive_abilities": [
+        {
+          "id": "universal_creator",
+          "name": "Universal Creator", 
+          "description": "All allies gain 40% to all stats. Hindu gods gain additional 20% stats.",
+          "effects": ["team_stat_boost_40", "hindu_pantheon_boost_20"]
+        }
+      ],
+      "leader_skill": {
+        "name": "Creation's Will",
+        "effect": "Hindu gods gain 60% all stats. Team gains immunity to debuffs for first 3 turns.",
+        "pantheon_bonus": "hindu",
+        "territory_effect": "Territory generates 3x resources"
+      },
+      "description": "The awakened form of Brahma, transcendent creator of all existence.",
+      "summon_weight": 0,
+      "base_god_id": "brahma",
+      "awakening_materials": {
+        "light_powder_high": 20,
+        "hindu_relics": 10,
+        "divine_crystals": 100,
+        "awakening_stones": 5
+      }
+    }
+  },
+  
+  "awakening_requirements": {
+    "base_god_level": 30,
+    "base_god_max_level": true,
+    "all_skills_level_1": true
+  }
+}
