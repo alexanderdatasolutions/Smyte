@@ -19,6 +19,7 @@ var sacrifice_system  # NEW: Sacrifice system for power-up mechanics
 var loot_system  # NEW: Loot system for proper loot.json integration
 var dungeon_system  # NEW: Dungeon system for dungeon battles
 var wave_system  # NEW: Wave system for multi-wave battles
+var game_initializer  # NEW: Game initializer for startup loading like Summoners War
 
 # Preload the DataLoader class
 const GameDataLoader = preload("res://scripts/systems/DataLoader.gd")
@@ -30,7 +31,7 @@ func initialize_game():
 	# Create player data
 	player_data = preload("res://scripts/data/PlayerData.gd").new()
 	
-	# Initialize systems
+	# Initialize core systems first
 	summon_system = preload("res://scripts/systems/SummonSystem.gd").new()
 	battle_system = preload("res://scripts/systems/BattleManager.gd").new()  # Updated to BattleManager
 	awakening_system = preload("res://scripts/systems/AwakeningSystem.gd").new()
@@ -38,6 +39,10 @@ func initialize_game():
 	loot_system = preload("res://scripts/systems/LootSystem.gd").new()  # NEW: Loot system
 	dungeon_system = preload("res://scripts/systems/DungeonSystem.gd").new()  # NEW: Dungeon system
 	wave_system = preload("res://scripts/systems/WaveSystem.gd").new()  # NEW: Wave system
+	
+	# Initialize the game initializer for Summoners War style loading
+	game_initializer = preload("res://scripts/systems/GameInitializer.gd").new()
+	
 	add_child(summon_system)
 	add_child(battle_system)
 	add_child(awakening_system)
@@ -45,6 +50,7 @@ func initialize_game():
 	add_child(loot_system)
 	add_child(dungeon_system)
 	add_child(wave_system)
+	add_child(game_initializer)
 	
 	# Connect system signals
 	summon_system.summon_completed.connect(_on_summon_completed)
@@ -52,6 +58,9 @@ func initialize_game():
 	battle_system.battle_completed.connect(_on_battle_completed)
 	awakening_system.awakening_completed.connect(_on_awakening_completed)
 	sacrifice_system.sacrifice_completed.connect(_on_sacrifice_completed)
+	
+	# Connect to god summoned signal to refresh UI cache
+	god_summoned.connect(_on_god_summoned_refresh_cache)
 	awakening_system.awakening_failed.connect(_on_awakening_failed)
 	
 	# Create resource generation timer
@@ -166,9 +175,22 @@ func _on_awakening_failed(god, reason):
 
 func _on_sacrifice_completed(target_god, material_gods, xp_gained):
 	print("%s gained %d XP from sacrificing %d gods" % [target_god.name, xp_gained, material_gods.size()])
+	
+	# Remove sacrificed gods from UI cache
+	if game_initializer and game_initializer.is_initialized:
+		for material_god in material_gods:
+			game_initializer.remove_god_from_cache(material_god.id)
+		print("Removed %d sacrificed gods from UI cache" % material_gods.size())
+	
 	resources_updated.emit()
 	# Auto-save after sacrifice
 	save_game()
+
+func _on_god_summoned_refresh_cache(god):
+	"""Refresh UI cache when new god is summoned"""
+	if game_initializer and game_initializer.is_initialized:
+		game_initializer.add_god_to_cache(god)
+		print("Added %s to UI cache" % god.name)
 
 # Use BattleSystem for territory attacks
 func attack_territory(territory: Territory, attacking_gods: Array) -> bool:

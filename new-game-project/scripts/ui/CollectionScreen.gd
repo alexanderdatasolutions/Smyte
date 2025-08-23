@@ -156,33 +156,97 @@ func refresh_collection():
 	if scroll_container is ScrollContainer:
 		scroll_position = scroll_container.get_v_scroll()
 	
-	# Clear existing god cards
+	# Clear existing god cards instantly
 	for child in grid_container.get_children():
 		child.queue_free()
 	
-	# Don't wait for cleanup - create cards immediately for faster response
-	# Add god cards - using GameManager autoload for modular access
+	# Start batched loading for instant response
 	if GameManager and GameManager.player_data:
-		# Get and sort gods
-		var gods = GameManager.player_data.gods.duplicate()  # Create copy for sorting
-		sort_gods(gods)
-		
-		# Create cards in batches to avoid long freeze
-		var batch_size = 20  # Process 20 gods at a time
-		
-		for i in range(0, gods.size(), batch_size):
-			var end_index = min(i + batch_size, gods.size())
-			for j in range(i, end_index):
-				create_god_card(gods[j])
-			
-			# Allow UI to update between batches
-			if end_index < gods.size():
-				await get_tree().process_frame
+		load_collection_gods_batched()
 	
-	# Restore scroll position after content is added
+	# Restore scroll position after a frame
 	await get_tree().process_frame
 	if scroll_container is ScrollContainer:
 		scroll_container.set_v_scroll(int(scroll_position))
+
+func load_collection_gods_batched():
+	"""Load collection gods using cached cards for instant display"""
+	if not GameManager or not GameManager.player_data or not grid_container:
+		return
+	
+	var gods = GameManager.player_data.gods.duplicate()
+	sort_gods(gods)
+	
+	# Use cached cards if initializer is available and initialized
+	if GameManager.game_initializer and GameManager.game_initializer.is_initialized:
+		load_collection_gods_from_cache(gods)
+	else:
+		# Fallback to batched loading if cache isn't ready
+		load_collection_gods_batched_fallback(gods)
+
+func load_collection_gods_from_cache(gods: Array):
+	"""Load gods instantly from pre-cached cards"""
+	for god in gods:
+		var cached_card = GameManager.game_initializer.get_cached_card(god, GameManager.game_initializer.CardType.COLLECTION)
+		if cached_card:
+			# Add click handler to the cached card
+			add_click_handler_to_cached_card(cached_card, god, _on_god_card_clicked)
+			grid_container.add_child(cached_card)
+		else:
+			# Fallback if cache miss
+			create_god_card(god)
+
+func load_collection_gods_batched_fallback(gods: Array):
+	"""Fallback batched loading if cache isn't ready"""
+	# Load gods in smaller batches for ultra-smooth loading
+	var batch_size = 8  # Smaller batches for ultra-smooth loading
+	var batch_state = {"current_batch": 0}  # Use dictionary for reference
+	
+	var batch_timer = Timer.new()
+	batch_timer.wait_time = 0.008  # ~120 FPS (8ms per frame)
+	batch_timer.timeout.connect(func():
+		var start_idx = batch_state.current_batch * batch_size
+		var end_idx = min(start_idx + batch_size, gods.size())
+		
+		# Load this batch
+		for i in range(start_idx, end_idx):
+			var god = gods[i]
+			create_god_card(god)
+		
+		batch_state.current_batch += 1
+		
+		# Check if we're done
+		if end_idx >= gods.size():
+			batch_timer.queue_free()
+	)
+	
+	add_child(batch_timer)
+	batch_timer.start()
+
+func add_click_handler_to_cached_card(card: Control, god: God, callback: Callable):
+	"""Add a click handler to a cached card"""
+	# Find the existing button in the cached card
+	var button = find_button_in_card(card)
+	if button:
+		# Clear any existing connections first
+		for connection in button.pressed.get_connections():
+			button.pressed.disconnect(connection.callable)
+		# Connect the new callback
+		button.pressed.connect(callback.bind(god))
+	else:
+		print("Warning: Could not find button in cached card for god: ", god.name)
+
+func find_button_in_card(card: Control) -> Button:
+	"""Recursively find the button in a cached card"""
+	if card is Button:
+		return card
+	
+	for child in card.get_children():
+		var result = find_button_in_card(child)
+		if result:
+			return result
+	
+	return null
 
 func sort_gods(gods: Array):
 	"""Sort gods array based on current sort settings"""

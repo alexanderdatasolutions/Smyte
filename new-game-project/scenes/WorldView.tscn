@@ -65,7 +65,7 @@ flat = true
 [node name="SacrificeButton" type="Button" parent="HBoxContainer"]
 layout_mode = 2
 text = "⚡
-POWER UP
+SACRIFICE
 ALTAR"
 flat = true
 

@@ -315,13 +315,23 @@ func populate_material_grid():
 	if scroll_container is ScrollContainer:
 		scroll_position.y = scroll_container.get_v_scroll()
 	
-	# Clear existing
+	# Clear existing instantly
 	for child in material_grid.get_children():
 		child.queue_free()
 	
-	await get_tree().process_frame
+	# Start batched loading for instant response
+	if GameManager and GameManager.player_data:
+		load_material_gods_batched()
 	
-	if not GameManager or not GameManager.player_data:
+	# Restore scroll position after a frame
+	await get_tree().process_frame
+	var scroll_container_restore = material_grid.get_parent()
+	if scroll_container_restore is ScrollContainer:
+		scroll_container_restore.set_v_scroll(int(scroll_position.y))
+
+func load_material_gods_batched():
+	"""Load material selection gods using cached cards for instant display"""
+	if not GameManager or not GameManager.player_data or not material_grid:
 		return
 	
 	# Get and sort gods (exclude the target)
@@ -331,18 +341,119 @@ func populate_material_grid():
 			continue
 		gods.append(god)
 	
-	# Sort the gods
 	sort_gods(gods)
 	
-	# Add sorted gods to grid
+	# Use cached cards if initializer is available and initialized
+	if GameManager.game_initializer and GameManager.game_initializer.is_initialized:
+		load_material_gods_from_cache(gods)
+	else:
+		# Fallback to batched loading if cache isn't ready
+		load_material_gods_batched_fallback(gods)
+
+func load_material_gods_from_cache(gods: Array):
+	"""Load gods instantly from pre-cached cards"""
 	for god in gods:
-		var god_item = create_god_grid_item(god)
-		material_grid.add_child(god_item)
+		var cached_card = GameManager.game_initializer.get_cached_card(god, GameManager.game_initializer.CardType.SELECTION)
+		if cached_card:
+			# Update the card styling for selection screen context
+			update_selection_card_styling(cached_card, god)
+			# Add click handler to the cached card
+			add_click_handler_to_cached_card(cached_card, god, _on_god_clicked)
+			material_grid.add_child(cached_card)
+		else:
+			# Fallback if cache miss
+			var god_item = create_god_grid_item(god)
+			material_grid.add_child(god_item)
+
+func load_material_gods_batched_fallback(gods: Array):
+	"""Fallback batched loading if cache isn't ready"""
+	# Load gods in smaller batches for smoother performance
+	var batch_size = 6  # Smaller batches for sacrifice selection
+	var batch_state = {"current_batch": 0}  # Use dictionary for reference
 	
-	# Restore scroll position after content is added
-	await get_tree().process_frame
-	if scroll_container is ScrollContainer:
-		scroll_container.set_v_scroll(int(scroll_position.y))
+	var batch_timer = Timer.new()
+	batch_timer.wait_time = 0.008  # ~120 FPS (8ms per frame)
+	batch_timer.timeout.connect(func():
+		var start_idx = batch_state.current_batch * batch_size
+		var end_idx = min(start_idx + batch_size, gods.size())
+		
+		# Load this batch
+		for i in range(start_idx, end_idx):
+			var god = gods[i]
+			var god_item = create_god_grid_item(god)
+			material_grid.add_child(god_item)
+		
+		batch_state.current_batch += 1
+		
+		# Check if we're done
+		if end_idx >= gods.size():
+			batch_timer.queue_free()
+	)
+	
+	add_child(batch_timer)
+	batch_timer.start()
+
+func update_selection_card_styling(card: Control, god: God):
+	"""Update cached card styling for selection screen context"""
+	if not card:
+		return
+	
+	# Update the panel styling based on current selection state and lock status
+	var style = card.get_theme_stylebox("panel")
+	if not style:
+		return
+	
+	if selected_materials.has(god):
+		style.bg_color = Color(0.8, 0.4, 0.2, 0.9)  # Orange for selected
+		style.border_color = Color(1.0, 0.6, 0.3, 1.0)
+		style.border_width_left = 3
+		style.border_width_right = 3
+		style.border_width_top = 3
+		style.border_width_bottom = 3
+	elif locked_in:
+		style.bg_color = Color(0.3, 0.3, 0.3, 0.5)  # Gray when locked
+		style.border_color = Color(0.5, 0.5, 0.5, 0.8)
+		style.border_width_left = 1
+		style.border_width_right = 1
+		style.border_width_top = 1
+		style.border_width_bottom = 1
+	else:
+		style.bg_color = get_subtle_tier_color(god.tier)
+		style.border_color = get_tier_border_color(god.tier)
+		style.border_width_left = 2
+		style.border_width_right = 2
+		style.border_width_top = 2
+		style.border_width_bottom = 2
+	
+	# Disable button if locked in
+	var button = find_button_in_card(card)
+	if button:
+		button.disabled = locked_in
+
+func add_click_handler_to_cached_card(card: Control, god: God, callback: Callable):
+	"""Add a click handler to a cached card"""
+	# Find the existing button in the cached card
+	var button = find_button_in_card(card)
+	if button:
+		# Clear any existing connections first
+		for connection in button.pressed.get_connections():
+			button.pressed.disconnect(connection.callable)
+		# Connect the new callback
+		button.pressed.connect(callback.bind(god))
+	else:
+		print("Warning: Could not find button in cached card for god: ", god.name)
+
+func find_button_in_card(card: Control) -> Button:
+	"""Recursively find the button in a cached card"""
+	if card is Button:
+		return card
+	
+	for child in card.get_children():
+		var result = find_button_in_card(child)
+		if result:
+			return result
+	
+	return null
 
 func create_god_grid_item(god: God) -> Control:
 	"""Create a compact grid item for god selection with essential sacrifice info"""
