@@ -218,6 +218,8 @@ static func create_status_effect_from_id(effect_id: String, caster = null) -> St
 			return StatusEffect.create_slow(caster)
 		"debuff_immunity":
 			return StatusEffect.create_debuff_immunity(caster)
+		"heal_block":
+			return StatusEffect.create_heal_block(caster)
 		"accuracy_boost":
 			return StatusEffect.create_accuracy_boost(caster)
 		"evasion_boost":

@@ -3,7 +3,6 @@ extends Node
 
 class_name BattleManager
 
-# Note: System classes are referenced directly as they have class_name declarations
 
 # Helper function to safely get stats from both God objects and dictionary enemies
 static func _get_stat(unit, stat_name: String, default_value: Variant = 0):
@@ -46,6 +45,11 @@ var battle_active: bool = false
 var auto_battle_enabled: bool = false
 var current_battle_gods: Array = []
 var current_battle_enemies: Array = []
+
+# Getter for the wave system
+var selected_gods: Array:
+	get:
+		return current_battle_gods
 
 # Auto-battle timing system
 var auto_battle_timer: Timer = null
@@ -110,6 +114,80 @@ func start_territory_assault(gods: Array, territory: Territory, stage: int):
 	turn_system.setup_turn_order(current_battle_gods, current_battle_enemies)
 	
 	# Start first turn
+	_start_next_turn()
+
+func start_dungeon_battle(gods: Array, dungeon_id: String, difficulty: String, enemies: Array) -> bool:
+	"""Start a dungeon battle - modular battle system"""
+	print("=== BATTLE MANAGER: Starting Dungeon Battle - %s (%s) ===" % [dungeon_id, difficulty])
+	
+	battle_active = true
+	current_battle_gods = gods.duplicate()
+	current_battle_enemies = enemies.duplicate()
+	current_battle_territory = null  # No territory for dungeons
+	current_battle_stage = 1
+	
+	# Reset all gods to full HP at start of battle
+	_reset_gods_hp()
+	
+	# Reset auto-battle state for new battle
+	auto_battle_enabled = false
+	
+	battle_log_updated.emit("Dungeon Battle: %s - %s Difficulty" % [dungeon_id.capitalize().replace("_", " "), difficulty.capitalize()])
+	
+	# Setup turn order
+	turn_system.setup_turn_order(current_battle_gods, current_battle_enemies)
+	
+	# Don't auto-enable auto-battle for dungeons - let player control it
+	auto_battle_enabled = false
+	
+	# Start first turn
+	_start_next_turn()
+	
+	return true
+
+func reset_battle():
+	"""Reset battle state for new wave or battle"""
+	print("=== BATTLE MANAGER: Resetting battle state ===")
+	
+	# Clear current battle state
+	battle_active = false
+	current_battle_enemies.clear()
+	
+	# Keep gods and their current state
+	# Note: We don't reset god HP between waves - that's Summoners War style
+	
+	# Clear turn system
+	if turn_system:
+		turn_system.clear_turn_order()
+
+func start_wave_battle(enemies: Array) -> bool:
+	"""Start battle with specific wave enemies (used by wave system)"""
+	print("=== BATTLE MANAGER: Starting Wave Battle - %d enemies ===" % enemies.size())
+	print("=== BattleManager: Received enemies: %s ===" % enemies)
+	
+	if current_battle_gods.is_empty():
+		print("ERROR: No gods selected for wave battle")
+		return false
+	
+	# Set wave enemies
+	current_battle_enemies = enemies.duplicate()
+	battle_active = true
+	
+	print("=== BattleManager: current_battle_enemies set to %d enemies ===" % current_battle_enemies.size())
+	
+	battle_log_updated.emit("Wave Battle: %d enemies approaching!" % enemies.size())
+	
+	# Setup turn order for this wave
+	turn_system.setup_turn_order(current_battle_gods, current_battle_enemies)
+	
+	# Simple approach: just start the turn after a brief moment to let displays update
+	call_deferred("_start_next_turn")
+	
+	return true
+
+func _start_wave_battle_delayed():
+	"""Deprecated - now using enemy_displays_ready signal for proper coordination"""
+	# This method is no longer needed as we use signal-based coordination
 	_start_next_turn()
 
 func toggle_auto_battle():
@@ -403,11 +481,24 @@ func _process_damage_ability(caster, ability: Dictionary, target):
 			battle_screen.update_enemy_hp_instantly(target)
 	
 	# Apply status effects using StatusEffectManager
-	if ability.has("status_effects"):
-		for effect_id in ability.status_effects:
-			var effect = StatusEffectManager.create_status_effect_from_id(effect_id, caster)
-			if effect:
-				StatusEffectManager.apply_status_effect_to_target(target, effect, status_effect_manager)
+	if ability.has("effects"):
+		for effect_data in ability.effects:
+			# Handle different effect types
+			var effect_type = effect_data.get("type", "")
+			if effect_type == "debuff" or effect_type == "buff":
+				var effect_id = effect_data.get("debuff", effect_data.get("buff", ""))
+				if effect_id != "":
+					var effect = StatusEffectManager.create_status_effect_from_id(effect_id, caster)
+					if effect:
+						# Apply chance check
+						var chance = effect_data.get("chance", 100.0) / 100.0
+						if randf() <= chance:
+							# Set custom duration if specified
+							if effect_data.has("duration"):
+								effect.duration = int(effect_data.duration)
+							StatusEffectManager.apply_status_effect_to_target(target, effect, status_effect_manager)
+						else:
+							print("Status effect %s failed chance check on %s" % [effect_id, _get_stat(target, "name", "Unknown")])
 		
 		# Update status effect UI after applying effects
 		if battle_screen:
@@ -530,12 +621,12 @@ func _reset_gods_hp():
 
 func _award_victory_rewards():
 	"""Award rewards for victory"""
+	var reward_parts = []
+	
+	# Handle territory battles
 	if GameManager and current_battle_territory:
 		var is_final_stage = (current_battle_stage >= current_battle_territory.max_stages)
 		var rewards = GameManager.award_stage_rewards(current_battle_stage, current_battle_territory, is_final_stage)
-		
-		# Build detailed reward text for battle log
-		var reward_parts = []
 		
 		# Core resources
 		if rewards.divine_essence > 0:
@@ -576,30 +667,40 @@ func _award_victory_rewards():
 		if rewards.has("equipment") and rewards.equipment > 0:
 			reward_parts.append("%d Equipment" % rewards.equipment)
 		
-		# Handle experience separately (not part of loot system)
+		# Handle experience for territory battles
 		var base_xp = 100 + (current_battle_stage * 25)  # Base XP calculation
 		if base_xp > 0:
 			reward_parts.append("%d XP" % base_xp)
 			# Award XP to participating gods
 			GameManager.award_experience_to_gods(base_xp)
+	
+	# Handle dungeon battles (even if no territory rewards)
+	else:
+		print("=== BattleManager: Awarding dungeon victory rewards ===")
+		# Award base XP for dungeon completion
+		var base_xp = 150  # Higher base XP for dungeons
+		if base_xp > 0:
+			reward_parts.append("%d XP" % base_xp)
+			# Award XP to participating gods
+			print("=== BattleManager: Awarding %d XP to %d gods ===" % [base_xp, current_battle_gods.size()])
+			GameManager.award_experience_to_gods(base_xp)
+	
+	# Display rewards
+	if reward_parts.size() > 0:
+		battle_log_updated.emit("Victory! Rewards:")
+		# Split rewards into multiple lines for better readability
+		var current_line = ""
+		for i in range(reward_parts.size()):
+			if current_line.length() > 50 or i == 0:  # Start new line
+				if current_line != "":
+					battle_log_updated.emit("  " + current_line)
+				current_line = reward_parts[i]
+			else:
+				current_line += ", " + reward_parts[i]
 		
-		if reward_parts.size() > 0:
-			battle_log_updated.emit("Victory! Rewards:")
-			# Split rewards into multiple lines for better readability
-			var current_line = ""
-			for i in range(reward_parts.size()):
-				if current_line.length() > 50 or i == 0:  # Start new line
-					if current_line != "":
-						battle_log_updated.emit("  " + current_line)
-					current_line = reward_parts[i]
-				else:
-					current_line += ", " + reward_parts[i]
-			
-			# Add the last line
-			if current_line != "":
-				battle_log_updated.emit("  " + current_line)
-		else:
-			battle_log_updated.emit("Victory! (No rewards this time)")
+		# Add the last line
+		if current_line != "":
+			battle_log_updated.emit("  " + current_line)
 	else:
 		battle_log_updated.emit("Victory!")
 

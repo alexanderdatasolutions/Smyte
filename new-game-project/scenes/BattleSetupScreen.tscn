@@ -1,0 +1,113 @@
+[gd_scene load_steps=2 format=3 uid="uid://dm3vbko3g1dyu"]
+
+[ext_resource type="Script" path="res://scripts/ui/BattleSetupScreen.gd" id="1_8h7nq"]
+
+[node name="BattleSetupScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_8h7nq")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.15, 1)
+
+[node name="MainContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HeaderContainer" type="VBoxContainer" parent="MainContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="MainContainer/HeaderContainer"]
+layout_mode = 2
+text = "BATTLE SETUP"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DescriptionLabel" type="Label" parent="MainContainer/HeaderContainer"]
+layout_mode = 2
+text = "Select your team for battle"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ContentContainer" type="HBoxContainer" parent="MainContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TeamSelectionContainer" type="VBoxContainer" parent="MainContainer/ContentContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="TeamLabel" type="Label" parent="MainContainer/ContentContainer/TeamSelectionContainer"]
+layout_mode = 2
+text = "YOUR TEAM"
+horizontal_alignment = 1
+
+[node name="TeamSlotsContainer" type="HBoxContainer" parent="MainContainer/ContentContainer/TeamSelectionContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="AvailableGodsContainer" type="VBoxContainer" parent="MainContainer/ContentContainer/TeamSelectionContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="AvailableLabel" type="Label" parent="MainContainer/ContentContainer/TeamSelectionContainer/AvailableGodsContainer"]
+layout_mode = 2
+text = "AVAILABLE GODS"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MainContainer/ContentContainer/TeamSelectionContainer/AvailableGodsContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="GodsGrid" type="GridContainer" parent="MainContainer/ContentContainer/TeamSelectionContainer/AvailableGodsContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 5
+
+[node name="BattleInfoPanel" type="VBoxContainer" parent="MainContainer/ContentContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+
+[node name="EnemyPreviewContainer" type="VBoxContainer" parent="MainContainer/ContentContainer/BattleInfoPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RewardsContainer" type="VBoxContainer" parent="MainContainer/ContentContainer/BattleInfoPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BottomContainer" type="HBoxContainer" parent="MainContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="CancelButton" type="Button" parent="MainContainer/BottomContainer"]
+layout_mode = 2
+text = "CANCEL"
+custom_minimum_size = Vector2(150, 50)
+
+[node name="StartBattleButton" type="Button" parent="MainContainer/BottomContainer"]
+layout_mode = 2
+text = "START BATTLE"
+custom_minimum_size = Vector2(200, 50)

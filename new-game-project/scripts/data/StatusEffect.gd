@@ -428,6 +428,16 @@ static func create_silence(_caster, turns: int = 2) -> StatusEffect:
 	effect.color = Color.PURPLE
 	return effect
 
+static func create_heal_block(_caster, turns: int = 2) -> StatusEffect:
+	var effect = StatusEffect.new("heal_block", "Heal Block")
+	effect.effect_type = EffectType.DEBUFF
+	effect.duration = turns
+	# Summoners War: Completely blocks all healing
+	effect.stat_modifier["healing_received"] = -1.0  # -100% healing
+	effect.description = "Cannot recover HP"
+	effect.color = Color.DARK_RED
+	return effect
+
 static func create_provoke(_caster, turns: int = 1) -> StatusEffect:
 	var effect = StatusEffect.new("provoke", "Provoked")
 	effect.effect_type = EffectType.DEBUFF

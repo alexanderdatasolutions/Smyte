@@ -69,6 +69,13 @@ POWER UP
 ALTAR"
 flat = true
 
+[node name="DungeonButton" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+text = "🏛️
+DUNGEONS
+SANCTUM"
+flat = true
+
 [node name="ResourceDisplay" parent="." instance=ExtResource("2_sj7ji")]
 layout_mode = 0
 anchors_preset = 0

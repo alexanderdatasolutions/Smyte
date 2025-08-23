@@ -1,0 +1,1012 @@
+{
+  "dungeon_categories": {
+    "elemental_dungeons": {
+      "description": "Farm elemental essences/powders for awakening",
+      "unlock_requirement": {
+        "player_level": 15,
+        "tutorial_completed": "awakening_introduction"
+      },
+      "schedule": "daily_rotation",
+      "energy_cost": 8
+    },
+    "magic_dungeon": {
+      "description": "Farm universal magic essences for all awakenings",
+      "unlock_requirement": {
+        "player_level": 20,
+        "territories_completed": 3
+      },
+      "schedule": "always_available",
+      "energy_cost": 10
+    },
+    "pantheon_dungeons": {
+      "description": "Farm pantheon-specific relics for elite awakenings",
+      "unlock_requirement": {
+        "player_level": 30,
+        "legendary_gods_owned": 1
+      },
+      "schedule": "weekend_special",
+      "energy_cost": 12
+    },
+    "equipment_dungeons": {
+      "description": "Farm equipment for god enhancement",
+      "unlock_requirement": {
+        "player_level": 25
+      },
+      "schedule": "always_available",
+      "energy_cost": 8
+    }
+  },
+
+  "elemental_dungeons": {
+    "fire_sanctum": {
+      "id": "fire_sanctum",
+      "name": "Sanctum of Flames",
+      "element": "fire",
+      "description": "Ancient temple where fire spirits guard powerful flame essences.",
+      "background_theme": "volcanic_chamber",
+      "guardian_spirit": "Ifrit Lord",
+      "schedule_day": "monday",
+      "difficulty_levels": {
+        "beginner": {
+          "level": 1,
+          "recommended_power": 5000,
+          "energy_cost": 6,
+          "waves": 3,
+          "boss": "Fire Guardian",
+          "loot_table": "fire_dungeon_beginner",
+          "stage_composition": {
+            "wave_1": {
+              "enemies": [
+                {"type": "Ember Spirit", "count": 3, "element": "fire"}
+              ],
+              "mechanics": ["basic_combat"]
+            },
+            "wave_2": {
+              "enemies": [
+                {"type": "Fire Guardian", "count": 1, "element": "fire"},
+                {"type": "Ember Spirit", "count": 2, "element": "fire"}
+              ],
+              "mechanics": ["burn_ground", "flame_aura"]
+            },
+            "wave_3": {
+              "enemies": [
+                {"type": "Fire Guardian", "count": 1, "element": "fire", "role": "boss"}
+              ],
+              "mechanics": ["boss_rage", "summon_adds"],
+              "special_drops": ["fire_essence_bonus"]
+            }
+          }
+        },
+        "intermediate": {
+          "level": 2,
+          "recommended_power": 15000,
+          "energy_cost": 8,
+          "waves": 4,
+          "boss": "Flame Warden",
+          "loot_table": "fire_dungeon_intermediate",
+          "stage_composition": {
+            "wave_1": {
+              "enemies": [
+                {"type": "Ember Spirit", "count": 4, "element": "fire"}
+              ],
+              "mechanics": ["speed_boost"]
+            },
+            "wave_2": {
+              "enemies": [
+                {"type": "Lava Golem", "count": 2, "element": "fire"}
+              ],
+              "mechanics": ["armor_buff", "molten_trails"]
+            },
+            "wave_3": {
+              "enemies": [
+                {"type": "Fire Guardian", "count": 1, "element": "fire"},
+                {"type": "Ember Spirit", "count": 3, "element": "fire"}
+              ],
+              "mechanics": ["coordinated_attack", "flame_shield"]
+            },
+            "wave_4": {
+              "enemies": [
+                {"type": "Flame Warden", "count": 1, "element": "fire", "role": "boss"}
+              ],
+              "mechanics": ["boss_enrage", "fire_immunity_phases", "summon_minions"],
+              "special_drops": ["fire_powder_bonus"]
+            }
+          }
+        },
+        "advanced": {
+          "level": 3,
+          "recommended_power": 35000,
+          "energy_cost": 10,
+          "waves": 5,
+          "boss": "Inferno Lord",
+          "loot_table": "fire_dungeon_advanced"
+        },
+        "expert": {
+          "level": 4,
+          "recommended_power": 60000,
+          "energy_cost": 12,
+          "waves": 6,
+          "boss": "Phoenix Ancient",
+          "loot_table": "fire_dungeon_expert"
+        },
+        "master": {
+          "level": 5,
+          "recommended_power": 100000,
+          "energy_cost": 15,
+          "waves": 7,
+          "boss": "Primordial Flame",
+          "loot_table": "fire_dungeon_master"
+        }
+      }
+    },
+    "water_sanctum": {
+      "id": "water_sanctum", 
+      "name": "Sanctum of Tides",
+      "element": "water",
+      "description": "Underwater palace where ancient sea spirits guard frozen essences.",
+      "background_theme": "underwater_palace",
+      "guardian_spirit": "Leviathan Lord",
+      "schedule_day": "tuesday",
+      "difficulty_levels": {
+        "beginner": {
+          "level": 1,
+          "recommended_power": 5000,
+          "energy_cost": 6,
+          "waves": 3,
+          "boss": "Water Guardian",
+          "loot_table": "water_dungeon_beginner"
+        },
+        "intermediate": {
+          "level": 2,
+          "recommended_power": 15000,
+          "energy_cost": 8,
+          "waves": 4,
+          "boss": "Tidal Warden",
+          "loot_table": "water_dungeon_intermediate"
+        },
+        "advanced": {
+          "level": 3,
+          "recommended_power": 35000,
+          "energy_cost": 10,
+          "waves": 5,
+          "boss": "Frost Lord",
+          "loot_table": "water_dungeon_advanced"
+        },
+        "expert": {
+          "level": 4,
+          "recommended_power": 60000,
+          "energy_cost": 12,
+          "waves": 6,
+          "boss": "Kraken Ancient",
+          "loot_table": "water_dungeon_expert"
+        },
+        "master": {
+          "level": 5,
+          "recommended_power": 100000,
+          "energy_cost": 15,
+          "waves": 7,
+          "boss": "Primordial Tide",
+          "loot_table": "water_dungeon_master"
+        }
+      }
+    },
+    "earth_sanctum": {
+      "id": "earth_sanctum",
+      "name": "Sanctum of Stone",
+      "element": "earth",
+      "description": "Deep caverns where earth elementals guard crystallized stone essences.",
+      "background_theme": "crystal_caverns",
+      "guardian_spirit": "Titan Lord",
+      "schedule_day": "wednesday",
+      "difficulty_levels": {
+        "beginner": {
+          "level": 1,
+          "recommended_power": 5000,
+          "energy_cost": 6,
+          "waves": 3,
+          "boss": "Earth Guardian",
+          "loot_table": "earth_dungeon_beginner"
+        },
+        "intermediate": {
+          "level": 2,
+          "recommended_power": 15000,
+          "energy_cost": 8,
+          "waves": 4,
+          "boss": "Stone Warden",
+          "loot_table": "earth_dungeon_intermediate"
+        },
+        "advanced": {
+          "level": 3,
+          "recommended_power": 35000,
+          "energy_cost": 10,
+          "waves": 5,
+          "boss": "Mountain Lord",
+          "loot_table": "earth_dungeon_advanced"
+        },
+        "expert": {
+          "level": 4,
+          "recommended_power": 60000,
+          "energy_cost": 12,
+          "waves": 6,
+          "boss": "Golem Ancient",
+          "loot_table": "earth_dungeon_expert"
+        },
+        "master": {
+          "level": 5,
+          "recommended_power": 100000,
+          "energy_cost": 15,
+          "waves": 7,
+          "boss": "Primordial Stone",
+          "loot_table": "earth_dungeon_master"
+        }
+      }
+    },
+    "lightning_sanctum": {
+      "id": "lightning_sanctum",
+      "name": "Sanctum of Storms",
+      "element": "lightning",
+      "description": "Sky fortress where storm spirits guard electrified essences.",
+      "background_theme": "storm_citadel",
+      "guardian_spirit": "Tempest Lord",
+      "schedule_day": "thursday",
+      "difficulty_levels": {
+        "beginner": {
+          "level": 1,
+          "recommended_power": 5000,
+          "energy_cost": 6,
+          "waves": 3,
+          "boss": "Storm Guardian",
+          "loot_table": "lightning_dungeon_beginner"
+        },
+        "intermediate": {
+          "level": 2,
+          "recommended_power": 15000,
+          "energy_cost": 8,
+          "waves": 4,
+          "boss": "Lightning Warden",
+          "loot_table": "lightning_dungeon_intermediate"
+        },
+        "advanced": {
+          "level": 3,
+          "recommended_power": 35000,
+          "energy_cost": 10,
+          "waves": 5,
+          "boss": "Thunder Lord",
+          "loot_table": "lightning_dungeon_advanced"
+        },
+        "expert": {
+          "level": 4,
+          "recommended_power": 60000,
+          "energy_cost": 12,
+          "waves": 6,
+          "boss": "Dragon Ancient",
+          "loot_table": "lightning_dungeon_expert"
+        },
+        "master": {
+          "level": 5,
+          "recommended_power": 100000,
+          "energy_cost": 15,
+          "waves": 7,
+          "boss": "Primordial Storm",
+          "loot_table": "lightning_dungeon_master"
+        }
+      }
+    },
+    "light_sanctum": {
+      "id": "light_sanctum",
+      "name": "Sanctum of Radiance",
+      "element": "light",
+      "description": "Celestial temple where angels guard purified light essences.",
+      "background_theme": "celestial_temple",
+      "guardian_spirit": "Seraph Lord",
+      "schedule_day": "friday",
+      "difficulty_levels": {
+        "beginner": {
+          "level": 1,
+          "recommended_power": 5000,
+          "energy_cost": 6,
+          "waves": 3,
+          "boss": "Light Guardian",
+          "loot_table": "light_dungeon_beginner"
+        },
+        "intermediate": {
+          "level": 2,
+          "recommended_power": 15000,
+          "energy_cost": 8,
+          "waves": 4,
+          "boss": "Radiant Warden",
+          "loot_table": "light_dungeon_intermediate"
+        },
+        "advanced": {
+          "level": 3,
+          "recommended_power": 35000,
+          "energy_cost": 10,
+          "waves": 5,
+          "boss": "Celestial Lord",
+          "loot_table": "light_dungeon_advanced"
+        },
+        "expert": {
+          "level": 4,
+          "recommended_power": 60000,
+          "energy_cost": 12,
+          "waves": 6,
+          "boss": "Archangel Ancient",
+          "loot_table": "light_dungeon_expert"
+        },
+        "master": {
+          "level": 5,
+          "recommended_power": 100000,
+          "energy_cost": 15,
+          "waves": 7,
+          "boss": "Primordial Light",
+          "loot_table": "light_dungeon_master"
+        }
+      }
+    },
+    "dark_sanctum": {
+      "id": "dark_sanctum",
+      "name": "Sanctum of Shadows",
+      "element": "dark",
+      "description": "Void realm where shadow demons guard corrupted dark essences.",
+      "background_theme": "void_realm",
+      "guardian_spirit": "Abyssal Lord",
+      "schedule_day": "saturday",
+      "difficulty_levels": {
+        "beginner": {
+          "level": 1,
+          "recommended_power": 5000,
+          "energy_cost": 6,
+          "waves": 3,
+          "boss": "Shadow Guardian",
+          "loot_table": "dark_dungeon_beginner"
+        },
+        "intermediate": {
+          "level": 2,
+          "recommended_power": 15000,
+          "energy_cost": 8,
+          "waves": 4,
+          "boss": "Dark Warden",
+          "loot_table": "dark_dungeon_intermediate"
+        },
+        "advanced": {
+          "level": 3,
+          "recommended_power": 35000,
+          "energy_cost": 10,
+          "waves": 5,
+          "boss": "Void Lord",
+          "loot_table": "dark_dungeon_advanced"
+        },
+        "expert": {
+          "level": 4,
+          "recommended_power": 60000,
+          "energy_cost": 12,
+          "waves": 6,
+          "boss": "Demon Ancient",
+          "loot_table": "dark_dungeon_expert"
+        },
+        "master": {
+          "level": 5,
+          "recommended_power": 100000,
+          "energy_cost": 15,
+          "waves": 7,
+          "boss": "Primordial Shadow",
+          "loot_table": "dark_dungeon_master"
+        }
+      }
+    }
+  },
+
+  "special_dungeons": {
+    "magic_sanctum": {
+      "id": "magic_sanctum",
+      "name": "Hall of Magic",
+      "element": "neutral",
+      "description": "Mystical library where arcane spirits guard universal magic essences.",
+      "background_theme": "arcane_library",
+      "guardian_spirit": "Arcane Sage",
+      "schedule": "always_available",
+      "difficulty_levels": {
+        "beginner": {
+          "level": 1,
+          "recommended_power": 8000,
+          "energy_cost": 8,
+          "waves": 4,
+          "boss": "Magic Guardian",
+          "loot_table": "magic_dungeon_beginner"
+        },
+        "intermediate": {
+          "level": 2,
+          "recommended_power": 20000,
+          "energy_cost": 10,
+          "waves": 5,
+          "boss": "Arcane Warden",
+          "loot_table": "magic_dungeon_intermediate"
+        },
+        "advanced": {
+          "level": 3,
+          "recommended_power": 40000,
+          "energy_cost": 12,
+          "waves": 6,
+          "boss": "Mystic Lord",
+          "loot_table": "magic_dungeon_advanced"
+        },
+        "expert": {
+          "level": 4,
+          "recommended_power": 70000,
+          "energy_cost": 15,
+          "waves": 7,
+          "boss": "Wizard Ancient",
+          "loot_table": "magic_dungeon_expert"
+        },
+        "master": {
+          "level": 5,
+          "recommended_power": 120000,
+          "energy_cost": 18,
+          "waves": 8,
+          "boss": "Primordial Magic",
+          "loot_table": "magic_dungeon_master"
+        }
+      }
+    }
+  },
+
+  "pantheon_dungeons": {
+    "greek_trials": {
+      "id": "greek_trials",
+      "name": "Olympian Trials",
+      "pantheon": "greek",
+      "description": "Mount Olympus trials where Greek gods test worthy challengers.",
+      "background_theme": "mount_olympus",
+      "guardian_spirit": "Zeus Avatar",
+      "schedule": "weekend_saturday",
+      "unlock_requirement": {
+        "player_level": 1
+      },
+      "difficulty_levels": {
+        "heroic": {
+          "level": 1,
+          "recommended_power": 50000,
+          "energy_cost": 15,
+          "waves": 5,
+          "boss": "Olympian Champion",
+          "loot_table": "greek_trials_heroic",
+          "stage_composition": {
+            "wave_1": {
+              "enemies": [
+                {"type": "Greek Warrior", "count": 3, "element": "light"}
+              ],
+              "mechanics": ["formation_fighting", "shield_wall"]
+            },
+            "wave_2": {
+              "enemies": [
+                {"type": "Spartan Hoplite", "count": 2, "element": "light"},
+                {"type": "Greek Archer", "count": 2, "element": "light"}
+              ],
+              "mechanics": ["ranged_support", "phalanx_formation"]
+            },
+            "wave_3": {
+              "enemies": [
+                {"type": "Centaur Guardian", "count": 1, "element": "earth"},
+                {"type": "Greek Warrior", "count": 2, "element": "light"}
+              ],
+              "mechanics": ["charge_attacks", "trample_damage"]
+            },
+            "wave_4": {
+              "enemies": [
+                {"type": "Minotaur Elite", "count": 1, "element": "earth"},
+                {"type": "Harpy Striker", "count": 3, "element": "lightning"}
+              ],
+              "mechanics": ["aerial_attacks", "labyrinth_confusion"]
+            },
+            "wave_5": {
+              "enemies": [
+                {"type": "Olympian Champion", "count": 1, "element": "light", "role": "boss"}
+              ],
+              "mechanics": ["divine_blessing", "olympian_fury", "god_mode_phases"],
+              "special_drops": ["greek_relic_bonus", "divine_essence_surge"]
+            }
+          }
+        },
+        "legendary": {
+          "level": 2,
+          "recommended_power": 100000,
+          "energy_cost": 20,
+          "waves": 7,
+          "boss": "Divine Avatar",
+          "loot_table": "greek_trials_legendary"
+        }
+      }
+    },
+    "norse_trials": {
+      "id": "norse_trials",
+      "name": "Asgardian Trials",
+      "pantheon": "norse",
+      "description": "Valhalla trials where Norse gods forge legendary warriors.",
+      "background_theme": "valhalla_halls",
+      "guardian_spirit": "Odin Avatar",
+      "schedule": "weekend_saturday",
+      "unlock_requirement": {
+        "player_level": 1
+      },
+      "difficulty_levels": {
+        "heroic": {
+          "level": 1,
+          "recommended_power": 50000,
+          "energy_cost": 15,
+          "waves": 5,
+          "boss": "Asgardian Champion",
+          "loot_table": "norse_trials_heroic"
+        },
+        "legendary": {
+          "level": 2,
+          "recommended_power": 100000,
+          "energy_cost": 20,
+          "waves": 7,
+          "boss": "Divine Avatar",
+          "loot_table": "norse_trials_legendary"
+        }
+      }
+    },
+    "egyptian_trials": {
+      "id": "egyptian_trials",
+      "name": "Pharaoh's Trials",
+      "pantheon": "egyptian",
+      "description": "Ancient pyramid trials where Egyptian gods judge souls.",
+      "background_theme": "great_pyramid",
+      "guardian_spirit": "Ra Avatar",
+      "schedule": "weekend_sunday",
+      "unlock_requirement": {
+        "player_level": 1
+      },
+      "difficulty_levels": {
+        "heroic": {
+          "level": 1,
+          "recommended_power": 50000,
+          "energy_cost": 15,
+          "waves": 5,
+          "boss": "Pharaoh Champion",
+          "loot_table": "egyptian_trials_heroic"
+        },
+        "legendary": {
+          "level": 2,
+          "recommended_power": 100000,
+          "energy_cost": 20,
+          "waves": 7,
+          "boss": "Divine Avatar",
+          "loot_table": "egyptian_trials_legendary"
+        }
+      }
+    },
+    "hindu_trials": {
+      "id": "hindu_trials",
+      "name": "Celestial Trials",
+      "pantheon": "hindu",
+      "description": "Divine trials in the cosmic realm where Hindu deities test devotion.",
+      "background_theme": "cosmic_temple",
+      "guardian_spirit": "Brahma Avatar",
+      "schedule": "weekend_sunday",
+      "unlock_requirement": {
+        "player_level": 1
+      },
+      "difficulty_levels": {
+        "heroic": {
+          "level": 1,
+          "recommended_power": 50000,
+          "energy_cost": 15,
+          "waves": 5,
+          "boss": "Celestial Champion",
+          "loot_table": "hindu_trials_heroic"
+        },
+        "legendary": {
+          "level": 2,
+          "recommended_power": 100000,
+          "energy_cost": 20,
+          "waves": 7,
+          "boss": "Divine Avatar",
+          "loot_table": "hindu_trials_legendary"
+        }
+      }
+    },
+    "japanese_trials": {
+      "id": "japanese_trials",
+      "name": "Shrine Trials",
+      "pantheon": "japanese",
+      "description": "Sacred shrine trials where Japanese kami test spiritual purity.",
+      "background_theme": "mystical_shrine",
+      "guardian_spirit": "Amaterasu Avatar",
+      "schedule": "weekend_rotating",
+      "unlock_requirement": {
+        "player_level": 1
+      },
+      "difficulty_levels": {
+        "heroic": {
+          "level": 1,
+          "recommended_power": 50000,
+          "energy_cost": 15,
+          "waves": 5,
+          "boss": "Shrine Champion",
+          "loot_table": "japanese_trials_heroic"
+        },
+        "legendary": {
+          "level": 2,
+          "recommended_power": 100000,
+          "energy_cost": 20,
+          "waves": 7,
+          "boss": "Divine Avatar",
+          "loot_table": "japanese_trials_legendary"
+        }
+      }
+    },
+    "celtic_trials": {
+      "id": "celtic_trials",
+      "name": "Druidic Trials",
+      "pantheon": "celtic",
+      "description": "Ancient forest trials where Celtic druids guard nature's secrets.",
+      "background_theme": "enchanted_forest",
+      "guardian_spirit": "Dagda Avatar",
+      "schedule": "weekend_rotating",
+      "unlock_requirement": {
+        "player_level": 1
+      },
+      "difficulty_levels": {
+        "heroic": {
+          "level": 1,
+          "recommended_power": 50000,
+          "energy_cost": 15,
+          "waves": 5,
+          "boss": "Druidic Champion",
+          "loot_table": "celtic_trials_heroic"
+        },
+        "legendary": {
+          "level": 2,
+          "recommended_power": 100000,
+          "energy_cost": 20,
+          "waves": 7,
+          "boss": "Divine Avatar",
+          "loot_table": "celtic_trials_legendary"
+        }
+      }
+    },
+    "aztec_trials": {
+      "id": "aztec_trials",
+      "name": "Teotihuacan Trials",
+      "pantheon": "aztec",
+      "description": "Sacred pyramid trials where Aztec gods test warriors through blood and honor.",
+      "background_theme": "sun_pyramid",
+      "guardian_spirit": "Quetzalcoatl Avatar",
+      "schedule": "weekend_rotating",
+      "unlock_requirement": {
+        "player_level": 1
+      },
+      "difficulty_levels": {
+        "heroic": {
+          "level": 1,
+          "recommended_power": 50000,
+          "energy_cost": 15,
+          "waves": 5,
+          "boss": "Jaguar Champion",
+          "loot_table": "aztec_trials_heroic"
+        },
+        "legendary": {
+          "level": 2,
+          "recommended_power": 100000,
+          "energy_cost": 20,
+          "waves": 7,
+          "boss": "Divine Avatar",
+          "loot_table": "aztec_trials_legendary"
+        }
+      }
+    },
+    "slavic_trials": {
+      "id": "slavic_trials",
+      "name": "Slavic Trials",
+      "pantheon": "slavic",
+      "description": "Mystical forest trials where Slavic spirits guard ancient wisdom and power.",
+      "background_theme": "dark_forest",
+      "guardian_spirit": "Perun Avatar",
+      "schedule": "weekend_rotating",
+      "unlock_requirement": {
+        "player_level": 1
+      },
+      "difficulty_levels": {
+        "heroic": {
+          "level": 1,
+          "recommended_power": 50000,
+          "energy_cost": 15,
+          "waves": 5,
+          "boss": "Bogatyr Champion",
+          "loot_table": "slavic_trials_heroic"
+        },
+        "legendary": {
+          "level": 2,
+          "recommended_power": 100000,
+          "energy_cost": 20,
+          "waves": 7,
+          "boss": "Divine Avatar",
+          "loot_table": "slavic_trials_legendary"
+        }
+      }
+    }
+  },
+
+  "equipment_dungeons": {
+    "titans_forge": {
+      "id": "titans_forge",
+      "name": "Titan's Forge",
+      "equipment_type": "divine_weapons",
+      "description": "The sacred forge where titans once crafted legendary weapons for the gods.",
+      "background_theme": "molten_forge",
+      "guardian_spirit": "Hephaestus Remnant",
+      "schedule": "always_available",
+      "difficulty_levels": {
+        "beginner": {
+          "level": 1,
+          "recommended_power": 8000,
+          "energy_cost": 8,
+          "waves": 4,
+          "boss": "Forge Guardian",
+          "loot_table": "divine_weapons_beginner"
+        },
+        "intermediate": {
+          "level": 2,
+          "recommended_power": 18000,
+          "energy_cost": 10,
+          "waves": 5,
+          "boss": "Master Smith",
+          "loot_table": "divine_weapons_intermediate"
+        },
+        "advanced": {
+          "level": 3,
+          "recommended_power": 40000,
+          "energy_cost": 12,
+          "waves": 6,
+          "boss": "Titan Forgemaster",
+          "loot_table": "divine_weapons_advanced"
+        }
+      }
+    },
+    "valhalla_armory": {
+      "id": "valhalla_armory",
+      "name": "Valhalla's Armory",
+      "equipment_type": "divine_armor",
+      "description": "The eternal armory where fallen warriors' equipment awaits new champions.",
+      "background_theme": "golden_halls",
+      "guardian_spirit": "Einherjar Captain",
+      "schedule": "always_available",
+      "difficulty_levels": {
+        "beginner": {
+          "level": 1,
+          "recommended_power": 8000,
+          "energy_cost": 8,
+          "waves": 4,
+          "boss": "Armory Keeper",
+          "loot_table": "divine_armor_beginner"
+        },
+        "intermediate": {
+          "level": 2,
+          "recommended_power": 18000,
+          "energy_cost": 10,
+          "waves": 5,
+          "boss": "Valkyrie Guard",
+          "loot_table": "divine_armor_intermediate"
+        },
+        "advanced": {
+          "level": 3,
+          "recommended_power": 40000,
+          "energy_cost": 12,
+          "waves": 6,
+          "boss": "Odin's Champion",
+          "loot_table": "divine_armor_advanced"
+        }
+      }
+    },
+    "oracle_sanctum": {
+      "id": "oracle_sanctum",
+      "name": "Oracle's Sanctum",
+      "equipment_type": "divine_accessories",
+      "description": "The mystical sanctum where ancient oracles blessed divine accessories with foresight.",
+      "background_theme": "ethereal_temple",
+      "guardian_spirit": "Pythia's Echo",
+      "schedule": "always_available",
+      "difficulty_levels": {
+        "beginner": {
+          "level": 1,
+          "recommended_power": 8000,
+          "energy_cost": 8,
+          "waves": 4,
+          "boss": "Prophetic Guardian",
+          "loot_table": "divine_accessories_beginner"
+        },
+        "intermediate": {
+          "level": 2,
+          "recommended_power": 18000,
+          "energy_cost": 10,
+          "waves": 5,
+          "boss": "Oracle Sage",
+          "loot_table": "divine_accessories_intermediate"
+        },
+        "advanced": {
+          "level": 3,
+          "recommended_power": 40000,
+          "energy_cost": 12,
+          "waves": 6,
+          "boss": "Divine Seer",
+          "loot_table": "divine_accessories_advanced"
+        }
+      }
+    },
+    "elysian_fields": {
+      "id": "elysian_fields",
+      "name": "Elysian Fields",
+      "equipment_type": "divine_runes",
+      "description": "The blessed fields where divine energy crystallizes into powerful enhancement runes.",
+      "background_theme": "paradise_meadows",
+      "guardian_spirit": "Eternal Shepherd",
+      "schedule": "always_available",
+      "difficulty_levels": {
+        "beginner": {
+          "level": 1,
+          "recommended_power": 8000,
+          "energy_cost": 8,
+          "waves": 4,
+          "boss": "Field Warden",
+          "loot_table": "divine_runes_beginner"
+        },
+        "intermediate": {
+          "level": 2,
+          "recommended_power": 18000,
+          "energy_cost": 10,
+          "waves": 5,
+          "boss": "Blessed Guardian",
+          "loot_table": "divine_runes_intermediate"
+        },
+        "advanced": {
+          "level": 3,
+          "recommended_power": 40000,
+          "energy_cost": 12,
+          "waves": 6,
+          "boss": "Paradise Keeper",
+          "loot_table": "divine_runes_advanced"
+        }
+      }
+    },
+    "styx_crossing": {
+      "id": "styx_crossing",
+      "name": "Styx Crossing",
+      "equipment_type": "shadow_gear",
+      "description": "The dark waters where souls leave behind cursed equipment of immense power.",
+      "background_theme": "underworld_river",
+      "guardian_spirit": "Charon's Shadow",
+      "schedule": "always_available",
+      "difficulty_levels": {
+        "beginner": {
+          "level": 1,
+          "recommended_power": 8000,
+          "energy_cost": 8,
+          "waves": 4,
+          "boss": "Soul Ferryman",
+          "loot_table": "shadow_gear_beginner"
+        },
+        "intermediate": {
+          "level": 2,
+          "recommended_power": 18000,
+          "energy_cost": 10,
+          "waves": 5,
+          "boss": "Underworld Warden",
+          "loot_table": "shadow_gear_intermediate"
+        },
+        "advanced": {
+          "level": 3,
+          "recommended_power": 40000,
+          "energy_cost": 12,
+          "waves": 6,
+          "boss": "Hades' Lieutenant",
+          "loot_table": "shadow_gear_advanced"
+        }
+      }
+    }
+  },
+
+  "dungeon_schedule": {
+    "daily_rotation": {
+      "monday": ["fire_sanctum"],
+      "tuesday": ["water_sanctum"],
+      "wednesday": ["earth_sanctum"],
+      "thursday": ["lightning_sanctum"],
+      "friday": ["light_sanctum"],
+      "saturday": ["dark_sanctum", "greek_trials", "norse_trials", "aztec_trials", "slavic_trials"],
+      "sunday": ["egyptian_trials", "hindu_trials", "japanese_trials", "celtic_trials"]
+    },
+    "always_available": ["magic_sanctum", "titans_forge", "valhalla_armory", "oracle_sanctum", "elysian_fields", "styx_crossing", "greek_trials", "norse_trials", "egyptian_trials", "hindu_trials", "japanese_trials", "celtic_trials", "aztec_trials", "slavic_trials"],
+    "special_events": {
+      "all_dungeons_open": {
+        "description": "All elemental dungeons open simultaneously",
+        "frequency": "monthly",
+        "duration_hours": 24
+      },
+      "double_drops": {
+        "description": "2x drop rates for all dungeon rewards",
+        "frequency": "bi_weekly", 
+        "duration_hours": 6
+      },
+      "half_energy": {
+        "description": "50% energy cost for all dungeons",
+        "frequency": "weekly",
+        "duration_hours": 4
+      }
+    }
+  },
+
+  "progression_system": {
+    "dungeon_unlock_progression": {
+      "tier_1_elementals": {
+        "unlock_requirement": {
+          "player_level": 15,
+          "tutorial_stage": "awakening_basics"
+        },
+        "includes": ["fire_sanctum", "water_sanctum", "earth_sanctum", "lightning_sanctum", "light_sanctum", "dark_sanctum"]
+      },
+      "magic_hall": {
+        "unlock_requirement": {
+          "player_level": 20,
+          "elemental_dungeons_cleared": 10
+        }
+      },
+      "pantheon_trials": {
+        "unlock_requirement": {
+          "player_level": 35,
+          "legendary_gods_owned": 1,
+          "magic_hall_clears": 5
+        }
+      }
+    },
+    "difficulty_unlock": {
+      "beginner": "always_unlocked",
+      "intermediate": {
+        "requirement": "beginner_cleared_1_times"
+      },
+      "advanced": {
+        "requirement": "intermediate_cleared_3_times"
+      },
+      "expert": {
+        "requirement": "advanced_cleared_5_times"
+      },
+      "master": {
+        "requirement": "expert_cleared_25_times"
+      },
+      "heroic": {
+        "requirement": "master_cleared_10_times"
+      },
+      "legendary": {
+        "requirement": "heroic_cleared_15_times"
+      }
+    }
+  },
+
+  "dungeon_mechanics": {
+    "wave_system": {
+      "description": "Each dungeon has multiple waves leading to boss",
+      "wave_types": ["basic_enemies", "elite_wave", "mini_boss", "final_boss"],
+      "wave_scaling": {
+        "hp_multiplier_per_wave": 1.2,
+        "damage_multiplier_per_wave": 1.1
+      }
+    },
+    "boss_mechanics": {
+      "phase_system": true,
+      "enrage_timer": 300,
+      "special_abilities": {
+        "damage_immunity_phases": true,
+        "summon_minions": true,
+        "environmental_hazards": true
+      }
+    },
+    "team_restrictions": {
+      "max_team_size": 5,
+      "element_restrictions": {
+        "some_dungeons": "opposite_element_penalty"
+      },
+      "no_revive": true
+    }
+  }
+}

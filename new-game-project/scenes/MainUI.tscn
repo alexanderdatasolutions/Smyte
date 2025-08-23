@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=3 uid="uid://dx0mxyrs7wimt"]
+[gd_scene load_steps=9 format=3 uid="uid://dx0mxyrs7wimt"]
 
 [ext_resource type="Script" uid="uid://b60aldgsxa44r" path="res://scripts/ui/MainUI.gd" id="1_5y5kr"]
 [ext_resource type="Script" uid="uid://b4h7kip8xohgv" path="res://scripts/ui/CollectionScreen.gd" id="2_7xqmt"]
 [ext_resource type="Script" uid="uid://c04jprppny8y6" path="res://scripts/ui/SummonScreen.gd" id="3_rtg8s"]
 [ext_resource type="Script" uid="uid://bebu6xd7awcxs" path="res://scripts/ui/TerritoryScreen.gd" id="4_c84gv"]
 [ext_resource type="Script" uid="uid://dkl6lpcqoqw2" path="res://scripts/ui/ResourceDisplay.gd" id="5_x6vnm"]
+[ext_resource type="Script" uid="uid://buyu7chag1ooj" path="res://scripts/ui/DungeonTab.gd" id="6_dungeon_tab"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
 bg_color = Color(0.2, 0.2, 0.3, 0.9)
@@ -232,3 +233,113 @@ horizontal_alignment = 1
 
 [node name="TabContainer_Territory_ScrollContainer_VBoxContainer#TerritoryList" type="VBoxContainer" parent="."]
 layout_mode = 2
+
+[node name="TabContainer#Dungeons" type="Control" parent="."]
+visible = false
+layout_mode = 2
+anchors_preset = 0
+script = ExtResource("6_dungeon_tab")
+metadata/_tab_index = 3
+
+[node name="TabContainer_Dungeons#DungeonScreen" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TabContainer_Dungeons_DungeonScreen#VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer#TitleLabel" type="Label" parent="."]
+layout_mode = 2
+text = "DUNGEONS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer#ScheduleInfo" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_ScheduleInfo#ScheduleLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Today: Loading..."
+horizontal_alignment = 1
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer#HSeparator" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer#HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer#LeftPanel" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer_LeftPanel#AvailableLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Available Dungeons"
+horizontal_alignment = 1
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer_LeftPanel#ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer_LeftPanel_ScrollContainer#DungeonList" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer#VSeparator" type="VSeparator" parent="."]
+layout_mode = 2
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer#DungeonInfoPanel" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer_DungeonInfoPanel#DungeonNameLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Dungeon Name"
+horizontal_alignment = 1
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer_DungeonInfoPanel#DungeonDescription" type="Label" parent="."]
+layout_mode = 2
+text = "Dungeon description will appear here..."
+autowrap_mode = 2
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer_DungeonInfoPanel#HSeparator2" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer_DungeonInfoPanel#DifficultyLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Select Difficulty:"
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer_DungeonInfoPanel#DifficultyContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer_DungeonInfoPanel#HSeparator3" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer_DungeonInfoPanel#RewardsContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer_DungeonInfoPanel_RewardsContainer#RewardsLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Rewards:"
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer_DungeonInfoPanel#HSeparator4" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="TabContainer_Dungeons_DungeonScreen_VBoxContainer_HBoxContainer_DungeonInfoPanel#EnterButton" type="Button" parent="."]
+layout_mode = 2
+text = "ENTER DUNGEON"

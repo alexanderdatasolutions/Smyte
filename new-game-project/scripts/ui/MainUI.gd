@@ -4,9 +4,16 @@ extends Control
 @onready var collection_screen = $MainPanel/TabContainer/Collection
 @onready var summon_screen = $MainPanel/TabContainer/Summon
 @onready var territory_screen = $MainPanel/TabContainer/Territory
+@onready var dungeon_screen = $"MainPanel/TabContainer/Dungeons"
 @onready var resource_display = $ResourcePanel/ResourceDisplay
 
+# Dungeon system reference
+var dungeon_system: Node
+
 func _ready():
+	# Initialize dungeon system
+	_initialize_dungeon_system()
+	
 	# Connect to GameManager signals
 	if GameManager:
 		GameManager.god_summoned.connect(_on_god_summoned)
@@ -15,6 +22,21 @@ func _ready():
 	
 	# Connect to level up signals for all existing gods
 	_connect_to_existing_gods()
+	
+	# Connect to tab container changes
+	var tab_container = $MainPanel/TabContainer
+	if tab_container:
+		tab_container.tab_changed.connect(_on_tab_changed)
+
+func _initialize_dungeon_system():
+	"""Initialize the dungeon system"""
+	# Create dungeon system if it doesn't exist
+	dungeon_system = get_node_or_null("/root/DungeonSystem")
+	if not dungeon_system:
+		var dungeon_system_script = preload("res://scripts/systems/DungeonSystem.gd")
+		dungeon_system = dungeon_system_script.new()
+		dungeon_system.name = "DungeonSystem"
+		get_tree().root.add_child(dungeon_system)
 
 func _connect_to_existing_gods():
 	"""Connect to level up signals for all current gods"""
@@ -38,6 +60,13 @@ func _on_resources_updated():
 		resource_display.update_resources()
 	if collection_screen:
 		collection_screen.refresh_collection()
+
+func _on_tab_changed(tab_index: int):
+	"""Handle tab changes to refresh content when needed"""
+	match tab_index:
+		3:  # Dungeons tab
+			if dungeon_screen and dungeon_screen.has_method("refresh_dungeons"):
+				dungeon_screen.refresh_dungeons()
 
 func _on_god_level_up(god):
 	"""Show level up notification"""

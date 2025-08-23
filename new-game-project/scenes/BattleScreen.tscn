@@ -118,7 +118,7 @@ layout_mode = 2
 
 [node name="BackButton" type="Button" parent="MainContainer/BottomContainer/ButtonContainer"]
 layout_mode = 2
-text = "← Back to Territory"
+text = "← Back"
 
 [node name="SpeedControlContainer" type="HBoxContainer" parent="MainContainer/BottomContainer/ButtonContainer"]
 layout_mode = 2

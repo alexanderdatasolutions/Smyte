@@ -10,6 +10,12 @@ var turn_order: Array = []
 var current_turn_index: int = 0
 var current_acting_unit = null
 
+func clear_turn_order():
+	"""Clear the current turn order"""
+	turn_order.clear()
+	current_turn_index = 0
+	current_acting_unit = null
+
 func setup_turn_order(gods: Array, enemies: Array):
 	"""Create turn order based on speed - matches your existing system"""
 	var all_units = []

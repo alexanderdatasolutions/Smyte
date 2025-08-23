@@ -17,6 +17,8 @@ var battle_system
 var awakening_system
 var sacrifice_system  # NEW: Sacrifice system for power-up mechanics
 var loot_system  # NEW: Loot system for proper loot.json integration
+var dungeon_system  # NEW: Dungeon system for dungeon battles
+var wave_system  # NEW: Wave system for multi-wave battles
 
 # Preload the DataLoader class
 const GameDataLoader = preload("res://scripts/systems/DataLoader.gd")
@@ -34,11 +36,15 @@ func initialize_game():
 	awakening_system = preload("res://scripts/systems/AwakeningSystem.gd").new()
 	sacrifice_system = preload("res://scripts/systems/SacrificeSystem.gd").new()  # NEW: Sacrifice system
 	loot_system = preload("res://scripts/systems/LootSystem.gd").new()  # NEW: Loot system
+	dungeon_system = preload("res://scripts/systems/DungeonSystem.gd").new()  # NEW: Dungeon system
+	wave_system = preload("res://scripts/systems/WaveSystem.gd").new()  # NEW: Wave system
 	add_child(summon_system)
 	add_child(battle_system)
 	add_child(awakening_system)
 	add_child(sacrifice_system)
 	add_child(loot_system)
+	add_child(dungeon_system)
+	add_child(wave_system)
 	
 	# Connect system signals
 	summon_system.summon_completed.connect(_on_summon_completed)
@@ -98,6 +104,19 @@ func summon_element(element: int) -> bool:
 
 func summon_premium() -> bool:
 	return summon_system.summon_premium()
+
+# System accessor methods
+func get_loot_system():
+	return loot_system
+
+func get_battle_system():
+	return battle_system
+
+func get_dungeon_system():
+	return dungeon_system
+
+func get_wave_system():
+	return wave_system
 
 # System signal handlers
 func _on_summon_completed(god):
@@ -451,18 +470,10 @@ func generate_resources():
 					player_data.add_resource(resource_type, amount)
 					resource_summary[resource_type] = resource_summary.get(resource_type, 0) + amount
 				
-				print("- %s: Generated %s (%d gods assigned)" % [
-					territory.name, 
-					str(tick_resources),
-					assigned_gods.size()
-				])
 	
 	if territories_producing > 0:
 		resources_updated.emit()
-		print("TERRITORY INCOME: %s from %d territories" % [str(resource_summary), territories_producing])
-		print("Current totals - Essence: %d, Crystals: %d" % [
-			player_data.divine_essence, player_data.premium_crystals
-		])
+
 
 func calculate_territory_passive_income(territory) -> Dictionary:
 	"""Calculate hourly passive income from a territory based on assigned gods"""
@@ -590,13 +601,17 @@ func save_game() -> bool:
 			"summon_tickets": player_data.summon_tickets,
 			"ascension_materials": player_data.ascension_materials,
 			"total_summons": player_data.total_summons,
+			"energy": player_data.energy,  # FIXED: Save current energy
+			"max_energy": player_data.max_energy,  # FIXED: Save max energy  
+			"last_energy_update": player_data.last_energy_update,  # FIXED: Save energy timer
 			"controlled_territories": player_data.controlled_territories,
 			"last_save_time": player_data.last_save_time,
 			"powders": player_data.powders,  # FIXED: Save awakening powders
 			"relics": player_data.relics      # FIXED: Save pantheon relics
 		},
 		"gods_data": [],
-		"territories_data": []
+		"territories_data": [],
+		"dungeon_progress": dungeon_system.save_dungeon_progress() if dungeon_system else {}
 	}
 	
 	# Save gods data - only save progress, not base config (comes from JSON)
@@ -664,6 +679,9 @@ func load_game() -> bool:
 	player_data.summon_tickets = player_info.get("summon_tickets", 0)
 	player_data.ascension_materials = player_info.get("ascension_materials", 0)
 	player_data.total_summons = player_info.get("total_summons", 0)
+	player_data.energy = player_info.get("energy", 80)  # FIXED: Load current energy
+	player_data.max_energy = player_info.get("max_energy", 80)  # FIXED: Load max energy
+	player_data.last_energy_update = player_info.get("last_energy_update", 0.0)  # FIXED: Load energy timer
 	player_data.powders = player_info.get("powders", {})  # FIXED: Load awakening powders
 	player_data.relics = player_info.get("relics", {})    # FIXED: Load pantheon relics
 	player_data.controlled_territories = player_info.get("controlled_territories", [])
@@ -699,6 +717,10 @@ func load_game() -> bool:
 			territory.stationed_gods = territory_info.get("stationed_gods", [])
 	
 	print("Game loaded successfully - ", player_data.gods.size(), " gods, ", player_data.divine_essence, " essence")
+	
+	# Load dungeon progress
+	if dungeon_system:
+		dungeon_system.load_dungeon_progress(save_data)
 	
 	# Generate offline resources
 	generate_offline_resources()

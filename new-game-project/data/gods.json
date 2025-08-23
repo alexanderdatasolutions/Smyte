@@ -190,13 +190,13 @@
           "id": "underworld_chains",
           "name": "Underworld Chains",
           "description": "Attacks all enemies with chains from the underworld, disturbing HP recovery for 2 turns and stealing 20% of their Attack Bar.",
-          "damage_multiplier": 280,
+          "damage_multiplier": 0,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 280,
+              "value": 0,
               "scaling": "ATK"
             },
             {

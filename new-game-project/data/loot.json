@@ -491,6 +491,2810 @@
     }
   },
 
+  "dungeon_loot_tables": {
+    "fire_dungeon_beginner": {
+      "description": "Fire Sanctum - Beginner difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_low",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0,
+          "element_based": true,
+          "specific_element": "fire"
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 1000,
+          "max_amount": 1500,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_mid",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 0.6,
+          "element_based": true,
+          "specific_element": "fire"
+        },
+        {
+          "type": "powder_high",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.15,
+          "element_based": true,
+          "specific_element": "fire"
+        },
+        {
+          "type": "magic_powder_low",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 0.3
+        }
+      ]
+    },
+    "fire_dungeon_intermediate": {
+      "description": "Fire Sanctum - Intermediate difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_low",
+          "min_amount": 12,
+          "max_amount": 20,
+          "chance": 1.0,
+          "element_based": true,
+          "specific_element": "fire"
+        },
+        {
+          "type": "powder_mid",
+          "min_amount": 3,
+          "max_amount": 7,
+          "chance": 1.0,
+          "element_based": true,
+          "specific_element": "fire"
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 1500,
+          "max_amount": 2200,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_high",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.4,
+          "element_based": true,
+          "specific_element": "fire"
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 0.25
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.1
+        }
+      ]
+    },
+    "fire_dungeon_advanced": {
+      "description": "Fire Sanctum - Advanced difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "fire",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        },
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "fire",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 2500,
+          "max_amount": 3500,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "fire",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 0.6
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.3
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.2
+        }
+      ]
+    },
+    "fire_dungeon_expert": {
+      "description": "Fire Sanctum - Expert difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "fire",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 4000,
+          "max_amount": 6000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.5
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.4
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 10,
+          "max_amount": 20,
+          "chance": 0.15
+        }
+      ]
+    },
+    "fire_dungeon_master": {
+      "description": "Fire Sanctum - Master difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "fire",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 6000,
+          "max_amount": 10000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "premium_crystals",
+          "min_amount": 15,
+          "max_amount": 30,
+          "chance": 0.3
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.05
+        }
+      ]
+    },
+
+    "water_dungeon_beginner": {
+      "description": "Water Sanctum - Beginner difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_low",
+          "element_based": true,
+          "specific_element": "water",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 1000,
+          "max_amount": 1500,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "water",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 0.6
+        },
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "water",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.15
+        },
+        {
+          "type": "magic_powder_low",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 0.3
+        }
+      ]
+    },
+    "water_dungeon_intermediate": {
+      "description": "Water Sanctum - Intermediate difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_low",
+          "element_based": true,
+          "specific_element": "water",
+          "min_amount": 12,
+          "max_amount": 20,
+          "chance": 1.0
+        },
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "water",
+          "min_amount": 3,
+          "max_amount": 7,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 1500,
+          "max_amount": 2200,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "water",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.4
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 0.25
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.1
+        }
+      ]
+    },
+    "water_dungeon_advanced": {
+      "description": "Water Sanctum - Advanced difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "water",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        },
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "water",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 2500,
+          "max_amount": 3500,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "water",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 0.6
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.3
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.2
+        }
+      ]
+    },
+    "water_dungeon_expert": {
+      "description": "Water Sanctum - Expert difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "water",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 4000,
+          "max_amount": 6000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.5
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.4
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 10,
+          "max_amount": 20,
+          "chance": 0.15
+        }
+      ]
+    },
+    "water_dungeon_master": {
+      "description": "Water Sanctum - Master difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "water",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 6000,
+          "max_amount": 10000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "premium_crystals",
+          "min_amount": 15,
+          "max_amount": 30,
+          "chance": 0.3
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.05
+        }
+      ]
+    },
+
+    "earth_dungeon_beginner": {
+      "description": "Earth Sanctum - Beginner difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_low",
+          "element_based": true,
+          "specific_element": "earth",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 1000,
+          "max_amount": 1500,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "earth",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 0.6
+        },
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "earth",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.15
+        },
+        {
+          "type": "magic_powder_low",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 0.3
+        }
+      ]
+    },
+    "earth_dungeon_intermediate": {
+      "description": "Earth Sanctum - Intermediate difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_low",
+          "element_based": true,
+          "specific_element": "earth",
+          "min_amount": 12,
+          "max_amount": 20,
+          "chance": 1.0
+        },
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "earth",
+          "min_amount": 3,
+          "max_amount": 7,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 1500,
+          "max_amount": 2200,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "earth",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.4
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 0.25
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.1
+        }
+      ]
+    },
+    "earth_dungeon_advanced": {
+      "description": "Earth Sanctum - Advanced difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "earth",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        },
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "earth",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 2500,
+          "max_amount": 3500,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "earth",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 0.6
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.3
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.2
+        }
+      ]
+    },
+    "earth_dungeon_expert": {
+      "description": "Earth Sanctum - Expert difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "earth",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 4000,
+          "max_amount": 6000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.5
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.4
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 10,
+          "max_amount": 20,
+          "chance": 0.15
+        }
+      ]
+    },
+    "earth_dungeon_master": {
+      "description": "Earth Sanctum - Master difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "earth",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 6000,
+          "max_amount": 10000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "premium_crystals",
+          "min_amount": 15,
+          "max_amount": 30,
+          "chance": 0.3
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.05
+        }
+      ]
+    },
+
+    "lightning_dungeon_beginner": {
+      "description": "Lightning Sanctum - Beginner difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_low",
+          "element_based": true,
+          "specific_element": "lightning",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 1000,
+          "max_amount": 1500,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "lightning",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 0.6
+        },
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "lightning",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.15
+        },
+        {
+          "type": "magic_powder_low",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 0.3
+        }
+      ]
+    },
+    "lightning_dungeon_intermediate": {
+      "description": "Lightning Sanctum - Intermediate difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_low",
+          "element_based": true,
+          "specific_element": "lightning",
+          "min_amount": 12,
+          "max_amount": 20,
+          "chance": 1.0
+        },
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "lightning",
+          "min_amount": 3,
+          "max_amount": 7,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 1500,
+          "max_amount": 2200,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "lightning",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.4
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 0.25
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.1
+        }
+      ]
+    },
+    "lightning_dungeon_advanced": {
+      "description": "Lightning Sanctum - Advanced difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "lightning",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        },
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "lightning",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 2500,
+          "max_amount": 3500,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "lightning",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 0.6
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.3
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.2
+        }
+      ]
+    },
+    "lightning_dungeon_expert": {
+      "description": "Lightning Sanctum - Expert difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "lightning",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 4000,
+          "max_amount": 6000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.5
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.4
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 10,
+          "max_amount": 20,
+          "chance": 0.15
+        }
+      ]
+    },
+    "lightning_dungeon_master": {
+      "description": "Lightning Sanctum - Master difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "lightning",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 6000,
+          "max_amount": 10000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "premium_crystals",
+          "min_amount": 15,
+          "max_amount": 30,
+          "chance": 0.3
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.05
+        }
+      ]
+    },
+
+    "light_dungeon_beginner": {
+      "description": "Light Sanctum - Beginner difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_low",
+          "element_based": true,
+          "specific_element": "light",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 1000,
+          "max_amount": 1500,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "light",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 0.6
+        },
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "light",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.15
+        },
+        {
+          "type": "magic_powder_low",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 0.3
+        }
+      ]
+    },
+    "light_dungeon_intermediate": {
+      "description": "Light Sanctum - Intermediate difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_low",
+          "element_based": true,
+          "specific_element": "light",
+          "min_amount": 12,
+          "max_amount": 20,
+          "chance": 1.0
+        },
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "light",
+          "min_amount": 3,
+          "max_amount": 7,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 1500,
+          "max_amount": 2200,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "light",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.4
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 0.25
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.1
+        }
+      ]
+    },
+    "light_dungeon_advanced": {
+      "description": "Light Sanctum - Advanced difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "light",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        },
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "light",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 2500,
+          "max_amount": 3500,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "light",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 0.6
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.3
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.2
+        }
+      ]
+    },
+    "light_dungeon_expert": {
+      "description": "Light Sanctum - Expert difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "light",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 4000,
+          "max_amount": 6000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.5
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.4
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 10,
+          "max_amount": 20,
+          "chance": 0.15
+        }
+      ]
+    },
+    "light_dungeon_master": {
+      "description": "Light Sanctum - Master difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "light",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 6000,
+          "max_amount": 10000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "premium_crystals",
+          "min_amount": 15,
+          "max_amount": 30,
+          "chance": 0.3
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.05
+        }
+      ]
+    },
+
+    "dark_dungeon_beginner": {
+      "description": "Dark Sanctum - Beginner difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_low",
+          "element_based": true,
+          "specific_element": "dark",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 1000,
+          "max_amount": 1500,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "dark",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 0.6
+        },
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "dark",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.15
+        },
+        {
+          "type": "magic_powder_low",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 0.3
+        }
+      ]
+    },
+    "dark_dungeon_intermediate": {
+      "description": "Dark Sanctum - Intermediate difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_low",
+          "element_based": true,
+          "specific_element": "dark",
+          "min_amount": 12,
+          "max_amount": 20,
+          "chance": 1.0
+        },
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "dark",
+          "min_amount": 3,
+          "max_amount": 7,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 1500,
+          "max_amount": 2200,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "dark",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.4
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 0.25
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.1
+        }
+      ]
+    },
+    "dark_dungeon_advanced": {
+      "description": "Dark Sanctum - Advanced difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_mid",
+          "element_based": true,
+          "specific_element": "dark",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        },
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "dark",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 2500,
+          "max_amount": 3500,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "dark",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 0.6
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.3
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.2
+        }
+      ]
+    },
+    "dark_dungeon_expert": {
+      "description": "Dark Sanctum - Expert difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "dark",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 4000,
+          "max_amount": 6000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.5
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.4
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 10,
+          "max_amount": 20,
+          "chance": 0.15
+        }
+      ]
+    },
+    "dark_dungeon_master": {
+      "description": "Dark Sanctum - Master difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "powder_high",
+          "element_based": true,
+          "specific_element": "dark",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 6000,
+          "max_amount": 10000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "premium_crystals",
+          "min_amount": 15,
+          "max_amount": 30,
+          "chance": 0.3
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.05
+        }
+      ]
+    },
+
+    "magic_dungeon_beginner": {
+      "description": "Hall of Magic - Beginner difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "magic_powder_low",
+          "min_amount": 10,
+          "max_amount": 18,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 1200,
+          "max_amount": 1800,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 0.5
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.1
+        }
+      ]
+    },
+    "magic_dungeon_intermediate": {
+      "description": "Hall of Magic - Intermediate difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "magic_powder_low",
+          "min_amount": 15,
+          "max_amount": 25,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 2000,
+          "max_amount": 3000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.3
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.15
+        }
+      ]
+    },
+    "magic_dungeon_advanced": {
+      "description": "Hall of Magic - Advanced difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 3500,
+          "max_amount": 5000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.4
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 12,
+          "max_amount": 25,
+          "chance": 0.2
+        }
+      ]
+    },
+    "magic_dungeon_expert": {
+      "description": "Hall of Magic - Expert difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "magic_powder_high",
+          "min_amount": 4,
+          "max_amount": 8,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 5000,
+          "max_amount": 8000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "premium_crystals",
+          "min_amount": 20,
+          "max_amount": 40,
+          "chance": 0.4
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.08
+        }
+      ]
+    },
+    "magic_dungeon_master": {
+      "description": "Hall of Magic - Master difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "magic_powder_high",
+          "min_amount": 6,
+          "max_amount": 12,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 2,
+          "max_amount": 3,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 8000,
+          "max_amount": 12000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "premium_crystals",
+          "min_amount": 30,
+          "max_amount": 60,
+          "chance": 0.6
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.12
+        },
+        {
+          "type": "transcendence_stone",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.03
+        }
+      ]
+    },
+
+    "greek_trials_beginner": {
+      "description": "Greek Olympian Trials - Beginner difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "greek_relics",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 3000,
+          "max_amount": 5000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.3
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 10,
+          "max_amount": 25,
+          "chance": 0.2
+        }
+      ]
+    },
+    "greek_trials_intermediate": {
+      "description": "Greek Olympian Trials - Intermediate difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "greek_relics",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 5000,
+          "max_amount": 8000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.45
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 25,
+          "max_amount": 60,
+          "chance": 0.3
+        }
+      ]
+    },
+    "greek_trials_heroic": {
+      "description": "Greek Olympian Trials - Heroic difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "greek_relics",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 8000,
+          "max_amount": 12000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 2,
+          "max_amount": 3,
+          "chance": 0.6
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 50,
+          "max_amount": 100,
+          "chance": 0.4
+        }
+      ]
+    },
+    "greek_trials_legendary": {
+      "description": "Greek Olympian Trials - Legendary difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "greek_relics",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 3,
+          "max_amount": 5,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 15000,
+          "max_amount": 25000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "transcendence_stone",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.15
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.25
+        }
+      ]
+    },
+
+    "norse_trials_heroic": {
+      "description": "Norse Asgardian Trials - Heroic difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "norse_relics",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 8000,
+          "max_amount": 12000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 2,
+          "max_amount": 3,
+          "chance": 0.6
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 50,
+          "max_amount": 100,
+          "chance": 0.4
+        }
+      ]
+    },
+    "norse_trials_legendary": {
+      "description": "Norse Asgardian Trials - Legendary difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "norse_relics",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 3,
+          "max_amount": 5,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 15000,
+          "max_amount": 25000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "transcendence_stone",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.15
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.25
+        }
+      ]
+    },
+
+    "egyptian_trials_heroic": {
+      "description": "Egyptian Pharaoh Trials - Heroic difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "egyptian_relics",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 8000,
+          "max_amount": 12000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 2,
+          "max_amount": 3,
+          "chance": 0.6
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 50,
+          "max_amount": 100,
+          "chance": 0.4
+        }
+      ]
+    },
+    "egyptian_trials_legendary": {
+      "description": "Egyptian Pharaoh Trials - Legendary difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "egyptian_relics",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 3,
+          "max_amount": 5,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 15000,
+          "max_amount": 25000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "transcendence_stone",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.15
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.25
+        }
+      ]
+    },
+
+    "hindu_trials_heroic": {
+      "description": "Hindu Celestial Trials - Heroic difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "hindu_relics",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 8000,
+          "max_amount": 12000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 2,
+          "max_amount": 3,
+          "chance": 0.6
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 50,
+          "max_amount": 100,
+          "chance": 0.4
+        }
+      ]
+    },
+    "hindu_trials_legendary": {
+      "description": "Hindu Celestial Trials - Legendary difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "hindu_relics",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 3,
+          "max_amount": 5,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 15000,
+          "max_amount": 25000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "transcendence_stone",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.15
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.25
+        }
+      ]
+    },
+
+    "japanese_trials_heroic": {
+      "description": "Japanese Shrine Trials - Heroic difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "japanese_relics",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 8000,
+          "max_amount": 12000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 2,
+          "max_amount": 3,
+          "chance": 0.6
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 50,
+          "max_amount": 100,
+          "chance": 0.4
+        }
+      ]
+    },
+    "japanese_trials_legendary": {
+      "description": "Japanese Shrine Trials - Legendary difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "japanese_relics",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 3,
+          "max_amount": 5,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 15000,
+          "max_amount": 25000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "transcendence_stone",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.15
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.25
+        }
+      ]
+    },
+
+    "celtic_trials_heroic": {
+      "description": "Celtic Druidic Trials - Heroic difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "celtic_relics",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 8000,
+          "max_amount": 12000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 2,
+          "max_amount": 3,
+          "chance": 0.6
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 50,
+          "max_amount": 100,
+          "chance": 0.4
+        }
+      ]
+    },
+    "celtic_trials_legendary": {
+      "description": "Celtic Druidic Trials - Legendary difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "celtic_relics",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 3,
+          "max_amount": 5,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 15000,
+          "max_amount": 25000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "transcendence_stone",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.15
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.25
+        }
+      ]
+    },
+
+    "aztec_trials_heroic": {
+      "description": "Aztec Teotihuacan Trials - Heroic difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "aztec_relics",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 8000,
+          "max_amount": 12000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 2,
+          "max_amount": 3,
+          "chance": 0.6
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 50,
+          "max_amount": 100,
+          "chance": 0.4
+        }
+      ]
+    },
+    "aztec_trials_legendary": {
+      "description": "Aztec Teotihuacan Trials - Legendary difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "aztec_relics",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 3,
+          "max_amount": 5,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 15000,
+          "max_amount": 25000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "transcendence_stone",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.15
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.25
+        }
+      ]
+    },
+
+    "slavic_trials_heroic": {
+      "description": "Slavic Trials - Heroic difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "slavic_relics",
+          "min_amount": 3,
+          "max_amount": 6,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 8000,
+          "max_amount": 12000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "awakening_stones",
+          "min_amount": 2,
+          "max_amount": 3,
+          "chance": 0.6
+        },
+        {
+          "type": "premium_crystals",
+          "min_amount": 50,
+          "max_amount": 100,
+          "chance": 0.4
+        }
+      ]
+    },
+    "slavic_trials_legendary": {
+      "description": "Slavic Trials - Legendary difficulty",
+      "guaranteed_drops": [
+        {
+          "type": "slavic_relics",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        },
+        {
+          "type": "awakening_stones",
+          "min_amount": 3,
+          "max_amount": 5,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 15000,
+          "max_amount": 25000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "transcendence_stone",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.15
+        },
+        {
+          "type": "legendary_scroll",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.25
+        }
+      ]
+    },
+
+    "divine_weapons_beginner": {
+      "description": "Titan's Forge - Beginner difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "divine_essence",
+          "min_amount": 1000,
+          "max_amount": 1500,
+          "chance": 1.0
+        },
+        {
+          "type": "weapon_fragments",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "divine_weapon",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.15,
+          "rarity_distribution": {
+            "common": 0.7,
+            "rare": 0.25,
+            "epic": 0.05
+          }
+        },
+        {
+          "type": "weapon_crystals",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.3
+        }
+      ]
+    },
+    "divine_weapons_intermediate": {
+      "description": "Titan's Forge - Intermediate difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "divine_essence",
+          "min_amount": 2000,
+          "max_amount": 3000,
+          "chance": 1.0
+        },
+        {
+          "type": "weapon_fragments",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "divine_weapon",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.25,
+          "rarity_distribution": {
+            "common": 0.5,
+            "rare": 0.35,
+            "epic": 0.14,
+            "legendary": 0.01
+          }
+        },
+        {
+          "type": "weapon_crystals",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 0.4
+        }
+      ]
+    },
+    "divine_weapons_advanced": {
+      "description": "Titan's Forge - Advanced difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "divine_essence",
+          "min_amount": 3500,
+          "max_amount": 5000,
+          "chance": 1.0
+        },
+        {
+          "type": "weapon_fragments",
+          "min_amount": 12,
+          "max_amount": 20,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "divine_weapon",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.35,
+          "rarity_distribution": {
+            "rare": 0.4,
+            "epic": 0.45,
+            "legendary": 0.15
+          }
+        },
+        {
+          "type": "weapon_crystals",
+          "min_amount": 3,
+          "max_amount": 8,
+          "chance": 0.6
+        }
+      ]
+    },
+
+    "divine_armor_beginner": {
+      "description": "Valhalla's Armory - Beginner difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "divine_essence",
+          "min_amount": 1000,
+          "max_amount": 1500,
+          "chance": 1.0
+        },
+        {
+          "type": "armor_fragments",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "divine_armor",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.15,
+          "rarity_distribution": {
+            "common": 0.7,
+            "rare": 0.25,
+            "epic": 0.05
+          }
+        },
+        {
+          "type": "armor_crystals",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.3
+        }
+      ]
+    },
+    "divine_armor_intermediate": {
+      "description": "Valhalla's Armory - Intermediate difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "divine_essence",
+          "min_amount": 2000,
+          "max_amount": 3000,
+          "chance": 1.0
+        },
+        {
+          "type": "armor_fragments",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "divine_armor",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.25,
+          "rarity_distribution": {
+            "common": 0.5,
+            "rare": 0.35,
+            "epic": 0.14,
+            "legendary": 0.01
+          }
+        },
+        {
+          "type": "armor_crystals",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 0.4
+        }
+      ]
+    },
+    "divine_armor_advanced": {
+      "description": "Valhalla's Armory - Advanced difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "divine_essence",
+          "min_amount": 3500,
+          "max_amount": 5000,
+          "chance": 1.0
+        },
+        {
+          "type": "armor_fragments",
+          "min_amount": 12,
+          "max_amount": 20,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "divine_armor",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.35,
+          "rarity_distribution": {
+            "rare": 0.4,
+            "epic": 0.45,
+            "legendary": 0.15
+          }
+        },
+        {
+          "type": "armor_crystals",
+          "min_amount": 3,
+          "max_amount": 8,
+          "chance": 0.6
+        }
+      ]
+    },
+
+    "divine_accessories_beginner": {
+      "description": "Oracle's Sanctum - Beginner difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "divine_essence",
+          "min_amount": 1000,
+          "max_amount": 1500,
+          "chance": 1.0
+        },
+        {
+          "type": "accessory_fragments",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "divine_accessory",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.15,
+          "rarity_distribution": {
+            "common": 0.7,
+            "rare": 0.25,
+            "epic": 0.05
+          }
+        },
+        {
+          "type": "oracle_crystals",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.3
+        }
+      ]
+    },
+    "divine_accessories_intermediate": {
+      "description": "Oracle's Sanctum - Intermediate difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "divine_essence",
+          "min_amount": 2000,
+          "max_amount": 3000,
+          "chance": 1.0
+        },
+        {
+          "type": "accessory_fragments",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "divine_accessory",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.25,
+          "rarity_distribution": {
+            "common": 0.5,
+            "rare": 0.35,
+            "epic": 0.14,
+            "legendary": 0.01
+          }
+        },
+        {
+          "type": "oracle_crystals",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 0.4
+        }
+      ]
+    },
+    "divine_accessories_advanced": {
+      "description": "Oracle's Sanctum - Advanced difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "divine_essence",
+          "min_amount": 3500,
+          "max_amount": 5000,
+          "chance": 1.0
+        },
+        {
+          "type": "accessory_fragments",
+          "min_amount": 12,
+          "max_amount": 20,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "divine_accessory",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.35,
+          "rarity_distribution": {
+            "rare": 0.4,
+            "epic": 0.45,
+            "legendary": 0.15
+          }
+        },
+        {
+          "type": "oracle_crystals",
+          "min_amount": 3,
+          "max_amount": 8,
+          "chance": 0.6
+        }
+      ]
+    },
+
+    "divine_runes_beginner": {
+      "description": "Elysian Fields - Beginner difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "divine_essence",
+          "min_amount": 1000,
+          "max_amount": 1500,
+          "chance": 1.0
+        },
+        {
+          "type": "rune_fragments",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "enhancement_rune",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.2,
+          "rarity_distribution": {
+            "common": 0.8,
+            "rare": 0.18,
+            "epic": 0.02
+          }
+        },
+        {
+          "type": "rune_crystals",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.25
+        }
+      ]
+    },
+    "divine_runes_intermediate": {
+      "description": "Elysian Fields - Intermediate difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "divine_essence",
+          "min_amount": 2000,
+          "max_amount": 3000,
+          "chance": 1.0
+        },
+        {
+          "type": "rune_fragments",
+          "min_amount": 12,
+          "max_amount": 20,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "enhancement_rune",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.3,
+          "rarity_distribution": {
+            "common": 0.6,
+            "rare": 0.3,
+            "epic": 0.09,
+            "legendary": 0.01
+          }
+        },
+        {
+          "type": "rune_crystals",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 0.35
+        }
+      ]
+    },
+    "divine_runes_advanced": {
+      "description": "Elysian Fields - Advanced difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "divine_essence",
+          "min_amount": 3500,
+          "max_amount": 5000,
+          "chance": 1.0
+        },
+        {
+          "type": "rune_fragments",
+          "min_amount": 15,
+          "max_amount": 25,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "enhancement_rune",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.4,
+          "rarity_distribution": {
+            "rare": 0.5,
+            "epic": 0.4,
+            "legendary": 0.1
+          }
+        },
+        {
+          "type": "rune_crystals",
+          "min_amount": 3,
+          "max_amount": 8,
+          "chance": 0.5
+        }
+      ]
+    },
+
+    "shadow_gear_beginner": {
+      "description": "Styx Crossing - Beginner difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "divine_essence",
+          "min_amount": 1000,
+          "max_amount": 1500,
+          "chance": 1.0
+        },
+        {
+          "type": "shadow_fragments",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "cursed_equipment",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.18,
+          "rarity_distribution": {
+            "common": 0.7,
+            "rare": 0.25,
+            "epic": 0.05
+          }
+        },
+        {
+          "type": "shadow_crystals",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.3
+        }
+      ]
+    },
+    "shadow_gear_intermediate": {
+      "description": "Styx Crossing - Intermediate difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "divine_essence",
+          "min_amount": 2000,
+          "max_amount": 3000,
+          "chance": 1.0
+        },
+        {
+          "type": "shadow_fragments",
+          "min_amount": 8,
+          "max_amount": 15,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "cursed_equipment",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.28,
+          "rarity_distribution": {
+            "common": 0.5,
+            "rare": 0.35,
+            "epic": 0.14,
+            "legendary": 0.01
+          }
+        },
+        {
+          "type": "shadow_crystals",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 0.4
+        }
+      ]
+    },
+    "shadow_gear_advanced": {
+      "description": "Styx Crossing - Advanced difficulty loot",
+      "guaranteed_drops": [
+        {
+          "type": "divine_essence",
+          "min_amount": 3500,
+          "max_amount": 5000,
+          "chance": 1.0
+        },
+        {
+          "type": "shadow_fragments",
+          "min_amount": 12,
+          "max_amount": 20,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "cursed_equipment",
+          "min_amount": 1,
+          "max_amount": 1,
+          "chance": 0.4,
+          "rarity_distribution": {
+            "rare": 0.4,
+            "epic": 0.45,
+            "legendary": 0.15
+          }
+        },
+        {
+          "type": "shadow_crystals",
+          "min_amount": 3,
+          "max_amount": 8,
+          "chance": 0.6
+        }
+      ]
+    }
+  },
+
   "experience_rewards": {
     "description": "Experience gain rates matching Summoners War",
     "victory_base_xp": 500,

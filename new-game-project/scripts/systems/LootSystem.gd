@@ -29,11 +29,22 @@ func load_loot_data():
 
 func award_loot(loot_table_name: String, stage_level: int = 1, territory_element: String = "") -> Dictionary:
 	"""Award loot from specified loot table - returns awarded items"""
-	if not loot_data.has("loot_tables") or not loot_data.loot_tables.has(loot_table_name):
+	if not loot_data.has("loot_tables") and not loot_data.has("dungeon_loot_tables"):
+		push_error("No loot tables found in loot.json")
+		return {}
+	
+	var loot_table = {}
+	
+	# Check regular loot tables first
+	if loot_data.has("loot_tables") and loot_data.loot_tables.has(loot_table_name):
+		loot_table = loot_data.loot_tables[loot_table_name]
+	# Check dungeon loot tables
+	elif loot_data.has("dungeon_loot_tables") and loot_data.dungeon_loot_tables.has(loot_table_name):
+		loot_table = loot_data.dungeon_loot_tables[loot_table_name]
+	else:
 		push_error("Loot table not found: " + loot_table_name)
 		return {}
 	
-	var loot_table = loot_data.loot_tables[loot_table_name]
 	var awarded_loot = {}
 	
 	# Process base loot (always awarded)
@@ -99,8 +110,10 @@ func _handle_element_based_loot(base_type: String, amount: int, territory_elemen
 	"""Handle element-based loot like powders"""
 	var result = {}
 	
-	# Choose random element if no territory element specified
-	var element = territory_element
+	# Use specific_element if provided (for dungeons), otherwise use territory_element
+	var element = loot_item.get("specific_element", territory_element)
+	
+	# Choose random element if no element specified
 	if element == "":
 		var elements = ["fire", "water", "earth", "lightning", "light", "dark"]
 		element = elements[randi() % elements.size()]

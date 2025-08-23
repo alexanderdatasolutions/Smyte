@@ -248,9 +248,7 @@ func refresh_territories():
 	if GameManager.territories.size() > 0:
 		for i in range(GameManager.territories.size()):
 			var territory = GameManager.territories[i]
-			print("Creating card for territory: ", territory.name)
 			create_detailed_territory_card(territory)
-		print("Finished creating territory cards")
 	else:
 		# Add a debug label if no territories found
 		var debug_label = Label.new()
@@ -671,27 +669,78 @@ func _on_attack_stage(territory, stage_number: int):
 	current_battle_stage = stage_number
 	selected_battle_gods.clear()
 	
-	# Update popup info
-	if battle_territory_info:
-		var stage_type = "GRINDING" if stage_number <= territory.current_stage else "PROGRESSION"
-		battle_territory_info.text = "%s - Stage %d/%d (%s)" % [territory.name, stage_number, territory.max_stages, stage_type]
-		
-		var power_requirement = territory.get_required_power()
-		var stage_multiplier = 1.0 + ((stage_number - 1) * 0.3)
-		var enemy_power = int(power_requirement * stage_multiplier)
-		battle_territory_info.text += "\nEnemy Power: %d" % enemy_power
-		
-		if stage_number <= territory.current_stage:
-			battle_territory_info.text += "\n🔄 GRINDING MODE - Replay for XP & Loot"
-		else:
-			battle_territory_info.text += "\n⚔️ PROGRESSION - Clear new stage!"
+	# Open BattleSetupScreen instead of old team selection popup
+	open_battle_setup_screen(territory, stage_number)
+
+func open_battle_setup_screen(territory: Territory, stage: int):
+	"""Open the universal battle setup screen for territory battles"""
+	# Load battle setup scene
+	var setup_scene = load("res://scenes/BattleSetupScreen.tscn")
+	var setup_screen = setup_scene.instantiate()
 	
-	# Populate available gods
-	populate_battle_team_list()
+	# Setup for territory battle
+	setup_screen.setup_for_territory_battle(territory, stage)
 	
-	# Show the popup
-	if battle_team_popup:
-		battle_team_popup.popup_centered()
+	# Connect signals
+	setup_screen.battle_setup_complete.connect(_on_territory_battle_setup_complete)
+	setup_screen.setup_cancelled.connect(_on_territory_battle_setup_cancelled)
+	
+	# Add to scene tree
+	get_tree().root.add_child(setup_screen)
+
+func _on_territory_battle_setup_complete(context: Dictionary):
+	"""Handle territory battle setup completion"""
+	var team = context.get("team", [])
+	var territory = context.get("territory")
+	var stage = context.get("stage", 1)
+	
+	if not territory or team.size() == 0:
+		print("Invalid battle setup - missing territory or team")
+		return
+	
+	# Remove setup screen
+	var setup_screen = get_tree().get_nodes_in_group("battle_setup")[0] if get_tree().get_nodes_in_group("battle_setup").size() > 0 else null
+	if setup_screen:
+		setup_screen.queue_free()
+	
+	# Store battle context
+	current_battle_territory = territory
+	current_battle_stage = stage
+	selected_battle_gods = team
+	
+	# Open battle screen with proper setup
+	_start_territory_battle_with_team(team)
+
+func _on_territory_battle_setup_cancelled():
+	"""Handle territory battle setup cancellation"""
+	# Remove setup screen
+	var setup_screen = get_tree().get_nodes_in_group("battle_setup")[0] if get_tree().get_nodes_in_group("battle_setup").size() > 0 else null
+	if setup_screen:
+		setup_screen.queue_free()
+	
+	# Clear battle context
+	current_battle_territory = null
+	current_battle_stage = 1
+	selected_battle_gods.clear()
+
+func _start_territory_battle_with_team(team: Array):
+	"""Start the actual territory battle with selected team"""
+	# Load and open the battle screen
+	var battle_screen_scene = preload("res://scenes/BattleScreen.tscn")
+	var battle_screen = battle_screen_scene.instantiate()
+	
+	# Add to scene tree root instead of current_scene (fixes gray screen issue)
+	get_tree().root.add_child(battle_screen)
+	
+	# Hide territory screen
+	visible = false
+	
+	# Connect back button
+	if battle_screen.has_signal("back_pressed"):
+		battle_screen.back_pressed.connect(_on_battle_screen_back.bind(battle_screen))
+	
+	# Set up the battle screen for territory stage battle
+	battle_screen.setup_territory_stage_battle(current_battle_territory, current_battle_stage, team)
 
 func create_nine_patch_panel() -> Panel:
 	var panel = Panel.new()

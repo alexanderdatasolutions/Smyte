@@ -34,6 +34,9 @@ static func _get_stat(unit, stat_name: String, default_value: Variant = 0):
 @onready var battle_status_label = $MainContainer/BottomContainer/BattleStatusLabel
 @onready var back_button = $MainContainer/BottomContainer/ButtonContainer/BackButton
 
+# Wave display
+var wave_indicator: Label = null
+
 # Auto-battle and speed control UI (from scene)
 @onready var auto_battle_button = $MainContainer/BottomContainer/ButtonContainer/AutoButton
 @onready var speed_1x_button = $MainContainer/BottomContainer/ButtonContainer/SpeedControlContainer/Speed1xButton
@@ -51,6 +54,11 @@ var max_log_lines: int = 50
 var selected_gods: Array = []
 var current_territory: Territory = null
 var current_battle_stage: int = 1
+var current_battle_type: String = ""
+
+# Dungeon battle context
+var current_dungeon_id: String = ""
+var current_dungeon_difficulty: String = ""
 
 # Current action state
 var current_god: God = null
@@ -70,9 +78,52 @@ var tooltip_label: RichTextLabel = null
 var tooltip_timer: Timer = null
 var current_tooltip_button: Button = null
 
+# Battle completion tracking
+var battle_completed: bool = false
+
 func _ready():
+	print("=== BattleScreen: _ready called ===")
+	print("=== DEBUG: Instance ID: %s ===" % get_instance_id())
+	print("=== DEBUG: Scene file path: %s ===" % get_scene_file_path())
+	print("player_team_container: %s" % player_team_container)
+	print("enemy_team_container: %s" % enemy_team_container)
+	
+	# DEBUG: Check if there are already existing children
+	if player_team_container:
+		print("=== DEBUG: player_team_container already has %d children ===" % player_team_container.get_child_count())
+		for i in range(player_team_container.get_child_count()):
+			var child = player_team_container.get_child(i)
+			print("  - Child %d: %s (Instance: %s)" % [i, child.name, child.get_instance_id()])
+	
+	if enemy_team_container:
+		print("=== DEBUG: enemy_team_container already has %d children ===" % enemy_team_container.get_child_count())
+		for i in range(enemy_team_container.get_child_count()):
+			var child = enemy_team_container.get_child(i)
+			print("  - Child %d: %s (Instance: %s)" % [i, child.name, child.get_instance_id()])
+	
+	# Prevent multiple initialization
+	if has_meta("initialized"):
+		print("WARNING: BattleScreen already initialized, skipping")
+		return
+	set_meta("initialized", true)
+	
+	if not player_team_container:
+		print("ERROR: player_team_container is null in _ready()!")
+	
+	if not enemy_team_container:
+		print("ERROR: enemy_team_container is null in _ready()!")
+	
 	_setup_ui()
 	_connect_battle_system()
+	
+	# Mark as ready so setup_dungeon_battle knows it can proceed
+	set_meta("ready_complete", true)
+	
+	# If setup_dungeon_battle was called before ready, call it now
+	if has_meta("pending_dungeon_setup"):
+		var setup_data = get_meta("pending_dungeon_setup")
+		print("=== BattleScreen: Executing pending dungeon setup ===")
+		call_deferred("_execute_pending_setup", setup_data)
 
 func _setup_ui():
 	"""Setup UI - no timers, no complexity"""
@@ -82,22 +133,36 @@ func _setup_ui():
 	# Connect existing auto-battle and speed control buttons
 	_connect_auto_battle_buttons()
 	
-	# Create action buttons container
-	var bottom_container = $MainContainer/BottomContainer/ButtonContainer
-	if bottom_container:
-		action_buttons_container = HBoxContainer.new()
-		action_buttons_container.add_theme_constant_override("separation", 10)
-		action_buttons_container.visible = false
-		bottom_container.add_child(action_buttons_container)
+	# Create action buttons container ONLY if it doesn't exist
+	if not action_buttons_container:
+		var bottom_container = $MainContainer/BottomContainer/ButtonContainer
+		if bottom_container:
+			action_buttons_container = HBoxContainer.new()
+			action_buttons_container.add_theme_constant_override("separation", 10)
+			action_buttons_container.visible = false
+			bottom_container.add_child(action_buttons_container)
+			print("=== BattleScreen: Created new action_buttons_container ===")
+		else:
+			print("ERROR: bottom_container not found!")
+	else:
+		print("=== BattleScreen: action_buttons_container already exists, reusing ===")
 	
 	# Create ability tooltip
 	_create_ability_tooltip()
 	
 	# Create battle log
 	_create_battle_log()
+	
+	# Create wave indicator
+	_create_wave_indicator()
 
 func _create_ability_tooltip():
 	"""Create floating tooltip for abilities"""
+	# Don't create if already exists
+	if ability_tooltip:
+		print("=== BattleScreen: ability_tooltip already exists, reusing ===")
+		return
+		
 	ability_tooltip = PanelContainer.new()
 	ability_tooltip.visible = false
 	ability_tooltip.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -145,6 +210,11 @@ func _create_ability_tooltip():
 
 func _create_battle_log():
 	"""Create a battle log display"""
+	# Don't create if already exists
+	if battle_log_panel:
+		print("=== BattleScreen: battle_log_panel already exists, reusing ===")
+		return
+		
 	# Find a good place to put the battle log - next to the battle arena
 	var main_container = $MainContainer
 	var battle_arena = $MainContainer/BattleArenaContainer
@@ -207,6 +277,27 @@ func _connect_auto_battle_buttons():
 	if speed_3x_button:
 		speed_3x_button.pressed.connect(_on_speed_3x_pressed)
 
+func _create_wave_indicator():
+	"""Create wave indicator display"""
+	if wave_indicator:
+		return  # Already exists
+	
+	# Create wave indicator near the battle title
+	wave_indicator = Label.new()
+	wave_indicator.text = ""
+	wave_indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	wave_indicator.add_theme_font_size_override("font_size", 14)
+	wave_indicator.add_theme_color_override("font_color", Color.CYAN)
+	wave_indicator.visible = false
+	
+	# Add to the header container if available
+	var header_container = get_node_or_null("MainContainer/HeaderContainer")
+	if header_container:
+		header_container.add_child(wave_indicator)
+	else:
+		# Fallback - add to main container
+		add_child(wave_indicator)
+
 func _add_battle_log_line(message: String):
 	"""Add a line to the battle log"""
 	if not battle_log_text:
@@ -260,30 +351,121 @@ func _connect_battle_system():
 		print("=== BattleScreen: Set battle_screen reference ===")
 	else:
 		print("ERROR: BattleScreen: GameManager or battle_system not found!")
+	
+	# Connect to wave system
+	if GameManager and GameManager.get_wave_system():
+		var wave_system = GameManager.get_wave_system()
+		if not wave_system.wave_started.is_connected(_on_wave_started):
+			wave_system.wave_started.connect(_on_wave_started)
+		if not wave_system.wave_completed.is_connected(_on_wave_completed):
+			wave_system.wave_completed.connect(_on_wave_completed)
+		if not wave_system.wave_rewards_awarded.is_connected(_on_wave_rewards_awarded):
+			wave_system.wave_rewards_awarded.connect(_on_wave_rewards_awarded)
+		if not wave_system.all_waves_completed.is_connected(_on_all_waves_completed):
+			wave_system.all_waves_completed.connect(_on_all_waves_completed)
 
 func setup_territory_stage_battle(territory: Territory, stage: int, battle_gods: Array):
-	"""Setup battle instantly"""
-	print("Setting up instant battle: %s Stage %d" % [territory.name, stage])
+	"""Setup territory battle using the unified battle context system"""
+	print("=== BattleScreen: Setting up territory battle using unified system ===")
+	
+	# Create unified battle context (same pattern as dungeons)
+	var territory_context = {
+		"type": "territory",
+		"territory": territory,
+		"territory_name": territory.name,
+		"stage": stage,
+		"team": battle_gods,
+		"title": "%s - Stage %d" % [territory.name, stage],
+		"description": "Conquer Stage %d of %s territory" % [stage, territory.name]
+	}
+	
+	# Use the same unified setup method as dungeons
+	setup_battle_from_context(territory_context)
+
+func setup_dungeon_battle(dungeon_id: String, difficulty: String, battle_gods: Array):
+	"""Setup battle for dungeon challenges"""
+	print("=== BattleScreen: setup_dungeon_battle called: %s (%s) with %d gods ===" % [dungeon_id, difficulty, battle_gods.size()])
+	
+	# Check if _ready() has completed
+	if not has_meta("ready_complete"):
+		print("BattleScreen not ready yet, storing setup data for later...")
+		set_meta("pending_dungeon_setup", {
+			"dungeon_id": dungeon_id,
+			"difficulty": difficulty,
+			"battle_gods": battle_gods
+		})
+		return
+	
+	_execute_dungeon_setup(dungeon_id, difficulty, battle_gods)
+
+func _execute_pending_setup(setup_data: Dictionary):
+	"""Execute the pending dungeon setup"""
+	_execute_dungeon_setup(setup_data.dungeon_id, setup_data.difficulty, setup_data.battle_gods)
+
+func _execute_dungeon_setup(dungeon_id: String, difficulty: String, battle_gods: Array):
+	"""Actually execute the dungeon setup"""
+	print("=== BattleScreen: _execute_dungeon_setup called ===")
 	
 	# Ensure connection is established
 	_connect_battle_system()
 	
-	# Reset auto-battle when entering a new territory (but keep it for same territory stage progression)
-	var is_new_territory = (current_territory != territory)
-	
-	current_territory = territory
-	current_battle_stage = stage
+	# Setup dungeon context
+	current_territory = null  # No territory for dungeons
+	current_battle_stage = 1
 	selected_gods = battle_gods.duplicate()
+	current_battle_type = "dungeon"
 	
-	# Reset auto-battle for new territories (but keep it for same territory stage progression)
-	if GameManager.battle_system and is_new_territory:
-		GameManager.battle_system.auto_battle_enabled = false
+	# Store dungeon context for completion tracking
+	current_dungeon_id = dungeon_id
+	current_dungeon_difficulty = difficulty
 	
-	# Update header
+	print("Selected gods: %s" % selected_gods)
+	
+	# Enable auto-battle by default for dungeons
+	if GameManager.battle_system:
+		GameManager.battle_system.auto_battle_enabled = true
+		
+		# Set the team in the battle manager BEFORE starting waves
+		GameManager.battle_system.current_battle_gods = selected_gods.duplicate()
+		
+		print("Battle system found - team set: %d gods" % GameManager.battle_system.current_battle_gods.size())
+	else:
+		print("ERROR: No battle system found")
+	
+	# Start wave system for dungeon
+	var wave_system = GameManager.get_wave_system()
+	if wave_system:
+		print("=== BattleScreen: Setting up wave system for %s (%s) ===" % [dungeon_id, difficulty])
+		
+		# Setup waves first
+		var wave_setup_success = wave_system.setup_waves_for_dungeon(dungeon_id, difficulty)
+		if not wave_setup_success:
+			print("ERROR: Failed to setup waves for dungeon")
+		else:
+			# Start the wave battle sequence
+			var wave_start_success = wave_system.start_wave_battle_sequence()
+			if not wave_start_success:
+				print("ERROR: Failed to start wave battle sequence")
+			else:
+				print("=== Wave system started successfully for %s ===" % dungeon_id)
+	else:
+		print("ERROR: No wave system found")
+	
+	# Update header for dungeon
 	if battle_title_label:
-		battle_title_label.text = "%s - Stage %d" % [territory.name, stage]
+		var dungeon_system = GameManager.get_dungeon_system()
+		var display_name = dungeon_id.capitalize().replace("_", " ")
+		if dungeon_system:
+			var dungeon_info = dungeon_system.get_dungeon_info(dungeon_id)
+			display_name = dungeon_info.get("name", display_name)
+		battle_title_label.text = "%s - %s" % [display_name, difficulty.capitalize()]
 	
-	# Create displays immediately
+	# Update back button text for dungeons
+	if back_button:
+		back_button.text = "← Back to Dungeons"
+	
+	# Create displays immediately since we know we're ready
+	print("=== BattleScreen: Creating displays immediately ===")
 	_create_god_displays()
 	_create_enemy_displays()
 	
@@ -293,50 +475,409 @@ func setup_territory_stage_battle(territory: Territory, stage: int, battle_gods:
 	# Update speed button state
 	_update_speed_buttons()
 	
-	# Start battle immediately - no delays
-	GameManager.battle_system.start_territory_assault(selected_gods, current_territory, current_battle_stage)
+	# Battle should already be started by DungeonSystem, just ensure UI is ready
+	print("=== BattleScreen: Dungeon battle setup complete ===")
+
+func _force_create_displays_backup():
+	"""Backup method to force create displays if the first attempt failed"""
+	print("=== BattleScreen: Backup display creation triggered ===")
+	
+	if god_displays.size() == 0 or enemy_displays.size() == 0:
+		print("Displays are still empty, forcing recreation...")
+		
+		# Force find containers
+		if not player_team_container or not enemy_team_container:
+			_find_and_assign_containers()
+		
+		# Try creating displays again
+		if player_team_container and selected_gods.size() > 0:
+			_create_god_displays()
+		
+		if enemy_team_container and GameManager.battle_system:
+			_create_enemy_displays()
+	else:
+		print("Displays already created, backup not needed")
+
+func _find_and_assign_containers():
+	"""Find and assign the team containers by searching the scene tree"""
+	print("=== Searching for containers in scene tree ===")
+	
+	# Print the actual scene structure first
+	print("Scene structure from root:")
+	_print_scene_structure(self, 0)
+	
+	# Try common paths first
+	var player_paths = [
+		"MainContainer/BattleArenaContainer/PlayerTeamSide/PlayerTeamContainer",
+		"MainContainer/BattleArenaContainer/PlayerTeamContainer",
+		"BattleArenaContainer/PlayerTeamContainer",
+		"PlayerTeamContainer"
+	]
+	
+	var enemy_paths = [
+		"MainContainer/BattleArenaContainer/EnemyTeamSide/EnemyTeamContainer",
+		"MainContainer/BattleArenaContainer/EnemyTeamContainer", 
+		"BattleArenaContainer/EnemyTeamContainer",
+		"EnemyTeamContainer"
+	]
+	
+	# Try player container paths
+	for path in player_paths:
+		var container = get_node_or_null(path)
+		if container:
+			print("Found player container at path: %s" % path)
+			player_team_container = container
+			break
+	
+	# Try enemy container paths  
+	for path in enemy_paths:
+		var container = get_node_or_null(path)
+		if container:
+			print("Found enemy container at path: %s" % path)
+			enemy_team_container = container
+			break
+	
+	# If still not found, search recursively
+	if not player_team_container or not enemy_team_container:
+		var all_children = _get_all_children(self)
+		
+		for child in all_children:
+			var name_lower = child.name.to_lower()
+			if not player_team_container and (name_lower.contains("player") and name_lower.contains("team")):
+				print("Found potential player container: %s" % child.name)
+				player_team_container = child
+			elif not enemy_team_container and (name_lower.contains("enemy") and name_lower.contains("team")):
+				print("Found potential enemy container: %s" % child.name)
+				enemy_team_container = child
+
+func _print_scene_structure(node: Node, depth: int):
+	"""Print the scene structure for debugging"""
+	var indent = ""
+	for i in range(depth):
+		indent += "  "
+	
+	print("%s%s (%s)" % [indent, node.name, node.get_class()])
+	
+	if depth < 3:  # Limit depth to avoid spam
+		for child in node.get_children():
+			_print_scene_structure(child, depth + 1)
+
+func _get_all_children(node: Node) -> Array:
+	"""Get all children recursively"""
+	var children = []
+	for child in node.get_children():
+		children.append(child)
+		children.append_array(_get_all_children(child))
+	return children
+
+func setup_battle_from_context(context: Dictionary):
+	"""Setup battle fresh from BattleSetupScreen context - CLEAN APPROACH"""
+	print("=== BattleScreen: setup_battle_from_context called ===")
+	print("Context: %s" % context)
+	
+	# COMPLETE RESET to prevent any layering issues
+	_complete_ui_reset()
+	
+	# Reset battle completion flag
+	battle_completed = false
+	
+	# Extract data from context
+	var battle_type = context.get("type", "dungeon")
+	var team = context.get("team", [])
+	var dungeon_id = context.get("dungeon_id", "")
+	var difficulty = context.get("difficulty", "")
+	var dungeon_info = context.get("dungeon_info", {})
+	var territory = context.get("territory")
+	var stage = context.get("stage", 1)
+	
+	if team.size() == 0:
+		print("ERROR: No team provided in context")
+		return
+	
+	# Set up basic battle data
+	selected_gods = team.duplicate()
+	current_battle_type = battle_type
+	
+	# Store context based on battle type
+	if battle_type == "dungeon":
+		current_dungeon_id = dungeon_id
+		current_dungeon_difficulty = difficulty
+	elif battle_type == "territory":
+		current_territory = territory
+		current_battle_stage = stage
+	
+	# Set team in battle manager FIRST (required for wave system)
+	if GameManager and GameManager.battle_system:
+		GameManager.battle_system.current_battle_gods = team.duplicate()
+		print("Battle system team set: %d gods" % team.size())
+		
+		# CRITICAL: Set territory info in BattleManager so GameManager can track progress
+		if battle_type == "territory" and territory:
+			GameManager.battle_system.current_battle_territory = territory
+			GameManager.battle_system.current_battle_stage = stage
+			print("=== BattleManager: Set territory %s stage %d ===" % [territory.name, stage])
+		elif battle_type == "dungeon":
+			GameManager.battle_system.current_battle_territory = null
+			GameManager.battle_system.current_battle_stage = 1
+	else:
+		print("ERROR: No GameManager or battle_system found")
+		return
+	
+	# Setup wave system for all battle types (unified approach)
+	var wave_system = GameManager.get_wave_system()
+	if wave_system:
+		print("=== Setting up wave system for %s battle ===" % battle_type)
+		
+		var wave_setup_success = false
+		if battle_type == "dungeon":
+			wave_setup_success = wave_system.setup_waves_for_dungeon(dungeon_id, difficulty)
+		elif battle_type == "territory":
+			wave_setup_success = wave_system.setup_waves_for_territory(territory, stage)
+		
+		if wave_setup_success:
+			# Start the wave battle sequence
+			var wave_start_success = wave_system.start_wave_battle_sequence()
+			if not wave_start_success:
+				print("ERROR: Failed to start wave battle sequence")
+				return
+			else:
+				print("=== Wave system started successfully ===")
+		else:
+			print("ERROR: Failed to setup waves for %s" % battle_type)
+			return
+	else:
+		print("ERROR: No wave system found")
+		return
+	
+	# Update UI based on battle type
+	if battle_title_label:
+		if battle_type == "dungeon":
+			var display_name = dungeon_info.get("name", dungeon_id.capitalize().replace("_", " "))
+			battle_title_label.text = "%s - %s" % [display_name, difficulty.capitalize()]
+		elif battle_type == "territory":
+			battle_title_label.text = "%s - Stage %d" % [territory.name, stage]
+	
+	if back_button:
+		if battle_type == "dungeon":
+			back_button.text = "← Back to Dungeons"
+		elif battle_type == "territory":
+			back_button.text = "← Back to Territories"
+	
+	# Create displays after wave system is set up
+	_create_god_displays()
+	_create_enemy_displays()
+	
+	# Update UI buttons
+	_update_auto_battle_button()
+	_update_speed_buttons()
+	
+	print("=== BattleScreen: Unified battle setup complete ===")
+
+func _complete_ui_reset():
+	"""Complete UI reset to prevent any layering or duplicate issues"""
+	print("=== BattleScreen: Performing complete UI reset ===")
+	print("=== DEBUG: Instance ID: %s ===" % get_instance_id())
+	
+	# Clear all displays
+	print("=== DEBUG: Clearing displays - god_displays: %d, enemy_displays: %d ===" % [god_displays.size(), enemy_displays.size()])
+	god_displays.clear()
+	enemy_displays.clear()
+	selected_gods.clear()
+	
+	# IMMEDIATELY destroy and recreate containers to ensure clean slate
+	if player_team_container:
+		print("=== DEBUG: player_team_container exists with %d children ===" % player_team_container.get_child_count())
+		for i in range(player_team_container.get_child_count()):
+			var child = player_team_container.get_child(i)
+			print("  - DEBUG: About to free child %d: %s (Instance: %s)" % [i, child.name, child.get_instance_id()])
+		
+		var parent = player_team_container.get_parent()
+		var position_in_parent = player_team_container.get_index()
+		print("=== DEBUG: player_team_container parent: %s, position: %d ===" % [parent.name if parent else "null", position_in_parent])
+		
+		# Remove from scene tree first, then queue_free
+		parent.remove_child(player_team_container)
+		player_team_container.queue_free()
+		print("=== DEBUG: Removed and queued player_team_container for deletion ===")
+		
+		# Create new container immediately
+		var new_container = VBoxContainer.new()
+		new_container.name = "PlayerTeamContainer"
+		parent.add_child(new_container)
+		parent.move_child(new_container, position_in_parent)
+		player_team_container = new_container
+		print("=== DEBUG: Created new player_team_container (Instance: %s) ===" % new_container.get_instance_id())
+	else:
+		print("=== DEBUG: player_team_container is null ===")
+	
+	if enemy_team_container:
+		print("=== DEBUG: enemy_team_container exists with %d children ===" % enemy_team_container.get_child_count())
+		for i in range(enemy_team_container.get_child_count()):
+			var child = enemy_team_container.get_child(i)
+			print("  - DEBUG: About to free child %d: %s (Instance: %s)" % [i, child.name, child.get_instance_id()])
+		
+		var parent = enemy_team_container.get_parent()
+		var position_in_parent = enemy_team_container.get_index()
+		print("=== DEBUG: enemy_team_container parent: %s, position: %d ===" % [parent.name if parent else "null", position_in_parent])
+		
+		# Remove from scene tree first, then queue_free
+		parent.remove_child(enemy_team_container)
+		enemy_team_container.queue_free()
+		print("=== DEBUG: Removed and queued enemy_team_container for deletion ===")
+		
+		# Create new container immediately
+		var new_container = VBoxContainer.new()
+		new_container.name = "EnemyTeamContainer"
+		parent.add_child(new_container)
+		parent.move_child(new_container, position_in_parent)
+		enemy_team_container = new_container
+		print("=== DEBUG: Created new enemy_team_container (Instance: %s) ===" % new_container.get_instance_id())
+	else:
+		print("=== DEBUG: enemy_team_container is null ===")
+	
+	# Recreate action buttons container
+	if action_buttons_container:
+		print("=== DEBUG: action_buttons_container exists with %d children ===" % action_buttons_container.get_child_count())
+		for i in range(action_buttons_container.get_child_count()):
+			var child = action_buttons_container.get_child(i)
+			print("  - DEBUG: About to free child %d: %s (Instance: %s)" % [i, child.name, child.get_instance_id()])
+		
+		var parent = action_buttons_container.get_parent()
+		# Remove from scene tree first, then queue_free
+		parent.remove_child(action_buttons_container)
+		action_buttons_container.queue_free()
+		print("=== DEBUG: Removed and queued action_buttons_container for deletion ===")
+		
+		# Create new container immediately
+		action_buttons_container = HBoxContainer.new()
+		action_buttons_container.add_theme_constant_override("separation", 10)
+		action_buttons_container.visible = false
+		parent.add_child(action_buttons_container)
+		print("=== DEBUG: Created new action_buttons_container (Instance: %s) ===" % action_buttons_container.get_instance_id())
+	else:
+		print("=== DEBUG: action_buttons_container is null ===")
+	
+	# Clear labels
+	if action_label:
+		action_label.text = ""
+	if battle_status_label:
+		battle_status_label.text = ""
+	if turn_indicator:
+		turn_indicator.text = ""
+	if battle_title_label:
+		battle_title_label.text = ""
+	
+	# Clear state
+	current_god = null
+	current_battle_type = ""
+	current_territory = null
+	current_battle_stage = 1
+	waiting_for_target = false
+	selected_ability.clear()
+	
+	print("=== BattleScreen: UI reset complete ===")
+	print("=== DEBUG: After reset - player_team_container children: %d, enemy_team_container children: %d ===" % [
+		player_team_container.get_child_count() if player_team_container else -1,
+		enemy_team_container.get_child_count() if enemy_team_container else -1
+	])
 
 func _create_god_displays():
 	"""Create god displays instantly"""
-	# Clear existing
-	if player_team_container:
-		for child in player_team_container.get_children():
-			child.queue_free()
+	print("=== BattleScreen: _create_god_displays called ===")
+	print("player_team_container: %s" % player_team_container)
+	print("selected_gods count: %d" % selected_gods.size())
+	
+	if not player_team_container:
+		print("ERROR: player_team_container is null, cannot create god displays")
+		return
+	
+	if selected_gods.size() == 0:
+		print("WARNING: No selected gods to display")
+		return
+	
+	# Clear existing IMMEDIATELY to prevent layering
+	for child in player_team_container.get_children():
+		print("Removing existing child: %s" % child.name)
+		player_team_container.remove_child(child)
+		child.queue_free()
 	god_displays.clear()
 	
 	# Create new displays
-	for god in selected_gods:
+	for i in range(selected_gods.size()):
+		var god = selected_gods[i]
+		print("Creating display for god %d: %s (ID: %s)" % [i, god.get_display_name(), god.id])
 		var display = _create_god_display(god)
-		player_team_container.add_child(display)
-		god_displays[god.id] = display
+		if display:
+			player_team_container.add_child(display)
+			god_displays[god.id] = display
+			print("Successfully added god display for %s" % god.id)
+		else:
+			print("ERROR: Failed to create display for god %s" % god.id)
+	
+	print("=== God displays creation complete ===")
+	print("Created %d god displays, total in dictionary: %d" % [player_team_container.get_child_count(), god_displays.size()])
+	print("God display keys: " + str(god_displays.keys()))
 
 func _create_enemy_displays():
 	"""Create enemy displays instantly"""
-	# Wait one frame for battle system to create enemies
-	await get_tree().process_frame
+	print("=== BattleScreen: _create_enemy_displays called ===")
+	print("enemy_team_container: %s" % enemy_team_container)
 	
 	if not GameManager.battle_system:
+		print("ERROR: No battle system found")
+		return
+		
+	if not enemy_team_container:
+		print("ERROR: enemy_team_container is null, cannot create enemy displays")
 		return
 	
 	var enemies = GameManager.battle_system.current_battle_enemies
+	print("Battle system has %d enemies" % enemies.size())
 	
-	# Clear existing
-	if enemy_team_container:
-		for child in enemy_team_container.get_children():
-			child.queue_free()
+	if enemies.size() == 0:
+		print("WARNING: No enemies to display - not emitting signal")
+		return
+	
+	# Clear existing IMMEDIATELY to prevent layering
+	for child in enemy_team_container.get_children():
+		print("Removing existing enemy child: %s" % child.name)
+		enemy_team_container.remove_child(child)
+		child.queue_free()
 	enemy_displays.clear()
 	
 	# Create displays
 	for i in range(enemies.size()):
 		var enemy = enemies[i]
+		var enemy_name = enemy.get("name", "Unknown")
+		var battle_index = enemy.get("battle_index", i)
+		
+		print("Creating display for enemy %d: %s (battle_index: %s)" % [i, enemy_name, battle_index])
 		var display = _create_enemy_display(enemy, i)
-		enemy_team_container.add_child(display)
-		enemy_displays[i] = display
+		
+		if display:
+			enemy_team_container.add_child(display)
+			# Store using battle_index if available, otherwise use array index
+			enemy_displays[battle_index] = display
+			print("Successfully added enemy display at key %s for %s" % [battle_index, enemy_name])
+		else:
+			print("ERROR: Failed to create display for enemy %s" % enemy_name)
+	
+	print("=== Enemy displays creation complete ===")
+	print("Created %d enemy displays, total in dictionary: %d" % [enemy_team_container.get_child_count(), enemy_displays.size()])
+	print("Enemy display keys: " + str(enemy_displays.keys()))
+	
+	# Update status effects for all enemies after displays are created
+	for i in range(enemies.size()):
+		var enemy = enemies[i]
+		if enemy.has("status_effects") and enemy.status_effects.size() > 0:
+			_update_enemy_status_effect_display(enemy_displays[enemy.get("battle_index", i)], enemy)
 
 func _create_god_display(god: God) -> Control:
 	"""Create enhanced god display matching enemy style"""
+	print("=== DEBUG: Creating god display for: %s ===" % god.name)
 	var container = VBoxContainer.new()
 	container.custom_minimum_size = Vector2(150, 100)
+	print("=== DEBUG: Created god display container with instance ID: %s ===" % container.get_instance_id())
 	
 	# Main clickable button - same style as enemies but blue
 	var main_button = Button.new()
@@ -408,6 +949,7 @@ func _create_god_display(god: God) -> Control:
 	level_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content.add_child(level_label)
 	
+	print("=== DEBUG: God display created with %d total children ===" % container.get_child_count())
 	return container
 
 func _create_enemy_display(enemy: Dictionary, _index: int) -> Control:
@@ -485,7 +1027,15 @@ func _create_enemy_display(enemy: Dictionary, _index: int) -> Control:
 	
 	# Level with element color
 	var level_label = Label.new()
-	var element_color = _get_element_color_for_battle(enemy.get("element", ""))
+	var element = enemy.get("element", "")
+	var element_string = ""
+	if element is int:
+		element_string = DataLoader.element_int_to_string(element)
+	elif element is String:
+		element_string = element
+	else:
+		element_string = "fire"  # Default fallback
+	var element_color = _get_element_color_for_battle(element_string)
 	level_label.text = "Lv.%d" % enemy.level
 	level_label.add_theme_font_size_override("font_size", 10)
 	level_label.add_theme_color_override("font_color", element_color)
@@ -557,11 +1107,29 @@ func _show_action_buttons(god: God):
 		print("ERROR: action_buttons_container is null!")
 		return
 	
-	# Clear existing buttons
-	print("=== BattleScreen: Clearing %d existing buttons ===" % action_buttons_container.get_child_count())
-	for child in action_buttons_container.get_children():
-		action_buttons_container.remove_child(child)
+	# NUCLEAR OPTION: Remove ALL HBoxContainers from parent to prevent accumulation
+	var parent = action_buttons_container.get_parent()
+	print("=== DEBUG: Parent has %d children before cleanup ===" % parent.get_child_count())
+	
+	# Remove ALL HBoxContainer children from parent (in case multiple accumulated)
+	var children_to_remove = []
+	for child in parent.get_children():
+		if child is HBoxContainer:
+			print("=== DEBUG: Found HBoxContainer to remove: %s ===" % child.get_instance_id())
+			children_to_remove.append(child)
+	
+	for child in children_to_remove:
+		parent.remove_child(child)
 		child.queue_free()
+	
+	print("=== DEBUG: Removed %d HBoxContainers from parent ===" % children_to_remove.size())
+	print("=== DEBUG: Parent now has %d children ===" % parent.get_child_count())
+	
+	# Create completely new container
+	action_buttons_container = HBoxContainer.new()
+	action_buttons_container.add_theme_constant_override("separation", 10)
+	parent.add_child(action_buttons_container)
+	print("=== BattleScreen: Created fresh action_buttons_container ===")
 	
 	# Basic Attack button
 	print("=== BattleScreen: Creating attack button ===")
@@ -1130,6 +1698,9 @@ func _hide_tooltip():
 
 func update_god_hp_instantly(god: God):
 	"""Update god HP display INSTANTLY with new enhanced structure"""
+	print("=== BattleScreen: Updating HP for god %s (ID: %s) ===" % [god.name, god.id])
+	print("Available god display keys: " + str(god_displays.keys()))
+	
 	if god_displays.has(god.id):
 		var display = god_displays[god.id]
 		var main_button = display.get_child(0)  # The main button
@@ -1156,13 +1727,24 @@ func update_god_hp_instantly(god: God):
 		
 		print("Updated god %s HP display: %s" % [god.name, hp_label.text])
 	else:
-		print("No display found for god %s" % god.name)
+		print("No display found for god %s (ID: %s)" % [god.name, god.id])
+		print("Trying alternative lookup methods...")
+		
+		# Try to find by name
+		for key in god_displays.keys():
+			if str(key).to_lower().contains(god.name.to_lower()):
+				print("Found potential match by name: key=%s" % key)
+		
+		# If displays exist but key doesn't match, try to recreate displays
+		if god_displays.size() > 0:
+			print("Displays exist but god ID not found - potential key mismatch")
 
 func update_enemy_hp_instantly(enemy: Dictionary):
 	"""Update enemy HP display INSTANTLY - UNIFIED APPROACH"""
 	var current_hp = _get_stat(enemy, "current_hp", 0)
 	var max_hp = _get_stat(enemy, "max_hp", 100)
-	print("Updating enemy HP: %s - %d/%d" % [_get_stat(enemy, "name", "Unknown"), current_hp, max_hp])
+	print("=== BattleScreen: Updating enemy HP: %s - %d/%d ===" % [_get_stat(enemy, "name", "Unknown"), current_hp, max_hp])
+	print("Available enemy display keys: " + str(enemy_displays.keys()))
 	
 	# Find the correct enemy by matching the exact enemy reference in battle system
 	if not GameManager.battle_system:
@@ -1229,23 +1811,78 @@ func update_enemy_hp_instantly(enemy: Dictionary):
 		print("Updated enemy %d HP display: %s" % [enemy_index, hp_label.text])
 	else:
 		print("No display found for enemy index %d" % enemy_index)
+		print("Trying alternative lookup methods...")
+		
+		# Try all keys to find a match
+		for key in enemy_displays.keys():
+			print("Enemy display key: %s (type: %s)" % [key, typeof(key)])
+			
+		# If displays exist but index doesn't match, try to recreate displays
+		if enemy_displays.size() > 0:
+			print("Displays exist but enemy index not found - potential key mismatch")
 
 func _on_battle_completed(result):
 	"""Handle battle completion with proper victory UI"""
+	# Prevent duplicate processing
+	if battle_completed:
+		print("WARNING: Battle completion already processed, ignoring duplicate call")
+		return
+	
+	battle_completed = true
 	print("Battle completed: %s" % ("VICTORY" if result == 0 else "DEFEAT"))
 	
 	var result_text = "VICTORY!" if result == 0 else "DEFEAT!"
 	var result_color = Color.GREEN if result == 0 else Color.RED
 	
-	# Add territory progress info for victories
-	if result == 0 and current_territory:
-		if current_territory.is_unlocked and current_territory.current_stage >= current_territory.max_stages:
-			result_text = "TERRITORY UNLOCKED!\n%s Conquered!" % current_territory.name
-			result_color = Color.GOLD
-		else:
-			result_text = "STAGE %d CLEARED!\nProgress: %d/%d" % [current_battle_stage, current_territory.current_stage, current_territory.max_stages]
+	# Handle dungeon completion - but only if not in wave system
+	var wave_system = GameManager.get_wave_system()
+	var is_wave_battle = wave_system and wave_system.total_waves > 1
 	
-	# Only show in battle_status_label (main display)
+	if current_battle_type == "dungeon" and result == 0 and not is_wave_battle:
+		print("=== BattleScreen: Processing single-battle dungeon completion: %s (%s) ===" % [current_dungeon_id, current_dungeon_difficulty])
+		
+		if current_dungeon_id != "" and current_dungeon_difficulty != "":
+			var dungeon_system = GameManager.get_dungeon_system()
+			if dungeon_system:
+				# Award rewards and update progress
+				var rewards = dungeon_system.award_dungeon_rewards(current_dungeon_id, current_dungeon_difficulty)
+				dungeon_system.update_dungeon_progress(current_dungeon_id, current_dungeon_difficulty)
+				
+				# Store completed dungeon for UI refresh
+				if GameManager:
+					GameManager.set_meta("last_dungeon_completed", current_dungeon_id)
+				
+				# Save progress
+				if GameManager:
+					GameManager.save_game()
+				
+				# Show loot collection window instead of just text
+				_hide_action_buttons()
+				_show_loot_collection_window(rewards)
+				return
+	elif current_battle_type == "dungeon" and result == 0 and is_wave_battle:
+		print("=== BattleScreen: Wave battle in progress, letting WaveSystem handle progression ===")
+		# Let wave system handle the flow
+	
+	# Handle single territory battles (non-wave)
+	elif result == 0 and current_territory and not is_wave_battle:
+		# Award territory rewards for single battle
+		var territory_rewards = {}
+		if current_battle_stage <= 3:
+			territory_rewards = {"experience": 100, "territory_tokens": 5}
+		elif current_battle_stage <= 7:
+			territory_rewards = {"experience": 150, "territory_tokens": 8, "essence": 15}
+		else:
+			territory_rewards = {"experience": 200, "territory_tokens": 12, "essence": 25, "crystals": 3}
+		
+		# Territory progress is automatically handled by GameManager._on_battle_completed()
+		# via territory.clear_stage() when the battle system reports victory
+		
+		_hide_action_buttons()
+		_show_loot_collection_window(territory_rewards)
+		return
+	
+	# Only show in battle_status_label (main display) for defeats or non-victory cases
 	if battle_status_label:
 		battle_status_label.text = result_text
 		battle_status_label.modulate = result_color
@@ -1257,18 +1894,67 @@ func _on_battle_completed(result):
 	
 	_hide_action_buttons()
 	
-	# Show victory/defeat options after short delay for impact
-	await get_tree().create_timer(1.0).timeout
-	_show_battle_result_options(result == 0)
+	# Show victory/defeat options after short delay for defeats
+	if result != 0:
+		await get_tree().create_timer(1.0).timeout
+		_show_battle_result_options(result == 0)
+
+func _format_rewards(rewards: Dictionary) -> String:
+	"""Format rewards dictionary into readable text"""
+	if rewards.is_empty():
+		return ""
+	
+	var reward_strings = []
+	for item_type in rewards.keys():
+		var amount = rewards[item_type]
+		var display_name = _get_reward_display_name(item_type)
+		reward_strings.append("%s x%d" % [display_name, amount])
+	
+	# Show first 4 rewards, then "and X more" if there are more
+	if reward_strings.size() <= 4:
+		return ", ".join(reward_strings)
+	else:
+		var display_rewards = reward_strings.slice(0, 4)
+		var remaining = reward_strings.size() - 4
+		return "%s, and %d more" % [", ".join(display_rewards), remaining]
+
+func _get_reward_display_name(item_type: String) -> String:
+	"""Get a nice display name for reward types"""
+	match item_type:
+		"experience":
+			return "XP"
+		"essence":
+			return "Essence"
+		"divine_essence":
+			return "Divine Essence"
+		"crystals":
+			return "Crystals"
+		"territory_tokens":
+			return "Territory Tokens"
+		"dark_powder_low":
+			return "Dark Powder"
+		"dark_powder_mid":
+			return "Dark Powder+"
+		"dark_powder_high":
+			return "Dark Powder++"
+		"magic_powder_low":
+			return "Magic Powder"
+		_:
+			return item_type.replace("_", " ").capitalize()
 
 func _show_battle_result_options(is_victory: bool):
 	"""Show options after battle completion"""
 	if not action_buttons_container:
 		return
 	
-	# Clear any existing buttons
-	for child in action_buttons_container.get_children():
-		child.queue_free()
+	# NUCLEAR OPTION: Destroy and recreate the entire container
+	var parent = action_buttons_container.get_parent()
+	action_buttons_container.queue_free()
+	
+	# Create completely new container
+	action_buttons_container = HBoxContainer.new()
+	action_buttons_container.add_theme_constant_override("separation", 10)
+	parent.add_child(action_buttons_container)
 	
 	if is_victory:
 		# Check if there's a next stage available
@@ -1599,11 +2285,70 @@ func _on_retry_current_stage():
 		setup_territory_stage_battle(current_territory, current_battle_stage, selected_gods)
 
 func _on_back_pressed():
-	# Reset auto-battle when leaving battle
+	# Clean up battle state properly
 	if GameManager.battle_system:
+		print("=== BattleScreen: Cleaning up battle on back press ===")
 		GameManager.battle_system.auto_battle_enabled = false
+		# Force cleanup battle state
+		GameManager.battle_system.battle_active = false
+		GameManager.battle_system.current_battle_gods.clear()
+		GameManager.battle_system.current_battle_enemies.clear()
+		GameManager.battle_system.battle_screen = null
 	
-	back_pressed.emit()
+	# Clear display references
+	god_displays.clear()
+	enemy_displays.clear()
+	selected_gods.clear()
+	
+	# Clear battle type and dungeon context
+	current_battle_type = ""
+	current_dungeon_id = ""
+	current_dungeon_difficulty = ""
+	
+	# Clear any UI elements that might be lingering
+	current_god = null
+	
+	# Clean up containers - simple approach
+	if player_team_container:
+		player_team_container = null
+	
+	if enemy_team_container:
+		enemy_team_container = null
+	
+	if action_buttons_container:
+		action_buttons_container = null
+	
+	# Clear action and status displays
+	if action_label:
+		action_label.text = ""
+	if battle_status_label:
+		battle_status_label.text = ""
+	if turn_indicator:
+		turn_indicator.text = ""
+	
+	# Navigate based on battle type with proper cleanup
+	if current_territory:
+		# Territory battle - go back to territory screen
+		_navigate_to_territory_screen()
+	else:
+		# Dungeon battle - go back to dungeon screen
+		_navigate_to_dungeon_screen()
+
+func _navigate_to_territory_screen():
+	"""Navigate back to territory screen"""
+	var scene_tree = get_tree()
+	if scene_tree:
+		print("=== BattleScreen: Navigating to territory screen ===")
+		# Clean scene transition
+		scene_tree.change_scene_to_file("res://scenes/TerritoryScreen.tscn")
+
+func _navigate_to_dungeon_screen():
+	"""Navigate back to dungeon screen"""
+	var scene_tree = get_tree()
+	if scene_tree:
+		print("=== BattleScreen: Navigating to dungeon screen ===")
+		# Clean scene transition
+		scene_tree.change_scene_to_file("res://scenes/DungeonScreen.tscn")
 
 func _on_auto_battle_pressed():
 	"""Toggle auto-battle mode"""
@@ -1696,3 +2441,234 @@ func _update_speed_buttons():
 	speed_1x_button.button_pressed = (current_speed == 1)
 	speed_2x_button.button_pressed = (current_speed == 2)
 	speed_3x_button.button_pressed = (current_speed == 3)
+
+# Wave system handlers
+func _on_wave_started(wave_number: int, total_waves: int):
+	"""Handle wave start"""
+	if wave_indicator:
+		wave_indicator.text = "Wave %d/%d" % [wave_number, total_waves]
+		wave_indicator.visible = true
+	
+	_add_battle_log_line("[color=cyan]Wave %d/%d started![/color]" % [wave_number, total_waves])
+	
+	# Recreate enemy displays for new wave
+	_create_enemy_displays()
+
+func _on_wave_completed(wave_number: int, total_waves: int):
+	"""Handle wave completion"""
+	_add_battle_log_line("[color=green]Wave %d/%d completed![/color]" % [wave_number, total_waves])
+	
+	# Brief pause before next wave
+	if wave_number < total_waves:
+		_add_battle_log_line("[color=yellow]Preparing next wave...[/color]")
+
+func _on_wave_rewards_awarded(wave_number: int, rewards: Dictionary):
+	"""Handle wave rewards being awarded"""
+	var reward_text = _format_rewards(rewards)
+	if not reward_text.is_empty():
+		_add_battle_log_line("[color=yellow]Wave %d rewards: %s[/color]" % [wave_number, reward_text])
+
+func _on_all_waves_completed(rewards: Dictionary):
+	"""Handle all waves completed"""
+	if wave_indicator:
+		wave_indicator.text = "Victory!"
+		wave_indicator.modulate = Color.GREEN
+	
+	_add_battle_log_line("[color=gold]All waves completed! Victory![/color]")
+	
+	# Show loot collection window instead of auto-returning
+	_show_loot_collection_window(rewards)
+
+func _show_loot_collection_window(rewards: Dictionary):
+	"""Show proper loot collection window that requires user interaction"""
+	print("=== BattleScreen: Showing loot collection window ===")
+	
+	# Prevent multiple loot windows
+	var existing_overlays = get_tree().get_nodes_in_group("loot_overlay")
+	if existing_overlays.size() > 0:
+		print("=== LootCollection: Window already exists, ignoring duplicate ===")
+		return
+	
+	# Create modal overlay that fills the entire screen
+	var overlay = ColorRect.new()
+	overlay.name = "LootOverlay"
+	overlay.add_to_group("loot_overlay")
+	overlay.color = Color(0, 0, 0, 0.8)  # Semi-transparent black
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP  # Block input to background
+	
+	# Create centered container for the loot panel
+	var center_container = CenterContainer.new()
+	center_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(center_container)
+	
+	# Create loot collection panel
+	var loot_panel = Panel.new()
+	loot_panel.custom_minimum_size = Vector2(500, 400)
+	center_container.add_child(loot_panel)
+	
+	# Style the panel with a nice background
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.15, 0.15, 0.2, 0.95)
+	panel_style.corner_radius_top_left = 12
+	panel_style.corner_radius_top_right = 12
+	panel_style.corner_radius_bottom_left = 12
+	panel_style.corner_radius_bottom_right = 12
+	panel_style.border_width_left = 3
+	panel_style.border_width_right = 3
+	panel_style.border_width_top = 3
+	panel_style.border_width_bottom = 3
+	panel_style.border_color = Color(0.4, 0.6, 1.0, 1.0)  # Nice blue border
+	loot_panel.add_theme_stylebox_override("panel", panel_style)
+	
+	# Create main container with proper margins
+	var main_container = VBoxContainer.new()
+	main_container.add_theme_constant_override("separation", 20)
+	main_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	main_container.add_theme_constant_override("margin_left", 30)
+	main_container.add_theme_constant_override("margin_right", 30)
+	main_container.add_theme_constant_override("margin_top", 30)
+	main_container.add_theme_constant_override("margin_bottom", 30)
+	loot_panel.add_child(main_container)
+	
+	# Victory title with glow effect
+	var title_label = Label.new()
+	title_label.text = "VICTORY!"
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.add_theme_color_override("font_color", Color.GOLD)
+	title_label.add_theme_color_override("font_shadow_color", Color(0.8, 0.6, 0, 0.8))
+	title_label.add_theme_constant_override("shadow_offset_x", 2)
+	title_label.add_theme_constant_override("shadow_offset_y", 2)
+	title_label.add_theme_font_size_override("font_size", 36)
+	main_container.add_child(title_label)
+	
+	# Battle type subtitle
+	var subtitle_label = Label.new()
+	var battle_type_text = ""
+	match current_battle_type:
+		"dungeon":
+			battle_type_text = "Dungeon Cleared!"
+		"territory":
+			battle_type_text = "Territory Stage Cleared!"
+		_:
+			battle_type_text = "Battle Won!"
+	subtitle_label.text = battle_type_text
+	subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle_label.add_theme_color_override("font_color", Color.WHITE)
+	subtitle_label.add_theme_font_size_override("font_size", 20)
+	main_container.add_child(subtitle_label)
+	
+	# Separator
+	var separator1 = HSeparator.new()
+	separator1.add_theme_constant_override("separation", 10)
+	main_container.add_child(separator1)
+	
+	# Rewards section
+	var rewards_label = Label.new()
+	rewards_label.text = "Rewards Collected:"
+	rewards_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rewards_label.add_theme_color_override("font_color", Color.CYAN)
+	rewards_label.add_theme_font_size_override("font_size", 18)
+	main_container.add_child(rewards_label)
+	
+	# Rewards container with scroll capability
+	var rewards_scroll = ScrollContainer.new()
+	rewards_scroll.custom_minimum_size = Vector2(0, 180)
+	rewards_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_container.add_child(rewards_scroll)
+	
+	var rewards_container = VBoxContainer.new()
+	rewards_container.add_theme_constant_override("separation", 8)
+	rewards_scroll.add_child(rewards_container)
+	
+	# Display each reward with proper formatting
+	if rewards.size() > 0:
+		for reward_type in rewards.keys():
+			var amount = rewards[reward_type]
+			var reward_item = HBoxContainer.new()
+			reward_item.add_theme_constant_override("separation", 15)
+			
+			# Reward icon/bullet with color
+			var icon_label = Label.new()
+			icon_label.text = "●"
+			icon_label.add_theme_color_override("font_color", _get_reward_color(reward_type))
+			icon_label.add_theme_font_size_override("font_size", 24)
+			reward_item.add_child(icon_label)
+			
+			# Reward text
+			var reward_text = Label.new()
+			var display_name = _get_reward_display_name(reward_type)
+			reward_text.text = "%s x%d" % [display_name, amount]
+			reward_text.add_theme_color_override("font_color", Color.WHITE)
+			reward_text.add_theme_font_size_override("font_size", 16)
+			reward_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			reward_item.add_child(reward_text)
+			
+			rewards_container.add_child(reward_item)
+	else:
+		# Fallback if no rewards
+		var fallback_reward = Label.new()
+		fallback_reward.text = "Battle Experience Gained!"
+		fallback_reward.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		fallback_reward.add_theme_color_override("font_color", Color.YELLOW)
+		fallback_reward.add_theme_font_size_override("font_size", 16)
+		rewards_container.add_child(fallback_reward)
+	
+	# Separator
+	var separator2 = HSeparator.new()
+	separator2.add_theme_constant_override("separation", 10)
+	main_container.add_child(separator2)
+	
+	# OK button container
+	var button_container = HBoxContainer.new()
+	button_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	main_container.add_child(button_container)
+	
+	var ok_button = Button.new()
+	ok_button.text = "OK"
+	ok_button.custom_minimum_size = Vector2(120, 50)
+	ok_button.add_theme_font_size_override("font_size", 18)
+	
+	# Style the OK button
+	var button_style = StyleBoxFlat.new()
+	button_style.bg_color = Color(0.2, 0.6, 0.2, 1.0)  # Green
+	button_style.corner_radius_top_left = 8
+	button_style.corner_radius_top_right = 8
+	button_style.corner_radius_bottom_left = 8
+	button_style.corner_radius_bottom_right = 8
+	ok_button.add_theme_stylebox_override("normal", button_style)
+	
+	var button_hover_style = button_style.duplicate()
+	button_hover_style.bg_color = Color(0.3, 0.7, 0.3, 1.0)  # Brighter green
+	ok_button.add_theme_stylebox_override("hover", button_hover_style)
+	
+	button_container.add_child(ok_button)
+	
+	# Add to scene tree at the top level so it appears above everything
+	get_tree().root.add_child(overlay)
+	
+	# Connect OK button to close window and return to previous screen
+	ok_button.pressed.connect(func():
+		print("=== LootCollection: OK pressed, returning to previous screen ===")
+		overlay.remove_from_group("loot_overlay")
+		overlay.queue_free()
+		back_pressed.emit()
+	)
+	
+	print("=== LootCollection: Window created with %d rewards ===" % rewards.size())
+
+func _get_reward_color(reward_type: String) -> Color:
+	"""Get color for different reward types"""
+	match reward_type:
+		"experience":
+			return Color.CYAN
+		"essence", "divine_essence":
+			return Color.PURPLE
+		"crystals":
+			return Color.YELLOW
+		"territory_tokens":
+			return Color.GREEN
+		"raid_points":
+			return Color.RED
+		_:
+			return Color.WHITE
