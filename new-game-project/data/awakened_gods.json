@@ -3124,11 +3124,538 @@
 				"wind_powder_low": 20.0,
 				"magic_powder_low": 10.0
 			}
+		},
+		"brigid_awakened": {
+			"id": "brigid_awakened",
+			"name": "Brigid, The Sacred Flame",
+			"pantheon": "celtic",
+			"element": "fire",
+			"tier": "epic",
+			"base_stats": {
+				"hp": 10800.0,
+				"attack": 720.0,
+				"defense": 650.0,
+				"speed": 108.0,
+				"crit_rate": 20.0,
+				"crit_damage": 65.0,
+				"resistance": 25.0,
+				"accuracy": 15.0
+			},
+			"resource_generation": 15.0,
+			"active_abilities": [
+				{
+					"id": "sacred_forge",
+					"name": "Sacred Forge",
+					"description": "Creates blessed weapons that empower all allies with increased attack and critical rate for 3 turns.",
+					"damage_multiplier": 0.0,
+					"targets": "all_allies",
+					"effects": [
+						{"type": "buff", "buff": "attack_boost", "value": 50.0, "duration": 3.0},
+						{"type": "buff", "buff": "crit_rate_boost", "value": 25.0, "duration": 3.0}
+					],
+					"cooldown": 5.0
+				},
+				{
+					"id": "healing_flame",
+					"name": "Healing Flame",
+					"description": "Attacks an enemy and heals the ally with lowest HP. Grants regeneration for 2 turns.",
+					"damage_multiplier": 320.0,
+					"healing_multiplier": 80.0,
+					"targets": "single",
+					"effects": [
+						{"type": "damage", "value": 320.0, "scaling": "ATK"},
+						{"type": "heal", "value": 80.0, "scaling": "ATK", "target": "lowest_hp_ally"},
+						{"type": "buff", "buff": "regeneration", "duration": 2.0}
+					],
+					"cooldown": 4.0
+				}
+			],
+			"awakening_materials": {
+				"fire_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"fire_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"fire_powder_low": 20.0,
+				"magic_powder_low": 10.0
+			}
+		},
+		"lugh_awakened": {
+			"id": "lugh_awakened",
+			"name": "Lugh, Master of All Arts",
+			"pantheon": "celtic",
+			"element": "light",
+			"tier": "epic",
+			"base_stats": {
+				"hp": 10320.0,
+				"attack": 760.0,
+				"defense": 620.0,
+				"speed": 115.0,
+				"crit_rate": 20.0,
+				"crit_damage": 65.0,
+				"resistance": 25.0,
+				"accuracy": 15.0
+			},
+			"resource_generation": 15.0,
+			"active_abilities": [
+				{
+					"id": "master_strike",
+					"name": "Master of All Skills",
+					"description": "Attacks all enemies with mastery of all combat arts. Each hit has different effects.",
+					"damage_multiplier": 250.0,
+					"targets": "all_enemies",
+					"effects": [
+						{"type": "damage", "value": 250.0, "scaling": "ATK"},
+						{"type": "debuff", "debuff": "defense_break", "chance": 75.0, "duration": 2.0}
+					],
+					"cooldown": 5.0
+				},
+				{
+					"id": "light_mastery",
+					"name": "Light Mastery",
+					"description": "Channels pure light to blind enemies and inspire allies.",
+					"damage_multiplier": 380.0,
+					"targets": "single",
+					"effects": [
+						{"type": "damage", "value": 380.0, "scaling": "ATK"},
+						{"type": "debuff", "debuff": "blind", "chance": 85.0, "duration": 2.0}
+					],
+					"cooldown": 3.0
+				}
+			],
+			"awakening_materials": {
+				"light_powder_high": 15,
+				"light_powder_mid": 8,
+				"light_powder_low": 30,
+				"magic_powder_high": 15,
+				"magic_powder_mid": 20,
+				"magic_powder_low": 10
+			}
+		},
+		"morrigan_awakened": {
+			"id": "morrigan_awakened",
+			"name": "Morrigan, Phantom Queen",
+			"pantheon": "celtic",
+			"element": "dark",
+			"tier": "epic",
+			"base_stats": {
+				"hp": 9960.0,
+				"attack": 780.0,
+				"defense": 580.0,
+				"speed": 118.0,
+				"crit_rate": 25.0,
+				"crit_damage": 70.0,
+				"resistance": 25.0,
+				"accuracy": 20.0
+			},
+			"resource_generation": 15.0,
+			"active_abilities": [
+				{
+					"id": "phantom_strike",
+					"name": "Phantom Strike",
+					"description": "Attacks from the shadows, dealing massive damage with chance to instantly kill low HP enemies.",
+					"damage_multiplier": 420.0,
+					"targets": "single",
+					"effects": [
+						{"type": "damage", "value": 420.0, "scaling": "ATK"},
+						{"type": "special", "effect": "execute", "threshold": 25.0}
+					],
+					"cooldown": 4.0
+				},
+				{
+					"id": "ravens_curse",
+					"name": "Raven's Curse",
+					"description": "Curses all enemies, reducing their accuracy and applying fear.",
+					"damage_multiplier": 0.0,
+					"targets": "all_enemies",
+					"effects": [
+						{"type": "debuff", "debuff": "accuracy_reduction", "value": 30.0, "duration": 3.0},
+						{"type": "debuff", "debuff": "fear", "chance": 70.0, "duration": 2.0}
+					],
+					"cooldown": 5.0
+				}
+			],
+			"awakening_materials": {
+				"dark_powder_high": 15,
+				"dark_powder_mid": 8,
+				"dark_powder_low": 30,
+				"magic_powder_high": 15,
+				"magic_powder_mid": 20,
+				"magic_powder_low": 10
+			}
+		},
+		"dagda_awakened": {
+			"id": "dagda_awakened",
+			"name": "Dagda, The Great Provider",
+			"pantheon": "celtic",
+			"element": "earth",
+			"tier": "legendary",
+			"base_stats": {
+				"hp": 15840.0,
+				"attack": 750.0,
+				"defense": 875.0,
+				"speed": 95.0,
+				"crit_rate": 20.0,
+				"crit_damage": 65.0,
+				"resistance": 30.0,
+				"accuracy": 10.0
+			},
+			"resource_generation": 20.0,
+			"active_abilities": [
+				{
+					"id": "endless_bounty",
+					"name": "Endless Bounty",
+					"description": "Provides endless sustenance, fully healing all allies and granting immunity for 3 turns.",
+					"damage_multiplier": 0.0,
+					"targets": "all_allies",
+					"effects": [
+						{"type": "heal", "value": 100.0, "scaling": "target_max_hp"},
+						{"type": "buff", "buff": "immunity", "duration": 3.0},
+						{"type": "buff", "buff": "regeneration", "duration": 4.0}
+					],
+					"cooldown": 6.0
+				},
+				{
+					"id": "earth_dominion",
+					"name": "Earth Dominion",
+					"description": "Commands the earth itself, dealing massive damage and stunning all enemies.",
+					"damage_multiplier": 340.0,
+					"targets": "all_enemies",
+					"effects": [
+						{"type": "damage", "value": 340.0, "scaling": "ATK"},
+						{"type": "debuff", "debuff": "stun", "chance": 80.0, "duration": 1.0}
+					],
+					"cooldown": 5.0
+				}
+			],
+			"awakening_materials": {
+				"earth_powder_high": 20,
+				"earth_powder_mid": 10,
+				"earth_powder_low": 40,
+				"magic_powder_high": 20,
+				"magic_powder_mid": 15,
+				"magic_powder_low": 10
+			}
+		},
+		"susanoo_awakened": {
+			"id": "susanoo_awakened",
+			"name": "Susanoo, Storm God Supreme",
+			"pantheon": "japanese",
+			"element": "lightning",
+			"tier": "epic",
+			"base_stats": {
+				"hp": 10560.0,
+				"attack": 840.0,
+				"defense": 600.0,
+				"speed": 125.0,
+				"crit_rate": 25.0,
+				"crit_damage": 70.0,
+				"resistance": 25.0,
+				"accuracy": 15.0
+			},
+			"resource_generation": 15.0,
+			"active_abilities": [
+				{
+					"id": "tempest_blade",
+					"name": "Tempest Blade",
+					"description": "Unleashes a storm of lightning strikes, hitting all enemies multiple times.",
+					"damage_multiplier": 180.0,
+					"targets": "all_enemies",
+					"hits": 3,
+					"effects": [
+						{"type": "damage", "value": 180.0, "scaling": "ATK", "hits": 3},
+						{"type": "debuff", "debuff": "shock", "chance": 60.0, "duration": 2.0}
+					],
+					"cooldown": 4.0
+				},
+				{
+					"id": "divine_storm",
+					"name": "Divine Storm",
+					"description": "Calls down a divine lightning storm that paralyzes enemies.",
+					"damage_multiplier": 380.0,
+					"targets": "single",
+					"effects": [
+						{"type": "damage", "value": 380.0, "scaling": "ATK"},
+						{"type": "debuff", "debuff": "paralyze", "chance": 90.0, "duration": 2.0}
+					],
+					"cooldown": 3.0
+				}
+			],
+			"awakening_materials": {
+				"lightning_powder_high": 15,
+				"lightning_powder_mid": 8,
+				"lightning_powder_low": 30,
+				"magic_powder_high": 15,
+				"magic_powder_mid": 20,
+				"magic_powder_low": 10
+			}
+		},
+		"tsukuyomi_awakened": {
+			"id": "tsukuyomi_awakened",
+			"name": "Tsukuyomi, Lord of the Night",
+			"pantheon": "japanese",
+			"element": "dark",
+			"tier": "epic",
+			"base_stats": {
+				"hp": 10200.0,
+				"attack": 720.0,
+				"defense": 640.0,
+				"speed": 110.0,
+				"crit_rate": 30.0,
+				"crit_damage": 75.0,
+				"resistance": 30.0,
+				"accuracy": 25.0
+			},
+			"resource_generation": 15.0,
+			"active_abilities": [
+				{
+					"id": "moonlight_slash",
+					"name": "Moonlight Slash",
+					"description": "Strikes with the power of the moon, dealing more damage in darkness.",
+					"damage_multiplier": 350.0,
+					"targets": "single",
+					"effects": [
+						{"type": "damage", "value": 350.0, "scaling": "ATK"},
+						{"type": "debuff", "debuff": "sleep", "chance": 75.0, "duration": 2.0}
+					],
+					"cooldown": 3.0
+				},
+				{
+					"id": "eternal_night",
+					"name": "Eternal Night",
+					"description": "Casts eternal darkness, reducing all enemies' accuracy and speed.",
+					"damage_multiplier": 0.0,
+					"targets": "all_enemies",
+					"effects": [
+						{"type": "debuff", "debuff": "blind", "chance": 100.0, "duration": 3.0},
+						{"type": "debuff", "debuff": "speed_reduction", "value": 50.0, "duration": 3.0}
+					],
+					"cooldown": 6.0
+				}
+			],
+			"awakening_materials": {
+				"dark_powder_high": 15,
+				"dark_powder_mid": 8,
+				"dark_powder_low": 30,
+				"magic_powder_high": 15,
+				"magic_powder_mid": 20,
+				"magic_powder_low": 10
+			}
+		},
+		"enlil_awakened": {
+			"id": "enlil_awakened",
+			"name": "Enlil, Lord of Wind and Storm",
+			"pantheon": "mesopotamian",
+			"element": "lightning",
+			"tier": "epic",
+			"base_stats": {
+				"hp": 10440.0,
+				"attack": 780.0,
+				"defense": 620.0,
+				"speed": 120.0,
+				"crit_rate": 20.0,
+				"crit_damage": 65.0,
+				"resistance": 25.0,
+				"accuracy": 20.0
+			},
+			"resource_generation": 15.0,
+			"active_abilities": [
+				{
+					"id": "storm_lord",
+					"name": "Storm Lord's Wrath",
+					"description": "Commands wind and storm to devastate all enemies.",
+					"damage_multiplier": 280.0,
+					"targets": "all_enemies",
+					"effects": [
+						{"type": "damage", "value": 280.0, "scaling": "ATK"},
+						{"type": "debuff", "debuff": "speed_reduction", "value": 30.0, "duration": 2.0}
+					],
+					"cooldown": 4.0
+				},
+				{
+					"id": "wind_mastery",
+					"name": "Wind Mastery",
+					"description": "Controls the winds to increase ally speed and decrease enemy accuracy.",
+					"damage_multiplier": 0.0,
+					"targets": "all_allies",
+					"effects": [
+						{"type": "buff", "buff": "speed_boost", "value": 40.0, "duration": 3.0},
+						{"type": "aoe_debuff", "debuff": "accuracy_reduction", "value": 25.0, "duration": 3.0, "target": "all_enemies"}
+					],
+					"cooldown": 5.0
+				}
+			],
+			"awakening_materials": {
+				"lightning_powder_high": 15,
+				"lightning_powder_mid": 8,
+				"lightning_powder_low": 30,
+				"magic_powder_high": 15,
+				"magic_powder_mid": 20,
+				"magic_powder_low": 10
+			}
+		},
+		"ereshkigal_awakened": {
+			"id": "ereshkigal_awakened",
+			"name": "Ereshkigal, Queen of the Underworld",
+			"pantheon": "mesopotamian",
+			"element": "dark",
+			"tier": "epic",
+			"base_stats": {
+				"hp": 11160.0,
+				"attack": 740.0,
+				"defense": 700.0,
+				"speed": 105.0,
+				"crit_rate": 25.0,
+				"crit_damage": 70.0,
+				"resistance": 35.0,
+				"accuracy": 20.0
+			},
+			"resource_generation": 15.0,
+			"active_abilities": [
+				{
+					"id": "underworld_dominion",
+					"name": "Underworld Dominion",
+					"description": "Rules over death itself, instantly defeating enemies below 30% HP.",
+					"damage_multiplier": 320.0,
+					"targets": "single",
+					"effects": [
+						{"type": "damage", "value": 320.0, "scaling": "ATK"},
+						{"type": "special", "effect": "execute", "threshold": 30.0}
+					],
+					"cooldown": 4.0
+				},
+				{
+					"id": "death_curse",
+					"name": "Curse of Death",
+					"description": "Curses all enemies with death magic, applying damage over time and preventing healing.",
+					"damage_multiplier": 0.0,
+					"targets": "all_enemies",
+					"effects": [
+						{"type": "dot", "damage": 15.0, "duration": 4.0},
+						{"type": "debuff", "debuff": "heal_block", "duration": 3.0}
+					],
+					"cooldown": 5.0
+				}
+			],
+			"awakening_materials": {
+				"dark_powder_high": 15,
+				"dark_powder_mid": 8,
+				"dark_powder_low": 30,
+				"magic_powder_high": 15,
+				"magic_powder_mid": 20,
+				"magic_powder_low": 10
+			}
+		},
+		"shamash_awakened": {
+			"id": "shamash_awakened",
+			"name": "Shamash, Judge of Heaven and Earth",
+			"pantheon": "mesopotamian",
+			"element": "light",
+			"tier": "epic",
+			"base_stats": {
+				"hp": 10800.0,
+				"attack": 760.0,
+				"defense": 660.0,
+				"speed": 108.0,
+				"crit_rate": 20.0,
+				"crit_damage": 65.0,
+				"resistance": 30.0,
+				"accuracy": 25.0
+			},
+			"resource_generation": 15.0,
+			"active_abilities": [
+				{
+					"id": "divine_judgment",
+					"name": "Divine Judgment",
+					"description": "Passes divine judgment, dealing more damage to debuffed enemies.",
+					"damage_multiplier": 400.0,
+					"targets": "single",
+					"effects": [
+						{"type": "damage", "value": 400.0, "scaling": "ATK"},
+						{"type": "special", "effect": "bonus_vs_debuffed", "multiplier": 1.5}
+					],
+					"cooldown": 3.0
+				},
+				{
+					"id": "light_of_justice",
+					"name": "Light of Justice",
+					"description": "Shines purifying light that cleanses allies and blinds enemies.",
+					"damage_multiplier": 0.0,
+					"targets": "all_allies",
+					"effects": [
+						{"type": "cleanse_all"},
+						{"type": "buff", "buff": "immunity", "duration": 2.0},
+						{"type": "aoe_debuff", "debuff": "blind", "chance": 80.0, "duration": 2.0, "target": "all_enemies"}
+					],
+					"cooldown": 5.0
+				}
+			],
+			"awakening_materials": {
+				"light_powder_high": 15,
+				"light_powder_mid": 8,
+				"light_powder_low": 30,
+				"magic_powder_high": 15,
+				"magic_powder_mid": 20,
+				"magic_powder_low": 10
+			}
+		},
+		"tiamat_awakened": {
+			"id": "tiamat_awakened",
+			"name": "Tiamat, Primordial Chaos",
+			"pantheon": "mesopotamian",
+			"element": "water",
+			"tier": "legendary",
+			"base_stats": {
+				"hp": 16626.0,
+				"attack": 875.0,
+				"defense": 800.0,
+				"speed": 100.0,
+				"crit_rate": 20.0,
+				"crit_damage": 65.0,
+				"resistance": 25.0,
+				"accuracy": 15.0
+			},
+			"resource_generation": 20.0,
+			"active_abilities": [
+				{
+					"id": "primordial_chaos",
+					"name": "Primordial Chaos Unleashed",
+					"description": "Unleashes the chaos that existed before creation, dealing massive random damage to all enemies.",
+					"damage_multiplier": 320.0,
+					"targets": "all_enemies",
+					"effects": [
+						{"type": "damage", "value": 320.0, "scaling": "ATK"},
+						{"type": "special", "effect": "chaos_damage", "variance": 0.5},
+						{"type": "debuff", "debuff": "chaos_mark", "duration": 3.0}
+					],
+					"cooldown": 5.0
+				},
+				{
+					"id": "mother_of_monsters",
+					"name": "Mother of Monsters",
+					"description": "Spawns chaotic minions that attack random enemies multiple times with increasing damage.",
+					"damage_multiplier": 150.0,
+					"targets": "random",
+					"hits": 6,
+					"effects": [
+						{"type": "damage", "value": 150.0, "scaling": "ATK", "hits": 6},
+						{"type": "special", "effect": "escalating_damage", "increase_per_hit": 20.0}
+					],
+					"cooldown": 4.0
+				}
+			],
+			"awakening_materials": {
+				"water_powder_high": 20,
+				"water_powder_mid": 10,
+				"water_powder_low": 40,
+				"magic_powder_high": 20,
+				"magic_powder_mid": 15,
+				"magic_powder_low": 10
+			}
 		}
 	},
 	"awakening_requirements": {
-		"base_god_level": 30.0,
+		"base_god_level": 40.0,
 		"base_god_max_level": true,
-		"all_skills_max_level": true
+		"all_skills_level_1": true
 	}
 }

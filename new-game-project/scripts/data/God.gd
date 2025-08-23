@@ -478,7 +478,7 @@ func get_buffs() -> Array[StatusEffect]:
 
 # Awakening System Methods
 func can_awaken() -> bool:
-	"""Check if god meets awakening requirements"""
+	"""Check if god meets awakening requirements - Summoners War style"""
 	if is_awakened:
 		return false
 		
@@ -486,15 +486,9 @@ func can_awaken() -> bool:
 	if level < 40:
 		return false
 		
-	if ascension_level < 2:  # Must be at least silver
-		return false
-		
-	# Check if all skills are maxed (level 10)
-	for skill_level in skill_levels:
-		if skill_level < 10:
-			return false
-			
-	# Check materials would be done in GameManager/AwakeningSystem
+	# In Summoners War, awakening only requires max level + materials
+	# Skill levels are separate upgrades and not required for awakening
+	# Materials check is done in GameManager/AwakeningSystem
 	return true
 
 func awaken(awakening_data: Dictionary) -> bool:
