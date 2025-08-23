@@ -6,6 +6,7 @@ extends Control
 @onready var territory_button = $HBoxContainer/TerritoryButton
 @onready var sacrifice_button = $HBoxContainer/SacrificeButton
 @onready var dungeon_button = $HBoxContainer/DungeonButton
+@onready var equipment_button = $HBoxContainer/EquipmentButton
 
 # Screen references (will be created dynamically or loaded)
 var summon_screen_scene = preload("res://scenes/SummonScreen.tscn")
@@ -13,6 +14,7 @@ var collection_screen_scene = preload("res://scenes/CollectionScreen.tscn")
 var territory_screen_scene = preload("res://scenes/TerritoryScreen.tscn")
 var sacrifice_screen_scene = preload("res://scenes/SacrificeScreen.tscn")
 var dungeon_screen_scene = preload("res://scenes/DungeonScreen.tscn")
+var equipment_screen_scene = preload("res://scenes/EquipmentScreen.tscn")
 
 func _ready():
 	# Connect building buttons
@@ -26,6 +28,8 @@ func _ready():
 		sacrifice_button.pressed.connect(_on_sacrifice_building_pressed)
 	if dungeon_button:
 		dungeon_button.pressed.connect(_on_dungeon_building_pressed)
+	if equipment_button:
+		equipment_button.pressed.connect(_on_equipment_building_pressed)
 
 func _on_summon_building_pressed():
 	print("Opening Summon Temple...")
@@ -46,6 +50,10 @@ func _on_sacrifice_building_pressed():
 func _on_dungeon_building_pressed():
 	print("Opening Dungeons Sanctum...")
 	_open_screen(dungeon_screen_scene)
+
+func _on_equipment_building_pressed():
+	print("Opening Equipment Forge...")
+	_open_screen(equipment_screen_scene)
 
 func _open_screen(screen_scene: PackedScene):
 	# This will transition to the specific screen

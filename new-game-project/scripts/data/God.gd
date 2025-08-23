@@ -29,8 +29,9 @@ enum TierType { COMMON, RARE, EPIC, LEGENDARY }
 @export var base_accuracy: int = 0          # Accuracy % (SW default: 0%)
 @export var resource_generation: int       # Resources per hour
 
-# Rune/Equipment System (6 slots like Summoners War)
-@export var equipped_runes: Array = [null, null, null, null, null, null]  # 6 rune slots
+# Equipment System (6 slots like Summoners War)
+# Slots: 1=Weapon, 2=Armor, 3=Helm, 4=Boots, 5=Amulet, 6=Ring
+@export var equipped_runes: Array = [null, null, null, null, null, null]  # 6 equipment slots
 
 # Abilities - Updated to use JSON format
 @export var active_abilities: Array = []  # Array of ability dictionaries
@@ -142,24 +143,29 @@ static func string_to_tier(tier_string: String) -> TierType:
 			print("Warning: Unknown tier string: ", tier_string)
 			return TierType.COMMON
 
-# Calculated stats based on level and tier
+# Calculated stats based on level, tier, and equipment
 func get_current_hp() -> int:
-	return base_hp + (level * 10) + (int(tier) * 50)
+	var base_stat = base_hp + (level * 10) + (int(tier) * 50)
+	var equipment_bonus = _get_equipment_stat_bonus("hp")
+	return int(base_stat * (1.0 + _get_stat_modifier("hp"))) + equipment_bonus
 
 func get_max_hp() -> int:
 	return get_current_hp()  # Alias for battle system
 
 func get_current_attack() -> int:
 	var base_stat = base_attack + (level * 8) + (int(tier) * 40)
-	return int(base_stat * (1.0 + _get_stat_modifier("attack")))
+	var equipment_bonus = _get_equipment_stat_bonus("attack")
+	return int((base_stat + equipment_bonus) * (1.0 + _get_stat_modifier("attack")))
 
 func get_current_defense() -> int:
 	var base_stat = base_defense + (level * 6) + (int(tier) * 30)
-	return int(base_stat * (1.0 + _get_stat_modifier("defense")))
+	var equipment_bonus = _get_equipment_stat_bonus("defense")
+	return int((base_stat + equipment_bonus) * (1.0 + _get_stat_modifier("defense")))
 
 func get_current_speed() -> int:
 	var base_stat = base_speed + (level * 4) + (int(tier) * 20)
-	return int(base_stat * (1.0 + _get_stat_modifier("speed")))
+	var equipment_bonus = _get_equipment_stat_bonus("speed")
+	return int((base_stat + equipment_bonus) * (1.0 + _get_stat_modifier("speed")))
 
 func get_current_crit_rate() -> int:
 	"""Get current critical rate percentage (15-100%)"""
@@ -180,6 +186,25 @@ func get_current_resistance() -> int:
 	"""Get current resistance percentage (15-100%)"""
 	var base_stat = base_resistance + (level * 0.3) + (int(tier) * 5)
 	return int(base_stat * (1.0 + _get_stat_modifier("resistance")))
+
+func _get_equipment_stat_bonus(stat_type: String) -> int:
+	"""Get total equipment stat bonus - integrates with Equipment system"""
+	var total_bonus = 0
+	
+	# Sum bonuses from all equipped equipment
+	for equipment in equipped_runes:
+		if equipment != null and equipment is Equipment:
+			var bonuses = equipment.get_stat_bonuses()
+			total_bonus += bonuses.get(stat_type, 0)
+	
+	# Add set bonuses if EquipmentManager is available in GameManager
+	if GameManager and GameManager.has_method("get_equipment_manager"):
+		var equipment_manager = GameManager.get_equipment_manager()
+		if equipment_manager and equipment_manager.has_method("get_equipped_set_bonuses"):
+			var set_bonuses = equipment_manager.get_equipped_set_bonuses(self)
+			total_bonus += set_bonuses.get(stat_type, 0)
+	
+	return total_bonus
 
 func _get_stat_modifier(stat_name: String) -> float:
 	"""Get total modifier for a stat from all status effects and awakening bonuses"""

@@ -19,6 +19,7 @@ var sacrifice_system  # NEW: Sacrifice system for power-up mechanics
 var loot_system  # NEW: Loot system for proper loot.json integration
 var dungeon_system  # NEW: Dungeon system for dungeon battles
 var wave_system  # NEW: Wave system for multi-wave battles
+var equipment_manager  # NEW: Equipment system for RPG-style gear
 var game_initializer  # NEW: Game initializer for startup loading like Summoners War
 
 # Preload the DataLoader class
@@ -39,6 +40,7 @@ func initialize_game():
 	loot_system = preload("res://scripts/systems/LootSystem.gd").new()  # NEW: Loot system
 	dungeon_system = preload("res://scripts/systems/DungeonSystem.gd").new()  # NEW: Dungeon system
 	wave_system = preload("res://scripts/systems/WaveSystem.gd").new()  # NEW: Wave system
+	equipment_manager = preload("res://scripts/systems/EquipmentManager.gd").new()  # NEW: Equipment system
 	
 	# Initialize the game initializer for Summoners War style loading
 	game_initializer = preload("res://scripts/systems/GameInitializer.gd").new()
@@ -50,6 +52,7 @@ func initialize_game():
 	add_child(loot_system)
 	add_child(dungeon_system)
 	add_child(wave_system)
+	add_child(equipment_manager)
 	add_child(game_initializer)
 	
 	# Connect system signals
@@ -58,6 +61,11 @@ func initialize_game():
 	battle_system.battle_completed.connect(_on_battle_completed)
 	awakening_system.awakening_completed.connect(_on_awakening_completed)
 	sacrifice_system.sacrifice_completed.connect(_on_sacrifice_completed)
+	
+	# Connect equipment manager signals to trigger saves
+	equipment_manager.equipment_equipped.connect(_on_equipment_changed)
+	equipment_manager.equipment_unequipped.connect(_on_equipment_changed)
+	equipment_manager.equipment_enhanced.connect(_on_equipment_enhanced)
 	
 	# Connect to god summoned signal to refresh UI cache
 	god_summoned.connect(_on_god_summoned_refresh_cache)
@@ -127,6 +135,9 @@ func get_dungeon_system():
 func get_wave_system():
 	return wave_system
 
+func get_equipment_manager():
+	return equipment_manager
+
 # System signal handlers
 func _on_summon_completed(god):
 	god_summoned.emit(god)
@@ -184,6 +195,18 @@ func _on_sacrifice_completed(target_god, material_gods, xp_gained):
 	
 	resources_updated.emit()
 	# Auto-save after sacrifice
+	save_game()
+
+func _on_equipment_changed(_god, _equipment_or_slot, _slot_or_empty = null):
+	"""Handle equipment equipped/unequipped - save game"""
+	print("Equipment changed, saving game...")
+	resources_updated.emit()
+	save_game()
+
+func _on_equipment_enhanced(_equipment, _success):
+	"""Handle equipment enhancement - save game"""
+	print("Equipment enhanced, saving game...")
+	resources_updated.emit()
 	save_game()
 
 func _on_god_summoned_refresh_cache(god):
@@ -633,6 +656,7 @@ func save_game() -> bool:
 		},
 		"gods_data": [],
 		"territories_data": [],
+		"equipment_inventory": _serialize_equipment_inventory(),  # Save equipment inventory
 		"dungeon_progress": dungeon_system.save_dungeon_progress() if dungeon_system else {}
 	}
 	
@@ -642,7 +666,8 @@ func save_game() -> bool:
 			"id": god.id,  # Essential for reloading from JSON
 			"level": god.level,
 			"experience": god.experience,
-			"stationed_territory": god.stationed_territory
+			"stationed_territory": god.stationed_territory,
+			"equipped_runes": _serialize_equipped_equipment(god.equipped_runes)  # Save equipment
 		}
 		save_data.gods_data.append(god_data)
 	
@@ -724,9 +749,18 @@ func load_game() -> bool:
 		god.experience = god_info.get("experience", 0)
 		god.stationed_territory = god_info.get("stationed_territory", "")
 		
+		# Load equipped equipment
+		var equipped_equipment_data = god_info.get("equipped_runes", [])
+		if equipped_equipment_data.size() > 0:
+			god.equipped_runes = _deserialize_equipped_equipment(equipped_equipment_data)
+		
 		# Initialize battle HP for loaded gods
 		god.heal_full()
 		player_data.gods.append(god)
+	
+	# Load equipment inventory
+	var equipment_inventory_data = save_data.get("equipment_inventory", [])
+	_deserialize_equipment_inventory(equipment_inventory_data)
 	
 	# Load territories data
 	var territories_data = save_data.get("territories_data", [])
@@ -790,3 +824,101 @@ func spend_zone_upgrade_cost(territory: Territory):
 	var cost = territory.get_upgrade_cost("zone")
 	for resource_type in cost:
 		player_data.add_resource(resource_type, -cost[resource_type])
+
+# Equipment serialization helpers
+func _serialize_equipped_equipment(equipped_runes: Array) -> Array:
+	"""Convert equipped equipment to save-friendly format"""
+	var serialized = []
+	for equipment in equipped_runes:
+		if equipment == null:
+			serialized.append(null)
+		else:
+			serialized.append(_equipment_to_dict(equipment))
+	return serialized
+
+func _deserialize_equipped_equipment(serialized_equipment: Array) -> Array:
+	"""Convert saved equipment data back to Equipment objects"""
+	var equipped_runes = []
+	for equipment_data in serialized_equipment:
+		if equipment_data == null:
+			equipped_runes.append(null)
+		else:
+			equipped_runes.append(_dict_to_equipment(equipment_data))
+	return equipped_runes
+
+func _equipment_to_dict(equipment: Equipment) -> Dictionary:
+	"""Convert Equipment object to Dictionary"""
+	if equipment == null:
+		return {}
+	
+	return {
+		"id": equipment.id,
+		"name": equipment.name,
+		"type": equipment.type,
+		"rarity": equipment.rarity,
+		"level": equipment.level,
+		"slot": equipment.slot,
+		"equipment_set_name": equipment.equipment_set_name,
+		"equipment_set_type": equipment.equipment_set_type,
+		"main_stat_type": equipment.main_stat_type,
+		"main_stat_value": equipment.main_stat_value,
+		"main_stat_base": equipment.main_stat_base,
+		"substats": equipment.substats,
+		"sockets": equipment.sockets,
+		"max_sockets": equipment.max_sockets,
+		"origin_dungeon": equipment.origin_dungeon,
+		"lore_text": equipment.lore_text
+	}
+
+func _dict_to_equipment(dict: Dictionary) -> Equipment:
+	"""Convert Dictionary back to Equipment object"""
+	var equipment = Equipment.new()
+	
+	equipment.id = dict.get("id", "")
+	equipment.name = dict.get("name", "")
+	equipment.type = dict.get("type", Equipment.EquipmentType.WEAPON)
+	equipment.rarity = dict.get("rarity", Equipment.Rarity.COMMON)
+	equipment.level = dict.get("level", 0)
+	equipment.slot = dict.get("slot", 1)
+	equipment.equipment_set_name = dict.get("equipment_set_name", "")
+	equipment.equipment_set_type = dict.get("equipment_set_type", "")
+	equipment.main_stat_type = dict.get("main_stat_type", "")
+	equipment.main_stat_value = dict.get("main_stat_value", 0)
+	equipment.main_stat_base = dict.get("main_stat_base", 0)
+	
+	# Handle typed arrays properly
+	var substats_array: Array[Dictionary] = []
+	for substat in dict.get("substats", []):
+		substats_array.append(substat)
+	equipment.substats = substats_array
+	
+	var sockets_array: Array[Dictionary] = []
+	for socket in dict.get("sockets", []):
+		sockets_array.append(socket)
+	equipment.sockets = sockets_array
+	
+	equipment.max_sockets = dict.get("max_sockets", 0)
+	equipment.origin_dungeon = dict.get("origin_dungeon", "")
+	equipment.lore_text = dict.get("lore_text", "")
+	
+	return equipment
+
+func _serialize_equipment_inventory() -> Array:
+	"""Serialize equipment manager's inventory"""
+	if not equipment_manager:
+		return []
+	
+	var serialized = []
+	for equipment in equipment_manager.equipment_inventory:
+		serialized.append(_equipment_to_dict(equipment))
+	return serialized
+
+func _deserialize_equipment_inventory(serialized_inventory: Array):
+	"""Deserialize equipment inventory and load into equipment manager"""
+	if not equipment_manager:
+		return
+	
+	equipment_manager.equipment_inventory.clear()
+	for equipment_data in serialized_inventory:
+		var equipment = _dict_to_equipment(equipment_data)
+		equipment_manager.equipment_inventory.append(equipment)

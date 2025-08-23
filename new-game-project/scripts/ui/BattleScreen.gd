@@ -1951,6 +1951,16 @@ func _get_reward_display_name(item_type: String) -> String:
 			return "Dark Powder++"
 		"magic_powder_low":
 			return "Magic Powder"
+		"equipment_dropped":
+			return "Equipment"
+		"divine_weapon":
+			return "Divine Weapon"
+		"divine_armor":
+			return "Divine Armor"
+		"legendary_equipment":
+			return "Legendary Equipment"
+		"cursed_equipment":
+			return "Cursed Equipment"
 		_:
 			return item_type.replace("_", " ").capitalize()
 
@@ -2692,5 +2702,9 @@ func _get_reward_color(reward_type: String) -> Color:
 			return Color.GREEN
 		"raid_points":
 			return Color.RED
+		"equipment_dropped", "divine_weapon", "divine_armor", "legendary_equipment":
+			return Color.ORANGE
+		"cursed_equipment":
+			return Color.DARK_RED
 		_:
 			return Color.WHITE

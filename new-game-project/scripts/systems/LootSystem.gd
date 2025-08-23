@@ -103,8 +103,34 @@ func _process_loot_item(loot_item: Dictionary, stage_level: int, territory_eleme
 	if loot_item.get("pantheon_based", false):
 		return _handle_pantheon_based_loot(loot_type, amount)
 	
+	# Handle equipment drops
+	if loot_type == "equipment":
+		var equipment = _handle_equipment_drop(loot_item, stage_level)
+		if equipment:
+			return {"equipment_dropped": 1}  # Return indicator that equipment was dropped
+		return {}
+	
 	# Handle standard loot types
 	return _handle_standard_loot(loot_type, amount)
+
+func _handle_equipment_drop(loot_item: Dictionary, _stage_level: int) -> Equipment:
+	"""Handle equipment drop from loot - integrates with EquipmentManager"""
+	if not GameManager or not GameManager.equipment_manager:
+		print("LootSystem: EquipmentManager not available")
+		return null
+	
+	var difficulty = loot_item.get("difficulty", "beginner")
+	var dungeon_id = loot_item.get("source", "divine_sanctum")
+	
+	# Create equipment through EquipmentManager
+	var equipment = GameManager.equipment_manager.create_equipment_from_loot(dungeon_id, difficulty)
+	
+	if equipment:
+		# Add to player inventory through EquipmentManager
+		GameManager.equipment_manager.add_equipment_to_inventory(equipment)
+		print("LootSystem: Awarded ", equipment.get_display_name())
+	
+	return equipment
 
 func _handle_element_based_loot(base_type: String, amount: int, territory_element: String, loot_item: Dictionary) -> Dictionary:
 	"""Handle element-based loot like powders"""

@@ -1,12 +1,14 @@
-[gd_scene load_steps=2 format=3 uid="uid://cldqgwx7hnw2s"]
+[gd_scene load_steps=2 format=3 uid="uid://dt2dagvclmcih"]
 
-[ext_resource type="Script" path="res://scripts/ui/LoadingScreen.gd" id="1_n7j2k"]
+[ext_resource type="Script" uid="uid://d06womi35383p" path="res://scripts/ui/LoadingScreen.gd" id="1_n7j2k"]
 
 [node name="LoadingScreen" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_n7j2k")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
@@ -20,6 +22,8 @@ offset_left = -200.0
 offset_top = -100.0
 offset_right = 200.0
 offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 20
 
 [node name="LogoLabel" type="Label" parent="VBoxContainer"]
@@ -36,7 +40,6 @@ vertical_alignment = 1
 
 [node name="ProgressBar" type="ProgressBar" parent="VBoxContainer"]
 layout_mode = 2
-value = 0.0
 
 [node name="VersionLabel" type="Label" parent="VBoxContainer"]
 layout_mode = 2

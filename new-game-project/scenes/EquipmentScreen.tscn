@@ -1,0 +1,441 @@
+[gd_scene load_steps=3 format=3 uid="uid://btcxk8wah2qrf"]
+
+[ext_resource type="Script" uid="uid://c732s55dmrj80" path="res://scripts/ui/EquipmentScreen.gd" id="1_h8q3j"]
+[ext_resource type="PackedScene" uid="uid://cbw7xpldky1p7" path="res://scenes/ResourceDisplay.tscn" id="2_sj7ji"]
+
+[node name="EquipmentScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_h8q3j")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.05, 0.08, 1)
+
+[node name="MainContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopBar" type="HBoxContainer" parent="MainContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="MainContainer/TopBar"]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+text = "← BACK"
+
+[node name="Title" type="Label" parent="MainContainer/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+text = "EQUIPMENT FORGE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ResourceDisplay" parent="MainContainer/TopBar" instance=ExtResource("2_sj7ji")]
+custom_minimum_size = Vector2(200, 40)
+layout_mode = 2
+
+[node name="HSeparator" type="HSeparator" parent="MainContainer"]
+layout_mode = 2
+
+[node name="ContentContainer" type="HSplitContainer" parent="MainContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+split_offset = 250
+
+[node name="LeftPanel" type="VBoxContainer" parent="MainContainer/ContentContainer"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="GodSelectionLabel" type="Label" parent="MainContainer/ContentContainer/LeftPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "SELECT GOD"
+horizontal_alignment = 1
+
+[node name="GodSortContainer" type="HBoxContainer" parent="MainContainer/ContentContainer/LeftPanel"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="SortLabel" type="Label" parent="MainContainer/ContentContainer/LeftPanel/GodSortContainer"]
+layout_mode = 2
+text = "Sort:"
+vertical_alignment = 1
+
+[node name="LevelSortButton" type="Button" parent="MainContainer/ContentContainer/LeftPanel/GodSortContainer"]
+custom_minimum_size = Vector2(40, 25)
+layout_mode = 2
+text = "Lvl"
+
+[node name="TierSortButton" type="Button" parent="MainContainer/ContentContainer/LeftPanel/GodSortContainer"]
+custom_minimum_size = Vector2(40, 25)
+layout_mode = 2
+text = "★"
+
+[node name="NameSortButton" type="Button" parent="MainContainer/ContentContainer/LeftPanel/GodSortContainer"]
+custom_minimum_size = Vector2(50, 25)
+layout_mode = 2
+text = "Name"
+
+[node name="PowerSortButton" type="Button" parent="MainContainer/ContentContainer/LeftPanel/GodSortContainer"]
+custom_minimum_size = Vector2(45, 25)
+layout_mode = 2
+text = "Pwr"
+
+[node name="GodScrollContainer" type="ScrollContainer" parent="MainContainer/ContentContainer/LeftPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainContainer/ContentContainer/LeftPanel/GodScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="GodGrid" type="GridContainer" parent="MainContainer/ContentContainer/LeftPanel/GodScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 3
+
+[node name="CenterRightSplit" type="HSplitContainer" parent="MainContainer/ContentContainer"]
+layout_mode = 2
+split_offset = 600
+
+[node name="CenterPanel" type="VBoxContainer" parent="MainContainer/ContentContainer/CenterRightSplit"]
+layout_mode = 2
+
+[node name="InventoryHeader" type="VBoxContainer" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel"]
+layout_mode = 2
+
+[node name="InventoryTitle" type="Label" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "EQUIPMENT INVENTORY"
+horizontal_alignment = 1
+
+[node name="FilterContainer" type="HBoxContainer" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="FilterLabel" type="Label" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader/FilterContainer"]
+layout_mode = 2
+text = "Filter:"
+
+[node name="AllButton" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader/FilterContainer"]
+custom_minimum_size = Vector2(40, 30)
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+text = "All"
+
+[node name="WeaponButton" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader/FilterContainer"]
+custom_minimum_size = Vector2(40, 30)
+layout_mode = 2
+toggle_mode = true
+text = "⚔"
+
+[node name="ArmorButton" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader/FilterContainer"]
+custom_minimum_size = Vector2(40, 30)
+layout_mode = 2
+toggle_mode = true
+text = "🛡"
+
+[node name="HelmButton" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader/FilterContainer"]
+custom_minimum_size = Vector2(40, 30)
+layout_mode = 2
+toggle_mode = true
+text = "🪖"
+
+[node name="BootsButton" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader/FilterContainer"]
+custom_minimum_size = Vector2(40, 30)
+layout_mode = 2
+toggle_mode = true
+text = "👢"
+
+[node name="AmuletButton" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader/FilterContainer"]
+custom_minimum_size = Vector2(40, 30)
+layout_mode = 2
+toggle_mode = true
+text = "🔮"
+
+[node name="RingButton" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader/FilterContainer"]
+custom_minimum_size = Vector2(40, 30)
+layout_mode = 2
+toggle_mode = true
+text = "💍"
+
+[node name="VSeparator" type="VSeparator" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader/FilterContainer"]
+layout_mode = 2
+
+[node name="SortLabel" type="Label" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader/FilterContainer"]
+layout_mode = 2
+text = "Sort:"
+
+[node name="TypeSortButton" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader/FilterContainer"]
+custom_minimum_size = Vector2(50, 30)
+layout_mode = 2
+text = "Type"
+
+[node name="RaritySortButton" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader/FilterContainer"]
+custom_minimum_size = Vector2(50, 30)
+layout_mode = 2
+text = "★"
+
+[node name="LevelSortButton" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader/FilterContainer"]
+custom_minimum_size = Vector2(50, 30)
+layout_mode = 2
+text = "Lvl"
+
+[node name="SetSortButton" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryHeader/FilterContainer"]
+custom_minimum_size = Vector2(50, 30)
+layout_mode = 2
+text = "Set"
+
+[node name="InventoryContainer" type="VBoxContainer" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InventoryScroll" type="ScrollContainer" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InventoryGrid" type="GridContainer" parent="MainContainer/ContentContainer/CenterRightSplit/CenterPanel/InventoryContainer/InventoryScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 5
+
+[node name="RightPanel" type="VBoxContainer" parent="MainContainer/ContentContainer/CenterRightSplit"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+
+[node name="EquippedContainer" type="VBoxContainer" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel"]
+layout_mode = 2
+
+[node name="EquippedTitle" type="Label" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "EQUIPPED GEAR"
+horizontal_alignment = 1
+
+[node name="SlotsContainer" type="Control" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer"]
+custom_minimum_size = Vector2(0, 220)
+layout_mode = 2
+
+[node name="SlotGrid" type="GridContainer" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -105.0
+offset_top = -105.0
+offset_right = 105.0
+offset_bottom = 105.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 3
+
+[node name="Slot1" type="Panel" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid/Slot1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="Icon" type="Label" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid/Slot1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slot2" type="Panel" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid/Slot2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="Icon" type="Label" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid/Slot2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slot3" type="Panel" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid/Slot3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="Icon" type="Label" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid/Slot3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slot4" type="Panel" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid/Slot4"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="Icon" type="Label" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid/Slot4"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Empty" type="Control" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+
+[node name="Slot5" type="Panel" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid/Slot5"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="Icon" type="Label" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid/Slot5"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slot6" type="Panel" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid/Slot6"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="Icon" type="Label" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid/Slot6"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Empty2" type="Control" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/EquippedContainer/SlotsContainer/SlotGrid"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+
+[node name="HSeparator" type="HSeparator" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel"]
+layout_mode = 2
+
+[node name="StatsContainer" type="VBoxContainer" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StatsTitle" type="Label" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/StatsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "STATS"
+horizontal_alignment = 1
+
+[node name="StatsScroll" type="ScrollContainer" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/StatsContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StatsContent" type="VBoxContainer" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/StatsContainer/StatsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NoStatsLabel" type="Label" parent="MainContainer/ContentContainer/CenterRightSplit/RightPanel/StatsContainer/StatsScroll/StatsContent"]
+layout_mode = 2
+text = "Select a god to view stats"
+horizontal_alignment = 1
+vertical_alignment = 1
