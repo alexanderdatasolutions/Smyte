@@ -90,41 +90,33 @@ func _ready():
 	status_effect_manager.status_effect_applied.connect(_on_status_effect_applied)
 	status_effect_manager.status_effect_removed.connect(_on_status_effect_removed)
 
-func start_territory_assault(gods: Array, territory: Territory, stage: int):
-	"""Start battle with territory and stage"""
-	print("=== BATTLE MANAGER: Starting %s Stage %d ===" % [territory.name, stage])
+func start_battle(config: BattleFactory) -> bool:
+	"""Universal battle starter - handles any battle type with modular configuration"""
+	print("=== BATTLE MANAGER: Starting %s Battle ===" % config.battle_type.capitalize())
 	
+	# Validate configuration
+	if not config.validate():
+		print("ERROR: Invalid battle configuration")
+		return false
+	
+	# Set core battle state
 	battle_active = true
-	current_battle_gods = gods.duplicate()
-	current_battle_territory = territory
-	current_battle_stage = stage
+	current_battle_gods = config.player_team.duplicate()
 	
-	# Reset all gods to full HP at start of battle
-	_reset_gods_hp()
+	# MODULAR: Use EnemyFactory to create enemies based on configuration
+	current_battle_enemies = EnemyFactory.create_enemies_for_battle(config)
 	
-	# Create enemies using EnemyFactory
-	current_battle_enemies = EnemyFactory.create_enemies_for_stage(territory, stage)
-	
-	# Reset auto-battle state for new battle
-	auto_battle_enabled = false
-	
-	battle_log_updated.emit("Battle: %s Stage %d" % [territory.name, stage])
-	
-	# Setup turn order
-	turn_system.setup_turn_order(current_battle_gods, current_battle_enemies)
-	
-	# Start first turn
-	_start_next_turn()
-
-func start_dungeon_battle(gods: Array, dungeon_id: String, difficulty: String, enemies: Array) -> bool:
-	"""Start a dungeon battle - modular battle system"""
-	print("=== BATTLE MANAGER: Starting Dungeon Battle - %s (%s) ===" % [dungeon_id, difficulty])
-	
-	battle_active = true
-	current_battle_gods = gods.duplicate()
-	current_battle_enemies = enemies.duplicate()
-	current_battle_territory = null  # No territory for dungeons
-	current_battle_stage = 1
+	# Set context-specific data
+	match config.battle_type:
+		"territory":
+			current_battle_territory = config.battle_territory
+			current_battle_stage = config.battle_stage
+		"dungeon":
+			current_battle_territory = null
+			current_battle_stage = 1
+		_:
+			current_battle_territory = null
+			current_battle_stage = 1
 	
 	# Reset all gods to full HP at start of battle
 	_reset_gods_hp()
@@ -132,18 +124,27 @@ func start_dungeon_battle(gods: Array, dungeon_id: String, difficulty: String, e
 	# Reset auto-battle state for new battle
 	auto_battle_enabled = false
 	
-	battle_log_updated.emit("Dungeon Battle: %s - %s Difficulty" % [dungeon_id.capitalize().replace("_", " "), difficulty.capitalize()])
+	# Emit battle log
+	battle_log_updated.emit(config.get_battle_description())
 	
 	# Setup turn order
 	turn_system.setup_turn_order(current_battle_gods, current_battle_enemies)
-	
-	# Don't auto-enable auto-battle for dungeons - let player control it
-	auto_battle_enabled = false
 	
 	# Start first turn
 	_start_next_turn()
 	
 	return true
+
+# Legacy methods for backward compatibility - redirect to modular system
+func start_territory_assault(gods: Array, territory: Territory, stage: int):
+	"""Legacy method - redirects to modular start_battle"""
+	var config = BattleFactory.create_territory_battle(gods, territory, stage)
+	start_battle(config)
+
+func start_dungeon_battle(gods: Array, dungeon_id: String, difficulty: String, enemies: Array) -> bool:
+	"""Legacy method - redirects to modular start_battle"""
+	var config = BattleFactory.create_dungeon_battle(gods, dungeon_id, difficulty, enemies)
+	return start_battle(config)
 
 func reset_battle():
 	"""Reset battle state for new wave or battle"""

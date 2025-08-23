@@ -2,6 +2,25 @@
 class_name EnemyFactory
 extends RefCounted
 
+# UNIFIED ENTRY POINT - Works with BattleFactory configurations
+static func create_enemies_for_battle(battle_config: BattleFactory) -> Array:
+	"""Main entry point - creates enemies based on BattleFactory configuration"""
+	var config_data = battle_config.get_battle_config()
+	
+	match config_data.get("type", ""):
+		"territory":
+			return create_enemies_for_stage(config_data.territory, config_data.stage)
+		"dungeon":
+			return create_enemies_for_dungeon(config_data.dungeon_id, config_data.difficulty)
+		"raid":
+			return create_enemies_for_raid(config_data.raid_id, config_data.difficulty, config_data.wave)
+		"arena":
+			return config_data.opponent_team.duplicate()  # PvP uses opponent team directly
+		_:
+			print("ERROR: Unknown battle type: %s" % config_data.get("type", "unknown"))
+			return []
+
+# EXISTING SPECIALIZED METHODS - Keep these for direct use
 static func create_enemies_for_stage(territory: Territory, stage: int) -> Array:
 	"""Create enemies using the Summoners War style system - matches your existing logic"""
 	var enemies = []
@@ -96,6 +115,12 @@ static func create_enemies_for_dungeon(dungeon_id: String, difficulty: String) -
 	var enemy_level = dungeon_config.enemy_level
 	var enemy_composition = dungeon_config.enemy_composition
 	
+	# SAFETY CHECK: Enforce 4-enemy UI limit
+	if enemy_count > 4:
+		print("WARNING: Enemy count %d exceeds UI limit for %s %s - capping at 4" % [enemy_count, dungeon_id, difficulty])
+		enemy_count = 4
+		enemy_composition = enemy_composition.slice(0, 4)  # Take first 4 only
+	
 	# Create enemies
 	for i in range(enemy_count):
 		var enemy = {}
@@ -160,6 +185,88 @@ static func create_enemies_for_dungeon(dungeon_id: String, difficulty: String) -
 		print("  %s (Lv.%d) - HP:%d ATK:%d DEF:%d SPD:%d CR:%d%% CD:%d%% RES:%d%% ACC:%d%%" % [
 			enemy.name, enemy.level, enemy.hp, enemy.attack, enemy.defense, enemy.speed, 
 			enemy.get("crit_rate", 15), enemy.get("crit_damage", 50), enemy.get("resistance", 15), enemy.get("accuracy", 0)
+		])
+	
+	return enemies
+
+static func create_enemies_for_raid(raid_id: String, difficulty: String, wave: int = 1) -> Array:
+	"""Create enemies for raid battles - single wave raids"""
+	var enemies = []
+	
+	# Raid enemy count based on difficulty
+	var enemy_count = 4  # Always 4 enemies for raids (UI limit)
+	
+	# Raid enemy level based on difficulty
+	var base_level = 40
+	match difficulty:
+		"easy": base_level = 35
+		"normal": base_level = 40
+		"hard": base_level = 50
+		"nightmare": base_level = 60
+		_: base_level = 40
+	
+	# Raid enemy composition (mixed elements, stronger than dungeons)
+	var enemy_composition = ["basic", "elite", "elite", "boss"]
+	var elements = ["fire", "water", "lightning", "earth", "light", "dark"]
+	
+	for i in range(enemy_count):
+		var enemy = {}
+		enemy.level = base_level + wave * 2  # +2 levels per wave
+		
+		# Determine enemy type
+		var enemy_type = enemy_composition[i] if i < enemy_composition.size() else "elite"
+		
+		# Random element for raids (mixed element fights)
+		var element_string = elements[randi() % elements.size()]
+		var element_name = _get_element_display_name(element_string)
+		
+		# Set enemy name based on raid and element
+		match enemy_type:
+			"boss":
+				enemy.name = "%s Raid Lord" % element_name
+			"elite":
+				enemy.name = "%s Raid Champion" % element_name
+			_:
+				enemy.name = "%s Raider" % element_name
+		
+		# Calculate stats for raid enemy (stronger than dungeon enemies)
+		var element_int = DataLoader.element_string_to_int(element_string)
+		var stats = _calculate_dungeon_enemy_stats(element_int, enemy_type, enemy.level, difficulty)
+		
+		# Raid multiplier (20% stronger than dungeon enemies)
+		var raid_multiplier = 1.2
+		stats.hp = int(stats.hp * raid_multiplier)
+		stats.attack = int(stats.attack * raid_multiplier)
+		stats.defense = int(stats.defense * raid_multiplier)
+		
+		enemy.hp = stats.hp
+		enemy.current_hp = stats.hp
+		enemy.attack = stats.attack
+		enemy.defense = stats.defense
+		enemy.speed = stats.speed
+		enemy.crit_rate = stats.crit_rate
+		enemy.crit_damage = stats.crit_damage
+		enemy.resistance = stats.resistance
+		enemy.accuracy = stats.accuracy
+		enemy.element = element_int
+		enemy.type = enemy_type
+		
+		# Add status effects tracking for enemies
+		enemy.status_effects = []
+		enemy.shield_hp = 0
+		
+		# Add unique battle index for UI tracking
+		enemy.battle_index = i
+		
+		# Add basic AI data
+		enemy.ai_behavior = _get_enemy_ai_behavior(enemy_type)
+		
+		enemies.append(enemy)
+	
+	print("EnemyFactory created %d enemies for raid %s (%s):" % [enemies.size(), raid_id, difficulty])
+	for enemy in enemies:
+		print("  %s (Lv.%d) - HP:%d ATK:%d DEF:%d SPD:%d" % [
+			enemy.name, enemy.level, enemy.hp, enemy.attack, enemy.defense, enemy.speed
 		])
 	
 	return enemies
@@ -384,7 +491,7 @@ static func get_enemy_power_rating(enemy: Dictionary) -> int:
 	return int(power)
 
 static func _get_dungeon_config(dungeon_id: String, difficulty: String) -> Dictionary:
-	"""Get dungeon configuration for enemy creation"""
+	"""Get dungeon configuration for enemy creation - MAX 4 ENEMIES FOR UI LIMIT"""
 	var config = {
 		"enemy_count": 3,
 		"enemy_level": 15,
@@ -403,7 +510,7 @@ static func _get_dungeon_config(dungeon_id: String, difficulty: String) -> Dicti
 		if difficulty_info.has("waves"):
 			config.waves = difficulty_info.waves
 	
-	# Adjust based on difficulty
+	# Adjust based on difficulty - ENFORCE 4 ENEMY MAXIMUM FOR ALL DIFFICULTIES
 	match difficulty:
 		"beginner":
 			config.enemy_level = 15
@@ -411,8 +518,8 @@ static func _get_dungeon_config(dungeon_id: String, difficulty: String) -> Dicti
 			config.enemy_composition = ["basic", "basic", "leader"]
 		"intermediate":
 			config.enemy_level = 25
-			config.enemy_count = 4
-			config.enemy_composition = ["basic", "leader", "elite", "basic"]
+			config.enemy_count = 3  # Reduced from 4 for consistency
+			config.enemy_composition = ["basic", "leader", "elite"]
 		"advanced":
 			config.enemy_level = 35
 			config.enemy_count = 4
@@ -423,16 +530,16 @@ static func _get_dungeon_config(dungeon_id: String, difficulty: String) -> Dicti
 			config.enemy_composition = ["elite", "elite", "boss", "elite"]
 		"master":
 			config.enemy_level = 55
-			config.enemy_count = 5
-			config.enemy_composition = ["elite", "elite", "boss", "elite", "leader"]
+			config.enemy_count = 4  # Reduced from 5 - UI LIMIT
+			config.enemy_composition = ["elite", "elite", "boss", "elite"]
 		"heroic":
 			config.enemy_level = 65
-			config.enemy_count = 5
-			config.enemy_composition = ["boss", "elite", "boss", "elite", "elite"]
+			config.enemy_count = 4  # Enforce UI limit
+			config.enemy_composition = ["boss", "elite", "elite", "elite"]
 		"legendary":
 			config.enemy_level = 75
-			config.enemy_count = 5
-			config.enemy_composition = ["boss", "boss", "elite", "boss", "elite"]
+			config.enemy_count = 4  # Enforce UI limit
+			config.enemy_composition = ["boss", "boss", "elite", "elite"]
 	
 	return config
 
@@ -528,9 +635,14 @@ static func create_enemies_for_dungeon_wave(dungeon_id: String, difficulty: Stri
 	var dungeon_info = dungeon_system.get_dungeon_info(dungeon_id)
 	var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
 	
-	# Wave-based enemy scaling
+	# Wave-based enemy scaling with UI limit enforcement
 	var base_enemy_count = 3  # Base enemies per wave
 	var wave_enemy_count = base_enemy_count + (wave_number - 1)  # More enemies in later waves
+	
+	# ENFORCE UI LIMIT: Cap at 4 enemies maximum
+	if wave_enemy_count > 4:
+		print("WARNING: Wave %d would have %d enemies - capping at 4 for UI limit" % [wave_number, wave_enemy_count])
+		wave_enemy_count = 4
 	
 	# Get enemy level based on difficulty
 	var base_level = _get_dungeon_enemy_level(difficulty)
@@ -549,6 +661,11 @@ static func create_enemies_for_territory_wave(territory: Territory, stage: int, 
 	
 	# Base enemy count per wave
 	var base_count = 2 + wave_number  # Wave 1 = 3, Wave 2 = 4, Wave 3 = 5
+	
+	# ENFORCE UI LIMIT: Cap at 4 enemies maximum
+	if base_count > 4:
+		print("WARNING: Territory wave %d would have %d enemies - capping at 4 for UI limit" % [wave_number, base_count])
+		base_count = 4
 	
 	# Create enemies using existing territory logic
 	var base_level = _get_base_level_for_territory_tier(territory.tier)
@@ -569,6 +686,11 @@ static func create_enemies_for_territory_wave(territory: Territory, stage: int, 
 static func create_enemies_for_raid_wave(raid_id: String, difficulty: String, wave_number: int, enemy_count: int) -> Array:
 	"""Create enemies for a specific raid wave"""
 	var enemies = []
+	
+	# ENFORCE UI LIMIT: Cap at 4 enemies maximum
+	if enemy_count > 4:
+		print("WARNING: Raid wave %d would have %d enemies - capping at 4 for UI limit" % [wave_number, enemy_count])
+		enemy_count = 4
 	
 	# Raids have progressively stronger waves
 	var base_level = 50 + (wave_number - 1) * 5

@@ -550,41 +550,15 @@ func _switch_to_battle_screen_with_context(context: Dictionary):
 	print("=== DungeonScreen: Switching to BattleScreen with context ===")
 	print("=== DEBUG: Current DungeonScreen instance ID before transition: ", get_instance_id())
 	
-	# Store the current scene reference
-	var current_scene = get_tree().current_scene
-	
-	# Load BattleScreen scene
-	var battle_scene = load("res://scenes/BattleScreen.tscn")
-	if not battle_scene:
-		show_error_message("Could not load BattleScreen")
-		return
-	
-	# Manually free the current scene first to prevent multiple instances
-	if current_scene:
-		current_scene.queue_free()
-		get_tree().current_scene = null
-	
-	# Change to BattleScreen
-	get_tree().change_scene_to_packed(battle_scene)
-	
-	# Wait for scene change and then setup the battle
-	await get_tree().process_frame
-	
-	# Wait for the BattleScreen to be ready
-	var timeout_counter = 0
-	while not get_tree().current_scene and timeout_counter < 60:
-		await get_tree().process_frame
-		timeout_counter += 1
-	
-	if timeout_counter >= 60:
-		print("ERROR: Timeout waiting for BattleScreen to load")
-		return
-	
-	var battle_screen = get_tree().current_scene
-	if battle_screen and battle_screen.has_method("setup_battle_from_context"):
-		battle_screen.setup_battle_from_context(context)
+	# Store battle context in GameManager for the new scene to pick up
+	if GameManager.has_method("set_pending_battle_context"):
+		GameManager.set_pending_battle_context(context)
 	else:
-		print("ERROR: BattleScreen doesn't have setup_battle_from_context method")
+		# Fallback: store in a global/autoload
+		GameManager.set_meta("pending_battle_context", context)
+	
+	# Simple scene transition - let the BattleScreen pick up the context in _ready()
+	get_tree().change_scene_to_file("res://scenes/BattleScreen.tscn")
 
 func _on_battle_setup_cancelled():
 	"""Handle battle setup cancellation"""

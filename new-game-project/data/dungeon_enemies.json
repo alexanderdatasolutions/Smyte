@@ -361,7 +361,7 @@
         {
           "wave_number": 4,
           "enemy_types": ["weak", "elite"],
-          "enemy_count": 5,
+          "enemy_count": 4,
           "description": "Combined assault"
         },
         {

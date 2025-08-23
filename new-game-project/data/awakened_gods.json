@@ -88,12 +88,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "athena",
 			"awakening_materials": {
-				"light_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"light_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"light_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"light_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"light_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"light_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"zeus_awakened": {
@@ -209,12 +209,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "zeus",
 			"awakening_materials": {
-				"lightning_essences_high": 20.0,
-				"magic_essences_high": 10.0,
-				"lightning_essences_mid": 40.0,
-				"magic_essences_mid": 20.0,
-				"lightning_essences_low": 15.0,
-				"magic_essences_low": 10.0
+				"lightning_powder_high": 20.0,
+				"magic_powder_high": 10.0,
+				"lightning_powder_mid": 40.0,
+				"magic_powder_mid": 20.0,
+				"lightning_powder_low": 15.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"odin_awakened": {
@@ -324,12 +324,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "odin",
 			"awakening_materials": {
-				"dark_essences_high": 20.0,
-				"magic_essences_high": 10.0,
-				"dark_essences_mid": 40.0,
-				"magic_essences_mid": 20.0,
-				"dark_essences_low": 15.0,
-				"magic_essences_low": 10.0
+				"dark_powder_high": 20.0,
+				"magic_powder_high": 10.0,
+				"dark_powder_mid": 40.0,
+				"magic_powder_mid": 20.0,
+				"dark_powder_low": 15.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"ra_awakened": {
@@ -443,12 +443,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "ra",
 			"awakening_materials": {
-				"fire_essences_high": 20.0,
-				"magic_essences_high": 10.0,
-				"fire_essences_mid": 40.0,
-				"magic_essences_mid": 20.0,
-				"fire_essences_low": 15.0,
-				"magic_essences_low": 10.0
+				"fire_powder_high": 20.0,
+				"magic_powder_high": 10.0,
+				"fire_powder_mid": 40.0,
+				"magic_powder_mid": 20.0,
+				"fire_powder_low": 15.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"shiva_awakened": {
@@ -553,12 +553,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "shiva",
 			"awakening_materials": {
-				"fire_essences_high": 20.0,
-				"magic_essences_high": 10.0,
-				"fire_essences_mid": 40.0,
-				"magic_essences_mid": 20.0,
-				"fire_essences_low": 15.0,
-				"magic_essences_low": 10.0
+				"fire_powder_high": 20.0,
+				"magic_powder_high": 10.0,
+				"fire_powder_mid": 40.0,
+				"magic_powder_mid": 20.0,
+				"fire_powder_low": 15.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"amaterasu_awakened": {
@@ -664,12 +664,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "amaterasu",
 			"awakening_materials": {
-				"light_essences_high": 20.0,
-				"magic_essences_high": 10.0,
-				"light_essences_mid": 40.0,
-				"magic_essences_mid": 20.0,
-				"light_essences_low": 15.0,
-				"magic_essences_low": 10.0
+				"light_powder_high": 20.0,
+				"magic_powder_high": 10.0,
+				"light_powder_mid": 40.0,
+				"magic_powder_mid": 20.0,
+				"light_powder_low": 15.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"jade_emperor_awakened": {
@@ -777,12 +777,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "jade_emperor",
 			"awakening_materials": {
-				"light_essences_high": 20.0,
-				"magic_essences_high": 10.0,
-				"light_essences_mid": 40.0,
-				"magic_essences_mid": 20.0,
-				"light_essences_low": 15.0,
-				"magic_essences_low": 10.0
+				"light_powder_high": 20.0,
+				"magic_powder_high": 10.0,
+				"light_powder_mid": 40.0,
+				"magic_powder_mid": 20.0,
+				"light_powder_low": 15.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"marduk_awakened": {
@@ -894,12 +894,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "marduk",
 			"awakening_materials": {
-				"lightning_essences_high": 20.0,
-				"magic_essences_high": 10.0,
-				"lightning_essences_mid": 40.0,
-				"magic_essences_mid": 20.0,
-				"lightning_essences_low": 15.0,
-				"magic_essences_low": 10.0
+				"lightning_powder_high": 20.0,
+				"magic_powder_high": 10.0,
+				"lightning_powder_mid": 40.0,
+				"magic_powder_mid": 20.0,
+				"lightning_powder_low": 15.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"poseidon_awakened": {
@@ -1000,12 +1000,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "poseidon",
 			"awakening_materials": {
-				"water_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"water_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"water_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"water_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"water_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"water_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"hades_awakened": {
@@ -1105,12 +1105,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "hades",
 			"awakening_materials": {
-				"dark_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"dark_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"dark_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"dark_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"dark_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"dark_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"hera_awakened": {
@@ -1217,12 +1217,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "hera",
 			"awakening_materials": {
-				"light_essences_high": 20.0,
-				"magic_essences_high": 10.0,
-				"light_essences_mid": 40.0,
-				"magic_essences_mid": 20.0,
-				"light_essences_low": 15.0,
-				"magic_essences_low": 10.0
+				"light_powder_high": 20.0,
+				"magic_powder_high": 10.0,
+				"light_powder_mid": 40.0,
+				"magic_powder_mid": 20.0,
+				"light_powder_low": 15.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"thor_awakened": {
@@ -1326,12 +1326,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "thor",
 			"awakening_materials": {
-				"lightning_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"lightning_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"lightning_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"lightning_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"lightning_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"lightning_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"freya_awakened": {
@@ -1437,12 +1437,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "freya",
 			"awakening_materials": {
-				"light_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"light_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"light_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"light_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"light_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"light_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"anubis_awakened": {
@@ -1547,12 +1547,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "anubis",
 			"awakening_materials": {
-				"dark_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"dark_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"dark_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"dark_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"dark_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"dark_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"brahma_awakened": {
@@ -1658,12 +1658,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "brahma",
 			"awakening_materials": {
-				"light_essences_high": 20.0,
-				"magic_essences_high": 10.0,
-				"light_essences_mid": 40.0,
-				"magic_essences_mid": 20.0,
-				"light_essences_low": 15.0,
-				"magic_essences_low": 10.0
+				"light_powder_high": 20.0,
+				"magic_powder_high": 10.0,
+				"light_powder_mid": 40.0,
+				"magic_powder_mid": 20.0,
+				"light_powder_low": 15.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"vishnu_awakened": {
@@ -1771,12 +1771,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "vishnu",
 			"awakening_materials": {
-				"light_essences_high": 20.0,
-				"magic_essences_high": 10.0,
-				"light_essences_mid": 40.0,
-				"magic_essences_mid": 20.0,
-				"light_essences_low": 15.0,
-				"magic_essences_low": 10.0
+				"light_powder_high": 20.0,
+				"magic_powder_high": 10.0,
+				"light_powder_mid": 40.0,
+				"magic_powder_mid": 20.0,
+				"light_powder_low": 15.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"ganesha_awakened": {
@@ -1880,12 +1880,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "ganesha",
 			"awakening_materials": {
-				"earth_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"earth_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"earth_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"earth_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"earth_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"earth_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"hanuman_awakened": {
@@ -1988,12 +1988,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "hanuman",
 			"awakening_materials": {
-				"fire_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"fire_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"fire_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"fire_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"fire_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"fire_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"durga_awakened": {
@@ -2094,12 +2094,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "durga",
 			"awakening_materials": {
-				"fire_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"fire_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"fire_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"fire_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"fire_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"fire_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"hestia_awakened": {
@@ -2207,12 +2207,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "hestia",
 			"awakening_materials": {
-				"fire_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"fire_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"fire_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"fire_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"fire_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"fire_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"demeter_awakened": {
@@ -2320,12 +2320,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "demeter",
 			"awakening_materials": {
-				"earth_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"earth_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"earth_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"earth_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"earth_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"earth_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"dragon_king_awakened": {
@@ -2430,12 +2430,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "dragon_king",
 			"awakening_materials": {
-				"water_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"water_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"water_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"water_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"water_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"water_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"sun_wukong_awakened": {
@@ -2546,12 +2546,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "sun_wukong",
 			"awakening_materials": {
-				"fire_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"fire_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"fire_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"fire_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"fire_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"fire_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"perun_awakened": {
@@ -2662,12 +2662,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "perun",
 			"awakening_materials": {
-				"lightning_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"lightning_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"lightning_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"lightning_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"lightning_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"lightning_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"svarog_awakened": {
@@ -2781,12 +2781,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "svarog",
 			"awakening_materials": {
-				"fire_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"fire_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"fire_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"fire_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"fire_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"fire_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"jormungandr_awakened": {
@@ -2893,12 +2893,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "jormungandr",
 			"awakening_materials": {
-				"water_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"water_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"water_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"water_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"water_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"water_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"osiris_awakened": {
@@ -3007,12 +3007,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "osiris",
 			"awakening_materials": {
-				"dark_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"dark_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"dark_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"dark_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"dark_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"dark_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		},
 		"horus_awakened": {
@@ -3117,12 +3117,12 @@
 			"summon_weight": 0.0,
 			"base_god_id": "horus",
 			"awakening_materials": {
-				"wind_essences_high": 15.0,
-				"magic_essences_high": 8.0,
-				"wind_essences_mid": 30.0,
-				"magic_essences_mid": 15.0,
-				"wind_essences_low": 20.0,
-				"magic_essences_low": 10.0
+				"wind_powder_high": 15.0,
+				"magic_powder_high": 8.0,
+				"wind_powder_mid": 30.0,
+				"magic_powder_mid": 15.0,
+				"wind_powder_low": 20.0,
+				"magic_powder_low": 10.0
 			}
 		}
 	},

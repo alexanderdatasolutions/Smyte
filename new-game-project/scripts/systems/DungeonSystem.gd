@@ -243,8 +243,8 @@ func attempt_dungeon(dungeon_id: String, difficulty: String, team: Array) -> Dic
 		return result
 	
 	# Team validation
-	if team.size() == 0 or team.size() > 5:
-		result.error_message = "Invalid team size (1-5 gods required)"
+	if team.size() == 0 or team.size() > 4:
+		result.error_message = "Invalid team size (1-4 gods required)"
 		return result
 	
 	# Start real dungeon battle first (before spending energy)
@@ -297,8 +297,8 @@ func validate_dungeon_attempt(dungeon_id: String, difficulty: String, team: Arra
 		return result
 	
 	# Team validation
-	if team.size() == 0 or team.size() > 5:
-		result.error_message = "Invalid team size (1-5 gods required)"
+	if team.size() == 0 or team.size() > 4:
+		result.error_message = "Invalid team size (1-4 gods required)"
 		return result
 	
 	result.success = true
@@ -389,6 +389,14 @@ func start_dungeon_battle(dungeon_id: String, difficulty: String, team: Array) -
 			dungeon_failed.emit(dungeon_id, difficulty)
 		
 		return sim_result
+
+func reset_battle_state():
+	"""Reset dungeon battle state - call when battle is cancelled or interrupted"""
+	print("=== DungeonSystem: Resetting battle state ===")
+	battle_in_progress = false
+	current_dungeon_id = ""
+	current_dungeon_difficulty = ""
+	_stored_battle_data.clear()
 
 func simulate_dungeon_battle(_dungeon_info: Dictionary, difficulty_info: Dictionary, team: Array) -> bool:
 	"""Simulate the dungeon battle - simplified for now"""

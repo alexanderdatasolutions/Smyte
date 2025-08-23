@@ -1021,6 +1021,25 @@ func update_awakening_materials_display():
 		# Get materials from AwakeningSystem
 		if GameManager and GameManager.awakening_system:
 			var materials = GameManager.awakening_system.get_awakening_materials_cost(awakening_selected_god)
+			var requirements_check = GameManager.awakening_system.can_awaken_god(awakening_selected_god)
+			
+			# Show basic requirements if not met
+			if not requirements_check.can_awaken and requirements_check.missing_requirements.size() > 0:
+				var req_label = Label.new()
+				req_label.text = "Requirements not met:"
+				req_label.add_theme_font_size_override("font_size", 12)
+				req_label.add_theme_color_override("font_color", Color.RED)
+				req_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+				vbox.add_child(req_label)
+				
+				for req in requirements_check.missing_requirements:
+					var req_item = Label.new()
+					req_item.text = "• " + str(req)
+					req_item.add_theme_font_size_override("font_size", 10)
+					req_item.add_theme_color_override("font_color", Color.LIGHT_CORAL)
+					req_item.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+					vbox.add_child(req_item)
+				return
 			
 			if materials.is_empty():
 				var no_data_label = Label.new()
@@ -1032,33 +1051,81 @@ func update_awakening_materials_display():
 				no_data_label.clip_contents = true
 				vbox.add_child(no_data_label)
 			else:
-				# Display materials in a compact grid with 2 columns
-				var grid = GridContainer.new()
-				grid.columns = 2
-				grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-				grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
-				grid.add_theme_constant_override("v_separation", 4)
-				grid.add_theme_constant_override("h_separation", 15)
-				vbox.add_child(grid)
+				# Check materials availability
+				var materials_check = GameManager.awakening_system.check_awakening_materials(materials, GameManager.player_data)
 				
-				# Display each material requirement
+				# Display each material requirement with current/needed amounts
 				for material_type in materials:
-					var amount = materials[material_type]
-					var material_label = Label.new()
-					var display_name = material_type.replace("_", " ").capitalize()
-					# Shorten common terms to fit better
-					display_name = display_name.replace("Essences", "Ess.")
-					display_name = display_name.replace("High", "Hi")
-					display_name = display_name.replace("Medium", "Med")
-					display_name = display_name.replace("Low", "Lo")
-					material_label.text = "%s: %d" % [display_name, amount]
-					material_label.add_theme_font_size_override("font_size", 12)
-					material_label.modulate = Color.CYAN
-					material_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-					material_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-					material_label.clip_contents = true
-					material_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-					grid.add_child(material_label)
+					var needed_amount = materials[material_type]
+					var current_amount = GameManager.awakening_system.get_player_material_amount(material_type, GameManager.player_data)
+					
+					# Create material row
+					var material_container = HBoxContainer.new()
+					material_container.add_theme_constant_override("separation", 10)
+					vbox.add_child(material_container)
+					
+					# Material name
+					var name_label = Label.new()
+					name_label.text = format_material_name(material_type)
+					name_label.add_theme_font_size_override("font_size", 11)
+					name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+					material_container.add_child(name_label)
+					
+					# Amount display
+					var amount_label = Label.new()
+					amount_label.text = "%d / %d" % [current_amount, needed_amount]
+					amount_label.add_theme_font_size_override("font_size", 11)
+					amount_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+					
+					# Color based on availability
+					if current_amount >= needed_amount:
+						amount_label.add_theme_color_override("font_color", Color.GREEN)
+					else:
+						amount_label.add_theme_color_override("font_color", Color.RED)
+					
+					material_container.add_child(amount_label)
+				
+				# Add separator
+				var separator = HSeparator.new()
+				vbox.add_child(separator)
+				
+				# Overall status
+				var status_label = Label.new()
+				if materials_check.can_afford:
+					status_label.text = "✓ All materials available!"
+					status_label.add_theme_color_override("font_color", Color.GREEN)
+				else:
+					status_label.text = "✗ Missing materials"
+					status_label.add_theme_color_override("font_color", Color.RED)
+				
+				status_label.add_theme_font_size_override("font_size", 12)
+				status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+				vbox.add_child(status_label)
+
+func format_material_name(material_type: String) -> String:
+	"""Format material type string for display"""
+	match material_type:
+		"awakening_stones":
+			return "Awakening Stones"
+		"divine_crystals":
+			return "Divine Crystals"
+		_:
+			# Handle elemental powders and pantheon relics
+			if material_type.ends_with("_powder_low"):
+				var element = material_type.replace("_powder_low", "").capitalize()
+				return "%s Powder (Low)" % element
+			elif material_type.ends_with("_powder_mid"):
+				var element = material_type.replace("_powder_mid", "").capitalize()
+				return "%s Powder (Mid)" % element
+			elif material_type.ends_with("_powder_high"):
+				var element = material_type.replace("_powder_high", "").capitalize()
+				return "%s Powder (High)" % element
+			elif material_type.ends_with("_relics"):
+				var pantheon = material_type.replace("_relics", "").capitalize()
+				return "%s Relics" % pantheon
+			else:
+				# Fallback - just capitalize and replace underscores
+				return material_type.replace("_", " ").capitalize()
 
 func update_awakening_button():
 	"""Update the awakening button state"""
@@ -1066,10 +1133,13 @@ func update_awakening_button():
 		return
 	
 	var can_awaken = false
-	if awakening_selected_god and awakening_selected_god.can_awaken():
-		if GameManager and GameManager.awakening_system:
-			var awakening_check = GameManager.awakening_system.can_awaken_god(awakening_selected_god)
-			can_awaken = awakening_check.can_awaken
+	if awakening_selected_god and GameManager and GameManager.awakening_system:
+		var awakening_check = GameManager.awakening_system.can_awaken_god(awakening_selected_god)
+		if awakening_check.can_awaken:
+			# Also check materials
+			var materials_needed = GameManager.awakening_system.get_awakening_materials_cost(awakening_selected_god)
+			var materials_check = GameManager.awakening_system.check_awakening_materials(materials_needed, GameManager.player_data)
+			can_awaken = materials_check.can_afford
 	
 	awakening_button.disabled = not can_awaken
 

@@ -154,7 +154,7 @@ func _get_guild_battle_wave_count(config: Dictionary) -> int:
 	return min(3 + battle_tier, 7)  # 3-7 waves based on tier
 
 func setup_waves_for_dungeon(dungeon_id: String, difficulty: String) -> bool:
-	"""Setup wave system for dungeon battles"""
+	"""Setup wave system for dungeon battles - SIMPLIFIED: Use dungeons.json as single source of truth"""
 	print("=== WaveSystem: Setting up waves for dungeon %s (%s) ===" % [dungeon_id, difficulty])
 	
 	var dungeon_system = GameManager.get_dungeon_system()
@@ -165,25 +165,15 @@ func setup_waves_for_dungeon(dungeon_id: String, difficulty: String) -> bool:
 	var dungeon_info = dungeon_system.get_dungeon_info(dungeon_id)
 	var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
 	
-	# Default wave count from dungeon configuration
+	# Use dungeons.json as the ONLY source of truth
 	var configured_waves = difficulty_info.get("waves", 3)
-	print("=== Dungeon configuration shows %d waves for %s %s ===" % [configured_waves, dungeon_id, difficulty])
+	print("=== Using dungeons.json wave count: %d waves for %s %s ===" % [configured_waves, dungeon_id, difficulty])
 	
 	total_waves = configured_waves
 	current_wave = 1  # Start at 1 for proper display
 	
-	# Load wave configuration if available
-	var wave_config_data = _load_wave_configuration(dungeon_id, difficulty)
-	if not wave_config_data.is_empty():
-		wave_config = wave_config_data
-		var config_wave_count = wave_config.get("waves", []).size()
-		if config_wave_count > 0:
-			total_waves = config_wave_count
-			print("=== Using wave configuration override: %d waves ===" % total_waves)
-		else:
-			print("=== Wave configuration found but no waves array, using dungeon default: %d ===" % total_waves)
-	else:
-		print("=== No wave configuration found, using dungeon default: %d waves ===" % total_waves)
+	# Clear any old wave config data - we don't use overrides anymore
+	wave_config = {}
 	
 	battle_context = {
 		"type": "dungeon",
@@ -513,40 +503,6 @@ func _get_completion_bonus() -> Dictionary:
 func _get_final_rewards() -> Dictionary:
 	"""Get final accumulated rewards for completion"""
 	return accumulated_rewards.duplicate()
-
-func _load_wave_configuration(dungeon_id: String, difficulty: String) -> Dictionary:
-	"""Load wave configuration from dungeon_enemies.json"""
-	var file_path = "res://data/dungeon_enemies.json"
-	var file = FileAccess.open(file_path, FileAccess.READ)
-	
-	if not file:
-		print("Warning: Could not load wave configuration from dungeon_enemies.json")
-		return {}
-	
-	var json_text = file.get_as_text()
-	file.close()
-	
-	var json = JSON.new()
-	var parse_result = json.parse(json_text)
-	
-	if parse_result != OK:
-		print("Error parsing dungeon_enemies.json: %s" % json.error_string)
-		return {}
-	
-	var data = json.get_data()
-	
-	# Determine which wave configuration to use based on difficulty
-	var config_name = "standard_3_wave"  # Default
-	
-	match difficulty:
-		"beginner", "intermediate":
-			config_name = "standard_3_wave"
-		"advanced", "expert", "master":
-			config_name = "elite_5_wave"
-		"heroic", "legendary":
-			config_name = "elite_5_wave"  # Can add special configs later
-	
-	return data.get("wave_configurations", {}).get(config_name, {})
 
 func get_current_wave_info() -> Dictionary:
 	"""Get current wave information for UI"""

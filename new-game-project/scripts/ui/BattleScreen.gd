@@ -124,6 +124,13 @@ func _ready():
 		var setup_data = get_meta("pending_dungeon_setup")
 		print("=== BattleScreen: Executing pending dungeon setup ===")
 		call_deferred("_execute_pending_setup", setup_data)
+	
+	# Check if there's a pending battle context from scene transition
+	elif GameManager.has_meta("pending_battle_context"):
+		var context = GameManager.get_meta("pending_battle_context")
+		GameManager.remove_meta("pending_battle_context")  # Clear it immediately
+		print("=== BattleScreen: Found pending battle context, setting up battle ===")
+		call_deferred("setup_battle_from_context", context)
 
 func _setup_ui():
 	"""Setup UI - no timers, no complexity"""
@@ -467,7 +474,9 @@ func _execute_dungeon_setup(dungeon_id: String, difficulty: String, battle_gods:
 	# Create displays immediately since we know we're ready
 	print("=== BattleScreen: Creating displays immediately ===")
 	_create_god_displays()
-	_create_enemy_displays()
+	# Don't create enemy displays yet for dungeons - wait for wave system to populate enemies
+	if current_battle_type != "dungeon":
+		_create_enemy_displays()
 	
 	# Update auto-battle button state
 	_update_auto_battle_button()
@@ -1769,7 +1778,10 @@ func update_enemy_hp_instantly(enemy: Dictionary):
 	
 	if enemy_index == -1:
 		print("Could not find enemy in battle system array!")
-		print("Battle enemies: %s" % battle_enemies.map(func(e): return "%s(%d/%d)" % [_get_stat(e, "name", "Unknown"), _get_stat(e, "current_hp", 0), _get_stat(e, "max_hp", 100)]))
+		var enemy_debug = []
+		for e in battle_enemies:
+			enemy_debug.append("%s(%d/%d)" % [_get_stat(e, "name", "Unknown"), _get_stat(e, "current_hp", 0), _get_stat(e, "max_hp", 100)])
+		print("Battle enemies: %s" % enemy_debug)
 		return
 	
 	# Update the display for this specific enemy index
@@ -2294,6 +2306,16 @@ func _on_back_pressed():
 		GameManager.battle_system.current_battle_gods.clear()
 		GameManager.battle_system.current_battle_enemies.clear()
 		GameManager.battle_system.battle_screen = null
+	
+	# Clean up dungeon system battle state
+	if GameManager.has_method("get_dungeon_system") and GameManager.get_dungeon_system():
+		GameManager.get_dungeon_system().reset_battle_state()
+	
+	# Clean up wave system state
+	if GameManager.has_method("get_wave_system") and GameManager.get_wave_system():
+		var wave_system = GameManager.get_wave_system()
+		if wave_system.has_method("reset"):
+			wave_system.reset()
 	
 	# Clear display references
 	god_displays.clear()

@@ -1002,7 +1002,7 @@
       }
     },
     "team_restrictions": {
-      "max_team_size": 5,
+      "max_team_size": 4,
       "element_restrictions": {
         "some_dungeons": "opposite_element_penalty"
       },
