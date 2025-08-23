@@ -22,24 +22,18 @@ var loot_system  # NEW: Loot system for proper loot.json integration
 const GameDataLoader = preload("res://scripts/systems/DataLoader.gd")
 
 func _ready():
-	print("DEBUG: GameManager._ready() starting...")
 	initialize_game()
-	print("DEBUG: GameManager._ready() completed")
 
 func initialize_game():
-	print("DEBUG: initialize_game() starting...")
 	# Create player data
-	print("DEBUG: Creating player data...")
 	player_data = preload("res://scripts/data/PlayerData.gd").new()
 	
 	# Initialize systems
-	print("DEBUG: Creating systems...")
 	summon_system = preload("res://scripts/systems/SummonSystem.gd").new()
 	battle_system = preload("res://scripts/systems/BattleManager.gd").new()  # Updated to BattleManager
 	awakening_system = preload("res://scripts/systems/AwakeningSystem.gd").new()
 	sacrifice_system = preload("res://scripts/systems/SacrificeSystem.gd").new()  # NEW: Sacrifice system
 	loot_system = preload("res://scripts/systems/LootSystem.gd").new()  # NEW: Loot system
-	print("DEBUG: Adding systems as children...")
 	add_child(summon_system)
 	add_child(battle_system)
 	add_child(awakening_system)
@@ -47,7 +41,6 @@ func initialize_game():
 	add_child(loot_system)
 	
 	# Connect system signals
-	print("DEBUG: Connecting system signals...")
 	summon_system.summon_completed.connect(_on_summon_completed)
 	summon_system.summon_failed.connect(_on_summon_failed)
 	battle_system.battle_completed.connect(_on_battle_completed)
@@ -56,7 +49,6 @@ func initialize_game():
 	awakening_system.awakening_failed.connect(_on_awakening_failed)
 	
 	# Create resource generation timer
-	print("DEBUG: Creating resource timer...")
 	resource_timer = Timer.new()
 	resource_timer.wait_time = 5.0  # 5 seconds = 1 hour in game time (for testing)
 	resource_timer.timeout.connect(_on_resource_timer_timeout)
@@ -64,26 +56,28 @@ func initialize_game():
 	add_child(resource_timer)
 	
 	# Create auto-save timer (every 5 minutes)
-	print("DEBUG: Creating auto-save timer...")
 	var auto_save_timer = Timer.new()
 	auto_save_timer.wait_time = 300.0  # 5 minutes
 	auto_save_timer.timeout.connect(_on_auto_save_timer_timeout)
 	auto_save_timer.autostart = true
 	add_child(auto_save_timer)
 	
+	# Create energy update timer (every 60 seconds)
+	var energy_timer = Timer.new()
+	energy_timer.wait_time = 60.0  # Update energy every minute
+	energy_timer.timeout.connect(_on_energy_timer_timeout)
+	energy_timer.autostart = true
+	add_child(energy_timer)
+	
 	# Initialize territories
-	print("DEBUG: Initializing territories...")
 	initialize_territories()
 	
 	# Try to load existing save data first
-	print("DEBUG: Loading or creating save data...")
 	if not load_game():
 		# If no save file exists, give player starter content
 		give_starter_gods()
 		generate_offline_resources()
 		print("Starting new game with initial content")
-	
-	print("DEBUG: initialize_game() completed")
 
 func give_starter_gods():
 	# Give the player a few starting gods for testing using JSON system
@@ -107,9 +101,7 @@ func summon_premium() -> bool:
 
 # System signal handlers
 func _on_summon_completed(god):
-	print("DEBUG: _on_summon_completed signal handler called")
 	god_summoned.emit(god)
-	print("DEBUG: Emitting resources_updated signal")
 	resources_updated.emit()
 	# Auto-save after summoning
 	save_game()
@@ -285,6 +277,23 @@ func start_territory_stage_battle(territory: Territory, stage_number: int, attac
 	# Start a proper battle using the battle system for a territory stage
 	print("Starting territory stage battle: %s - Stage %d with %d gods" % [territory.name, stage_number, attacking_gods.size()])
 	
+	# Check energy cost based on territory tier
+	var energy_cost = get_territory_battle_energy_cost(territory)
+	
+	# Update player energy first
+	player_data.update_energy()
+	
+	# Check if player has enough energy
+	if not player_data.can_afford_energy(energy_cost):
+		print("Not enough energy for battle! Need: ", energy_cost, ", Have: ", player_data.energy)
+		# Could emit a signal here for UI to show energy shortage
+		return false
+	
+	# Spend the energy
+	if not player_data.spend_energy(energy_cost):
+		print("Failed to spend energy for battle!")
+		return false
+	
 	# Prepare gods for battle
 	for god in attacking_gods:
 		god.prepare_for_battle()
@@ -295,6 +304,18 @@ func start_territory_stage_battle(territory: Territory, stage_number: int, attac
 	# Return true to indicate battle was started successfully
 	# The actual result will be handled asynchronously via _on_battle_completed
 	return true
+
+func get_territory_battle_energy_cost(territory: Territory) -> int:
+	"""Get energy cost for battling in a territory based on tier"""
+	match territory.tier:
+		1:
+			return 6  # Tier 1 territories
+		2:
+			return 8  # Tier 2 territories  
+		3:
+			return 10  # Tier 3 territories
+		_:
+			return 6  # Fallback
 
 func battle_in_territory(territory: Territory, attacking_gods: Array):
 	# Battle in a specific territory for conquest progress
@@ -336,14 +357,19 @@ func ascend_god(god: God, new_level: int) -> bool:
 	return false
 
 func _on_resource_timer_timeout():
-	print("DEBUG: Resource timer timeout - generating resources...")
+	# Generate resources silently - reduced debug output to prevent spam
 	generate_resources()
-	print("DEBUG: Resource generation completed")
 
 func _on_auto_save_timer_timeout():
 	# Periodic auto-save (less frequent, only if there's meaningful progress)
 	save_game()
 	print("Auto-saved game progress")
+
+func _on_energy_timer_timeout():
+	# Update energy regeneration every minute
+	if player_data:
+		player_data.update_energy()
+		resources_updated.emit()  # Update UI
 
 func initialize_territories():
 	territories.clear()
@@ -383,55 +409,53 @@ func get_god_by_id(god_id: String):
 
 func generate_resources():
 	"""Summoners War style territory passive income generation using proper integration"""
-	print("DEBUG: generate_resources() starting...")
-	
 	# Safety check - make sure player_data exists
 	if not player_data:
 		print("ERROR: player_data is null in generate_resources!")
 		return
 		
 	if not player_data.controlled_territories:
-		print("DEBUG: No controlled territories, skipping resource generation")
-		return
+		return  # Silently skip if no territories
 		
 	var territories_producing = 0
 	var resource_summary = {}
 	
-	print("DEBUG: Checking controlled territories: ", player_data.controlled_territories.size())
 	for territory_id in player_data.controlled_territories:
-		print("DEBUG: Processing territory: ", territory_id)
 		var territory = get_territory_by_id(territory_id)
 		if territory and territory.is_controlled_by_player() and territory.is_unlocked:
-			print("DEBUG: Territory is valid and unlocked, collecting resources...")
-			# Use Territory class method for resource collection - integrates with loot.json
-			var territory_resources = territory.collect_resources()
+			# Get assigned gods for this territory
+			var assigned_gods = []
+			for god in player_data.gods:
+				if god.stationed_territory == territory_id:
+					assigned_gods.append(god)
 			
-			if territory_resources.size() > 0:
+			# Get hourly passive income from loot system
+			var hourly_income = DataLoader.get_territory_passive_income(territory_id, assigned_gods)
+			
+			# Calculate the small portion for this 5-second tick (5 seconds = ~0.0014 hours)
+			var time_fraction = 5.0 / 3600.0  # 5 seconds as fraction of an hour
+			var tick_resources = {}
+			for resource_type in hourly_income.keys():
+				var hourly_amount = hourly_income[resource_type]
+				var tick_amount = max(1, int(hourly_amount * time_fraction))  # At least 1 resource per tick
+				
+				if tick_amount > 0:
+					tick_resources[resource_type] = tick_amount
+			
+			if tick_resources.size() > 0:
 				territories_producing += 1
 				
 				# Award each resource type to player
-				for resource_type in territory_resources:
-					var amount = territory_resources[resource_type]
-					if amount > 0:
-						player_data.add_resource(resource_type, amount)
-						resource_summary[resource_type] = resource_summary.get(resource_type, 0) + amount
+				for resource_type in tick_resources:
+					var amount = tick_resources[resource_type]
+					player_data.add_resource(resource_type, amount)
+					resource_summary[resource_type] = resource_summary.get(resource_type, 0) + amount
 				
 				print("- %s: Generated %s (%d gods assigned)" % [
 					territory.name, 
-					str(territory_resources),
-					territory.stationed_gods.size()
+					str(tick_resources),
+					assigned_gods.size()
 				])
-			
-			# Also check for auto-collection
-			var auto_resources = territory.auto_collect_resources()
-			if auto_resources.size() > 0:
-				for resource_type in auto_resources:
-					var amount = auto_resources[resource_type]
-					if amount > 0:
-						player_data.add_resource(resource_type, amount)
-						resource_summary[resource_type] = resource_summary.get(resource_type, 0) + amount
-				
-				print("- %s: Auto-collected %s" % [territory.name, str(auto_resources)])
 	
 	if territories_producing > 0:
 		resources_updated.emit()

@@ -1,44 +1,117 @@
-# scripts/ui/SacrificeScreen.gd - Summoners War style sacrifice/power-up system
+# scripts/ui/SacrificeScreen.gd - Tabbed god management interface
 extends Control
 
 signal back_pressed
 
 @onready var back_button = $BackButton
-@onready var god_list = $ContentContainer/LeftPanel/VBox/ScrollContainer/GodList
-@onready var sacrifice_panel = $ContentContainer/RightPanel/SacrificePanel
+@onready var tab_container = $ContentContainer/TabContainer
 
-# Sacrifice system state
-var selected_target_god: God = null
-var selected_material_gods: Array[God] = []
-var max_material_gods: int = 6  # Like Summoners War
+# Tab references
+var sacrifice_tab: Control = null
+var awakening_tab: Control = null
 
-# UI references
-var target_god_display: Control = null
-var material_god_slots: Array[Control] = []
-var experience_preview_label: Label = null
+# Sacrifice tab UI
+var god_list: Control = null
+var sacrifice_panel: Control = null
+var selected_god: God = null
+var god_display: Control = null
 var sacrifice_button: Button = null
-var awaken_button: Button = null
-var awakening_requirements_panel: Control = null
+
+# Awakening tab UI
+var awakening_god_grid: GridContainer = null
+var awakening_selected_god: God = null
+var awakening_god_display: Control = null
+var awakening_button: Button = null
+var awakening_materials_display: Control = null
+
+# Sorting state
+enum SortType { POWER, LEVEL, TIER, ELEMENT, NAME }
+var current_sort: SortType = SortType.POWER
+var sort_ascending: bool = false  # Default to descending (highest first)
+
+# Scroll position preservation
+var sacrifice_scroll_position: float = 0.0
+var awakening_scroll_position: float = 0.0
+
+# Sacrifice selection screen reference
+var sacrifice_selection_screen_scene = preload("res://scenes/SacrificeSelectionScreen.tscn")
 
 func _ready():
-	print("SacrificeScreen _ready() called")
-	print("back_button: ", back_button)
-	print("god_list: ", god_list)  
-	print("sacrifice_panel: ", sacrifice_panel)
-	
 	if back_button:
 		back_button.pressed.connect(_on_back_pressed)
 	
-	# Wait for the scene to be fully ready
+	await get_tree().process_frame
+	setup_tab_interface()
+
+func setup_tab_interface():
+	"""Setup the tabbed interface with Power Up and Awakening tabs"""
+	if not tab_container:
+		return
+		
+	# Clear existing tabs
+	for child in tab_container.get_children():
+		child.queue_free()
+	
 	await get_tree().process_frame
 	
-	setup_sacrifice_panel()
-	refresh_god_list()
+	# Create Sacrifice tab
+	setup_sacrifice_tab()
+	
+	# Create Awakening tab
+	setup_awakening_tab()
 
-func setup_sacrifice_panel():
-	# Safety check
+func setup_sacrifice_tab():
+	"""Setup the Sacrifice tab with god grid and selection"""
+	sacrifice_tab = Control.new()
+	sacrifice_tab.name = "Sacrifice"
+	tab_container.add_child(sacrifice_tab)
+	
+	# Main horizontal layout
+	var main_hbox = HBoxContainer.new()
+	main_hbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	main_hbox.add_theme_constant_override("separation", 20)
+	sacrifice_tab.add_child(main_hbox)
+	
+	# Left panel - God grid
+	var left_panel = VBoxContainer.new()
+	left_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_panel.add_theme_constant_override("separation", 10)
+	main_hbox.add_child(left_panel)
+	
+	var left_title = Label.new()
+	left_title.text = "YOUR GODS"
+	left_title.add_theme_font_size_override("font_size", 18)
+	left_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	left_panel.add_child(left_title)
+	
+	var grid_scroll = ScrollContainer.new()
+	grid_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	grid_scroll.custom_minimum_size = Vector2(400, 400)
+	left_panel.add_child(grid_scroll)
+	
+	god_list = GridContainer.new()
+	god_list.columns = 5
+	god_list.add_theme_constant_override("h_separation", 10)
+	god_list.add_theme_constant_override("v_separation", 10)
+	grid_scroll.add_child(god_list)
+	
+	# Right panel - Selection and power up
+	var right_panel = VBoxContainer.new()
+	right_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_panel.add_theme_constant_override("separation", 20)
+	main_hbox.add_child(right_panel)
+	
+	sacrifice_panel = right_panel
+	setup_sacrifice_selection_panel()
+	refresh_sacrifice_god_list()
+	
+	# Add sorting UI after everything is set up
+	await get_tree().process_frame
+	add_sorting_to_sacrifice_tab()
+
+func setup_sacrifice_selection_panel():
+	"""Setup the sacrifice selection panel"""
 	if not sacrifice_panel:
-		print("Error: SacrificePanel node not found!")
 		return
 		
 	# Clear existing UI
@@ -49,195 +122,371 @@ func setup_sacrifice_panel():
 	
 	var main_vbox = VBoxContainer.new()
 	main_vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	main_vbox.add_theme_constant_override("separation", 15)
+	main_vbox.add_theme_constant_override("separation", 20)
 	sacrifice_panel.add_child(main_vbox)
 	
 	# Title
 	var title = Label.new()
-	title.text = "POWER UP GODS"
+	title.text = "SELECT GOD TO SACRIFICE"
 	title.add_theme_font_size_override("font_size", 20)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	main_vbox.add_child(title)
 	
-	# Target god section
-	var target_section = create_target_god_section()
-	main_vbox.add_child(target_section)
+	# Selected god display
+	var selection_section = VBoxContainer.new()
+	selection_section.add_theme_constant_override("separation", 15)
+	main_vbox.add_child(selection_section)
 	
-	# Material gods section  
-	var material_section = create_material_gods_section()
-	main_vbox.add_child(material_section)
+	var select_label = Label.new()
+	select_label.text = "Selected God:"
+	select_label.add_theme_font_size_override("font_size", 16)
+	select_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	selection_section.add_child(select_label)
 	
-	# Awakening requirements section
-	var awakening_section = create_awakening_requirements_section()
-	main_vbox.add_child(awakening_section)
+	# God display area
+	god_display = Panel.new()
+	god_display.custom_minimum_size = Vector2(350, 120)
+	god_display.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	
-	# Experience preview
-	experience_preview_label = Label.new()
-	experience_preview_label.text = "Select gods to see experience gain"
-	experience_preview_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	experience_preview_label.add_theme_font_size_override("font_size", 14)
-	main_vbox.add_child(experience_preview_label)
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.2, 0.2, 0.3, 0.8)
+	style.border_width_left = 3
+	style.border_width_right = 3
+	style.border_width_top = 3
+	style.border_width_bottom = 3
+	style.border_color = Color(0.8, 0.8, 0.2, 1.0)
+	style.corner_radius_top_left = 10
+	style.corner_radius_top_right = 10
+	style.corner_radius_bottom_left = 10
+	style.corner_radius_bottom_right = 10
+	god_display.add_theme_stylebox_override("panel", style)
+	selection_section.add_child(god_display)
 	
-	# Sacrifice button
+	# Power up button
 	sacrifice_button = Button.new()
-	sacrifice_button.text = "POWER UP!"
-	sacrifice_button.custom_minimum_size = Vector2(200, 50)
+	sacrifice_button.text = "OPEN SACRIFICE SELECTION"
+	sacrifice_button.custom_minimum_size = Vector2(250, 60)
 	sacrifice_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	sacrifice_button.disabled = true
-	sacrifice_button.pressed.connect(_on_sacrifice_pressed)
+	sacrifice_button.pressed.connect(_on_sacrifice_selection_screen_pressed)
+	
+	# Style the button
+	var button_style = StyleBoxFlat.new()
+	button_style.bg_color = Color(0.2, 0.6, 0.2, 1.0)
+	button_style.corner_radius_top_left = 10
+	button_style.corner_radius_top_right = 10
+	button_style.corner_radius_bottom_left = 10
+	button_style.corner_radius_bottom_right = 10
+	sacrifice_button.add_theme_stylebox_override("normal", button_style)
+	sacrifice_button.add_theme_font_size_override("font_size", 16)
+	
 	main_vbox.add_child(sacrifice_button)
 	
-	# Awaken button
-	awaken_button = Button.new()
-	awaken_button.text = "AWAKEN!"
-	awaken_button.custom_minimum_size = Vector2(200, 50)
-	awaken_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	awaken_button.disabled = true
-	awaken_button.pressed.connect(_on_awaken_pressed)
+	# Instructions
+	var instructions = Label.new()
+	instructions.text = "Click a god from your collection on the left to select them for sacrifice."
+	instructions.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	instructions.add_theme_font_size_override("font_size", 14)
+	instructions.modulate = Color.LIGHT_GRAY
+	instructions.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	main_vbox.add_child(instructions)
 	
-	# Style the awaken button differently
-	var awaken_style = StyleBoxFlat.new()
-	awaken_style.bg_color = Color(0.8, 0.2, 0.8, 1.0)  # Purple for awakening
-	awaken_style.corner_radius_top_left = 8
-	awaken_style.corner_radius_top_right = 8
-	awaken_style.corner_radius_bottom_left = 8
-	awaken_style.corner_radius_bottom_right = 8
-	awaken_button.add_theme_stylebox_override("normal", awaken_style)
+	update_sacrifice_god_display()
+func setup_awakening_tab():
+	"""Setup the Awakening tab with god grid for Epic/Legendary gods"""
+	awakening_tab = Control.new()
+	awakening_tab.name = "Awakening"
+	tab_container.add_child(awakening_tab)
 	
-	main_vbox.add_child(awaken_button)
+	# Main horizontal layout
+	var main_hbox = HBoxContainer.new()
+	main_hbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	main_hbox.add_theme_constant_override("separation", 20)
+	awakening_tab.add_child(main_hbox)
+	
+	# Left panel - God grid
+	var left_panel = VBoxContainer.new()
+	left_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_panel.add_theme_constant_override("separation", 10)
+	main_hbox.add_child(left_panel)
+	
+	var left_title = Label.new()
+	left_title.text = "AWAKENABLE GODS"
+	left_title.add_theme_font_size_override("font_size", 18)
+	left_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	left_panel.add_child(left_title)
+	
+	var grid_scroll = ScrollContainer.new()
+	grid_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	grid_scroll.custom_minimum_size = Vector2(400, 400)
+	left_panel.add_child(grid_scroll)
+	
+	awakening_god_grid = GridContainer.new()
+	awakening_god_grid.columns = 5
+	awakening_god_grid.add_theme_constant_override("h_separation", 10)
+	awakening_god_grid.add_theme_constant_override("v_separation", 10)
+	grid_scroll.add_child(awakening_god_grid)
+	
+	# Right panel - Awakening details
+	var right_panel = VBoxContainer.new()
+	right_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_panel.add_theme_constant_override("separation", 20)
+	main_hbox.add_child(right_panel)
+	
+	setup_awakening_panel(right_panel)
+	refresh_awakening_god_grid()
+	
+	# Add sorting UI after everything is set up
+	await get_tree().process_frame
+	add_sorting_to_awakening_tab()
 
-func create_target_god_section() -> Control:
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 10)
+func setup_awakening_panel(parent: Control):
+	"""Setup the awakening details panel"""
+	var main_vbox = VBoxContainer.new()
+	main_vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	main_vbox.add_theme_constant_override("separation", 20)
+	parent.add_child(main_vbox)
 	
-	var label = Label.new()
-	label.text = "Select god to power up:"
-	label.add_theme_font_size_override("font_size", 16)
-	vbox.add_child(label)
+	# Title
+	var title = Label.new()
+	title.text = "AWAKEN GOD"
+	title.add_theme_font_size_override("font_size", 20)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	main_vbox.add_child(title)
 	
-	# Target god display slot
-	target_god_display = Panel.new()
-	target_god_display.custom_minimum_size = Vector2(300, 80)
-	target_god_display.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	# Selected god display
+	var selection_section = VBoxContainer.new()
+	selection_section.add_theme_constant_override("separation", 15)
+	main_vbox.add_child(selection_section)
+	
+	var select_label = Label.new()
+	select_label.text = "Selected God:"
+	select_label.add_theme_font_size_override("font_size", 16)
+	select_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	selection_section.add_child(select_label)
+	
+	# God display area
+	awakening_god_display = Panel.new()
+	awakening_god_display.custom_minimum_size = Vector2(350, 120)
+	awakening_god_display.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	
 	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.2, 0.2, 0.3, 0.8)
-	style.border_width_left = 2
-	style.border_width_right = 2
-	style.border_width_top = 2
-	style.border_width_bottom = 2
-	style.border_color = Color(0.8, 0.8, 0.2, 1.0)
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
-	target_god_display.add_theme_stylebox_override("panel", style)
+	style.bg_color = Color(0.3, 0.2, 0.4, 0.8)
+	style.border_width_left = 3
+	style.border_width_right = 3
+	style.border_width_top = 3
+	style.border_width_bottom = 3
+	style.border_color = Color(1.0, 0.6, 0.2, 1.0)
+	style.corner_radius_top_left = 10
+	style.corner_radius_top_right = 10
+	style.corner_radius_bottom_left = 10
+	style.corner_radius_bottom_right = 10
+	awakening_god_display.add_theme_stylebox_override("panel", style)
+	selection_section.add_child(awakening_god_display)
 	
-	var empty_label = Label.new()
-	empty_label.text = "Click a god from the left to select"
-	empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	empty_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	empty_label.modulate = Color.GRAY
-	target_god_display.add_child(empty_label)
+	# Materials display
+	awakening_materials_display = Panel.new()
+	awakening_materials_display.custom_minimum_size = Vector2(350, 240)
+	awakening_materials_display.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	
-	vbox.add_child(target_god_display)
-	return vbox
+	var materials_style = StyleBoxFlat.new()
+	materials_style.bg_color = Color(0.2, 0.3, 0.2, 0.8)
+	materials_style.border_width_left = 2
+	materials_style.border_width_right = 2
+	materials_style.border_width_top = 2
+	materials_style.border_width_bottom = 2
+	materials_style.border_color = Color(0.4, 0.8, 0.4, 1.0)
+	materials_style.corner_radius_top_left = 8
+	materials_style.corner_radius_top_right = 8
+	materials_style.corner_radius_bottom_left = 8
+	materials_style.corner_radius_bottom_right = 8
+	awakening_materials_display.add_theme_stylebox_override("panel", materials_style)
+	main_vbox.add_child(awakening_materials_display)
+	
+	# Awakening button
+	awakening_button = Button.new()
+	awakening_button.text = "AWAKEN GOD"
+	awakening_button.custom_minimum_size = Vector2(250, 60)
+	awakening_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	awakening_button.disabled = true
+	awakening_button.pressed.connect(_on_awaken_god_pressed)
+	
+	# Style the button
+	var button_style = StyleBoxFlat.new()
+	button_style.bg_color = Color(0.8, 0.4, 0.0, 1.0)
+	button_style.corner_radius_top_left = 10
+	button_style.corner_radius_top_right = 10
+	button_style.corner_radius_bottom_left = 10
+	button_style.corner_radius_bottom_right = 10
+	awakening_button.add_theme_stylebox_override("normal", button_style)
+	awakening_button.add_theme_font_size_override("font_size", 16)
+	
+	main_vbox.add_child(awakening_button)
+	
+	# Instructions
+	var instructions = Label.new()
+	instructions.text = "Select an Epic or Legendary god at level 40 to awaken them."
+	instructions.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	instructions.add_theme_font_size_override("font_size", 14)
+	instructions.modulate = Color.LIGHT_GRAY
+	instructions.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	main_vbox.add_child(instructions)
+	
+	update_awakening_god_display()
+	update_awakening_materials_display()
 
-func create_material_gods_section() -> Control:
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 10)
-	
-	var label = Label.new()
-	label.text = "Select material gods (food):"
-	label.add_theme_font_size_override("font_size", 16)
-	vbox.add_child(label)
-	
-	# Grid of material slots (2x3 like Summoners War)
-	var grid = GridContainer.new()
-	grid.columns = 3
-	grid.add_theme_constant_override("h_separation", 10)
-	grid.add_theme_constant_override("v_separation", 10)
-	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	
-	for i in range(max_material_gods):
-		var slot = create_material_slot(i)
-		material_god_slots.append(slot)
-		grid.add_child(slot)
-	
-	vbox.add_child(grid)
-	return vbox
-
-func create_awakening_requirements_section() -> Control:
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 10)
-	
-	var label = Label.new()
-	label.text = "Awakening Requirements:"
-	label.add_theme_font_size_override("font_size", 16)
-	vbox.add_child(label)
-	
-	# Awakening requirements panel
-	awakening_requirements_panel = Panel.new()
-	awakening_requirements_panel.custom_minimum_size = Vector2(300, 120)
-	awakening_requirements_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	awakening_requirements_panel.visible = false  # Hidden until target god selected
-	
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.2, 0.2, 0.3, 0.8)
-	style.border_width_left = 2
-	style.border_width_right = 2
-	style.border_width_top = 2
-	style.border_width_bottom = 2
-	style.border_color = Color(0.6, 0.4, 0.8, 1.0)  # Purple border for awakening
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
-	awakening_requirements_panel.add_theme_stylebox_override("panel", style)
-	
-	vbox.add_child(awakening_requirements_panel)
-	return vbox
-
-func create_material_slot(slot_index: int) -> Control:
-	var slot = Panel.new()
-	slot.custom_minimum_size = Vector2(90, 70)
-	
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.3, 0.3, 0.3, 0.5)
-	style.border_width_left = 2
-	style.border_width_right = 2
-	style.border_width_top = 2
-	style.border_width_bottom = 2
-	style.border_color = Color(0.5, 0.5, 0.5, 0.8)
-	style.corner_radius_top_left = 5
-	style.corner_radius_top_right = 5
-	style.corner_radius_bottom_left = 5
-	style.corner_radius_bottom_right = 5
-	slot.add_theme_stylebox_override("panel", style)
-	
-	var empty_label = Label.new()
-	empty_label.text = "+"
-	empty_label.add_theme_font_size_override("font_size", 24)
-	empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	empty_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	empty_label.modulate = Color.GRAY
-	slot.add_child(empty_label)
-	
-	# Make clickable to remove material gods
-	var button = Button.new()
-	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	button.flat = true
-	button.pressed.connect(_on_material_slot_clicked.bind(slot_index))
-	slot.add_child(button)
-	
-	return slot
-
-func refresh_god_list():
-	if not god_list:
-		print("Error: GodList node not found!")
+func add_sorting_to_sacrifice_tab():
+	"""Add sorting controls to the sacrifice tab"""
+	var left_panel = sacrifice_tab.get_child(0).get_child(0)  # main_hbox -> left_panel
+	if not left_panel:
 		return
+	
+	# Create sorting controls container
+	var sort_container = HBoxContainer.new()
+	sort_container.add_theme_constant_override("separation", 5)
+	
+	# Add sort label
+	var sort_label = Label.new()
+	sort_label.text = "Sort:"
+	sort_label.add_theme_font_size_override("font_size", 12)
+	sort_container.add_child(sort_label)
+	
+	# Create compact sort buttons
+	var sort_buttons = [
+		{"text": "Pwr", "type": SortType.POWER},
+		{"text": "Lvl", "type": SortType.LEVEL}, 
+		{"text": "Tier", "type": SortType.TIER},
+		{"text": "Elem", "type": SortType.ELEMENT},
+		{"text": "Name", "type": SortType.NAME}
+	]
+	
+	for button_data in sort_buttons:
+		var sort_button = Button.new()
+		sort_button.text = button_data.text
+		sort_button.custom_minimum_size = Vector2(35, 25)
+		sort_button.add_theme_font_size_override("font_size", 10)
+		sort_button.pressed.connect(_on_sort_changed.bind(button_data.type))
+		
+		# Highlight current sort
+		if button_data.type == current_sort:
+			var style = StyleBoxFlat.new()
+			style.bg_color = Color(0.3, 0.6, 1.0, 0.8)
+			sort_button.add_theme_stylebox_override("normal", style)
+		
+		sort_container.add_child(sort_button)
+	
+	# Add sort direction button
+	var direction_button = Button.new()
+	direction_button.text = "↓" if not sort_ascending else "↑"
+	direction_button.custom_minimum_size = Vector2(25, 25)
+	direction_button.add_theme_font_size_override("font_size", 12)
+	direction_button.pressed.connect(_on_sort_direction_changed)
+	sort_container.add_child(direction_button)
+	
+	# Insert after the title
+	left_panel.add_child(sort_container)
+	left_panel.move_child(sort_container, 1)  # After title, before scroll
+
+func add_sorting_to_awakening_tab():
+	"""Add sorting controls to the awakening tab"""
+	var left_panel = awakening_tab.get_child(0).get_child(0)  # main_hbox -> left_panel
+	if not left_panel:
+		return
+	
+	# Create sorting controls container
+	var sort_container = HBoxContainer.new()
+	sort_container.add_theme_constant_override("separation", 5)
+	
+	# Add sort label
+	var sort_label = Label.new()
+	sort_label.text = "Sort:"
+	sort_label.add_theme_font_size_override("font_size", 12)
+	sort_container.add_child(sort_label)
+	
+	# Create compact sort buttons
+	var sort_buttons = [
+		{"text": "Pwr", "type": SortType.POWER},
+		{"text": "Lvl", "type": SortType.LEVEL}, 
+		{"text": "Tier", "type": SortType.TIER},
+		{"text": "Name", "type": SortType.NAME}
+	]
+	
+	for button_data in sort_buttons:
+		var sort_button = Button.new()
+		sort_button.text = button_data.text
+		sort_button.custom_minimum_size = Vector2(35, 25)
+		sort_button.add_theme_font_size_override("font_size", 10)
+		sort_button.pressed.connect(_on_awakening_sort_changed.bind(button_data.type))
+		
+		# Highlight current sort
+		if button_data.type == current_sort:
+			var style = StyleBoxFlat.new()
+			style.bg_color = Color(0.3, 0.6, 1.0, 0.8)
+			sort_button.add_theme_stylebox_override("normal", style)
+		
+		sort_container.add_child(sort_button)
+	
+	# Add sort direction button
+	var direction_button = Button.new()
+	direction_button.text = "↓" if not sort_ascending else "↑"
+	direction_button.custom_minimum_size = Vector2(25, 25)
+	direction_button.add_theme_font_size_override("font_size", 12)
+	direction_button.pressed.connect(_on_awakening_sort_direction_changed)
+	sort_container.add_child(direction_button)
+	
+	# Insert after the title
+	left_panel.add_child(sort_container)
+	left_panel.move_child(sort_container, 1)  # After title, before scroll
+
+func _on_sort_changed(sort_type: SortType):
+	"""Handle sort type change for sacrifice tab"""
+	current_sort = sort_type
+	refresh_sacrifice_god_list()
+
+func _on_sort_direction_changed():
+	"""Toggle sort direction for sacrifice tab"""
+	sort_ascending = !sort_ascending
+	refresh_sacrifice_god_list()
+
+func _on_awakening_sort_changed(sort_type: SortType):
+	"""Handle sort type change for awakening tab"""
+	current_sort = sort_type
+	refresh_awakening_god_grid()
+
+func _on_awakening_sort_direction_changed():
+	"""Toggle sort direction for awakening tab"""
+	sort_ascending = !sort_ascending
+	refresh_awakening_god_grid()
+
+func sort_gods(gods: Array):
+	"""Sort gods array based on current sort settings"""
+	gods.sort_custom(func(a, b):
+		var result = false
+		match current_sort:
+			SortType.POWER:
+				result = a.get_power_rating() > b.get_power_rating()
+			SortType.LEVEL:
+				result = a.level > b.level
+			SortType.TIER:
+				result = a.tier > b.tier
+			SortType.ELEMENT:
+				result = a.element < b.element  # Sort by element enum value
+			SortType.NAME:
+				result = a.name < b.name
+		
+		# Apply sort direction
+		return result if not sort_ascending else !result
+	)
+
+func refresh_sacrifice_god_list():
+	"""Refresh the god list on the left in Sacrifice tab"""
+	if not god_list:
+		return
+	
+	# Save scroll position
+	var scroll_container = god_list.get_parent()
+	if scroll_container is ScrollContainer:
+		sacrifice_scroll_position = scroll_container.get_v_scroll()
 		
 	# Clear existing gods
 	for child in god_list.get_children():
@@ -246,597 +495,641 @@ func refresh_god_list():
 	await get_tree().process_frame
 	
 	if not GameManager or not GameManager.player_data:
-		print("Error: GameManager or player_data not available!")
 		return
 	
-	# Add all player gods
-	for god in GameManager.player_data.gods:
-		var god_item = create_god_list_item(god)
+	# Get and sort gods
+	var gods = GameManager.player_data.gods.duplicate()
+	sort_gods(gods)
+	
+	# Add sorted gods
+	for god in gods:
+		var god_item = create_sacrifice_god_grid_item(god)
 		god_list.add_child(god_item)
+	
+	# Restore scroll position
+	await get_tree().process_frame
+	if scroll_container is ScrollContainer:
+		scroll_container.set_v_scroll(int(sacrifice_scroll_position))
 
-func create_god_list_item(god: God) -> Control:
+func create_sacrifice_god_grid_item(god: God) -> Control:
+	"""Create a compact grid item for god selection in Sacrifice tab"""
 	var item = Panel.new()
-	item.custom_minimum_size = Vector2(280, 60)
+	item.custom_minimum_size = Vector2(120, 140)
 	
-	# Different style for selected gods
+	# Style based on selection with subtle colors
 	var style = StyleBoxFlat.new()
-	if god == selected_target_god:
-		style.bg_color = Color(0.2, 0.4, 0.8, 0.8)  # Blue for target
-	elif selected_material_gods.has(god):
-		style.bg_color = Color(0.8, 0.4, 0.2, 0.8)  # Orange for material
+	if god == selected_god:
+		style.bg_color = Color(0.2, 0.4, 0.8, 0.7)  # Blue for selected
+		style.border_color = Color(0.4, 0.6, 1.0, 1.0)
+		style.border_width_left = 3
+		style.border_width_right = 3
+		style.border_width_top = 3
+		style.border_width_bottom = 3
 	else:
-		style.bg_color = Color(0.2, 0.2, 0.3, 0.8)  # Normal
+		style.bg_color = get_subtle_tier_color(god.tier)
+		style.border_color = get_tier_border_color(god.tier)
+		style.border_width_left = 2
+		style.border_width_right = 2
+		style.border_width_top = 2
+		style.border_width_bottom = 2
 	
-	style.corner_radius_top_left = 5
-	style.corner_radius_top_right = 5
-	style.corner_radius_bottom_left = 5
-	style.corner_radius_bottom_right = 5
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
 	item.add_theme_stylebox_override("panel", style)
 	
-	var hbox = HBoxContainer.new()
-	hbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	hbox.add_theme_constant_override("separation", 10)
-	item.add_child(hbox)
-	
-	# Add margin
+	# Add margin for better spacing
 	var margin = MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_left", 5)
+	margin.add_theme_constant_override("margin_right", 5)
 	margin.add_theme_constant_override("margin_top", 5)
 	margin.add_theme_constant_override("margin_bottom", 5)
 	item.add_child(margin)
-	margin.add_child(hbox)
 	
-	# God info
-	var info_vbox = VBoxContainer.new()
-	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var vbox = VBoxContainer.new()
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vbox.add_theme_constant_override("separation", 3)
+	margin.add_child(vbox)
 	
+	# God image (compact)
+	var god_image = TextureRect.new()
+	god_image.custom_minimum_size = Vector2(48, 48)
+	god_image.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	god_image.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	god_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	
+	# Load god image using the new sprite function
+	var god_texture = god.get_sprite()
+	if god_texture:
+		god_image.texture = god_texture
+	
+	vbox.add_child(god_image)
+	
+	# God name (compact)
 	var name_label = Label.new()
-	name_label.text = "%s (Lv.%d)" % [god.name, god.level]
-	name_label.add_theme_font_size_override("font_size", 14)
-	info_vbox.add_child(name_label)
+	name_label.text = god.name
+	name_label.add_theme_font_size_override("font_size", 11)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.add_theme_color_override("font_color", Color.WHITE)
+	vbox.add_child(name_label)
 	
-	var details_label = Label.new()
-	details_label.text = "%s %s - Power: %d" % [god.get_tier_name(), god.get_element_name(), god.get_power_rating()]
-	details_label.add_theme_font_size_override("font_size", 12)
-	details_label.modulate = Color.LIGHT_GRAY
-	info_vbox.add_child(details_label)
+	# Level and tier (SW style)
+	var level_label = Label.new()
+	level_label.text = "Lv.%d %s" % [god.level, get_tier_short_name(god.tier)]
+	level_label.add_theme_font_size_override("font_size", 10)
+	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	level_label.modulate = Color.CYAN
+	vbox.add_child(level_label)
 	
-	hbox.add_child(info_vbox)
-	
-	# XP to next level
-	var xp_label = Label.new()
-	var xp_needed = god.get_experience_to_next_level() - god.experience
-	if god.level >= 30:
-		xp_label.text = "MAX"
-		xp_label.modulate = Color.GOLD
-	else:
-		xp_label.text = "%d XP" % xp_needed
-		xp_label.modulate = Color.CYAN
-	xp_label.custom_minimum_size = Vector2(60, 0)
-	xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	hbox.add_child(xp_label)
+	# Power rating (important for sacrifice decisions)
+	var power_label = Label.new()
+	power_label.text = "P:%d" % god.get_power_rating()
+	power_label.add_theme_font_size_override("font_size", 9)
+	power_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	power_label.modulate = Color.LIGHT_GRAY
+	vbox.add_child(power_label)
 	
 	# Make clickable
 	var button = Button.new()
 	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	button.flat = true
-	button.pressed.connect(_on_god_clicked.bind(god))
+	button.pressed.connect(_on_sacrifice_god_clicked.bind(god))
 	item.add_child(button)
 	
 	return item
 
-func _on_god_clicked(god: God):
-	# Determine what to do based on current selection
-	if selected_target_god == null:
-		# No target selected yet - make this the target
-		set_target_god(god)
-	elif selected_target_god == god:
-		# Clicking target god - deselect it
-		set_target_god(null)
-	elif selected_material_gods.has(god):
-		# Already a material - remove it
-		selected_material_gods.erase(god)
-		update_ui()
-	elif selected_material_gods.size() < max_material_gods and god != selected_target_god:
-		# Add as material god
-		selected_material_gods.append(god)
-		update_ui()
+func get_subtle_tier_color(tier: int) -> Color:
+	"""Get subtle background colors for tiers"""
+	match tier:
+		0:  # COMMON
+			return Color(0.25, 0.25, 0.25, 0.7)  # Dark gray
+		1:  # RARE
+			return Color(0.2, 0.3, 0.2, 0.7)     # Dark green
+		2:  # EPIC
+			return Color(0.3, 0.2, 0.4, 0.7)     # Dark purple
+		3:  # LEGENDARY
+			return Color(0.4, 0.3, 0.1, 0.7)     # Dark gold
+		_:
+			return Color(0.2, 0.2, 0.3, 0.7)
+
+func get_tier_border_color(tier: int) -> Color:
+	"""Get border colors for tiers"""
+	match tier:
+		0:  # COMMON
+			return Color(0.5, 0.5, 0.5, 0.8)     # Gray
+		1:  # RARE
+			return Color(0.4, 0.8, 0.4, 1.0)     # Green
+		2:  # EPIC
+			return Color(0.7, 0.4, 1.0, 1.0)     # Purple
+		3:  # LEGENDARY
+			return Color(1.0, 0.8, 0.2, 1.0)     # Gold
+		_:
+			return Color(0.6, 0.6, 0.6, 0.8)
+
+func get_tier_short_name(tier: int) -> String:
+	"""Get short tier names for compact display"""
+	match tier:
+		0: return "★"      # COMMON
+		1: return "★★"     # RARE  
+		2: return "★★★"    # EPIC
+		3: return "★★★★"   # LEGENDARY
+		_: return "?"
+
+func _on_sacrifice_god_clicked(god: God):
+	"""Handle god selection in Sacrifice tab"""
+	if selected_god == god:
+		# Deselect if clicking the same god
+		selected_god = null
 	else:
-		# Max materials reached or trying to add target as material
-		print("Cannot add more material gods or target god cannot be material")
+		# Select new god
+		selected_god = god
+	
+	refresh_sacrifice_god_list()
+	update_sacrifice_god_display()
+	update_sacrifice_button()
 
-func set_target_god(god: God):
-	selected_target_god = god
-	update_target_display()
-	update_awakening_requirements_display()
-	update_ui()
-
-func update_target_display():
-	if not target_god_display:
+func update_sacrifice_god_display():
+	"""Update the selected god display in Sacrifice tab"""
+	if not god_display:
 		return
-		
+	
 	# Clear existing content
-	for child in target_god_display.get_children():
+	for child in god_display.get_children():
 		child.queue_free()
 	
 	await get_tree().process_frame
 	
-	if selected_target_god == null:
+	if selected_god == null:
+		# Show empty state
 		var empty_label = Label.new()
-		empty_label.text = "Click a god from the left to select"
+		empty_label.text = "No god selected\n\nClick a god from the collection to select"
 		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		empty_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		empty_label.modulate = Color.GRAY
-		target_god_display.add_child(empty_label)
+		empty_label.add_theme_font_size_override("font_size", 16)
+		god_display.add_child(empty_label)
 	else:
+		# Show selected god info
 		var hbox = HBoxContainer.new()
 		hbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		hbox.add_theme_constant_override("separation", 10)
+		hbox.add_theme_constant_override("separation", 15)
+		god_display.add_child(hbox)
 		
-		# Add margin
-		var margin = MarginContainer.new()
-		margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		margin.add_theme_constant_override("margin_left", 10)
-		margin.add_theme_constant_override("margin_right", 10)
-		margin.add_theme_constant_override("margin_top", 10)
-		margin.add_theme_constant_override("margin_bottom", 10)
-		target_god_display.add_child(margin)
-		margin.add_child(hbox)
+		# Left margin
+		var left_margin = Control.new()
+		left_margin.custom_minimum_size = Vector2(15, 0)
+		hbox.add_child(left_margin)
 		
+		# God info
 		var info_vbox = VBoxContainer.new()
 		info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		
 		var name_label = Label.new()
-		name_label.text = "%s (Level %d)" % [selected_target_god.name, selected_target_god.level]
-		name_label.add_theme_font_size_override("font_size", 16)
+		name_label.text = "%s" % selected_god.name
+		name_label.add_theme_font_size_override("font_size", 20)
+		name_label.add_theme_color_override("font_color", Color.WHITE)
 		info_vbox.add_child(name_label)
 		
+		var level_label = Label.new()
+		level_label.text = "Level %d" % selected_god.level
+		level_label.add_theme_font_size_override("font_size", 16)
+		level_label.modulate = Color.CYAN
+		info_vbox.add_child(level_label)
+		
 		var details_label = Label.new()
-		details_label.text = "%s %s - Power: %d" % [
-			selected_target_god.get_tier_name(), 
-			selected_target_god.get_element_name(), 
-			selected_target_god.get_power_rating()
-		]
+		details_label.text = "%s %s" % [selected_god.get_tier_name(), selected_god.get_element_name()]
+		details_label.add_theme_font_size_override("font_size", 14)
 		details_label.modulate = Color.LIGHT_GRAY
 		info_vbox.add_child(details_label)
 		
+		var power_label = Label.new()
+		power_label.text = "Power Rating: %d" % selected_god.get_power_rating()
+		power_label.add_theme_font_size_override("font_size", 14)
+		power_label.modulate = Color.YELLOW
+		info_vbox.add_child(power_label)
+		
 		hbox.add_child(info_vbox)
-		
-		# XP info
-		var xp_vbox = VBoxContainer.new()
-		var current_xp_label = Label.new()
-		current_xp_label.text = "XP: %d" % selected_target_god.experience
-		xp_vbox.add_child(current_xp_label)
-		
-		if selected_target_god.level < 30:
-			var xp_needed_label = Label.new()
-			var xp_needed = selected_target_god.get_experience_to_next_level() - selected_target_god.experience
-			xp_needed_label.text = "Need: %d" % xp_needed
-			xp_needed_label.modulate = Color.YELLOW
-			xp_vbox.add_child(xp_needed_label)
-		else:
-			var max_label = Label.new()
-			max_label.text = "MAX LEVEL"
-			max_label.modulate = Color.GOLD
-			xp_vbox.add_child(max_label)
-		
-		hbox.add_child(xp_vbox)
 
-func update_awakening_requirements_display():
-	if not awakening_requirements_panel or not GameManager or not GameManager.awakening_system:
+func update_sacrifice_button():
+	"""Update the sacrifice button state"""
+	if not sacrifice_button:
 		return
 	
-	# Clear existing content
-	for child in awakening_requirements_panel.get_children():
+	sacrifice_button.disabled = selected_god == null
+
+func refresh_awakening_god_grid():
+	"""Refresh the awakening god grid with Epic/Legendary gods"""
+	if not awakening_god_grid:
+		return
+	
+	# Save scroll position
+	var scroll_container = awakening_god_grid.get_parent()
+	if scroll_container is ScrollContainer:
+		awakening_scroll_position = scroll_container.get_v_scroll()
+		
+	# Clear existing gods
+	for child in awakening_god_grid.get_children():
 		child.queue_free()
 	
 	await get_tree().process_frame
 	
-	if selected_target_god == null:
-		awakening_requirements_panel.visible = false
+	if not GameManager or not GameManager.player_data:
 		return
 	
-	# Check if god can be awakened
-	var awakening_check = GameManager.awakening_system.can_awaken_god(selected_target_god)
-	if not awakening_check.awakened_god_id:
-		awakening_requirements_panel.visible = false
-		return
+	# Get only Epic and Legendary gods, then sort them
+	var gods = []
+	for god in GameManager.player_data.gods:
+		if god.tier >= God.TierType.EPIC:  # Epic or Legendary
+			gods.append(god)
 	
-	awakening_requirements_panel.visible = true
+	sort_gods(gods)
 	
-	# Create content
+	# Add sorted gods
+	for god in gods:
+		var god_item = create_awakening_god_item(god)
+		awakening_god_grid.add_child(god_item)
+	
+	# Restore scroll position
+	await get_tree().process_frame
+	if scroll_container is ScrollContainer:
+		scroll_container.set_v_scroll(int(awakening_scroll_position))
+
+func create_awakening_god_item(god: God) -> Control:
+	"""Create a compact grid item for awakening god selection"""
+	var item = Panel.new()
+	item.custom_minimum_size = Vector2(120, 140)
+	
+	# Style based on selection and awakening status
+	var style = StyleBoxFlat.new()
+	if god == awakening_selected_god:
+		style.bg_color = Color(0.4, 0.2, 0.6, 0.8)  # Purple for selected
+		style.border_color = Color(0.8, 0.4, 1.0, 1.0)
+		style.border_width_left = 3
+		style.border_width_right = 3
+		style.border_width_top = 3
+		style.border_width_bottom = 3
+	elif god.can_awaken():
+		style.bg_color = get_subtle_tier_color(god.tier)
+		style.border_color = Color(1.0, 0.8, 0.2, 1.0)  # Gold border for awakenable
+		style.border_width_left = 2
+		style.border_width_right = 2
+		style.border_width_top = 2
+		style.border_width_bottom = 2
+	else:
+		style.bg_color = Color(0.2, 0.2, 0.2, 0.5)  # Dark gray for not ready
+		style.border_color = Color(0.4, 0.4, 0.4, 0.8)
+		style.border_width_left = 1
+		style.border_width_right = 1
+		style.border_width_top = 1
+		style.border_width_bottom = 1
+	
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
+	item.add_theme_stylebox_override("panel", style)
+	
+	# Add margin for better spacing
 	var margin = MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	awakening_requirements_panel.add_child(margin)
+	margin.add_theme_constant_override("margin_left", 5)
+	margin.add_theme_constant_override("margin_right", 5)
+	margin.add_theme_constant_override("margin_top", 5)
+	margin.add_theme_constant_override("margin_bottom", 5)
+	item.add_child(margin)
 	
 	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 5)
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vbox.add_theme_constant_override("separation", 3)
 	margin.add_child(vbox)
 	
-	# Level requirements
+	# God image (compact)
+	var god_image = TextureRect.new()
+	god_image.custom_minimum_size = Vector2(48, 48)
+	god_image.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	god_image.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	god_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	
+	# Load god image using the new sprite function
+	var god_texture = god.get_sprite()
+	if god_texture:
+		god_image.texture = god_texture
+	
+	vbox.add_child(god_image)
+	
+	# God name (compact)
+	var name_label = Label.new()
+	name_label.text = god.name
+	name_label.add_theme_font_size_override("font_size", 11)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.add_theme_color_override("font_color", Color.WHITE)
+	vbox.add_child(name_label)
+	
+	# Level and tier (SW style)
 	var level_label = Label.new()
-	if selected_target_god.level >= 30:
-		level_label.text = "✓ Level 30+ (Currently %d)" % selected_target_god.level
-		level_label.modulate = Color.GREEN
-	else:
-		level_label.text = "✗ Level 30+ (Currently %d)" % selected_target_god.level
-		level_label.modulate = Color.RED
-	level_label.add_theme_font_size_override("font_size", 12)
+	level_label.text = "Lv.%d %s" % [god.level, get_tier_short_name(god.tier)]
+	level_label.add_theme_font_size_override("font_size", 10)
+	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	level_label.modulate = Color.CYAN
 	vbox.add_child(level_label)
 	
-	# Material requirements
-	var materials_needed = GameManager.awakening_system.get_awakening_materials_cost(selected_target_god)
-	var materials_check = GameManager.awakening_system.check_awakening_materials(materials_needed, GameManager.player_data)
-	
-	for material_type in materials_needed.keys():
-		var needed = materials_needed[material_type]
-		var current = GameManager.awakening_system.get_player_material_amount(material_type, GameManager.player_data)
-		
-		var material_label = Label.new()
-		var material_name = format_material_name(material_type)
-		
-		if current >= needed:
-			material_label.text = "✓ %s: %d/%d" % [material_name, current, needed]
-			material_label.modulate = Color.GREEN
-		else:
-			material_label.text = "✗ %s: %d/%d" % [material_name, current, needed]
-			material_label.modulate = Color.RED
-		
-		material_label.add_theme_font_size_override("font_size", 12)
-		vbox.add_child(material_label)
-	
-	# Overall status
+	# Status (important for awakening)
 	var status_label = Label.new()
-	if awakening_check.can_awaken and materials_check.can_afford:
-		status_label.text = "✨ Ready to Awaken! ✨"
-		status_label.modulate = Color.GOLD
+	if god.can_awaken():
+		status_label.text = "✓ Ready"
+		status_label.modulate = Color.GREEN
 	else:
-		status_label.text = "Requirements not met"
-		status_label.modulate = Color.ORANGE
-	status_label.add_theme_font_size_override("font_size", 14)
+		status_label.text = "Lv.40 Req"
+		status_label.modulate = Color.RED
+	status_label.add_theme_font_size_override("font_size", 9)
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(status_label)
-
-func format_material_name(material_type: String) -> String:
-	"""Convert material type to display name"""
-	match material_type:
-		"awakening_stones":
-			return "Awakening Stones"
-		"divine_crystals":
-			return "Divine Crystals"
-		"light_powder_high":
-			return "Light Powder (High)"
-		"fire_powder_high":
-			return "Fire Powder (High)"
-		"water_powder_high":
-			return "Water Powder (High)"
-		"earth_powder_high":
-			return "Earth Powder (High)"
-		"lightning_powder_high":
-			return "Lightning Powder (High)"
-		"dark_powder_high":
-			return "Dark Powder (High)"
-		"greek_relics":
-			return "Greek Relics"
-		"norse_relics":
-			return "Norse Relics"
-		"egyptian_relics":
-			return "Egyptian Relics"
-		"hindu_relics":
-			return "Hindu Relics"
-		"celtic_relics":
-			return "Celtic Relics"
-		"japanese_relics":
-			return "Japanese Relics"
-		"aztec_relics":
-			return "Aztec Relics"
-		_:
-			# Fallback: capitalize and replace underscores
-			return material_type.replace("_", " ").capitalize()
-
-func update_material_display():
-	for i in range(material_god_slots.size()):
-		var slot = material_god_slots[i]
-		
-		# Clear existing content
-		for child in slot.get_children():
-			child.queue_free()
-		
-		await get_tree().process_frame
-		
-		if i < selected_material_gods.size():
-			# Show material god
-			var god = selected_material_gods[i]
-			var vbox = VBoxContainer.new()
-			vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			
-			var margin = MarginContainer.new()
-			margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			margin.add_theme_constant_override("margin_left", 5)
-			margin.add_theme_constant_override("margin_right", 5)
-			margin.add_theme_constant_override("margin_top", 5)
-			margin.add_theme_constant_override("margin_bottom", 5)
-			slot.add_child(margin)
-			margin.add_child(vbox)
-			
-			var name_label = Label.new()
-			name_label.text = god.name
-			name_label.add_theme_font_size_override("font_size", 10)
-			name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			vbox.add_child(name_label)
-			
-			var level_label = Label.new()
-			level_label.text = "Lv.%d" % god.level
-			level_label.add_theme_font_size_override("font_size", 9)
-			level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			level_label.modulate = Color.LIGHT_GRAY
-			vbox.add_child(level_label)
-			
-			# Make clickable to remove
-			var button = Button.new()
-			button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			button.flat = true
-			button.pressed.connect(_on_material_slot_clicked.bind(i))
-			slot.add_child(button)
-		else:
-			# Show empty slot
-			var empty_label = Label.new()
-			empty_label.text = "+"
-			empty_label.add_theme_font_size_override("font_size", 24)
-			empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-			empty_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			empty_label.modulate = Color.GRAY
-			slot.add_child(empty_label)
-			
-			var button = Button.new()
-			button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			button.flat = true
-			button.pressed.connect(_on_material_slot_clicked.bind(i))
-			slot.add_child(button)
-
-func _on_material_slot_clicked(slot_index: int):
-	if slot_index < selected_material_gods.size():
-		# Remove material god from this slot
-		selected_material_gods.remove_at(slot_index)
-		update_ui()
-	# If empty slot clicked, user needs to select from god list
-
-func update_ui():
-	refresh_god_list()
-	update_material_display()
-	update_awakening_requirements_display()
-	update_experience_preview()
-	update_sacrifice_button()
-	update_awaken_button()
-
-func update_experience_preview():
-	if not experience_preview_label:
-		return
-		
-	if selected_target_god == null or selected_material_gods.is_empty():
-		experience_preview_label.text = "Select target and material gods to see experience gain"
-		experience_preview_label.modulate = Color.GRAY
-		return
 	
-	# Use SacrificeSystem for preview
-	if GameManager and GameManager.sacrifice_system:
-		var preview_text = GameManager.sacrifice_system.get_sacrifice_preview_text(selected_target_god, selected_material_gods)
-		experience_preview_label.text = preview_text
-		experience_preview_label.modulate = Color.GREEN
+	# Make clickable
+	var button = Button.new()
+	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	button.flat = true
+	button.pressed.connect(_on_awakening_god_clicked.bind(god))
+	item.add_child(button)
+	
+	return item
+
+func _on_awakening_god_clicked(god: God):
+	"""Handle god selection in Awakening tab"""
+	if awakening_selected_god == god:
+		# Deselect if clicking the same god
+		awakening_selected_god = null
 	else:
-		experience_preview_label.text = "Sacrifice system not available"
-		experience_preview_label.modulate = Color.RED
+		# Select new god
+		awakening_selected_god = god
+	
+	refresh_awakening_god_grid()
+	update_awakening_god_display()
+	update_awakening_materials_display()
+	update_awakening_button()
 
-# OLD FUNCTIONS - COMMENTED OUT TO FORCE USE OF NEW SACRIFICE SYSTEM
-# func calculate_total_experience_gain() -> int:
-	var total_xp = 0
-	
-	for material_god in selected_material_gods:
-		var base_xp = get_god_sacrifice_value(material_god)
-		
-		# Bonuses like Summoners War
-		var bonus_multiplier = 1.0
-		
-		# Same god bonus (3x XP)
-		if material_god.id == selected_target_god.id:
-			bonus_multiplier = 3.0
-		# Same element bonus (1.5x XP)
-		elif material_god.element == selected_target_god.element:
-			bonus_multiplier = 1.5
-		
-		total_xp += int(base_xp * bonus_multiplier)
-	
-	return total_xp
-
-func get_god_sacrifice_value(god: God) -> int:
-	# Base XP based on level and tier
-	var base_xp = god.level * 50  # 50 XP per level
-	
-	# Tier multiplier
-	match god.tier:
-		God.TierType.COMMON:
-			base_xp += 100
-		God.TierType.RARE:
-			base_xp += 300
-		God.TierType.EPIC:
-			base_xp += 600
-		God.TierType.LEGENDARY:
-			base_xp += 1000
-	
-	return base_xp
-
-func calculate_levels_gained(xp_gain: int) -> int:
-	if not selected_target_god:
-		return 0
-	
-	var current_level = selected_target_god.level
-	var current_xp = selected_target_god.experience
-	var remaining_xp = xp_gain
-	var levels_gained = 0
-	
-	while remaining_xp > 0 and current_level < 30:
-		var xp_needed = (current_level + levels_gained + 1) * 100 - current_xp
-		if remaining_xp >= xp_needed:
-			remaining_xp -= xp_needed
-			levels_gained += 1
-			current_xp = 0  # Reset XP for next level calculation
-		else:
-			break
-	
-	return levels_gained
-
-func update_sacrifice_button():
-	if not sacrifice_button:
-		return
-		
-	# Use SacrificeSystem for validation
-	if GameManager and GameManager.sacrifice_system:
-		var validation = GameManager.sacrifice_system.validate_sacrifice(selected_target_god, selected_material_gods)
-		sacrifice_button.disabled = not validation.can_sacrifice
-		
-		if not validation.can_sacrifice and validation.errors.size() > 0:
-			sacrifice_button.tooltip_text = validation.errors[0]
-		else:
-			sacrifice_button.tooltip_text = ""
-	else:
-		sacrifice_button.disabled = true
-
-func _on_sacrifice_pressed():
-	if not selected_target_god or selected_material_gods.is_empty():
+func update_awakening_god_display():
+	"""Update the selected god display in Awakening tab"""
+	if not awakening_god_display:
 		return
 	
-	# Show confirmation dialog with sacrifice details
-	if GameManager and GameManager.sacrifice_system:
-		var sacrifice_result = GameManager.sacrifice_system.calculate_sacrifice_experience(selected_material_gods, selected_target_god)
-		var levels_gained = GameManager.sacrifice_system.calculate_levels_gained(selected_target_god, sacrifice_result.total_xp)
-		
-		var dialog_text = "Sacrifice %d gods to give %s:\n• %d Experience\n• +%d Levels\n\nMaterial gods will be consumed!" % [
-			selected_material_gods.size(),
-			selected_target_god.name,
-			sacrifice_result.total_xp,
-			levels_gained
-		]
-		
-		show_confirmation_dialog("Confirm Sacrifice", dialog_text, perform_sacrifice)
+	# Clear existing content
+	for child in awakening_god_display.get_children():
+		child.queue_free()
+	
+	await get_tree().process_frame
+	
+	if awakening_selected_god == null:
+		# Show empty state
+		var empty_label = Label.new()
+		empty_label.text = "No god selected\n\nSelect an Epic or Legendary god to awaken"
+		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		empty_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		empty_label.modulate = Color.GRAY
+		empty_label.add_theme_font_size_override("font_size", 16)
+		awakening_god_display.add_child(empty_label)
 	else:
-		perform_sacrifice()  # Fallback to direct sacrifice
+		# Show selected god info
+		var hbox = HBoxContainer.new()
+		hbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		hbox.add_theme_constant_override("separation", 15)
+		awakening_god_display.add_child(hbox)
+		
+		# Left margin
+		var left_margin = Control.new()
+		left_margin.custom_minimum_size = Vector2(15, 0)
+		hbox.add_child(left_margin)
+		
+		# God info
+		var info_vbox = VBoxContainer.new()
+		info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		
+		var name_label = Label.new()
+		name_label.text = "%s" % awakening_selected_god.name
+		name_label.add_theme_font_size_override("font_size", 18)
+		name_label.add_theme_color_override("font_color", Color.ORANGE)
+		info_vbox.add_child(name_label)
+		
+		var level_label = Label.new()
+		level_label.text = "Level %d" % awakening_selected_god.level
+		level_label.add_theme_font_size_override("font_size", 14)
+		level_label.modulate = Color.CYAN
+		info_vbox.add_child(level_label)
+		
+		var tier_label = Label.new()
+		tier_label.text = "%s %s" % [awakening_selected_god.get_tier_name(), awakening_selected_god.get_element_name()]
+		tier_label.add_theme_font_size_override("font_size", 12)
+		tier_label.modulate = Color.LIGHT_GRAY
+		info_vbox.add_child(tier_label)
+		
+		var status_label = Label.new()
+		if awakening_selected_god.can_awaken():
+			status_label.text = "Ready for Awakening!"
+			status_label.modulate = Color.GREEN
+		else:
+			var levels_needed = 40 - awakening_selected_god.level
+			status_label.text = "%d more levels needed" % levels_needed
+			status_label.modulate = Color.RED
+		status_label.add_theme_font_size_override("font_size", 12)
+		info_vbox.add_child(status_label)
+		
+		hbox.add_child(info_vbox)
+		
+		# God image on the right
+		var image_container = VBoxContainer.new()
+		image_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		image_container.custom_minimum_size = Vector2(80, 0)
+		
+		var god_image = TextureRect.new()
+		god_image.custom_minimum_size = Vector2(64, 64)
+		god_image.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		god_image.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		god_image.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		god_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		
+		# Load god image using the new sprite function
+		var god_texture = awakening_selected_god.get_sprite()
+		if god_texture:
+			god_image.texture = god_texture
+		
+		image_container.add_child(god_image)
+		hbox.add_child(image_container)
 
-func perform_sacrifice():
-	if not selected_target_god or selected_material_gods.is_empty() or not GameManager:
+func update_awakening_materials_display():
+	"""Update the awakening materials display"""
+	if not awakening_materials_display:
 		return
 	
-	# Use SacrificeSystem to perform the sacrifice
-	if GameManager.sacrifice_system:
-		var success = GameManager.sacrifice_system.perform_sacrifice(selected_target_god, selected_material_gods, GameManager.player_data)
-		if success:
-			# Clear selection and refresh
-			selected_material_gods.clear()
-			set_target_god(null)
-		else:
-			print("Sacrifice failed!")
+	# Clear existing content
+	for child in awakening_materials_display.get_children():
+		child.queue_free()
+	
+	await get_tree().process_frame
+	
+	if awakening_selected_god == null:
+		# Show empty state
+		var empty_label = Label.new()
+		empty_label.text = "Select a god to see awakening requirements"
+		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		empty_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		empty_label.modulate = Color.GRAY
+		empty_label.add_theme_font_size_override("font_size", 12)
+		awakening_materials_display.add_child(empty_label)
 	else:
-		print("Sacrifice system not available!")
+		# Show materials required
+		var scroll_container = ScrollContainer.new()
+		scroll_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		scroll_container.custom_minimum_size = Vector2(0, 220)
+		scroll_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scroll_container.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		scroll_container.clip_contents = true
+		awakening_materials_display.add_child(scroll_container)
+		
+		var margin_container = MarginContainer.new()
+		margin_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		margin_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		margin_container.add_theme_constant_override("margin_left", 10)
+		margin_container.add_theme_constant_override("margin_right", 10)
+		margin_container.add_theme_constant_override("margin_top", 5)
+		margin_container.add_theme_constant_override("margin_bottom", 5)
+		scroll_container.add_child(margin_container)
+		
+		var vbox = VBoxContainer.new()
+		vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		vbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		vbox.add_theme_constant_override("separation", 3)
+		margin_container.add_child(vbox)
+		
+		var title_label = Label.new()
+		title_label.text = "Materials Required:"
+		title_label.add_theme_font_size_override("font_size", 14)
+		title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		title_label.modulate = Color.WHITE
+		title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		title_label.clip_contents = true
+		vbox.add_child(title_label)
+		
+		# Get materials from AwakeningSystem
+		if GameManager and GameManager.awakening_system:
+			var materials = GameManager.awakening_system.get_awakening_materials_cost(awakening_selected_god)
+			
+			if materials.is_empty():
+				var no_data_label = Label.new()
+				no_data_label.text = "No awakening data available"
+				no_data_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+				no_data_label.add_theme_font_size_override("font_size", 12)
+				no_data_label.modulate = Color.GRAY
+				no_data_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				no_data_label.clip_contents = true
+				vbox.add_child(no_data_label)
+			else:
+				# Display materials in a compact grid with 2 columns
+				var grid = GridContainer.new()
+				grid.columns = 2
+				grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+				grid.add_theme_constant_override("v_separation", 4)
+				grid.add_theme_constant_override("h_separation", 15)
+				vbox.add_child(grid)
+				
+				# Display each material requirement
+				for material_type in materials:
+					var amount = materials[material_type]
+					var material_label = Label.new()
+					var display_name = material_type.replace("_", " ").capitalize()
+					# Shorten common terms to fit better
+					display_name = display_name.replace("Essences", "Ess.")
+					display_name = display_name.replace("High", "Hi")
+					display_name = display_name.replace("Medium", "Med")
+					display_name = display_name.replace("Low", "Lo")
+					material_label.text = "%s: %d" % [display_name, amount]
+					material_label.add_theme_font_size_override("font_size", 12)
+					material_label.modulate = Color.CYAN
+					material_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+					material_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+					material_label.clip_contents = true
+					material_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+					grid.add_child(material_label)
+
+func update_awakening_button():
+	"""Update the awakening button state"""
+	if not awakening_button:
+		return
+	
+	var can_awaken = false
+	if awakening_selected_god and awakening_selected_god.can_awaken():
+		if GameManager and GameManager.awakening_system:
+			var awakening_check = GameManager.awakening_system.can_awaken_god(awakening_selected_god)
+			can_awaken = awakening_check.can_awaken
+	
+	awakening_button.disabled = not can_awaken
+
+func _on_awaken_god_pressed():
+	"""Handle awakening a god"""
+	if not awakening_selected_god or not GameManager or not GameManager.awakening_system:
+		return
+	
+	if not awakening_selected_god.can_awaken():
+		print("God must be level 40 to awaken!")
+		return
+	
+	var awakening_check = GameManager.awakening_system.can_awaken_god(awakening_selected_god)
+	if not awakening_check.can_awaken:
+		print("Not enough materials for awakening!")
+		return
+	
+	# Perform awakening
+	var success = GameManager.awakening_system.attempt_awakening(awakening_selected_god, GameManager.player_data)
+	if success:
+		print("Successfully awakened %s!" % awakening_selected_god.name)
+		
+		# Refresh displays
+		refresh_awakening_god_grid()
+		update_awakening_god_display()
+		update_awakening_materials_display()
+		update_awakening_button()
+	else:
+		print("Failed to awaken god!")
+
+func _on_sacrifice_selection_screen_pressed():
+	"""Open the dedicated sacrifice selection screen"""
+	if not selected_god:
+		return
+	
+	# Create and show sacrifice selection screen
+	var sacrifice_selection_screen = sacrifice_selection_screen_scene.instantiate()
+	get_parent().add_child(sacrifice_selection_screen)
+	
+	# Initialize with selected god
+	sacrifice_selection_screen.initialize_with_god(selected_god)
+	
+	# Connect back signal
+	sacrifice_selection_screen.back_pressed.connect(_on_sacrifice_selection_back_pressed.bind(sacrifice_selection_screen))
+	
+	# Hide this screen
+	visible = false
+
+func _on_sacrifice_selection_back_pressed(sacrifice_selection_screen: Control):
+	"""Handle return from sacrifice selection screen"""
+	# Show this screen again
+	visible = true
+	
+	# Clean up sacrifice selection screen
+	sacrifice_selection_screen.queue_free()
+	
+	# Refresh in case gods changed
+	refresh_sacrifice_god_list()
+	update_sacrifice_god_display()
 
 func _on_back_pressed():
+	"""Handle back button"""
 	back_pressed.emit()
-
-func update_awaken_button():
-	if not awaken_button or not GameManager or not GameManager.awakening_system:
-		return
-	
-	if not selected_target_god:
-		awaken_button.disabled = true
-		awaken_button.text = "AWAKEN!"
-		return
-	
-	# Check if this god can be awakened
-	var awakening_check = GameManager.awakening_system.can_awaken_god(selected_target_god)
-	if awakening_check.can_awaken:
-		# Check materials
-		var materials_needed = GameManager.awakening_system.get_awakening_materials_cost(selected_target_god)
-		var materials_check = GameManager.awakening_system.check_awakening_materials(materials_needed, GameManager.player_data)
-		
-		if materials_check.can_afford:
-			awaken_button.disabled = false
-			awaken_button.text = "AWAKEN!"
-		else:
-			awaken_button.disabled = true
-			awaken_button.text = "AWAKEN! (No Materials)"
-	else:
-		awaken_button.disabled = true
-		if selected_target_god.is_awakened:
-			awaken_button.text = "ALREADY AWAKENED"
-		else:
-			awaken_button.text = "AWAKEN! (Requirements not met)"
-
-func _on_awaken_pressed():
-	if not selected_target_god or not GameManager or not GameManager.awakening_system:
-		return
-	
-	# Show awakening confirmation dialog
-	show_awakening_dialog()
-
-func show_awakening_dialog():
-	var awakening_check = GameManager.awakening_system.can_awaken_god(selected_target_god)
-	if not awakening_check.can_awaken:
-		show_info_dialog("Cannot Awaken", awakening_check.missing_requirements[0] if awakening_check.missing_requirements.size() > 0 else "Unknown error")
-		return
-	
-	var materials_needed = GameManager.awakening_system.get_awakening_materials_cost(selected_target_god)
-	var materials_check = GameManager.awakening_system.check_awakening_materials(materials_needed, GameManager.player_data)
-	
-	if not materials_check.can_afford:
-		var missing_text = "Missing materials:\n"
-		for missing in materials_check.missing_materials:
-			missing_text += "• %s: %d (need %d more)\n" % [missing.type.replace("_", " ").capitalize(), missing.current, missing.missing]
-		show_info_dialog("Insufficient Materials", missing_text)
-		return
-	
-	# Show confirmation with materials cost
-	var cost_text = "Awaken %s?\n\nCost:\n" % selected_target_god.name
-	for material_type in materials_needed.keys():
-		var amount = materials_needed[material_type]
-		cost_text += "• %s: %d\n" % [material_type.replace("_", " ").capitalize(), amount]
-	
-	show_confirmation_dialog("Confirm Awakening", cost_text, perform_awakening)
-
-func show_info_dialog(title: String, message: String):
-	var dialog = AcceptDialog.new()
-	dialog.title = title
-	dialog.dialog_text = message
-	dialog.add_theme_font_size_override("font_size", 16)
-	add_child(dialog)
-	dialog.popup_centered()
-	dialog.confirmed.connect(func(): dialog.queue_free())
-
-func show_confirmation_dialog(title: String, message: String, callback: Callable):
-	var dialog = ConfirmationDialog.new()
-	dialog.title = title
-	dialog.dialog_text = message
-	dialog.add_theme_font_size_override("font_size", 16)
-	add_child(dialog)
-	dialog.popup_centered()
-	dialog.confirmed.connect(callback)
-	dialog.confirmed.connect(func(): dialog.queue_free())
-	dialog.canceled.connect(func(): dialog.queue_free())
-
-func perform_awakening():
-	if not GameManager or not GameManager.awakening_system:
-		return
-	
-	var success = GameManager.awakening_system.attempt_awakening(selected_target_god, GameManager.player_data)
-	if success:
-		show_info_dialog("Awakening Successful!", "%s has been awakened!" % selected_target_god.name)
-		# Clear selection since the god object has been replaced
-		selected_target_god = null
-		update_ui()
-	else:
-		show_info_dialog("Awakening Failed", "Something went wrong during the awakening process.")

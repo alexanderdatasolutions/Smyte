@@ -23,7 +23,14 @@ enum TierType { COMMON, RARE, EPIC, LEGENDARY }
 @export var base_attack: int  
 @export var base_defense: int
 @export var base_speed: int
-@export var resource_generation: int  # Resources per hour
+@export var base_crit_rate: int = 15        # Critical Rate % (SW default: 15%)
+@export var base_crit_damage: int = 50      # Critical Damage % (SW default: 50%)
+@export var base_resistance: int = 15       # Resistance % (SW default: 15%)
+@export var base_accuracy: int = 0          # Accuracy % (SW default: 0%)
+@export var resource_generation: int       # Resources per hour
+
+# Rune/Equipment System (6 slots like Summoners War)
+@export var equipped_runes: Array = [null, null, null, null, null, null]  # 6 rune slots
 
 # Abilities - Updated to use JSON format
 @export var active_abilities: Array = []  # Array of ability dictionaries
@@ -90,6 +97,11 @@ static func create_from_json(god_id: String) -> God:
 	else:
 		god.passive_ability = ""
 	
+	# Check if this is an awakened god based on ID
+	if god_id.ends_with("_awakened"):
+		god.is_awakened = true
+		print("DEBUG: Marked god %s as awakened" % god_id)
+	
 	# Initialize battle stats
 	god.level = 1
 	god.experience = 0
@@ -149,6 +161,26 @@ func get_current_speed() -> int:
 	var base_stat = base_speed + (level * 4) + (int(tier) * 20)
 	return int(base_stat * (1.0 + _get_stat_modifier("speed")))
 
+func get_current_crit_rate() -> int:
+	"""Get current critical rate percentage (15-100%)"""
+	var base_stat = base_crit_rate + (level * 0.5) + (int(tier) * 5)
+	return int(base_stat * (1.0 + _get_stat_modifier("crit_rate")))
+
+func get_current_crit_damage() -> int:
+	"""Get current critical damage percentage (50-300%)"""
+	var base_stat = base_crit_damage + (level * 1.0) + (int(tier) * 10)
+	return int(base_stat * (1.0 + _get_stat_modifier("crit_damage")))
+
+func get_current_accuracy() -> int:
+	"""Get current accuracy percentage (0-85%)"""
+	var base_stat = base_accuracy + (int(tier) * 5)
+	return int(base_stat * (1.0 + _get_stat_modifier("accuracy")))
+
+func get_current_resistance() -> int:
+	"""Get current resistance percentage (15-100%)"""
+	var base_stat = base_resistance + (level * 0.3) + (int(tier) * 5)
+	return int(base_stat * (1.0 + _get_stat_modifier("resistance")))
+
 func _get_stat_modifier(stat_name: String) -> float:
 	"""Get total modifier for a stat from all status effects and awakening bonuses"""
 	var total_modifier = 0.0
@@ -190,11 +222,18 @@ func get_tier_multiplier() -> float:
 	return 1.0
 
 func get_experience_to_next_level() -> int:
-	return level * 100  # 100 XP for level 2, 200 for level 3, etc.
+	# Summoners War style exponential XP scaling
+	if level >= 40:
+		return 0  # Max level reached
+	
+	# SW XP formula approximation - gets much harder at higher levels
+	var base_xp = 100
+	var level_multiplier = pow(level, 1.8)  # Exponential growth
+	return int(base_xp * level_multiplier)
 
 func add_experience(amount: int):
 	experience += amount
-	while experience >= get_experience_to_next_level() and level < 30:
+	while experience >= get_experience_to_next_level() and level < 40:  # Max level 40
 		experience -= get_experience_to_next_level()
 		level += 1
 		# Heal to full on level up
@@ -443,8 +482,8 @@ func can_awaken() -> bool:
 	if is_awakened:
 		return false
 		
-	# Check basic requirements
-	if level < 30:
+	# Check basic requirements - max level required for awakening
+	if level < 40:
 		return false
 		
 	if ascension_level < 2:  # Must be at least silver
@@ -523,3 +562,43 @@ func get_debuffs() -> Array[StatusEffect]:
 		if effect.effect_type == StatusEffect.EffectType.DEBUFF or effect.effect_type == StatusEffect.EffectType.DOT:
 			debuffs.append(effect)
 	return debuffs
+
+func get_sprite() -> Texture2D:
+	"""Get the sprite texture for this god (awakened or normal)"""
+	var sprite_name: String
+	
+	if is_awakened:
+		# For awakened gods, convert ID format from "godname_awakened" to "awakened_godname.png"
+		var base_god_name = id.to_lower()
+		if base_god_name.ends_with("_awakened"):
+			base_god_name = base_god_name.replace("_awakened", "")
+		sprite_name = "awakened_" + base_god_name + ".png"
+	else:
+		# For normal gods, use the format "godname.png"
+		var base_god_name = id.to_lower()
+		if base_god_name.ends_with("_awakened"):
+			base_god_name = base_god_name.replace("_awakened", "")
+		sprite_name = base_god_name + ".png"
+	
+	var sprite_path = "res://assets/gods/" + sprite_name
+	
+	# Try to load the sprite
+	if ResourceLoader.exists(sprite_path):
+		return load(sprite_path)
+	else:
+		print("DEBUG: Sprite not found at %s" % sprite_path)
+		# Fallback: if awakened sprite doesn't exist, try normal sprite
+		if is_awakened:
+			var base_god_name = id.to_lower()
+			if base_god_name.ends_with("_awakened"):
+				base_god_name = base_god_name.replace("_awakened", "")
+			var fallback_path = "res://assets/gods/" + base_god_name + ".png"
+			if ResourceLoader.exists(fallback_path):
+				return load(fallback_path)
+		
+		# If no sprite found, return null (calling code should handle this)
+		return null
+
+func has_sprite() -> bool:
+	"""Check if this god has a sprite available"""
+	return get_sprite() != null

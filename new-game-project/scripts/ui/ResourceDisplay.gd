@@ -4,42 +4,31 @@ extends HBoxContainer
 # References to scene nodes
 @onready var essence_label = $EssenceLabel
 @onready var crystal_label = $CrystalLabel
+@onready var energy_label = get_node_or_null("EnergyLabel")
 @onready var tickets_label = get_node_or_null("TicketsLabel")
 @onready var materials_button = get_node_or_null("MaterialsButton")
 @onready var materials_count_label = get_node_or_null("MaterialsCountLabel")
 
 func _ready():
-	# Debug: Print available children
-	print("ResourceDisplay children:")
-	for child in get_children():
-		print("  - ", child.name, " (", child.get_class(), ")")
-	
 	# Connect to GameManager signals
 	if GameManager:
 		GameManager.resources_updated.connect(_update_display)
 	
 	# Connect the materials button
 	if materials_button:
-		print("DEBUG: Connecting materials button signals...")
 		materials_button.pressed.connect(_show_materials_table)
-		print("DEBUG: pressed signal connected")
 		# Add hover effects
 		materials_button.mouse_entered.connect(func(): 
-			print("DEBUG: mouse entered")
 			materials_button.modulate = Color(1.2, 1.2, 1.2))
 		materials_button.mouse_exited.connect(func(): 
-			print("DEBUG: mouse exited")
 			materials_button.modulate = Color.WHITE)
-		print("Materials button connected successfully")
 	else:
 		print("Warning: MaterialsButton not found!")
 	
 	_update_display()
 
 func _update_display():
-	print("DEBUG: ResourceDisplay._update_display() called")
 	if GameManager and GameManager.player_data:
-		print("DEBUG: Updating essence label...")
 		# Update divine essence
 		if essence_label:
 			var essence_value = GameManager.player_data.divine_essence
@@ -48,28 +37,39 @@ func _update_display():
 			else:
 				essence_label.text = "Divine Essence: " + str(essence_value)
 		
-		print("DEBUG: Updating crystals label...")
 		# Update premium crystals
 		if crystal_label:
 			crystal_label.text = "Crystals: " + str(GameManager.player_data.premium_crystals)
 		
-		print("DEBUG: Updating tickets label...")
+		# Update energy (with regeneration info)
+		if energy_label:
+			GameManager.player_data.update_energy()  # Make sure it's current
+			var energy_status = GameManager.player_data.get_energy_status()
+			var energy_text = "Energy: %d/%d" % [energy_status.current, energy_status.max]
+			
+			# Add time to full energy if not at max
+			if energy_status.current < energy_status.max:
+				var minutes_to_full = energy_status.minutes_to_full
+				if minutes_to_full < 60:
+					energy_text += " (%dm)" % minutes_to_full
+				else:
+					var hours = minutes_to_full / 60
+					energy_text += " (%dh %dm)" % [hours, minutes_to_full % 60]
+			
+			energy_label.text = energy_text
+		
 		# Update summon tickets
 		if tickets_label:
 			tickets_label.text = "Tickets: " + str(GameManager.player_data.summon_tickets)
 		else:
 			print("Warning: TicketsLabel not found for update")
 		
-		print("DEBUG: Updating materials count...")
 		# Update materials count
 		if materials_count_label:
 			var total_count = _get_total_materials_count()
 			materials_count_label.text = "(%d)" % total_count
 		else:
 			print("Warning: MaterialsCountLabel not found for update")
-	else:
-		print("DEBUG: GameManager or player_data not available for update")
-	print("DEBUG: ResourceDisplay._update_display() completed")
 
 func format_large_number(number: int) -> String:
 	"""Format large numbers for display (e.g., 1.5B instead of 1500000000)"""

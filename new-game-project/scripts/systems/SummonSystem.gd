@@ -168,8 +168,8 @@ func _perform_multi_summon(cost_type: String, summon_type: String, params: Dicti
 				duplicate_obtained.emit(god, duplicate_count - 1)
 	
 	multi_summon_completed.emit(summoned_gods)
-	for god in summoned_gods:
-		GameManager.god_summoned.emit(god)
+	# Don't emit individual god_summoned signals for multi-summons
+	# The UI handles them via multi_summon_completed signal
 	
 	return summoned_gods.size() > 0
 

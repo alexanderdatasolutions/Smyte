@@ -14,8 +14,14 @@ class_name PlayerData
 @export var summon_tickets: int = 0     # Free summon tickets
 @export var ascension_materials: int = 0 # From duplicates
 
-# Awakening materials (Summoners War style) - using loot.json terminology
-@export var powders: Dictionary = {}    # Elemental powders (low/mid/high) - matches loot.json
+# Energy system (Summoners War style)
+@export var energy: int = 80            # Current energy
+@export var max_energy: int = 80        # Maximum energy capacity
+@export var last_energy_update: float = 0.0  # Last energy regeneration time
+
+# Awakening materials (Summoners War style) - using essences terminology
+@export var powders: Dictionary = {}    # Elemental powders (low/mid/high) - legacy support
+@export var essences: Dictionary = {}   # Elemental essences (low/mid/high) - SW authentic
 @export var relics: Dictionary = {}     # Pantheon-specific relics
 
 # Collections
@@ -37,12 +43,28 @@ func _init():
 	crystals["light"] = 0
 	crystals["dark"] = 0
 	
-	# Initialize awakening powders - using loot.json terminology
+	# Initialize awakening essences - using SW terminology
 	var elements = ["fire", "water", "earth", "lightning", "light", "dark"]
+	for element in elements:
+		essences[element + "_essences_low"] = 50
+		essences[element + "_essences_mid"] = 25
+		essences[element + "_essences_high"] = 25  # Give some for testing
+	
+	# Add magic essences (universal awakening material like SW)
+	essences["magic_essences_low"] = 100
+	essences["magic_essences_mid"] = 50
+	essences["magic_essences_high"] = 25
+	
+	# Initialize awakening powders - legacy support
 	for element in elements:
 		powders[element + "_powder_low"] = 50
 		powders[element + "_powder_mid"] = 25
 		powders[element + "_powder_high"] = 25  # Give some for testing
+	
+	# Add magic powders (universal awakening material like SW)
+	powders["magic_powder_low"] = 100
+	powders["magic_powder_mid"] = 50
+	powders["magic_powder_high"] = 25
 	
 	# Initialize pantheon relics
 	var pantheons = ["greek", "norse", "egyptian", "hindu", "japanese", "celtic"]
@@ -207,6 +229,26 @@ func get_powder_amount(powder_type: String) -> int:
 	"""Get current amount of specific powder"""
 	return powders.get(powder_type, 0)
 
+# Essence Management (Summoners War authentic)
+func add_essence(essence_type: String, amount: int):
+	"""Add elemental essences (fire_essences_low, magic_essences_mid, etc.)"""
+	if not essences.has(essence_type):
+		essences[essence_type] = 0
+	essences[essence_type] += amount
+
+func spend_essence(essence_type: String, amount: int) -> bool:
+	"""Spend elemental essences"""
+	if not essences.has(essence_type):
+		return false
+	if essences[essence_type] >= amount:
+		essences[essence_type] -= amount
+		return true
+	return false
+
+func get_essence_amount(essence_type: String) -> int:
+	"""Get current amount of specific essence"""
+	return essences.get(essence_type, 0)
+
 func add_relics(relic_type: String, amount: int):
 	"""Add pantheon relics (greek_relics, norse_relics, etc.)"""
 	if not relics.has(relic_type):
@@ -238,7 +280,10 @@ func can_afford_awakening(materials_needed: Dictionary) -> bool:
 			"divine_crystals":
 				current = premium_crystals
 			_:
-				if material_type in powders:
+				# Check essences first (SW authentic), then powders (legacy)
+				if material_type in essences:
+					current = essences[material_type]
+				elif material_type in powders:
 					current = powders[material_type]
 				elif material_type in relics:
 					current = relics[material_type]
@@ -273,6 +318,74 @@ func add_resource(resource_type: String, amount: int):
 				crystals[resource_type] = min(crystals[resource_type] + amount, max_resource)
 			else:
 				print("Warning: Unknown resource type: ", resource_type)
+
+# Energy Management Functions
+func update_energy():
+	"""Update energy based on time passed - call regularly"""
+	var current_time = Time.get_unix_time_from_system()
+	
+	# Initialize last_energy_update if it's 0 (first run)
+	if last_energy_update <= 0:
+		last_energy_update = current_time
+		return
+	
+	var time_passed = current_time - last_energy_update
+	var minutes_passed = time_passed / 60.0
+	
+	# Regenerate energy (1 energy per 5 minutes = 0.2 energy per minute)
+	var energy_to_add = int(minutes_passed * 0.2)
+	
+	if energy_to_add > 0:
+		energy = min(energy + energy_to_add, max_energy)
+		last_energy_update = current_time
+		print("Energy regenerated: +", energy_to_add, " (", energy, "/", max_energy, ")")
+
+func can_afford_energy(cost: int) -> bool:
+	"""Check if player has enough energy"""
+	update_energy()  # Make sure energy is current
+	return energy >= cost
+
+func spend_energy(cost: int) -> bool:
+	"""Spend energy if available"""
+	update_energy()  # Make sure energy is current
+	
+	if energy >= cost:
+		energy -= cost
+		print("Energy spent: -", cost, " (", energy, "/", max_energy, ")")
+		return true
+	else:
+		print("Not enough energy! Need: ", cost, ", Have: ", energy)
+		return false
+
+func add_energy(amount: int):
+	"""Add energy (from items, crystal refreshes, etc.)"""
+	energy = min(energy + amount, max_energy)
+	print("Energy added: +", amount, " (", energy, "/", max_energy, ")")
+
+func refresh_energy_with_crystals() -> bool:
+	"""Refresh energy using premium crystals (30 crystals = 90 energy)"""
+	var crystal_cost = 30
+	var energy_gained = 90
+	
+	if premium_crystals >= crystal_cost:
+		spend_crystals(crystal_cost)
+		energy = min(energy + energy_gained, max_energy)
+		print("Energy refreshed with crystals: +", energy_gained, " energy for ", crystal_cost, " crystals")
+		return true
+	else:
+		print("Not enough crystals for energy refresh! Need: ", crystal_cost, ", Have: ", premium_crystals)
+		return false
+
+func get_energy_status() -> Dictionary:
+	"""Get current energy status"""
+	update_energy()
+	return {
+		"current": energy,
+		"max": max_energy,
+		"percentage": float(energy) / float(max_energy) * 100.0,
+		"minutes_to_full": (max_energy - energy) * 5,  # 5 minutes per energy
+		"can_refresh": premium_crystals >= 30
+	}
 
 func can_afford_upgrade_cost(cost: Dictionary) -> bool:
 	"""Check if player can afford an upgrade cost"""

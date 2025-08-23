@@ -146,6 +146,9 @@ func _handle_standard_loot(loot_type: String, amount: int) -> Dictionary:
 			result["ascension_materials"] = amount
 		"experience":
 			result["experience"] = amount  # Handle experience from loot.json
+		"magic_powder_low", "magic_powder_mid", "magic_powder_high":
+			# Handle magic powders (universal awakening material)
+			result[loot_type] = amount
 		_:
 			# Direct resource type
 			result[loot_type] = amount

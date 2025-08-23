@@ -63,7 +63,7 @@ func can_awaken_god(god: God) -> Dictionary:
 	var requirements = awakening_data.get("awakening_requirements", {})
 	
 	# Level requirement
-	var required_level = requirements.get("base_god_level", 30)
+	var required_level = requirements.get("base_god_level", 40)
 	if god.level >= required_level:
 		result.requirements_met.append("Level %d ✓" % required_level)
 	else:
@@ -71,10 +71,10 @@ func can_awaken_god(god: God) -> Dictionary:
 	
 	# Max level requirement
 	if requirements.get("base_god_max_level", false):
-		if god.level >= 30:
+		if god.level >= 40:
 			result.requirements_met.append("Max level ✓")
 		else:
-			result.missing_requirements.append("Must be max level (30)")
+			result.missing_requirements.append("Must be max level (40)")
 	
 	# Skills at level 1 (simple requirement)
 	if requirements.get("all_skills_level_1", false):

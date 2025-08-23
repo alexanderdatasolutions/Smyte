@@ -576,68 +576,106 @@ static func get_territory_passive_income(territory_id: String, assigned_gods: Ar
 	if territory.is_empty():
 		return {}
 	
-	var resource_gen = territory.get("resource_generation", {})
-	if resource_gen.is_empty():
-		# Fallback based on tier
-		var tier = territory.get("tier", 1)
-		var tier_key = "tier_%d_territories" % tier
-		return _get_fallback_passive_income(tier_key, assigned_gods)
+	# Get territory tier and element
+	var tier = territory.get("tier", 1)
+	var territory_element = territory.get("element", "fire")
+	var tier_key = "tier_%d_territories" % tier
 	
-	# Get base loot table from loot.json
-	var loot_table_name = resource_gen.get("loot_table", "territory_passive_income")
-	var base_tier = resource_gen.get("base_tier", "tier_%d_territories" % territory.get("tier", 1))
-	
+	# Load loot data if needed
 	if loot_data.is_empty():
 		load_loot_data()
 	
-	var base_generation = loot_data.get("loot_tables", {}).get(loot_table_name, {}).get("base_generation_per_hour", {}).get(base_tier, {})
-	var god_bonuses = loot_data.get("loot_tables", {}).get(loot_table_name, {}).get("god_assignment_bonuses", {})
+	# Get base generation from loot.json
+	var base_generation = loot_data.get("loot_tables", {}).get("territory_passive_income", {}).get("base_generation_per_hour", {}).get(tier_key, {})
+	var god_bonuses = loot_data.get("loot_tables", {}).get("territory_passive_income", {}).get("god_assignment_bonuses", {})
 	
 	if base_generation.is_empty():
-		# Try fallback
-		return _get_fallback_passive_income(base_tier, assigned_gods)
+		print("Warning: No base generation found for ", tier_key, " - using fallback")
+		return _get_fallback_passive_income(tier_key, assigned_gods)
 	
 	var final_generation = base_generation.duplicate()
 	
-	# Apply god assignment bonuses
-	if assigned_gods.size() > 0:
-		var territory_element = territory.get("element", "")
-		var element_match_bonus = god_bonuses.get("element_match", {}).get("multiplier", 1.0)
-		var tier_bonuses = god_bonuses.get("tier_bonus", {})
-		var multiple_gods_bonus = god_bonuses.get("multiple_gods", {}).get(str(assigned_gods.size()) + "_gods", 1.0)
-		
-		# Check if any gods match the territory element and calculate combined bonus
+	# Apply god assignment bonuses if gods are assigned
+	if assigned_gods.size() > 0 and not god_bonuses.is_empty():
+		var total_multiplier = 1.0
 		var has_element_match = false
-		var total_tier_bonus = 1.0
+		var best_tier_bonus = 1.0
+		var has_awakened_god = false
 		
+		# Analyze assigned gods
 		for god in assigned_gods:
-			# Check element match - god.element is an integer, territory_element is a string
-			if element_int_to_string(god.element) == territory_element:
+			# Check element match
+			var god_element_string = element_int_to_string(god.element)
+			if god_element_string == territory_element:
 				has_element_match = true
 			
-			# Apply tier bonus per god - convert god.tier enum to string
-			var god_tier_string = ""
-			match god.tier:
-				0: # God.TierType.COMMON
-					god_tier_string = "common"
-				1: # God.TierType.RARE
-					god_tier_string = "rare"
-				2: # God.TierType.EPIC
-					god_tier_string = "epic"
-				3: # God.TierType.LEGENDARY
-					god_tier_string = "legendary"
+			# Get best tier bonus
+			var god_tier_string = _get_god_tier_string(god)
+			var tier_bonus = god_bonuses.get("tier_bonus", {}).get(god_tier_string, 1.0)
+			if tier_bonus > best_tier_bonus:
+				best_tier_bonus = tier_bonus
 			
-			total_tier_bonus *= tier_bonuses.get(god_tier_string, 1.0)
+			# Check if awakened
+			if god.is_awakened:
+				has_awakened_god = true
 		
-		# Calculate final multipliers based on assigned gods
-		var total_multiplier = multiple_gods_bonus * total_tier_bonus
+		# Apply element match bonus
 		if has_element_match:
-			total_multiplier *= element_match_bonus
+			var element_bonus = god_bonuses.get("element_match", {}).get("multiplier", 1.5)
+			total_multiplier *= element_bonus
 		
+		# Apply best tier bonus
+		total_multiplier *= best_tier_bonus
+		
+		# Apply multiple gods bonus
+		var multiple_key = str(assigned_gods.size()) + "_gods"
+		var multiple_bonus = god_bonuses.get("multiple_gods", {}).get(multiple_key, 1.0)
+		total_multiplier *= multiple_bonus
+		
+		# Apply awakened god bonus
+		if has_awakened_god:
+			var awakened_bonus = god_bonuses.get("awakened_bonus", {}).get("multiplier", 1.3)
+			total_multiplier *= awakened_bonus
+			
+			# Add extra awakening materials for awakened gods
+			var extra_resource = god_bonuses.get("awakened_bonus", {}).get("extra_resource", "")
+			if extra_resource != "":
+				var element_resource = territory_element + "_" + extra_resource
+				final_generation[element_resource] = final_generation.get(element_resource, 0) + 1
+		
+		# Apply total multiplier to all resources
 		for resource_type in final_generation.keys():
 			final_generation[resource_type] = int(final_generation[resource_type] * total_multiplier)
+		
+		# Add element-specific powder generation for tier 2+ territories
+		if tier >= 2:
+			var element_powder_low = territory_element + "_powder_low"
+			var element_powder_mid = territory_element + "_powder_mid"
+			
+			# Add element-specific powders based on tier and bonuses
+			final_generation[element_powder_low] = final_generation.get(element_powder_low, 0) + int(2 * total_multiplier)
+			if tier >= 3:
+				final_generation[element_powder_mid] = final_generation.get(element_powder_mid, 0) + int(1 * total_multiplier)
 	
 	return final_generation
+
+static func _get_god_tier_string(god) -> String:
+	"""Convert god tier enum to string for bonus lookup"""
+	if god.has_method("get_tier_name"):
+		return god.get_tier_name().to_lower()
+	
+	# Fallback based on typical tier enum values
+	match god.tier:
+		0: 
+			return "common"
+		1: 
+			return "rare" 
+		2: 
+			return "epic"
+		3: 
+			return "legendary"
+		_: 
+			return "common"
 
 static func _get_fallback_passive_income(tier_key: String, _assigned_gods: Array) -> Dictionary:
 	"""Fallback resource generation when territory data is missing"""

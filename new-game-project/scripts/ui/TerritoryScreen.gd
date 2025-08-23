@@ -357,7 +357,7 @@ func create_production_section(territory):
 	var total_rate = territory.get_resource_rate()
 	var rate_label = Label.new()
 	rate_label.text = "%d/hour" % total_rate
-	rate_label.modulate = Color.GOLD
+	rate_label.modulate = Color.YELLOW
 	rate_label.add_theme_font_size_override("font_size", 14)
 	vbox.add_child(rate_label)
 	
@@ -455,7 +455,7 @@ func create_assignment_section(territory):
 				var element_match = (god.element == territory.element)
 				var match_icon = "★" if element_match else ""
 				god_label.text = "• %s%s (Lv.%d)" % [match_icon, god.name, god.level]
-				god_label.modulate = Color.GOLD if element_match else Color.WHITE
+				god_label.modulate = Color.YELLOW if element_match else Color.WHITE
 				god_label.add_theme_font_size_override("font_size", 10)
 				vbox.add_child(god_label)
 		
@@ -920,7 +920,9 @@ func _on_start_stage_battle():
 	# Load and open the battle screen
 	var battle_screen_scene = preload("res://scenes/BattleScreen.tscn")
 	var battle_screen = battle_screen_scene.instantiate()
-	get_tree().current_scene.add_child(battle_screen)
+	
+	# Add to scene tree root instead of current_scene (fixes gray screen issue)
+	get_tree().root.add_child(battle_screen)
 	
 	# Hide territory screen
 	visible = false

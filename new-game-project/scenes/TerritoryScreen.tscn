@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://58w18k2qjipa"]
 
 [ext_resource type="Script" uid="uid://bebu6xd7awcxs" path="res://scripts/ui/TerritoryScreen.gd" id="1_territory"]
-[ext_resource type="Script" uid="uid://dkl6lpcqoqw2" path="res://scripts/ui/ResourceDisplay.gd" id="2_xlxuo"]
+[ext_resource type="PackedScene" uid="uid://cbw7xpldky1p7" path="res://scenes/ResourceDisplay.tscn" id="2_xlxuo"]
 
 [node name="TerritoryScreen" type="Control"]
 layout_mode = 3
@@ -48,42 +48,9 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="ResourceDisplay" type="HBoxContainer" parent="."]
+[node name="ResourceDisplay2" parent="." instance=ExtResource("2_xlxuo")]
 layout_mode = 1
-anchors_preset = -1
-offset_left = 610.0
-offset_top = 20.0
-offset_right = 1251.0
-offset_bottom = 60.0
-grow_horizontal = 2
-grow_vertical = 2
-alignment = 1
-script = ExtResource("2_xlxuo")
-
-[node name="EssenceLabel" type="Label" parent="ResourceDisplay"]
-layout_mode = 2
-text = "Divine Essence: 1000"
-horizontal_alignment = 1
-
-[node name="VSeparator" type="VSeparator" parent="ResourceDisplay"]
-visible = false
-layout_mode = 2
-
-[node name="CrystalLabel" type="Label" parent="ResourceDisplay"]
-layout_mode = 2
-text = "Crystals: 0"
-horizontal_alignment = 1
-
-[node name="TicketsLabel" type="Label" parent="ResourceDisplay"]
-layout_mode = 2
-text = "Summoning Tickets: 0"
-horizontal_alignment = 1
-
-[node name="MaterialsButton" type="Button" parent="ResourceDisplay"]
-layout_mode = 2
-text = "Materials"
-
-[node name="MaterialsCountLabel" type="Label" parent="ResourceDisplay"]
-layout_mode = 2
-text = "Materials: 0 types"
-horizontal_alignment = 1
+offset_left = -545.0
+offset_top = 25.0
+offset_right = -79.0
+offset_bottom = 56.0

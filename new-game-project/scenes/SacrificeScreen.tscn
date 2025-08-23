@@ -16,13 +16,18 @@ offset_right = 1282.0
 offset_bottom = 720.0
 color = Color(0.1, 0.1, 0.15, 1)
 
-[node name="ContentContainer" type="HBoxContainer" parent="."]
+[node name="ContentContainer" type="VBoxContainer" parent="."]
 layout_mode = 0
-offset_top = -2.0
+offset_top = 10.0
 offset_right = 1280.0
-offset_bottom = 718.0
+offset_bottom = 660.0
+
+[node name="TabContainer" type="TabContainer" parent="ContentContainer"]
+layout_mode = 2
+size_flags_vertical = 3
 
 [node name="LeftPanel" type="Panel" parent="ContentContainer"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.4
@@ -53,6 +58,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="RightPanel" type="Panel" parent="ContentContainer"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.6

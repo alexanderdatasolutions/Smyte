@@ -13,21 +13,15 @@ var territory_screen_scene = preload("res://scenes/TerritoryScreen.tscn")
 var sacrifice_screen_scene = preload("res://scenes/SacrificeScreen.tscn")
 
 func _ready():
-	print("DEBUG: WorldView._ready() starting...")
 	# Connect building buttons
 	if summon_button:
 		summon_button.pressed.connect(_on_summon_building_pressed)
-		print("DEBUG: Summon button connected")
 	if collection_button:
 		collection_button.pressed.connect(_on_collection_building_pressed)
-		print("DEBUG: Collection button connected")
 	if territory_button:
 		territory_button.pressed.connect(_on_territory_building_pressed)
-		print("DEBUG: Territory button connected")
 	if sacrifice_button:
 		sacrifice_button.pressed.connect(_on_sacrifice_building_pressed)
-		print("DEBUG: Sacrifice button connected")
-	print("DEBUG: WorldView._ready() completed")
 
 func _on_summon_building_pressed():
 	print("Opening Summon Temple...")

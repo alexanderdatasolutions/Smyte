@@ -8,36 +8,36 @@ signal back_pressed
 @onready var details_content = $MainContainer/RightPanel/DetailsContainer/DetailsContent
 @onready var no_selection_label = $MainContainer/RightPanel/DetailsContainer/DetailsContent/NoSelectionLabel
 
+# Sorting state
+enum SortType { POWER, LEVEL, TIER, ELEMENT, NAME }
+var current_sort: SortType = SortType.POWER
+var sort_ascending: bool = false  # Default to descending (highest first)
+var sort_buttons = []  # Store references to sort buttons
+var direction_button = null  # Store reference to direction button
+
+# Scroll position preservation
+var scroll_position: float = 0.0
+
 func _ready():
-	print("DEBUG: CollectionScreen._ready() starting...")
 	# Connect to GameManager signals for modular communication
 	if GameManager:
 		GameManager.god_summoned.connect(_on_god_summoned)
-		GameManager.resources_updated.connect(_on_resources_updated)  # Refresh when XP is awarded
-		print("DEBUG: GameManager signals connected")
-		# Also connect to collection changes if you add that signal
+		# REMOVED: resources_updated connection - was causing constant UI refreshes every 5 seconds
+		# Only refresh when new gods are actually summoned, not when territory income is generated
 	
 	if back_button:
 		back_button.pressed.connect(_on_back_pressed)
-		print("DEBUG: Back button connected")
-	else:
-		print("DEBUG: Back button NOT found")
-		
-	print("DEBUG: Calling refresh_collection()...")
+	
+	# Add sorting UI
+	setup_sorting_ui()
 	refresh_collection()
-	print("DEBUG: Calling show_no_selection()...")
 	show_no_selection()
-	print("DEBUG: CollectionScreen._ready() completed")
 
 func _on_back_pressed():
 	back_pressed.emit()
 
 func _on_god_summoned(_god):
 	# When a new god is summoned, refresh the collection display
-	refresh_collection()
-
-func _on_resources_updated():
-	# When resources are updated (including XP), refresh the collection
 	refresh_collection()
 
 func show_no_selection():
@@ -58,8 +58,92 @@ func show_no_selection():
 	no_selection.add_theme_font_size_override("font_size", 16)
 	details_content.add_child(no_selection)
 
+func setup_sorting_ui():
+	"""Add sorting controls to the collection screen - only called once"""
+	# Check if sorting UI already exists
+	var left_panel_vbox = $MainContainer/LeftPanel/ScrollContainer/VBoxContainer
+	if not left_panel_vbox:
+		return
+	
+	# Don't create if already exists
+	if sort_buttons.size() > 0:
+		return
+	
+	# Create sorting controls container
+	var sort_container = HBoxContainer.new()
+	sort_container.add_theme_constant_override("separation", 10)
+	
+	# Add sort label
+	var sort_label = Label.new()
+	sort_label.text = "Sort by:"
+	sort_label.add_theme_font_size_override("font_size", 14)
+	sort_container.add_child(sort_label)
+	
+	# Create sort buttons
+	var button_configs = [
+		{"text": "Power", "type": SortType.POWER},
+		{"text": "Level", "type": SortType.LEVEL}, 
+		{"text": "Tier", "type": SortType.TIER},
+		{"text": "Element", "type": SortType.ELEMENT},
+		{"text": "Name", "type": SortType.NAME}
+	]
+	
+	for button_data in button_configs:
+		var sort_button = Button.new()
+		sort_button.text = button_data.text
+		sort_button.custom_minimum_size = Vector2(60, 30)
+		sort_button.pressed.connect(_on_sort_changed.bind(button_data.type))
+		sort_buttons.append(sort_button)
+		sort_container.add_child(sort_button)
+	
+	# Add sort direction button
+	direction_button = Button.new()
+	direction_button.text = "↓" if not sort_ascending else "↑"
+	direction_button.custom_minimum_size = Vector2(30, 30)
+	direction_button.pressed.connect(_on_sort_direction_changed)
+	sort_container.add_child(direction_button)
+	
+	# Insert sorting controls at the top of the VBox (before GridContainer)
+	left_panel_vbox.add_child(sort_container)
+	left_panel_vbox.move_child(sort_container, 0)
+	
+	# Initial button highlighting
+	update_sort_buttons()
+
+func update_sort_buttons():
+	"""Update the visual state of sort buttons"""
+	for i in range(sort_buttons.size()):
+		var button = sort_buttons[i]
+		var button_type = [SortType.POWER, SortType.LEVEL, SortType.TIER, SortType.ELEMENT, SortType.NAME][i]
+		
+		if button_type == current_sort:
+			# Highlight current sort
+			var style = StyleBoxFlat.new()
+			style.bg_color = Color(0.3, 0.6, 1.0, 0.8)
+			button.add_theme_stylebox_override("normal", style)
+		else:
+			# Remove highlight
+			button.remove_theme_stylebox_override("normal")
+	
+	# Update direction button
+	if direction_button:
+		direction_button.text = "↓" if not sort_ascending else "↑"
+
+func _on_sort_changed(sort_type: SortType):
+	"""Handle sort type change"""
+	current_sort = sort_type
+	refresh_collection()
+	# Update button highlighting
+	update_sort_buttons()
+
+func _on_sort_direction_changed():
+	"""Toggle sort direction"""
+	sort_ascending = !sort_ascending
+	refresh_collection()
+	# Update direction arrow
+	update_sort_buttons()
+
 func refresh_collection():
-	print("DEBUG: refresh_collection() starting...")
 	# Make sure the grid_container exists
 	if not grid_container:
 		grid_container = $MainContainer/LeftPanel/ScrollContainer/VBoxContainer/GridContainer
@@ -67,167 +151,188 @@ func refresh_collection():
 			print("Error: Could not find GridContainer")
 			return
 	
-	print("DEBUG: GridContainer found, clearing existing cards...")
+	# Save scroll position
+	var scroll_container = grid_container.get_parent().get_parent()  # VBoxContainer -> ScrollContainer
+	if scroll_container is ScrollContainer:
+		scroll_position = scroll_container.get_v_scroll()
+	
 	# Clear existing god cards
 	for child in grid_container.get_children():
 		child.queue_free()
 	
-	# Wait a frame for cleanup
-	await get_tree().process_frame
-	
+	# Don't wait for cleanup - create cards immediately for faster response
 	# Add god cards - using GameManager autoload for modular access
 	if GameManager and GameManager.player_data:
-		print("DEBUG: Found GameManager and player_data, gods count: ", GameManager.player_data.gods.size())
-		for god in GameManager.player_data.gods:
-			print("DEBUG: Creating card for god: ", god.name)
-			create_god_card(god)
-	else:
-		print("DEBUG: GameManager or player_data not available")
-	print("DEBUG: refresh_collection() completed")
+		# Get and sort gods
+		var gods = GameManager.player_data.gods.duplicate()  # Create copy for sorting
+		sort_gods(gods)
+		
+		# Create cards in batches to avoid long freeze
+		var batch_size = 20  # Process 20 gods at a time
+		
+		for i in range(0, gods.size(), batch_size):
+			var end_index = min(i + batch_size, gods.size())
+			for j in range(i, end_index):
+				create_god_card(gods[j])
+			
+			# Allow UI to update between batches
+			if end_index < gods.size():
+				await get_tree().process_frame
+	
+	# Restore scroll position after content is added
+	await get_tree().process_frame
+	if scroll_container is ScrollContainer:
+		scroll_container.set_v_scroll(int(scroll_position))
+
+func sort_gods(gods: Array):
+	"""Sort gods array based on current sort settings"""
+	gods.sort_custom(func(a, b):
+		var result = false
+		match current_sort:
+			SortType.POWER:
+				result = a.get_power_rating() > b.get_power_rating()
+			SortType.LEVEL:
+				result = a.level > b.level
+			SortType.TIER:
+				result = a.tier > b.tier
+			SortType.ELEMENT:
+				result = a.element < b.element  # Sort by element enum value
+			SortType.NAME:
+				result = a.name < b.name
+		
+		# Apply sort direction
+		return result if not sort_ascending else !result
+	)
 
 func create_god_card(god):
-	print("DEBUG: create_god_card() starting for: ", god.name)
-	var card = VBoxContainer.new()
-	card.custom_minimum_size = Vector2(150, 260)  # Increased height for XP bar
-	print("DEBUG: Created VBoxContainer with size: ", card.custom_minimum_size)
+	# Create compact card similar to other screens
+	var card = Panel.new()
+	card.custom_minimum_size = Vector2(120, 140)
 	
-	# Create a button that will serve as the clickable panel background
-	var panel = Button.new()
-	panel.flat = false  # Keep button styling to show rarity colors properly
-	panel.pressed.connect(_on_god_card_clicked.bind(god))
-	print("DEBUG: Created panel button, flat=", panel.flat)
-	
-	# Style the button to show rarity colors
+	# Style with subtle tier colors
 	var style = StyleBoxFlat.new()
-	style.bg_color = get_tier_color(god.tier)
-	style.border_width_left = 3
-	style.border_width_top = 3
-	style.border_width_right = 3
-	style.border_width_bottom = 3
-	style.border_color = Color.WHITE
-	style.corner_radius_top_left = 10
-	style.corner_radius_top_right = 10
-	style.corner_radius_bottom_right = 10
-	style.corner_radius_bottom_left = 10
-	print("DEBUG: Created style with bg_color: ", style.bg_color)
+	style.bg_color = get_subtle_tier_color(god.tier)
+	style.border_width_left = 2
+	style.border_width_right = 2
+	style.border_width_top = 2
+	style.border_width_bottom = 2
+	style.border_color = get_tier_border_color(god.tier)
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
+	card.add_theme_stylebox_override("panel", style)
 	
-	# Apply the style to all button states to ensure consistent coloring
-	panel.add_theme_stylebox_override("normal", style)
-	panel.add_theme_stylebox_override("hover", style)
-	panel.add_theme_stylebox_override("pressed", style)
-	panel.add_theme_stylebox_override("focus", style)
-	panel.custom_minimum_size = Vector2(150, 260)  # Increased height for XP bar
+	var vbox = VBoxContainer.new()
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vbox.add_theme_constant_override("separation", 3)
+	card.add_child(vbox)
 	
-	print("DEBUG: Adding panel to card...")
-	card.add_child(panel)
+	# Add margin for better spacing
+	var margin = MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 5)
+	margin.add_theme_constant_override("margin_right", 5)
+	margin.add_theme_constant_override("margin_top", 5)
+	margin.add_theme_constant_override("margin_bottom", 5)
+	card.add_child(margin)
+	margin.add_child(vbox)
 	
-	print("DEBUG: Adding card to grid_container...")
-	grid_container.add_child(card)
-	print("DEBUG: create_god_card() completed for: ", god.name, ", grid children now: ", grid_container.get_child_count())
+	# God image (compact)
+	var god_image = TextureRect.new()
+	god_image.custom_minimum_size = Vector2(48, 48)
+	god_image.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	god_image.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	god_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	
-	# Create a margin container for padding
-	var margin_container = MarginContainer.new()
-	margin_container.add_theme_constant_override("margin_left", 8)
-	margin_container.add_theme_constant_override("margin_right", 8)
-	margin_container.add_theme_constant_override("margin_top", 8)
-	margin_container.add_theme_constant_override("margin_bottom", 8)
+	# Load god image using the new sprite function
+	var god_texture = god.get_sprite()
+	if god_texture:
+		god_image.texture = god_texture
 	
-	# Create inner VBox for content
-	var content = VBoxContainer.new()
+	vbox.add_child(god_image)
 	
-	# God Image
-	var image_container = TextureRect.new()
-	image_container.custom_minimum_size = Vector2(120, 120)
-	image_container.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	image_container.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	
-	# Load god image - use god name in lowercase for filename matching
-	var image_path = "res://assets/gods/" + god.name.to_lower() + ".png"
-	if ResourceLoader.exists(image_path):
-		var texture = load(image_path)
-		image_container.texture = texture
-	else:
-		# Fallback - create a colored rectangle if image not found
-		var placeholder = ColorRect.new()
-		placeholder.color = get_tier_color(god.tier)
-		placeholder.custom_minimum_size = Vector2(120, 120)
-		content.add_child(placeholder)
-		image_container = null
-	
-	if image_container:
-		content.add_child(image_container)
-	
-	# Name
+	# God name (compact)
 	var name_label = Label.new()
 	name_label.text = god.name
+	name_label.add_theme_font_size_override("font_size", 11)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_label.add_theme_color_override("font_color", Color.WHITE)
-	name_label.add_theme_font_size_override("font_size", 14)
-	content.add_child(name_label)
+	vbox.add_child(name_label)
 	
-	# Tier and Element
-	var info_label = Label.new()
-	info_label.text = god.get_tier_name() + " " + god.get_element_name()
-	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	info_label.add_theme_color_override("font_color", Color.WHITE)
-	info_label.add_theme_font_size_override("font_size", 10)
-	content.add_child(info_label)
-	
-	# Level and Power
+	# Level and tier (compact, SW style)
 	var level_label = Label.new()
-	level_label.text = "Lv." + str(god.level) + " Power: " + str(god.get_power_rating())
+	level_label.text = "Lv.%d %s" % [god.level, get_tier_short_name(god.tier)]
+	level_label.add_theme_font_size_override("font_size", 10)
 	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	level_label.add_theme_color_override("font_color", Color.WHITE)
-	level_label.add_theme_font_size_override("font_size", 9)
-	content.add_child(level_label)
+	level_label.modulate = Color.CYAN
+	vbox.add_child(level_label)
 	
-	# XP Progress Bar
-	var xp_container = VBoxContainer.new()
+	# Element and power (compact)
+	var info_label = Label.new()
+	info_label.text = "%s P:%d" % [get_element_short_name(god.element), god.get_power_rating()]
+	info_label.add_theme_font_size_override("font_size", 9)
+	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info_label.modulate = Color.LIGHT_GRAY
+	vbox.add_child(info_label)
 	
-	# XP Label
-	var xp_label = Label.new()
-	var xp_needed = god.get_experience_to_next_level()
-	var xp_progress = god.experience
-	xp_label.text = "XP: %d / %d" % [xp_progress, xp_needed]
-	xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	xp_label.add_theme_color_override("font_color", Color.YELLOW)
-	xp_label.add_theme_font_size_override("font_size", 8)
-	xp_container.add_child(xp_label)
-	
-	# XP Progress Bar
-	var xp_bar = ProgressBar.new()
-	xp_bar.custom_minimum_size = Vector2(120, 8)
-	xp_bar.min_value = 0
-	xp_bar.max_value = xp_needed
-	xp_bar.value = xp_progress
-	xp_bar.show_percentage = false
-	
-	# Style the XP bar
-	var xp_bar_style = StyleBoxFlat.new()
-	xp_bar_style.bg_color = Color(0.2, 0.2, 0.8, 0.8)  # Blue background
-	xp_bar_style.corner_radius_top_left = 4
-	xp_bar_style.corner_radius_top_right = 4
-	xp_bar_style.corner_radius_bottom_left = 4
-	xp_bar_style.corner_radius_bottom_right = 4
-	xp_bar.add_theme_stylebox_override("fill", xp_bar_style)
-	
-	var xp_bg_style = StyleBoxFlat.new()
-	xp_bg_style.bg_color = Color(0.1, 0.1, 0.1, 0.8)  # Dark background
-	xp_bg_style.corner_radius_top_left = 4
-	xp_bg_style.corner_radius_top_right = 4
-	xp_bg_style.corner_radius_bottom_left = 4
-	xp_bg_style.corner_radius_bottom_right = 4
-	xp_bar.add_theme_stylebox_override("background", xp_bg_style)
-	
-	xp_container.add_child(xp_bar)
-	content.add_child(xp_container)
-	
-	# Assemble the card
-	margin_container.add_child(content)
-	panel.add_child(margin_container)
-	card.add_child(panel)
+	# Make clickable
+	var button = Button.new()
+	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	button.flat = true
+	button.pressed.connect(_on_god_card_clicked.bind(god))
+	card.add_child(button)
 	
 	grid_container.add_child(card)
+
+func get_subtle_tier_color(tier: int) -> Color:
+	"""Get subtle background colors for tiers"""
+	match tier:
+		0:  # COMMON
+			return Color(0.25, 0.25, 0.25, 0.7)  # Dark gray
+		1:  # RARE
+			return Color(0.2, 0.3, 0.2, 0.7)     # Dark green
+		2:  # EPIC
+			return Color(0.3, 0.2, 0.4, 0.7)     # Dark purple
+		3:  # LEGENDARY
+			return Color(0.4, 0.3, 0.1, 0.7)     # Dark gold
+		_:
+			return Color(0.2, 0.2, 0.3, 0.7)
+
+func get_tier_border_color(tier: int) -> Color:
+	"""Get border colors for tiers"""
+	match tier:
+		0:  # COMMON
+			return Color(0.5, 0.5, 0.5, 0.8)     # Gray
+		1:  # RARE
+			return Color(0.4, 0.8, 0.4, 1.0)     # Green
+		2:  # EPIC
+			return Color(0.7, 0.4, 1.0, 1.0)     # Purple
+		3:  # LEGENDARY
+			return Color(1.0, 0.8, 0.2, 1.0)     # Gold
+		_:
+			return Color(0.6, 0.6, 0.6, 0.8)
+
+func get_tier_short_name(tier: int) -> String:
+	"""Get short tier names for compact display"""
+	match tier:
+		0: return "★"      # COMMON
+		1: return "★★"     # RARE  
+		2: return "★★★"    # EPIC
+		3: return "★★★★"   # LEGENDARY
+		_: return "?"
+
+func get_element_short_name(element: int) -> String:
+	"""Get short element names for compact display"""
+	match element:
+		0: return "🔥"  # FIRE
+		1: return "💧"  # WATER
+		2: return "🌍"  # EARTH
+		3: return "⚡"  # LIGHTNING
+		4: return "☀️"  # LIGHT
+		5: return "🌙"  # DARK
+		_: return "?"
 
 func _on_god_card_clicked(god: God):
 	# Show detailed god information in side panel
@@ -254,15 +359,14 @@ func show_god_details_in_panel(god: God):
 	image_container.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	image_container.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	
-	# Load god image
-	var image_path = "res://assets/gods/" + god.name.to_lower() + ".png"
-	if ResourceLoader.exists(image_path):
-		var texture = load(image_path)
-		image_container.texture = texture
+	# Load god image using the new sprite function
+	var god_texture = god.get_sprite()
+	if god_texture:
+		image_container.texture = god_texture
 	else:
 		# Fallback - create a colored rectangle
 		var placeholder = ColorRect.new()
-		placeholder.color = get_tier_color(god.tier)
+		placeholder.color = get_tier_border_color(god.tier)
 		placeholder.custom_minimum_size = Vector2(200, 200)
 		content.add_child(placeholder)
 		image_container = null
@@ -276,7 +380,7 @@ func show_god_details_in_panel(god: God):
 	info_title.text = "═══ " + god.name.to_upper() + " ═══"
 	info_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info_title.add_theme_font_size_override("font_size", 18)
-	info_title.add_theme_color_override("font_color", get_tier_color(god.tier))
+	info_title.add_theme_color_override("font_color", get_tier_border_color(god.tier))
 	info_section.add_child(info_title)
 	
 	var basic_info = Label.new()
@@ -386,16 +490,3 @@ Territory: %s""" % [
 	
 	# Add content to details panel
 	details_content.add_child(content)
-
-func get_tier_color(tier: int) -> Color:
-	match tier:
-		0:  # COMMON
-			return Color.GRAY
-		1:  # RARE
-			return Color.BLUE
-		2:  # EPIC
-			return Color.PURPLE
-		3:  # LEGENDARY
-			return Color.GOLD
-		_:
-			return Color.WHITE

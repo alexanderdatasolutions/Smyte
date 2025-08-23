@@ -57,6 +57,24 @@
           "territory_element_bonus": 2.0
         },
         {
+          "type": "magic_powder_low",
+          "min_amount": 2,
+          "max_amount": 5,
+          "chance": 0.3
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.1
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 2,
+          "chance": 0.03
+        },
+        {
           "type": "divine_crystals",
           "min_amount": 1,
           "max_amount": 2,
@@ -75,12 +93,14 @@
         "tier_2_territories": {
           "divine_essence": 120,
           "crystals": 3,
-          "powder_low": 2
+          "powder_low": 2,
+          "magic_powder_low": 1
         },
         "tier_3_territories": {
           "divine_essence": 300,
           "crystals": 8,
           "powder_mid": 3,
+          "magic_powder_mid": 1,
           "awakening_stone": 1
         }
       },
@@ -196,6 +216,18 @@
           "territory_element_bonus": 1.5
         },
         {
+          "type": "magic_powder_high",
+          "min_amount": 2,
+          "max_amount": 4,
+          "chance": 0.4
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 3,
+          "max_amount": 8,
+          "chance": 0.6
+        },
+        {
           "type": "relics", 
           "min_amount": 2,
           "max_amount": 4,
@@ -234,6 +266,18 @@
           "min_amount": 500,
           "max_amount": 1000,
           "chance": 1.0
+        },
+        {
+          "type": "magic_powder_low",
+          "min_amount": 5,
+          "max_amount": 10,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 2,
+          "max_amount": 6,
+          "chance": 1.0
         }
       ],
       "rare_drops": [
@@ -243,6 +287,52 @@
           "max_amount": 4,
           "chance": 0.3,
           "element_based": true
+        },
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.2
+        },
+        {
+          "type": "divine_crystals",
+          "min_amount": 1,
+          "max_amount": 3,
+          "chance": 0.15
+        }
+      ]
+    },
+
+    "magic_dungeon": {
+      "description": "Hall of Magic equivalent - primary source for magic powders",
+      "energy_cost": 8,
+      "daily_limit": 20,
+      "guaranteed_drops": [
+        {
+          "type": "magic_powder_low",
+          "min_amount": 10,
+          "max_amount": 18,
+          "chance": 1.0
+        },
+        {
+          "type": "magic_powder_mid",
+          "min_amount": 4,
+          "max_amount": 10,
+          "chance": 1.0
+        },
+        {
+          "type": "divine_essence",
+          "min_amount": 500,
+          "max_amount": 1000,
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "type": "magic_powder_high",
+          "min_amount": 1,
+          "max_amount": 5,
+          "chance": 0.4
         },
         {
           "type": "divine_crystals",
@@ -370,6 +460,21 @@
           "daily_dungeon_avg": 2
         }
       },
+      "magic_powders": {
+        "description": "Universal awakening materials like SW Magic Essences",
+        "low_tier": {
+          "drop_rate": "common",
+          "daily_dungeon_avg": 8
+        },
+        "mid_tier": {
+          "drop_rate": "uncommon",
+          "daily_dungeon_avg": 4
+        },
+        "high_tier": {
+          "drop_rate": "rare",
+          "daily_dungeon_avg": 1
+        }
+      },
       "awakening_requirements": {
         "common_gods": {
           "powder_low": 20,
@@ -417,6 +522,7 @@
       "tier_2_territories": 8,
       "tier_3_territories": 10,
       "powder_dungeons": 8,
+      "magic_dungeons": 8,
       "relic_dungeons": 12,
       "equipment_dungeons": 8
     }

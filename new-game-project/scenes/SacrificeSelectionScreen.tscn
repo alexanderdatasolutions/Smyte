@@ -1,0 +1,107 @@
+[gd_scene load_steps=2 format=3 uid="uid://c87a12riv1vib"]
+
+[ext_resource type="Script" path="res://scripts/ui/SacrificeSelectionScreen.gd" id="1_vqglr"]
+
+[node name="SacrificeSelectionScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_vqglr")
+
+[node name="MainContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+
+[node name="TopBar" type="HBoxContainer" parent="MainContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="BackButton" type="Button" parent="MainContainer/TopBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(100, 40)
+text = "BACK"
+
+[node name="Title" type="Label" parent="MainContainer/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "SACRIFICE SELECTION"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MainContainer"]
+layout_mode = 2
+
+[node name="SacrificeContent" type="VBoxContainer" parent="MainContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TargetGodSection" type="VBoxContainer" parent="MainContainer/SacrificeContent"]
+layout_mode = 2
+
+[node name="TargetLabel" type="Label" parent="MainContainer/SacrificeContent/TargetGodSection"]
+layout_mode = 2
+text = "TARGET GOD TO SACRIFICE TO:"
+horizontal_alignment = 1
+
+[node name="TargetGodDisplay" type="Panel" parent="MainContainer/SacrificeContent/TargetGodSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+
+[node name="HSeparator2" type="HSeparator" parent="MainContainer/SacrificeContent"]
+layout_mode = 2
+
+[node name="XPBarSection" type="VBoxContainer" parent="MainContainer/SacrificeContent"]
+layout_mode = 2
+
+[node name="XPLabel" type="Label" parent="MainContainer/SacrificeContent/XPBarSection"]
+layout_mode = 2
+text = "EXPERIENCE PREVIEW:"
+horizontal_alignment = 1
+
+[node name="XPBarContainer" type="Container" parent="MainContainer/SacrificeContent/XPBarSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+
+[node name="HSeparator3" type="HSeparator" parent="MainContainer/SacrificeContent"]
+layout_mode = 2
+
+[node name="MaterialSection" type="VBoxContainer" parent="MainContainer/SacrificeContent"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MaterialLabel" type="Label" parent="MainContainer/SacrificeContent/MaterialSection"]
+layout_mode = 2
+text = "SELECT GODS TO SACRIFICE:"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MainContainer/SacrificeContent/MaterialSection"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MaterialGrid" type="GridContainer" parent="MainContainer/SacrificeContent/MaterialSection/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 9
+
+[node name="HSeparator4" type="HSeparator" parent="MainContainer/SacrificeContent"]
+layout_mode = 2
+
+[node name="ButtonSection" type="VBoxContainer" parent="MainContainer/SacrificeContent"]
+layout_mode = 2
+
+[node name="LockInButton" type="Button" parent="MainContainer/SacrificeContent/ButtonSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+text = "Lock In Selection"
+
+[node name="SacrificeButton" type="Button" parent="MainContainer/SacrificeContent/ButtonSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
+text = "PERFORM SACRIFICE"

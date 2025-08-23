@@ -333,24 +333,16 @@ static func get_accuracy(unit) -> int:
 		print("CombatCalculator: Null unit passed to get_accuracy")
 		return 85
 	if unit is God:
-		var base_accuracy = 85
-		var accuracy_modifier = 0.0
-		for effect in unit.status_effects:
-			accuracy_modifier += effect.get_stat_modifier("accuracy")
-		return int(base_accuracy * (1.0 + accuracy_modifier))
+		return unit.get_current_accuracy()
 	else:
-		return unit.get("accuracy", 85)
+		return unit.get("accuracy", 0)  # Enemies start with 0 base accuracy
 
 static func get_evasion(unit) -> int:
 	if not unit:
 		print("CombatCalculator: Null unit passed to get_evasion")
 		return 15
 	if unit is God:
-		var base_evasion = 15
-		var evasion_modifier = 0.0
-		for effect in unit.status_effects:
-			evasion_modifier += effect.get_stat_modifier("evasion")
-		return int(base_evasion * (1.0 + evasion_modifier))
+		return unit.get_current_resistance()  # In SW, resistance acts as evasion for debuffs
 	else:
 		return unit.get("evasion", 15)
 
@@ -359,26 +351,18 @@ static func get_critical_chance(unit) -> float:
 		print("CombatCalculator: Null unit passed to get_critical_chance")
 		return 0.05
 	if unit is God:
-		var base_crit = 0.15  # 15% base crit chance
-		var crit_modifier = 0.0
-		for effect in unit.status_effects:
-			crit_modifier += effect.get_stat_modifier("critical_chance")
-		return clamp(base_crit + crit_modifier, 0.0, 1.0)
+		return unit.get_current_crit_rate() / 100.0  # Convert percentage to decimal
 	else:
-		return unit.get("crit_chance", 0.05)
+		return unit.get("crit_rate", 15) / 100.0  # Convert from percentage to decimal
 
 static func get_critical_damage_multiplier(unit) -> float:
 	if not unit:
 		print("CombatCalculator: Null unit passed to get_critical_damage_multiplier")
 		return 1.3
 	if unit is God:
-		var base_crit_damage = 1.5
-		var crit_damage_modifier = 0.0
-		for effect in unit.status_effects:
-			crit_damage_modifier += effect.get_stat_modifier("critical_damage")
-		return base_crit_damage + crit_damage_modifier
+		return 1.0 + (unit.get_current_crit_damage() / 100.0)  # Convert percentage bonus to multiplier
 	else:
-		return unit.get("crit_damage", 1.3)
+		return 1.0 + (unit.get("crit_damage", 50) / 100.0)  # Convert from percentage bonus
 
 static func get_element_crit_bonus(_attacker, _target) -> float:
 	# For now, return 0 - can implement elemental system later

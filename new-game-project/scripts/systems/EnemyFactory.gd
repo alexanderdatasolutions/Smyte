@@ -44,6 +44,10 @@ static func create_enemies_for_stage(territory: Territory, stage: int) -> Array:
 		enemy.attack = stats.attack
 		enemy.defense = stats.defense
 		enemy.speed = stats.speed
+		enemy.crit_rate = stats.crit_rate
+		enemy.crit_damage = stats.crit_damage
+		enemy.resistance = stats.resistance
+		enemy.accuracy = stats.accuracy
 		enemy.element = element_string  # Use proper element string
 		enemy.type = enemy_type
 		
@@ -61,8 +65,9 @@ static func create_enemies_for_stage(territory: Territory, stage: int) -> Array:
 	
 	print("EnemyFactory created %d enemies for %s Stage %d:" % [enemies.size(), territory.name, stage])
 	for enemy in enemies:
-		print("  %s (Lv.%d) - HP:%d ATK:%d DEF:%d SPD:%d" % [
-			enemy.name, enemy.level, enemy.hp, enemy.attack, enemy.defense, enemy.speed
+		print("  %s (Lv.%d) - HP:%d ATK:%d DEF:%d SPD:%d CR:%d%% CD:%d%% RES:%d%% ACC:%d%%" % [
+			enemy.name, enemy.level, enemy.hp, enemy.attack, enemy.defense, enemy.speed, 
+			enemy.get("crit_rate", 15), enemy.get("crit_damage", 50), enemy.get("resistance", 15), enemy.get("accuracy", 0)
 		])
 	
 	return enemies
@@ -138,45 +143,51 @@ static func _get_element_display_name(element: String) -> String:
 			return "Mystic"
 
 static func _calculate_enemy_stats(_element: Territory.ElementType, enemy_type: String, level: int, tier: int) -> Dictionary:
-	"""Calculate enemy stats using enemies.json structure (reduced for easier difficulty)"""
-	# Base stats from enemies.json structure (reduced for easier difficulty)
-	var base_hp = 150        # Reduced from 200
-	var base_attack = 35     # Reduced from 50  
-	var base_defense = 15    # Reduced from 25
-	var base_speed = 70
+	"""Calculate enemy stats using Summoners War scaling - matches your gods system"""
+	# Base stats following SW conventions (similar to 2-3★ monsters)
+	var base_hp = 800        # SW-style base HP
+	var base_attack = 150    # SW-style base ATK  
+	var base_defense = 120   # SW-style base DEF
+	var base_speed = 90      # SW-style base SPD
 	
-	# Per-level growth (slightly reduced)
-	var hp_per_level = 20    # Reduced from 25
-	var attack_per_level = 4 # Reduced from 6
-	var defense_per_level = 2 # Reduced from 3
-	var speed_per_level = 2
+	# Per-level growth (substantial like SW)
+	var hp_per_level = 45    # HP grows significantly
+	var attack_per_level = 8 # ATK grows moderately
+	var defense_per_level = 6 # DEF grows moderately
+	var speed_per_level = 2   # SPD grows slowly
 	
-	# Role multipliers based on enemy type
+	# Role multipliers based on enemy type (matching enemies.json design)
 	var role_multipliers = _get_enemy_type_multipliers(enemy_type)
 	
 	# Territory tier scaling (higher tiers = stronger base stats)
-	var tier_multiplier = 1.0 + (tier - 1) * 0.2
+	var tier_multiplier = 1.0 + (tier - 1) * 0.3  # Increased from 0.2
 	
-	# Calculate final stats
+	# Calculate final stats using SW-style formula
 	var stats = {}
 	stats.hp = int((base_hp + level * hp_per_level) * role_multipliers.hp * tier_multiplier)
 	stats.attack = int((base_attack + level * attack_per_level) * role_multipliers.attack * tier_multiplier)
 	stats.defense = int((base_defense + level * defense_per_level) * role_multipliers.defense * tier_multiplier)
 	stats.speed = int((base_speed + level * speed_per_level) * role_multipliers.speed * tier_multiplier)
 	
+	# Add SW-style secondary stats
+	stats.crit_rate = 15 + (5 if enemy_type == "elite" else 0) + (10 if enemy_type == "boss" else 0)
+	stats.crit_damage = 50 + (20 if enemy_type == "boss" else 0)
+	stats.resistance = 15 + (tier - 1) * 10 + (25 if enemy_type == "boss" else 0)
+	stats.accuracy = 0 + (20 if enemy_type == "leader" else 0) + (15 if enemy_type == "elite" else 0)
+	
 	return stats
 
 static func _get_enemy_type_multipliers(enemy_type: String) -> Dictionary:
-	"""Get stat multipliers for different enemy types"""
+	"""Get stat multipliers for different enemy types - matches enemies.json design"""
 	match enemy_type:
 		"boss":
-			return {"hp": 2.5, "attack": 1.8, "defense": 1.6, "speed": 1.0}
+			return {"hp": 1.8, "attack": 1.5, "defense": 1.3, "speed": 1.2}
 		"elite":
-			return {"hp": 1.8, "attack": 1.4, "defense": 1.3, "speed": 1.1}
+			return {"hp": 1.3, "attack": 1.1, "defense": 1.0, "speed": 1.1}
 		"leader":
-			return {"hp": 1.4, "attack": 1.2, "defense": 1.1, "speed": 1.2}
+			return {"hp": 1.1, "attack": 1.0, "defense": 0.9, "speed": 1.0}
 		_:  # basic
-			return {"hp": 1.0, "attack": 1.0, "defense": 1.0, "speed": 1.0}
+			return {"hp": 0.8, "attack": 0.9, "defense": 0.8, "speed": 1.0}
 
 static func _get_enemy_ai_behavior(enemy_type: String) -> Dictionary:
 	"""Get AI behavior data for enemy type"""

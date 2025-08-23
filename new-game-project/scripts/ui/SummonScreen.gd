@@ -45,7 +45,7 @@ func _ready():
 	
 	# Configure showcase content spacing
 	if showcase_content:
-		showcase_content.add_theme_constant_override("separation", 5)  # Reduced from 2 to 5 for minimal spacing
+		showcase_content.add_theme_constant_override("separation", 5)  # Minimal spacing between god cards
 	
 	# Connect back button
 	if back_button:
@@ -83,7 +83,6 @@ func setup_showcase_grid():
 		return
 		
 	if showcase_content is GridContainer:
-		print("DEBUG: showcase_content is already a GridContainer, skipping conversion")
 		return
 		
 	var showcase_parent = showcase_content.get_parent()
@@ -103,10 +102,10 @@ func setup_showcase_grid():
 	# Remove old container
 	showcase_content.queue_free()
 	
-	# Create new GridContainer
+	# Create new GridContainer with 2 columns for left-right, top-bottom layout
 	var grid = GridContainer.new()
 	grid.name = showcase_name
-	grid.columns = 2  # 2 columns for side-by-side god cards
+	grid.columns = 2  # 2 columns: top-left, top-right, bottom-left, bottom-right, etc.
 	grid.add_theme_constant_override("h_separation", 10)  # Horizontal spacing
 	grid.add_theme_constant_override("v_separation", 10)  # Vertical spacing
 	
@@ -121,7 +120,6 @@ func setup_showcase_grid():
 	
 	# Update reference
 	showcase_content = grid
-	print("DEBUG: Converted showcase_content to GridContainer with 2 columns")
 
 func create_summon_cards():
 	# Add safety check
@@ -573,20 +571,13 @@ func _on_back_pressed():
 func _on_god_summoned(god):
 	# Prevent duplicate processing of the same summon
 	if is_processing_summon:
-		print("DEBUG: Skipping duplicate _on_god_summoned call")
 		return
 		
 	is_processing_summon = true
 	print("UI: Summoned %s (%s %s)" % [god.name, god.get_tier_name(), god.get_element_name()])
 	
-	if showcase_content:
-		print("DEBUG: _on_god_summoned called - showcase_content children before: ", showcase_content.get_child_count())
-	else:
-		print("DEBUG: showcase_content is null")
-	
 	# Remove default message completely (not just hide it)
 	if default_message and is_instance_valid(default_message):
-		print("DEBUG: Removing default message")
 		default_message.queue_free()
 		default_message = null
 		# Wait a frame for the node to be properly removed
@@ -610,7 +601,6 @@ func clear_showcase_invisible_nodes():
 	if not showcase_content:
 		return
 		
-	print("DEBUG: Checking showcase_content children...")
 	var children_to_remove = []
 	
 	for child in showcase_content.get_children():
@@ -618,26 +608,20 @@ func clear_showcase_invisible_nodes():
 		if child == default_message:
 			continue
 			
-		print("DEBUG: Found child: ", child.name, " type: ", child.get_class(), " size: ", child.size, " visible: ", child.visible)
-		
 		# Check for various problematic node types
 		var should_remove = false
 		
 		# Remove invisible nodes
 		if not child.visible:
-			print("DEBUG: Marking invisible node for removal")
 			should_remove = true
 		# Remove very small/zero-sized nodes that might be spacers
 		elif child.size.x <= 1 or child.size.y <= 1:
-			print("DEBUG: Marking tiny node for removal")
 			should_remove = true
 		# Remove empty Control nodes (potential spacers)
 		elif child.get_class() == "Control" and child.get_child_count() == 0:
-			print("DEBUG: Marking empty Control node for removal")
 			should_remove = true
 		# Remove any node that isn't a Button (our god cards should be buttons)
 		elif not child is Button:
-			print("DEBUG: Marking non-Button node for removal: ", child.get_class())
 			should_remove = true
 			
 		if should_remove:
@@ -645,10 +629,7 @@ func clear_showcase_invisible_nodes():
 	
 	# Remove problematic nodes
 	for child in children_to_remove:
-		print("DEBUG: Removing problematic node: ", child.name, " (", child.get_class(), ")")
 		child.queue_free()
-	
-	print("DEBUG: Cleaned up ", children_to_remove.size(), " problematic nodes")
 
 func create_god_showcase(god: God):
 	# Create a button-style god card similar to summon buttons
@@ -713,11 +694,10 @@ func create_god_showcase(god: God):
 	image_container.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	image_container.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	
-	# Load god image
-	var image_path = "res://assets/gods/" + god.name.to_lower() + ".png"
-	if ResourceLoader.exists(image_path):
-		var texture = load(image_path)
-		image_container.texture = texture
+	# Load god image using the new sprite function
+	var god_texture = god.get_sprite()
+	if god_texture:
+		image_container.texture = god_texture
 	else:
 		# Fallback colored rectangle with same styling
 		var placeholder = ColorRect.new()
@@ -768,8 +748,8 @@ func create_god_showcase(god: God):
 	# Add to current summons array
 	current_summons.append(god_button)
 	
-	# Keep only last 5 summons
-	if current_summons.size() > 5:
+	# Keep only last 15 summons (increased to accommodate 10x summons + some history)
+	if current_summons.size() > 15:
 		var old_card = current_summons[0]
 		current_summons.remove_at(0)
 		if old_card and is_instance_valid(old_card):
@@ -778,11 +758,14 @@ func create_god_showcase(god: God):
 	# Add to showcase with entrance animation
 	if showcase_content:
 		showcase_content.add_child(god_button)
-		animate_card_entrance(god_button)
 		
-		# Debug: Print children count to help identify the issue
-		print("Showcase content children count: ", showcase_content.get_child_count())
-
+		# Skip animation for multi-summons to show all cards instantly
+		if is_processing_summon:
+			animate_card_entrance(god_button)
+		else:
+			# For multi-summons, show instantly without animation
+			god_button.modulate.a = 1.0
+			god_button.scale = Vector2(1.0, 1.0)
 func animate_card_entrance(card: Control):
 	# Start card invisible and scaled down
 	card.modulate.a = 0.0
@@ -903,14 +886,11 @@ func _on_multi_summon_completed(gods: Array):
 		default_message.queue_free()
 		default_message = null
 	
-	# Show each god with a slight delay for dramatic effect
-	for i in range(gods.size()):
-		var god = gods[i]
-		await get_tree().create_timer(0.3 * i).timeout
+	# Show all gods instantly - no delays!
+	for god in gods:
 		create_god_showcase(god)
 	
-	# Re-enable buttons
-	await get_tree().create_timer(0.5).timeout
+	# Re-enable buttons immediately
 	set_buttons_enabled(true)
 
 # Handler for duplicate god notifications

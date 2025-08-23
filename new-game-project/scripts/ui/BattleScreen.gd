@@ -1187,7 +1187,6 @@ func update_enemy_hp_instantly(enemy: Dictionary):
 	
 	if enemy_index == -1:
 		print("Could not find enemy in battle system array!")
-		# Debug: print all enemy names and HP values
 		print("Battle enemies: %s" % battle_enemies.map(func(e): return "%s(%d/%d)" % [_get_stat(e, "name", "Unknown"), _get_stat(e, "current_hp", 0), _get_stat(e, "max_hp", 100)]))
 		return
 	

@@ -43,40 +43,44 @@ func calculate_sacrifice_experience(material_gods: Array[God], target_god: God =
 	return result
 
 func get_god_base_sacrifice_value(god: God) -> int:
-	"""Get the base sacrifice XP value for a god"""
-	# Base XP based on level
-	var base_xp = god.level * 50  # 50 XP per level
+	"""Get the base sacrifice XP value for a god - Summoners War style"""
+	# SW-style base XP calculation
+	var base_xp = 0
 	
-	# Add tier bonus
-	var tier_bonus = get_tier_bonus(god.tier)
-	base_xp += tier_bonus
+	# Base value by level (more generous than current system)
+	var level_xp = god.level * god.level * 15  # Quadratic scaling like SW
 	
-	# Debug output to help track the issue
-	print("DEBUG - Sacrifice Value for %s (Level %d):" % [god.name, god.level])
-	print("  Tier: %s (%d)" % [god.get_tier_name(), god.tier])
-	print("  Level XP: %d" % (god.level * 50))
-	print("  Tier Bonus: %d" % tier_bonus)
-	print("  Total Base XP: %d" % base_xp)
+	# Add tier-based base value (higher than current)
+	var tier_base = get_tier_base_value(god.tier)
+	
+	# Total base XP
+	base_xp = level_xp + tier_base
+	
+	# Additional scaling for higher levels (SW monsters become much more valuable at high levels)
+	if god.level >= 30:
+		base_xp = int(base_xp * 1.5)  # 50% bonus for level 30+
+	if god.level >= 35:
+		base_xp = int(base_xp * 1.3)  # Additional 30% for level 35+
 	
 	return base_xp
 
-func get_tier_bonus(tier: God.TierType) -> int:
-	"""Get the XP bonus for a god's tier"""
+func get_tier_base_value(tier: God.TierType) -> int:
+	"""Get the base XP value for a god's tier - SW style values"""
 	match tier:
 		God.TierType.COMMON:
-			return 100
+			return 500    # 1* equivalent
 		God.TierType.RARE:
-			return 300
+			return 1500   # 2-3* equivalent  
 		God.TierType.EPIC:
-			return 600
+			return 4000   # 4* equivalent
 		God.TierType.LEGENDARY:
-			return 1000
+			return 10000  # 5* equivalent
 		_:
 			print("Warning: Unknown tier type: %d" % tier)
-			return 100
+			return 500
 
 func calculate_levels_gained(target_god: God, xp_gain: int) -> int:
-	"""Calculate how many levels the target god would gain"""
+	"""Calculate how many levels the target god would gain - SW style"""
 	if not target_god:
 		return 0
 	
@@ -85,21 +89,50 @@ func calculate_levels_gained(target_god: God, xp_gain: int) -> int:
 	var remaining_xp = xp_gain
 	var levels_gained = 0
 	
-	while remaining_xp > 0 and (current_level + levels_gained) < 30:
-		# Calculate XP needed for the next level
-		# XP formula: level * 100 (so level 2 needs 200, level 3 needs 300, etc.)
+	while remaining_xp > 0 and (current_level + levels_gained) < 40:  # Max level 40
 		var next_level = current_level + levels_gained + 1
-		var total_xp_needed_for_next = next_level * 100
-		var xp_needed_for_next = total_xp_needed_for_next - current_xp
+		var xp_needed_for_next = get_sw_style_xp_requirement(next_level)
+		
+		# Subtract current XP only for the first level calculation
+		if levels_gained == 0:
+			xp_needed_for_next -= current_xp
 		
 		if remaining_xp >= xp_needed_for_next:
 			remaining_xp -= xp_needed_for_next
 			levels_gained += 1
-			current_xp = 0  # Reset for next level calculation
 		else:
 			break
 	
 	return levels_gained
+
+func get_sw_style_xp_requirement(level: int) -> int:
+	"""Get XP requirement for a specific level - Summoners War style exponential scaling"""
+	if level <= 1:
+		return 0
+	
+	# SW-style exponential scaling that gets much steeper at higher levels
+	var base_xp = 200.0  # Base XP requirement
+	var exponent = 2.2   # Exponential factor (makes high levels much more expensive)
+	
+	# Special scaling for different level ranges (like SW)
+	if level <= 10:
+		exponent = 1.8  # Easier early levels
+	elif level <= 20:
+		exponent = 2.0  # Medium scaling
+	elif level <= 30:
+		exponent = 2.2  # Harder scaling
+	else:
+		exponent = 2.5  # Much harder scaling for final levels
+	
+	var total_xp = int(base_xp * pow(level - 1, exponent))
+	
+	# Additional scaling for high levels (SW gets VERY expensive at high levels)
+	if level >= 35:
+		total_xp = int(total_xp * 1.8)  # 80% more expensive
+	if level >= 38:
+		total_xp = int(total_xp * 2.0)  # Double cost for final levels
+	
+	return total_xp
 
 func perform_sacrifice(target_god: God, material_gods: Array[God], player_data) -> bool:
 	"""Perform the sacrifice operation"""
@@ -172,7 +205,7 @@ func validate_sacrifice(target_god: God, material_gods: Array[God]) -> Dictionar
 		result.errors.append("Cannot use target god as material")
 	
 	# Check if target is already max level
-	if target_god and target_god.level >= 30:
+	if target_god and target_god.level >= 40:
 		result.can_sacrifice = false
 		result.errors.append("Target god is already max level")
 	
