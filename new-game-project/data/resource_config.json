@@ -1,0 +1,207 @@
+{
+  "currency_aliases": {
+    "primary_currency": "mana",
+    "premium_currency": "divine_crystals",
+    "energy_currency": "energy"
+  },
+  
+  "element_mappings": {
+    "fire": {
+      "powder_low": "fire_powder_low",
+      "powder_mid": "fire_powder_mid", 
+      "powder_high": "fire_powder_high",
+      "soul": "fire_soul",
+      "gemstone": "ruby"
+    },
+    "water": {
+      "powder_low": "water_powder_low",
+      "powder_mid": "water_powder_mid",
+      "powder_high": "water_powder_high", 
+      "soul": "water_soul",
+      "gemstone": "sapphire"
+    },
+    "earth": {
+      "powder_low": "earth_powder_low",
+      "powder_mid": "earth_powder_mid",
+      "powder_high": "earth_powder_high",
+      "soul": "earth_soul",
+      "gemstone": "emerald"
+    },
+    "lightning": {
+      "powder_low": "lightning_powder_low",
+      "powder_mid": "lightning_powder_mid",
+      "powder_high": "lightning_powder_high",
+      "soul": "lightning_soul",
+      "gemstone": "topaz"
+    },
+    "light": {
+      "powder_low": "light_powder_low",
+      "powder_mid": "light_powder_mid",
+      "powder_high": "light_powder_high",
+      "soul": "light_soul",
+      "gemstone": "diamond"
+    },
+    "dark": {
+      "powder_low": "dark_powder_low",
+      "powder_mid": "dark_powder_mid",
+      "powder_high": "dark_powder_high",
+      "soul": "dark_soul",
+      "gemstone": "onyx"
+    }
+  },
+  
+  "tier_mappings": {
+    "ore": {
+      "common": "iron_ore",
+      "rare": "mythril_ore",
+      "legendary": "adamantite_ore"
+    },
+    "souls": {
+      "common": "common_soul",
+      "rare": "rare_soul",
+      "epic": "epic_soul",
+      "legendary": "legendary_soul"
+    }
+  },
+  
+  "conversion_rates": {
+    "powder_conversion": {
+      "description": "Gods can convert powders between elements",
+      "cost_multiplier": 1.5,
+      "primary_currency_cost_per_powder": {
+        "low": 100,
+        "mid": 500,
+        "high": 2000
+      }
+    },
+    "ore_refinement": {
+      "description": "Convert lower tier ore to higher tier",
+      "iron_to_mythril": {
+        "input_amount": 10,
+        "output_amount": 1,
+        "primary_currency_cost": 5000
+      },
+      "mythril_to_adamantite": {
+        "input_amount": 5,
+        "output_amount": 1,
+        "primary_currency_cost": 25000
+      }
+    },
+    "soul_fusion": {
+      "description": "Combine lower rarity souls into higher rarity",
+      "common_to_rare": {
+        "input_amount": 5,
+        "output_amount": 1,
+        "primary_currency_cost": 10000
+      },
+      "rare_to_epic": {
+        "input_amount": 3,
+        "output_amount": 1,
+        "primary_currency_cost": 50000
+      },
+      "epic_to_legendary": {
+        "input_amount": 2,
+        "output_amount": 1,
+        "primary_currency_cost": 200000
+      }
+    },
+    "gemstone_creation": {
+      "description": "Create gemstones from enhancement powder and element powders",
+      "ruby_creation": {
+        "fire_powder_high": 3,
+        "enhancement_powder": 5,
+        "primary_currency_cost": 10000
+      },
+      "sapphire_creation": {
+        "water_powder_high": 3,
+        "enhancement_powder": 5,
+        "primary_currency_cost": 10000
+      },
+      "emerald_creation": {
+        "earth_powder_high": 3,
+        "enhancement_powder": 5,
+        "primary_currency_cost": 10000
+      },
+      "topaz_creation": {
+        "lightning_powder_high": 3,
+        "enhancement_powder": 5,
+        "primary_currency_cost": 10000
+      },
+      "diamond_creation": {
+        "light_powder_high": 3,
+        "enhancement_powder": 5,
+        "primary_currency_cost": 10000
+      },
+      "onyx_creation": {
+        "dark_powder_high": 3,
+        "enhancement_powder": 5,
+        "primary_currency_cost": 10000
+      }
+    },
+    "enhancement_powder_creation": {
+      "description": "Break down gemstones into enhancement powder",
+      "gemstone_to_powder": {
+        "input_amount": 1,
+        "output_amount": 3,
+        "primary_currency_cost": 1000
+      }
+    }
+  },
+  
+  "equipment_aliases": {
+    "primary_material": "ore",
+    "enhancement_material": "enhancement_powder",
+    "socket_material": "socket_crystal",
+    "protection_material": "blessed_oil"
+  },
+  
+  "equipment_rarities": ["common", "uncommon", "rare", "epic", "legendary"],
+  "equipment_types": ["weapon", "armor", "accessory", "ring"],
+  
+  "crafting_god_specializations": {
+    "hephaestus": {
+      "specializes_in": ["equipment_crafting", "ore_refinement"],
+      "bonus_efficiency": 1.25,
+      "exclusive_recipes": ["divine_weapons", "mythical_armor"]
+    },
+    "thoth": {
+      "specializes_in": ["powder_conversion", "soul_research"],
+      "bonus_efficiency": 1.3,
+      "exclusive_recipes": ["wisdom_elixirs", "knowledge_tomes"]
+    },
+    "brigid": {
+      "specializes_in": ["consumable_brewing", "gem_cutting"],
+      "bonus_efficiency": 1.2,
+      "exclusive_recipes": ["battle_elixirs", "enhancement_potions"]
+    }
+  },
+  "territory_resource_production": {
+    "tier_1_base_production": {
+      "mana": 50,
+      "divine_crystals": 1
+    },
+    "tier_2_base_production": {
+      "mana": 100,
+      "magic_powder_low": 2
+    },
+    "tier_3_base_production": {
+      "mana": 200,
+      "magic_powder_mid": 1,
+      "divine_crystals": 3
+    },
+    "element_bonus_production": {
+      "description": "Territories produce powders matching their element",
+      "production_rate": {
+        "powder_low": 1,
+        "powder_mid": 0.5,
+        "powder_high": 0.1
+      }
+    },
+    "god_assignment_multipliers": {
+      "matching_element": 1.5,
+      "awakened_god": 1.3,
+      "legendary_god": 1.8,
+      "max_level_god": 1.2
+    }
+  }
+}

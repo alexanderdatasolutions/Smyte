@@ -64,6 +64,10 @@ var waiting_for_auto_action: bool = false
 # Battle context
 var current_battle_territory: Territory = null
 var current_battle_stage: int = 1
+var current_battle_context: Dictionary = {}  # Store additional battle context for loot system
+
+# Loot tracking
+var last_awarded_loot: Dictionary = {}  # Store the actual loot awarded by the loot system
 
 # Sub-systems
 var turn_system: TurnSystem
@@ -106,17 +110,31 @@ func start_battle(config: BattleFactory) -> bool:
 	# MODULAR: Use EnemyFactory to create enemies based on configuration
 	current_battle_enemies = EnemyFactory.create_enemies_for_battle(config)
 	
-	# Set context-specific data
+	# Set context-specific data and loot table context
 	match config.battle_type:
 		"territory":
 			current_battle_territory = config.battle_territory
 			current_battle_stage = config.battle_stage
+			# Clear any previous dungeon context
+			current_battle_context = {}
 		"dungeon":
 			current_battle_territory = null
 			current_battle_stage = 1
+			# Set dungeon context for loot system
+			current_battle_context = {
+				"loot_table_id": config.loot_table_id if "loot_table_id" in config else "",
+				"context": {
+					"element": config.element if "element" in config else "",
+					"pantheon": config.pantheon if "pantheon" in config else "",
+					"equipment_type": config.equipment_type if "equipment_type" in config else "",
+					"difficulty": config.difficulty if "difficulty" in config else "",
+					"tier": config.tier if "tier" in config else ""
+				}
+			}
 		_:
 			current_battle_territory = null
 			current_battle_stage = 1
+			current_battle_context = {}
 	
 	# Reset all gods to full HP at start of battle
 	_reset_gods_hp()
@@ -131,6 +149,36 @@ func start_battle(config: BattleFactory) -> bool:
 	turn_system.setup_turn_order(current_battle_gods, current_battle_enemies)
 	
 	# Start first turn
+	_start_next_turn()
+	
+	return true
+
+func start_dungeon_battle_with_loot_context(gods: Array, loot_table_id: String, context: Dictionary = {}, enemies: Array = []) -> bool:
+	"""Start dungeon battle with proper loot table context for template system"""
+	print("=== BattleManager: Starting dungeon battle with loot table: %s ===" % loot_table_id)
+	
+	# Set up battle state
+	battle_active = true
+	current_battle_gods = gods.duplicate()
+	current_battle_enemies = enemies.duplicate()
+	current_battle_territory = null
+	current_battle_stage = 1
+	
+	# Set the loot context for the template system
+	current_battle_context = {
+		"loot_table_id": loot_table_id,
+		"context": context
+	}
+	
+	# Reset gods and setup
+	_reset_gods_hp()
+	auto_battle_enabled = false
+	
+	# Setup turn order
+	turn_system.setup_turn_order(current_battle_gods, current_battle_enemies)
+	
+	# Start battle
+	battle_log_updated.emit("Dungeon Battle: %s" % loot_table_id.replace("_", " ").capitalize())
 	_start_next_turn()
 	
 	return true
@@ -164,7 +212,7 @@ func reset_battle():
 func start_wave_battle(enemies: Array) -> bool:
 	"""Start battle with specific wave enemies (used by wave system)"""
 	print("=== BATTLE MANAGER: Starting Wave Battle - %d enemies ===" % enemies.size())
-	print("=== BattleManager: Received enemies: %s ===" % enemies)
+	print("=== BattleManager: Received enemies: %d enemies ===" % enemies.size())
 	
 	if current_battle_gods.is_empty():
 		print("ERROR: No gods selected for wave battle")
@@ -598,6 +646,15 @@ func _end_battle(result: BattleResult):
 	
 	battle_completed.emit(result)
 
+func _get_current_battle_context() -> Dictionary:
+	"""Get current battle context for loot system"""
+	return current_battle_context
+
+func set_battle_context(context: Dictionary):
+	"""Set battle context for loot system (called by dungeon system, etc.)"""
+	current_battle_context = context
+	print("BattleManager: Battle context set to %s" % context)
+
 func _reset_gods_hp():
 	"""Reset all gods to full HP"""
 	print("Resetting all gods to full HP")
@@ -621,70 +678,75 @@ func _reset_gods_hp():
 				battle_screen.update_god_status_effects(god)
 
 func _award_victory_rewards():
-	"""Award rewards for victory"""
+	"""Award rewards for victory using the new template-based loot system"""
 	var reward_parts = []
+	var awarded_loot = {}
 	
-	# Handle territory battles
-	if GameManager and current_battle_territory:
-		var is_final_stage = (current_battle_stage >= current_battle_territory.max_stages)
-		var rewards = GameManager.award_stage_rewards(current_battle_stage, current_battle_territory, is_final_stage)
-		
-		# Core resources
-		if rewards.divine_essence > 0:
-			reward_parts.append("%d Divine Essence" % rewards.divine_essence)
-		if rewards.divine_crystals > 0:
-			reward_parts.append("%d Divine Crystals" % rewards.divine_crystals)
-		if rewards.awakening_stones > 0:
-			reward_parts.append("%d Awakening Stones" % rewards.awakening_stones)
-		
-		# Detailed powder breakdown (Summoners War style)
-		if rewards.has("powder_details") and rewards.powder_details.size() > 0:
-			var powder_parts = []
-			
-			for powder_type in rewards.powder_details.keys():
-				var amount = rewards.powder_details[powder_type]
-				if amount > 0:
-					# Parse powder type (e.g., "fire_powder_low" -> "Fire Low")
-					var parts = powder_type.split("_")
-					if parts.size() >= 3:
-						var element = parts[0].capitalize()
-						var tier = parts[2].capitalize()
-						var display_key = "%s %s" % [element, tier]
-						powder_parts.append("%d %s" % [amount, display_key])
-			
-			# Add powder rewards to display
-			for powder_part in powder_parts:
-				reward_parts.append(powder_part)
-		
-		# Detailed relic breakdown
-		if rewards.has("relic_details") and rewards.relic_details.size() > 0:
-			for relic_type in rewards.relic_details.keys():
-				var amount = rewards.relic_details[relic_type]
-				if amount > 0:
-					var display_name = relic_type.replace("_", " ").capitalize()
-					reward_parts.append("%d %s" % [amount, display_name])
-		
-		# Equipment drops
-		if rewards.has("equipment") and rewards.equipment > 0:
-			reward_parts.append("%d Equipment" % rewards.equipment)
-		
-		# Handle experience for territory battles
-		var base_xp = 100 + (current_battle_stage * 25)  # Base XP calculation
-		if base_xp > 0:
-			reward_parts.append("%d XP" % base_xp)
-			# Award XP to participating gods
-			GameManager.award_experience_to_gods(base_xp)
+	# Clear previous loot
+	last_awarded_loot.clear()
 	
-	# Handle dungeon battles (even if no territory rewards)
-	else:
-		print("=== BattleManager: Awarding dungeon victory rewards ===")
-		# Award base XP for dungeon completion
-		var base_xp = 150  # Higher base XP for dungeons
-		if base_xp > 0:
-			reward_parts.append("%d XP" % base_xp)
-			# Award XP to participating gods
-			print("=== BattleManager: Awarding %d XP to %d gods ===" % [base_xp, current_battle_gods.size()])
-			GameManager.award_experience_to_gods(base_xp)
+	# Use the new loot system for all reward types
+	if GameManager and GameManager.loot_system:
+		# Handle territory battles
+		if current_battle_territory:
+			var is_final_stage = (current_battle_stage >= current_battle_territory.max_stages)
+			var territory_element = ""
+			
+			# Use Territory's built-in element name method and convert to lowercase for loot system
+			if current_battle_territory.has_method("get_element_name"):
+				territory_element = current_battle_territory.get_element_name().to_lower()
+			else:
+				territory_element = ""
+			
+			# Use loot system for stage rewards
+			if is_final_stage:
+				awarded_loot = GameManager.loot_system.award_loot(
+					"boss_stage", 
+					current_battle_stage, 
+					territory_element
+				)
+			else:
+				awarded_loot = GameManager.loot_system.award_loot(
+					"stage_victory", 
+					current_battle_stage, 
+					territory_element
+				)
+		
+		# Handle dungeon battles - this is where the template system really shines!
+		elif _get_current_battle_context():
+			var battle_context = _get_current_battle_context()
+			var loot_table_id = battle_context.get("loot_table_id", "")
+			var context = battle_context.get("context", {})
+			
+			if loot_table_id != "":
+				print("=== BattleManager: Using template loot system for %s ===" % loot_table_id)
+				awarded_loot = GameManager.loot_system.award_loot(loot_table_id, 1, "", context)
+			else:
+				# Fallback to generic battle victory
+				awarded_loot = GameManager.loot_system.award_loot("stage_victory", 1, "")
+		
+		# Fallback for other battle types
+		else:
+			awarded_loot = GameManager.loot_system.award_loot("stage_victory", 1, "")
+		
+		# Store the actual awarded loot for WaveSystem to use
+		last_awarded_loot = awarded_loot.duplicate()
+		
+		# Convert awarded loot to display format using ResourceManager
+		var resource_manager = GameManager.get_resource_manager() if GameManager.has_method("get_resource_manager") else null
+		
+		for resource_id in awarded_loot:
+			var amount = awarded_loot[resource_id]
+			var resource_info = resource_manager.get_resource_info(resource_id) if resource_manager else {}
+			var display_name = resource_info.get("name", resource_id.capitalize().replace("_", " "))
+			
+			reward_parts.append("%d %s" % [amount, display_name])
+	
+	# Award experience to participating gods
+	var base_xp = 100 + (current_battle_stage * 25) if current_battle_territory else 150
+	if base_xp > 0:
+		reward_parts.append("%d XP" % base_xp)
+		GameManager.award_experience_to_gods(base_xp)
 	
 	# Display rewards
 	if reward_parts.size() > 0:
@@ -706,10 +768,42 @@ func _award_victory_rewards():
 		battle_log_updated.emit("Victory!")
 
 func _award_consolation_rewards():
-	"""Award small consolation rewards for defeat"""
-	for god in current_battle_gods:
-		if god:
-			god.add_experience(25)
+	"""Award small consolation rewards for defeat using the new loot system"""
+	var awarded_loot = {}
+	
+	# Clear previous loot
+	last_awarded_loot.clear()
+	
+	if GameManager and GameManager.loot_system:
+		# Use the new template-based loot system for defeat rewards
+		awarded_loot = GameManager.loot_system.award_loot("battle_defeat", 1, "")
+		
+		# Store the actual awarded loot for WaveSystem to use
+		last_awarded_loot = awarded_loot.duplicate()
+		
+		# Display defeat rewards
+		var resource_manager = GameManager.get_resource_manager() if GameManager.has_method("get_resource_manager") else null
+		var reward_parts = []
+		
+		for resource_id in awarded_loot:
+			var amount = awarded_loot[resource_id]
+			var resource_info = resource_manager.get_resource_info(resource_id) if resource_manager else {}
+			var display_name = resource_info.get("name", resource_id.capitalize().replace("_", " "))
+			reward_parts.append("%d %s" % [amount, display_name])
+		
+		# Award small consolation XP
+		var consolation_xp = 25
+		GameManager.award_experience_to_gods(consolation_xp)
+		reward_parts.append("%d XP" % consolation_xp)
+		
+		if reward_parts.size() > 0:
+			battle_log_updated.emit("Consolation rewards: " + ", ".join(reward_parts))
+	else:
+		# Fallback - award basic XP
+		for god in current_battle_gods:
+			if god:
+				god.add_experience(25)
+		battle_log_updated.emit("Consolation: 25 XP awarded to all gods")
 
 # Signal handlers
 
@@ -761,6 +855,12 @@ func _on_auto_battle_timer_timeout():
 			waiting_for_auto_action = false
 	else:
 		print("Timer fired but conditions not met - auto-battle may have been disabled")
+
+# === Loot System Integration ===
+
+func get_last_awarded_loot() -> Dictionary:
+	"""Get the loot that was actually awarded by the loot system - for WaveSystem integration"""
+	return last_awarded_loot.duplicate()
 
 func execute_pending_auto_action():
 	"""Immediately execute pending auto action (for speed-up button)"""

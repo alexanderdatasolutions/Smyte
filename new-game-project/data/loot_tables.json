@@ -1,0 +1,666 @@
+{
+  "loot_templates": {
+    "elemental_dungeon_beginner": {
+      "template_id": "elemental_dungeon_beginner",
+      "name": "{element} Sanctum - Beginner",
+      "description": "Basic {element} essence farming",
+      "guaranteed_drops": [
+        {
+          "loot_item_id": "element_powder_low",
+          "chance": 1.0,
+          "element_specific": true
+        },
+        {
+          "loot_item_id": "mana_medium",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "magic_powder_low",
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "loot_item_id": "element_powder_mid",
+          "chance": 0.4,
+          "element_specific": true
+        },
+        {
+          "loot_item_id": "crystals_small",
+          "chance": 0.2
+        }
+      ]
+    },
+    
+    "elemental_dungeon_intermediate": {
+      "template_id": "elemental_dungeon_intermediate",
+      "name": "{element} Sanctum - Intermediate",
+      "description": "Intermediate {element} essence farming",
+      "guaranteed_drops": [
+        {
+          "loot_item_id": "element_powder_low",
+          "chance": 1.0,
+          "element_specific": true
+        },
+        {
+          "loot_item_id": "element_powder_mid",
+          "chance": 1.0,
+          "element_specific": true
+        },
+        {
+          "loot_item_id": "mana_medium",
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "loot_item_id": "element_powder_high",
+          "chance": 0.4,
+          "element_specific": true
+        },
+        {
+          "loot_item_id": "crystals_small",
+          "chance": 0.2
+        },
+        {
+          "loot_item_id": "element_soul",
+          "chance": 0.1,
+          "element_specific": true
+        }
+      ]
+    },
+    
+    "elemental_dungeon_advanced": {
+      "template_id": "elemental_dungeon_advanced",
+      "name": "{element} Sanctum - Advanced",
+      "description": "Advanced {element} dungeon with superior rewards",
+      "guaranteed_drops": [
+        {
+          "loot_item_id": "element_powder_mid",
+          "chance": 1.0,
+          "element_specific": true
+        },
+        {
+          "loot_item_id": "element_powder_low",
+          "chance": 1.0,
+          "element_specific": true
+        },
+        {
+          "loot_item_id": "mana_large",
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "loot_item_id": "element_powder_high",
+          "chance": 0.6,
+          "element_specific": true
+        },
+        {
+          "loot_item_id": "magic_powder_high",
+          "chance": 0.25
+        },
+        {
+          "loot_item_id": "crystals_medium",
+          "chance": 0.2
+        },
+        {
+          "loot_item_id": "element_soul",
+          "chance": 0.1,
+          "element_specific": true
+        }
+      ]
+    },
+    
+    "elemental_dungeon_expert": {
+      "template_id": "elemental_dungeon_expert",
+      "name": "{element} Sanctum - Expert",
+      "description": "Expert {element} dungeon with rare materials",
+      "guaranteed_drops": [
+        {
+          "loot_item_id": "element_powder_high",
+          "chance": 1.0,
+          "element_specific": true
+        },
+        {
+          "loot_item_id": "mana_large",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "element_soul",
+          "chance": 1.0,
+          "element_specific": true
+        }
+      ],
+      "rare_drops": [
+        {
+          "loot_item_id": "awakening_stone",
+          "chance": 0.3
+        },
+        {
+          "loot_item_id": "crystals_large",
+          "chance": 0.2
+        },
+        {
+          "loot_item_id": "legendary_ore",
+          "chance": 0.05
+        }
+      ]
+    },
+    
+    "elemental_dungeon_master": {
+      "template_id": "elemental_dungeon_master",
+      "name": "{element} Sanctum - Master",
+      "description": "Ultimate {element} dungeon with legendary rewards",
+      "guaranteed_drops": [
+        {
+          "loot_item_id": "element_powder_high",
+          "chance": 1.0,
+          "element_specific": true
+        },
+        {
+          "loot_item_id": "mana_large",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "element_soul",
+          "chance": 1.0,
+          "element_specific": true
+        },
+        {
+          "loot_item_id": "awakening_stone",
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "loot_item_id": "legendary_ore",
+          "chance": 0.15
+        },
+        {
+          "loot_item_id": "crystals_large",
+          "chance": 0.4
+        },
+        {
+          "loot_item_id": "equipment_drop",
+          "chance": 0.25
+        },
+        {
+          "loot_item_id": "skill_book",
+          "chance": 0.2
+        }
+      ]
+    },
+    
+    "pantheon_trial_heroic": {
+      "template_id": "pantheon_trial_heroic",
+      "name": "{pantheon} Trials - Heroic",
+      "description": "Heroic {pantheon} pantheon trials with divine rewards",
+      "guaranteed_drops": [
+        {
+          "loot_item_id": "mana_large",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "awakening_stone",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "crystals_large",
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "loot_item_id": "legendary_soul",
+          "chance": 0.4
+        },
+        {
+          "loot_item_id": "skill_book",
+          "chance": 0.6
+        },
+        {
+          "loot_item_id": "divine_essence",
+          "chance": 0.2
+        },
+        {
+          "loot_item_id": "equipment_drop",
+          "chance": 0.5
+        }
+      ]
+    },
+    
+    "pantheon_trial_legendary": {
+      "template_id": "pantheon_trial_legendary",
+      "name": "{pantheon} Trials - Legendary",
+      "description": "Ultimate {pantheon} pantheon trials with mythic rewards",
+      "guaranteed_drops": [
+        {
+          "loot_item_id": "mana_large",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "awakening_stone",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "legendary_soul",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "skill_book",
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "loot_item_id": "divine_essence",
+          "chance": 0.5
+        },
+        {
+          "loot_item_id": "crystals_large",
+          "chance": 0.8
+        },
+        {
+          "loot_item_id": "equipment_drop",
+          "chance": 0.7
+        },
+        {
+          "loot_item_id": "legendary_ore",
+          "chance": 0.3
+        }
+      ]
+    },
+    
+    "equipment_dungeon_beginner": {
+      "template_id": "equipment_dungeon_beginner", 
+      "name": "{equipment_type} Forge - Beginner",
+      "description": "Basic {equipment_type} crafting and materials",
+      "guaranteed_drops": [
+        {
+          "loot_item_id": "equipment_drop",
+          "chance": 1.0,
+          "equipment_type_specific": true
+        },
+        {
+          "loot_item_id": "common_ore",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "mana_medium",
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "loot_item_id": "rare_ore",
+          "chance": 0.2
+        },
+        {
+          "loot_item_id": "enhancement_powder",
+          "chance": 0.4
+        },
+        {
+          "loot_item_id": "crystals_small",
+          "chance": 0.15
+        }
+      ]
+    },
+    
+    "equipment_dungeon_intermediate": {
+      "template_id": "equipment_dungeon_intermediate",
+      "name": "{equipment_type} Forge - Intermediate", 
+      "description": "Enhanced {equipment_type} crafting with superior materials",
+      "guaranteed_drops": [
+        {
+          "loot_item_id": "equipment_drop",
+          "chance": 1.0,
+          "equipment_type_specific": true
+        },
+        {
+          "loot_item_id": "rare_ore",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "mana_large",
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "loot_item_id": "legendary_ore",
+          "chance": 0.15
+        },
+        {
+          "loot_item_id": "enhancement_powder",
+          "chance": 0.6
+        },
+        {
+          "loot_item_id": "socket_crystal",
+          "chance": 0.1
+        },
+        {
+          "loot_item_id": "crystals_medium",
+          "chance": 0.2
+        }
+      ]
+    },
+    
+    "equipment_dungeon_advanced": {
+      "template_id": "equipment_dungeon_advanced",
+      "name": "{equipment_type} Forge - Advanced",
+      "description": "Master-tier {equipment_type} crafting with legendary materials", 
+      "guaranteed_drops": [
+        {
+          "loot_item_id": "equipment_drop",
+          "chance": 1.0,
+          "equipment_type_specific": true
+        },
+        {
+          "loot_item_id": "legendary_ore",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "enhancement_powder",
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "loot_item_id": "socket_crystal",
+          "chance": 0.25
+        },
+        {
+          "loot_item_id": "forging_flame",
+          "chance": 0.15
+        },
+        {
+          "loot_item_id": "crystals_large",
+          "chance": 0.3
+        },
+        {
+          "loot_item_id": "divine_essence",
+          "chance": 0.1
+        }
+      ]
+    },
+    
+    "territory_tier1": {
+      "template_id": "territory_tier1",
+      "name": "Tier 1 Territory - {territory_name}",
+      "description": "Basic territory passive income",
+      "base_generation_per_hour": [
+        {
+          "loot_item_id": "mana_small",
+          "chance": 1.0,
+          "hourly_rate": true
+        },
+        {
+          "loot_item_id": "crystals_small", 
+          "chance": 1.0,
+          "hourly_rate": true
+        }
+      ],
+      "god_bonuses": {
+        "element_match_multiplier": 1.5,
+        "rarity_multipliers": {
+          "common": 1.0,
+          "rare": 1.2,
+          "epic": 1.4,
+          "legendary": 1.8
+        },
+        "awakened_bonus": {
+          "extra_drops": [
+            {
+              "loot_item_id": "element_powder_low",
+              "chance": 0.2,
+              "element_specific": true
+            }
+          ]
+        }
+      }
+    },
+    
+    "territory_tier2": {
+      "template_id": "territory_tier2",
+      "name": "Tier 2 Territory - {territory_name}",
+      "description": "Enhanced territory passive income",
+      "base_generation_per_hour": [
+        {
+          "loot_item_id": "mana_medium",
+          "chance": 1.0,
+          "hourly_rate": true
+        },
+        {
+          "loot_item_id": "magic_powder_low",
+          "chance": 1.0,
+          "hourly_rate": true
+        }
+      ],
+      "god_bonuses": {
+        "element_match_multiplier": 1.5,
+        "rarity_multipliers": {
+          "common": 1.0,
+          "rare": 1.2,
+          "epic": 1.4,
+          "legendary": 1.8
+        },
+        "awakened_bonus": {
+          "extra_drops": [
+            {
+              "loot_item_id": "element_powder_mid",
+              "chance": 0.3,
+              "element_specific": true
+            }
+          ]
+        }
+      }
+    },
+    
+    "territory_tier3": {
+      "template_id": "territory_tier3", 
+      "name": "Tier 3 Territory - {territory_name}",
+      "description": "Premium territory passive income",
+      "base_generation_per_hour": [
+        {
+          "loot_item_id": "mana_large",
+          "chance": 1.0,
+          "hourly_rate": true
+        },
+        {
+          "loot_item_id": "magic_powder_high",
+          "chance": 1.0,
+          "hourly_rate": true
+        }
+      ],
+      "god_bonuses": {
+        "element_match_multiplier": 1.8,
+        "rarity_multipliers": {
+          "common": 1.0,
+          "rare": 1.3,
+          "epic": 1.6,
+          "legendary": 2.2
+        },
+        "awakened_bonus": {
+          "extra_drops": [
+            {
+              "loot_item_id": "element_powder_high",
+              "chance": 0.4,
+              "element_specific": true
+            },
+            {
+              "loot_item_id": "element_soul",
+              "chance": 0.1,
+              "element_specific": true
+            }
+          ]
+        }
+      }
+    }
+  },
+
+  "loot_tables": {
+    "stage_victory": {
+      "id": "stage_victory",
+      "name": "Stage Victory Rewards",
+      "description": "Standard stage clear rewards",
+      "guaranteed_drops": [
+        {
+          "loot_item_id": "mana_small",
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "loot_item_id": "element_powder_low",
+          "chance": 0.4
+        },
+        {
+          "loot_item_id": "element_powder_mid", 
+          "chance": 0.2
+        },
+        {
+          "loot_item_id": "crystals_small",
+          "chance": 0.15
+        },
+        {
+          "loot_item_id": "equipment_drop",
+          "chance": 0.1
+        },
+        {
+          "loot_item_id": "experience_small",
+          "chance": 1.0
+        }
+      ]
+    },
+    
+    "boss_stage": {
+      "id": "boss_stage", 
+      "name": "Boss Stage Rewards",
+      "description": "Enhanced rewards for boss stages",
+      "guaranteed_drops": [
+        {
+          "loot_item_id": "mana_large",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "crystals_medium",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "equipment_drop",
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "loot_item_id": "element_powder_high",
+          "chance": 0.6
+        },
+        {
+          "loot_item_id": "magic_powder_high",
+          "chance": 0.4
+        },
+        {
+          "loot_item_id": "awakening_stone",
+          "chance": 0.3
+        },
+        {
+          "loot_item_id": "skill_book",
+          "chance": 0.2
+        },
+        {
+          "loot_item_id": "element_soul",
+          "chance": 0.15
+        },
+        {
+          "loot_item_id": "experience_large",
+          "chance": 1.0
+        }
+      ]
+    },
+    
+    "magic_dungeon": {
+      "id": "magic_dungeon",
+      "name": "Hall of Magic - Universal",
+      "description": "Universal magic essence farming (all difficulties)",
+      "template": "elemental_dungeon_advanced",
+      "template_parameters": {
+        "element": "Magic"
+      }
+    },
+    
+    "equipment_dungeon": {
+      "id": "equipment_dungeon",
+      "name": "Titan's Forge - General",
+      "description": "General equipment and crafting materials",
+      "guaranteed_drops": [
+        {
+          "loot_item_id": "equipment_drop",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "common_ore",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "mana_medium",
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "loot_item_id": "rare_ore",
+          "chance": 0.3
+        },
+        {
+          "loot_item_id": "enhancement_powder",
+          "chance": 0.6
+        },
+        {
+          "loot_item_id": "legendary_ore",
+          "chance": 0.05
+        },
+        {
+          "loot_item_id": "socket_crystal",
+          "chance": 0.15
+        },
+        {
+          "loot_item_id": "forging_flame",
+          "chance": 0.08
+        },
+        {
+          "loot_item_id": "crystals_medium",
+          "chance": 0.25
+        }
+      ]
+    },
+    
+    "seasonal_summer": {
+      "id": "seasonal_summer",
+      "name": "Summer Festival Rewards",
+      "description": "Special summer event loot table",
+      "seasonal_event": "summer_festival",
+      "guaranteed_drops": [
+        {
+          "loot_item_id": "mana_medium",
+          "chance": 1.0
+        },
+        {
+          "loot_item_id": "crystals_medium",
+          "chance": 1.0
+        }
+      ],
+      "rare_drops": [
+        {
+          "loot_item_id": "random_consumable",
+          "chance": 0.8
+        },
+        {
+          "loot_item_id": "element_soul",
+          "chance": 0.3
+        }
+      ]
+    }
+  }
+}

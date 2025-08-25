@@ -1555,29 +1555,31 @@ func update_awakening_materials_display():
 				vbox.add_child(status_label)
 
 func format_material_name(material_type: String) -> String:
-	"""Format material type string for display"""
-	match material_type:
-		"awakening_stones":
-			return "Awakening Stones"
-		"divine_crystals":
-			return "Divine Crystals"
-		_:
-			# Handle elemental powders and pantheon relics
-			if material_type.ends_with("_powder_low"):
-				var element = material_type.replace("_powder_low", "").capitalize()
-				return "%s Powder (Low)" % element
-			elif material_type.ends_with("_powder_mid"):
-				var element = material_type.replace("_powder_mid", "").capitalize()
-				return "%s Powder (Mid)" % element
-			elif material_type.ends_with("_powder_high"):
-				var element = material_type.replace("_powder_high", "").capitalize()
-				return "%s Powder (High)" % element
-			elif material_type.ends_with("_relics"):
-				var pantheon = material_type.replace("_relics", "").capitalize()
-				return "%s Relics" % pantheon
-			else:
-				# Fallback - just capitalize and replace underscores
-				return material_type.replace("_", " ").capitalize()
+	"""Format material type string for display using ResourceManager"""
+	# Use ResourceManager for dynamic material names
+	if GameManager and GameManager.has_method("get_resource_manager"):
+		var resource_mgr = GameManager.get_resource_manager()
+		if resource_mgr:
+			var resource_info = resource_mgr.get_resource_info(material_type)
+			var display_name = resource_info.get("name", "")
+			if display_name != "":
+				return display_name
+	
+	# Fallback formatting for legacy compatibility
+	if material_type.ends_with("_powder_low"):
+		var element = material_type.replace("_powder_low", "").capitalize()
+		return "%s Powder (Low)" % element
+	elif material_type.ends_with("_powder_mid"):
+		var element = material_type.replace("_powder_mid", "").capitalize()
+		return "%s Powder (Mid)" % element
+	elif material_type.ends_with("_powder_high"):
+		var element = material_type.replace("_powder_high", "").capitalize()
+		return "%s Powder (High)" % element
+	elif material_type.ends_with("_relic"):
+		var pantheon = material_type.replace("_relic", "").capitalize()
+		return "%s Relic" % pantheon
+	else:
+		return material_type.replace("_", " ").capitalize()
 
 func update_awakening_button():
 	"""Update the awakening button state"""

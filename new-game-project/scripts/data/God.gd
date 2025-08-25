@@ -43,6 +43,7 @@ enum TierType { COMMON, RARE, EPIC, LEGENDARY }
 
 # Territory assignment
 @export var stationed_territory: String = ""
+@export var territory_role: String = ""  # NEW: Role assigned in territory ("defender", "gatherer", "crafter")
 
 # Awakening system (Summoners War style)
 @export var is_awakened: bool = false

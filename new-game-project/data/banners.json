@@ -11,8 +11,8 @@
       "featured_gods": [],
       "rate_up": {},
       "costs": {
-        "single": { "divine_essence": 100 },
-        "ten_pull": { "divine_essence": 900 }
+        "single": { "divine_crystals": 100 },
+        "ten_pull": { "divine_crystals": 900 }
       }
     },
     

@@ -51,27 +51,33 @@ func _ready():
 	if back_button:
 		back_button.pressed.connect(_on_back_pressed)
 	
-	# Connect to GameManager signals for modular communication
+	# Connect to SummonSystem through GameManager
 	if GameManager:
-		# Disconnect first to prevent double-connections
-		if GameManager.god_summoned.is_connected(_on_god_summoned):
-			GameManager.god_summoned.disconnect(_on_god_summoned)
-		if GameManager.resources_updated.is_connected(_on_resources_updated):
-			GameManager.resources_updated.disconnect(_on_resources_updated)
-			
-		# Now connect
-		GameManager.god_summoned.connect(_on_god_summoned)
-		GameManager.resources_updated.connect(_on_resources_updated)
+		# Ensure SummonSystem is initialized
+		if not GameManager.has_method("get_summon_system"):
+			print("ERROR: GameManager does not have summon system!")
+			return
 		
-		# Connect to new summon system signals
-		if GameManager.summon_system:
-			if GameManager.summon_system.multi_summon_completed.is_connected(_on_multi_summon_completed):
-				GameManager.summon_system.multi_summon_completed.disconnect(_on_multi_summon_completed)
-			if GameManager.summon_system.duplicate_obtained.is_connected(_on_duplicate_obtained):
-				GameManager.summon_system.duplicate_obtained.disconnect(_on_duplicate_obtained)
+		var summon_system = GameManager.get_summon_system()
+		if summon_system:
+			# Connect to summon system signals
+			if summon_system.summon_completed.is_connected(_on_god_summoned):
+				summon_system.summon_completed.disconnect(_on_god_summoned)
+			if summon_system.summon_failed.is_connected(_on_summon_failed):
+				summon_system.summon_failed.disconnect(_on_summon_failed)
+			if summon_system.multi_summon_completed.is_connected(_on_multi_summon_completed):
+				summon_system.multi_summon_completed.disconnect(_on_multi_summon_completed)
 				
-			GameManager.summon_system.multi_summon_completed.connect(_on_multi_summon_completed)
-			GameManager.summon_system.duplicate_obtained.connect(_on_duplicate_obtained)
+			# Now connect
+			summon_system.summon_completed.connect(_on_god_summoned)
+			summon_system.summon_failed.connect(_on_summon_failed)
+			summon_system.multi_summon_completed.connect(_on_multi_summon_completed)
+			
+			print("SummonScreen: Connected to SummonSystem signals")
+		else:
+			print("ERROR: SummonSystem not found in GameManager!")
+	else:
+		print("ERROR: GameManager not found!")
 	
 	# Create summon cards in grid layout
 	create_summon_cards()
@@ -167,8 +173,8 @@ func create_summon_cards():
 	# Create Basic Summon Card
 	basic_button = create_summon_card(
 		"BASIC SUMMON", 
-		"Common & Rare Gods\nBetter than prayers!",
-		"100 Divine Essence", 
+		"Common Soul Summon\nBetter than prayers!",
+		"1 Common Soul", 
 		Color.CYAN
 	)
 	if basic_button and summon_container:
@@ -179,7 +185,7 @@ func create_summon_cards():
 	basic_10x_button = create_summon_card(
 		"BASIC 10x SUMMON", 
 		"10 Gods Guaranteed\n1 Rare or Better!",
-		"900 Divine Essence\n(10% OFF!)", 
+		"9 Common Souls\n(10% OFF!)", 
 		Color.CYAN
 	)
 	if basic_10x_button and summon_container:
@@ -189,8 +195,8 @@ func create_summon_cards():
 	# Create Premium Summon Card
 	premium_button = create_summon_card(
 		"PREMIUM SUMMON", 
-		"Rare & Epic Gods\nGuaranteed Quality!",
-		"500 Divine Essence", 
+		"Premium Crystal Summon\nHigher Rates!",
+		"50 Divine Crystals", 
 		Color.GOLD
 	)
 	if premium_button and summon_container:
@@ -201,7 +207,7 @@ func create_summon_cards():
 	premium_10x_button = create_summon_card(
 		"PREMIUM 10x SUMMON", 
 		"10 Premium Gods\n1 Epic or Better!",
-		"4250 Divine Essence\n(15% OFF!)", 
+		"450 Divine Crystals\n(10% OFF!)", 
 		Color.GOLD
 	)
 	if premium_10x_button and summon_container:
@@ -211,8 +217,8 @@ func create_summon_cards():
 	# Create Element Summon Card
 	element_button = create_summon_card(
 		"ELEMENT SUMMON", 
-		"Element-focused\nDouble rates for selected!",
-		"200 Divine Essence", 
+		"Element Soul Summon\nTargeted Element!",
+		"1 Element Soul", 
 		Color.ORANGE_RED
 	)
 	if element_button and summon_container:
@@ -223,7 +229,7 @@ func create_summon_cards():
 	crystal_button = create_summon_card(
 		"CRYSTAL SUMMON", 
 		"Premium Currency\nHigher Legendary Rates!",
-		"100 Crystals", 
+		"100 Divine Crystals", 
 		Color.DEEP_PINK
 	)
 	if crystal_button and summon_container:
@@ -509,25 +515,35 @@ func _on_button_unhover(button: Button):
 	unhover_tween.parallel().tween_property(button, "scale", Vector2(1.0, 1.0), 0.12)
 	unhover_tween.parallel().tween_property(button, "modulate", Color.WHITE, 0.12)
 
+func get_summon_system():
+	"""Helper function to get SummonSystem from GameManager"""
+	if GameManager and GameManager.has_method("get_summon_system"):
+		return GameManager.get_summon_system()
+	return null
+
 func _on_basic_summon_pressed():
-	if GameManager:
+	var summon_system = get_summon_system()
+	if summon_system:
 		# Disable buttons during summon
 		set_buttons_enabled(false)
 		
-		var success = GameManager.summon_basic()
+		var success = summon_system.summon_with_soul("common_soul")
 		if not success:
-			show_error_message("Not enough Divine Essence!")
 			set_buttons_enabled(true)
+	else:
+		show_error_message("SummonSystem not available")
 
 func _on_premium_summon_pressed():
-	if GameManager:
+	var summon_system = get_summon_system()
+	if summon_system:
 		# Disable buttons during summon
 		set_buttons_enabled(false)
 		
-		var success = GameManager.summon_premium()
+		var success = summon_system.summon_premium()
 		if not success:
-			show_error_message("Not enough Divine Essence!")
 			set_buttons_enabled(true)
+	else:
+		show_error_message("SummonSystem not available")
 
 func set_buttons_enabled(enabled: bool):
 	if basic_button:
@@ -822,59 +838,79 @@ func _on_summon_failed(reason):
 # New summon button handlers
 func _on_basic_10x_summon_pressed():
 	set_buttons_enabled(false)
-	if GameManager and GameManager.summon_system:
-		var success = GameManager.summon_system.multi_summon_basic()
+	var summon_system = get_summon_system()
+	if summon_system:
+		var success = summon_system.multi_summon_soul_pack()
 		if not success:
-			show_error_message("Not enough Divine Essence for 10x summon!")
 			set_buttons_enabled(true)
+	else:
+		show_error_message("SummonSystem not available")
+		set_buttons_enabled(true)
 
 func _on_premium_10x_summon_pressed():
 	set_buttons_enabled(false)
-	if GameManager and GameManager.summon_system:
-		var success = GameManager.summon_system.multi_summon_premium()
+	var summon_system = get_summon_system()
+	if summon_system:
+		var success = summon_system.multi_summon_premium()
 		if not success:
-			show_error_message("Not enough Divine Essence for premium 10x!")
 			set_buttons_enabled(true)
+	else:
+		show_error_message("SummonSystem not available")
+		set_buttons_enabled(true)
 
 func _on_element_summon_pressed():
 	set_buttons_enabled(false)
-	if GameManager and GameManager.summon_system:
-		var success = GameManager.summon_system.summon_element(selected_element)
+	var summon_system = get_summon_system()
+	if summon_system:
+		var element_names = ["fire", "water", "earth", "lightning", "light", "dark"]
+		var element = element_names[selected_element % element_names.size()]
+		var success = summon_system.summon_element_soul(element)
 		if not success:
-			show_error_message("Not enough Divine Essence for element summon!")
 			set_buttons_enabled(true)
+	else:
+		show_error_message("SummonSystem not available")
+		set_buttons_enabled(true)
 
 func _on_element_focus_pressed():
 	# Cycle through elements for element summons
-	selected_element = (selected_element + 1) % 4  # Assuming 4 elements
-	var element_names = ["Fire", "Water", "Earth", "Air"]
+	selected_element = (selected_element + 1) % 6  # 6 elements: fire, water, earth, lightning, light, dark
+	var element_names = ["Fire", "Water", "Earth", "Lightning", "Light", "Dark"]
 	print("Element focus changed to: " + element_names[selected_element])
 
 func _on_crystal_summon_pressed():
 	set_buttons_enabled(false)
-	if GameManager and GameManager.summon_system:
-		var success = GameManager.summon_system.summon_with_crystals()
+	var summon_system = get_summon_system()
+	if summon_system:
+		var success = summon_system.summon_premium()  # Using premium summon for crystals
 		if not success:
-			show_error_message("Not enough Crystals!")
 			set_buttons_enabled(true)
+	else:
+		show_error_message("SummonSystem not available")
+		set_buttons_enabled(true)
 
 func _on_daily_free_summon_pressed():
 	set_buttons_enabled(false)
-	if GameManager and GameManager.summon_system:
-		var success = GameManager.summon_system.daily_free_summon()
+	var summon_system = get_summon_system()
+	if summon_system:
+		var success = summon_system.daily_free_summon()
 		if not success:
-			show_error_message("Daily free summon already used!")
 			set_buttons_enabled(true)
 		else:
 			update_daily_free_availability()
+	else:
+		show_error_message("SummonSystem not available")
+		set_buttons_enabled(true)
 
 func update_daily_free_availability():
-	if daily_free_button and GameManager and GameManager.summon_system:
-		var can_use = GameManager.summon_system.can_use_daily_free_summon()
-		daily_free_button.disabled = not can_use
-		if not can_use:
-			daily_free_button.text = "USED TODAY"
-		else:
+	if daily_free_button:
+		var summon_system = get_summon_system()
+		if summon_system:
+			var can_use = summon_system.can_use_daily_free_summon()
+			daily_free_button.disabled = not can_use
+			if not can_use:
+				daily_free_button.text = "USED TODAY"
+			else:
+				daily_free_button.text = "DAILY FREE SUMMON\nFREE!"
 			daily_free_button.text = "SUMMON FREE!"
 
 # Handler for multi-summon results (connect this to the new signal)

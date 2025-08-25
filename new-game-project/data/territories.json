@@ -7,7 +7,7 @@
       "element": "earth",
       "required_power": 300,
       "unlock_requirements": {
-        "player_level": 5,
+        "player_level": 1,
         "prerequisite_territories": []
       },
       "stages": {

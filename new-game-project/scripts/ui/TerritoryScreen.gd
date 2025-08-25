@@ -1,4 +1,4 @@
-# scripts/ui/TerritoryScreen.gd - Detailed territory management with stage system
+# scripts/ui/TerritoryScreen.gd - Streamlined territory management
 extends Control
 
 signal back_pressed
@@ -8,6 +8,7 @@ const GameDataLoader = preload("res://scripts/systems/DataLoader.gd")
 
 @onready var territory_list = $ScrollContainer/TerritoryList
 @onready var back_button = $BackButton
+@onready var scroll_container = $ScrollContainer
 
 # Currently selected territory for god assignment
 var current_territory: Territory
@@ -16,34 +17,23 @@ var god_assignment_popup: PopupPanel
 var popup_territory_info: Label
 var popup_god_list: VBoxContainer
 
-# Team selection for battles
-var battle_team_popup: PopupPanel
-var battle_territory_info: Label
-var battle_god_list: VBoxContainer
-var selected_battle_gods: Array = []
-var current_battle_territory: Territory
-var current_battle_stage: int = 1
-
 func _ready():
 	# Connect to GameManager signals for modular communication
 	if GameManager:
 		GameManager.territory_captured.connect(_on_territory_captured)
-		# Connect to resources updated for real-time updates
-		GameManager.resources_updated.connect(refresh_territories)
 	
 	if back_button:
 		back_button.pressed.connect(_on_back_pressed)
 	
-	# Create the popup dynamically
+	# Create the god assignment popup for territory management
 	create_god_assignment_popup()
-	create_battle_team_popup()
 		
 	refresh_territories()
 
 func create_god_assignment_popup():
-	# Create popup panel
+	# Create popup panel for god assignment (territory management, not battle)
 	god_assignment_popup = PopupPanel.new()
-	god_assignment_popup.position = Vector2(660, 290)  # Center-ish position
+	god_assignment_popup.position = Vector2(660, 290)
 	god_assignment_popup.size = Vector2(600, 500)
 	add_child(god_assignment_popup)
 	
@@ -102,101 +92,20 @@ func create_god_assignment_popup():
 	cancel_btn.pressed.connect(_on_cancel_assignment)
 	button_hbox.add_child(cancel_btn)
 
-func create_battle_team_popup():
-	# Create battle team selection popup
-	battle_team_popup = PopupPanel.new()
-	
-	# Make it responsive to screen size instead of fixed size
-	var screen_size = get_viewport().get_visible_rect().size
-	var popup_width = min(600, screen_size.x * 0.8)  # 80% of screen width, max 600
-	var popup_height = min(500, screen_size.y * 0.8)  # 80% of screen height, max 500
-	
-	battle_team_popup.size = Vector2(popup_width, popup_height)
-	
-	# Center the popup instead of fixed position
-	battle_team_popup.position = Vector2(
-		(screen_size.x - popup_width) / 2,
-		(screen_size.y - popup_height) / 2
-	)
-	
-	add_child(battle_team_popup)
-	
-	# Add margin
-	var margin = MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	battle_team_popup.add_child(margin)
-	
-	# Main container
-	var main_vbox = VBoxContainer.new()
-	main_vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	main_vbox.add_theme_constant_override("separation", 8)
-	margin.add_child(main_vbox)
-	
-	# Title
-	var title = Label.new()
-	title.text = "Select Battle Team"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 18)  # Slightly smaller
-	main_vbox.add_child(title)
-	
-	# Territory and stage info
-	battle_territory_info = Label.new()
-	battle_territory_info.name = "BattleTerritoryInfo"
-	battle_territory_info.text = "Territory: None - Stage: 0"
-	battle_territory_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	battle_territory_info.add_theme_font_size_override("font_size", 14)  # Smaller
-	battle_territory_info.modulate = Color.YELLOW
-	main_vbox.add_child(battle_territory_info)
-	
-	# Selected team display - make it smaller
-	var selected_team_label = Label.new()
-	selected_team_label.text = "Selected Team (0/5):"
-	selected_team_label.add_theme_font_size_override("font_size", 12)
-	main_vbox.add_child(selected_team_label)
-	
-	var selected_team_container = VBoxContainer.new()
-	selected_team_container.name = "SelectedTeamContainer"
-	selected_team_container.custom_minimum_size = Vector2(0, 80)  # Smaller height
-	main_vbox.add_child(selected_team_container)
-	
-	# Available gods scroll
-	var scroll_label = Label.new()
-	scroll_label.text = "Available Gods:"
-	scroll_label.add_theme_font_size_override("font_size", 12)
-	main_vbox.add_child(scroll_label)
-	
-	var scroll = ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.custom_minimum_size = Vector2(0, 200)  # Set minimum height for scroll area
-	main_vbox.add_child(scroll)
-	
-	battle_god_list = VBoxContainer.new()
-	battle_god_list.name = "BattleGodList"
-	battle_god_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(battle_god_list)
-	
-	# Buttons
-	var button_hbox = HBoxContainer.new()
-	button_hbox.add_theme_constant_override("separation", 10)
-	main_vbox.add_child(button_hbox)
-	
-	var start_battle_btn = Button.new()
-	start_battle_btn.text = "Start Battle"
-	start_battle_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	start_battle_btn.pressed.connect(_on_start_stage_battle)
-	button_hbox.add_child(start_battle_btn)
-	
-	var cancel_battle_btn = Button.new()
-	cancel_battle_btn.text = "Cancel"
-	cancel_battle_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	cancel_battle_btn.pressed.connect(_on_cancel_battle_team_selection)
-	button_hbox.add_child(cancel_battle_btn)
 func _on_back_pressed():
+	print("=== TerritoryScreen: Back button pressed ===")
 	back_pressed.emit()
+
+	# Fallback: if no connections, navigate manually
+	if get_signal_connection_list("back_pressed").size() == 0:
+		print("=== TerritoryScreen: No back_pressed connections, navigating manually ===")
+		var world_view = get_node_or_null("/root/Main/WorldView")
+		if world_view:
+			world_view.visible = true
+			queue_free()
+		else:
+			# Try to go to main scene as fallback
+			get_tree().change_scene_to_file("res://scenes/Main.tscn")
 
 func _on_territory_captured(_territory):
 	# When a territory is captured, refresh the display
@@ -205,14 +114,17 @@ func _on_territory_captured(_territory):
 func refresh_territories():
 	print("TerritoryScreen: Starting refresh_territories()")
 	
+	# Save current scroll position
+	var saved_scroll_position = 0
+	if scroll_container:
+		saved_scroll_position = scroll_container.scroll_vertical
+	
 	# Make sure the territory_list exists
 	if not territory_list:
 		territory_list = $ScrollContainer/TerritoryList
 		if not territory_list:
 			print("Error: Could not find TerritoryList")
 			return
-		else:
-			print("Found TerritoryList node")
 	
 	# Clear existing territory cards
 	for child in territory_list.get_children():
@@ -244,35 +156,43 @@ func refresh_territories():
 	
 	print("GameManager.territories size: ", GameManager.territories.size())
 	
-	# Add territory cards - using GameManager autoload for modular access
+	# Add territory cards
 	if GameManager.territories.size() > 0:
 		for i in range(GameManager.territories.size()):
 			var territory = GameManager.territories[i]
 			create_detailed_territory_card(territory)
 	else:
-		# Add a debug label if no territories found
 		var debug_label = Label.new()
 		debug_label.text = "No territories found. Check GameManager initialization."
 		debug_label.modulate = Color.RED
 		territory_list.add_child(debug_label)
+	
+	# Restore scroll position after content is added
+	if scroll_container:
+		call_deferred("_restore_scroll_position", saved_scroll_position)
+
+func _restore_scroll_position(scroll_pos: int):
+	"""Helper function to restore scroll position"""
+	if scroll_container:
+		scroll_container.scroll_vertical = scroll_pos
 
 func create_detailed_territory_card(territory):
-	# Create main card panel
+	# Create main card panel - increased height for better layout
 	var card_panel = create_nine_patch_panel()
-	card_panel.custom_minimum_size = Vector2(0, 120)
+	card_panel.custom_minimum_size = Vector2(0, 180)  # Increased from 120 to 180
 	territory_list.add_child(card_panel)
 	
-	# Main horizontal container
+	# Main horizontal container with better spacing
 	var hbox = HBoxContainer.new()
 	hbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	hbox.add_theme_constant_override("separation", 80)
+	hbox.add_theme_constant_override("separation", 20)  # Reduced from 80 for better balance
 	# Add some padding from the panel edges
 	var margin = MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_top", 20)
-	margin.add_theme_constant_override("margin_bottom", 20)
+	margin.add_theme_constant_override("margin_left", 15)  # Slightly reduced margins
+	margin.add_theme_constant_override("margin_right", 15)
+	margin.add_theme_constant_override("margin_top", 15)
+	margin.add_theme_constant_override("margin_bottom", 15)
 	card_panel.add_child(margin)
 	margin.add_child(hbox)
 	
@@ -294,72 +214,79 @@ func create_detailed_territory_card(territory):
 
 func create_territory_info_section(territory):
 	var vbox = VBoxContainer.new()
-	vbox.custom_minimum_size = Vector2(200, 0)
+	vbox.custom_minimum_size = Vector2(250, 0)  # Increased width from 200
+	vbox.add_theme_constant_override("separation", 4)  # Better spacing
 	
 	# Territory name and tier
 	var name_label = Label.new()
 	name_label.text = "%s (Tier %d)" % [territory.name, territory.tier]
 	name_label.add_theme_font_size_override("font_size", 16)
+	name_label.modulate = Color.WHITE
 	vbox.add_child(name_label)
 	
-	# Element
+	# Element with better visibility
 	var element_label = Label.new()
 	element_label.text = "Element: %s" % _get_element_name(territory.element)
+	element_label.modulate = Color.CYAN
+	element_label.add_theme_font_size_override("font_size", 12)
 	vbox.add_child(element_label)
 	
 	# Power requirement vs player power
 	var player_power = _calculate_player_power()
 	var power_label = Label.new()
-	power_label.text = "Required: %d | Your Power: %d" % [territory.get_required_power(), player_power]
+	power_label.text = "Power: %d / %d required" % [player_power, territory.get_required_power()]
+	power_label.add_theme_font_size_override("font_size", 11)
 	
 	# Color code based on if player can attack
 	if player_power >= territory.get_required_power():
 		power_label.modulate = Color.GREEN
 	else:
-		power_label.modulate = Color.RED
+		power_label.modulate = Color.ORANGE
 	
 	vbox.add_child(power_label)
 	
-	# NEW: Show territory level and upgrades
+	# Show territory level and upgrades
 	var upgrade_info = Label.new()
 	upgrade_info.text = "Level: %d | Upgrades: R%d/D%d/Z%d" % [
 		territory.territory_level,
-		territory.resource_upgrades, 
+		territory.resource_upgrades,
 		territory.defense_upgrades,
 		territory.zone_upgrades
 	]
 	upgrade_info.add_theme_font_size_override("font_size", 10)
-	upgrade_info.modulate = Color.CYAN
+	upgrade_info.modulate = Color.LIGHT_GRAY
 	vbox.add_child(upgrade_info)
 	
-	# NEW: Show auto collection status
+	# Show auto collection status with better formatting
 	if territory.is_controlled_by_player() and territory.is_unlocked:
 		var collection_info = Label.new()
-		collection_info.text = "Collection: %s" % territory.auto_collection_mode.capitalize()
+		collection_info.text = "✅ Auto-Collecting"
+		collection_info.modulate = Color.GREEN
 		collection_info.add_theme_font_size_override("font_size", 10)
-		collection_info.modulate = Color.YELLOW
 		vbox.add_child(collection_info)
 	
 	return vbox
 
 func create_production_section(territory):
 	var vbox = VBoxContainer.new()
-	vbox.custom_minimum_size = Vector2(150, 0)
+	vbox.custom_minimum_size = Vector2(180, 0)  # Increased width from 150
+	vbox.add_theme_constant_override("separation", 4)
 	
 	var production_label = Label.new()
-	production_label.text = "Production"
+	production_label.text = "📊 Production"
 	production_label.add_theme_font_size_override("font_size", 14)
+	production_label.modulate = Color.YELLOW
 	vbox.add_child(production_label)
 	
-	# Show current production rate
+	# Show current production rate with better formatting
 	var total_rate = territory.get_resource_rate()
 	var rate_label = Label.new()
-	rate_label.text = "%d/hour" % total_rate
-	rate_label.modulate = Color.YELLOW
-	rate_label.add_theme_font_size_override("font_size", 14)
+	rate_label.text = "%d resources/hour" % total_rate
+	rate_label.modulate = Color.WHITE
+	rate_label.add_theme_font_size_override("font_size", 13)
 	vbox.add_child(rate_label)
 	
-	# NEW: Show pending resources if any
+	# Show pending resources if any
 	if territory.is_controlled_by_player() and territory.is_unlocked:
 		var pending_resources = territory.get_pending_resources()
 		var total_pending = 0
@@ -382,16 +309,42 @@ func create_production_section(territory):
 				collect_btn.pressed.connect(_on_collect_resources.bind(territory))
 				vbox.add_child(collect_btn)
 	
-	# NEW: Show resource breakdown for higher tiers
+	# Show resource breakdown for higher tiers with more detail
 	if territory.tier >= 2 and territory.is_controlled_by_player():
 		var breakdown_label = Label.new()
-		var breakdown_text = ""
-		if territory.tier == 2:
-			breakdown_text = "Gold, Essence, Books"
-		elif territory.tier == 3:
-			breakdown_text = "Gold, Essence, Books, Stones"
 		
-		breakdown_label.text = breakdown_text
+		# Use TerritoryManager for detailed breakdown if available
+		if GameManager.territory_manager:
+			var generation = GameManager.territory_manager.calculate_territory_passive_generation(territory)
+			var breakdown_parts = []
+			
+			for resource_type in generation.keys():
+				var amount = generation[resource_type]
+				if amount > 0:
+					breakdown_parts.append("%s: %d/hr" % [resource_type.replace("_", " ").capitalize(), amount])
+			
+			if breakdown_parts.size() > 0:
+				breakdown_label.text = " | ".join(breakdown_parts)
+			else:
+				breakdown_label.text = "Base generation only"
+		else:
+			# Fallback display using ResourceManager for dynamic names
+			var breakdown_text = ""
+			var mana_name = "Mana"  # Default fallback
+			
+			# Get proper resource name from ResourceManager
+			if GameManager and GameManager.has_method("get_resource_manager"):
+				var resource_mgr = GameManager.get_resource_manager()
+				if resource_mgr:
+					var mana_info = resource_mgr.get_resource_info("mana")
+					mana_name = mana_info.get("name", "Mana")
+			
+			if territory.tier == 2:
+				breakdown_text = "%s, Ore, Souls" % mana_name
+			elif territory.tier == 3:
+				breakdown_text = "%s, Ore, Souls, Energy" % mana_name
+			breakdown_label.text = breakdown_text
+		
 		breakdown_label.add_theme_font_size_override("font_size", 9)
 		breakdown_label.modulate = Color.LIGHT_GRAY
 		vbox.add_child(breakdown_label)
@@ -431,99 +384,203 @@ func create_production_section(territory):
 
 func create_assignment_section(territory):
 	var vbox = VBoxContainer.new()
-	vbox.custom_minimum_size = Vector2(200, 0)
+	vbox.custom_minimum_size = Vector2(240, 0)  # Increased width for better layout
+	vbox.add_theme_constant_override("separation", 3)
 	
 	var assignment_label = Label.new()
-	assignment_label.text = "Assigned Gods"
+	assignment_label.text = "⚔️ Assignments"
 	assignment_label.add_theme_font_size_override("font_size", 14)
+	assignment_label.modulate = Color.CYAN
 	vbox.add_child(assignment_label)
 	
-	# NEW: Show slot usage
-	var slot_info = Label.new()
-	slot_info.text = "Slots: %d/%d" % [territory.stationed_gods.size(), territory.max_god_slots]
-	slot_info.add_theme_font_size_override("font_size", 11)
-	slot_info.modulate = Color.CYAN
-	vbox.add_child(slot_info)
-	
-	if territory.stationed_gods.size() > 0:
-		for god_id in territory.stationed_gods:
-			var god = _find_god_by_id(god_id)
-			if god:
-				var god_label = Label.new()
-				var element_match = (god.element == territory.element)
-				var match_icon = "★" if element_match else ""
-				god_label.text = "• %s%s (Lv.%d)" % [match_icon, god.name, god.level]
-				god_label.modulate = Color.YELLOW if element_match else Color.WHITE
-				god_label.add_theme_font_size_override("font_size", 10)
-				vbox.add_child(god_label)
+	# Show role-based slot usage if TerritoryManager is available
+	if GameManager.territory_manager:
+		var role_assignments = GameManager.get_territory_role_assignments(territory)
+		var slot_config = GameManager.territory_manager.get_territory_slot_configuration(territory)
 		
-		# NEW: Show total resource bonus
-		var bonus = territory.get_god_resource_bonus()
-		if bonus > 0:
-			var bonus_label = Label.new()
-			bonus_label.text = "God Bonus: +%d/hr" % bonus
-			bonus_label.modulate = Color.GREEN
-			bonus_label.add_theme_font_size_override("font_size", 10)
-			vbox.add_child(bonus_label)
+		var total_used = 0
+		var total_available = 0
+		
+		# Show each role's status with streamlined formatting
+		for role in ["defender", "gatherer", "crafter"]:
+			var role_gods = role_assignments.get(role, [])
+			var max_slots = slot_config.get(role + "_slots", 0)
+			total_used += role_gods.size()
+			total_available += max_slots
+			
+			if max_slots > 0:  # Only show roles that have slots
+				var role_container = HBoxContainer.new()
+				
+				var role_label = Label.new()
+				var role_icon = get_role_icon(role)
+				role_label.text = "%s %s:" % [role_icon, role.capitalize()]
+				role_label.add_theme_font_size_override("font_size", 11)
+				role_label.modulate = get_role_color(role)
+				role_label.custom_minimum_size = Vector2(85, 0)
+				role_container.add_child(role_label)
+				
+				var count_label = Label.new()
+				count_label.text = "%d/%d" % [role_gods.size(), max_slots]
+				count_label.add_theme_font_size_override("font_size", 11)
+				count_label.modulate = Color.WHITE if role_gods.size() < max_slots else Color.GREEN
+				role_container.add_child(count_label)
+				
+				vbox.add_child(role_container)
+				
+				# Show gods in a more detailed format with their contributions
+				if role_gods.size() > 0:
+					for i in range(min(role_gods.size(), 2)):  # Show max 2 gods per role
+						var god = role_gods[i]
+						var god_container = VBoxContainer.new()
+						god_container.add_theme_constant_override("separation", 1)
+						
+						# God name and level
+						var god_label = Label.new()
+						var element_match = (god.element == territory.element)
+						var match_icon = "★" if element_match else "•"
+						god_label.text = "   %s %s (Lv.%d)" % [match_icon, god.name, god.level]
+						god_label.modulate = Color.YELLOW if element_match else Color.LIGHT_GRAY
+						god_label.add_theme_font_size_override("font_size", 9)
+						god_container.add_child(god_label)
+						
+						# Show what the god is producing/doing
+						var action_label = Label.new()
+						var god_action = get_god_territory_action(god, role, territory)
+						action_label.text = "     → %s" % god_action
+						action_label.modulate = Color.CYAN
+						action_label.add_theme_font_size_override("font_size", 8)
+						god_container.add_child(action_label)
+						
+						vbox.add_child(god_container)
+					
+					if role_gods.size() > 2:
+						var more_label = Label.new()
+						more_label.text = "   ... +%d more %ss" % [role_gods.size() - 2, role]
+						more_label.modulate = Color.GRAY
+						more_label.add_theme_font_size_override("font_size", 9)
+						vbox.add_child(more_label)
+		
+		# Total efficiency summary with detailed breakdown
+		var summary_label = Label.new()
+		summary_label.text = "Total: %d/%d slots" % [total_used, total_available]
+		summary_label.add_theme_font_size_override("font_size", 10)
+		summary_label.modulate = Color.CYAN
+		vbox.add_child(summary_label)
+		
+		# Show total god contribution if any gods are assigned
+		if total_used > 0 and GameManager.territory_manager:
+			var god_contribution = Label.new()
+			var total_generation = GameManager.territory_manager.calculate_territory_passive_generation(territory)
+			var base_generation = GameManager.territory_manager.get_base_territory_generation(territory)
+			
+			var total_bonus = 0
+			var base_total = 0
+			
+			for resource in total_generation.keys():
+				total_bonus += total_generation[resource]
+			for resource in base_generation.keys():
+				base_total += base_generation[resource]
+			
+			var god_bonus = total_bonus - base_total
+			
+			if god_bonus > 0:
+				god_contribution.text = "God Bonus: +%d resources/hr" % god_bonus
+				god_contribution.modulate = Color.GREEN
+			else:
+				god_contribution.text = "Gods providing base efficiency"
+				god_contribution.modulate = Color.YELLOW
+			
+			god_contribution.add_theme_font_size_override("font_size", 9)
+			vbox.add_child(god_contribution)
 	else:
-		var empty_label = Label.new()
-		empty_label.text = "No gods assigned"
-		empty_label.modulate = Color.GRAY
-		vbox.add_child(empty_label)
+		# Legacy slot display
+		var slot_info = Label.new()
+		slot_info.text = "Slots: %d/%d" % [territory.stationed_gods.size(), territory.max_god_slots]
+		slot_info.add_theme_font_size_override("font_size", 11)
+		slot_info.modulate = Color.CYAN
+		vbox.add_child(slot_info)
 		
-		# NEW: Show potential benefit hint
-		if territory.is_controlled_by_player() and territory.is_unlocked:
-			var hint_label = Label.new()
-			hint_label.text = "Assign gods for bonus resources!"
-			hint_label.add_theme_font_size_override("font_size", 9)
-			hint_label.modulate = Color.YELLOW
-			vbox.add_child(hint_label)
+		if territory.stationed_gods.size() > 0:
+			for god_id in territory.stationed_gods:
+				var god = _find_god_by_id(god_id)
+				if god:
+					var god_label = Label.new()
+					var element_match = (god.element == territory.element)
+					var match_icon = "★" if element_match else ""
+					god_label.text = "• %s%s (Lv.%d)" % [match_icon, god.name, god.level]
+					god_label.modulate = Color.YELLOW if element_match else Color.WHITE
+					god_label.add_theme_font_size_override("font_size", 10)
+					vbox.add_child(god_label)
+			
+			# Show total resource bonus
+			var bonus = territory.get_god_resource_bonus()
+			if bonus > 0:
+				var bonus_label = Label.new()
+				bonus_label.text = "God Bonus: +%d/hr" % bonus
+				bonus_label.modulate = Color.GREEN
+				bonus_label.add_theme_font_size_override("font_size", 10)
+				vbox.add_child(bonus_label)
+		else:
+			var empty_label = Label.new()
+			empty_label.text = "No gods assigned"
+			empty_label.modulate = Color.GRAY
+			vbox.add_child(empty_label)
+			
+			# Show potential benefit hint
+			if territory.is_controlled_by_player() and territory.is_unlocked:
+				var hint_label = Label.new()
+				hint_label.text = "Assign gods for bonus resources!"
+				hint_label.add_theme_font_size_override("font_size", 9)
+				hint_label.modulate = Color.YELLOW
+				vbox.add_child(hint_label)
 	
 	return vbox
 
 func create_territory_action_button(territory):
 	# Check if territory is fully unlocked and controlled
 	if territory.is_controlled_by_player() and territory.is_unlocked:
-		# Create a vertical container for multiple buttons
+		# Create a vertical container for multiple buttons with better spacing
 		var vbox = VBoxContainer.new()
-		vbox.custom_minimum_size = Vector2(120, 80)
-		vbox.add_theme_constant_override("separation", 3)
+		vbox.custom_minimum_size = Vector2(130, 140)  # Increased size
+		vbox.add_theme_constant_override("separation", 5)  # Better separation
 		
-		# Main manage button
+		# Main manage button - now opens role management if available
 		var manage_button = Button.new()
-		manage_button.custom_minimum_size = Vector2(120, 35)
-		manage_button.text = "MANAGE"
-		manage_button.modulate = Color.GREEN
-		manage_button.add_theme_font_size_override("font_size", 11)
-		manage_button.pressed.connect(_on_manage_territory.bind(territory))
+		manage_button.custom_minimum_size = Vector2(130, 35)  # Increased height
+		if GameManager.territory_manager:
+			manage_button.text = "⚙️ MANAGE ROLES"
+			manage_button.modulate = Color.GREEN
+			manage_button.pressed.connect(_on_open_role_management.bind(territory))
+		else:
+			manage_button.text = "⚙️ MANAGE"
+			manage_button.modulate = Color.GREEN
+			manage_button.pressed.connect(_on_manage_territory.bind(territory))
+		manage_button.add_theme_font_size_override("font_size", 11)  # Slightly larger font
 		vbox.add_child(manage_button)
 		
-		# NEW: Quick upgrade button if upgrades available
+		# Keep the regular stage navigation buttons for farming
+		var stage_buttons = create_stage_navigation_buttons(territory)
+		vbox.add_child(stage_buttons)
+		
+		# Quick upgrade button if upgrades available
 		if territory.can_upgrade_territory() or territory.can_upgrade_resource_generation():
 			var upgrade_button = Button.new()
-			upgrade_button.custom_minimum_size = Vector2(120, 25)
-			upgrade_button.text = "UPGRADE"
+			upgrade_button.custom_minimum_size = Vector2(130, 25)  # Better sizing
+			upgrade_button.text = "⬆️ UPGRADE"
 			upgrade_button.modulate = Color.CYAN
-			upgrade_button.add_theme_font_size_override("font_size", 9)
+			upgrade_button.add_theme_font_size_override("font_size", 10)
 			upgrade_button.pressed.connect(_on_quick_upgrade_territory.bind(territory))
 			vbox.add_child(upgrade_button)
-		else:
-			# Show max level indicator
-			var max_label = Label.new()
-			max_label.text = "Max Level"
-			max_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			max_label.add_theme_font_size_override("font_size", 8)
-			max_label.modulate = Color.GRAY
-			vbox.add_child(max_label)
 		
 		return vbox
 	
 	# Check if territory has been cleared but not yet managed
 	elif territory.current_stage >= territory.max_stages and not territory.is_unlocked:
 		var button = Button.new()
-		button.custom_minimum_size = Vector2(120, 80)
-		button.text = "CLAIM\nTERRITORY"
+		button.custom_minimum_size = Vector2(130, 90)  # Better size for bigger cards
+		button.text = "🏆 CLAIM\nTERRITORY"
 		button.modulate = Color.GREEN
+		button.add_theme_font_size_override("font_size", 12)
 		button.pressed.connect(_on_claim_territory.bind(territory))
 		return button
 	
@@ -533,29 +590,37 @@ func create_territory_action_button(territory):
 	
 	else:
 		var button = Button.new()
-		button.custom_minimum_size = Vector2(120, 80)
-		button.text = "UNAVAILABLE"
+		button.custom_minimum_size = Vector2(130, 90)  # Better size consistency
+		button.text = "🔒 LOCKED"
 		button.modulate = Color.GRAY
+		button.add_theme_font_size_override("font_size", 12)
 		button.disabled = true
 		return button
 
 func create_stage_navigation_buttons(territory):
 	var player_power = _calculate_player_power()
-	var max_available_stage = min(territory.current_stage + 1, territory.max_stages)
+	
+	# For controlled territories, allow farming all cleared stages
+	var max_available_stage
+	if territory.is_controlled_by_player() and territory.is_unlocked:
+		max_available_stage = territory.max_stages  # Can farm any stage
+	else:
+		max_available_stage = min(territory.current_stage + 1, territory.max_stages)  # Normal progression
 	
 	# If no stages cleared and can't attack, show locked button
 	if territory.current_stage == 0 and player_power < territory.get_required_power():
 		var button = Button.new()
-		button.custom_minimum_size = Vector2(120, 80)
-		button.text = "LOCKED\n(Need %d\nmore power)" % [territory.get_required_power() - player_power]
+		button.custom_minimum_size = Vector2(130, 90)  # Consistent sizing
+		button.text = "🔒 LOCKED\n(Need %d\nmore power)" % [territory.get_required_power() - player_power]
 		button.modulate = Color.GRAY
+		button.add_theme_font_size_override("font_size", 10)
 		button.disabled = true
 		return button
 	
-	# Create container for stage navigation
+	# Create container for stage navigation with better sizing
 	var container = VBoxContainer.new()
-	container.custom_minimum_size = Vector2(120, 80)
-	container.add_theme_constant_override("separation", 2)
+	container.custom_minimum_size = Vector2(120, 80)  # Increased height for better fit
+	container.add_theme_constant_override("separation", 3)  # Slightly more separation
 	
 	# Create stage selector with navigation buttons
 	var stage_row = HBoxContainer.new()
@@ -564,23 +629,23 @@ func create_stage_navigation_buttons(territory):
 	# Previous stage button
 	var prev_btn = Button.new()
 	prev_btn.text = "<"
-	prev_btn.custom_minimum_size = Vector2(25, 25)
+	prev_btn.custom_minimum_size = Vector2(28, 28)  # Slightly larger
 	prev_btn.add_theme_font_size_override("font_size", 12)
 	prev_btn.pressed.connect(_on_stage_navigation.bind(territory, -1))
 	
 	# Current stage button (main battle button)
 	var stage_btn = Button.new()
-	stage_btn.custom_minimum_size = Vector2(60, 25)
+	stage_btn.custom_minimum_size = Vector2(64, 28)  # Slightly larger
 	stage_btn.add_theme_font_size_override("font_size", 11)
 	
 	# Next stage button
 	var next_btn = Button.new()
 	next_btn.text = ">"
-	next_btn.custom_minimum_size = Vector2(25, 25)
+	next_btn.custom_minimum_size = Vector2(28, 28)  # Slightly larger
 	next_btn.add_theme_font_size_override("font_size", 12)
 	next_btn.pressed.connect(_on_stage_navigation.bind(territory, 1))
 	
-	# Initialize with default stage (highest available for grinding or next to clear)
+	# Initialize with default stage
 	var default_stage = territory.current_stage if territory.current_stage > 0 else 1
 	if not territory.has_meta("selected_stage"):
 		territory.set_meta("selected_stage", default_stage)
@@ -597,10 +662,14 @@ func create_stage_navigation_buttons(territory):
 	
 	# Progress indicator
 	var progress_label = Label.new()
-	progress_label.text = "Progress: %d/%d" % [territory.current_stage, territory.max_stages]
+	if territory.is_controlled_by_player() and territory.is_unlocked:
+		progress_label.text = "Farming: %d/%d" % [selected_stage, territory.max_stages]
+		progress_label.modulate = Color.ORANGE
+	else:
+		progress_label.text = "Progress: %d/%d" % [territory.current_stage, territory.max_stages]
+		progress_label.modulate = Color.YELLOW
 	progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	progress_label.add_theme_font_size_override("font_size", 10)
-	progress_label.modulate = Color.YELLOW
 	
 	container.add_child(stage_row)
 	container.add_child(progress_label)
@@ -653,23 +722,27 @@ func update_stage_navigation_buttons(territory, prev_btn, stage_btn, next_btn, s
 
 func _on_stage_navigation(territory, direction: int):
 	var current_selected = territory.get_meta("selected_stage", 1)
-	var max_available_stage = min(territory.current_stage + 1, territory.max_stages)
+	var max_available_stage
+	
+	# For controlled territories, allow farming any cleared stage
+	if territory.is_controlled_by_player() and territory.is_unlocked:
+		max_available_stage = territory.max_stages
+	else:
+		# For uncontrolled territories, normal progression rules
+		max_available_stage = min(territory.current_stage + 1, territory.max_stages)
 	
 	var new_stage = current_selected + direction
 	new_stage = clamp(new_stage, 1, max_available_stage)
 	
 	if new_stage != current_selected:
 		territory.set_meta("selected_stage", new_stage)
-		# Refresh the territory display to update buttons
-		refresh_territories()
+		# Refresh just the buttons for this territory
+		refresh_territories()  # For now, full refresh - could be optimized later
 
 func _on_attack_stage(territory, stage_number: int):
 	print("Attacking territory: %s, Stage: %d" % [territory.name, stage_number])
-	current_battle_territory = territory
-	current_battle_stage = stage_number
-	selected_battle_gods.clear()
 	
-	# Open BattleSetupScreen instead of old team selection popup
+	# Open BattleSetupScreen directly
 	open_battle_setup_screen(territory, stage_number)
 
 func open_battle_setup_screen(territory: Territory, stage: int):
@@ -703,33 +776,11 @@ func _on_territory_battle_setup_complete(context: Dictionary):
 	if setup_screen:
 		setup_screen.queue_free()
 	
-	# Store battle context
-	current_battle_territory = territory
-	current_battle_stage = stage
-	selected_battle_gods = team
-	
 	# Open battle screen with proper setup
-	_start_territory_battle_with_team(team)
-
-func _on_territory_battle_setup_cancelled():
-	"""Handle territory battle setup cancellation"""
-	# Remove setup screen
-	var setup_screen = get_tree().get_nodes_in_group("battle_setup")[0] if get_tree().get_nodes_in_group("battle_setup").size() > 0 else null
-	if setup_screen:
-		setup_screen.queue_free()
-	
-	# Clear battle context
-	current_battle_territory = null
-	current_battle_stage = 1
-	selected_battle_gods.clear()
-
-func _start_territory_battle_with_team(team: Array):
-	"""Start the actual territory battle with selected team"""
-	# Load and open the battle screen
 	var battle_screen_scene = preload("res://scenes/BattleScreen.tscn")
 	var battle_screen = battle_screen_scene.instantiate()
 	
-	# Add to scene tree root instead of current_scene (fixes gray screen issue)
+	# Add to scene tree root
 	get_tree().root.add_child(battle_screen)
 	
 	# Hide territory screen
@@ -740,7 +791,24 @@ func _start_territory_battle_with_team(team: Array):
 		battle_screen.back_pressed.connect(_on_battle_screen_back.bind(battle_screen))
 	
 	# Set up the battle screen for territory stage battle
-	battle_screen.setup_territory_stage_battle(current_battle_territory, current_battle_stage, team)
+	battle_screen.setup_territory_stage_battle(territory, stage, team)
+
+func _on_territory_battle_setup_cancelled():
+	"""Handle territory battle setup cancellation"""
+	# Remove setup screen
+	var setup_screen = get_tree().get_nodes_in_group("battle_setup")[0] if get_tree().get_nodes_in_group("battle_setup").size() > 0 else null
+	if setup_screen:
+		setup_screen.queue_free()
+
+func _on_battle_screen_back(battle_screen: Node):
+	# Return to territory screen and refresh
+	visible = true
+	
+	# Disconnect signal to prevent any issues during cleanup
+	if battle_screen.back_pressed.is_connected(_on_battle_screen_back):
+		battle_screen.back_pressed.disconnect(_on_battle_screen_back)
+	
+	battle_screen.queue_free()
 
 func create_nine_patch_panel() -> Panel:
 	var panel = Panel.new()
@@ -760,244 +828,6 @@ func create_nine_patch_panel() -> Panel:
 	
 	panel.add_theme_stylebox_override("panel", style)
 	return panel
-
-func _on_attack_territory(territory):
-	# Legacy function - redirect to new stage attack with next stage
-	var next_stage = territory.current_stage + 1
-	_on_attack_stage(territory, next_stage)
-
-func populate_battle_team_list():
-	# Clear existing god items
-	if not battle_god_list:
-		return
-		
-	for child in battle_god_list.get_children():
-		child.queue_free()
-	
-	await get_tree().process_frame
-	
-	# Add spacing
-	battle_god_list.add_theme_constant_override("separation", 5)
-	
-	# Get all player gods
-	if not GameManager or not GameManager.player_data:
-		return
-	
-	# Add team info
-	var info_label = Label.new()
-	info_label.text = "Select up to 5 gods for battle"
-	info_label.modulate = Color.CYAN
-	battle_god_list.add_child(info_label)
-	
-	# Add enemy preview for this stage
-	var enemy_preview = create_enemy_preview_info()
-	battle_god_list.add_child(enemy_preview)
-	
-	# Add each available god
-	for god in GameManager.player_data.gods:
-		var god_item = create_battle_god_item(god)
-		battle_god_list.add_child(god_item)
-	
-	# Update selected team display
-	update_selected_team_display()
-
-func create_battle_god_item(god) -> Control:
-	# Create a panel for the god item
-	var panel = Panel.new()
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.2, 0.2, 0.4, 0.7)
-	style.corner_radius_top_left = 5
-	style.corner_radius_top_right = 5
-	style.corner_radius_bottom_right = 5
-	style.corner_radius_bottom_left = 5
-	panel.add_theme_stylebox_override("panel", style)
-	panel.custom_minimum_size = Vector2(0, 50)
-	
-	var hbox = HBoxContainer.new()
-	hbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	hbox.add_theme_constant_override("separation", 10)
-	
-	# Add margin inside the panel
-	var margin = MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_top", 5)
-	margin.add_theme_constant_override("margin_bottom", 5)
-	panel.add_child(margin)
-	margin.add_child(hbox)
-	
-	# Checkbox for selection
-	var checkbox = CheckBox.new()
-	checkbox.toggled.connect(_on_battle_god_toggled.bind(god))
-	hbox.add_child(checkbox)
-	
-	# God info
-	var god_label = Label.new()
-	god_label.text = "%s (Lv.%d) - %s %s" % [
-		god.name, 
-		god.level,
-		god.get_tier_name(),
-		god.get_element_name()
-	]
-	god_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hbox.add_child(god_label)
-	
-	# Power display
-	var power_label = Label.new()
-	var total_power = 0
-	if god.has_method("get_power_rating"):
-		total_power = god.get_power_rating()
-	elif god.has_method("get_total_power"):
-		total_power = god.get_total_power()
-	else:
-		total_power = god.base_attack + god.base_defense + god.base_hp + god.base_speed
-	
-	power_label.text = "Power: %d" % total_power
-	power_label.custom_minimum_size = Vector2(100, 0)
-	power_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	hbox.add_child(power_label)
-	
-	# HP/Status display
-	var status_label = Label.new()
-	if god.has_method("get_current_hp"):
-		var current_hp = god.get_current_hp()
-		var max_hp = god.get_max_hp()
-		if current_hp <= 0:
-			status_label.text = "DEFEATED"
-			status_label.modulate = Color.RED
-			checkbox.disabled = true
-		elif current_hp < max_hp:
-			status_label.text = "HP: %d/%d" % [current_hp, max_hp]
-			status_label.modulate = Color.YELLOW
-		else:
-			status_label.text = "READY"
-			status_label.modulate = Color.GREEN
-	else:
-		status_label.text = "READY"
-		status_label.modulate = Color.GREEN
-	
-	status_label.custom_minimum_size = Vector2(80, 0)
-	hbox.add_child(status_label)
-	
-	return panel
-
-func _on_battle_god_toggled(checked: bool, god):
-	if checked:
-		if selected_battle_gods.size() < 5:
-			selected_battle_gods.append(god)
-		else:
-			# Uncheck the checkbox if team is full
-			var checkboxes = battle_god_list.get_children()
-			for child in checkboxes:
-				if child.has_method("get_children"):
-					for subchild in child.get_children():
-						if subchild is MarginContainer:
-							var hbox = subchild.get_child(0)
-							if hbox is HBoxContainer:
-								var checkbox = hbox.get_child(0)
-								if checkbox is CheckBox:
-									# Find the god this checkbox represents
-									for c in checkboxes:
-										if c == child:
-											checkbox.set_pressed_no_signal(false)
-											return
-	else:
-		selected_battle_gods.erase(god)
-	
-	update_selected_team_display()
-
-func update_selected_team_display():
-	var container = battle_team_popup.find_child("SelectedTeamContainer")
-	if not container:
-		return
-		
-	# Clear existing display
-	for child in container.get_children():
-		child.queue_free()
-	
-	await get_tree().process_frame
-	
-	# Update header
-	var header_label = Label.new()
-	header_label.text = "Selected Team (%d/5):" % selected_battle_gods.size()
-	header_label.add_theme_font_size_override("font_size", 14)
-	container.add_child(header_label)
-	
-	if selected_battle_gods.size() == 0:
-		var empty_label = Label.new()
-		empty_label.text = "No gods selected"
-		empty_label.modulate = Color.GRAY
-		container.add_child(empty_label)
-	else:
-		var total_power = 0
-		for god in selected_battle_gods:
-			var god_label = Label.new()
-			var power = 0
-			if god.has_method("get_power_rating"):
-				power = god.get_power_rating()
-			elif god.has_method("get_total_power"):
-				power = god.get_total_power()
-			else:
-				power = god.base_attack + god.base_defense + god.base_hp + god.base_speed
-			
-			total_power += power
-			god_label.text = "• %s (Lv.%d) - Power: %d" % [god.name, god.level, power]
-			container.add_child(god_label)
-		
-		# Show total power
-		var total_label = Label.new()
-		total_label.text = "Total Team Power: %d" % total_power
-		total_label.modulate = Color.GOLD
-		total_label.add_theme_font_size_override("font_size", 14)
-		container.add_child(total_label)
-
-func _on_start_stage_battle():
-	if selected_battle_gods.size() == 0:
-		print("No gods selected for battle!")
-		return
-	
-	if not current_battle_territory:
-		print("No territory selected!")
-		return
-	
-	print("Opening Battle Screen for territory stage battle with %d gods" % selected_battle_gods.size())
-	
-	# Hide the popup
-	battle_team_popup.hide()
-	
-	# Load and open the battle screen
-	var battle_screen_scene = preload("res://scenes/BattleScreen.tscn")
-	var battle_screen = battle_screen_scene.instantiate()
-	
-	# Add to scene tree root instead of current_scene (fixes gray screen issue)
-	get_tree().root.add_child(battle_screen)
-	
-	# Hide territory screen
-	visible = false
-	
-	# Connect back button
-	if battle_screen.has_signal("back_pressed"):
-		battle_screen.back_pressed.connect(_on_battle_screen_back.bind(battle_screen))
-	
-	# Set up the battle screen for territory stage battle
-	battle_screen.setup_territory_stage_battle(current_battle_territory, current_battle_stage, selected_battle_gods)
-
-func _on_battle_screen_back(battle_screen: Node):
-	# Return to territory screen and refresh
-	visible = true
-	battle_screen.queue_free()
-	
-	# Reset battle selections
-	selected_battle_gods.clear()
-	current_battle_territory = null
-	
-	# Refresh territories to show updated progress
-	refresh_territories()
-
-func _on_cancel_battle_team_selection():
-	selected_battle_gods.clear()
-	battle_team_popup.hide()
 
 func _on_claim_territory(territory):
 	# Auto-assign strongest god and mark as unlocked
@@ -1134,7 +964,7 @@ func create_god_assignment_item(god, territory, is_stationed_elsewhere: bool):
 	god_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(god_label)
 	
-	# Power display - handle both function names
+	# Power display
 	var power_label = Label.new()
 	var total_power = 0
 	if god.has_method("get_power_rating"):
@@ -1234,322 +1064,6 @@ func _find_strongest_available_god():
 	
 	return strongest_god
 
-func _get_strongest_gods_for_battle(max_count: int) -> Array:
-	if not GameManager or not GameManager.player_data:
-		return []
-	
-	var available_gods = []
-	for god in GameManager.player_data.gods:
-		if god.stationed_territory.is_empty():  # God is available
-			available_gods.append(god)
-	
-	# Sort by power (highest first) - handle different method names
-	available_gods.sort_custom(func(a, b): 
-		var power_a = 0
-		var power_b = 0
-		
-		if a.has_method("get_power_rating"):
-			power_a = a.get_power_rating()
-		elif a.has_method("get_total_power"):
-			power_a = a.get_total_power()
-		else:
-			power_a = a.base_hp + a.base_attack + a.base_defense + a.base_speed
-			
-		if b.has_method("get_power_rating"):
-			power_b = b.get_power_rating()
-		elif b.has_method("get_total_power"):
-			power_b = b.get_total_power()
-		else:
-			power_b = b.base_hp + b.base_attack + b.base_defense + b.base_speed
-			
-		return power_a > power_b
-	)
-	
-	# Return up to max_count gods
-	return available_gods.slice(0, max_count)
-
-func create_enemy_preview_info() -> Control:
-	"""Create a preview of enemies that will be faced in the current stage"""
-	if not current_battle_territory:
-		return Label.new()
-	
-	var preview_panel = Panel.new()
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.4, 0.2, 0.2, 0.8)  # Reddish tint for enemies
-	style.corner_radius_top_left = 5
-	style.corner_radius_top_right = 5
-	style.corner_radius_bottom_left = 5
-	style.corner_radius_bottom_right = 5
-	style.border_width_left = 2
-	style.border_width_top = 2
-	style.border_width_right = 2
-	style.border_width_bottom = 2
-	style.border_color = Color.RED
-	preview_panel.add_theme_stylebox_override("panel", style)
-	preview_panel.custom_minimum_size = Vector2(0, 120)
-	
-	var margin = MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
-	preview_panel.add_child(margin)
-	
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 3)
-	margin.add_child(vbox)
-	
-	# Title
-	var title_label = Label.new()
-	title_label.text = "⚔️ Stage %d Enemies:" % current_battle_stage
-	title_label.add_theme_font_size_override("font_size", 14)
-	title_label.modulate = Color.YELLOW
-	vbox.add_child(title_label)
-	
-	# Get enemy preview from battle system
-	var enemy_preview = get_stage_enemy_preview(current_battle_territory, current_battle_stage)
-	
-	for enemy_info in enemy_preview:
-		var enemy_label = Label.new()
-		
-		# Enhanced enemy display with type and element info
-		var type_icon = get_enemy_type_icon(enemy_info.get("type", "basic"))
-		var element_color = get_element_color(enemy_info.get("element", ""))
-		
-		enemy_label.text = "%s %s (Lv.%d)\n  HP: %d | ATK: %d | DEF: %d" % [
-			type_icon,
-			enemy_info.name, 
-			enemy_info.level, 
-			enemy_info.hp, 
-			enemy_info.attack,
-			enemy_info.get("defense", 0)
-		]
-		enemy_label.add_theme_font_size_override("font_size", 11)
-		enemy_label.modulate = element_color
-		vbox.add_child(enemy_label)
-	
-	return preview_panel
-
-func get_stage_enemy_preview(territory: Territory, stage: int) -> Array:
-	"""Get a preview of enemies for a specific stage - Summoners War style"""
-	var previews = []
-	
-	# Base calculations for Summoners War style scaling
-	var base_level = get_preview_base_level(territory.tier)
-	var stage_level = base_level + (stage - 1) * 2  # Level scaling per stage
-	var enemy_count = get_stage_enemy_count(territory, stage)
-	
-	# Determine enemy composition based on stage progression
-	var enemy_composition = get_stage_enemy_composition(territory, stage)
-	
-	# Create enemy previews based on composition
-	for i in range(enemy_count):
-		var preview = {}
-		preview.level = stage_level
-		
-		# Determine enemy type for this position
-		var enemy_type = "basic"
-		if i < enemy_composition.size():
-			enemy_type = enemy_composition[i]
-		
-		# Set enemy name and element based on territory and type
-		var element_name = get_element_display_name(str(territory.element))
-		match enemy_type:
-			"boss":
-				preview.name = "%s Overlord" % element_name
-			"elite":
-				preview.name = "%s Elite" % element_name
-			"leader":
-				preview.name = "%s Commander" % element_name
-			_:
-				preview.name = "%s Guardian" % element_name
-		
-		# Calculate stats using enemies.json base stats
-		var stats = calculate_preview_stats_from_enemies_json(str(territory.element), enemy_type, stage_level)
-		preview.hp = stats.hp
-		preview.attack = stats.attack
-		preview.defense = stats.defense
-		preview.element = str(territory.element)  # Convert enum to string
-		preview.type = enemy_type
-		
-		previews.append(preview)
-	
-	return previews
-
-func get_stage_enemy_count(_territory: Territory, stage: int) -> int:
-	"""Get number of enemies for a stage - Summoners War style progression"""
-	match stage:
-		1, 2:
-			return 3  # Early stages: 3 basic enemies
-		3, 4, 5:
-			return 4  # Mid stages: 4 enemies
-		6, 7, 8, 9:
-			return 5  # Late stages: 5 enemies
-		10:
-			return 3  # Boss stage: fewer but stronger enemies
-		_:
-			return 4  # Default
-
-func get_stage_enemy_composition(_territory: Territory, stage: int) -> Array:
-	"""Get enemy type composition for a stage - Summoners War style"""
-	var composition = []
-	
-	match stage:
-		1, 2:
-			# Early stages: all basic
-			composition = ["basic", "basic", "basic"]
-		3, 4:
-			# Add a leader
-			composition = ["basic", "basic", "leader", "basic"]
-		5, 6, 7:
-			# Mixed composition with elite
-			composition = ["basic", "leader", "elite", "basic", "basic"]
-		8, 9:
-			# Harder composition
-			composition = ["leader", "elite", "elite", "basic", "leader"]
-		10:
-			# Boss stage
-			composition = ["elite", "boss", "elite"]
-		_:
-			# Default composition
-			composition = ["basic", "basic", "leader", "basic"]
-	
-	return composition
-
-func get_element_display_name(element: String) -> String:
-	"""Get display name for element"""
-	match element.to_lower():
-		"fire":
-			return "Flame"
-		"water":
-			return "Frost"
-		"earth":
-			return "Stone"
-		"lightning":
-			return "Storm"
-		"light":
-			return "Divine"
-		"dark":
-			return "Shadow"
-		_:
-			return "Mystic"
-
-func calculate_preview_stats_from_enemies_json(_element: String, enemy_type: String, level: int) -> Dictionary:
-	"""Calculate enemy stats using enemies.json data structure"""
-	# Base stats from enemies.json structure
-	var base_hp = 200
-	var base_attack = 50
-	var base_defense = 25
-	
-	# Per-level growth
-	var hp_per_level = 25
-	var attack_per_level = 6
-	var defense_per_level = 3
-	
-	# Role multipliers based on enemy type
-	var role_multipliers = get_preview_multipliers(enemy_type)
-	
-	# Territory tier scaling (higher tiers = stronger base stats)
-	var tier_multiplier = 1.0
-	if current_battle_territory:
-		tier_multiplier = 1.0 + (current_battle_territory.tier - 1) * 0.2
-	
-	# Calculate final stats
-	var stats = {}
-	stats.hp = int((base_hp + level * hp_per_level) * role_multipliers.hp * tier_multiplier)
-	stats.attack = int((base_attack + level * attack_per_level) * role_multipliers.attack * tier_multiplier)
-	stats.defense = int((base_defense + level * defense_per_level) * role_multipliers.defense * tier_multiplier)
-	
-	return stats
-
-func get_enemy_type_icon(enemy_type: String) -> String:
-	"""Get icon/symbol for enemy type"""
-	match enemy_type:
-		"boss":
-			return "👑"  # Crown for boss
-		"elite":
-			return "⚡"  # Lightning for elite
-		"leader":
-			return "🛡️"  # Shield for leader
-		_:
-			return "⚔️"  # Sword for basic
-
-func get_element_color(element: String) -> Color:
-	"""Get color for element display"""
-	match element.to_lower():
-		"fire":
-			return Color.ORANGE_RED
-		"water":
-			return Color.CYAN
-		"earth":
-			return Color.YELLOW_GREEN
-		"lightning":
-			return Color.LIGHT_YELLOW
-		"light":
-			return Color.WHITE
-		"dark":
-			return Color.PURPLE
-		_:
-			return Color.LIGHT_CORAL
-
-func get_fallback_enemy_preview(territory: Territory, stage: int) -> Array:
-	"""Fallback enemy preview when JSON data isn't available"""
-	var previews = []
-	var base_level = get_preview_base_level(territory.tier)
-	var enemy_count = get_preview_base_enemy_count(territory.tier)
-	var stage_level = base_level + (stage - 1) * 2
-	
-	for i in range(enemy_count):
-		var preview = {}
-		preview.level = stage_level
-		preview.name = "Territory Guardian %d" % (i + 1)
-		
-		var stats = calculate_preview_stats(stage_level, {"hp": 1.0, "attack": 1.0, "defense": 1.0})
-		preview.hp = stats.hp
-		preview.attack = stats.attack
-		preview.defense = stats.defense
-		
-		previews.append(preview)
-	
-	return previews
-
-func get_preview_multipliers(enemy_type: String) -> Dictionary:
-	"""Get stat multipliers for different enemy types"""
-	match enemy_type:
-		"boss":
-			return {"hp": 3.0, "attack": 1.8, "defense": 1.5}
-		"elite":
-			return {"hp": 1.8, "attack": 1.4, "defense": 1.2}
-		"leader":
-			return {"hp": 1.4, "attack": 1.2, "defense": 1.1}
-		_:
-			return {"hp": 1.0, "attack": 1.0, "defense": 1.0}
-
-func get_preview_base_level(tier: int) -> int:
-	var tier_settings = GameDataLoader.get_tier_settings(tier)
-	return tier_settings.get("base_level", 5)
-
-func get_preview_base_enemy_count(tier: int) -> int:
-	var tier_settings = GameDataLoader.get_tier_settings(tier)
-	return tier_settings.get("base_enemy_count", 3)
-
-func get_preview_element_enemy_types(element: int) -> Dictionary:
-	var element_string = GameDataLoader.element_int_to_string(element)
-	return GameDataLoader.get_enemy_types_for_element(element_string)
-
-func get_preview_stage_title(stage: int) -> String:
-	return GameDataLoader.get_stage_title(stage)
-
-func calculate_preview_stats(level: int, multiplier: Dictionary) -> Dictionary:
-	var base_stats = GameDataLoader.get_base_stats_config()
-	return {
-		"hp": int(level * base_stats.get("hp_per_level", 80) * multiplier.get("hp", 1.0)),
-		"attack": int(level * base_stats.get("attack_per_level", 15) * multiplier.get("attack", 1.0)),
-		"defense": int(level * base_stats.get("defense_per_level", 12) * multiplier.get("defense", 1.0)),
-		"speed": int(level * base_stats.get("speed_per_level", 8) * multiplier.get("speed", 1.0))
-	}
-
 func _get_element_name(element_type: int) -> String:
 	match element_type:
 		0: return "Fire"
@@ -1560,18 +1074,141 @@ func _get_element_name(element_type: int) -> String:
 		5: return "Dark"
 		_: return "Unknown"
 
-func get_tier_color(tier: int) -> Color:
-	match tier:
-		1:
-			return Color(0.3, 0.5, 0.3)  # Green
-		2:
-			return Color(0.5, 0.3, 0.5)  # Purple
-		3:
-			return Color(0.5, 0.5, 0.3)  # Gold
+func get_role_icon(role: String) -> String:
+	"""Get icon for role type"""
+	match role:
+		"defender":
+			return "🛡️"
+		"gatherer":
+			return "⛏️"
+		"crafter":
+			return "🔨"
 		_:
-			return Color.GRAY
+			return "•"
 
-# NEW: Resource collection function
+func get_role_color(role: String) -> Color:
+	"""Get color for role type"""
+	match role:
+		"defender":
+			return Color.RED
+		"gatherer":
+			return Color.GREEN
+		"crafter":
+			return Color.BLUE
+		_:
+			return Color.WHITE
+
+func get_god_territory_action(god: God, role: String, territory: Territory) -> String:
+	"""Get a description of what this god is doing in this territory role"""
+	var efficiency = 1.0
+	var element_bonus = ""
+	
+	# Calculate efficiency if TerritoryManager is available
+	if GameManager.territory_manager:
+		efficiency = GameManager.territory_manager.get_god_role_efficiency(god, role)
+	
+	# Check for element matching bonus
+	if god.element == territory.element:
+		element_bonus = " (+25% match)"
+	
+	# Generate action description based on role
+	match role:
+		"defender":
+			var defense_boost = int(territory.required_power * 0.15 * efficiency)
+			return "Defending (+%d power)%s" % [defense_boost, element_bonus]
+		
+		"gatherer":
+			# Show specific resources being gathered based on territory tier
+			var resource_list = []
+			if GameManager.territory_manager:
+				var god_contribution = GameManager.territory_manager.calculate_god_contribution(god, role, territory)
+				for resource_type in god_contribution.keys():
+					var amount = god_contribution[resource_type]
+					if amount > 0:
+						var display_name = resource_type.replace("_", " ").capitalize()
+						resource_list.append("%s: +%d/hr" % [display_name, amount])
+			
+			if resource_list.size() > 0:
+				return "Gathering: %s%s" % [", ".join(resource_list), element_bonus]
+			else:
+				# Fallback if TerritoryManager not available - use ResourceManager for names
+				var mana_name = "Mana"  # Default fallback
+				
+				# Get proper resource name from ResourceManager
+				if GameManager and GameManager.has_method("get_resource_manager"):
+					var resource_mgr = GameManager.get_resource_manager()
+					if resource_mgr:
+						var mana_info = resource_mgr.get_resource_info("mana")
+						mana_name = mana_info.get("name", "Mana")
+				
+				match territory.tier:
+					1:
+						return "Gathering: %s +%d/hr%s" % [mana_name, int(12 * efficiency), element_bonus]
+					2:
+						return "Gathering: %s +%d, Ore +%d/hr%s" % [mana_name, int(18 * efficiency), int(8 * efficiency), element_bonus]
+					3:
+						return "Gathering: Essence +%d, Ore +%d, Souls +%d/hr%s" % [int(25 * efficiency), int(12 * efficiency), int(5 * efficiency), element_bonus]
+					_:
+						return "Gathering: Base resources +%d/hr%s" % [int(10 * efficiency), element_bonus]
+		
+		"crafter":
+			var crafted_items = []
+			if GameManager.territory_manager:
+				var god_contribution = GameManager.territory_manager.calculate_god_contribution(god, role, territory)
+				for resource_type in god_contribution.keys():
+					var amount = god_contribution[resource_type]
+					if amount > 0:
+						var display_name = resource_type.replace("_", " ").capitalize()
+						crafted_items.append("%s: +%d/hr" % [display_name, amount])
+			
+			if crafted_items.size() > 0:
+				return "Crafting: %s%s" % [", ".join(crafted_items), element_bonus]
+			else:
+				# Fallback
+				var element_name = territory.get_element_name().to_lower()
+				var powder_amount = max(1, int(3 * efficiency))
+				return "Crafting: %s Powder +%d/hr%s" % [element_name.capitalize(), powder_amount, element_bonus]
+		
+		_:
+			return "Unknown role (%d%% efficiency)" % int(efficiency * 100)
+
+func _on_open_role_management(territory: Territory):
+	"""Open the role management screen for a territory"""
+	print("Opening role management for territory: ", territory.name)
+	
+	# Load the role management screen
+	var role_screen_scene = load("res://scenes/TerritoryRoleScreen.tscn")
+	var role_screen = role_screen_scene.instantiate()
+	
+	# Add to scene tree
+	get_tree().root.add_child(role_screen)
+	
+	# Setup for this territory
+	role_screen.setup_for_territory(territory)
+	
+	# Connect back signal
+	role_screen.back_pressed.connect(_on_role_management_back.bind(role_screen))
+	role_screen.role_assignments_changed.connect(_on_role_assignments_changed)
+	
+	# Hide this screen
+	visible = false
+
+func _on_role_management_back(role_screen: Node):
+	"""Handle return from role management screen"""
+	# Show this screen again
+	visible = true
+	
+	# Clean up role screen
+	role_screen.queue_free()
+	
+	# Refresh territories to show updated assignments
+	refresh_territories()
+
+func _on_role_assignments_changed():
+	"""Handle role assignment changes"""
+	# Refresh display when assignments change
+	refresh_territories()
+
 func _on_collect_resources(territory: Territory):
 	"""Manually collect pending resources from a territory"""
 	var resources = territory.collect_resources()
@@ -1595,7 +1232,6 @@ func _on_collect_resources(territory: Territory):
 	else:
 		print("No resources to collect from %s" % territory.name)
 
-# NEW: Quick upgrade function
 func _on_quick_upgrade_territory(territory: Territory):
 	"""Quick upgrade for the most beneficial territory improvement"""
 	var upgraded = false
@@ -1613,7 +1249,7 @@ func _on_quick_upgrade_territory(territory: Territory):
 	
 	if upgraded:
 		refresh_territories()
-		# Auto-save after territory upgrades (spending resources)
+		# Auto-save after territory upgrades
 		if GameManager:
 			GameManager.save_game()
 	else:

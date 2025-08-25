@@ -366,8 +366,6 @@ func _connect_battle_system():
 			wave_system.wave_started.connect(_on_wave_started)
 		if not wave_system.wave_completed.is_connected(_on_wave_completed):
 			wave_system.wave_completed.connect(_on_wave_completed)
-		if not wave_system.wave_rewards_awarded.is_connected(_on_wave_rewards_awarded):
-			wave_system.wave_rewards_awarded.connect(_on_wave_rewards_awarded)
 		if not wave_system.all_waves_completed.is_connected(_on_all_waves_completed):
 			wave_system.all_waves_completed.connect(_on_all_waves_completed)
 
@@ -1878,14 +1876,16 @@ func _on_battle_completed(result):
 	
 	# Handle single territory battles (non-wave)
 	elif result == 0 and current_territory and not is_wave_battle:
-		# Award territory rewards for single battle
+		# Get the loot that was already awarded by BattleManager (don't award again!)
 		var territory_rewards = {}
-		if current_battle_stage <= 3:
-			territory_rewards = {"experience": 100, "territory_tokens": 5}
-		elif current_battle_stage <= 7:
-			territory_rewards = {"experience": 150, "territory_tokens": 8, "essence": 15}
-		else:
-			territory_rewards = {"experience": 200, "territory_tokens": 12, "essence": 25, "crystals": 3}
+		if GameManager and GameManager.battle_system and GameManager.battle_system.has_method("get_last_awarded_loot"):
+			territory_rewards = GameManager.battle_system.get_last_awarded_loot()
+			print("=== BattleScreen: Got territory rewards from BattleManager: %s ===" % str(territory_rewards))
+		
+		# Fallback to basic display if no loot data available (shouldn't happen in clean architecture)
+		if territory_rewards.is_empty():
+			print("=== BattleScreen: No loot from BattleManager, using fallback display ===")
+			territory_rewards = {"experience": 100, "mana": 50}  # Just for display, not actually awarded
 		
 		# Territory progress is automatically handled by GameManager._on_battle_completed()
 		# via territory.clear_stage() when the battle system reports victory
@@ -1931,26 +1931,20 @@ func _format_rewards(rewards: Dictionary) -> String:
 		return "%s, and %d more" % [", ".join(display_rewards), remaining]
 
 func _get_reward_display_name(item_type: String) -> String:
-	"""Get a nice display name for reward types"""
+	"""Get a nice display name for reward types using ResourceManager"""
+	# Use ResourceManager for dynamic resource names
+	if GameManager and GameManager.has_method("get_resource_manager"):
+		var resource_mgr = GameManager.get_resource_manager()
+		if resource_mgr:
+			var resource_info = resource_mgr.get_resource_info(item_type)
+			var display_name = resource_info.get("name", "")
+			if display_name != "":
+				return display_name
+	
+	# Fallback for special cases and legacy compatibility
 	match item_type:
 		"experience":
 			return "XP"
-		"essence":
-			return "Essence"
-		"divine_essence":
-			return "Divine Essence"
-		"crystals":
-			return "Crystals"
-		"territory_tokens":
-			return "Territory Tokens"
-		"dark_powder_low":
-			return "Dark Powder"
-		"dark_powder_mid":
-			return "Dark Powder+"
-		"dark_powder_high":
-			return "Dark Powder++"
-		"magic_powder_low":
-			return "Magic Powder"
 		"equipment_dropped":
 			return "Equipment"
 		"divine_weapon":
@@ -2358,7 +2352,21 @@ func _on_back_pressed():
 	if turn_indicator:
 		turn_indicator.text = ""
 	
-	# Navigate based on battle type with proper cleanup
+	# Emit signal to let parent handle navigation instead of doing it ourselves
+	print("=== BattleScreen: Emitting back_pressed signal ===")
+	back_pressed.emit()
+	
+	# Fallback navigation if no parent is listening to the signal
+	# Wait a frame to see if parent handles it, then fallback
+	await get_tree().process_frame
+	_check_fallback_navigation()
+
+func _check_fallback_navigation():
+	"""Check if we still exist after emitting signal - if so, handle navigation ourselves"""
+	if not is_inside_tree():
+		return  # Parent handled it properly
+	
+	print("=== BattleScreen: No parent handled back_pressed, doing fallback navigation ===")
 	if current_territory:
 		# Territory battle - go back to territory screen
 		_navigate_to_territory_screen()
@@ -2494,22 +2502,22 @@ func _on_wave_completed(wave_number: int, total_waves: int):
 	if wave_number < total_waves:
 		_add_battle_log_line("[color=yellow]Preparing next wave...[/color]")
 
-func _on_wave_rewards_awarded(wave_number: int, rewards: Dictionary):
-	"""Handle wave rewards being awarded"""
-	var reward_text = _format_rewards(rewards)
-	if not reward_text.is_empty():
-		_add_battle_log_line("[color=yellow]Wave %d rewards: %s[/color]" % [wave_number, reward_text])
-
-func _on_all_waves_completed(rewards: Dictionary):
-	"""Handle all waves completed"""
+func _on_all_waves_completed():
+	"""Handle all waves completed - get loot from BattleManager"""
 	if wave_indicator:
 		wave_indicator.text = "Victory!"
 		wave_indicator.modulate = Color.GREEN
 	
 	_add_battle_log_line("[color=gold]All waves completed! Victory![/color]")
 	
-	# Show loot collection window instead of auto-returning
-	_show_loot_collection_window(rewards)
+	# Get the actual loot that was awarded by BattleManager
+	var awarded_loot = {}
+	if GameManager and GameManager.battle_system and GameManager.battle_system.has_method("get_last_awarded_loot"):
+		awarded_loot = GameManager.battle_system.get_last_awarded_loot()
+		print("=== BattleScreen: Got awarded loot from BattleManager: %s ===" % str(awarded_loot))
+	
+	# Show loot collection window with actual awarded loot
+	_show_loot_collection_window(awarded_loot)
 
 func _show_loot_collection_window(rewards: Dictionary):
 	"""Show proper loot collection window that requires user interaction"""
@@ -2690,21 +2698,25 @@ func _show_loot_collection_window(rewards: Dictionary):
 	print("=== LootCollection: Window created with %d rewards ===" % rewards.size())
 
 func _get_reward_color(reward_type: String) -> Color:
-	"""Get color for different reward types"""
+	"""Get color for different reward types using ResourceManager"""
+	# Use ResourceManager for dynamic color information
+	if GameManager and GameManager.has_method("get_resource_manager"):
+		var resource_mgr = GameManager.get_resource_manager()
+		if resource_mgr:
+			var resource_info = resource_mgr.get_resource_info(reward_type)
+			var color_string = resource_info.get("color", "")
+			if color_string != "":
+				return Color(color_string) if color_string.is_valid_html_color() else Color.WHITE
+	
+	# Fallback colors for special cases
 	match reward_type:
 		"experience":
 			return Color.CYAN
-		"essence", "divine_essence":
-			return Color.PURPLE
-		"crystals":
-			return Color.YELLOW
-		"territory_tokens":
-			return Color.GREEN
-		"raid_points":
-			return Color.RED
 		"equipment_dropped", "divine_weapon", "divine_armor", "legendary_equipment":
 			return Color.ORANGE
 		"cursed_equipment":
 			return Color.DARK_RED
+		"raid_points":
+			return Color.RED
 		_:
 			return Color.WHITE

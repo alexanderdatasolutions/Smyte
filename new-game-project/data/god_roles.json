@@ -1,0 +1,1011 @@
+{
+  "role_definitions": {
+    "defender": {
+      "id": "defender",
+      "name": "Defender",
+      "description": "Guards territories and provides combat bonuses during attacks",
+      "slot_type": "combat",
+      "base_benefits": {
+        "territory_defense_power": 100,
+        "pvp_defense_bonus": 0.15,
+        "monster_attack_resistance": 0.2
+      },
+      "tier_multipliers": {
+        "common": 1.0,
+        "rare": 1.3,
+        "epic": 1.6,
+        "legendary": 2.0
+      },
+      "element_synergies": {
+        "matching_territory": 0.25,
+        "adjacent_same_element": 0.1
+      }
+    },
+    "gatherer": {
+      "id": "gatherer",
+      "name": "Gatherer",
+      "description": "Collects resources from territories while stationed",
+      "slot_type": "resource",
+      "base_benefits": {
+        "resource_generation_bonus": 0.2,
+        "collection_speed": 0.15,
+        "rare_resource_chance": 0.05
+      },
+      "tier_multipliers": {
+        "common": 1.0,
+        "rare": 1.2,
+        "epic": 1.4,
+        "legendary": 1.6
+      },
+      "element_synergies": {
+        "matching_territory": 0.3,
+        "harvest_efficiency": 0.15
+      }
+    },
+    "crafter": {
+      "id": "crafter",
+      "name": "Crafter",
+      "description": "Converts resources and creates temporary buffs",
+      "slot_type": "production",
+      "base_benefits": {
+        "powder_conversion_rate": 0.1,
+        "buff_duration_bonus": 0.2,
+        "crafting_speed": 0.15
+      },
+      "tier_multipliers": {
+        "common": 1.0,
+        "rare": 1.25,
+        "epic": 1.5,
+        "legendary": 1.8
+      },
+      "element_synergies": {
+        "matching_territory": 0.2,
+        "quality_bonus": 0.1
+      }
+    }
+  },
+  
+  "passive_templates": {
+    "defender_passives": {
+      "fortress_stance": {
+        "id": "fortress_stance",
+        "name": "Fortress Stance",
+        "description": "Increases territory defense by 25% when health is above 50%",
+        "effect_type": "conditional_defense",
+        "value": 0.25,
+        "condition": "hp_above_50"
+      },
+      "last_stand": {
+        "id": "last_stand",
+        "name": "Last Stand",
+        "description": "Territory cannot be captured while this god is above 30% HP",
+        "effect_type": "capture_prevention",
+        "threshold": 0.3
+      },
+      "rallying_cry": {
+        "id": "rallying_cry",
+        "name": "Rallying Cry",
+        "description": "Other defenders gain 10% stats",
+        "effect_type": "team_buff",
+        "value": 0.1,
+        "targets": "other_defenders"
+      },
+      "elemental_bulwark": {
+        "id": "elemental_bulwark",
+        "name": "Elemental Bulwark",
+        "description": "Reduces damage from opposing element by 30%",
+        "effect_type": "damage_reduction",
+        "value": 0.3,
+        "condition": "opposing_element"
+      },
+      "retribution": {
+        "id": "retribution",
+        "name": "Retribution",
+        "description": "Counterattacks have 30% chance when territory is attacked",
+        "effect_type": "counter",
+        "chance": 0.3
+      }
+    },
+    
+    "gatherer_passives": {
+      "bountiful_harvest": {
+        "id": "bountiful_harvest",
+        "name": "Bountiful Harvest",
+        "description": "20% chance for double resources each collection",
+        "effect_type": "double_resources",
+        "chance": 0.2
+      },
+      "essence_finder": {
+        "id": "essence_finder",
+        "name": "Essence Finder",
+        "description": "Finds 5-10 extra divine essence per hour",
+        "effect_type": "bonus_resource",
+        "resource": "divine_essence",
+        "min": 5,
+        "max": 10,
+        "interval": 3600
+      },
+      "crystal_prospector": {
+        "id": "crystal_prospector",
+        "name": "Crystal Prospector",
+        "description": "3% chance to find divine crystals each hour",
+        "effect_type": "rare_find",
+        "resource": "divine_crystals",
+        "chance": 0.03,
+        "amount": 1
+      },
+      "efficient_collector": {
+        "id": "efficient_collector",
+        "name": "Efficient Collector",
+        "description": "Reduces collection time by 25%",
+        "effect_type": "speed_bonus",
+        "value": 0.25
+      },
+      "powder_accumulator": {
+        "id": "powder_accumulator",
+        "name": "Powder Accumulator",
+        "description": "Generates 1-3 matching element powder per hour",
+        "effect_type": "powder_generation",
+        "min": 1,
+        "max": 3,
+        "element_match": true
+      }
+    },
+    
+    "crafter_passives": {
+      "powder_alchemist": {
+        "id": "powder_alchemist",
+        "name": "Powder Alchemist",
+        "description": "Converts 10 low powder to 1 mid powder every 4 hours",
+        "effect_type": "resource_conversion",
+        "input": {"powder_low": 10},
+        "output": {"powder_mid": 1},
+        "cooldown": 14400
+      },
+      "buff_extender": {
+        "id": "buff_extender",
+        "name": "Buff Extender",
+        "description": "Territory buffs last 30% longer",
+        "effect_type": "duration_bonus",
+        "value": 0.3,
+        "targets": "territory_buffs"
+      },
+      "essence_refiner": {
+        "id": "essence_refiner",
+        "name": "Essence Refiner",
+        "description": "Converts excess resources to divine essence at 10:1 ratio",
+        "effect_type": "refine",
+        "ratio": 10,
+        "output": "divine_essence"
+      },
+      "awakening_catalyst": {
+        "id": "awakening_catalyst",
+        "name": "Awakening Catalyst",
+        "description": "Reduces awakening material requirements by 15% for stationed gods",
+        "effect_type": "cost_reduction",
+        "value": 0.15,
+        "applies_to": "awakening"
+      },
+      "relic_synthesizer": {
+        "id": "relic_synthesizer",
+        "name": "Relic Synthesizer",
+        "description": "5% chance to create pantheon relic fragment daily",
+        "effect_type": "relic_creation",
+        "chance": 0.05,
+        "interval": 86400
+      }
+    }
+  },
+  
+  "pantheon_role_distribution": {
+    "greek": {
+      "defender_weight": 0.4,
+      "gatherer_weight": 0.3,
+      "crafter_weight": 0.3,
+      "theme": "balanced_civilization"
+    },
+    "norse": {
+      "defender_weight": 0.6,
+      "gatherer_weight": 0.2,
+      "crafter_weight": 0.2,
+      "theme": "warrior_culture"
+    },
+    "egyptian": {
+      "defender_weight": 0.3,
+      "gatherer_weight": 0.3,
+      "crafter_weight": 0.4,
+      "theme": "mystical_crafters"
+    },
+    "hindu": {
+      "defender_weight": 0.35,
+      "gatherer_weight": 0.25,
+      "crafter_weight": 0.4,
+      "theme": "cosmic_balance"
+    },
+    "chinese": {
+      "defender_weight": 0.3,
+      "gatherer_weight": 0.4,
+      "crafter_weight": 0.3,
+      "theme": "harmony_prosperity"
+    },
+    "japanese": {
+      "defender_weight": 0.4,
+      "gatherer_weight": 0.3,
+      "crafter_weight": 0.3,
+      "theme": "honor_tradition"
+    },
+    "celtic": {
+      "defender_weight": 0.35,
+      "gatherer_weight": 0.4,
+      "crafter_weight": 0.25,
+      "theme": "nature_harmony"
+    },
+    "slavic": {
+      "defender_weight": 0.35,
+      "gatherer_weight": 0.35,
+      "crafter_weight": 0.3,
+      "theme": "survival_community"
+    },
+    "mesopotamian": {
+      "defender_weight": 0.4,
+      "gatherer_weight": 0.25,
+      "crafter_weight": 0.35,
+      "theme": "ancient_builders"
+    }
+  },
+  
+  "element_role_affinity": {
+    "fire": {
+      "preferred_role": "defender",
+      "secondary_role": "crafter",
+      "bonus_efficiency": 0.1
+    },
+    "water": {
+      "preferred_role": "crafter",
+      "secondary_role": "gatherer",
+      "bonus_efficiency": 0.1
+    },
+    "earth": {
+      "preferred_role": "gatherer",
+      "secondary_role": "defender",
+      "bonus_efficiency": 0.1
+    },
+    "lightning": {
+      "preferred_role": "gatherer",
+      "secondary_role": "crafter",
+      "bonus_efficiency": 0.1
+    },
+    "light": {
+      "preferred_role": "crafter",
+      "secondary_role": "defender",
+      "bonus_efficiency": 0.1
+    },
+    "dark": {
+      "preferred_role": "defender",
+      "secondary_role": "gatherer",
+      "bonus_efficiency": 0.1
+    }
+  },
+  
+  "god_role_assignments": {
+    "zeus": {
+      "role": "defender",
+      "territory_passives": ["last_stand", "rallying_cry"],
+      "leadership_bonus": {
+        "all_defenders_bonus": 0.15,
+        "territory_defense": 0.2
+      }
+    },
+    "poseidon": {
+      "role": "defender",
+      "territory_passives": ["elemental_bulwark", "fortress_stance"]
+    },
+    "hades": {
+      "role": "crafter",
+      "territory_passives": ["essence_refiner", "awakening_catalyst"]
+    },
+    "athena": {
+      "role": "defender",
+      "territory_passives": ["fortress_stance", "rallying_cry"]
+    },
+    "apollo": {
+      "role": "crafter",
+      "territory_passives": ["buff_extender", "powder_alchemist"]
+    },
+    "artemis": {
+      "role": "gatherer",
+      "territory_passives": ["bountiful_harvest", "efficient_collector"]
+    },
+    "ares": {
+      "role": "defender",
+      "territory_passives": ["retribution", "last_stand"]
+    },
+    "hermes": {
+      "role": "gatherer",
+      "territory_passives": ["efficient_collector", "crystal_prospector"]
+    },
+    "odin": {
+      "role": "defender",
+      "territory_passives": ["last_stand", "elemental_bulwark"],
+      "leadership_bonus": {
+        "all_roles_bonus": 0.1,
+        "pvp_defense": 0.25
+      }
+    },
+    "thor": {
+      "role": "defender",
+      "territory_passives": ["retribution", "fortress_stance"]
+    },
+    "freya": {
+      "role": "crafter",
+      "territory_passives": ["buff_extender", "relic_synthesizer"]
+    },
+    "loki": {
+      "role": "gatherer",
+      "territory_passives": ["crystal_prospector", "essence_finder"]
+    },
+    "baldur": {
+      "role": "crafter",
+      "territory_passives": ["awakening_catalyst", "buff_extender"]
+    },
+    "tyr": {
+      "role": "defender",
+      "territory_passives": ["fortress_stance", "elemental_bulwark"]
+    },
+    "heimdall": {
+      "role": "defender",
+      "territory_passives": ["rallying_cry", "retribution"]
+    },
+    "frigg": {
+      "role": "gatherer",
+      "territory_passives": ["bountiful_harvest", "powder_accumulator"]
+    },
+    "ra": {
+      "role": "crafter",
+      "territory_passives": ["powder_alchemist", "relic_synthesizer"],
+      "leadership_bonus": {
+        "crafting_speed": 0.3,
+        "quality_bonus": 0.2
+      }
+    },
+    "anubis": {
+      "role": "defender",
+      "territory_passives": ["last_stand", "retribution"]
+    },
+    "isis": {
+      "role": "crafter",
+      "territory_passives": ["awakening_catalyst", "essence_refiner"]
+    },
+    "thoth": {
+      "role": "gatherer",
+      "territory_passives": ["essence_finder", "efficient_collector"]
+    },
+    "hera": {
+      "role": "defender",
+      "territory_passives": ["fortress_stance", "rallying_cry"],
+      "leadership_bonus": {
+        "territory_stability": 0.3,
+        "rebellion_resistance": 0.5
+      }
+    },
+    "hestia": {
+      "role": "crafter",
+      "territory_passives": ["buff_extender", "essence_refiner"]
+    },
+    "demeter": {
+      "role": "gatherer",
+      "territory_passives": ["bountiful_harvest", "powder_accumulator"]
+    },
+    "dionysus": {
+      "role": "gatherer",
+      "territory_passives": ["crystal_prospector", "bountiful_harvest"]
+    },
+    "hephaestus": {
+      "role": "crafter",
+      "territory_passives": ["powder_alchemist", "awakening_catalyst"]
+    },
+    "aphrodite": {
+      "role": "crafter",
+      "territory_passives": ["buff_extender", "essence_refiner"]
+    },
+    "persephone": {
+      "role": "gatherer",
+      "territory_passives": ["powder_accumulator", "essence_finder"]
+    },
+    "jade_emperor": {
+      "role": "defender",
+      "territory_passives": ["last_stand", "fortress_stance"],
+      "leadership_bonus": {
+        "all_territory_bonus": 0.2,
+        "divine_protection": true
+      }
+    },
+    "dragon_king": {
+      "role": "defender",
+      "territory_passives": ["elemental_bulwark", "retribution"]
+    },
+    "sun_wukong": {
+      "role": "gatherer",
+      "territory_passives": ["efficient_collector", "crystal_prospector"]
+    },
+    "chang_e": {
+      "role": "crafter",
+      "territory_passives": ["buff_extender", "relic_synthesizer"]
+    },
+    "nezha": {
+      "role": "defender",
+      "territory_passives": ["retribution", "rallying_cry"]
+    },
+    "guanyin": {
+      "role": "crafter",
+      "territory_passives": ["awakening_catalyst", "essence_refiner"]
+    },
+    "lei_gong": {
+      "role": "gatherer",
+      "territory_passives": ["essence_finder", "powder_accumulator"]
+    },
+    "guan_yu": {
+      "role": "defender",
+      "territory_passives": ["fortress_stance", "last_stand"]
+    },
+    "perun": {
+      "role": "defender",
+      "territory_passives": ["retribution", "elemental_bulwark"]
+    },
+    "svarog": {
+      "role": "crafter",
+      "territory_passives": ["powder_alchemist", "awakening_catalyst"]
+    },
+    "mokosh": {
+      "role": "gatherer",
+      "territory_passives": ["bountiful_harvest", "powder_accumulator"]
+    },
+    "veles": {
+      "role": "gatherer",
+      "territory_passives": ["crystal_prospector", "essence_finder"]
+    },
+    "lada": {
+      "role": "crafter",
+      "territory_passives": ["buff_extender", "essence_refiner"]
+    },
+    "domovoi": {
+      "role": "defender",
+      "territory_passives": ["fortress_stance", "rallying_cry"]
+    },
+    "jormungandr": {
+      "role": "defender",
+      "territory_passives": ["last_stand", "elemental_bulwark"]
+    },
+    "fenrir": {
+      "role": "defender",
+      "territory_passives": ["retribution", "fortress_stance"]
+    },
+    "vidar": {
+      "role": "defender",
+      "territory_passives": ["elemental_bulwark", "rallying_cry"]
+    },
+    "bragi": {
+      "role": "gatherer",
+      "territory_passives": ["efficient_collector", "essence_finder"]
+    },
+    "osiris": {
+      "role": "crafter",
+      "territory_passives": ["awakening_catalyst", "relic_synthesizer"]
+    },
+    "horus": {
+      "role": "defender",
+      "territory_passives": ["rallying_cry", "fortress_stance"]
+    },
+    "bastet": {
+      "role": "gatherer",
+      "territory_passives": ["efficient_collector", "crystal_prospector"]
+    },
+    "sobek": {
+      "role": "defender",
+      "territory_passives": ["elemental_bulwark", "last_stand"]
+    },
+    "set": {
+      "role": "gatherer",
+      "territory_passives": ["powder_accumulator", "essence_finder"]
+    },
+    "ptah": {
+      "role": "crafter",
+      "territory_passives": ["powder_alchemist", "essence_refiner"]
+    },
+    "sekhmet": {
+      "role": "defender",
+      "territory_passives": ["retribution", "fortress_stance"]
+    },
+    "nephthys": {
+      "role": "gatherer",
+      "territory_passives": ["bountiful_harvest", "powder_accumulator"]
+    },
+    "brahma": {
+      "role": "crafter",
+      "territory_passives": ["relic_synthesizer", "awakening_catalyst"],
+      "leadership_bonus": {
+        "creation_power": 0.3,
+        "all_crafting": 0.25
+      }
+    },
+    "vishnu": {
+      "role": "defender",
+      "territory_passives": ["last_stand", "fortress_stance"],
+      "leadership_bonus": {
+        "preservation_aura": true,
+        "territory_hp_regen": 0.05
+      }
+    },
+    "shiva": {
+      "role": "defender",
+      "territory_passives": ["retribution", "elemental_bulwark"],
+      "leadership_bonus": {
+        "destruction_power": 0.3,
+        "enemy_debuff": 0.2
+      }
+    },
+    "ganesha": {
+      "role": "crafter",
+      "territory_passives": ["awakening_catalyst", "essence_refiner"]
+    },
+    "hanuman": {
+      "role": "gatherer",
+      "territory_passives": ["efficient_collector", "crystal_prospector"]
+    },
+    "durga": {
+      "role": "defender",
+      "territory_passives": ["rallying_cry", "last_stand"]
+    },
+    "lakshmi": {
+      "role": "gatherer",
+      "territory_passives": ["bountiful_harvest", "crystal_prospector"]
+    },
+    "saraswati": {
+      "role": "crafter",
+      "territory_passives": ["buff_extender", "relic_synthesizer"]
+    },
+    "indra": {
+      "role": "defender",
+      "territory_passives": ["fortress_stance", "retribution"]
+    },
+    "kali": {
+      "role": "defender",
+      "territory_passives": ["retribution", "elemental_bulwark"]
+    },
+    "surya": {
+      "role": "gatherer",
+      "territory_passives": ["essence_finder", "powder_accumulator"]
+    },
+    "chandra": {
+      "role": "gatherer",
+      "territory_passives": ["efficient_collector", "bountiful_harvest"]
+    },
+    "dagda": {
+      "role": "crafter",
+      "territory_passives": ["powder_alchemist", "relic_synthesizer"],
+      "leadership_bonus": {
+        "abundance_generation": 0.4,
+        "no_resource_cap": true
+      }
+    },
+    "brigid": {
+      "role": "crafter",
+      "territory_passives": ["awakening_catalyst", "buff_extender"]
+    },
+    "lugh": {
+      "role": "gatherer",
+      "territory_passives": ["efficient_collector", "crystal_prospector"]
+    },
+    "morrigan": {
+      "role": "defender",
+      "territory_passives": ["last_stand", "retribution"]
+    },
+    "cernunnos": {
+      "role": "gatherer",
+      "territory_passives": ["bountiful_harvest", "powder_accumulator"]
+    },
+    "rhiannon": {
+      "role": "gatherer",
+      "territory_passives": ["efficient_collector", "essence_finder"]
+    },
+    "manannan": {
+      "role": "crafter",
+      "territory_passives": ["essence_refiner", "buff_extender"]
+    },
+    "belenus": {
+      "role": "defender",
+      "territory_passives": ["fortress_stance", "elemental_bulwark"]
+    },
+    "dian_cecht": {
+      "role": "crafter",
+      "territory_passives": ["awakening_catalyst", "essence_refiner"]
+    },
+    "nuada": {
+      "role": "defender",
+      "territory_passives": ["rallying_cry", "fortress_stance"]
+    },
+    "amaterasu": {
+      "role": "crafter",
+      "territory_passives": ["relic_synthesizer", "buff_extender"],
+      "leadership_bonus": {
+        "divine_radiance": true,
+        "all_production": 0.3
+      }
+    },
+    "susanoo": {
+      "role": "defender",
+      "territory_passives": ["retribution", "elemental_bulwark"]
+    },
+    "tsukuyomi": {
+      "role": "gatherer",
+      "territory_passives": ["crystal_prospector", "essence_finder"]
+    },
+    "inari": {
+      "role": "gatherer",
+      "territory_passives": ["bountiful_harvest", "powder_accumulator"]
+    },
+    "raijin": {
+      "role": "defender",
+      "territory_passives": ["fortress_stance", "retribution"]
+    },
+    "fujin": {
+      "role": "gatherer",
+      "territory_passives": ["efficient_collector", "essence_finder"]
+    },
+    "benzaiten": {
+      "role": "crafter",
+      "territory_passives": ["buff_extender", "awakening_catalyst"]
+    },
+    "hachiman": {
+      "role": "defender",
+      "territory_passives": ["rallying_cry", "last_stand"]
+    },
+    "jizo": {
+      "role": "crafter",
+      "territory_passives": ["essence_refiner", "buff_extender"]
+    },
+    "tengu": {
+      "role": "gatherer",
+      "territory_passives": ["efficient_collector", "powder_accumulator"]
+    },
+    "marduk": {
+      "role": "defender",
+      "territory_passives": ["last_stand", "fortress_stance"],
+      "leadership_bonus": {
+        "order_enforcement": true,
+        "chaos_resistance": 0.5
+      }
+    },
+    "tiamat": {
+      "role": "defender",
+      "territory_passives": ["elemental_bulwark", "retribution"],
+      "leadership_bonus": {
+        "primordial_chaos": true,
+        "enemy_confusion": 0.3
+      }
+    },
+    "enlil": {
+      "role": "gatherer",
+      "territory_passives": ["efficient_collector", "crystal_prospector"]
+    },
+    "ereshkigal": {
+      "role": "crafter",
+      "territory_passives": ["awakening_catalyst", "relic_synthesizer"]
+    },
+    "shamash": {
+      "role": "defender",
+      "territory_passives": ["rallying_cry", "fortress_stance"]
+    },
+    "ishtar": {
+      "role": "gatherer",
+      "territory_passives": ["bountiful_harvest", "essence_finder"]
+    },
+    "nergal": {
+      "role": "defender",
+      "territory_passives": ["retribution", "last_stand"]
+    },
+    "ninlil": {
+      "role": "gatherer",
+      "territory_passives": ["powder_accumulator", "bountiful_harvest"]
+    }
+  },
+  
+  "territory_slot_system": {
+    "slot_types": {
+      "combat_slots": {
+        "max_base": 2,
+        "role_restriction": "defender",
+        "upgradeable": true,
+        "max_upgraded": 4,
+        "benefits": {
+          "defense_multiplier": 1.0,
+          "pvp_resistance": 0.2,
+          "monster_damage_reduction": 0.15
+        }
+      },
+      "resource_slots": {
+        "max_base": 2,
+        "role_restriction": "gatherer",
+        "upgradeable": true,
+        "max_upgraded": 3,
+        "benefits": {
+          "generation_rate": 1.0,
+          "collection_efficiency": 1.0,
+          "rare_find_bonus": 0.05
+        }
+      },
+      "production_slots": {
+        "max_base": 1,
+        "role_restriction": "crafter",
+        "upgradeable": true,
+        "max_upgraded": 2,
+        "benefits": {
+          "crafting_speed": 1.0,
+          "conversion_efficiency": 1.0,
+          "quality_chance": 0.1
+        }
+      },
+      "flex_slots": {
+        "max_base": 0,
+        "role_restriction": "any",
+        "upgradeable": true,
+        "max_upgraded": 1,
+        "unlock_requirement": {
+          "territory_level": 10,
+          "cost": {"divine_crystals": 100}
+        },
+        "benefits": {
+          "role_efficiency": 0.8
+        }
+      }
+    },
+    
+    "slot_upgrade_costs": {
+      "combat_slot_3": {
+        "territory_level": 5,
+        "divine_essence": 5000,
+        "awakening_stones": 2
+      },
+      "combat_slot_4": {
+        "territory_level": 10,
+        "divine_essence": 15000,
+        "divine_crystals": 50
+      },
+      "resource_slot_3": {
+        "territory_level": 7,
+        "divine_essence": 7500,
+        "powder_high": 10
+      },
+      "production_slot_2": {
+        "territory_level": 8,
+        "divine_essence": 10000,
+        "divine_crystals": 30
+      },
+      "flex_slot_1": {
+        "territory_level": 10,
+        "divine_essence": 20000,
+        "divine_crystals": 100,
+        "legendary_materials": 5
+      }
+    }
+  },
+  
+  "crafting_recipes": {
+    "basic_buffs": {
+      "attack_boost_potion": {
+        "duration": 3600,
+        "effect": {"attack": 0.15},
+        "cost": {"powder_low": 5, "divine_essence": 100},
+        "craft_time": 1800,
+        "crafter_bonus": 0.05
+      },
+      "defense_boost_potion": {
+        "duration": 3600,
+        "effect": {"defense": 0.15},
+        "cost": {"powder_low": 5, "divine_essence": 100},
+        "craft_time": 1800,
+        "crafter_bonus": 0.05
+      },
+      "speed_boost_potion": {
+        "duration": 3600,
+        "effect": {"speed": 0.1},
+        "cost": {"powder_mid": 2, "divine_essence": 200},
+        "craft_time": 2400,
+        "crafter_bonus": 0.03
+      }
+    },
+    
+    "advanced_buffs": {
+      "territory_shield": {
+        "duration": 7200,
+        "effect": {"damage_reduction": 0.2},
+        "cost": {"powder_high": 1, "divine_essence": 500},
+        "craft_time": 3600,
+        "crafter_tier_requirement": "epic"
+      },
+      "resource_amplifier": {
+        "duration": 14400,
+        "effect": {"resource_generation": 0.25},
+        "cost": {"powder_mid": 5, "divine_crystals": 10},
+        "craft_time": 7200,
+        "crafter_tier_requirement": "rare"
+      },
+      "combat_readiness": {
+        "duration": 3600,
+        "effect": {"first_turn_advantage": true, "accuracy": 0.2},
+        "cost": {"powder_high": 2, "awakening_stones": 1},
+        "craft_time": 5400,
+        "crafter_tier_requirement": "epic"
+      }
+    },
+    
+    "conversion_recipes": {
+      "powder_upgrade_low_to_mid": {
+        "input": {"powder_low": 10},
+        "output": {"powder_mid": 1},
+        "time": 3600,
+        "efficiency_with_crafter": 1.2
+      },
+      "powder_upgrade_mid_to_high": {
+        "input": {"powder_mid": 10},
+        "output": {"powder_high": 1},
+        "time": 7200,
+        "efficiency_with_crafter": 1.15
+      },
+      "essence_crystallization": {
+        "input": {"divine_essence": 1000},
+        "output": {"divine_crystals": 1},
+        "time": 14400,
+        "crafter_tier_requirement": "legendary"
+      },
+      "relic_fragment_fusion": {
+        "input": {"relic_fragments": 10},
+        "output": {"pantheon_relic": 1},
+        "time": 21600,
+        "crafter_tier_requirement": "epic",
+        "success_chance": 0.8
+      }
+    }
+  },
+  
+  "synergy_bonuses": {
+    "role_combinations": {
+      "balanced_team": {
+        "requirement": {"defender": 2, "gatherer": 2, "crafter": 1},
+        "bonus": {
+          "all_efficiency": 0.1,
+          "territory_stability": 0.15
+        }
+      },
+      "fortress_configuration": {
+        "requirement": {"defender": 4},
+        "bonus": {
+          "defense_power": 0.3,
+          "capture_resistance": 0.5
+        }
+      },
+      "production_focus": {
+        "requirement": {"gatherer": 3, "crafter": 2},
+        "bonus": {
+          "resource_generation": 0.25,
+          "crafting_speed": 0.2
+        }
+      }
+    },
+    
+    "pantheon_synergies": {
+      "greek_formation": {
+        "requirement": {"pantheon": "greek", "count": 3},
+        "bonus": {
+          "tactical_advantage": 0.15,
+          "coordination": 0.1
+        }
+      },
+      "norse_shield_wall": {
+        "requirement": {"pantheon": "norse", "role": "defender", "count": 2},
+        "bonus": {
+          "damage_reduction": 0.2,
+          "counter_chance": 0.1
+        }
+      },
+      "egyptian_mystic_circle": {
+        "requirement": {"pantheon": "egyptian", "role": "crafter", "count": 2},
+        "bonus": {
+          "crafting_quality": 0.2,
+          "rare_craft_chance": 0.1
+        }
+      }
+    },
+    
+    "element_synergies": {
+      "elemental_harmony": {
+        "requirement": "all_same_element",
+        "bonus": {
+          "element_power": 0.2,
+          "resistance": 0.15
+        }
+      },
+      "elemental_diversity": {
+        "requirement": "all_different_elements",
+        "bonus": {
+          "adaptability": 0.15,
+          "special_effect_chance": 0.1
+        }
+      }
+    }
+  },
+  
+  "pvp_territory_mechanics": {
+    "attack_defense_calculation": {
+      "base_defense_score": "sum(defender_power * role_multiplier)",
+      "modifiers": {
+        "territory_level": 10,
+        "fortification_bonus": 50,
+        "synergy_multiplier": 1.0
+      }
+    },
+    
+    "capture_mechanics": {
+      "capture_threshold": 0.3,
+      "defender_prevention": {
+        "last_stand_active": "cannot_capture",
+        "multiple_defenders": "threshold * defender_count"
+      },
+      "capture_rewards": {
+        "attacker": {
+          "immediate_resources": 0.1,
+          "glory_points": 100
+        },
+        "defender_compensation": {
+          "protection_period": 86400,
+          "resource_compensation": 0.5
+        }
+      }
+    },
+    
+    "rotation_system": {
+      "cooldown_after_battle": 14400,
+      "emergency_swap": {
+        "cost": {"divine_crystals": 10},
+        "instant": true
+      },
+      "strategic_positioning": {
+        "front_line": "defenders",
+        "support_line": "crafters",
+        "resource_line": "gatherers"
+      }
+    }
+  },
+  
+  "idle_defense_system": {
+    "monster_attacks": {
+      "frequency": "every_4_hours",
+      "difficulty_scaling": "territory_tier",
+      "auto_battle": true,
+      "defender_advantages": {
+        "home_territory": 0.2,
+        "preparation_bonus": 0.1
+      }
+    },
+    
+    "defense_rewards": {
+      "successful_defense": {
+        "experience": 100,
+        "divine_essence": 50,
+        "defender_morale": 0.05
+      },
+      "failed_defense": {
+        "resource_loss": 0.1,
+        "recovery_time": 3600
+      }
+    },
+    
+    "reinforcement_system": {
+      "allied_support": {
+        "friend_reinforcement": 1,
+        "guild_reinforcement": 2,
+        "duration": 7200
+      }
+    }
+  }
+}

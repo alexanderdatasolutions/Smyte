@@ -284,7 +284,7 @@
       "10": 0.60, "11": 0.55, "12": 0.50, "13": 0.45, "14": 0.40
     },
     "enhancement_costs": {
-      "divine_essence_base": 500,
+      "mana_base": 500,
       "level_multiplier": 2.0,
       "rarity_multipliers": {
         "common": 1.0, "rare": 1.5, "epic": 2.0, "legendary": 3.0, "mythic": 5.0
@@ -299,11 +299,11 @@
 
   "crafting_system": {
     "essence_requirements": {
-      "common": {"divine_essence": 1000, "crafting_materials": 10},
-      "rare": {"divine_essence": 2500, "crafting_materials": 25, "rare_crystals": 5},
-      "epic": {"divine_essence": 5000, "crafting_materials": 50, "rare_crystals": 15, "epic_fragments": 5},
-      "legendary": {"divine_essence": 10000, "crafting_materials": 100, "rare_crystals": 30, "epic_fragments": 15, "legendary_core": 1},
-      "mythic": {"divine_essence": 25000, "crafting_materials": 250, "rare_crystals": 75, "epic_fragments": 50, "legendary_core": 5, "mythic_shard": 1}
+      "common": {"mana": 1000, "iron_ore": 10},
+      "rare": {"mana": 2500, "iron_ore": 25, "mythril_ore": 5},
+      "epic": {"mana": 5000, "mythril_ore": 50, "adamantite_ore": 15, "enhancement_powder": 5},
+      "legendary": {"mana": 10000, "mythril_ore": 100, "adamantite_ore": 30, "enhancement_powder": 15, "awakening_stone": 1},
+      "mythic": {"mana": 25000, "adamantite_ore": 250, "forging_flame": 75, "enhancement_powder": 50, "awakening_stone": 5, "blessed_oil": 1}
     },
     "material_sources": {
       "crafting_materials": ["titans_forge", "valhalla_armory", "oracles_sanctum"],
@@ -338,9 +338,9 @@
       }
     },
     "socket_unlock_costs": {
-      "socket_1": {"divine_essence": 5000, "socket_crystals": 5},
-      "socket_2": {"divine_essence": 15000, "socket_crystals": 15, "rare_crystals": 5}, 
-      "socket_3": {"divine_essence": 50000, "socket_crystals": 50, "rare_crystals": 20, "epic_fragments": 5}
+      "socket_1": {"mana": 5000, "socket_crystal": 5},
+      "socket_2": {"mana": 15000, "socket_crystal": 15, "mythril_ore": 5}, 
+      "socket_3": {"mana": 50000, "socket_crystal": 50, "adamantite_ore": 20, "enhancement_powder": 5}
     },
     "max_sockets": {
       "common": 0, "rare": 1, "epic": 2, "legendary": 3, "mythic": 3

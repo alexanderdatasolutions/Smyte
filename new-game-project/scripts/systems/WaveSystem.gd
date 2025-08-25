@@ -4,8 +4,7 @@ class_name WaveSystem
 
 signal wave_started(wave_number: int, total_waves: int)
 signal wave_completed(wave_number: int, total_waves: int)
-signal wave_rewards_awarded(wave_number: int, rewards: Dictionary)
-signal all_waves_completed(rewards: Dictionary)
+signal all_waves_completed()  # No rewards data - BattleManager handles loot
 signal wave_failed(wave_number: int, total_waves: int)
 
 # Wave configuration
@@ -17,10 +16,6 @@ var battle_context: Dictionary = {}
 # Enemy management
 var current_wave_enemies: Array = []
 var all_enemies_defeated: bool = false
-
-# Rewards tracking
-var accumulated_rewards: Dictionary = {}
-var wave_rewards: Array = []
 
 # References
 var battle_manager: BattleManager = null
@@ -61,8 +56,6 @@ func setup_wave_battle(battle_type: BattleType, config: Dictionary) -> bool:
 	
 	# Reset state
 	current_wave = 0
-	accumulated_rewards.clear()
-	wave_rewards.clear()
 	current_wave_enemies.clear()
 	
 	# Determine wave count based on battle type
@@ -237,7 +230,6 @@ func start_wave_battle_sequence() -> bool:
 	
 	# Reset wave system - start at 1 for proper display
 	current_wave = 1
-	accumulated_rewards.clear()
 	
 	# Start first wave
 	return start_current_wave()
@@ -344,23 +336,18 @@ func _start_wave_battle():
 	return battle_manager.start_wave_battle(current_wave_enemies)
 
 func _on_battle_completed(result):
-	"""Handle battle completion for current wave"""
+	"""Handle battle completion for current wave - NO LOOT HANDLING (BattleManager does that)"""
 	if result == BattleManager.BattleResult.VICTORY:
 		print("Wave %d of %d completed successfully!" % [current_wave, total_waves])
 		
-		# Award wave rewards
-		var wave_reward = _get_wave_rewards(current_wave)
-		_accumulate_rewards(wave_reward)
-		
-		# Emit wave completion and rewards
+		# Emit wave completion (no loot data - BattleManager handles that)
 		wave_completed.emit(current_wave, total_waves)
-		wave_rewards_awarded.emit(current_wave, wave_reward)
 		
 		# Check if this was the final wave
 		if current_wave >= total_waves:
 			print("=== All %d waves completed! ===" % total_waves)
-			var final_rewards = _get_final_rewards()
-			all_waves_completed.emit(final_rewards)
+			# Just emit completion - BattleManager already awarded loot
+			all_waves_completed.emit()
 			_complete_all_waves()
 		else:
 			print("=== Wave %d complete, starting wave %d/%d ===" % [current_wave, current_wave + 1, total_waves])
@@ -376,68 +363,8 @@ func _on_battle_completed(result):
 		print("Wave %d failed!" % current_wave)
 		wave_failed.emit(current_wave, total_waves)
 
-func _get_wave_rewards(wave_number: int) -> Dictionary:
-	"""Get rewards for completing a wave"""
-	var base_rewards = {}
-	
-	match battle_context.get("type", ""):
-		"dungeon":
-			base_rewards = _get_dungeon_wave_rewards(wave_number)
-		"territory":
-			base_rewards = _get_territory_wave_rewards(wave_number)
-		"raid":
-			base_rewards = _get_raid_wave_rewards(wave_number)
-	
-	return base_rewards
-
-func _get_dungeon_wave_rewards(wave_number: int) -> Dictionary:
-	"""Get rewards for dungeon wave completion"""
-	# Varied rewards per wave like Summoners War
-	match wave_number:
-		1:
-			return {"experience": 25, "essence": 10}
-		2: 
-			return {"experience": 50, "essence": 20}
-		3:
-			return {"experience": 75, "essence": 30, "crystals": 5}
-		_:
-			return {"experience": wave_number * 25, "essence": wave_number * 10}
-
-func _get_territory_wave_rewards(wave_number: int) -> Dictionary:
-	"""Get rewards for territory wave completion - varied like dungeons"""
-	# Get territory context for better rewards
-	var territory_name = battle_context.get("territory_name", "Unknown")
-	var stage = battle_context.get("stage", 1)
-	
-	# Base rewards scaled by wave and stage
-	var base_xp = wave_number * 15 * stage
-	var base_essence = wave_number * 8 * stage
-	
-	match wave_number:
-		1:
-			return {"experience": base_xp, "divine_essence": base_essence}
-		2:
-			return {"experience": base_xp, "divine_essence": base_essence, "crystals": stage}
-		3:
-			return {"experience": base_xp, "divine_essence": base_essence, "crystals": stage * 2, "territory_tokens": stage}
-		_:
-			return {"experience": base_xp, "divine_essence": base_essence}
-
-func _get_raid_wave_rewards(wave_number: int) -> Dictionary:
-	"""Get rewards for raid wave completion"""
-	return {
-		"experience": wave_number * 50,
-		"essence": wave_number * 20,
-		"raid_points": wave_number * 100
-	}
-
-func _accumulate_rewards(wave_reward: Dictionary):
-	"""Add wave rewards to accumulated total"""
-	for resource in wave_reward:
-		accumulated_rewards[resource] = accumulated_rewards.get(resource, 0) + wave_reward[resource]
-
 func _complete_all_waves():
-	"""Complete the entire wave sequence"""
+	"""Complete the entire wave sequence - NO LOOT DISTRIBUTION (BattleManager handles all loot)"""
 	print("=== All %d waves completed! ===" % total_waves)
 	
 	# Handle final dungeon completion if this was a dungeon battle
@@ -449,68 +376,24 @@ func _complete_all_waves():
 			var dungeon_system = GameManager.get_dungeon_system()
 			if dungeon_system:
 				print("=== WaveSystem: Processing final dungeon completion: %s (%s) ===" % [dungeon_id, difficulty])
-				# Award dungeon completion rewards
-				var dungeon_rewards = dungeon_system.award_dungeon_rewards(dungeon_id, difficulty)
+				# Update dungeon progress (but don't award rewards - BattleManager handles that)
 				dungeon_system.update_dungeon_progress(dungeon_id, difficulty)
-				
-				# Add dungeon rewards to accumulated wave rewards
-				for reward_type in dungeon_rewards:
-					if accumulated_rewards.has(reward_type):
-						accumulated_rewards[reward_type] += dungeon_rewards[reward_type]
-					else:
-						accumulated_rewards[reward_type] = dungeon_rewards[reward_type]
 				
 				# Store completed dungeon for UI refresh
 				if GameManager:
 					GameManager.set_meta("last_dungeon_completed", dungeon_id)
 					GameManager.save_game()
 	
-	# Add final completion bonus
-	var completion_bonus = _get_completion_bonus()
-	_accumulate_rewards(completion_bonus)
-	
-	# Emit completion signal
-	all_waves_completed.emit(accumulated_rewards)
-	
 	# Reset for next battle (delayed to allow signal handling)
 	await get_tree().create_timer(0.5).timeout
 	reset()
-
-func _get_completion_bonus() -> Dictionary:
-	"""Get bonus rewards for completing all waves"""
-	var bonus_multiplier = float(total_waves) / 3.0  # More waves = better bonus
-	
-	match battle_context.get("type", ""):
-		"dungeon":
-			return {
-				"experience": int(100 * bonus_multiplier),
-				"essence": int(50 * bonus_multiplier)
-			}
-		"territory":
-			return {
-				"experience": int(75 * bonus_multiplier),
-				"essence": int(25 * bonus_multiplier)
-			}
-		"raid":
-			return {
-				"experience": int(200 * bonus_multiplier),
-				"essence": int(100 * bonus_multiplier),
-				"raid_points": int(500 * bonus_multiplier)
-			}
-	
-	return {}
-
-func _get_final_rewards() -> Dictionary:
-	"""Get final accumulated rewards for completion"""
-	return accumulated_rewards.duplicate()
 
 func get_current_wave_info() -> Dictionary:
 	"""Get current wave information for UI"""
 	return {
 		"current_wave": current_wave,
 		"total_waves": total_waves,
-		"enemies_remaining": current_wave_enemies.size(),
-		"accumulated_rewards": accumulated_rewards.duplicate()
+		"enemies_remaining": current_wave_enemies.size()
 	}
 
 func is_final_wave() -> bool:
@@ -522,7 +405,5 @@ func reset():
 	current_wave = 0
 	total_waves = 1
 	current_wave_enemies.clear()
-	accumulated_rewards.clear()
-	wave_rewards.clear()
 	battle_context.clear()
 	all_enemies_defeated = false

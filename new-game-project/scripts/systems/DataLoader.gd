@@ -685,7 +685,9 @@ static func _get_fallback_passive_income(tier_key: String, _assigned_gods: Array
 	var base_generation = loot_data.get("loot_tables", {}).get("territory_passive_income", {}).get("base_generation_per_hour", {}).get(tier_key, {})
 	
 	if base_generation.is_empty():
-		# Final fallback
+		# Final fallback - keep hardcoded for compatibility
+		# This should rarely be reached as loot_tables.json should have all data
+		print("WARNING: Using hardcoded fallback for territory income - update loot_tables.json")
 		return {
 			"divine_essence": 50,
 			"crystals": 1

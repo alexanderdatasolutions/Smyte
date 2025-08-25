@@ -741,7 +741,18 @@ func _load_territory_rewards():
 	
 	# Add generic territory rewards
 	_add_reward_item("Experience Points")
-	_add_reward_item("Divine Essence")
+	
+	# Use ResourceManager for dynamic resource name instead of hardcoded text
+	if GameManager and GameManager.has_method("get_resource_manager"):
+		var resource_mgr = GameManager.get_resource_manager()
+		if resource_mgr:
+			var mana_info = resource_mgr.get_resource_info("mana")
+			_add_reward_item(mana_info.get("name", "Mana"))
+		else:
+			_add_reward_item("Mana")  # Fallback
+	else:
+		_add_reward_item("Mana")  # Fallback
+	
 	_add_reward_item("Random Loot")
 
 func _load_dungeon_rewards():
@@ -767,7 +778,17 @@ func _load_dungeon_rewards():
 	elif dungeon_id == "magic_sanctum":
 		_add_reward_item("Magic Powder (%s)" % str(difficulty).capitalize())
 	
-	_add_reward_item("Divine Essence")
+	# Use ResourceManager for dynamic resource names instead of hardcoded text
+	if GameManager and GameManager.has_method("get_resource_manager"):
+		var resource_mgr = GameManager.get_resource_manager()
+		if resource_mgr:
+			var mana_info = resource_mgr.get_resource_info("mana")
+			_add_reward_item(mana_info.get("name", "Mana"))
+		else:
+			_add_reward_item("Mana")  # Fallback
+	else:
+		_add_reward_item("Mana")  # Fallback
+	
 	_add_reward_item("Experience Points")
 	
 	if difficulty in ["expert", "master", "legendary"]:

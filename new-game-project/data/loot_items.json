@@ -1,0 +1,245 @@
+{
+  "loot_items": {
+    "mana_small": {
+      "id": "mana_small",
+      "resource_id": "mana",
+      "min_amount": 100,
+      "max_amount": 300,
+      "scaling": {
+        "type": "linear",
+        "base_multiplier": 1.1,
+        "per_stage": true
+      }
+    },
+    "mana_medium": {
+      "id": "mana_medium", 
+      "resource_id": "mana",
+      "min_amount": 500,
+      "max_amount": 1000,
+      "scaling": {
+        "type": "linear",
+        "base_multiplier": 1.15,
+        "per_stage": true
+      }
+    },
+    "mana_large": {
+      "id": "mana_large",
+      "resource_id": "mana",
+      "min_amount": 1500,
+      "max_amount": 3000,
+      "scaling": {
+        "type": "exponential",
+        "base_multiplier": 1.2,
+        "per_stage": true
+      }
+    },
+    "crystals_small": {
+      "id": "crystals_small",
+      "resource_id": "divine_crystals",
+      "min_amount": 1,
+      "max_amount": 3
+    },
+    "crystals_medium": {
+      "id": "crystals_medium",
+      "resource_id": "divine_crystals", 
+      "min_amount": 3,
+      "max_amount": 8
+    },
+    "energy_refill": {
+      "id": "energy_refill",
+      "resource_id": "energy",
+      "min_amount": 20,
+      "max_amount": 50
+    },
+    "element_powder_low": {
+      "id": "element_powder_low",
+      "resource_type": "element_based",
+      "base_resource": "powder_low",
+      "min_amount": 5,
+      "max_amount": 15,
+      "element_bonus": {
+        "matching_element": 2.0,
+        "opposite_element": 0.5
+      }
+    },
+    "element_powder_mid": {
+      "id": "element_powder_mid",
+      "resource_type": "element_based",
+      "base_resource": "powder_mid",
+      "min_amount": 2,
+      "max_amount": 8,
+      "element_bonus": {
+        "matching_element": 2.0,
+        "opposite_element": 0.5
+      }
+    },
+    "element_powder_high": {
+      "id": "element_powder_high",
+      "resource_type": "element_based",
+      "base_resource": "powder_high",
+      "min_amount": 1,
+      "max_amount": 4,
+      "element_bonus": {
+        "matching_element": 1.5,
+        "opposite_element": 0.5
+      }
+    },
+    "magic_powder_low": {
+      "id": "magic_powder_low",
+      "resource_id": "magic_powder_low",
+      "min_amount": 8,
+      "max_amount": 18
+    },
+    "magic_powder_mid": {
+      "id": "magic_powder_mid",
+      "resource_id": "magic_powder_mid",
+      "min_amount": 3,
+      "max_amount": 10
+    },
+    "magic_powder_high": {
+      "id": "magic_powder_high",
+      "resource_id": "magic_powder_high",
+      "min_amount": 1,
+      "max_amount": 5
+    },
+    "element_soul": {
+      "id": "element_soul",
+      "resource_type": "element_based",
+      "base_resource": "soul",
+      "min_amount": 1,
+      "max_amount": 1
+    },
+    "random_soul_common": {
+      "id": "random_soul_common",
+      "resource_id": "common_soul",
+      "min_amount": 1,
+      "max_amount": 3
+    },
+    "random_soul_rare": {
+      "id": "random_soul_rare",
+      "resource_id": "rare_soul",
+      "min_amount": 1,
+      "max_amount": 1
+    },
+    "common_ore": {
+      "id": "common_ore",
+      "resource_id": "iron_ore",
+      "min_amount": 5,
+      "max_amount": 15
+    },
+    "rare_ore": {
+      "id": "rare_ore",
+      "resource_id": "mythril_ore",
+      "min_amount": 2,
+      "max_amount": 8
+    },
+    "legendary_ore": {
+      "id": "legendary_ore",
+      "resource_id": "adamantite_ore",
+      "min_amount": 1,
+      "max_amount": 3
+    },
+    "random_gemstone": {
+      "id": "random_gemstone",
+      "resource_type": "element_based",
+      "base_resource": "gemstone",
+      "min_amount": 1,
+      "max_amount": 2
+    },
+    "awakening_stone": {
+      "id": "awakening_stone",
+      "resource_id": "awakening_stone",
+      "min_amount": 1,
+      "max_amount": 3
+    },
+    "skill_book": {
+      "id": "skill_book",
+      "resource_id": "skill_book",
+      "min_amount": 1,
+      "max_amount": 1
+    },
+    "experience_small": {
+      "id": "experience_small",
+      "resource_type": "experience",
+      "min_amount": 500,
+      "max_amount": 1500,
+      "scaling": {
+        "type": "linear",
+        "base_multiplier": 1.1,
+        "per_stage": true
+      }
+    },
+    "experience_large": {
+      "id": "experience_large",
+      "resource_type": "experience", 
+      "min_amount": 2000,
+      "max_amount": 5000,
+      "scaling": {
+        "type": "linear",
+        "base_multiplier": 1.15,
+        "per_stage": true
+      }
+    },
+    "equipment_drop": {
+      "id": "equipment_drop",
+      "resource_type": "equipment",
+      "min_amount": 1,
+      "max_amount": 2,
+      "rarity_weights": {
+        "common": 60,
+        "uncommon": 25,
+        "rare": 10,
+        "epic": 4,
+        "legendary": 1
+      }
+    },
+    "random_consumable": {
+      "id": "random_consumable",
+      "resource_type": "random_consumable",
+      "pool": ["strength_elixir", "vitality_potion", "swiftness_brew", "experience_boost"],
+      "min_amount": 1,
+      "max_amount": 3
+    },
+    "enhancement_powder": {
+      "id": "enhancement_powder",
+      "resource_id": "enhancement_powder",
+      "min_amount": 2,
+      "max_amount": 8,
+      "scaling": {
+        "type": "linear",
+        "base_multiplier": 1.1,
+        "per_stage": true
+      }
+    },
+    "socket_crystal": {
+      "id": "socket_crystal",
+      "resource_id": "socket_crystal",
+      "min_amount": 1,
+      "max_amount": 2
+    },
+    "forging_flame": {
+      "id": "forging_flame",
+      "resource_id": "forging_flame",
+      "min_amount": 1,
+      "max_amount": 1
+    },
+    "blessed_oil": {
+      "id": "blessed_oil",
+      "resource_id": "blessed_oil",
+      "min_amount": 1,
+      "max_amount": 1
+    },
+    "crafted_equipment": {
+      "id": "crafted_equipment",
+      "resource_type": "crafted_equipment",
+      "min_amount": 1,
+      "max_amount": 1,
+      "territory_bonus": {
+        "matching_element": {
+          "stat_bonus": 0.1,
+          "socket_chance": 0.2
+        }
+      }
+    }
+  }
+}

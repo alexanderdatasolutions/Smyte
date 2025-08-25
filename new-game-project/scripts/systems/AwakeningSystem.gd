@@ -216,33 +216,13 @@ func consume_awakening_materials(materials_needed: Dictionary, player_data):
 
 func get_player_material_amount(material_type: String, player_data) -> int:
 	"""Get how much of a material the player has"""
-	match material_type:
-		"awakening_stones":
-			return player_data.awakening_stones
-		"divine_crystals":
-			return player_data.premium_crystals
-		_:
-			# Handle elemental powders and pantheon relics
-			if material_type.ends_with("_powder_low") or material_type.ends_with("_powder_mid") or material_type.ends_with("_powder_high"):
-				return player_data.get_powder_amount(material_type)
-			elif material_type.ends_with("_relics"):
-				return player_data.get_relic_amount(material_type)
-	
-	return 0
+	# Use the modular resource system for all materials
+	return player_data.get_resource(material_type)
 
 func consume_player_material(material_type: String, amount: int, player_data):
 	"""Remove materials from player inventory"""
-	match material_type:
-		"awakening_stones":
-			player_data.spend_awakening_stones(amount)
-		"divine_crystals":
-			player_data.spend_crystals(amount)
-		_:
-			# Handle powders and relics - using loot.json terminology
-			if material_type.ends_with("_powder_low") or material_type.ends_with("_powder_mid") or material_type.ends_with("_powder_high"):
-				player_data.spend_powder(material_type, amount)
-			elif material_type.ends_with("_relics"):
-				player_data.spend_relics(material_type, amount)
+	# Use the modular resource system for all materials
+	player_data.spend_resource(material_type, amount)
 
 func get_ascension_level_from_string(ascension_string: String) -> int:
 	"""Convert ascension string to level number"""

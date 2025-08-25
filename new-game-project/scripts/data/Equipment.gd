@@ -32,6 +32,19 @@ enum Rarity { COMMON, RARE, EPIC, LEGENDARY, MYTHIC }
 @export var origin_dungeon: String = ""
 @export var lore_text: String = ""
 
+# Property aliases for EquipmentManager compatibility
+var enhancement_level: int:
+	get:
+		return level
+	set(value):
+		level = value
+
+var socket_slots: Array[Dictionary]:
+	get:
+		return sockets
+	set(value):
+		sockets = value
+
 # Static equipment configuration data
 static var equipment_config: Dictionary = {}
 static var config_loaded: bool = false
@@ -41,9 +54,9 @@ static func load_equipment_config():
 	if config_loaded:
 		return
 	
-	var file = FileAccess.open("res://data/equipment.json", FileAccess.READ)
+	var file = FileAccess.open("res://data/equipment_config.json", FileAccess.READ)
 	if not file:
-		push_error("Failed to load equipment.json")
+		push_error("Failed to load equipment_config.json")
 		return
 	
 	var json_string = file.get_as_text()
@@ -52,7 +65,7 @@ static func load_equipment_config():
 	var json = JSON.new()
 	var parse_result = json.parse(json_string)
 	if parse_result != OK:
-		push_error("Failed to parse equipment.json: " + json.error_string)
+		push_error("Failed to parse equipment_config.json: " + json.error_string)
 		return
 	
 	equipment_config = json.get_data()
@@ -99,12 +112,12 @@ static func create_from_dungeon(dungeon_id: String, equipment_type: String, rari
 	return equipment
 
 # Static factory method for creating test equipment with reasonable stats
-static func create_test_equipment(equipment_type: String, rarity_str: String = "common", enhancement_level: int = 0) -> Equipment:
+static func create_test_equipment(equipment_type: String, rarity_str: String = "common", init_level: int = 0) -> Equipment:
 	load_equipment_config()
 	
 	var equipment = Equipment.new()
 	equipment.id = generate_equipment_id()
-	equipment.level = enhancement_level
+	equipment.level = init_level
 	equipment.rarity = string_to_rarity(rarity_str)
 	
 	# Determine equipment type and slot
@@ -226,31 +239,65 @@ func get_rarity_color() -> Color:
 
 # Check if equipment can be enhanced
 func can_enhance() -> bool:
-	var max_level = equipment_config.get("enhancement_system", {}).get("max_level", 15)
+	load_equipment_config()
+	var rarities = equipment_config.get("equipment_rarities", {})
+	var rarity_key = rarity_to_string(rarity)
+	var max_level = rarities.get(rarity_key, {}).get("enhancement_limit", 15)
 	return level < max_level
+
+# Alias for EquipmentManager compatibility
+func can_be_enhanced() -> bool:
+	return can_enhance()
 
 # Get enhancement cost
 func get_enhancement_cost() -> Dictionary:
 	load_equipment_config()
 	var enhancement = equipment_config.get("enhancement_system", {})
-	var costs = enhancement.get("enhancement_costs", {})
+	var costs = enhancement.get("costs", {})
 	
-	var base_cost = costs.get("divine_essence_base", 500)
-	var level_mult = costs.get("level_multiplier", 2.0)
-	var rarity_mult = costs.get("rarity_multipliers", {}).get(rarity_to_string(rarity), 1.0)
+	var mana_base = costs.get("mana_base", 500)
+	var mana_mult = costs.get("mana_multiplier_per_level", 1.5)
+	var enhancement_powder = costs.get("enhancement_powder", {})
+	var powder_base = enhancement_powder.get("base", 1)
+	var powder_mult = enhancement_powder.get("multiplier_per_level", 1.2)
 	
-	var total_cost = int(base_cost * pow(level_mult, level) * rarity_mult)
+	var mana_cost = int(mana_base * pow(mana_mult, level))
+	var powder_cost = int(powder_base * pow(powder_mult, level))
 	
 	return {
-		"divine_essence": total_cost
+		"mana": mana_cost,
+		"enhancement_powder": powder_cost
 	}
 
 # Get enhancement success chance
 func get_enhancement_chance() -> float:
 	load_equipment_config()
 	var enhancement = equipment_config.get("enhancement_system", {})
-	var chances = enhancement.get("enhancement_chances", {})
-	return chances.get(str(level), 0.4)
+	var success_rates = enhancement.get("success_rates", {})
+	var rarity_key = rarity_to_string(rarity)
+	var rates_array = success_rates.get(rarity_key, [100, 90, 80, 70, 60, 50, 40, 30, 20, 10])
+	
+	if level < rates_array.size():
+		return rates_array[level] / 100.0
+	else:
+		return 0.05  # 5% for very high levels
+
+# Alias for EquipmentManager compatibility  
+func get_enhancement_success_rate() -> float:
+	return get_enhancement_chance()
+
+# Socket system methods
+func can_unlock_socket(socket_index: int) -> bool:
+	# Check if we can unlock this socket index
+	return socket_index < max_sockets and socket_index >= sockets.size()
+
+func get_socket_unlock_cost(socket_index: int) -> Dictionary:
+	load_equipment_config()
+	var socket_system = equipment_config.get("socket_system", {})
+	var costs = socket_system.get("unlock_costs", {})
+	
+	var cost_key = "socket_" + str(socket_index + 1)
+	return costs.get(cost_key, {"socket_crystal": 1, "mana": 5000})
 
 # Private helper methods
 static func _get_equipment_type_info(equipment_type: String) -> Dictionary:

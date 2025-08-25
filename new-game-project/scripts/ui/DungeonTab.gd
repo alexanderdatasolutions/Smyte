@@ -180,7 +180,7 @@ func _on_difficulty_selected(difficulty: String, pressed: bool):
 	update_rewards_display(selected_dungeon_id, difficulty)
 
 func update_rewards_display(dungeon_id: String, difficulty: String):
-	"""Update the rewards display for the selected dungeon and difficulty"""
+	"""Update the rewards display for the selected dungeon and difficulty - FULLY MODULAR"""
 	if not rewards_container:
 		return
 	
@@ -189,22 +189,61 @@ func update_rewards_display(dungeon_id: String, difficulty: String):
 		if child.name != "RewardsLabel":
 			child.queue_free()
 	
-	# Add some example rewards based on dungeon type
-	var element = ""
-	if "_sanctum" in dungeon_id:
-		element = dungeon_id.replace("_sanctum", "")
-		add_reward_item(element.capitalize() + " Essences")
-	elif dungeon_id == "magic_sanctum":
-		add_reward_item("Magic Essences")
-	elif "_trials" in dungeon_id:
-		var pantheon = dungeon_id.replace("_trials", "")
-		add_reward_item(pantheon.capitalize() + " Relics")
+	# Get the actual loot table name for this dungeon/difficulty
+	var loot_table_name = _convert_dungeon_id_to_loot_table_name(dungeon_id, difficulty)
 	
-	add_reward_item("Divine Essence")
+	# Get the loot system to read actual rewards
+	if GameManager and GameManager.has_method("get_loot_system"):
+		var loot_system = GameManager.get_loot_system()
+		if loot_system and loot_system.has_method("get_loot_table_rewards_preview"):
+			var rewards_preview = loot_system.get_loot_table_rewards_preview(loot_table_name)
+			if rewards_preview.size() > 0:
+				_display_modular_rewards(rewards_preview)
+				return
 	
-	if difficulty in ["expert", "master", "legendary"]:
-		add_reward_item("Awakening Stones")
-		add_reward_item("Premium Crystals")
+	# Fallback - show message that rewards are being loaded
+	var loading_label = Label.new()
+	loading_label.text = "• Loading reward information..."
+	loading_label.modulate = Color.YELLOW
+	rewards_container.add_child(loading_label)
+
+func _convert_dungeon_id_to_loot_table_name(dungeon_id: String, difficulty: String) -> String:
+	"""Convert dungeon ID to the correct loot table name - matches loot_tables.json structure"""
+	
+	# Handle special mappings first
+	match dungeon_id:
+		"magic_sanctum":
+			return "magic_dungeon"  # Hall of Magic uses generic "magic_dungeon" (no difficulty)
+		"titans_forge", "valhalla_armory", "oracle_sanctum", "elysian_fields", "styx_crossing":
+			return "equipment_dungeon"  # All equipment dungeons use generic table
+		_:
+			# Handle elemental sanctums - they need difficulty appended
+			if dungeon_id.ends_with("_sanctum"):
+				var element = dungeon_id.replace("_sanctum", "")
+				return element + "_dungeon_" + difficulty  # e.g. "fire_dungeon_beginner"
+			elif "_trials" in dungeon_id:
+				var pantheon = dungeon_id.replace("_trials", "")
+				return "pantheon_trial_" + pantheon  # e.g. "pantheon_trial_greek"
+	
+	# Default fallback
+	return dungeon_id + "_" + difficulty
+
+func _display_modular_rewards(rewards_preview: Array):
+	"""Display rewards using the modular system - no hardcoded text"""
+	for reward_info in rewards_preview:
+		var reward_label = Label.new()
+		var resource_name = reward_info.get("resource_name", "Unknown")
+		var amount_text = reward_info.get("amount_text", "")
+		var chance_text = reward_info.get("chance_text", "")
+		
+		# Format: • Resource Name: Amount (Chance)
+		var display_text = "• %s: %s" % [resource_name, amount_text]
+		if chance_text != "":
+			display_text += " (%s)" % chance_text
+		
+		reward_label.text = display_text
+		reward_label.modulate = reward_info.get("color", Color.WHITE)
+		rewards_container.add_child(reward_label)
 
 func add_reward_item(reward_text: String):
 	"""Add a reward item to the display"""

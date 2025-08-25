@@ -6,23 +6,8 @@ class_name PlayerData
 @export var level: int = 1
 @export var experience: int = 0
 
-# Resources
-@export var divine_essence: int = 1000  # Primary currency
-@export var crystals: Dictionary = {}   # Element-specific materials  
-@export var premium_crystals: int = 500   # Premium currency
-@export var awakening_stones: int = 10   # Tier upgrade materials
-@export var summon_tickets: int = 0     # Free summon tickets
-@export var ascension_materials: int = 0 # From duplicates
-
-# Energy system (Summoners War style)
-@export var energy: int = 80            # Current energy
-@export var max_energy: int = 80        # Maximum energy capacity
-@export var last_energy_update: float = 0.0  # Last energy regeneration time
-
-# Awakening materials (Summoners War style) - using essences terminology
-@export var powders: Dictionary = {}    # Elemental powders (low/mid/high) - legacy support
-@export var essences: Dictionary = {}   # Elemental essences (low/mid/high) - SW authentic
-@export var relics: Dictionary = {}     # Pantheon-specific relics
+# Modular resource system - uses ResourceManager for all operations
+@export var resources: Dictionary = {}
 
 # Collections
 @export var gods: Array = []
@@ -34,44 +19,233 @@ class_name PlayerData
 # Save/Load timestamp for resource generation
 @export var last_save_time: float = 0
 
+# Resource system integration
+var resource_manager
+
 func _init():
-	# Initialize crystals for all elements
-	crystals["fire"] = 0
-	crystals["water"] = 0
-	crystals["earth"] = 0
-	crystals["lightning"] = 0
-	crystals["light"] = 0
-	crystals["dark"] = 0
+	# Initialize with default resources - will be loaded from ResourceManager
+	initialize_default_resources()
+
+func initialize_default_resources():
+	"""Initialize default resources using ResourceManager definitions"""
+	# Get ResourceManager instance
+	resource_manager = get_resource_manager()
+	if not resource_manager:
+		print("Warning: ResourceManager not available during PlayerData init")
+		create_fallback_resources()
+		return
 	
-	# Initialize awakening essences - using SW terminology
-	var elements = ["fire", "water", "earth", "lightning", "light", "dark"]
-	for element in elements:
-		essences[element + "_essences_low"] = 50
-		essences[element + "_essences_mid"] = 25
-		essences[element + "_essences_high"] = 25  # Give some for testing
+	# Initialize all currency resources
+	var currencies = resource_manager.get_resources_by_category("currency")
+	for currency_id in currencies:
+		if not resources.has(currency_id):
+			resources[currency_id] = get_default_amount_for_resource(currency_id)
 	
-	# Add magic essences (universal awakening material like SW)
-	essences["magic_essences_low"] = 100
-	essences["magic_essences_mid"] = 50
-	essences["magic_essences_high"] = 25
+	# Initialize all premium currencies
+	var premium_currencies = resource_manager.get_resources_by_category("premium_currency")
+	for currency_id in premium_currencies:
+		if not resources.has(currency_id):
+			resources[currency_id] = get_default_amount_for_resource(currency_id)
 	
-	# Initialize awakening powders - legacy support
-	for element in elements:
-		powders[element + "_powder_low"] = 50
-		powders[element + "_powder_mid"] = 25
-		powders[element + "_powder_high"] = 25  # Give some for testing
+	# Initialize all summoning materials
+	var summoning_materials = resource_manager.get_resources_by_category("summoning_material")
+	for material_id in summoning_materials:
+		if not resources.has(material_id):
+			resources[material_id] = get_default_amount_for_resource(material_id)
 	
-	# Add magic powders (universal awakening material like SW)
-	powders["magic_powder_low"] = 100
-	powders["magic_powder_mid"] = 50
-	powders["magic_powder_high"] = 25
+	# Initialize all awakening materials
+	var awakening_materials = resource_manager.get_resources_by_category("awakening_material")
+	for material_id in awakening_materials:
+		if not resources.has(material_id):
+			resources[material_id] = get_default_amount_for_resource(material_id)
 	
-	# Initialize pantheon relics
-	var pantheons = ["greek", "norse", "egyptian", "hindu", "japanese", "celtic"]
-	for pantheon in pantheons:
-		relics[pantheon + "_relics"] = 15  # Give some for testing
+	print("PlayerData: Initialized ", resources.size(), " resources")
+
+func create_fallback_resources():
+	"""Create fallback resources if ResourceManager isn't available"""
+	resources = {
+		"mana": 1000,
+		"divine_crystals": 500,
+		"energy": 80,
+		"common_soul": 10,
+		"rare_soul": 5,
+		"epic_soul": 2,
+		"legendary_soul": 0,
+		"fire_soul": 3,
+		"water_soul": 3,
+		"earth_soul": 3,
+		"lightning_soul": 3,
+		"light_soul": 1,
+		"dark_soul": 1
+	}
+
+func get_default_amount_for_resource(resource_id: String) -> int:
+	"""Get default starting amount for a resource"""
+	match resource_id:
+		"mana":
+			return 1000
+		"divine_crystals":
+			return 500
+		"energy":
+			return 80
+		"common_soul":
+			return 10
+		"rare_soul":
+			return 5
+		"epic_soul":
+			return 2
+		"legendary_soul":
+			return 0
+		"fire_soul", "water_soul", "earth_soul", "lightning_soul":
+			return 3
+		"light_soul", "dark_soul":
+			return 1
+		_:
+			# Check resource type for default amounts
+			var rm = get_resource_manager_safe()
+			if rm:
+				var resource_info = rm.get_resource_info(resource_id)
+				if resource_info and resource_info.has("category"):
+					match resource_info.category:
+						"awakening_material":
+							return 50 if resource_id.ends_with("_low") else (25 if resource_id.ends_with("_mid") else 5)
+						"crafting_material":
+							return 20
+						"consumable":
+							return 5
+						_:
+							return 0
+			return 0
+
+func get_resource_manager():
+	"""Get ResourceManager instance from GameManager"""
+	if GameManager and GameManager.has_method("get_resource_manager"):
+		return GameManager.get_resource_manager()
+	# Fallback: try to find ResourceManager in scene tree
+	var tree = Engine.get_main_loop() as SceneTree
+	if tree and tree.current_scene:
+		return tree.current_scene.get_node_or_null("/root/ResourceManager")
+	return null
+
+func get_resource_manager_safe():
+	"""Safe getter that doesn't print warnings"""
+	if GameManager and GameManager.has_method("get_resource_manager"):
+		return GameManager.get_resource_manager()
+	return null
+
+# ==============================================================================
+# MODULAR RESOURCE METHODS - Works with ResourceManager
+# ==============================================================================
+
+func get_resource(resource_id: String) -> int:
+	"""Get amount of specific resource"""
+	return resources.get(resource_id, 0)
+
+func has_resource(resource_id: String, amount: int) -> bool:
+	"""Check if player has enough of a resource"""
+	return get_resource(resource_id) >= amount
+
+func spend_resource(resource_id: String, amount: int) -> bool:
+	"""Spend resource if available"""
+	if not has_resource(resource_id, amount):
+		return false
 	
-	last_save_time = Time.get_unix_time_from_system()
+	resources[resource_id] = resources.get(resource_id, 0) - amount
+	return true
+
+func add_resource(resource_id: String, amount: int):
+	"""Add resource to player's inventory"""
+	var current_amount = resources.get(resource_id, 0)
+	var max_storage = get_max_storage(resource_id)
+	
+	# Apply max storage limit if it exists
+	if max_storage > 0:
+		resources[resource_id] = min(current_amount + amount, max_storage)
+	else:
+		resources[resource_id] = current_amount + amount
+	
+	# Emit resource update signal if GameManager is available
+	if GameManager and GameManager.has_signal("resources_updated"):
+		GameManager.resources_updated.emit()
+
+func get_max_storage(resource_id: String) -> int:
+	"""Get maximum storage for a resource"""
+	var rm = get_resource_manager_safe()
+	if rm:
+		var resource_info = rm.get_resource_info(resource_id)
+		return resource_info.get("max_storage", 0)
+	return 0
+
+func can_afford_cost(cost: Dictionary) -> bool:
+	"""Check if player can afford a cost dictionary"""
+	for resource_id in cost:
+		var required_amount = cost[resource_id]
+		if not has_resource(resource_id, required_amount):
+			return false
+	return true
+
+func spend_cost(cost: Dictionary) -> bool:
+	"""Spend multiple resources at once"""
+	# First check if we can afford everything
+	if not can_afford_cost(cost):
+		return false
+	
+	# Spend all resources
+	for resource_id in cost:
+		var amount = cost[resource_id]
+		spend_resource(resource_id, amount)
+	
+	return true
+
+# ==============================================================================
+# LEGACY COMPATIBILITY METHODS
+# ==============================================================================
+
+# These methods provide compatibility with existing code that expects specific properties
+
+var divine_essence: int:
+	get:
+		return get_resource("mana")  # Map to mana
+	set(value):
+		resources["mana"] = value
+
+var premium_crystals: int:
+	get:
+		return get_resource("divine_crystals")
+	set(value):
+		resources["divine_crystals"] = value
+
+var energy: int:
+	get:
+		return get_resource("energy")
+	set(value):
+		resources["energy"] = value
+
+var max_energy: int:
+	get:
+		return get_max_storage("energy")
+
+var last_energy_update: float = 0.0
+
+var crystals: Dictionary:
+	get:
+		var crystal_dict = {}
+		var elements = ["fire", "water", "earth", "lightning", "light", "dark"]
+		for element in elements:
+			crystal_dict[element] = get_resource(element + "_crystal")
+		return crystal_dict
+
+var awakening_stones: int:
+	get:
+		return get_resource("awakening_stone")
+	set(value):
+				resources["awakening_stone"] = value
+
+
+
+# ==============================================================================
+# GOD COLLECTION METHODS
+# ==============================================================================
 
 func add_god(god):
 	if god:
@@ -107,97 +281,6 @@ func get_gods_by_tier(tier: int) -> Array:
 			result.append(god)
 	return result
 
-func can_afford_summon(cost: int) -> bool:
-	return divine_essence >= cost
-
-func spend_divine_essence(amount: int) -> bool:
-	if divine_essence >= amount:
-		divine_essence -= amount
-		return true
-	return false
-
-func add_divine_essence(amount: int):
-	# Prevent overflow by capping at a reasonable maximum
-	var max_essence = 2000000000  # 2 billion cap to prevent overflow
-	divine_essence = min(divine_essence + amount, max_essence)
-	if divine_essence >= max_essence:
-		print("Warning: Divine essence capped at maximum value")
-
-func add_crystal(element: String, amount: int):
-	var max_crystals = 100000000  # 100 million cap
-	if crystals.has(element):
-		crystals[element] = min(crystals[element] + amount, max_crystals)
-	else:
-		crystals[element] = min(amount, max_crystals)
-
-func add_crystals(element_type: int, amount: int):
-	var element_name = get_element_name(element_type)
-	add_crystal(element_name, amount)
-
-func add_awakening_stones(amount: int):
-	awakening_stones += amount
-
-func get_element_name(element_type: int) -> String:
-	match element_type:
-		0: return "fire"
-		1: return "water"
-		2: return "earth"
-		3: return "lightning"
-		4: return "light"
-		5: return "dark"
-		_: return "unknown"
-
-func get_crystal_amount(element: String) -> int:
-	if crystals.has(element):
-		return crystals[element]
-	return 0
-
-
-func spend_awakening_stones(amount: int) -> bool:
-	if awakening_stones >= amount:
-		awakening_stones -= amount
-		return true
-	return false
-
-func control_territory(territory_id: String):
-	if not controlled_territories.has(territory_id):
-		controlled_territories.append(territory_id)
-
-func lose_territory_control(territory_id: String):
-	if controlled_territories.has(territory_id):
-		controlled_territories.erase(territory_id)
-
-func update_last_save_time():
-	last_save_time = Time.get_unix_time_from_system()
-
-# Enhanced currency management for new summon system
-func spend_crystals(amount: int) -> bool:
-	if premium_crystals >= amount:
-		premium_crystals -= amount
-		return true
-	return false
-
-func add_premium_crystals(amount: int):
-	premium_crystals += amount
-
-func spend_summon_tickets(amount: int) -> bool:
-	if summon_tickets >= amount:
-		summon_tickets -= amount
-		return true
-	return false
-
-func add_summon_tickets(amount: int):
-	summon_tickets += amount
-
-func add_ascension_materials(amount: int):
-	ascension_materials += amount
-
-func spend_ascension_materials(amount: int) -> bool:
-	if ascension_materials >= amount:
-		ascension_materials -= amount
-		return true
-	return false
-
 # Helper function to check for specific gods for ascension
 func get_god_count(god_id: String) -> int:
 	var count = 0
@@ -209,117 +292,10 @@ func get_god_count(god_id: String) -> int:
 func has_god(god_id: String) -> bool:
 	return get_god_by_id(god_id) != null
 
-# Awakening Materials Management
-func add_powder(powder_type: String, amount: int):
-	"""Add elemental powders (fire_powder_low, water_powder_mid, etc.)"""
-	if not powders.has(powder_type):
-		powders[powder_type] = 0
-	powders[powder_type] += amount
+# ==============================================================================
+# ENERGY MANAGEMENT FUNCTIONS  
+# ==============================================================================
 
-func spend_powder(powder_type: String, amount: int) -> bool:
-	"""Spend elemental powders"""
-	if not powders.has(powder_type):
-		return false
-	if powders[powder_type] >= amount:
-		powders[powder_type] -= amount
-		return true
-	return false
-
-func get_powder_amount(powder_type: String) -> int:
-	"""Get current amount of specific powder"""
-	return powders.get(powder_type, 0)
-
-# Essence Management (Summoners War authentic)
-func add_essence(essence_type: String, amount: int):
-	"""Add elemental essences (fire_essences_low, magic_essences_mid, etc.)"""
-	if not essences.has(essence_type):
-		essences[essence_type] = 0
-	essences[essence_type] += amount
-
-func spend_essence(essence_type: String, amount: int) -> bool:
-	"""Spend elemental essences"""
-	if not essences.has(essence_type):
-		return false
-	if essences[essence_type] >= amount:
-		essences[essence_type] -= amount
-		return true
-	return false
-
-func get_essence_amount(essence_type: String) -> int:
-	"""Get current amount of specific essence"""
-	return essences.get(essence_type, 0)
-
-func add_relics(relic_type: String, amount: int):
-	"""Add pantheon relics (greek_relics, norse_relics, etc.)"""
-	if not relics.has(relic_type):
-		relics[relic_type] = 0
-	relics[relic_type] += amount
-
-func spend_relics(relic_type: String, amount: int) -> bool:
-	"""Spend pantheon relics"""
-	if not relics.has(relic_type):
-		return false
-	if relics[relic_type] >= amount:
-		relics[relic_type] -= amount
-		return true
-	return false
-
-func get_relic_amount(relic_type: String) -> int:
-	"""Get current amount of specific relics"""
-	return relics.get(relic_type, 0)
-
-func can_afford_awakening(materials_needed: Dictionary) -> bool:
-	"""Check if player can afford awakening materials"""
-	for material_type in materials_needed.keys():
-		var needed = materials_needed[material_type]
-		var current = 0
-		
-		match material_type:
-			"awakening_stones":
-				current = awakening_stones
-			"divine_crystals":
-				current = premium_crystals
-			_:
-				# Check essences first (SW authentic), then powders (legacy)
-				if material_type in essences:
-					current = essences[material_type]
-				elif material_type in powders:
-					current = powders[material_type]
-				elif material_type in relics:
-					current = relics[material_type]
-		
-		if current < needed:
-			return false
-	
-	return true
-
-func add_resource(resource_type: String, amount: int):
-	"""Add any type of resource to player inventory"""
-	var max_resource = 1000000000  # 1 billion general cap
-	
-	match resource_type:
-		"divine_essence":
-			add_divine_essence(amount)
-		"crystals", "divine_crystals", "premium_crystals":
-			premium_crystals = min(premium_crystals + amount, max_resource)
-		"awakening_stone", "awakening_stones":
-			awakening_stones = min(awakening_stones + amount, max_resource)
-		"summon_tickets":
-			summon_tickets = min(summon_tickets + amount, max_resource)
-		"ascension_materials":
-			ascension_materials = min(ascension_materials + amount, max_resource)
-		_:
-			# Handle powders and relics - using loot.json terminology
-			if resource_type.ends_with("_powder_low") or resource_type.ends_with("_powder_mid") or resource_type.ends_with("_powder_high"):
-				powders[resource_type] = min(powders.get(resource_type, 0) + amount, max_resource)
-			elif resource_type.ends_with("_relics"):
-				relics[resource_type] = min(relics.get(resource_type, 0) + amount, max_resource)
-			elif resource_type in crystals:
-				crystals[resource_type] = min(crystals[resource_type] + amount, max_resource)
-			else:
-				print("Warning: Unknown resource type: ", resource_type)
-
-# Energy Management Functions
 func update_energy():
 	"""Update energy based on time passed - call regularly"""
 	var current_time = Time.get_unix_time_from_system()
@@ -367,13 +343,12 @@ func refresh_energy_with_crystals() -> bool:
 	var crystal_cost = 30
 	var energy_gained = 90
 	
-	if premium_crystals >= crystal_cost:
-		spend_crystals(crystal_cost)
+	if spend_resource("premium_crystals", crystal_cost):
 		energy = min(energy + energy_gained, max_energy)
 		print("Energy refreshed with crystals: +", energy_gained, " energy for ", crystal_cost, " crystals")
 		return true
 	else:
-		print("Not enough crystals for energy refresh! Need: ", crystal_cost, ", Have: ", premium_crystals)
+		print("Not enough crystals for energy refresh! Need: ", crystal_cost, ", Have: ", get_resource("premium_crystals"))
 		return false
 
 func get_energy_status() -> Dictionary:
@@ -384,39 +359,20 @@ func get_energy_status() -> Dictionary:
 		"max": max_energy,
 		"percentage": float(energy) / float(max_energy) * 100.0,
 		"minutes_to_full": (max_energy - energy) * 5,  # 5 minutes per energy
-		"can_refresh": premium_crystals >= 30
+		"can_refresh": get_resource("premium_crystals") >= 30
 	}
 
-func can_afford_upgrade_cost(cost: Dictionary) -> bool:
-	"""Check if player can afford an upgrade cost"""
-	for resource_type in cost:
-		var needed = cost[resource_type]
-		var current = 0
-		
-		match resource_type:
-			"divine_essence":
-				current = divine_essence
-			"crystals", "divine_crystals", "premium_crystals":
-				current = premium_crystals
-			"awakening_stone", "awakening_stones":
-				current = awakening_stones
-			"summon_tickets":
-				current = summon_tickets
-			"ascension_materials":
-				current = ascension_materials
-			_:
-				# Check powders, relics, and element crystals
-				if resource_type.ends_with("_powder_low") or resource_type.ends_with("_powder_mid") or resource_type.ends_with("_powder_high"):
-					current = powders.get(resource_type, 0)
-				elif resource_type.ends_with("_relics"):
-					current = relics.get(resource_type, 0)
-				elif resource_type in crystals:
-					current = crystals[resource_type]
-				else:
-					print("Warning: Unknown cost resource type: ", resource_type)
-					return false
-		
-		if current < needed:
-			return false
-	
-	return true
+# ==============================================================================
+# TERRITORY MANAGEMENT FUNCTIONS  
+# ==============================================================================
+
+func control_territory(territory_id: String):
+	if not controlled_territories.has(territory_id):
+		controlled_territories.append(territory_id)
+
+func lose_territory_control(territory_id: String):
+	if controlled_territories.has(territory_id):
+		controlled_territories.erase(territory_id)
+
+func update_last_save_time():
+	last_save_time = Time.get_unix_time_from_system()

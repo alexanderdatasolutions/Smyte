@@ -15,7 +15,7 @@ script = ExtResource("1_resource_display")
 
 [node name="EssenceLabel" type="Label" parent="."]
 layout_mode = 2
-text = "Divine Essence: 0"
+text = "Mana: 0"
 horizontal_alignment = 1
 vertical_alignment = 1
 

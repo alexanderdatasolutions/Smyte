@@ -21,6 +21,8 @@ var dungeon_system  # NEW: Dungeon system for dungeon battles
 var wave_system  # NEW: Wave system for multi-wave battles
 var equipment_manager  # NEW: Equipment system for RPG-style gear
 var game_initializer  # NEW: Game initializer for startup loading like Summoners War
+var territory_manager  # NEW: Territory manager for role-based territory system
+var resource_manager  # NEW: Resource manager for modular resource system
 
 # Preload the DataLoader class
 const GameDataLoader = preload("res://scripts/systems/DataLoader.gd")
@@ -41,6 +43,10 @@ func initialize_game():
 	dungeon_system = preload("res://scripts/systems/DungeonSystem.gd").new()  # NEW: Dungeon system
 	wave_system = preload("res://scripts/systems/WaveSystem.gd").new()  # NEW: Wave system
 	equipment_manager = preload("res://scripts/systems/EquipmentManager.gd").new()  # NEW: Equipment system
+	territory_manager = preload("res://scripts/systems/TerritoryManager.gd").new()  # NEW: Territory manager
+	
+	# Initialize ResourceManager - will be created by LootSystem if needed
+	resource_manager = get_node("/root/ResourceManager") if has_node("/root/ResourceManager") else null
 	
 	# Initialize the game initializer for Summoners War style loading
 	game_initializer = preload("res://scripts/systems/GameInitializer.gd").new()
@@ -54,6 +60,11 @@ func initialize_game():
 	add_child(wave_system)
 	add_child(equipment_manager)
 	add_child(game_initializer)
+	add_child(territory_manager)
+	
+	# Get ResourceManager reference after LootSystem creates it
+	if not resource_manager:
+		resource_manager = get_node("/root/ResourceManager") if has_node("/root/ResourceManager") else null
 	
 	# Connect system signals
 	summon_system.summon_completed.connect(_on_summon_completed)
@@ -123,6 +134,9 @@ func summon_premium() -> bool:
 	return summon_system.summon_premium()
 
 # System accessor methods
+func get_summon_system():
+	return summon_system
+
 func get_loot_system():
 	return loot_system
 
@@ -250,21 +264,28 @@ func auto_battle_territory(territory: Territory, attacking_gods: Array) -> bool:
 	var victory = total_power > enemy_power
 	
 	# Give experience to gods
-	var base_xp = 50 if victory else 20
+	var base_xp = loot_system.get_battle_experience_reward("auto_battle", total_power)
 	for god in attacking_gods:
 		var xp_gained = base_xp + randi_range(-5, 15)
 		god.add_experience(xp_gained)
 	
-	# Give resources if victory
+	# Give resources if victory using LootSystem
 	if victory:
-		var essence_gained = randi_range(25, 50)
-		player_data.add_divine_essence(essence_gained)
+		var territory_element = ""
+		match territory.element:
+			Territory.ElementType.FIRE: territory_element = "fire"
+			Territory.ElementType.WATER: territory_element = "water"  
+			Territory.ElementType.EARTH: territory_element = "earth"
+			Territory.ElementType.LIGHTNING: territory_element = "lightning"
+			Territory.ElementType.LIGHT: territory_element = "light"
+			Territory.ElementType.DARK: territory_element = "dark"
 		
-		# Random crystal drops
-		var crystal_drops = randi_range(0, 2)
-		for i in range(crystal_drops):
-			var element = randi_range(0, 5)
-			player_data.add_crystals(element, 1)
+		var loot_table = "auto_battle_victory" if victory else "auto_battle_defeat"
+		var awarded_loot = loot_system.award_loot(loot_table, territory.tier, territory_element)
+		
+		print("=== AUTO BATTLE REWARDS ===")
+		for resource_type in awarded_loot:
+			print("  %s: +%d" % [resource_type.capitalize(), awarded_loot[resource_type]])
 		
 		resources_updated.emit()
 	
@@ -300,27 +321,41 @@ func award_stage_rewards(stage_number: int, territory: Territory, is_final_stage
 	
 	print("=== STAGE REWARDS (Stage %d) ===" % stage_number)
 	for resource_type in awarded_loot:
-		print("  %s: %d" % [resource_type.replace("_", " ").capitalize(), awarded_loot[resource_type]])
+		var resource_mgr = get_resource_manager()
+		var resource_info = resource_mgr.get_resource_info(resource_type) if resource_mgr else {}
+		var display_name = resource_info.get("name", resource_type.replace("_", " ").capitalize())
+		print("  %s: %d" % [display_name, awarded_loot[resource_type]])
 	
-	# Convert to legacy format for BattleManager compatibility
-	var rewards_summary = {
-		"divine_essence": awarded_loot.get("divine_essence", 0),
-		"divine_crystals": awarded_loot.get("divine_crystals", 0), 
-		"awakening_stones": awarded_loot.get("awakening_stones", 0),
-		"powders": 0,
-		"relics": 0,
-		"powder_details": {},
-		"relic_details": {}
-	}
+	# Convert to modular format using ResourceManager categories
+	var rewards_summary = {}
+	var powders = 0
+	var relics = 0
+	var powder_details = {}
+	var relic_details = {}
 	
-	# Process powder details for display
+	# Process all awarded loot using ResourceManager
 	for resource_type in awarded_loot:
-		if resource_type.ends_with("_powder_low") or resource_type.ends_with("_powder_mid") or resource_type.ends_with("_powder_high"):
-			rewards_summary.powders += awarded_loot[resource_type]
-			rewards_summary.powder_details[resource_type] = awarded_loot[resource_type]
-		elif resource_type.ends_with("_relics"):
-			rewards_summary.relics += awarded_loot[resource_type]
-			rewards_summary.relic_details[resource_type] = awarded_loot[resource_type]
+		var resource_mgr = get_resource_manager()
+		var resource_info = resource_mgr.get_resource_info(resource_type) if resource_mgr else {}
+		var category = resource_info.get("resource_category", "unknown")
+		var amount = awarded_loot[resource_type]
+		
+		# Add to summary
+		rewards_summary[resource_type] = amount
+		
+		# Categorize for legacy compatibility
+		if category == "powders" or resource_type.contains("powder"):
+			powders += amount
+			powder_details[resource_type] = amount
+		elif category == "relics" or resource_type.contains("relic"):
+			relics += amount
+			relic_details[resource_type] = amount
+	
+	# Add legacy fields for compatibility
+	rewards_summary["powders"] = powders
+	rewards_summary["relics"] = relics
+	rewards_summary["powder_details"] = powder_details
+	rewards_summary["relic_details"] = relic_details
 	
 	resources_updated.emit()
 	return rewards_summary
@@ -471,8 +506,75 @@ func get_territory_by_id(territory_id: String):
 func get_god_by_id(god_id: String):
 	return player_data.get_god_by_id(god_id)
 
+# ==============================================================================
+# TERRITORY ROLE MANAGEMENT FUNCTIONS
+# ==============================================================================
+
+func assign_god_to_territory_role(god: God, territory: Territory, role: String) -> bool:
+	"""Assign god to specific role in territory using TerritoryManager"""
+	if territory_manager:
+		return territory_manager.assign_god_to_territory_role(god, territory, role)
+	else:
+		# Fallback to legacy assignment
+		return assign_god_to_territory_legacy(god, territory)
+
+func assign_god_to_territory_legacy(god: God, territory: Territory) -> bool:
+	"""Legacy territory assignment without roles"""
+	if territory.can_station_god(god.id):
+		remove_god_from_territory(god)
+		god.stationed_territory = territory.id
+		territory.station_god(god.id)
+		return true
+	return false
+
+func remove_god_from_territory(god: God):
+	"""Remove god from territory using TerritoryManager or legacy system"""
+	if territory_manager:
+		territory_manager.remove_god_from_territory(god)
+	else:
+		# Legacy removal
+		if not god.stationed_territory.is_empty():
+			var territory = get_territory_by_id(god.stationed_territory)
+			if territory:
+				territory.remove_stationed_god(god.id)
+			god.stationed_territory = ""
+
+func get_territory_role_assignments(territory: Territory) -> Dictionary:
+	"""Get role assignments for territory"""
+	if territory_manager:
+		return territory_manager.get_territory_role_assignments(territory)
+	else:
+		# Legacy: return all assigned gods as "gatherer" role
+		var assignments = {"defender": [], "gatherer": [], "crafter": []}
+		for god_id in territory.stationed_gods:
+			var god = get_god_by_id(god_id)
+			if god:
+				assignments["gatherer"].append(god)
+		return assignments
+
+func get_god_available_roles(god: God) -> Array:
+	"""Get roles this god can perform"""
+	if territory_manager:
+		return territory_manager.get_available_roles_for_god(god)
+	else:
+		# Legacy: all gods are gatherers
+		return ["gatherer"]
+
+func get_territory_efficiency_summary(territory: Territory) -> Dictionary:
+	"""Get detailed efficiency summary for territory"""
+	if territory_manager:
+		return territory_manager.get_territory_efficiency_summary(territory)
+	else:
+		# Legacy summary
+		return {
+			"total_slots_used": territory.stationed_gods.size(),
+			"total_slots_available": territory.max_god_slots,
+			"role_efficiency": {"gatherer": {"used_slots": territory.stationed_gods.size()}},
+			"resource_generation": {}
+		}
+
 func generate_resources():
-	"""Summoners War style territory passive income generation using proper integration"""
+	"""Enhanced territory passive income generation using TerritoryManager"""
 	# Safety check - make sure player_data exists
 	if not player_data:
 		print("ERROR: player_data is null in generate_resources!")
@@ -484,17 +586,22 @@ func generate_resources():
 	var territories_producing = 0
 	var resource_summary = {}
 	
+	# Use TerritoryManager for enhanced role-based generation
 	for territory_id in player_data.controlled_territories:
 		var territory = get_territory_by_id(territory_id)
 		if territory and territory.is_controlled_by_player() and territory.is_unlocked:
-			# Get assigned gods for this territory
-			var assigned_gods = []
-			for god in player_data.gods:
-				if god.stationed_territory == territory_id:
-					assigned_gods.append(god)
 			
-			# Get hourly passive income from loot system
-			var hourly_income = DataLoader.get_territory_passive_income(territory_id, assigned_gods)
+			# Get hourly passive income from TerritoryManager
+			var hourly_income = {}
+			if territory_manager:
+				hourly_income = territory_manager.calculate_territory_passive_generation(territory)
+			else:
+				# Fallback to legacy system if TerritoryManager isn't available
+				var assigned_gods = []
+				for god in player_data.gods:
+					if god.stationed_territory == territory_id:
+						assigned_gods.append(god)
+				hourly_income = DataLoader.get_territory_passive_income(territory_id, assigned_gods)
 			
 			# Calculate the small portion for this 5-second tick (5 seconds = ~0.0014 hours)
 			var time_fraction = 5.0 / 3600.0  # 5 seconds as fraction of an hour
@@ -522,11 +629,10 @@ func generate_resources():
 
 func calculate_territory_passive_income(territory) -> Dictionary:
 	"""Calculate hourly passive income from a territory based on assigned gods"""
-	var income = {"divine_essence": 0, "crystals": 0}
 	
-	# Get base generation rates from territory tier
-	var base_rates = get_territory_base_income(territory.tier)
-	income = base_rates.duplicate()
+	# Get base generation rates from territory tier using loot system
+	var base_income = get_territory_base_income(territory.tier)
+	var income = base_income.duplicate()
 	
 	# Calculate god bonuses
 	var god_multiplier = 1.0
@@ -568,23 +674,22 @@ func calculate_territory_passive_income(territory) -> Dictionary:
 		5:
 			god_multiplier *= 2.5
 	
-	# Apply multipliers
-	income.divine_essence = int(income.divine_essence * god_multiplier)
-	income.crystals = int(income.crystals * god_multiplier)
+	# Apply multipliers to all resource types
+	for resource_type in income:
+		if typeof(income[resource_type]) == TYPE_INT:
+			income[resource_type] = int(income[resource_type] * god_multiplier)
 	
 	return income
 
 func get_territory_base_income(tier: int) -> Dictionary:
-	"""Get base hourly income for territory tier"""
-	match tier:
-		1:
-			return {"divine_essence": 50, "crystals": 1}
-		2:
-			return {"divine_essence": 120, "crystals": 3, "essence_low": 2}
-		3:
-			return {"divine_essence": 300, "crystals": 8, "essence_mid": 3, "awakening_stone": 1}
-		_:
-			return {"divine_essence": 25, "crystals": 0}
+	"""Get base hourly income for territory tier using modular loot system"""
+	if not loot_system:
+		print("ERROR: LootSystem not available for territory income!")
+		return {"divine_essence": 25}
+	
+	# Use loot system for territory passive income based on tier
+	var loot_table_name = "territory_passive_tier_" + str(tier)
+	return loot_system.award_loot(loot_table_name, tier, "")
 
 
 func generate_offline_resources():
@@ -599,14 +704,17 @@ func generate_offline_resources():
 		for territory_id in player_data.controlled_territories:
 			var territory = get_territory_by_id(territory_id)
 			if territory:
-				# Get assigned gods for this territory
-				var assigned_gods = []
-				for god in player_data.gods:
-					if god.stationed_territory == territory_id:
-						assigned_gods.append(god)
-				
-				# Get passive income from loot system
-				var passive_income = DataLoader.get_territory_passive_income(territory_id, assigned_gods)
+				# Get passive income using TerritoryManager
+				var passive_income = {}
+				if territory_manager:
+					passive_income = territory_manager.calculate_territory_passive_generation(territory)
+				else:
+					# Fallback to legacy system
+					var assigned_gods = []
+					for god in player_data.gods:
+						if god.stationed_territory == territory_id:
+							assigned_gods.append(god)
+					passive_income = DataLoader.get_territory_passive_income(territory_id, assigned_gods)
 				
 				# Apply the time multiplier and add resources with overflow protection
 				for resource_type in passive_income.keys():
@@ -639,20 +747,11 @@ func save_game() -> bool:
 			"player_name": player_data.player_name,
 			"level": player_data.level,
 			"experience": player_data.experience,
-			"divine_essence": player_data.divine_essence,
-			"crystals": player_data.crystals,
-			"premium_crystals": player_data.premium_crystals,
-			"awakening_stones": player_data.awakening_stones,
-			"summon_tickets": player_data.summon_tickets,
-			"ascension_materials": player_data.ascension_materials,
-			"total_summons": player_data.total_summons,
-			"energy": player_data.energy,  # FIXED: Save current energy
-			"max_energy": player_data.max_energy,  # FIXED: Save max energy  
-			"last_energy_update": player_data.last_energy_update,  # FIXED: Save energy timer
+			"resources": player_data.resources.duplicate(),  # Save all modular resources
 			"controlled_territories": player_data.controlled_territories,
 			"last_save_time": player_data.last_save_time,
-			"powders": player_data.powders,  # FIXED: Save awakening powders
-			"relics": player_data.relics      # FIXED: Save pantheon relics
+			"last_energy_update": player_data.last_energy_update,
+			"total_summons": player_data.total_summons
 		},
 		"gods_data": [],
 		"territories_data": [],
@@ -690,7 +789,7 @@ func save_game() -> bool:
 	save_file.store_string(json_string)
 	save_file.close()
 	
-	print("Game saved successfully - ", player_data.gods.size(), " gods, ", player_data.divine_essence, " essence")
+	print("Game saved successfully - ", player_data.gods.size(), " gods, ", player_data.get_resource("divine_essence"), " essence")
 	return true
 
 func load_game() -> bool:
@@ -719,20 +818,39 @@ func load_game() -> bool:
 	player_data.player_name = player_info.get("player_name", "Player")
 	player_data.level = player_info.get("level", 1)
 	player_data.experience = player_info.get("experience", 0)
-	player_data.divine_essence = player_info.get("divine_essence", 1000)
-	player_data.crystals = player_info.get("crystals", {})
-	player_data.premium_crystals = player_info.get("premium_crystals", 0)
-	player_data.awakening_stones = player_info.get("awakening_stones", 0)
-	player_data.summon_tickets = player_info.get("summon_tickets", 0)
-	player_data.ascension_materials = player_info.get("ascension_materials", 0)
 	player_data.total_summons = player_info.get("total_summons", 0)
-	player_data.energy = player_info.get("energy", 80)  # FIXED: Load current energy
-	player_data.max_energy = player_info.get("max_energy", 80)  # FIXED: Load max energy
-	player_data.last_energy_update = player_info.get("last_energy_update", 0.0)  # FIXED: Load energy timer
-	player_data.powders = player_info.get("powders", {})  # FIXED: Load awakening powders
-	player_data.relics = player_info.get("relics", {})    # FIXED: Load pantheon relics
 	player_data.controlled_territories = player_info.get("controlled_territories", [])
 	player_data.last_save_time = player_info.get("last_save_time", Time.get_unix_time_from_system())
+	player_data.last_energy_update = player_info.get("last_energy_update", 0.0)
+	
+	# Load modular resources system
+	var saved_resources = player_info.get("resources", {})
+	if saved_resources.size() > 0:
+		player_data.resources = saved_resources.duplicate()
+	else:
+		# Legacy save file - convert old format to new modular system
+		print("Converting legacy save file to modular resource system...")
+		player_data.resources["divine_essence"] = player_info.get("divine_essence", 1000)
+		player_data.resources["divine_crystals"] = player_info.get("premium_crystals", 0)  
+		player_data.resources["awakening_stone"] = player_info.get("awakening_stones", 0)
+		player_data.resources["summon_tickets"] = player_info.get("summon_tickets", 0)
+		player_data.resources["ascension_materials"] = player_info.get("ascension_materials", 0)
+		player_data.resources["energy"] = player_info.get("energy", 80)
+		
+		# Convert old crystal format
+		var old_crystals = player_info.get("crystals", {})
+		for element in old_crystals.keys():
+			player_data.resources[element + "_crystal"] = old_crystals[element]
+		
+		# Convert old powders and relics
+		var old_powders = player_info.get("powders", {})
+		for powder_type in old_powders.keys():
+			player_data.resources[powder_type] = old_powders[powder_type]
+			
+		var old_relics = player_info.get("relics", {})
+		for relic_type in old_relics.keys():
+			player_data.resources[relic_type] = old_relics[relic_type]
+	
 	
 	# Load gods data
 	player_data.gods.clear()
@@ -772,7 +890,7 @@ func load_game() -> bool:
 			territory.is_unlocked = territory_info.get("is_unlocked", false)
 			territory.stationed_gods = territory_info.get("stationed_gods", [])
 	
-	print("Game loaded successfully - ", player_data.gods.size(), " gods, ", player_data.divine_essence, " essence")
+	print("Game loaded successfully - ", player_data.gods.size(), " gods, ", player_data.get_resource("divine_essence"), " essence")
 	
 	# Load dungeon progress
 	if dungeon_system:
@@ -922,3 +1040,21 @@ func _deserialize_equipment_inventory(serialized_inventory: Array):
 	for equipment_data in serialized_inventory:
 		var equipment = _dict_to_equipment(equipment_data)
 		equipment_manager.equipment_inventory.append(equipment)
+
+# === Resource Manager Access ===
+func get_resource_manager() -> Node:
+	"""Get ResourceManager instance, creating it if needed"""
+	if resource_manager:
+		return resource_manager
+	
+	# Try to find existing ResourceManager
+	resource_manager = get_node("/root/ResourceManager") if has_node("/root/ResourceManager") else null
+	
+	if not resource_manager:
+		# Create ResourceManager if it doesn't exist
+		resource_manager = preload("res://scripts/systems/ResourceManager.gd").new()
+		resource_manager.name = "ResourceManager"
+		get_tree().root.add_child(resource_manager)
+		print("GameManager: Created ResourceManager instance")
+	
+	return resource_manager

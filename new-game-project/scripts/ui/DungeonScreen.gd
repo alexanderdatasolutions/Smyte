@@ -336,49 +336,54 @@ func update_rewards_display(dungeon_id: String, difficulty: String):
 	var separator1 = HSeparator.new()
 	rewards_container.add_child(separator1)
 	
-	# Add loot information
+	# Add loot information - FULLY MODULAR using actual JSON data
 	var loot_table_name = _convert_dungeon_id_to_loot_table_name(dungeon_id, difficulty)
-	var loot_table = {}
 	
-	# Get loot data from available sources
-	if loot_system and loot_system.loot_data.has("dungeon_loot_tables"):
-		loot_table = loot_system.loot_data.dungeon_loot_tables.get(loot_table_name, {})
-	elif DataLoader.loot_data.has("dungeon_loot_tables"):
-		# Fallback to DataLoader
-		loot_table = DataLoader.loot_data.dungeon_loot_tables.get(loot_table_name, {})
+	# Use LootSystem to get actual reward preview
+	if GameManager and GameManager.has_method("get_loot_system"):
+		var loot_system_ref = GameManager.get_loot_system()
+		if loot_system_ref and loot_system_ref.has_method("get_loot_table_rewards_preview"):
+			var rewards_preview = loot_system_ref.get_loot_table_rewards_preview(loot_table_name)
+			if rewards_preview.size() > 0:
+				var loot_label = RichTextLabel.new()
+				loot_label.custom_minimum_size.y = 120
+				loot_label.fit_content = true
+				loot_label.bbcode_enabled = true
+				
+				var guaranteed_text = ""
+				var rare_text = ""
+				
+				# Separate guaranteed from rare drops
+				for reward_info in rewards_preview:
+					var resource_name = reward_info.get("resource_name", "Unknown")
+					var amount_text = reward_info.get("amount_text", "")
+					var chance_text = reward_info.get("chance_text", "")
+					
+					var line = "• %s: %s\n" % [resource_name, amount_text]
+					
+					if chance_text == "Guaranteed":
+						guaranteed_text += line
+					else:
+						rare_text += "• %s: %s (%s)\n" % [resource_name, amount_text, chance_text]
+				
+				var full_text = ""
+				if guaranteed_text != "":
+					full_text += "[b]💰 Guaranteed Rewards:[/b]\n" + guaranteed_text
+				if rare_text != "":
+					if full_text != "":
+						full_text += "\n"
+					full_text += "[b]🎲 Rare Drops:[/b]\n" + rare_text
+				
+				loot_label.text = full_text
+				rewards_container.add_child(loot_label)
+			else:
+				var no_loot_label = Label.new()
+				no_loot_label.text = "⚠️ No reward data found for: " + loot_table_name
+				rewards_container.add_child(no_loot_label)
 	else:
-		# Direct file access as last resort
-		if not DataLoader.data_loaded:
-			DataLoader.load_all_data()
-		loot_table = DataLoader.loot_data.get("dungeon_loot_tables", {}).get(loot_table_name, {})
-	
-	if loot_table.size() > 0:
-		var loot_label = RichTextLabel.new()
-		loot_label.custom_minimum_size.y = 120
-		loot_label.fit_content = true
-		loot_label.bbcode_enabled = true
-		
-		var loot_text = "[b]💰 Guaranteed Rewards:[/b]\n"
-		var guaranteed = loot_table.get("guaranteed_drops", [])
-		for item in guaranteed:
-			var item_name = _get_readable_item_name(item)
-			var amount_text = _get_amount_text(item)
-			loot_text += "• %s: %s\n" % [item_name, amount_text]
-		
-		loot_text += "\n[b]🎲 Rare Drops:[/b]\n"
-		var rare_drops = loot_table.get("rare_drops", [])
-		for item in rare_drops:
-			var item_name = _get_readable_item_name(item)
-			var amount_text = _get_amount_text(item)
-			var chance = int(item.get("chance", 0) * 100)
-			loot_text += "• %s: %s (%d%% chance)\n" % [item_name, amount_text, chance]
-		
-		loot_label.text = loot_text
-		rewards_container.add_child(loot_label)
-	else:
-		var no_loot_label = Label.new()
-		no_loot_label.text = "⚠️ No loot data available for this difficulty"
-		rewards_container.add_child(no_loot_label)
+		var fallback_label = Label.new()
+		fallback_label.text = "⚠️ Loot system not available"
+		rewards_container.add_child(fallback_label)
 	
 	# Add separator
 	var separator2 = HSeparator.new()
@@ -406,17 +411,9 @@ func _convert_dungeon_id_to_loot_table_name(dungeon_id: String, difficulty: Stri
 	# Handle special mappings for other dungeon types
 	match dungeon_id:
 		"magic_sanctum":
-			base_name = "magic_dungeon"
-		"titans_forge":
-			base_name = "divine_weapons"
-		"valhalla_armory":
-			base_name = "divine_armor"
-		"oracle_sanctum":
-			base_name = "divine_accessories"
-		"elysian_fields":
-			base_name = "divine_runes"
-		"styx_crossing":
-			base_name = "shadow_gear"
+			return "magic_dungeon"  # Hall of Magic uses generic table (no difficulty suffix)
+		"titans_forge", "valhalla_armory", "oracle_sanctum", "elysian_fields", "styx_crossing":
+			return "equipment_dungeon"  # All equipment dungeons use generic table
 		_:
 			# For trial dungeons, keep the original name
 			if dungeon_id.ends_with("_trials"):
@@ -431,31 +428,44 @@ func _convert_dungeon_id_to_loot_table_name(dungeon_id: String, difficulty: Stri
 	return base_name + "_" + difficulty
 
 func _get_readable_item_name(item: Dictionary) -> String:
-	"""Convert item type to readable name"""
+	"""Convert item type to readable name using ResourceManager"""
 	var item_type = item.get("type", "")
 	var element = item.get("specific_element", "")
 	
-	match item_type:
-		"powder_low":
-			return "%s Powder (Low)" % element.capitalize() if element else "Elemental Powder (Low)"
-		"powder_mid": 
-			return "%s Powder (Mid)" % element.capitalize() if element else "Elemental Powder (Mid)"
-		"powder_high":
-			return "%s Powder (High)" % element.capitalize() if element else "Elemental Powder (High)"
-		"magic_powder_low":
-			return "Magic Powder (Low)"
-		"magic_powder_mid":
-			return "Magic Powder (Mid)" 
-		"magic_powder_high":
-			return "Magic Powder (High)"
-		"divine_essence":
-			return "Divine Essence"
-		"awakening_stones":
-			return "Awakening Stones"
-		"crystals":
-			return "%s Crystals" % element.capitalize() if element else "Crystals"
-		_:
-			return item_type.replace("_", " ").capitalize()
+	# Check if ResourceManager is available
+	var resource_manager = null
+	if GameManager and GameManager.has_method("get_resource_manager"):
+		resource_manager = GameManager.get_resource_manager()
+	
+	if not resource_manager:
+		# Fallback to basic formatting if ResourceManager not available
+		if element and item_type.begins_with("powder"):
+			var tier_suffix = ""
+			if item_type.ends_with("_low"):
+				tier_suffix = " (Low)"
+			elif item_type.ends_with("_mid"):
+				tier_suffix = " (Mid)"
+			elif item_type.ends_with("_high"):
+				tier_suffix = " (High)"
+			return "%s Powder%s" % [element.capitalize(), tier_suffix]
+		elif element and item_type == "crystals":
+			return "%s Crystals" % element.capitalize()
+		else:
+			return item_type.capitalize().replace("_", " ")
+	
+	# For items with specific elements, construct the full resource ID
+	if element and item_type.begins_with("powder"):
+		var full_resource_id = element + "_" + item_type
+		var resource_info = resource_manager.get_resource_info(full_resource_id)
+		return resource_info.get("name", full_resource_id.capitalize().replace("_", " "))
+	elif element and item_type == "crystals":
+		var full_resource_id = element + "_crystals"
+		var resource_info = resource_manager.get_resource_info(full_resource_id)
+		return resource_info.get("name", ("%s Crystals" % element.capitalize()))
+	else:
+		# Use ResourceManager for standard resources
+		var resource_info = resource_manager.get_resource_info(item_type)
+		return resource_info.get("name", item_type.capitalize().replace("_", " "))
 
 func _get_amount_text(item: Dictionary) -> String:
 	"""Get amount text for an item"""

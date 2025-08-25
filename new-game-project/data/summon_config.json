@@ -1,0 +1,225 @@
+{
+  "summon_configuration": {
+    "costs": {
+      "soul_based_summons": {
+        "common_soul_summon": { "common_soul": 1 },
+        "rare_soul_summon": { "rare_soul": 1 },
+        "epic_soul_summon": { "epic_soul": 1 },
+        "legendary_soul_summon": { "legendary_soul": 1 },
+        
+        "fire_soul_summon": { "fire_soul": 1 },
+        "water_soul_summon": { "water_soul": 1 },
+        "earth_soul_summon": { "earth_soul": 1 },
+        "lightning_soul_summon": { "lightning_soul": 1 },
+        "light_soul_summon": { "light_soul": 1 },
+        "dark_soul_summon": { "dark_soul": 1 }
+      },
+      
+      "premium_summons": {
+        "divine_crystals_summon": { "divine_crystals": 100 },
+        "mana_summon": { "mana": 10000 }
+      },
+      
+      "multi_summons": {
+        "soul_pack_10": { "common_soul": 10 },
+        "premium_pack_10": { "divine_crystals": 900 },
+        "element_pack_10": { "common_soul": 10 },
+        "pantheon_pack_10": { "common_soul": 10 },
+        "role_pack_10": { "common_soul": 10 }
+      }
+    },
+    
+    "rates": {
+      "soul_based_rates": {
+        "common_soul": {
+          "common": 70.0,
+          "rare": 25.0,
+          "epic": 4.5,
+          "legendary": 0.5
+        },
+        "rare_soul": {
+          "common": 0.0,
+          "rare": 75.0,
+          "epic": 22.0,
+          "legendary": 3.0
+        },
+        "epic_soul": {
+          "common": 0.0,
+          "rare": 0.0,
+          "epic": 85.0,
+          "legendary": 15.0
+        },
+        "legendary_soul": {
+          "common": 0.0,
+          "rare": 0.0,
+          "epic": 0.0,
+          "legendary": 100.0
+        }
+      },
+      
+      "element_soul_rates": {
+        "fire_soul": {
+          "common": 50.0,
+          "rare": 35.0,
+          "epic": 13.0,
+          "legendary": 2.0
+        },
+        "water_soul": {
+          "common": 50.0,
+          "rare": 35.0,
+          "epic": 13.0,
+          "legendary": 2.0
+        },
+        "earth_soul": {
+          "common": 50.0,
+          "rare": 35.0,
+          "epic": 13.0,
+          "legendary": 2.0
+        },
+        "lightning_soul": {
+          "common": 50.0,
+          "rare": 35.0,
+          "epic": 13.0,
+          "legendary": 2.0
+        },
+        "light_soul": {
+          "common": 45.0,
+          "rare": 35.0,
+          "epic": 17.0,
+          "legendary": 3.0
+        },
+        "dark_soul": {
+          "common": 45.0,
+          "rare": 35.0,
+          "epic": 17.0,
+          "legendary": 3.0
+        }
+      },
+      
+      "premium_rates": {
+        "divine_crystals": {
+          "common": 35.0,
+          "rare": 40.0,
+          "epic": 20.0,
+          "legendary": 5.0
+        },
+        "mana": {
+          "common": 50.0,
+          "rare": 35.0,
+          "epic": 13.0,
+          "legendary": 2.0
+        }
+      }
+    },
+    
+    "pity_system": {
+      "enabled": true,
+      "thresholds": {
+        "rare": 10,
+        "epic": 50,
+        "legendary": 100
+      },
+      "soft_pity": {
+        "enabled": true,
+        "legendary": {
+          "starts_at": 75,
+          "rate_increase_per_summon": 0.5
+        },
+        "epic": {
+          "starts_at": 35,
+          "rate_increase_per_summon": 1.0
+        }
+      },
+      "carries_over_banners": true,
+      "resets_on_tier_obtained": true
+    },
+    
+    "multi_summon_guarantees": {
+      "soul_pack": {
+        "size": 10,
+        "guarantees": { "rare_or_better": 1 }
+      },
+      "premium_pack": {
+        "size": 10,
+        "guarantees": { "epic_or_better": 1, "legendary_chance_bonus": 0.1 }
+      },
+      "element_pack": {
+        "size": 10,
+        "guarantees": { "rare_or_better": 1, "featured_element_minimum": 5 }
+      },
+      "pantheon_pack": {
+        "size": 10,
+        "guarantees": { "rare_or_better": 1, "featured_pantheon_minimum": 3 }
+      },
+      "role_pack": {
+        "size": 10,
+        "guarantees": { "rare_or_better": 1, "featured_role_minimum": 2 }
+      }
+    },
+    
+    "filtering_weights": {
+      "element_focus": {
+        "description": "When using element souls or element packs",
+        "matching_element_weight": 3.0,
+        "other_elements_weight": 1.0
+      },
+      
+      "pantheon_focus": {
+        "description": "When using pantheon packs or pantheon banners",
+        "matching_pantheon_weight": 2.5,
+        "other_pantheons_weight": 1.0
+      },
+      
+      "role_focus": {
+        "description": "When using role packs",
+        "matching_role_weight": 2.0,
+        "other_roles_weight": 1.0
+      }
+    }
+  },
+  
+  "banner_system": {
+    "active_banners": [],
+    "special_summons": {
+      "daily_free": {
+        "enabled": true,
+        "uses_common_soul_rates": true,
+        "cooldown_hours": 24
+      },
+      "weekly_premium": {
+        "enabled": true,
+        "original_cost": { "divine_crystals": 500 },
+        "discounted_cost": { "divine_crystals": 250 },
+        "cooldown_hours": 168
+      }
+    }
+  },
+  
+  "progression_tracking": {
+    "milestones": {
+      "10_summons": {
+        "reward": { "common_soul": 1, "divine_crystals": 100 }
+      },
+      "50_summons": {
+        "reward": { "rare_soul": 1, "awakening_stone": 5 }
+      },
+      "100_summons": {
+        "reward": { "epic_soul": 1, "divine_crystals": 500 }
+      },
+      "500_summons": {
+        "reward": { "legendary_soul": 1, "divine_crystals": 2000 }
+      }
+    },
+    
+    "first_time_bonuses": {
+      "first_legendary": {
+        "reward": { "divine_crystals": 1000, "awakening_stone": 25 }
+      },
+      "collection_milestones": {
+        "10_unique_gods": { "reward": { "rare_soul": 2 } },
+        "25_unique_gods": { "reward": { "epic_soul": 1 } },
+        "50_unique_gods": { "reward": { "legendary_soul": 1 } }
+      }
+    }
+  }
+}

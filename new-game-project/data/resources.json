@@ -1,0 +1,531 @@
+{
+  "currencies": {
+    "mana": {
+      "id": "mana",
+      "name": "Mana",
+      "description": "Primary currency for upgrades, crafting, and summoning",
+      "icon": "mana_icon",
+      "max_storage": 999999999,
+      "category": "currency"
+    },
+    "divine_crystals": {
+      "id": "divine_crystals", 
+      "name": "Divine Crystals",
+      "description": "Premium currency for energy refresh and premium summons",
+      "icon": "crystal_icon",
+      "max_storage": 99999,
+      "category": "premium_currency"
+    },
+    "energy": {
+      "id": "energy",
+      "name": "Energy",
+      "description": "Used to enter battles and dungeons",
+      "icon": "energy_icon",
+      "max_storage": 150,
+      "regen_rate": 300,
+      "category": "consumable_currency"
+    }
+  },
+  
+  "awakening_materials": {
+    "fire_powder_low": {
+      "id": "fire_powder_low",
+      "name": "Fire Powder (Low)",
+      "description": "Basic fire awakening material",
+      "element": "fire",
+      "tier": "low",
+      "icon": "fire_powder_low",
+      "category": "awakening_material"
+    },
+    "fire_powder_mid": {
+      "id": "fire_powder_mid",
+      "name": "Fire Powder (Mid)",
+      "description": "Intermediate fire awakening material", 
+      "element": "fire",
+      "tier": "mid",
+      "icon": "fire_powder_mid",
+      "category": "awakening_material"
+    },
+    "fire_powder_high": {
+      "id": "fire_powder_high",
+      "name": "Fire Powder (High)",
+      "description": "Advanced fire awakening material",
+      "element": "fire", 
+      "tier": "high",
+      "icon": "fire_powder_high",
+      "category": "awakening_material"
+    },
+    "water_powder_low": {
+      "id": "water_powder_low",
+      "name": "Water Powder (Low)",
+      "description": "Basic water awakening material",
+      "element": "water",
+      "tier": "low", 
+      "icon": "water_powder_low",
+      "category": "awakening_material"
+    },
+    "water_powder_mid": {
+      "id": "water_powder_mid",
+      "name": "Water Powder (Mid)",
+      "description": "Intermediate water awakening material",
+      "element": "water",
+      "tier": "mid",
+      "icon": "water_powder_mid", 
+      "category": "awakening_material"
+    },
+    "water_powder_high": {
+      "id": "water_powder_high",
+      "name": "Water Powder (High)",
+      "description": "Advanced water awakening material",
+      "element": "water",
+      "tier": "high",
+      "icon": "water_powder_high",
+      "category": "awakening_material"
+    },
+    "earth_powder_low": {
+      "id": "earth_powder_low",
+      "name": "Earth Powder (Low)",
+      "description": "Basic earth awakening material",
+      "element": "earth",
+      "tier": "low",
+      "icon": "earth_powder_low",
+      "category": "awakening_material"
+    },
+    "earth_powder_mid": {
+      "id": "earth_powder_mid",
+      "name": "Earth Powder (Mid)",
+      "description": "Intermediate earth awakening material",
+      "element": "earth",
+      "tier": "mid",
+      "icon": "earth_powder_mid",
+      "category": "awakening_material"
+    },
+    "earth_powder_high": {
+      "id": "earth_powder_high",
+      "name": "Earth Powder (High)",
+      "description": "Advanced earth awakening material",
+      "element": "earth",
+      "tier": "high",
+      "icon": "earth_powder_high",
+      "category": "awakening_material"
+    },
+    "lightning_powder_low": {
+      "id": "lightning_powder_low",
+      "name": "Lightning Powder (Low)",
+      "description": "Basic lightning awakening material",
+      "element": "lightning",
+      "tier": "low",
+      "icon": "lightning_powder_low",
+      "category": "awakening_material"
+    },
+    "lightning_powder_mid": {
+      "id": "lightning_powder_mid",
+      "name": "Lightning Powder (Mid)",
+      "description": "Intermediate lightning awakening material",
+      "element": "lightning",
+      "tier": "mid",
+      "icon": "lightning_powder_mid",
+      "category": "awakening_material"
+    },
+    "lightning_powder_high": {
+      "id": "lightning_powder_high",
+      "name": "Lightning Powder (High)", 
+      "description": "Advanced lightning awakening material",
+      "element": "lightning",
+      "tier": "high",
+      "icon": "lightning_powder_high",
+      "category": "awakening_material"
+    },
+    "light_powder_low": {
+      "id": "light_powder_low",
+      "name": "Light Powder (Low)",
+      "description": "Basic light awakening material",
+      "element": "light",
+      "tier": "low",
+      "icon": "light_powder_low",
+      "category": "awakening_material"
+    },
+    "light_powder_mid": {
+      "id": "light_powder_mid",
+      "name": "Light Powder (Mid)",
+      "description": "Intermediate light awakening material",
+      "element": "light",
+      "tier": "mid",
+      "icon": "light_powder_mid",
+      "category": "awakening_material"
+    },
+    "light_powder_high": {
+      "id": "light_powder_high",
+      "name": "Light Powder (High)",
+      "description": "Advanced light awakening material",
+      "element": "light",
+      "tier": "high",
+      "icon": "light_powder_high",
+      "category": "awakening_material"
+    },
+    "dark_powder_low": {
+      "id": "dark_powder_low",
+      "name": "Dark Powder (Low)",
+      "description": "Basic dark awakening material",
+      "element": "dark",
+      "tier": "low",
+      "icon": "dark_powder_low",
+      "category": "awakening_material"
+    },
+    "dark_powder_mid": {
+      "id": "dark_powder_mid",
+      "name": "Dark Powder (Mid)",
+      "description": "Intermediate dark awakening material",
+      "element": "dark",
+      "tier": "mid",
+      "icon": "dark_powder_mid",
+      "category": "awakening_material"
+    },
+    "dark_powder_high": {
+      "id": "dark_powder_high",
+      "name": "Dark Powder (High)",
+      "description": "Advanced dark awakening material",
+      "element": "dark",
+      "tier": "high",
+      "icon": "dark_powder_high",
+      "category": "awakening_material"
+    },
+    "magic_powder_low": {
+      "id": "magic_powder_low",
+      "name": "Magic Powder (Low)",
+      "description": "Universal awakening material - basic tier",
+      "element": "universal",
+      "tier": "low",
+      "icon": "magic_powder_low",
+      "category": "awakening_material"
+    },
+    "magic_powder_mid": {
+      "id": "magic_powder_mid",
+      "name": "Magic Powder (Mid)",
+      "description": "Universal awakening material - intermediate tier",
+      "element": "universal",
+      "tier": "mid",
+      "icon": "magic_powder_mid",
+      "category": "awakening_material"
+    },
+    "magic_powder_high": {
+      "id": "magic_powder_high",
+      "name": "Magic Powder (High)",
+      "description": "Universal awakening material - advanced tier",
+      "element": "universal",
+      "tier": "high",
+      "icon": "magic_powder_high",
+      "category": "awakening_material"
+    }
+  },
+  
+  "summoning_materials": {
+    "common_soul": {
+      "id": "common_soul",
+      "name": "Common Soul",
+      "description": "Summons a random common god",
+      "rarity": "common",
+      "element": "universal",
+      "icon": "common_soul",
+      "category": "summoning_material"
+    },
+    "rare_soul": {
+      "id": "rare_soul", 
+      "name": "Rare Soul",
+      "description": "Summons a random rare god",
+      "rarity": "rare",
+      "element": "universal",
+      "icon": "rare_soul",
+      "category": "summoning_material"
+    },
+    "epic_soul": {
+      "id": "epic_soul",
+      "name": "Epic Soul", 
+      "description": "Summons a random epic god",
+      "rarity": "epic",
+      "element": "universal",
+      "icon": "epic_soul",
+      "category": "summoning_material"
+    },
+    "legendary_soul": {
+      "id": "legendary_soul",
+      "name": "Legendary Soul",
+      "description": "Summons a random legendary god",
+      "rarity": "legendary",
+      "element": "universal",
+      "icon": "legendary_soul",
+      "category": "summoning_material"
+    },
+    "fire_soul": {
+      "id": "fire_soul",
+      "name": "Fire Soul",
+      "description": "Summons a random fire god",
+      "rarity": "universal",
+      "element": "fire",
+      "icon": "fire_soul",
+      "category": "summoning_material"
+    },
+    "water_soul": {
+      "id": "water_soul",
+      "name": "Water Soul",
+      "description": "Summons a random water god",
+      "rarity": "universal", 
+      "element": "water",
+      "icon": "water_soul",
+      "category": "summoning_material"
+    },
+    "earth_soul": {
+      "id": "earth_soul",
+      "name": "Earth Soul",
+      "description": "Summons a random earth god",
+      "rarity": "universal",
+      "element": "earth",
+      "icon": "earth_soul",
+      "category": "summoning_material"
+    },
+    "lightning_soul": {
+      "id": "lightning_soul",
+      "name": "Lightning Soul", 
+      "description": "Summons a random lightning god",
+      "rarity": "universal",
+      "element": "lightning",
+      "icon": "lightning_soul",
+      "category": "summoning_material"
+    },
+    "light_soul": {
+      "id": "light_soul",
+      "name": "Light Soul",
+      "description": "Summons a random light god",
+      "rarity": "universal",
+      "element": "light",
+      "icon": "light_soul",
+      "category": "summoning_material"
+    },
+    "dark_soul": {
+      "id": "dark_soul",
+      "name": "Dark Soul",
+      "description": "Summons a random dark god",
+      "rarity": "universal",
+      "element": "dark",
+      "icon": "dark_soul",
+      "category": "summoning_material"
+    }
+  },
+  
+  "crafting_materials": {
+    "iron_ore": {
+      "id": "iron_ore",
+      "name": "Iron Ore",
+      "description": "Basic ore for crafting equipment",
+      "tier": "common",
+      "icon": "iron_ore",
+      "category": "crafting_material"
+    },
+    "mythril_ore": {
+      "id": "mythril_ore",
+      "name": "Mythril Ore", 
+      "description": "Rare ore for crafting powerful equipment",
+      "tier": "rare",
+      "icon": "mythril_ore",
+      "category": "crafting_material"
+    },
+    "adamantite_ore": {
+      "id": "adamantite_ore",
+      "name": "Adamantite Ore",
+      "description": "Legendary ore for crafting divine equipment",
+      "tier": "legendary",
+      "icon": "adamantite_ore",
+      "category": "crafting_material"
+    },
+    "ruby": {
+      "id": "ruby",
+      "name": "Ruby",
+      "description": "Fire-attuned gemstone for socketing equipment",
+      "element": "fire",
+      "tier": "rare",
+      "icon": "ruby",
+      "category": "gemstone"
+    },
+    "sapphire": {
+      "id": "sapphire",
+      "name": "Sapphire",
+      "description": "Water-attuned gemstone for socketing equipment",
+      "element": "water",
+      "tier": "rare",
+      "icon": "sapphire",
+      "category": "gemstone"
+    },
+    "emerald": {
+      "id": "emerald",
+      "name": "Emerald",
+      "description": "Earth-attuned gemstone for socketing equipment",
+      "element": "earth",
+      "tier": "rare",
+      "icon": "emerald",
+      "category": "gemstone"
+    },
+    "topaz": {
+      "id": "topaz",
+      "name": "Topaz",
+      "description": "Lightning-attuned gemstone for socketing equipment",
+      "element": "lightning",
+      "tier": "rare",
+      "icon": "topaz",
+      "category": "gemstone"
+    },
+    "diamond": {
+      "id": "diamond",
+      "name": "Diamond",
+      "description": "Light-attuned gemstone for socketing equipment",
+      "element": "light",
+      "tier": "rare",
+      "icon": "diamond",
+      "category": "gemstone"
+    },
+    "onyx": {
+      "id": "onyx",
+      "name": "Onyx",
+      "description": "Dark-attuned gemstone for socketing equipment",
+      "element": "dark",
+      "tier": "rare",
+      "icon": "onyx",
+      "category": "gemstone"
+    },
+    "enhancement_powder": {
+      "id": "enhancement_powder",
+      "name": "Enhancement Powder",
+      "description": "Ground gemstone dust used to enhance equipment",
+      "tier": "common",
+      "icon": "enhancement_powder",
+      "category": "crafting_material"
+    },
+    "socket_crystal": {
+      "id": "socket_crystal",
+      "name": "Socket Crystal",
+      "description": "Pure crystal formations that can open sockets in equipment",
+      "tier": "uncommon",
+      "icon": "socket_crystal",
+      "category": "crafting_material"
+    },
+    "forging_flame": {
+      "id": "forging_flame",
+      "name": "Eternal Forging Flame",
+      "description": "Divine flame essence required for high-tier equipment crafting",
+      "tier": "rare",
+      "icon": "forging_flame",
+      "category": "crafting_material"
+    },
+    "blessed_oil": {
+      "id": "blessed_oil",
+      "name": "Blessed Oil",
+      "description": "Sacred oil that prevents equipment from breaking during enhancement",
+      "tier": "rare",
+      "icon": "blessed_oil",
+      "category": "crafting_material"
+    }
+  },
+  
+  "consumables": {
+    "strength_elixir": {
+      "id": "strength_elixir",
+      "name": "Elixir of Strength",
+      "description": "Temporarily increases attack power by 25% for 1 hour",
+      "effect": {
+        "stat": "attack",
+        "multiplier": 1.25,
+        "duration": 3600
+      },
+      "icon": "strength_elixir",
+      "category": "consumable"
+    },
+    "vitality_potion": {
+      "id": "vitality_potion",
+      "name": "Potion of Vitality",
+      "description": "Temporarily increases HP by 30% for 1 hour",
+      "effect": {
+        "stat": "hp",
+        "multiplier": 1.30,
+        "duration": 3600
+      },
+      "icon": "vitality_potion",
+      "category": "consumable"
+    },
+    "swiftness_brew": {
+      "id": "swiftness_brew",
+      "name": "Brew of Swiftness",
+      "description": "Temporarily increases speed by 20% for 1 hour",
+      "effect": {
+        "stat": "speed",
+        "multiplier": 1.20,
+        "duration": 3600
+      },
+      "icon": "swiftness_brew",
+      "category": "consumable"
+    },
+    "experience_boost": {
+      "id": "experience_boost",
+      "name": "Experience Booster",
+      "description": "Doubles experience gain for 2 hours",
+      "effect": {
+        "type": "experience_multiplier",
+        "multiplier": 2.0,
+        "duration": 7200
+      },
+      "icon": "experience_boost",
+      "category": "consumable"
+    }
+  },
+  
+  "special_materials": {
+    "awakening_stone": {
+      "id": "awakening_stone",
+      "name": "Awakening Stone",
+      "description": "Required for awakening legendary gods",
+      "icon": "awakening_stone",
+      "category": "special_material"
+    },
+    "skill_book": {
+      "id": "skill_book",
+      "name": "Skill Book",
+      "description": "Unlocks new abilities for gods",
+      "icon": "skill_book", 
+      "category": "special_material"
+    },
+    "ascension_crystal": {
+      "id": "ascension_crystal",
+      "name": "Ascension Crystal",
+      "description": "Required for god ascension",
+      "icon": "ascension_crystal",
+      "category": "special_material"
+    }
+  },
+  
+  "resource_groups": {
+    "powders_by_element": {
+      "fire": ["fire_powder_low", "fire_powder_mid", "fire_powder_high"],
+      "water": ["water_powder_low", "water_powder_mid", "water_powder_high"],
+      "earth": ["earth_powder_low", "earth_powder_mid", "earth_powder_high"],
+      "lightning": ["lightning_powder_low", "lightning_powder_mid", "lightning_powder_high"],
+      "light": ["light_powder_low", "light_powder_mid", "light_powder_high"],
+      "dark": ["dark_powder_low", "dark_powder_mid", "dark_powder_high"],
+      "universal": ["magic_powder_low", "magic_powder_mid", "magic_powder_high"]
+    },
+    "souls_by_element": {
+      "fire": ["fire_soul"],
+      "water": ["water_soul"],
+      "earth": ["earth_soul"],
+      "lightning": ["lightning_soul"],
+      "light": ["light_soul"],
+      "dark": ["dark_soul"],
+      "universal": ["common_soul", "rare_soul", "epic_soul", "legendary_soul"]
+    },
+    "gemstones_by_element": {
+      "fire": ["ruby"],
+      "water": ["sapphire"], 
+      "earth": ["emerald"],
+      "lightning": ["topaz"],
+      "light": ["diamond"],
+      "dark": ["onyx"]
+    }
+  }
+}
