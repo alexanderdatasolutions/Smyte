@@ -82,21 +82,15 @@ var current_tooltip_button: Button = null
 var battle_completed: bool = false
 
 func _ready():
-	print("=== BattleScreen: _ready called ===")
-	print("=== DEBUG: Instance ID: %s ===" % get_instance_id())
-	print("=== DEBUG: Scene file path: %s ===" % get_scene_file_path())
-	print("player_team_container: %s" % player_team_container)
-	print("enemy_team_container: %s" % enemy_team_container)
+
 	
 	# DEBUG: Check if there are already existing children
 	if player_team_container:
-		print("=== DEBUG: player_team_container already has %d children ===" % player_team_container.get_child_count())
 		for i in range(player_team_container.get_child_count()):
 			var child = player_team_container.get_child(i)
 			print("  - Child %d: %s (Instance: %s)" % [i, child.name, child.get_instance_id()])
 	
 	if enemy_team_container:
-		print("=== DEBUG: enemy_team_container already has %d children ===" % enemy_team_container.get_child_count())
 		for i in range(enemy_team_container.get_child_count()):
 			var child = enemy_team_container.get_child(i)
 			print("  - Child %d: %s (Instance: %s)" % [i, child.name, child.get_instance_id()])
@@ -122,7 +116,6 @@ func _ready():
 	# If setup_dungeon_battle was called before ready, call it now
 	if has_meta("pending_dungeon_setup"):
 		var setup_data = get_meta("pending_dungeon_setup")
-		print("=== BattleScreen: Executing pending dungeon setup ===")
 		call_deferred("_execute_pending_setup", setup_data)
 	
 	# Check if there's a pending battle context from scene transition
@@ -167,7 +160,6 @@ func _create_ability_tooltip():
 	"""Create floating tooltip for abilities"""
 	# Don't create if already exists
 	if ability_tooltip:
-		print("=== BattleScreen: ability_tooltip already exists, reusing ===")
 		return
 		
 	ability_tooltip = PanelContainer.new()
@@ -219,7 +211,6 @@ func _create_battle_log():
 	"""Create a battle log display"""
 	# Don't create if already exists
 	if battle_log_panel:
-		print("=== BattleScreen: battle_log_panel already exists, reusing ===")
 		return
 		
 	# Find a good place to put the battle log - next to the battle arena
@@ -331,7 +322,6 @@ func _add_battle_log_line(message: String):
 
 func _on_battle_log_updated(message: String):
 	"""Handle battle log updates from battle system - now uses both old and new display"""
-	print("Battle: %s" % message)
 	
 	# Update action label (old system)
 	if action_label:
@@ -342,9 +332,7 @@ func _on_battle_log_updated(message: String):
 
 func _connect_battle_system():
 	"""Connect to instant battle system"""
-	print("=== BattleScreen: Connecting to battle system ===")
 	if GameManager and GameManager.battle_system:
-		print("=== BattleScreen: Found battle system, connecting ===")
 		var bs = GameManager.battle_system
 		
 		# Only connect signals if not already connected
@@ -355,7 +343,6 @@ func _connect_battle_system():
 		
 		# Always set battle screen reference (it's just a variable assignment)
 		bs.battle_screen = self
-		print("=== BattleScreen: Set battle_screen reference ===")
 	else:
 		print("ERROR: BattleScreen: GameManager or battle_system not found!")
 	
@@ -371,7 +358,6 @@ func _connect_battle_system():
 
 func setup_territory_stage_battle(territory: Territory, stage: int, battle_gods: Array):
 	"""Setup territory battle using the unified battle context system"""
-	print("=== BattleScreen: Setting up territory battle using unified system ===")
 	
 	# Create unified battle context (same pattern as dungeons)
 	var territory_context = {
@@ -389,7 +375,6 @@ func setup_territory_stage_battle(territory: Territory, stage: int, battle_gods:
 
 func setup_dungeon_battle(dungeon_id: String, difficulty: String, battle_gods: Array):
 	"""Setup battle for dungeon challenges"""
-	print("=== BattleScreen: setup_dungeon_battle called: %s (%s) with %d gods ===" % [dungeon_id, difficulty, battle_gods.size()])
 	
 	# Check if _ready() has completed
 	if not has_meta("ready_complete"):
@@ -409,7 +394,6 @@ func _execute_pending_setup(setup_data: Dictionary):
 
 func _execute_dungeon_setup(dungeon_id: String, difficulty: String, battle_gods: Array):
 	"""Actually execute the dungeon setup"""
-	print("=== BattleScreen: _execute_dungeon_setup called ===")
 	
 	# Ensure connection is established
 	_connect_battle_system()
@@ -424,7 +408,6 @@ func _execute_dungeon_setup(dungeon_id: String, difficulty: String, battle_gods:
 	current_dungeon_id = dungeon_id
 	current_dungeon_difficulty = difficulty
 	
-	print("Selected gods: %s" % selected_gods)
 	
 	# Enable auto-battle by default for dungeons
 	if GameManager.battle_system:
@@ -433,14 +416,12 @@ func _execute_dungeon_setup(dungeon_id: String, difficulty: String, battle_gods:
 		# Set the team in the battle manager BEFORE starting waves
 		GameManager.battle_system.current_battle_gods = selected_gods.duplicate()
 		
-		print("Battle system found - team set: %d gods" % GameManager.battle_system.current_battle_gods.size())
 	else:
 		print("ERROR: No battle system found")
 	
 	# Start wave system for dungeon
 	var wave_system = GameManager.get_wave_system()
 	if wave_system:
-		print("=== BattleScreen: Setting up wave system for %s (%s) ===" % [dungeon_id, difficulty])
 		
 		# Setup waves first
 		var wave_setup_success = wave_system.setup_waves_for_dungeon(dungeon_id, difficulty)
@@ -579,8 +560,6 @@ func _get_all_children(node: Node) -> Array:
 
 func setup_battle_from_context(context: Dictionary):
 	"""Setup battle fresh from BattleSetupScreen context - CLEAN APPROACH"""
-	print("=== BattleScreen: setup_battle_from_context called ===")
-	print("Context: %s" % context)
 	
 	# COMPLETE RESET to prevent any layering issues
 	_complete_ui_reset()
@@ -616,13 +595,11 @@ func setup_battle_from_context(context: Dictionary):
 	# Set team in battle manager FIRST (required for wave system)
 	if GameManager and GameManager.battle_system:
 		GameManager.battle_system.current_battle_gods = team.duplicate()
-		print("Battle system team set: %d gods" % team.size())
 		
 		# CRITICAL: Set territory info in BattleManager so GameManager can track progress
 		if battle_type == "territory" and territory:
 			GameManager.battle_system.current_battle_territory = territory
 			GameManager.battle_system.current_battle_stage = stage
-			print("=== BattleManager: Set territory %s stage %d ===" % [territory.name, stage])
 		elif battle_type == "dungeon":
 			GameManager.battle_system.current_battle_territory = null
 			GameManager.battle_system.current_battle_stage = 1
@@ -633,7 +610,6 @@ func setup_battle_from_context(context: Dictionary):
 	# Setup wave system for all battle types (unified approach)
 	var wave_system = GameManager.get_wave_system()
 	if wave_system:
-		print("=== Setting up wave system for %s battle ===" % battle_type)
 		
 		var wave_setup_success = false
 		if battle_type == "dungeon":
@@ -678,34 +654,26 @@ func setup_battle_from_context(context: Dictionary):
 	_update_auto_battle_button()
 	_update_speed_buttons()
 	
-	print("=== BattleScreen: Unified battle setup complete ===")
-
 func _complete_ui_reset():
 	"""Complete UI reset to prevent any layering or duplicate issues"""
 	print("=== BattleScreen: Performing complete UI reset ===")
-	print("=== DEBUG: Instance ID: %s ===" % get_instance_id())
 	
 	# Clear all displays
-	print("=== DEBUG: Clearing displays - god_displays: %d, enemy_displays: %d ===" % [god_displays.size(), enemy_displays.size()])
 	god_displays.clear()
 	enemy_displays.clear()
 	selected_gods.clear()
 	
 	# IMMEDIATELY destroy and recreate containers to ensure clean slate
 	if player_team_container:
-		print("=== DEBUG: player_team_container exists with %d children ===" % player_team_container.get_child_count())
 		for i in range(player_team_container.get_child_count()):
 			var child = player_team_container.get_child(i)
-			print("  - DEBUG: About to free child %d: %s (Instance: %s)" % [i, child.name, child.get_instance_id()])
 		
 		var parent = player_team_container.get_parent()
 		var position_in_parent = player_team_container.get_index()
-		print("=== DEBUG: player_team_container parent: %s, position: %d ===" % [parent.name if parent else "null", position_in_parent])
 		
 		# Remove from scene tree first, then queue_free
 		parent.remove_child(player_team_container)
 		player_team_container.queue_free()
-		print("=== DEBUG: Removed and queued player_team_container for deletion ===")
 		
 		# Create new container immediately
 		var new_container = VBoxContainer.new()
@@ -713,24 +681,17 @@ func _complete_ui_reset():
 		parent.add_child(new_container)
 		parent.move_child(new_container, position_in_parent)
 		player_team_container = new_container
-		print("=== DEBUG: Created new player_team_container (Instance: %s) ===" % new_container.get_instance_id())
-	else:
-		print("=== DEBUG: player_team_container is null ===")
 	
 	if enemy_team_container:
-		print("=== DEBUG: enemy_team_container exists with %d children ===" % enemy_team_container.get_child_count())
 		for i in range(enemy_team_container.get_child_count()):
 			var child = enemy_team_container.get_child(i)
-			print("  - DEBUG: About to free child %d: %s (Instance: %s)" % [i, child.name, child.get_instance_id()])
 		
 		var parent = enemy_team_container.get_parent()
 		var position_in_parent = enemy_team_container.get_index()
-		print("=== DEBUG: enemy_team_container parent: %s, position: %d ===" % [parent.name if parent else "null", position_in_parent])
 		
 		# Remove from scene tree first, then queue_free
 		parent.remove_child(enemy_team_container)
 		enemy_team_container.queue_free()
-		print("=== DEBUG: Removed and queued enemy_team_container for deletion ===")
 		
 		# Create new container immediately
 		var new_container = VBoxContainer.new()
@@ -738,31 +699,24 @@ func _complete_ui_reset():
 		parent.add_child(new_container)
 		parent.move_child(new_container, position_in_parent)
 		enemy_team_container = new_container
-		print("=== DEBUG: Created new enemy_team_container (Instance: %s) ===" % new_container.get_instance_id())
-	else:
-		print("=== DEBUG: enemy_team_container is null ===")
+
 	
 	# Recreate action buttons container
 	if action_buttons_container:
-		print("=== DEBUG: action_buttons_container exists with %d children ===" % action_buttons_container.get_child_count())
 		for i in range(action_buttons_container.get_child_count()):
 			var child = action_buttons_container.get_child(i)
-			print("  - DEBUG: About to free child %d: %s (Instance: %s)" % [i, child.name, child.get_instance_id()])
 		
 		var parent = action_buttons_container.get_parent()
 		# Remove from scene tree first, then queue_free
 		parent.remove_child(action_buttons_container)
 		action_buttons_container.queue_free()
-		print("=== DEBUG: Removed and queued action_buttons_container for deletion ===")
 		
 		# Create new container immediately
 		action_buttons_container = HBoxContainer.new()
 		action_buttons_container.add_theme_constant_override("separation", 10)
 		action_buttons_container.visible = false
 		parent.add_child(action_buttons_container)
-		print("=== DEBUG: Created new action_buttons_container (Instance: %s) ===" % action_buttons_container.get_instance_id())
-	else:
-		print("=== DEBUG: action_buttons_container is null ===")
+
 	
 	# Clear labels
 	if action_label:
@@ -781,19 +735,11 @@ func _complete_ui_reset():
 	current_battle_stage = 1
 	waiting_for_target = false
 	selected_ability.clear()
-	
-	print("=== BattleScreen: UI reset complete ===")
-	print("=== DEBUG: After reset - player_team_container children: %d, enemy_team_container children: %d ===" % [
-		player_team_container.get_child_count() if player_team_container else -1,
-		enemy_team_container.get_child_count() if enemy_team_container else -1
-	])
+
 
 func _create_god_displays():
 	"""Create god displays instantly"""
-	print("=== BattleScreen: _create_god_displays called ===")
-	print("player_team_container: %s" % player_team_container)
-	print("selected_gods count: %d" % selected_gods.size())
-	
+
 	if not player_team_container:
 		print("ERROR: player_team_container is null, cannot create god displays")
 		return
@@ -804,7 +750,6 @@ func _create_god_displays():
 	
 	# Clear existing IMMEDIATELY to prevent layering
 	for child in player_team_container.get_children():
-		print("Removing existing child: %s" % child.name)
 		player_team_container.remove_child(child)
 		child.queue_free()
 	god_displays.clear()
@@ -817,19 +762,10 @@ func _create_god_displays():
 		if display:
 			player_team_container.add_child(display)
 			god_displays[god.id] = display
-			print("Successfully added god display for %s" % god.id)
-		else:
-			print("ERROR: Failed to create display for god %s" % god.id)
-	
-	print("=== God displays creation complete ===")
-	print("Created %d god displays, total in dictionary: %d" % [player_team_container.get_child_count(), god_displays.size()])
-	print("God display keys: " + str(god_displays.keys()))
 
 func _create_enemy_displays():
 	"""Create enemy displays instantly"""
-	print("=== BattleScreen: _create_enemy_displays called ===")
-	print("enemy_team_container: %s" % enemy_team_container)
-	
+
 	if not GameManager.battle_system:
 		print("ERROR: No battle system found")
 		return
@@ -1156,7 +1092,6 @@ func _show_action_buttons(god: God):
 	if god.active_abilities and god.active_abilities.size() > 0:
 		print("=== BattleScreen: Creating %d ability buttons ===" % god.active_abilities.size())
 		for ability in god.active_abilities:
-			print("=== BattleScreen: Creating ability button: %s ===" % ability.get("name", "Ability"))
 			var ability_btn = Button.new()
 			ability_btn.text = ability.get("name", "Ability")
 			ability_btn.custom_minimum_size = Vector2(80, 35)
@@ -1167,15 +1102,9 @@ func _show_action_buttons(god: God):
 			ability_btn.mouse_exited.connect(_start_hide_tooltip_timer.bind(ability_btn))
 			
 			action_buttons_container.add_child(ability_btn)
-			print("=== BattleScreen: Added ability button: %s ===" % ability.get("name", "Ability"))
-	else:
-		print("=== BattleScreen: God has no active abilities ===")
-	
+
 	# Make visible
-	print("=== BattleScreen: Setting action_buttons_container visible = true ===")
 	action_buttons_container.visible = true
-	print("=== BattleScreen: action_buttons_container.visible = %s ===" % action_buttons_container.visible)
-	print("=== BattleScreen: Total buttons created: %d ===" % action_buttons_container.get_child_count())
 
 func end_god_turn_ui():
 	"""Called by BattleManager when a god's turn officially ends"""
@@ -1779,7 +1708,7 @@ func update_enemy_hp_instantly(enemy: Dictionary):
 		var enemy_debug = []
 		for e in battle_enemies:
 			enemy_debug.append("%s(%d/%d)" % [_get_stat(e, "name", "Unknown"), _get_stat(e, "current_hp", 0), _get_stat(e, "max_hp", 100)])
-		print("Battle enemies: %s" % enemy_debug)
+		print("Battle enemies: ", enemy_debug)
 		return
 	
 	# Update the display for this specific enemy index

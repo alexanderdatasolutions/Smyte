@@ -23,6 +23,8 @@ var equipment_manager  # NEW: Equipment system for RPG-style gear
 var game_initializer  # NEW: Game initializer for startup loading like Summoners War
 var territory_manager  # NEW: Territory manager for role-based territory system
 var resource_manager  # NEW: Resource manager for modular resource system
+var inventory_manager  # NEW: Inventory manager for items and consumables
+var statistics_manager  # NEW: Statistics manager for battle analytics
 
 # Preload the DataLoader class
 const GameDataLoader = preload("res://scripts/systems/DataLoader.gd")
@@ -44,6 +46,8 @@ func initialize_game():
 	wave_system = preload("res://scripts/systems/WaveSystem.gd").new()  # NEW: Wave system
 	equipment_manager = preload("res://scripts/systems/EquipmentManager.gd").new()  # NEW: Equipment system
 	territory_manager = preload("res://scripts/systems/TerritoryManager.gd").new()  # NEW: Territory manager
+	inventory_manager = preload("res://scripts/systems/InventoryManager.gd").new()  # NEW: Inventory manager  
+	statistics_manager = preload("res://scripts/systems/StatisticsManager.gd").new()  # NEW: Statistics manager
 	
 	# Initialize ResourceManager - will be created by LootSystem if needed
 	resource_manager = get_node("/root/ResourceManager") if has_node("/root/ResourceManager") else null
@@ -61,6 +65,8 @@ func initialize_game():
 	add_child(equipment_manager)
 	add_child(game_initializer)
 	add_child(territory_manager)
+	add_child(inventory_manager)
+	add_child(statistics_manager)
 	
 	# Get ResourceManager reference after LootSystem creates it
 	if not resource_manager:
@@ -151,6 +157,12 @@ func get_wave_system():
 
 func get_equipment_manager():
 	return equipment_manager
+
+func get_inventory_manager():
+	return inventory_manager
+
+func get_statistics_manager():
+	return statistics_manager
 
 # System signal handlers
 func _on_summon_completed(god):

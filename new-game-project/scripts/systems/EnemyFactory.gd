@@ -43,18 +43,33 @@ static func create_enemies_for_stage(territory: Territory, stage: int) -> Array:
 		if i < enemy_composition.size():
 			enemy_type = enemy_composition[i]
 		
-		# Set enemy name and element based on territory
+		# Set enemy element and get JSON data if available
 		var element_string = DataLoader.element_int_to_string(territory.element)
 		var element_name = _get_element_display_name(element_string)
-		match enemy_type:
-			"boss":
-				enemy.name = "%s Overlord" % element_name
-			"elite":
-				enemy.name = "%s Elite" % element_name
-			"leader":
-				enemy.name = "%s Commander" % element_name
-			_:
-				enemy.name = "%s Warrior" % element_name
+		var enemy_types_data = DataLoader.get_enemy_types_for_element(element_string)
+		var type_enemies = enemy_types_data.get(enemy_type, {})
+		
+		# Choose a specific enemy from JSON if available
+		var enemy_name = ""
+		var enemy_data = {}
+		if not type_enemies.is_empty():
+			var available_enemies = type_enemies.keys()
+			var random_enemy_key = available_enemies[randi() % available_enemies.size()]
+			enemy_data = type_enemies[random_enemy_key]
+			enemy_name = random_enemy_key.replace("_", " ").capitalize()
+		else:
+			# Fallback to generic names
+			match enemy_type:
+				"boss":
+					enemy_name = "%s Overlord" % element_name
+				"elite":
+					enemy_name = "%s Elite" % element_name
+				"leader":
+					enemy_name = "%s Commander" % element_name
+				_:
+					enemy_name = "%s Warrior" % element_name
+		
+		enemy.name = enemy_name
 		
 		# Calculate stats using the same system as preview
 		var stats = _calculate_enemy_stats(territory.element, enemy_type, stage_level, territory.tier)
@@ -78,7 +93,14 @@ static func create_enemies_for_stage(territory: Territory, stage: int) -> Array:
 		enemy.battle_index = i
 		
 		# Add basic AI data
-		enemy.ai_behavior = _get_enemy_ai_behavior(enemy_type)
+		if not enemy_data.is_empty():
+			enemy.ai_behavior = enemy_data.get("ai_behavior", "aggressive")
+			enemy.abilities = enemy_data.get("abilities", ["basic_attack"])
+			enemy.special_traits = enemy_data.get("special_traits", [])
+		else:
+			enemy.ai_behavior = _get_enemy_ai_behavior(enemy_type)
+			enemy.abilities = ["basic_attack"]
+			enemy.special_traits = []
 		
 		enemies.append(enemy)
 	
@@ -92,99 +114,92 @@ static func create_enemies_for_stage(territory: Territory, stage: int) -> Array:
 	return enemies
 
 static func create_enemies_for_dungeon(dungeon_id: String, difficulty: String) -> Array:
-	"""Create enemies for dungeon battles - modular system"""
+	"""Create enemies for dungeon battles using modular system - same as territories"""
 	var enemies = []
 	
 	# Determine element from dungeon ID
-	var element_string = "fire"  # default
-	if "_sanctum" in dungeon_id:
-		element_string = dungeon_id.replace("_sanctum", "")
-	elif dungeon_id == "magic_sanctum":
-		element_string = "light"  # Magic sanctum uses light element
-	
-	# Fix magic_sanctum edge case
-	if element_string == "magic":
-		element_string = "light"
-	
-	# Convert element string to int for compatibility
+	var element_string = _get_dungeon_element(dungeon_id)
 	var element_int = DataLoader.element_string_to_int(element_string)
 	
-	# Get dungeon configuration
+	# Get dungeon configuration (enemy count, composition, level)
 	var dungeon_config = _get_dungeon_config(dungeon_id, difficulty)
-	var enemy_count = dungeon_config.enemy_count
-	var enemy_level = dungeon_config.enemy_level
+	var enemy_count = min(4, dungeon_config.enemy_count)  # UI limit
+	var base_level = dungeon_config.enemy_level
 	var enemy_composition = dungeon_config.enemy_composition
 	
-	# SAFETY CHECK: Enforce 4-enemy UI limit
-	if enemy_count > 4:
-		print("WARNING: Enemy count %d exceeds UI limit for %s %s - capping at 4" % [enemy_count, dungeon_id, difficulty])
-		enemy_count = 4
-		enemy_composition = enemy_composition.slice(0, 4)  # Take first 4 only
+	# Get enemy types from intelligent JSON system
+	var element_name = _get_element_display_name(element_string)
+	var enemy_types_data = DataLoader.get_enemy_types_for_element(element_string)
 	
-	# Create enemies
+	# Create enemies using the same modular system as territories
 	for i in range(enemy_count):
 		var enemy = {}
-		enemy.level = enemy_level
+		enemy.level = base_level
 		
-		# Determine enemy type
+		# Determine enemy type from composition
 		var enemy_type = "basic"
 		if i < enemy_composition.size():
 			enemy_type = enemy_composition[i]
 		
-		# Set enemy name based on dungeon type and element
-		var element_name = _get_element_display_name(element_string)
-		if "sanctum" in dungeon_id:
-			match enemy_type:
-				"boss":
-					enemy.name = "%s Sanctum Guardian" % element_name
-				"elite":
-					enemy.name = "%s Sanctum Sentinel" % element_name
-				"leader":
-					enemy.name = "%s Sanctum Keeper" % element_name
-				_:
-					enemy.name = "%s Sanctum Spirit" % element_name
-		else:
-			match enemy_type:
-				"boss":
-					enemy.name = "Ancient %s" % element_name
-				"elite":
-					enemy.name = "%s Champion" % element_name
-				"leader":
-					enemy.name = "%s Veteran" % element_name
-				_:
-					enemy.name = "%s Warrior" % element_name
+		# Choose a specific enemy from JSON if available
+		var enemy_name = ""
+		var enemy_data = {}
+		var type_enemies = enemy_types_data.get(enemy_type, {})
 		
-		# Calculate stats for dungeon enemy
-		var stats = _calculate_dungeon_enemy_stats(element_int, enemy_type, enemy_level, difficulty)
+		if not type_enemies.is_empty():
+			var available_enemies = type_enemies.keys()
+			var random_enemy_key = available_enemies[randi() % available_enemies.size()]
+			enemy_data = type_enemies[random_enemy_key]
+			enemy_name = random_enemy_key.replace("_", " ").capitalize()
+		else:
+			# Fallback to generic names
+			match enemy_type:
+				"boss":
+					enemy_name = "%s Overlord" % element_name
+				"elite":
+					enemy_name = "%s Elite" % element_name
+				"leader":
+					enemy_name = "%s Commander" % element_name
+				_:
+					enemy_name = "%s Warrior" % element_name
+		
+		enemy.name = enemy_name
+		enemy.element = element_string
+		enemy.type = enemy_type
+		
+		# Calculate stats using same system as territories
+		var stats = _calculate_dungeon_enemy_stats(element_int, enemy_type, base_level, difficulty)
 		enemy.hp = stats.hp
 		enemy.current_hp = stats.hp
 		enemy.attack = stats.attack
 		enemy.defense = stats.defense
 		enemy.speed = stats.speed
-		enemy.crit_rate = stats.crit_rate
-		enemy.crit_damage = stats.crit_damage
-		enemy.resistance = stats.resistance
-		enemy.accuracy = stats.accuracy
-		enemy.element = element_string
-		enemy.type = enemy_type
+		enemy.crit_rate = stats.get("crit_rate", 15)
+		enemy.crit_damage = stats.get("crit_damage", 50)
+		enemy.resistance = stats.get("resistance", 15)
+		enemy.accuracy = stats.get("accuracy", 0)
 		
-		# Add status effects tracking for enemies
+		# Add battle tracking
 		enemy.status_effects = []
 		enemy.shield_hp = 0
-		
-		# Add unique battle index for UI tracking
 		enemy.battle_index = i
 		
-		# Add basic AI data
-		enemy.ai_behavior = _get_enemy_ai_behavior(enemy_type)
+		# AI behavior and abilities from JSON or defaults
+		if not enemy_data.is_empty():
+			enemy.ai_behavior = enemy_data.get("ai_behavior", "aggressive")
+			enemy.abilities = enemy_data.get("abilities", ["basic_attack"])
+			enemy.special_traits = enemy_data.get("special_traits", [])
+		else:
+			enemy.ai_behavior = _get_enemy_ai_behavior(enemy_type)
+			enemy.abilities = ["basic_attack"]
+			enemy.special_traits = []
 		
 		enemies.append(enemy)
 	
 	print("EnemyFactory created %d enemies for dungeon %s (%s):" % [enemies.size(), dungeon_id, difficulty])
 	for enemy in enemies:
-		print("  %s (Lv.%d) - HP:%d ATK:%d DEF:%d SPD:%d CR:%d%% CD:%d%% RES:%d%% ACC:%d%%" % [
-			enemy.name, enemy.level, enemy.hp, enemy.attack, enemy.defense, enemy.speed, 
-			enemy.get("crit_rate", 15), enemy.get("crit_damage", 50), enemy.get("resistance", 15), enemy.get("accuracy", 0)
+		print("  %s (Lv.%d %s) - HP:%d ATK:%d DEF:%d SPD:%d" % [
+			enemy.name, enemy.level, enemy.type, enemy.hp, enemy.attack, enemy.defense, enemy.speed
 		])
 	
 	return enemies
@@ -344,16 +359,16 @@ static func _get_element_display_name(element: String) -> String:
 static func _calculate_enemy_stats(_element: Territory.ElementType, enemy_type: String, level: int, tier: int) -> Dictionary:
 	"""Calculate enemy stats using Summoners War scaling - matches your gods system"""
 	# Base stats following SW conventions (similar to 2-3★ monsters)
-	var base_hp = 800        # SW-style base HP
-	var base_attack = 150    # SW-style base ATK  
-	var base_defense = 120   # SW-style base DEF
-	var base_speed = 90      # SW-style base SPD
+	var base_hp = 80        # Pokemon-style base HP (was 800)
+	var base_attack = 50    # Pokemon-style base ATK (was 150)  
+	var base_defense = 40   # Pokemon-style base DEF (was 120)
+	var base_speed = 70     # Pokemon-style base SPD (was 90)
 	
 	# Per-level growth (substantial like SW)
-	var hp_per_level = 45    # HP grows significantly
-	var attack_per_level = 8 # ATK grows moderately
-	var defense_per_level = 6 # DEF grows moderately
-	var speed_per_level = 2   # SPD grows slowly
+	var hp_per_level = 4    # Pokemon-style growth (was 45)
+	var attack_per_level = 2 # Pokemon-style growth (was 8)
+	var defense_per_level = 1.5 # Pokemon-style growth (was 6)
+	var speed_per_level = 1  # Pokemon-style growth (was 2)
 	
 	# Role multipliers based on enemy type (matching enemies.json design)
 	var role_multipliers = _get_enemy_type_multipliers(enemy_type)
@@ -377,16 +392,16 @@ static func _calculate_enemy_stats(_element: Territory.ElementType, enemy_type: 
 	return stats
 
 static func _get_enemy_type_multipliers(enemy_type: String) -> Dictionary:
-	"""Get stat multipliers for different enemy types - matches enemies.json design"""
+	"""Get stat multipliers for different enemy types - BALANCED for good gameplay"""
 	match enemy_type:
 		"boss":
-			return {"hp": 1.8, "attack": 1.5, "defense": 1.3, "speed": 1.2}
+			return {"hp": 1.6, "attack": 1.3, "defense": 1.2, "speed": 1.1}  # Reduced from 1.8/1.5/1.3/1.2
 		"elite":
-			return {"hp": 1.3, "attack": 1.1, "defense": 1.0, "speed": 1.1}
+			return {"hp": 1.2, "attack": 1.1, "defense": 1.0, "speed": 1.0}  # Reduced from 1.3/1.1/1.0/1.1
 		"leader":
-			return {"hp": 1.1, "attack": 1.0, "defense": 0.9, "speed": 1.0}
+			return {"hp": 1.1, "attack": 1.0, "defense": 0.9, "speed": 1.0}  # Keep same - already balanced
 		_:  # basic
-			return {"hp": 0.8, "attack": 0.9, "defense": 0.8, "speed": 1.0}
+			return {"hp": 0.8, "attack": 0.9, "defense": 0.8, "speed": 1.0}  # Keep same - baseline
 
 static func _get_enemy_ai_behavior(enemy_type: String) -> Dictionary:
 	"""Get AI behavior data for enemy type"""
@@ -546,20 +561,20 @@ static func _get_dungeon_config(dungeon_id: String, difficulty: String) -> Dicti
 static func _calculate_dungeon_enemy_stats(_element: Territory.ElementType, enemy_type: String, level: int, difficulty: String) -> Dictionary:
 	"""Calculate stats for dungeon enemies with difficulty scaling"""
 	# Base stats for dungeon enemies (stronger than territory enemies)
-	var base_hp = 1200        # Higher than territory base
-	var base_attack = 200     # Higher than territory base  
-	var base_defense = 150    # Higher than territory base
+	var base_hp = 120       # Pokemon-style dungeon HP (was 1200)
+	var base_attack = 60    # Pokemon-style dungeon ATK (was 200)  
+	var base_defense = 50   # Pokemon-style dungeon DEF (was 150)
 	
-	# Difficulty multipliers
+	# Difficulty multipliers - BALANCED for better gameplay
 	var difficulty_multiplier = 1.0
 	match difficulty:
 		"beginner": difficulty_multiplier = 1.0
 		"intermediate": difficulty_multiplier = 1.3
-		"advanced": difficulty_multiplier = 1.7
-		"expert": difficulty_multiplier = 2.2
-		"master": difficulty_multiplier = 2.8
-		"heroic": difficulty_multiplier = 3.5
-		"legendary": difficulty_multiplier = 4.5
+		"advanced": difficulty_multiplier = 1.6      # Reduced from 1.7
+		"expert": difficulty_multiplier = 2.0        # Reduced from 2.2
+		"master": difficulty_multiplier = 2.5        # Reduced from 2.8
+		"heroic": difficulty_multiplier = 3.0        # Reduced from 3.5
+		"legendary": difficulty_multiplier = 3.5     # Reduced from 4.5
 	
 	# Enemy type multipliers (same as territory system)
 	var type_hp_multiplier = 1.0
@@ -576,16 +591,16 @@ static func _calculate_dungeon_enemy_stats(_element: Territory.ElementType, enem
 			type_attack_multiplier = 1.2
 			type_defense_multiplier = 1.2
 		"elite":
-			type_hp_multiplier = 1.8
-			type_attack_multiplier = 1.4
-			type_defense_multiplier = 1.4
+			type_hp_multiplier = 1.5      # Reduced from 1.8
+			type_attack_multiplier = 1.3  # Reduced from 1.4
+			type_defense_multiplier = 1.3 # Reduced from 1.4
 		"boss":
-			type_hp_multiplier = 3.0
-			type_attack_multiplier = 1.8
-			type_defense_multiplier = 1.6
+			type_hp_multiplier = 2.0      # Reduced from 3.0
+			type_attack_multiplier = 1.6  # Reduced from 1.8
+			type_defense_multiplier = 1.5 # Reduced from 1.6
 	
 	# Level scaling (exponential growth like Summoners War)
-	var level_multiplier = pow(1.06, level - 1)  # 6% per level
+	var level_multiplier = 1.0 + (level - 1) * 0.03  # 3% per level (was 6%)
 	
 	# Calculate final stats
 	var final_hp = int(base_hp * level_multiplier * type_hp_multiplier * difficulty_multiplier)
@@ -593,8 +608,8 @@ static func _calculate_dungeon_enemy_stats(_element: Territory.ElementType, enem
 	var final_defense = int(base_defense * level_multiplier * type_defense_multiplier * difficulty_multiplier)
 	
 	# Speed doesn't scale as much
-	var base_speed = 100 + randi_range(-15, 15)  # Random speed variation
-	var final_speed = int(base_speed * (1.0 + (level - 1) * 0.02))  # 2% per level
+	var base_speed = 70 + randi_range(-10, 10)  # Random speed variation
+	var final_speed = int(base_speed * (1.0 + (level - 1) * 0.01))  # 2% per level
 	
 	# Crit stats
 	var crit_rate = 15 + randi_range(0, 10)  # 15-25%

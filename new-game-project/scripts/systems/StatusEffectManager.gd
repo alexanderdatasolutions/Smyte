@@ -1,4 +1,4 @@
-# StatusE	static func proces	static func process_turn_end_effects(unit, _manager: StatusEffectManager) -> Array:_turn_start_effects(unit, _manager: StatusEffectManager) -> Array:fectManager.gd - Handle all status effect operations
+# StatusEffectManager.gd - Handle all status effect operations
 class_name StatusEffectManager
 extends RefCounted
 
@@ -7,7 +7,7 @@ signal status_effect_removed(target, effect_id)
 
 # Main status effect processing methods
 
-static func process_turn_start_effects(unit, manager: StatusEffectManager) -> Array:
+static func process_turn_start_effects(unit, _manager: StatusEffectManager) -> Array:
 	"""Process status effects at start of turn - returns messages"""
 	var messages = []
 	
@@ -26,7 +26,7 @@ static func process_turn_start_effects(unit, manager: StatusEffectManager) -> Ar
 	
 	return messages
 
-static func process_turn_end_effects(unit, manager: StatusEffectManager) -> Array:
+static func process_turn_end_effects(unit, _manager: StatusEffectManager) -> Array:
 	"""Process status effects at end of turn - returns messages"""
 	var messages = []
 	
@@ -258,6 +258,24 @@ static func create_status_effect_from_id(effect_id: String, caster = null) -> St
 			return StatusEffect.create_bleed(caster)
 		"poison":
 			return StatusEffect.create_poison(caster)
+		"continuous_damage":
+			return StatusEffect.create_continuous_damage(caster)
+		"increase_attack":
+			return StatusEffect.create_attack_boost(caster)
+		"increase_defense":
+			return StatusEffect.create_defense_boost(caster)
+		"increase_speed":
+			return StatusEffect.create_speed_boost(caster)
+		"increase_critical_rate":
+			return StatusEffect.create_crit_boost(caster)
+		"increase_critical_damage":
+			return StatusEffect.create_critical_damage_boost(caster)
+		"decrease_attack":
+			return StatusEffect.create_attack_reduction(caster)
+		"decrease_defense":
+			return StatusEffect.create_defense_reduction(caster)
+		"counterattack":
+			return StatusEffect.create_counter_attack(caster)
 		"freeze":
 			return StatusEffect.create_freeze(caster)
 		"sleep":
@@ -266,6 +284,33 @@ static func create_status_effect_from_id(effect_id: String, caster = null) -> St
 			return StatusEffect.create_silence(caster)
 		"provoke":
 			return StatusEffect.create_provoke(caster)
+		"immunity":
+			# General immunity - defaults to debuff immunity
+			return StatusEffect.create_debuff_immunity(caster)
+		"slow":
+			return StatusEffect.create_slow(caster)
+		"brand":
+			return StatusEffect.create_marked_for_death(caster) # Brand increases damage taken
+		"buff_block":
+			# Block beneficial effects - need to implement this
+			return StatusEffect.create_heal_block(caster) # Placeholder
+		"glancing":
+			return StatusEffect.create_blind(caster) # Glancing hit effect
+		"oblivion":
+			# Disables passive skills - need to implement this  
+			return StatusEffect.create_silence(caster) # Placeholder
+		"continuous_recovery":
+			# Continuous Recovery (heal over time)
+			return StatusEffect.create_regeneration(caster)
+		"increase_accuracy":
+			# Increase Accuracy - increases chance to land debuffs
+			return StatusEffect.create_accuracy_boost(caster)
+		"block_beneficial_effects":
+			# Block beneficial effects - prevents buffs
+			return StatusEffect.create_heal_block(caster) # Placeholder
+		"endure":
+			# Endure - survive with 1 HP when receiving fatal damage
+			return StatusEffect.create_damage_immunity(caster)
 		_:
 			print("Unknown status effect: ", effect_id)
 			return null

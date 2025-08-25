@@ -128,6 +128,17 @@ static func create_burn(_caster, turns: int = 3) -> StatusEffect:
 	effect.can_stack = false  # Burns don't stack in SW
 	return effect
 
+static func create_continuous_damage(_caster, turns: int = 3) -> StatusEffect:
+	var effect = StatusEffect.new("continuous_damage", "Continuous Damage")
+	effect.effect_type = EffectType.DOT
+	effect.duration = turns
+	# Summoners War: 15% max HP per turn (same as burn)
+	effect.damage_per_turn = 0.15
+	effect.description = "Takes 15% max HP damage each turn"
+	effect.color = Color.RED
+	effect.can_stack = true  # Continuous damage can stack in SW
+	return effect
+
 static func create_regeneration(_caster, turns: int = 3) -> StatusEffect:
 	var effect = StatusEffect.new("regeneration", "Regeneration")
 	effect.effect_type = EffectType.HOT

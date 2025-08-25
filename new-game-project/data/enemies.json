@@ -362,10 +362,10 @@
     },
     
     "base_stats": {
-      "hp": 200,
-      "attack": 50,
-      "defense": 30,
-      "speed": 80,
+      "hp": 100,
+      "attack": 45,
+      "defense": 35,
+      "speed": 50,
       "crit_chance": 0.05,
       "crit_damage": 1.5,
       "accuracy": 0.85,
@@ -373,10 +373,10 @@
     },
     
     "per_level_growth": {
-      "hp": 60,
-      "attack": 12,
-      "defense": 8,
-      "speed": 6,
+      "hp": 6,
+      "attack": 2,
+      "defense": 1,
+      "speed": 1,
       "crit_chance": 0.002,
       "accuracy": 0.01,
       "resistance": 0.005
@@ -412,10 +412,10 @@
     },
     "elite": {
       "stat_multipliers": {
-        "hp": 1.3,
+        "hp": 1.2,
         "attack": 1.1,
         "defense": 1.0,
-        "speed": 1.1
+        "speed": 1.0
       },
       "ability_slots": 4,
       "spawn_weight": 10,
@@ -426,10 +426,10 @@
     },
     "boss": {
       "stat_multipliers": {
-        "hp": 1.8,
-        "attack": 1.5,
-        "defense": 1.3,
-        "speed": 1.2
+        "hp": 1.6,
+        "attack": 1.3,
+        "defense": 1.2,
+        "speed": 1.1
       },
       "ability_slots": 5,
       "spawn_weight": 100,

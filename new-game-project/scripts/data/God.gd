@@ -87,6 +87,15 @@ static func create_from_json(god_id: String) -> God:
 	god.active_abilities = god_config.get("active_abilities", [])
 	god.passive_abilities = god_config.get("passive_abilities", [])
 	
+	# Debug logging for Athena
+	if god_id == "athena":
+		print("DEBUG: Athena ability loading:")
+		for i in range(god.active_abilities.size()):
+			var ability = god.active_abilities[i]
+			print("  Ability %d: %s" % [i, ability])
+			if ability.get("id") == "aegis_protection":
+				print("  *** FOUND AEGIS PROTECTION: %s" % ability)
+	
 	# Legacy support - extract ability IDs for backward compatibility
 	god.abilities = []
 	for ability in god.active_abilities:
@@ -144,9 +153,9 @@ static func string_to_tier(tier_string: String) -> TierType:
 			print("Warning: Unknown tier string: ", tier_string)
 			return TierType.COMMON
 
-# Calculated stats based on level, tier, and equipment
+# Calculated stats based on level, tier, and equipment - Pokemon-style scaling
 func get_current_hp() -> int:
-	var base_stat = base_hp + (level * 10) + (int(tier) * 50)
+	var base_stat = base_hp + (level * 2) + (int(tier) * 15)  # Much gentler scaling
 	var equipment_bonus = _get_equipment_stat_bonus("hp")
 	return int(base_stat * (1.0 + _get_stat_modifier("hp"))) + equipment_bonus
 
@@ -154,17 +163,17 @@ func get_max_hp() -> int:
 	return get_current_hp()  # Alias for battle system
 
 func get_current_attack() -> int:
-	var base_stat = base_attack + (level * 8) + (int(tier) * 40)
+	var base_stat = base_attack + int(level * 1.5) + (int(tier) * 10)  # Reduced scaling
 	var equipment_bonus = _get_equipment_stat_bonus("attack")
 	return int((base_stat + equipment_bonus) * (1.0 + _get_stat_modifier("attack")))
 
 func get_current_defense() -> int:
-	var base_stat = base_defense + (level * 6) + (int(tier) * 30)
+	var base_stat = base_defense + (level * 1) + (int(tier) * 8)  # Reduced scaling
 	var equipment_bonus = _get_equipment_stat_bonus("defense")
 	return int((base_stat + equipment_bonus) * (1.0 + _get_stat_modifier("defense")))
 
 func get_current_speed() -> int:
-	var base_stat = base_speed + (level * 4) + (int(tier) * 20)
+	var base_stat = base_speed + int(level * 0.5) + (int(tier) * 5)  # Minimal scaling for speed
 	var equipment_bonus = _get_equipment_stat_bonus("speed")
 	return int((base_stat + equipment_bonus) * (1.0 + _get_stat_modifier("speed")))
 
@@ -248,13 +257,13 @@ func get_tier_multiplier() -> float:
 	return 1.0
 
 func get_experience_to_next_level() -> int:
-	# Summoners War style exponential XP scaling
+	# Pokemon-style XP scaling - more reasonable numbers
 	if level >= 40:
 		return 0  # Max level reached
 	
-	# SW XP formula approximation - gets much harder at higher levels
-	var base_xp = 100
-	var level_multiplier = pow(level, 1.8)  # Exponential growth
+	# Simpler XP formula that doesn't explode
+	var base_xp = 50  # Reduced from 100
+	var level_multiplier = pow(level, 1.5)  # Less aggressive than 1.8
 	return int(base_xp * level_multiplier)
 
 func add_experience(amount: int):
@@ -370,13 +379,30 @@ func add_status_effect(effect: StatusEffect):
 			existing_effect.stacks += 1
 			existing_effect.duration = max(existing_effect.duration, effect.duration)
 			print("%s now has %s (x%d)" % [name, effect.name, existing_effect.stacks])
+			
+			# Handle shield stacking
+			if effect.id == "shield" and effect.shield_value > 0:
+				shield_hp += effect.shield_value
+				print("%s gains additional %d shield HP (total: %d)" % [name, effect.shield_value, shield_hp])
 		else:
 			# Refresh duration if same effect
 			existing_effect.duration = effect.duration
 			print("%s refreshed %s duration" % [name, effect.name])
+			
+			# Handle shield refresh (replace shield value, don't stack)
+			if effect.id == "shield" and effect.shield_value > 0:
+				var old_shield = existing_effect.shield_value
+				shield_hp = shield_hp - old_shield + effect.shield_value
+				existing_effect.shield_value = effect.shield_value
+				print("%s shield refreshed from %d to %d HP (total: %d)" % [name, old_shield, effect.shield_value, shield_hp])
 	else:
 		status_effects.append(effect)
 		print("%s gained %s!" % [name, effect.name])
+		
+		# Handle shield effects - add shield HP to god
+		if effect.id == "shield" and effect.shield_value > 0:
+			shield_hp += effect.shield_value
+			print("%s gains %d shield HP (total: %d)" % [name, effect.shield_value, shield_hp])
 	
 	return true
 
@@ -454,6 +480,12 @@ func process_turn_start_effects() -> Dictionary:
 		
 		# Remove expired effects
 		if effect.is_expired():
+			# Handle shield cleanup
+			if effect.id == "shield" and effect.shield_value > 0:
+				shield_hp -= effect.shield_value
+				shield_hp = max(0, shield_hp)  # Don't go negative
+				print("%s's shield expires, removing %d shield HP (remaining: %d)" % [name, effect.shield_value, shield_hp])
+			
 			print("%s's %s expired" % [name, effect.name])
 			status_effects.remove_at(i)
 	

@@ -4,13 +4,13 @@ class_name DataLoader
 
 # Cached data
 static var territories_data: Dictionary = {}
-static var enemies_data: Dictionary = {}
 static var gods_data: Dictionary = {}
 static var awakened_gods_data: Dictionary = {}
 static var abilities_data: Dictionary = {}
 static var loot_data: Dictionary = {}
 static var core_systems_data: Dictionary = {}
 static var banners_data: Dictionary = {}
+static var enemies_data: Dictionary = {}
 static var data_loaded: bool = false
 
 static func load_core_systems_data():
@@ -39,13 +39,12 @@ static func load_all_data():
 		return
 	
 	load_territories_data()
-	load_enemies_data()
 	load_gods_data()
 	load_awakened_gods_data()
-	load_abilities_data()
 	load_loot_data()
 	load_core_systems_data()
 	load_banners_data()
+	load_enemies_data()
 	data_loaded = true
 	print("All game data loaded successfully")
 
@@ -69,27 +68,6 @@ static func load_territories_data():
 	
 	territories_data = json.get_data()
 	print("Loaded ", territories_data.territories.size(), " territory configurations")
-
-static func load_enemies_data():
-	var file_path = "res://data/enemies.json"
-	var file = FileAccess.open(file_path, FileAccess.READ)
-	
-	if not file:
-		print("Error: Could not open ", file_path)
-		return
-	
-	var json_text = file.get_as_text()
-	file.close()
-	
-	var json = JSON.new()
-	var parse_result = json.parse(json_text)
-	
-	if parse_result != OK:
-		print("Error parsing enemies.json: ", json.error_string)
-		return
-	
-	enemies_data = json.get_data()
-	print("Loaded enemy data with ", enemies_data.enemy_types.size(), " element types")
 
 static func load_gods_data():
 	var file_path = "res://data/gods.json"
@@ -135,27 +113,6 @@ static func load_awakened_gods_data():
 	awakened_gods_data = json.get_data()
 	print("Loaded ", awakened_gods_data.get("awakened_gods", {}).size(), " awakened god configurations")
 
-static func load_abilities_data():
-	var file_path = "res://data/abilities.json"
-	var file = FileAccess.open(file_path, FileAccess.READ)
-	
-	if not file:
-		print("Error: Could not open ", file_path)
-		return
-	
-	var json_text = file.get_as_text()
-	file.close()
-	
-	var json = JSON.new()
-	var parse_result = json.parse(json_text)
-	
-	if parse_result != OK:
-		print("Error parsing abilities.json: ", json.error_string)
-		return
-	
-	abilities_data = json.get_data()
-	var ability_count = abilities_data.get("abilities", {}).size()
-	print("Loaded ", ability_count, " ability configurations")
 
 static func load_loot_data():
 	var file_path = "res://data/loot.json"
@@ -177,6 +134,27 @@ static func load_loot_data():
 	
 	loot_data = json.get_data()
 	print("Loaded loot data with ", loot_data.get("loot_tables", {}).size(), " loot tables")
+
+static func load_enemies_data():
+	var file_path = "res://data/enemies.json"
+	var file = FileAccess.open(file_path, FileAccess.READ)
+	
+	if not file:
+		print("Error: Could not open ", file_path)
+		return
+	
+	var json_text = file.get_as_text()
+	file.close()
+	
+	var json = JSON.new()
+	var parse_result = json.parse(json_text)
+	
+	if parse_result != OK:
+		print("Error parsing enemies.json: ", json.error_string)
+		return
+	
+	enemies_data = json.get_data()
+	print("Loaded enemies.json with enemy types for all elements")
 
 static func get_territory_config(territory_id: String) -> Dictionary:
 	if not data_loaded:
@@ -243,11 +221,30 @@ static func get_rewards_config() -> Dictionary:
 	
 	return enemies_data.get("rewards", {})
 
-static func get_special_formation_for_stage(stage: int, max_stages: int) -> Dictionary:
+static func get_enemy_abilities(category: String) -> Dictionary:
+	if not data_loaded:
+		load_all_data()
+	
+	return enemies_data.get("enemy_abilities", {}).get(category, {})
+
+static func get_enemy_ai_behaviors() -> Dictionary:
+	if not data_loaded:
+		load_all_data()
+	
+	return enemies_data.get("ai_behaviors", {})
+
+static func get_enemy_formations() -> Dictionary:
+	if not data_loaded:
+		load_all_data()
+	
+	return enemies_data.get("formations", {})
+
+static func get_special_formation_for_stage(stage: int) -> Dictionary:
 	if not data_loaded:
 		load_all_data()
 	
 	var formations = enemies_data.get("special_formations", {})
+	var max_stages = 15  # Define max stages
 	
 	# Check for boss stage (final stage)
 	if stage == max_stages and formations.has("boss_stage"):

@@ -148,6 +148,10 @@ func start_battle(config: BattleFactory) -> bool:
 	# Setup turn order
 	turn_system.setup_turn_order(current_battle_gods, current_battle_enemies)
 	
+	# Record battle start in statistics
+	if GameManager and GameManager.statistics_manager:
+		GameManager.statistics_manager.record_battle_start(config.battle_type, current_battle_enemies.size())
+	
 	# Start first turn
 	_start_next_turn()
 	
@@ -458,13 +462,52 @@ func _process_attack_action(attacker, target):
 	if new_hp <= 0:
 		battle_log_updated.emit("%s is defeated!" % _get_stat(target, "name", "Unknown"))
 
+func _determine_ability_type(ability: Dictionary) -> String:
+	"""Automatically determine ability type based on effects"""
+	# First check if type is explicitly set
+	if ability.has("type"):
+		return ability.get("type")
+	
+	# Check effects to determine type
+	var effects = ability.get("effects", [])
+	if effects.size() == 0:
+		return "physical"  # Default for abilities with no effects
+	
+	# Analyze effects to determine type
+	var has_damage = false
+	var has_utility = false
+	
+	for effect in effects:
+		var effect_type = effect.get("type", "")
+		match effect_type:
+			"damage":
+				has_damage = true
+			# Core SW utility effects
+			"heal", "shield", "cleanse", "cleanse_all", "buff", "debuff", "self_buff", \
+			"strip", "strip_all", "atb_increase", "atb_decrease", "atb_steal", \
+			"additional_turn", "life_drain", "stun", "sleep", "freeze", \
+			"immunity", "invincibility", "revive", "endure":
+				has_utility = true
+			_:
+				# For unknown effect types, check if damage_multiplier suggests damage
+				if ability.get("damage_multiplier", 0) > 0:
+					has_damage = true
+	
+	# Determine final type
+	if has_utility and not has_damage:
+		return "utility"
+	elif has_damage:
+		return "physical"  # or "magical" - could be enhanced to detect this
+	else:
+		return "physical"  # Default
+
 func _process_ability_action(caster, ability: Dictionary, target):
 	"""Process an ability action"""
 	if not ability:
 		return
 	
 	var ability_name = ability.get("name", "Unknown Ability")
-	var ability_type = ability.get("type", "physical")
+	var ability_type = _determine_ability_type(ability)
 	var targets_type = ability.get("targets", "single")  # single, all_enemies, all_allies, etc.
 	
 	battle_log_updated.emit("%s uses %s!" % [_get_stat(caster, "name", "Unknown"), ability_name])
@@ -490,6 +533,7 @@ func _process_ability_action(caster, ability: Dictionary, target):
 
 func _process_single_target_ability(caster, ability: Dictionary, target, ability_type: String):
 	"""Process ability on a single target"""
+	
 	# Handle different ability types
 	match ability_type:
 		"physical", "magical":
@@ -499,62 +543,82 @@ func _process_single_target_ability(caster, ability: Dictionary, target, ability
 		"utility", "buff":
 			_process_utility_ability(caster, ability, target)
 		_:
+			print("WARNING: Unknown ability type: %s for %s" % [ability_type, ability.get("name", "Unknown")])
 			battle_log_updated.emit("Unknown ability type: %s" % ability_type)
 
 func _process_damage_ability(caster, ability: Dictionary, target):
-	"""Process damage-dealing ability"""
+	"""Process damage-dealing ability with multi-hit support"""
 	if not target:
 		print("BattleManager: Null target passed to _process_damage_ability")
 		return
-		
-	var damage_result = CombatCalculator.execute_ability_damage(caster, ability, target)
 	
-	if not damage_result.hit_success:
-		battle_log_updated.emit("The ability misses %s!" % _get_stat(target, "name", "Unknown"))
+	# Check for multi-hit ability
+	var hits = ability.get("hits", 1)
+	var total_damage = 0
+	var any_hit = false
+	var any_crit = false
+	
+	print("Processing %s - %d hits on %s" % [ability.get("name", "Unknown"), hits, _get_stat(target, "name", "Unknown")])
+	
+	# Execute each hit separately (like Summoners War)
+	for hit_num in range(hits):
+		var damage_result = CombatCalculator.execute_ability_damage(caster, ability, target)
+		
+		if damage_result.hit_success:
+			any_hit = true
+			var hit_damage = damage_result.damage
+			total_damage += hit_damage
+			
+			# Apply this hit's damage immediately
+			var current_hp = _get_stat(target, "current_hp", 100)
+			var new_hp = max(0, current_hp - hit_damage)
+			_set_hp(target, new_hp)
+			
+			var hit_crit_text = " (Crit!)" if damage_result.is_critical else ""
+			if damage_result.is_critical:
+				any_crit = true
+			
+			battle_log_updated.emit("Hit %d: %s takes %d damage%s" % [hit_num + 1, _get_stat(target, "name", "Unknown"), hit_damage, hit_crit_text])
+			
+			# Update UI after each hit for visual feedback
+			if battle_screen:
+				if target is God:
+					battle_screen.update_god_hp_instantly(target)
+				else:
+					battle_screen.update_enemy_hp_instantly(target)
+			
+			# Small delay between hits for visual effect (only in multi-hit)
+			if hits > 1 and hit_num < hits - 1:
+				await get_tree().create_timer(0.15).timeout
+			
+			# Stop hitting if target dies
+			if _get_stat(target, "current_hp", 100) <= 0:
+				if hit_num < hits - 1:
+					battle_log_updated.emit("Target defeated after %d hits" % (hit_num + 1))
+				break
+		else:
+			battle_log_updated.emit("Hit %d misses %s!" % [hit_num + 1, _get_stat(target, "name", "Unknown")])
+	
+	# If no hits landed, return early
+	if not any_hit:
 		return
 	
-	# Apply damage - UNIFIED APPROACH
-	var final_damage = damage_result.damage
-	var current_hp = _get_stat(target, "current_hp", 100)
-	var new_hp = max(0, current_hp - final_damage)
-	_set_hp(target, new_hp)
+	# Summary message for multi-hit abilities
+	if hits > 1:
+		var crit_text = " (Critical hits!)" if any_crit else ""
+		battle_log_updated.emit("Total: %s takes %d damage from %d hits%s" % [_get_stat(target, "name", "Unknown"), total_damage, hits, crit_text])
 	
-	var crit_text = " (Critical!)" if damage_result.is_critical else ""
-	battle_log_updated.emit("%s takes %d damage%s" % [_get_stat(target, "name", "Unknown"), final_damage, crit_text])
-	
-	# Update UI
-	if battle_screen:
-		if target is God:
-			battle_screen.update_god_hp_instantly(target)
-		else:
-			battle_screen.update_enemy_hp_instantly(target)
-	
-	# Apply status effects using StatusEffectManager
+	# Apply status effects AFTER all hits (SW behavior)
 	if ability.has("effects"):
 		for effect_data in ability.effects:
-			# Handle different effect types
+			# Use the new modular SW effect system for ALL effects
 			var effect_type = effect_data.get("type", "")
-			if effect_type == "debuff" or effect_type == "buff":
-				var effect_id = effect_data.get("debuff", effect_data.get("buff", ""))
-				if effect_id != "":
-					var effect = StatusEffectManager.create_status_effect_from_id(effect_id, caster)
-					if effect:
-						# Apply chance check
-						var chance = effect_data.get("chance", 100.0) / 100.0
-						if randf() <= chance:
-							# Set custom duration if specified
-							if effect_data.has("duration"):
-								effect.duration = int(effect_data.duration)
-							StatusEffectManager.apply_status_effect_to_target(target, effect, status_effect_manager)
-						else:
-							print("Status effect %s failed chance check on %s" % [effect_id, _get_stat(target, "name", "Unknown")])
-		
-		# Update status effect UI after applying effects
-		if battle_screen:
-			if target is God:
-				battle_screen.update_god_status_effects(target)
-			else:
-				battle_screen.update_enemy_status_effects(target)
+			if effect_type != "damage":  # Skip damage effects (already processed above)
+				var battle_context = _get_battle_effect_context()
+				BattleEffectProcessor.process_single_effect(effect_type, effect_data, caster, target, ability, battle_context)
+	
+	# Update status effect UI after applying effects
+	if battle_screen:
 		if target is God:
 			battle_screen.update_god_status_effects(target)
 		else:
@@ -585,22 +649,53 @@ func _process_utility_ability(caster, ability: Dictionary, target):
 	if not target:
 		print("BattleManager: Null target passed to _process_utility_ability")
 		return
-		
+	
 	battle_log_updated.emit("%s receives the effect of %s" % [_get_stat(target, "name", "Unknown"), ability.get("name", "Unknown")])
 	
-	# Apply status effects if ability has them
-	if ability.has("status_effects"):
+	# Handle new effects format (used by most abilities) - MODULAR SW EFFECT SYSTEM
+	if ability.has("effects"):
+		for effect_data in ability.effects:
+			var effect_type = effect_data.get("type", "")
+			# Use the new BattleEffectProcessor instead of internal methods
+			var battle_context = _get_battle_effect_context()
+			BattleEffectProcessor.process_single_effect(effect_type, effect_data, caster, target, ability, battle_context)
+	
+	# Handle old status_effects format (fallback for compatibility)
+	elif ability.has("status_effects"):
 		for effect_id in ability.status_effects:
 			var effect = StatusEffectManager.create_status_effect_from_id(effect_id, caster)
 			if effect:
 				StatusEffectManager.apply_status_effect_to_target(target, effect, status_effect_manager)
 	
 	# Update status effect UI after applying effects
-	if battle_screen and ability.has("status_effects") and ability.status_effects.size() > 0:
+	if battle_screen:
 		if target is God:
 			battle_screen.update_god_status_effects(target)
 		else:
 			battle_screen.update_enemy_status_effects(target)
+
+
+# === HELPER FUNCTIONS ===
+
+func _update_unit_ui(unit):
+	"""Update unit UI after effect processing"""
+	if battle_screen:
+		if unit is God:
+			battle_screen.update_god_hp_instantly(unit)
+			battle_screen.update_god_status_effects(unit)
+		else:
+			battle_screen.update_enemy_hp_instantly(unit)
+			battle_screen.update_enemy_status_effects(unit)
+
+func _get_battle_effect_context() -> Dictionary:
+	"""Get battle context for BattleEffectProcessor"""
+	return {
+		"current_battle_gods": current_battle_gods,
+		"current_battle_enemies": current_battle_enemies,
+		"battle_screen": battle_screen,
+		"battle_manager": self,
+		"status_effect_manager": status_effect_manager
+	}
 
 func _create_status_effect_from_data(effect_data, caster) -> StatusEffect:
 	"""Create a StatusEffect from ability data"""
@@ -639,9 +734,19 @@ func _end_battle(result: BattleResult):
 	match result:
 		BattleResult.VICTORY:
 			battle_log_updated.emit("VICTORY!")
+			
+			# Record victory statistics
+			if GameManager and GameManager.statistics_manager:
+				GameManager.statistics_manager.record_battle_end(true, current_battle_gods)
+			
 			_award_victory_rewards()
 		BattleResult.DEFEAT:
 			battle_log_updated.emit("DEFEAT!")
+			
+			# Record defeat statistics  
+			if GameManager and GameManager.statistics_manager:
+				GameManager.statistics_manager.record_battle_end(false, current_battle_gods)
+			
 			_award_consolation_rewards()
 	
 	battle_completed.emit(result)
@@ -729,13 +834,17 @@ func _award_victory_rewards():
 		else:
 			awarded_loot = GameManager.loot_system.award_loot("stage_victory", 1, "")
 		
-		# Store the actual awarded loot for WaveSystem to use
-		last_awarded_loot = awarded_loot.duplicate()
-		
-		# Convert awarded loot to display format using ResourceManager
-		var resource_manager = GameManager.get_resource_manager() if GameManager.has_method("get_resource_manager") else null
-		
-		for resource_id in awarded_loot:
+	# Store the actual awarded loot for WaveSystem to use
+	last_awarded_loot = awarded_loot.duplicate()
+	
+	# Add loot items to inventory system
+	if GameManager and GameManager.inventory_manager:
+		GameManager.inventory_manager.add_loot_items(awarded_loot)
+	
+	# Convert awarded loot to display format using ResourceManager
+	var resource_manager = GameManager.get_resource_manager() if GameManager.has_method("get_resource_manager") else null
+	
+	for resource_id in awarded_loot:
 			var amount = awarded_loot[resource_id]
 			var resource_info = resource_manager.get_resource_info(resource_id) if resource_manager else {}
 			var display_name = resource_info.get("name", resource_id.capitalize().replace("_", " "))

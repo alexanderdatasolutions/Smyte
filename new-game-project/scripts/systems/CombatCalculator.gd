@@ -195,13 +195,13 @@ static func get_detailed_attack_breakdown(unit) -> Dictionary:
 	
 	if unit is God:
 		var base_stat = unit.base_attack
-		var level_bonus = unit.level * 8
-		var tier_bonus = int(unit.tier) * 40
+		var level_bonus = int(unit.level * 1.5)  # Updated scaling
+		var tier_bonus = int(unit.tier) * 10     # Updated scaling
 		var base_total = base_stat + level_bonus + tier_bonus
 		
 		breakdown.steps.append("Base ATK: %d" % base_stat)
-		breakdown.steps.append("+ Level(%d) × 8 = +%d" % [unit.level, level_bonus])
-		breakdown.steps.append("+ Tier(%s) × 40 = +%d" % [unit.tier, tier_bonus])
+		breakdown.steps.append("+ Level(%d) × 1.5 = +%d" % [unit.level, level_bonus])
+		breakdown.steps.append("+ Tier(%s) × 10 = +%d" % [unit.tier, tier_bonus])
 		breakdown.steps.append("= Base Total: %d" % base_total)
 		
 		# Get status effect modifiers
@@ -241,13 +241,13 @@ static func get_detailed_defense_breakdown(unit) -> Dictionary:
 	
 	if unit is God:
 		var base_stat = unit.base_defense
-		var level_bonus = unit.level * 6
-		var tier_bonus = int(unit.tier) * 30
+		var level_bonus = unit.level * 1          # Updated scaling
+		var tier_bonus = int(unit.tier) * 8       # Updated scaling
 		var base_total = base_stat + level_bonus + tier_bonus
 		
 		breakdown.steps.append("Base DEF: %d" % base_stat)
-		breakdown.steps.append("+ Level(%d) × 6 = +%d" % [unit.level, level_bonus])
-		breakdown.steps.append("+ Tier(%s) × 30 = +%d" % [unit.tier, tier_bonus])
+		breakdown.steps.append("+ Level(%d) × 1 = +%d" % [unit.level, level_bonus])
+		breakdown.steps.append("+ Tier(%s) × 8 = +%d" % [unit.tier, tier_bonus])
 		breakdown.steps.append("= Base Total: %d" % base_total)
 		
 		# Get status effect modifiers

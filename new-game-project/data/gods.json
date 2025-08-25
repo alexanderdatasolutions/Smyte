@@ -7,10 +7,10 @@
       "element": "lightning",
       "tier": "legendary",
       "base_stats": {
-        "hp": 12015,
-        "attack": 812,
-        "defense": 626,
-        "speed": 101,
+        "hp": 120,
+        "attack": 64,
+        "defense": 75,
+        "speed": 60,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -22,13 +22,13 @@
           "id": "lightning_strike",
           "name": "Lightning Strike",
           "description": "Attacks an enemy with lightning and stuns them for 1 turn with a 35% chance.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -44,14 +44,14 @@
           "id": "olympian_thunder",
           "name": "Olympian Thunder",
           "description": "Attacks all enemies 2 times with lightning. Each attack has a 30% chance to decrease Attack Speed for 2 turns.",
-          "damage_multiplier": 150,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "hits": 2,
           "effects": [
             {
               "type": "damage",
-              "value": 150,
+              "value": 0.8,
               "scaling": "ATK",
               "hits": 2
             },
@@ -82,10 +82,10 @@
       "element": "water",
       "tier": "epic",
       "base_stats": {
-        "hp": 10875,
-        "attack": 725,
-        "defense": 659,
-        "speed": 96,
+        "hp": 108,
+        "attack": 58,
+        "defense": 79,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -97,13 +97,13 @@
           "id": "tidal_wave",
           "name": "Tidal Wave",
           "description": "Attacks an enemy and decreases its Attack Bar by 30% with a 50% chance.",
-          "damage_multiplier": 370,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 370,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -118,13 +118,13 @@
           "id": "ocean_fury",
           "name": "Ocean's Fury",
           "description": "Attacks all enemies and decreases their Attack Speed for 2 turns. Damage increases by 20% for each debuff on the enemy.",
-          "damage_multiplier": 300,
+          "damage_multiplier": 1.2,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 300,
+              "value": 1.2,
               "scaling": "ATK",
               "bonus_per_debuff": 20
             },
@@ -154,10 +154,10 @@
       "element": "dark",
       "tier": "epic",
       "base_stats": {
-        "hp": 11040,
-        "attack": 747,
-        "defense": 648,
-        "speed": 95,
+        "hp": 110,
+        "attack": 59,
+        "defense": 77,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -169,13 +169,13 @@
           "id": "soul_reaper",
           "name": "Soul Reaper",
           "description": "Attacks an enemy and recovers HP by 30% of the damage dealt. Damage increases by 50% if the enemy is under harmful effects.",
-          "damage_multiplier": 360,
+          "damage_multiplier": 1.4,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 360,
+              "value": 1.4,
               "scaling": "ATK",
               "bonus_vs_debuffed": 50
             },
@@ -189,7 +189,7 @@
         {
           "id": "underworld_chains",
           "name": "Underworld Chains",
-          "description": "Attacks all enemies with chains from the underworld, disturbing HP recovery for 2 turns and stealing 20% of their Attack Bar.",
+          "description": "Attacks all enemies with chains from the underworld, inflicting Unrecoverable for 2 turns and stealing 20% of their Attack Bar.",
           "damage_multiplier": 0,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
@@ -230,10 +230,10 @@
       "element": "light",
       "tier": "rare",
       "base_stats": {
-        "hp": 9885,
-        "attack": 603,
-        "defense": 714,
-        "speed": 102,
+        "hp": 98,
+        "attack": 48,
+        "defense": 85,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -245,13 +245,13 @@
           "id": "spear_strike",
           "name": "Spear Strike",
           "description": "Attacks an enemy with a spear. Damage increases by 20% for each buff on yourself.",
-          "damage_multiplier": 360,
+          "damage_multiplier": 1.4,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 360,
+              "value": 1.4,
               "scaling": "ATK",
               "bonus_per_buff": 20
             }
@@ -291,10 +291,10 @@
       "element": "light",
       "tier": "rare",
       "base_stats": {
-        "hp": 9225,
-        "attack": 692,
-        "defense": 593,
-        "speed": 105,
+        "hp": 92,
+        "attack": 55,
+        "defense": 71,
+        "speed": 63,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -306,13 +306,13 @@
           "id": "solar_arrow",
           "name": "Solar Arrow",
           "description": "Shoots a burning arrow at an enemy, dealing damage and inflicting Continuous Damage for 2 turns.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -328,7 +328,7 @@
         {
           "id": "healing_light",
           "name": "Healing Light",
-          "description": "Recovers the HP of all allies by 25% and increases their Attack Power for 2 turns.",
+          "description": "Recovers the HP of all allies by 25% and increases their ATK for 2 turns.",
           "damage_multiplier": 0,
           "targets": "all_allies",
           "effects": [
@@ -339,7 +339,7 @@
             },
             {
               "type": "buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 2
             }
           ],
@@ -362,10 +362,10 @@
       "element": "earth",
       "tier": "rare",
       "base_stats": {
-        "hp": 8895,
-        "attack": 725,
-        "defense": 604,
-        "speed": 108,
+        "hp": 88,
+        "attack": 58,
+        "defense": 72,
+        "speed": 64,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -377,19 +377,19 @@
           "id": "hunter_shot",
           "name": "Hunter's Shot",
           "description": "Attacks an enemy and decreases its Defense for 2 turns. Always lands as a Critical Hit if the enemy's HP is below 50%.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK",
               "conditional_crit": "enemy_hp_below_50"
             },
             {
               "type": "debuff",
-              "debuff": "defense_break",
+              "debuff": "decrease_defense",
               "chance": 75,
               "duration": 2
             }
@@ -400,14 +400,14 @@
           "id": "arrow_volley",
           "name": "Arrow Volley",
           "description": "Attacks random enemies 4 times. Each attack has a 30% chance to decrease Attack Bar by 30%.",
-          "damage_multiplier": 120,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "random",
           "hits": 4,
           "effects": [
             {
               "type": "damage",
-              "value": 120,
+              "value": 0.8,
               "scaling": "ATK",
               "hits": 4
             },
@@ -437,10 +437,10 @@
       "element": "fire",
       "tier": "common",
       "base_stats": {
-        "hp": 8565,
-        "attack": 681,
-        "defense": 571,
-        "speed": 98,
+        "hp": 85,
+        "attack": 54,
+        "defense": 68,
+        "speed": 58,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -452,13 +452,13 @@
           "id": "brutal_strike",
           "name": "Brutal Strike",
           "description": "Attacks an enemy with a 30% chance to attack again.",
-          "damage_multiplier": 360,
+          "damage_multiplier": 1.4,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 360,
+              "value": 1.4,
               "scaling": "ATK"
             },
             {
@@ -477,12 +477,12 @@
           "effects": [
             {
               "type": "buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 2
             },
             {
               "type": "buff",
-              "buff": "crit_rate_buff",
+              "buff": "increase_critical_rate",
               "duration": 2
             }
           ],
@@ -501,10 +501,10 @@
       "element": "lightning",
       "tier": "common",
       "base_stats": {
-        "hp": 7140,
-        "attack": 560,
-        "defense": 549,
-        "speed": 118,
+        "hp": 71,
+        "attack": 44,
+        "defense": 65,
+        "speed": 70,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -516,19 +516,19 @@
           "id": "swift_strike",
           "name": "Swift Strike",
           "description": "Attacks an enemy. Attack Speed increases by 10 for 2 turns if you get a Critical Hit.",
-          "damage_multiplier": 360,
+          "damage_multiplier": 1.4,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 360,
+              "value": 1.4,
               "scaling": "ATK"
             },
             {
               "type": "conditional_buff",
               "condition": "on_crit",
-              "buff": "speed_buff",
+              "buff": "increase_speed",
               "value": 10,
               "duration": 2
             }
@@ -548,7 +548,7 @@
             },
             {
               "type": "buff",
-              "buff": "speed_buff",
+              "buff": "increase_speed",
               "duration": 2
             }
           ],
@@ -567,10 +567,10 @@
       "element": "dark",
       "tier": "legendary",
       "base_stats": {
-        "hp": 11700,
-        "attack": 856,
-        "defense": 659,
-        "speed": 99,
+        "hp": 117,
+        "attack": 68,
+        "defense": 79,
+        "speed": 59,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -582,13 +582,13 @@
           "id": "gungnir_thrust",
           "name": "Gungnir Thrust",
           "description": "Attacks an enemy with the legendary spear. This attack always lands as a Critical Hit and ignores Defense.",
-          "damage_multiplier": 340,
+          "damage_multiplier": 1.4,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 340,
+              "value": 1.4,
               "scaling": "ATK",
               "guaranteed_crit": true,
               "ignore_defense": true
@@ -600,13 +600,13 @@
           "id": "ravens_wisdom",
           "name": "Raven's Wisdom",
           "description": "Attacks all enemies and brands them for 2 turns. Branded enemies receive 25% increased damage.",
-          "damage_multiplier": 280,
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 280,
+              "value": 1.1,
               "scaling": "ATK"
             },
             {
@@ -635,10 +635,10 @@
       "element": "lightning",
       "tier": "epic",
       "base_stats": {
-        "hp": 10710,
-        "attack": 801,
-        "defense": 626,
-        "speed": 99,
+        "hp": 107,
+        "attack": 64,
+        "defense": 75,
+        "speed": 59,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -650,13 +650,13 @@
           "id": "hammer_strike",
           "name": "Hammer Strike",
           "description": "Attacks an enemy with Mjolnir and stuns the target for 1 turn with a 35% chance.",
-          "damage_multiplier": 390,
+          "damage_multiplier": 1.6,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 390,
+              "value": 1.6,
               "scaling": "ATK"
             },
             {
@@ -672,13 +672,13 @@
           "id": "thunder_crash",
           "name": "Thunder Crash",
           "description": "Attacks all enemies with lightning, stunning them for 1 turn with a 60% chance. Damage is proportional to your MAX HP.",
-          "damage_multiplier": 18,
+          "damage_multiplier": 0.8,
           "scaling_stat": "MAX_HP",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 18,
+              "value": 0.8,
               "scaling": "MAX_HP"
             },
             {
@@ -707,10 +707,10 @@
       "element": "light",
       "tier": "epic",
       "base_stats": {
-        "hp": 10215,
-        "attack": 659,
-        "defense": 703,
-        "speed": 103,
+        "hp": 102,
+        "attack": 52,
+        "defense": 84,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -722,13 +722,13 @@
           "id": "charm_strike",
           "name": "Charm Strike",
           "description": "Attacks an enemy and provokes them for 1 turn with a 75% chance.",
-          "damage_multiplier": 370,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 370,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -775,10 +775,10 @@
       "element": "fire",
       "tier": "rare",
       "base_stats": {
-        "hp": 9390,
-        "attack": 714,
-        "defense": 582,
-        "speed": 107,
+        "hp": 93,
+        "attack": 57,
+        "defense": 69,
+        "speed": 64,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -790,13 +790,13 @@
           "id": "trick_attack",
           "name": "Trick Attack",
           "description": "Attacks an enemy and steals one beneficial effect. Damage increases by 30% per harmful effect on the enemy.",
-          "damage_multiplier": 360,
+          "damage_multiplier": 1.4,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 360,
+              "value": 1.4,
               "scaling": "ATK",
               "bonus_per_debuff": 30
             },
@@ -811,20 +811,25 @@
           "id": "chaos_field",
           "name": "Chaos Field",
           "description": "Attacks all enemies and randomly applies 2 harmful effects for 2 turns (Defense Break, Attack Break, Glancing, or Slow).",
-          "damage_multiplier": 280,
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 280,
+              "value": 1.1,
               "scaling": "ATK"
             },
             {
               "type": "random_debuffs",
               "count": 2,
               "duration": 2,
-              "debuff_pool": ["defense_break", "attack_break", "glancing", "slow"]
+              "debuff_pool": [
+                "decrease_defense",
+                "decrease_attack",
+                "glancing",
+                "slow"
+              ]
             }
           ],
           "cooldown": 4
@@ -846,10 +851,10 @@
       "element": "light",
       "tier": "rare",
       "base_stats": {
-        "hp": 9720,
-        "attack": 625,
-        "defense": 648,
-        "speed": 102,
+        "hp": 97,
+        "attack": 50,
+        "defense": 77,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -861,13 +866,13 @@
           "id": "radiant_strike",
           "name": "Radiant Strike",
           "description": "Attacks an enemy with holy light. Recovers the HP of the ally with the lowest HP ratio by 15%.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -893,7 +898,7 @@
             },
             {
               "type": "buff",
-              "buff": "defense_buff",
+              "buff": "increase_defense",
               "duration": 2
             }
           ],
@@ -916,10 +921,10 @@
       "element": "earth",
       "tier": "rare",
       "base_stats": {
-        "hp": 10050,
-        "attack": 725,
-        "defense": 681,
-        "speed": 95,
+        "hp": 100,
+        "attack": 58,
+        "defense": 81,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -930,25 +935,25 @@
         {
           "id": "justice_blade",
           "name": "Justice Blade",
-          "description": "Attacks an enemy and decreases their Attack and Defense for 2 turns with a 50% chance each.",
-          "damage_multiplier": 380,
+          "description": "Attacks an enemy and decreases their ATK and DEF for 2 turns with a 50% chance each.",
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
               "type": "debuff",
-              "debuff": "attack_break",
+              "debuff": "decrease_attack",
               "chance": 50,
               "duration": 2
             },
             {
               "type": "debuff",
-              "debuff": "defense_break",
+              "debuff": "decrease_defense",
               "chance": 50,
               "duration": 2
             }
@@ -958,19 +963,19 @@
         {
           "id": "valor_charge",
           "name": "Valor Charge",
-          "description": "Charges at the enemy with the lowest HP, dealing damage proportional to your Defense. Gains Defense buff for 2 turns.",
-          "damage_multiplier": 450,
+          "description": "Charges at the enemy with the lowest HP, dealing damage proportional to your Defense. Gains Increase DEF for 2 turns.",
+          "damage_multiplier": 1.8,
           "scaling_stat": "DEF",
           "targets": "enemy_lowest_hp",
           "effects": [
             {
               "type": "damage",
-              "value": 450,
+              "value": 1.8,
               "scaling": "DEF"
             },
             {
               "type": "self_buff",
-              "buff": "defense_buff",
+              "buff": "increase_defense",
               "duration": 2
             }
           ],
@@ -993,10 +998,10 @@
       "element": "lightning",
       "tier": "common",
       "base_stats": {
-        "hp": 8895,
-        "attack": 648,
-        "defense": 604,
-        "speed": 103,
+        "hp": 88,
+        "attack": 51,
+        "defense": 72,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -1008,18 +1013,18 @@
           "id": "vigilant_strike",
           "name": "Vigilant Strike",
           "description": "Attacks an enemy. Gains 50% increased Accuracy for your next turn.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
               "type": "self_buff",
-              "buff": "accuracy_buff",
+              "buff": "increase_accuracy",
               "value": 50,
               "duration": 1
             }
@@ -1035,7 +1040,7 @@
           "effects": [
             {
               "type": "buff",
-              "buff": "crit_rate_buff",
+              "buff": "increase_critical_rate",
               "duration": 2
             },
             {
@@ -1058,10 +1063,10 @@
       "element": "water",
       "tier": "common",
       "base_stats": {
-        "hp": 8235,
-        "attack": 527,
-        "defense": 637,
-        "speed": 99,
+        "hp": 82,
+        "attack": 42,
+        "defense": 76,
+        "speed": 59,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -1073,13 +1078,13 @@
           "id": "frost_touch",
           "name": "Frost Touch",
           "description": "Attacks an enemy and freezes them for 1 turn with a 25% chance.",
-          "damage_multiplier": 370,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 370,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -1094,16 +1099,10 @@
         {
           "id": "foresight",
           "name": "Foresight",
-          "description": "All allies gain 20% chance to dodge attacks for 2 turns and recover 15% HP.",
+          "description": "All allies gain 20% chance to Glancing Hit Rate for 2 turns and recover 15% HP.",
           "damage_multiplier": 0,
           "targets": "all_allies",
           "effects": [
-            {
-              "type": "buff",
-              "buff": "increased_dodge",
-              "value": 20,
-              "duration": 2
-            },
             {
               "type": "heal",
               "value": 15,
@@ -1125,10 +1124,10 @@
       "element": "fire",
       "tier": "legendary",
       "base_stats": {
-        "hp": 12180,
-        "attack": 823,
-        "defense": 604,
-        "speed": 103,
+        "hp": 121,
+        "attack": 65,
+        "defense": 72,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -1140,13 +1139,13 @@
           "id": "sun_ray",
           "name": "Sun Ray",
           "description": "Attacks an enemy with the power of the sun. Damage increases by 50% if the target is under inability effects.",
-          "damage_multiplier": 400,
+          "damage_multiplier": 1.6,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 400,
+              "value": 1.6,
               "scaling": "ATK",
               "bonus_vs_inability": 50
             }
@@ -1156,14 +1155,14 @@
         {
           "id": "solar_blessing",
           "name": "Solar Blessing",
-          "description": "Attacks all enemies and inflicts 2 Continuous Damage for 3 turns. Grants all allies Attack buff for 2 turns.",
-          "damage_multiplier": 300,
+          "description": "Attacks all enemies and inflicts 2 Continuous Damage for 3 turns. Grants all allies Increase ATK for 2 turns.",
+          "damage_multiplier": 1.2,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 300,
+              "value": 1.2,
               "scaling": "ATK"
             },
             {
@@ -1175,7 +1174,7 @@
             },
             {
               "type": "team_buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 2
             }
           ],
@@ -1198,10 +1197,10 @@
       "element": "dark",
       "tier": "epic",
       "base_stats": {
-        "hp": 10545,
-        "attack": 703,
-        "defense": 714,
-        "speed": 96,
+        "hp": 105,
+        "attack": 56,
+        "defense": 85,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -1213,13 +1212,13 @@
           "id": "soul_judge",
           "name": "Soul Judge",
           "description": "Attacks an enemy and inflicts Brand for 2 turns. Recovers HP by 20% of damage dealt.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -1239,18 +1238,18 @@
           "id": "death_sentence",
           "name": "Death Sentence",
           "description": "Attacks all enemies and blocks beneficial effects for 2 turns. Damage increases according to enemy's current HP.",
-          "damage_multiplier": 15,
+          "damage_multiplier": 0.8,
           "scaling_stat": "enemy_current_hp",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 15,
+              "value": 0.8,
               "scaling": "enemy_current_hp"
             },
             {
               "type": "debuff",
-              "debuff": "buff_block",
+              "debuff": "block_beneficial_effects",
               "chance": 100,
               "duration": 2
             }
@@ -1274,10 +1273,10 @@
       "element": "water",
       "tier": "rare",
       "base_stats": {
-        "hp": 9555,
-        "attack": 582,
-        "defense": 648,
-        "speed": 104,
+        "hp": 95,
+        "attack": 46,
+        "defense": 77,
+        "speed": 62,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -1289,13 +1288,13 @@
           "id": "mystic_wave",
           "name": "Mystic Wave",
           "description": "Attacks an enemy and heals all allies by 10% of their MAX HP.",
-          "damage_multiplier": 350,
+          "damage_multiplier": 1.4,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 350,
+              "value": 1.4,
               "scaling": "ATK"
             },
             {
@@ -1343,10 +1342,10 @@
       "element": "light",
       "tier": "common",
       "base_stats": {
-        "hp": 7800,
-        "attack": 615,
-        "defense": 571,
-        "speed": 105,
+        "hp": 78,
+        "attack": 49,
+        "defense": 68,
+        "speed": 63,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -1358,13 +1357,13 @@
           "id": "knowledge_strike",
           "name": "Knowledge Strike",
           "description": "Attacks an enemy with a 50% chance to remove a beneficial effect.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -1378,7 +1377,7 @@
         {
           "id": "wisdom_share",
           "name": "Wisdom Share",
-          "description": "Increases Attack Bar of all allies by 25% and grants Attack Speed buff for 2 turns.",
+          "description": "Increases Attack Bar of all allies by 25% and grants Attack Increase SPD for 2 turns.",
           "damage_multiplier": 0,
           "targets": "all_allies",
           "effects": [
@@ -1388,7 +1387,7 @@
             },
             {
               "type": "buff",
-              "buff": "speed_buff",
+              "buff": "increase_speed",
               "duration": 2
             }
           ],
@@ -1407,10 +1406,10 @@
       "element": "light",
       "tier": "legendary",
       "base_stats": {
-        "hp": 12345,
-        "attack": 714,
-        "defense": 736,
-        "speed": 96,
+        "hp": 123,
+        "attack": 57,
+        "defense": 88,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -1422,13 +1421,13 @@
           "id": "divine_punishment",
           "name": "Divine Punishment",
           "description": "Attacks an enemy and removes all beneficial effects. Stuns for 1 turn if any effects were removed.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -1446,31 +1445,31 @@
         {
           "id": "queen_authority",
           "name": "Queen's Authority",
-          "description": "Attacks all enemies and decreases their Attack and Defense for 2 turns. Allies gain Counterattack buff for 2 turns.",
-          "damage_multiplier": 280,
+          "description": "Attacks all enemies and decreases their ATK and DEF for 2 turns. Allies gain Counterattack for 2 turns.",
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 280,
+              "value": 1.1,
               "scaling": "ATK"
             },
             {
               "type": "debuff",
-              "debuff": "attack_break",
+              "debuff": "decrease_attack",
               "chance": 100,
               "duration": 2
             },
             {
               "type": "debuff",
-              "debuff": "defense_break",
+              "debuff": "decrease_defense",
               "chance": 100,
               "duration": 2
             },
             {
               "type": "team_buff",
-              "buff": "counter",
+              "buff": "counterattack",
               "duration": 2
             }
           ],
@@ -1493,10 +1492,10 @@
       "element": "fire",
       "tier": "epic",
       "base_stats": {
-        "hp": 10545,
-        "attack": 625,
-        "defense": 748,
-        "speed": 94,
+        "hp": 105,
+        "attack": 50,
+        "defense": 89,
+        "speed": 56,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -1508,13 +1507,13 @@
           "id": "sacred_flame",
           "name": "Sacred Flame",
           "description": "Attacks an enemy with holy fire and recovers the HP of all allies by 10%.",
-          "damage_multiplier": 360,
+          "damage_multiplier": 1.4,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 360,
+              "value": 1.4,
               "scaling": "ATK"
             },
             {
@@ -1539,7 +1538,7 @@
             },
             {
               "type": "buff",
-              "buff": "recovery",
+              "buff": "continuous_recovery",
               "duration": 3,
               "stacks": 2
             }
@@ -1563,10 +1562,10 @@
       "element": "earth",
       "tier": "epic",
       "base_stats": {
-        "hp": 10875,
-        "attack": 670,
-        "defense": 659,
-        "speed": 95,
+        "hp": 108,
+        "attack": 53,
+        "defense": 79,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -1578,18 +1577,18 @@
           "id": "nature_strike",
           "name": "Nature's Strike",
           "description": "Attacks an enemy and grants all allies Continuous Recovery for 2 turns.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
               "type": "team_buff",
-              "buff": "recovery",
+              "buff": "continuous_recovery",
               "duration": 2
             }
           ],
@@ -1608,12 +1607,12 @@
             },
             {
               "type": "buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 2
             },
             {
               "type": "buff",
-              "buff": "defense_buff",
+              "buff": "increase_defense",
               "duration": 2
             }
           ],
@@ -1636,10 +1635,10 @@
       "element": "earth",
       "tier": "rare",
       "base_stats": {
-        "hp": 9390,
-        "attack": 692,
-        "defense": 593,
-        "speed": 103,
+        "hp": 93,
+        "attack": 55,
+        "defense": 71,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -1651,13 +1650,13 @@
           "id": "intoxicate",
           "name": "Intoxicate",
           "description": "Attacks an enemy and applies Glancing Hit debuff for 2 turns with a 75% chance.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -1673,13 +1672,13 @@
           "id": "madness_field",
           "name": "Madness Field",
           "description": "Attacks all enemies with a 50% chance to provoke them for 1 turn.",
-          "damage_multiplier": 290,
+          "damage_multiplier": 1.2,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 290,
+              "value": 1.2,
               "scaling": "ATK"
             },
             {
@@ -1704,10 +1703,10 @@
       "element": "fire",
       "tier": "rare",
       "base_stats": {
-        "hp": 10215,
-        "attack": 736,
-        "defense": 681,
-        "speed": 93,
+        "hp": 102,
+        "attack": 58,
+        "defense": 81,
+        "speed": 55,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -1719,18 +1718,18 @@
           "id": "forge_hammer",
           "name": "Forge Hammer",
           "description": "Attacks an enemy with a chance to inflict Defense break for 2 turns (75% chance).",
-          "damage_multiplier": 390,
+          "damage_multiplier": 1.6,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 390,
+              "value": 1.6,
               "scaling": "ATK"
             },
             {
               "type": "debuff",
-              "debuff": "defense_break",
+              "debuff": "decrease_defense",
               "chance": 75,
               "duration": 2
             }
@@ -1740,19 +1739,19 @@
         {
           "id": "molten_forge",
           "name": "Molten Forge",
-          "description": "Attacks all enemies with molten metal and increases all allies' Critical Damage for 2 turns.",
-          "damage_multiplier": 280,
+          "description": "Attacks all enemies with molten metal and increases all allies' CRI DMG for 2 turns.",
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 280,
+              "value": 1.1,
               "scaling": "ATK"
             },
             {
               "type": "team_buff",
-              "buff": "crit_damage_buff",
+              "buff": "increase_critical_damage",
               "duration": 2
             }
           ],
@@ -1771,10 +1770,10 @@
       "element": "water",
       "tier": "rare",
       "base_stats": {
-        "hp": 9060,
-        "attack": 625,
-        "defense": 615,
-        "speed": 105,
+        "hp": 90,
+        "attack": 50,
+        "defense": 73,
+        "speed": 63,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -1786,13 +1785,13 @@
           "id": "charm_touch",
           "name": "Charm Touch",
           "description": "Attacks an enemy and puts them to sleep for 1 turn with a 50% chance.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -1841,10 +1840,10 @@
       "element": "dark",
       "tier": "common",
       "base_stats": {
-        "hp": 8235,
-        "attack": 648,
-        "defense": 538,
-        "speed": 102,
+        "hp": 82,
+        "attack": 51,
+        "defense": 64,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -1856,13 +1855,13 @@
           "id": "underworld_grasp",
           "name": "Underworld Grasp",
           "description": "Attacks an enemy with a 30% chance to decrease their Attack Bar by 50%.",
-          "damage_multiplier": 370,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 370,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -1887,7 +1886,7 @@
             },
             {
               "type": "buff",
-              "buff": "speed_buff",
+              "buff": "increase_speed",
               "duration": 2
             }
           ],
@@ -1906,10 +1905,10 @@
       "element": "light",
       "tier": "legendary",
       "base_stats": {
-        "hp": 12675,
-        "attack": 758,
-        "defense": 736,
-        "speed": 100,
+        "hp": 126,
+        "attack": 60,
+        "defense": 88,
+        "speed": 60,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -1921,13 +1920,13 @@
           "id": "celestial_strike",
           "name": "Celestial Strike",
           "description": "Attacks an enemy and ignores all damage reduction effects. Always lands as a crushing hit.",
-          "damage_multiplier": 420,
+          "damage_multiplier": 1.7,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 420,
+              "value": 1.7,
               "scaling": "ATK",
               "ignore_damage_reduction": true,
               "crushing_hit": true
@@ -1939,13 +1938,13 @@
           "id": "heavenly_decree",
           "name": "Heavenly Decree",
           "description": "Attacks all enemies and applies Oblivion for 2 turns, preventing passive abilities. Increases all allies' Attack Bar by 25%.",
-          "damage_multiplier": 300,
+          "damage_multiplier": 1.2,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 300,
+              "value": 1.2,
               "scaling": "ATK"
             },
             {
@@ -1978,10 +1977,10 @@
       "element": "water",
       "tier": "epic",
       "base_stats": {
-        "hp": 11205,
-        "attack": 780,
-        "defense": 648,
-        "speed": 101,
+        "hp": 112,
+        "attack": 62,
+        "defense": 77,
+        "speed": 60,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -1993,14 +1992,14 @@
           "id": "dragon_claw",
           "name": "Dragon Claw",
           "description": "Attacks an enemy 2 times. Each attack has a 30% chance to decrease Attack Speed for 2 turns.",
-          "damage_multiplier": 190,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "single",
           "hits": 2,
           "effects": [
             {
               "type": "damage",
-              "value": 190,
+              "value": 0.8,
               "scaling": "ATK",
               "hits": 2
             },
@@ -2018,13 +2017,13 @@
           "id": "tidal_dragon",
           "name": "Tidal Dragon",
           "description": "Transforms into dragon form and attacks all enemies. Freezes them for 1 turn with a 75% chance.",
-          "damage_multiplier": 320,
+          "damage_multiplier": 1.3,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 320,
+              "value": 1.3,
               "scaling": "ATK"
             },
             {
@@ -2053,10 +2052,10 @@
       "element": "lightning",
       "tier": "epic",
       "base_stats": {
-        "hp": 10380,
-        "attack": 867,
-        "defense": 549,
-        "speed": 114,
+        "hp": 103,
+        "attack": 69,
+        "defense": 65,
+        "speed": 68,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -2068,13 +2067,13 @@
           "id": "staff_strike",
           "name": "Staff Strike",
           "description": "Attacks an enemy and gains another turn with a 30% chance.",
-          "damage_multiplier": 400,
+          "damage_multiplier": 1.6,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 400,
+              "value": 1.6,
               "scaling": "ATK"
             },
             {
@@ -2088,14 +2087,14 @@
           "id": "clone_attack",
           "name": "Clone Attack",
           "description": "Creates clones and attacks random enemies 5 times. Each hit decreases Attack Bar by 15%.",
-          "damage_multiplier": 110,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "random",
           "hits": 5,
           "effects": [
             {
               "type": "damage",
-              "value": 110,
+              "value": 0.8,
               "scaling": "ATK",
               "hits": 5
             },
@@ -2124,10 +2123,10 @@
       "element": "dark",
       "tier": "rare",
       "base_stats": {
-        "hp": 9060,
-        "attack": 670,
-        "defense": 626,
-        "speed": 107,
+        "hp": 90,
+        "attack": 53,
+        "defense": 75,
+        "speed": 64,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -2139,13 +2138,13 @@
           "id": "moon_strike",
           "name": "Moon Strike",
           "description": "Attacks an enemy with moonlight. Damage increases by 30% if it's a critical hit.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK",
               "crit_damage_bonus": 30
             }
@@ -2186,10 +2185,10 @@
       "element": "fire",
       "tier": "rare",
       "base_stats": {
-        "hp": 9390,
-        "attack": 801,
-        "defense": 538,
-        "speed": 109,
+        "hp": 93,
+        "attack": 64,
+        "defense": 64,
+        "speed": 65,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -2201,13 +2200,13 @@
           "id": "fire_spear",
           "name": "Fire Spear",
           "description": "Attacks an enemy with a fire spear and inflicts Continuous Damage for 3 turns.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -2224,13 +2223,13 @@
           "id": "lotus_rebirth",
           "name": "Lotus Rebirth",
           "description": "Attacks all enemies and grants yourself immunity and invincibility for 1 turn.",
-          "damage_multiplier": 250,
+          "damage_multiplier": 1.0,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 250,
+              "value": 1.0,
               "scaling": "ATK"
             },
             {
@@ -2240,7 +2239,7 @@
             },
             {
               "type": "self_buff",
-              "buff": "invincible",
+              "buff": "endure",
               "duration": 1
             }
           ],
@@ -2259,10 +2258,10 @@
       "element": "water",
       "tier": "rare",
       "base_stats": {
-        "hp": 10050,
-        "attack": 593,
-        "defense": 681,
-        "speed": 101,
+        "hp": 100,
+        "attack": 47,
+        "defense": 81,
+        "speed": 60,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -2307,7 +2306,7 @@
             },
             {
               "type": "buff",
-              "buff": "recovery",
+              "buff": "continuous_recovery",
               "duration": 2,
               "stacks": 2
             }
@@ -2327,10 +2326,10 @@
       "element": "lightning",
       "tier": "common",
       "base_stats": {
-        "hp": 9225,
-        "attack": 725,
-        "defense": 538,
-        "speed": 105,
+        "hp": 92,
+        "attack": 58,
+        "defense": 64,
+        "speed": 63,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -2342,13 +2341,13 @@
           "id": "thunder_drum",
           "name": "Thunder Drum",
           "description": "Attacks an enemy with thunder and has a 25% chance to stun for 1 turn.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -2364,13 +2363,13 @@
           "id": "lightning_justice",
           "name": "Lightning Justice",
           "description": "Attacks all enemies. Damage increases by 20% for each debuff on the target.",
-          "damage_multiplier": 250,
+          "damage_multiplier": 1.0,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 250,
+              "value": 1.0,
               "scaling": "ATK",
               "bonus_per_debuff": 20
             }
@@ -2390,10 +2389,10 @@
       "element": "earth",
       "tier": "common",
       "base_stats": {
-        "hp": 10050,
-        "attack": 758,
-        "defense": 604,
-        "speed": 98,
+        "hp": 100,
+        "attack": 60,
+        "defense": 72,
+        "speed": 58,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -2405,18 +2404,18 @@
           "id": "dragon_blade",
           "name": "Dragon Blade",
           "description": "Attacks an enemy and decreases their Defense for 2 turns with a 75% chance.",
-          "damage_multiplier": 390,
+          "damage_multiplier": 1.6,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 390,
+              "value": 1.6,
               "scaling": "ATK"
             },
             {
               "type": "debuff",
-              "debuff": "defense_break",
+              "debuff": "decrease_defense",
               "chance": 75,
               "duration": 2
             }
@@ -2432,12 +2431,12 @@
           "effects": [
             {
               "type": "buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 2
             },
             {
               "type": "buff",
-              "buff": "defense_buff",
+              "buff": "increase_defense",
               "duration": 2
             }
           ],
@@ -2456,10 +2455,10 @@
       "element": "lightning",
       "tier": "epic",
       "base_stats": {
-        "hp": 11040,
-        "attack": 812,
-        "defense": 626,
-        "speed": 103,
+        "hp": 110,
+        "attack": 64,
+        "defense": 75,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -2471,13 +2470,13 @@
           "id": "thunder_axe",
           "name": "Thunder Axe",
           "description": "Attacks an enemy with a thunderous axe strike. Always lands as a Critical Hit.",
-          "damage_multiplier": 420,
+          "damage_multiplier": 1.7,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 420,
+              "value": 1.7,
               "scaling": "ATK",
               "guaranteed_crit": true
             }
@@ -2488,13 +2487,13 @@
           "id": "storm_call",
           "name": "Storm Call",
           "description": "Attacks all enemies with lightning and thunder, stunning them for 1 turn with a 50% chance.",
-          "damage_multiplier": 300,
+          "damage_multiplier": 1.2,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 300,
+              "value": 1.2,
               "scaling": "ATK"
             },
             {
@@ -2523,10 +2522,10 @@
       "element": "fire",
       "tier": "epic",
       "base_stats": {
-        "hp": 11205,
-        "attack": 747,
-        "defense": 714,
-        "speed": 95,
+        "hp": 112,
+        "attack": 59,
+        "defense": 85,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -2538,18 +2537,18 @@
           "id": "forge_strike",
           "name": "Forge Strike",
           "description": "Attacks an enemy with divine smithing power. Increases all allies' Critical Rate for 2 turns.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
               "type": "team_buff",
-              "buff": "crit_rate_buff",
+              "buff": "increase_critical_rate",
               "duration": 2
             }
           ],
@@ -2558,18 +2557,18 @@
         {
           "id": "celestial_forge",
           "name": "Celestial Forge",
-          "description": "Grants all allies Attack and Defense buffs for 3 turns and increases their Attack Bar by 25%.",
+          "description": "Grants all allies Attack and Increase DEFs for 3 turns and increases their Attack Bar by 25%.",
           "damage_multiplier": 0,
           "targets": "all_allies",
           "effects": [
             {
               "type": "buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 3
             },
             {
               "type": "buff",
-              "buff": "defense_buff",
+              "buff": "increase_defense",
               "duration": 3
             },
             {
@@ -2596,10 +2595,10 @@
       "element": "earth",
       "tier": "rare",
       "base_stats": {
-        "hp": 10215,
-        "attack": 625,
-        "defense": 703,
-        "speed": 96,
+        "hp": 102,
+        "attack": 50,
+        "defense": 84,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -2621,7 +2620,7 @@
             },
             {
               "type": "buff",
-              "buff": "recovery",
+              "buff": "continuous_recovery",
               "duration": 2
             }
           ],
@@ -2665,10 +2664,10 @@
       "element": "dark",
       "tier": "rare",
       "base_stats": {
-        "hp": 10545,
-        "attack": 703,
-        "defense": 659,
-        "speed": 99,
+        "hp": 105,
+        "attack": 56,
+        "defense": 79,
+        "speed": 59,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -2680,13 +2679,13 @@
           "id": "serpent_strike",
           "name": "Serpent Strike",
           "description": "Attacks an enemy and steals 30% of their Attack Bar.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -2700,20 +2699,25 @@
           "id": "underworld_wisdom",
           "name": "Underworld Wisdom",
           "description": "Attacks all enemies and applies 2 random debuffs for 2 turns.",
-          "damage_multiplier": 280,
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 280,
+              "value": 1.1,
               "scaling": "ATK"
             },
             {
               "type": "random_debuffs",
               "count": 2,
               "duration": 2,
-              "debuff_pool": ["slow", "attack_break", "defense_break", "heal_block"]
+              "debuff_pool": [
+                "slow",
+                "decrease_attack",
+                "decrease_defense",
+                "heal_block"
+              ]
             }
           ],
           "cooldown": 4
@@ -2731,10 +2735,10 @@
       "element": "light",
       "tier": "common",
       "base_stats": {
-        "hp": 9060,
-        "attack": 593,
-        "defense": 626,
-        "speed": 103,
+        "hp": 90,
+        "attack": 47,
+        "defense": 75,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -2793,10 +2797,10 @@
       "element": "earth",
       "tier": "common",
       "base_stats": {
-        "hp": 9555,
-        "attack": 615,
-        "defense": 670,
-        "speed": 95,
+        "hp": 95,
+        "attack": 49,
+        "defense": 80,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -2808,13 +2812,13 @@
           "id": "protective_strike",
           "name": "Protective Strike",
           "description": "Attacks an enemy and grants yourself a shield for 2 turns.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -2830,13 +2834,13 @@
         {
           "id": "household_blessing",
           "name": "Household Blessing",
-          "description": "Grants all allies Defense buff and shield for 2 turns.",
+          "description": "Grants all allies Increase DEF and shield for 2 turns.",
           "damage_multiplier": 0,
           "targets": "all_allies",
           "effects": [
             {
               "type": "buff",
-              "buff": "defense_buff",
+              "buff": "increase_defense",
               "duration": 2
             },
             {
@@ -2861,10 +2865,10 @@
       "element": "water",
       "tier": "epic",
       "base_stats": {
-        "hp": 11700,
-        "attack": 780,
-        "defense": 626,
-        "speed": 91,
+        "hp": 117,
+        "attack": 62,
+        "defense": 75,
+        "speed": 54,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -2876,13 +2880,13 @@
           "id": "serpent_bite",
           "name": "Serpent Bite",
           "description": "Attacks an enemy and inflicts Continuous Damage for 3 turns. Damage scales with MAX HP.",
-          "damage_multiplier": 20,
+          "damage_multiplier": 0.8,
           "scaling_stat": "MAX_HP",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 20,
+              "value": 0.8,
               "scaling": "MAX_HP"
             },
             {
@@ -2899,13 +2903,13 @@
           "id": "world_coil",
           "name": "World Coil",
           "description": "Attacks all enemies and decreases their Attack Speed for 2 turns. Applies inability effects for 1 turn with 50% chance.",
-          "damage_multiplier": 15,
+          "damage_multiplier": 0.8,
           "scaling_stat": "MAX_HP",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 15,
+              "value": 0.8,
               "scaling": "MAX_HP"
             },
             {
@@ -2940,10 +2944,10 @@
       "element": "dark",
       "tier": "rare",
       "base_stats": {
-        "hp": 10050,
-        "attack": 812,
-        "defense": 538,
-        "speed": 105,
+        "hp": 100,
+        "attack": 64,
+        "defense": 64,
+        "speed": 63,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -2955,13 +2959,13 @@
           "id": "wolf_bite",
           "name": "Wolf Bite",
           "description": "Attacks an enemy and inflicts Brand and Defense break for 2 turns.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -2972,7 +2976,7 @@
             },
             {
               "type": "debuff",
-              "debuff": "defense_break",
+              "debuff": "decrease_defense",
               "chance": 75,
               "duration": 2
             }
@@ -2983,13 +2987,13 @@
           "id": "ragnarok_howl",
           "name": "Ragnarok Howl",
           "description": "Attacks all enemies ignoring defense. Damage increases by 30% per debuff on self.",
-          "damage_multiplier": 250,
+          "damage_multiplier": 1.0,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 250,
+              "value": 1.0,
               "scaling": "ATK",
               "ignore_defense": true,
               "bonus_per_self_debuff": 30
@@ -3010,10 +3014,10 @@
       "element": "earth",
       "tier": "rare",
       "base_stats": {
-        "hp": 9720,
-        "attack": 769,
-        "defense": 648,
-        "speed": 96,
+        "hp": 97,
+        "attack": 61,
+        "defense": 77,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -3025,13 +3029,13 @@
           "id": "silent_strike",
           "name": "Silent Strike",
           "description": "Attacks an enemy and silences them for 2 turns with 75% chance.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -3047,13 +3051,13 @@
           "id": "vengeance_boot",
           "name": "Vengeance Boot",
           "description": "Attacks the enemy with the highest Attack, stunning them for 1 turn. Damage increases by 50% if any ally has died.",
-          "damage_multiplier": 400,
+          "damage_multiplier": 1.6,
           "scaling_stat": "ATK",
           "targets": "enemy_highest_attack",
           "effects": [
             {
               "type": "damage",
-              "value": 400,
+              "value": 1.6,
               "scaling": "ATK",
               "bonus_if_ally_dead": 50
             },
@@ -3079,10 +3083,10 @@
       "element": "light",
       "tier": "common",
       "base_stats": {
-        "hp": 8565,
-        "attack": 593,
-        "defense": 571,
-        "speed": 103,
+        "hp": 85,
+        "attack": 47,
+        "defense": 68,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -3094,13 +3098,13 @@
           "id": "word_strike",
           "name": "Word Strike",
           "description": "Attacks an enemy with magical words. Damage increases with your speed.",
-          "damage_multiplier": 3.5,
+          "damage_multiplier": 0.8,
           "scaling_stat": "SPD",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 350,
+              "value": 1.4,
               "scaling": "SPD"
             }
           ],
@@ -3119,7 +3123,7 @@
             },
             {
               "type": "buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 2
             }
           ],
@@ -3138,10 +3142,10 @@
       "element": "dark",
       "tier": "epic",
       "base_stats": {
-        "hp": 11040,
-        "attack": 703,
-        "defense": 692,
-        "speed": 95,
+        "hp": 110,
+        "attack": 56,
+        "defense": 83,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -3153,13 +3157,13 @@
           "id": "death_touch",
           "name": "Death Touch",
           "description": "Attacks an enemy and brands them for 2 turns. Recovers HP equal to 30% of damage dealt.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -3179,13 +3183,13 @@
           "id": "judgment_of_dead",
           "name": "Judgment of Dead",
           "description": "Attacks all enemies. Damage increases by 50% against enemies with inability effects. Applies heal block for 2 turns.",
-          "damage_multiplier": 300,
+          "damage_multiplier": 1.2,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 300,
+              "value": 1.2,
               "scaling": "ATK",
               "bonus_vs_inability": 50
             },
@@ -3215,10 +3219,10 @@
       "element": "light",
       "tier": "epic",
       "base_stats": {
-        "hp": 10215,
-        "attack": 780,
-        "defense": 626,
-        "speed": 103,
+        "hp": 102,
+        "attack": 62,
+        "defense": 75,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -3230,14 +3234,14 @@
           "id": "falcon_strike",
           "name": "Falcon Strike",
           "description": "Attacks an enemy 2 times. Each hit has a 50% chance to increase your Attack Bar by 15%.",
-          "damage_multiplier": 200,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "single",
           "hits": 2,
           "effects": [
             {
               "type": "damage",
-              "value": 200,
+              "value": 0.8,
               "scaling": "ATK",
               "hits": 2
             },
@@ -3291,10 +3295,10 @@
       "element": "earth",
       "tier": "rare",
       "base_stats": {
-        "hp": 8730,
-        "attack": 736,
-        "defense": 626,
-        "speed": 108,
+        "hp": 87,
+        "attack": 58,
+        "defense": 75,
+        "speed": 64,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -3306,20 +3310,20 @@
           "id": "cat_scratch",
           "name": "Cat Scratch",
           "description": "Attacks an enemy 3 times. Each hit has a 30% chance to decrease Defense for 2 turns.",
-          "damage_multiplier": 130,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "single",
           "hits": 3,
           "effects": [
             {
               "type": "damage",
-              "value": 130,
+              "value": 0.8,
               "scaling": "ATK",
               "hits": 3
             },
             {
               "type": "debuff",
-              "debuff": "defense_break",
+              "debuff": "decrease_defense",
               "chance": 30,
               "duration": 2,
               "per_hit": true
@@ -3340,7 +3344,7 @@
             },
             {
               "type": "buff",
-              "buff": "speed_buff",
+              "buff": "increase_speed",
               "duration": 2
             }
           ],
@@ -3359,10 +3363,10 @@
       "element": "water",
       "tier": "rare",
       "base_stats": {
-        "hp": 10545,
-        "attack": 703,
-        "defense": 681,
-        "speed": 93,
+        "hp": 105,
+        "attack": 56,
+        "defense": 81,
+        "speed": 55,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -3374,13 +3378,13 @@
           "id": "crocodile_bite",
           "name": "Crocodile Bite",
           "description": "Attacks an enemy and provokes them for 1 turn with a 75% chance.",
-          "damage_multiplier": 400,
+          "damage_multiplier": 1.6,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 400,
+              "value": 1.6,
               "scaling": "ATK"
             },
             {
@@ -3396,13 +3400,13 @@
           "id": "death_roll",
           "name": "Death Roll",
           "description": "Attacks an enemy based on your MAX HP and stuns them for 1 turn.",
-          "damage_multiplier": 30,
+          "damage_multiplier": 0.8,
           "scaling_stat": "MAX_HP",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 30,
+              "value": 0.8,
               "scaling": "MAX_HP"
             },
             {
@@ -3427,10 +3431,10 @@
       "element": "dark",
       "tier": "rare",
       "base_stats": {
-        "hp": 9390,
-        "attack": 780,
-        "defense": 538,
-        "speed": 105,
+        "hp": 93,
+        "attack": 62,
+        "defense": 64,
+        "speed": 63,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -3442,20 +3446,26 @@
           "id": "chaos_strike",
           "name": "Chaos Strike",
           "description": "Attacks an enemy and applies a random debuff for 2 turns.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
               "type": "random_debuffs",
               "count": 1,
               "duration": 2,
-              "debuff_pool": ["attack_break", "defense_break", "slow", "heal_block", "glancing"]
+              "debuff_pool": [
+                "decrease_attack",
+                "decrease_defense",
+                "slow",
+                "heal_block",
+                "glancing"
+              ]
             }
           ],
           "cooldown": 0
@@ -3463,14 +3473,14 @@
         {
           "id": "desert_storm",
           "name": "Desert Storm",
-          "description": "Attacks all enemies and disturbs their HP recovery for 2 turns. Damage increases against enemies with beneficial effects.",
-          "damage_multiplier": 280,
+          "description": "Attacks all enemies and inflicts Unrecoverable for 2 turns. Damage increases against enemies with beneficial effects.",
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 280,
+              "value": 1.1,
               "scaling": "ATK",
               "bonus_vs_buffed": 50
             },
@@ -3496,10 +3506,10 @@
       "element": "earth",
       "tier": "common",
       "base_stats": {
-        "hp": 8895,
-        "attack": 615,
-        "defense": 648,
-        "speed": 95,
+        "hp": 88,
+        "attack": 49,
+        "defense": 77,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -3511,18 +3521,18 @@
           "id": "creator_strike",
           "name": "Creator's Strike",
           "description": "Attacks an enemy and increases your Defense for 2 turns.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
               "type": "self_buff",
-              "buff": "defense_buff",
+              "buff": "increase_defense",
               "duration": 2
             }
           ],
@@ -3531,7 +3541,7 @@
         {
           "id": "divine_construction",
           "name": "Divine Construction",
-          "description": "Grants all allies shields for 3 turns and Defense buff for 2 turns.",
+          "description": "Grants all allies shields for 3 turns and Increase DEF for 2 turns.",
           "damage_multiplier": 0,
           "targets": "all_allies",
           "effects": [
@@ -3543,7 +3553,7 @@
             },
             {
               "type": "buff",
-              "buff": "defense_buff",
+              "buff": "increase_defense",
               "duration": 2
             }
           ],
@@ -3562,10 +3572,10 @@
       "element": "fire",
       "tier": "common",
       "base_stats": {
-        "hp": 9225,
-        "attack": 736,
-        "defense": 538,
-        "speed": 102,
+        "hp": 92,
+        "attack": 58,
+        "defense": 64,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -3577,13 +3587,13 @@
           "id": "lioness_strike",
           "name": "Lioness Strike",
           "description": "Attacks an enemy with a 50% chance to inflict Continuous Damage for 2 turns.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -3600,13 +3610,13 @@
           "id": "solar_fury",
           "name": "Solar Fury",
           "description": "Attacks all enemies with burning solar energy. Inflicts Continuous Damage for 2 turns.",
-          "damage_multiplier": 250,
+          "damage_multiplier": 1.0,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 250,
+              "value": 1.0,
               "scaling": "ATK"
             },
             {
@@ -3632,10 +3642,10 @@
       "element": "dark",
       "tier": "common",
       "base_stats": {
-        "hp": 8565,
-        "attack": 593,
-        "defense": 626,
-        "speed": 99,
+        "hp": 85,
+        "attack": 47,
+        "defense": 75,
+        "speed": 59,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -3647,13 +3657,13 @@
           "id": "shadow_strike",
           "name": "Shadow Strike",
           "description": "Attacks an enemy and decreases their Attack Bar by 30%.",
-          "damage_multiplier": 370,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 370,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -3696,10 +3706,10 @@
       "element": "light",
       "tier": "legendary",
       "base_stats": {
-        "hp": 13005,
-        "attack": 747,
-        "defense": 703,
-        "speed": 96,
+        "hp": 130,
+        "attack": 59,
+        "defense": 84,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -3711,19 +3721,24 @@
           "id": "creation_touch",
           "name": "Creation Touch",
           "description": "Attacks an enemy and grants a random beneficial effect to all allies for 2 turns.",
-          "damage_multiplier": 400,
+          "damage_multiplier": 1.6,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 400,
+              "value": 1.6,
               "scaling": "ATK"
             },
             {
               "type": "random_team_buff",
               "duration": 2,
-              "buff_pool": ["attack_buff", "defense_buff", "speed_buff", "crit_rate_buff"]
+              "buff_pool": [
+                "increase_attack",
+                "increase_defense",
+                "increase_speed",
+                "increase_critical_rate"
+              ]
             }
           ],
           "cooldown": 0
@@ -3767,10 +3782,10 @@
       "element": "water",
       "tier": "legendary",
       "base_stats": {
-        "hp": 12675,
-        "attack": 780,
-        "defense": 659,
-        "speed": 99,
+        "hp": 126,
+        "attack": 62,
+        "defense": 79,
+        "speed": 59,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -3782,14 +3797,14 @@
           "id": "discus_throw",
           "name": "Discus Throw",
           "description": "Attacks all enemies 2 times. Each hit has a 35% chance to decrease Attack Bar by 20%.",
-          "damage_multiplier": 150,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "hits": 2,
           "effects": [
             {
               "type": "damage",
-              "value": 150,
+              "value": 0.8,
               "scaling": "ATK",
               "hits": 2
             },
@@ -3840,10 +3855,10 @@
       "element": "fire",
       "tier": "legendary",
       "base_stats": {
-        "hp": 12015,
-        "attack": 856,
-        "defense": 626,
-        "speed": 101,
+        "hp": 120,
+        "attack": 68,
+        "defense": 75,
+        "speed": 60,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -3855,14 +3870,14 @@
           "id": "trident_strike",
           "name": "Trident Strike",
           "description": "Attacks an enemy 3 times. Each critical hit ignores 50% of the target's defense.",
-          "damage_multiplier": 140,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "single",
           "hits": 3,
           "effects": [
             {
               "type": "damage",
-              "value": 140,
+              "value": 0.8,
               "scaling": "ATK",
               "hits": 3,
               "crit_ignore_def": 50
@@ -3874,13 +3889,13 @@
           "id": "cosmic_dance",
           "name": "Cosmic Dance",
           "description": "Attacks all enemies ignoring defense and immunity. Inflicts 2 Continuous Damage for 3 turns.",
-          "damage_multiplier": 250,
+          "damage_multiplier": 1.0,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 250,
+              "value": 1.0,
               "scaling": "ATK",
               "ignore_defense": true,
               "ignore_immunity": true
@@ -3912,10 +3927,10 @@
       "element": "earth",
       "tier": "epic",
       "base_stats": {
-        "hp": 11040,
-        "attack": 659,
-        "defense": 714,
-        "speed": 95,
+        "hp": 110,
+        "attack": 52,
+        "defense": 85,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -3927,13 +3942,13 @@
           "id": "tusk_strike",
           "name": "Tusk Strike",
           "description": "Attacks an enemy based on your Defense and provokes them for 1 turn.",
-          "damage_multiplier": 400,
+          "damage_multiplier": 1.6,
           "scaling_stat": "DEF",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 400,
+              "value": 1.6,
               "scaling": "DEF"
             },
             {
@@ -3984,10 +3999,10 @@
       "element": "lightning",
       "tier": "epic",
       "base_stats": {
-        "hp": 10545,
-        "attack": 812,
-        "defense": 549,
-        "speed": 109,
+        "hp": 105,
+        "attack": 64,
+        "defense": 65,
+        "speed": 65,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -3999,14 +4014,14 @@
           "id": "monkey_strike",
           "name": "Monkey Strike",
           "description": "Attacks an enemy 2 times. Each hit has a 25% chance to gain another turn.",
-          "damage_multiplier": 200,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "single",
           "hits": 2,
           "effects": [
             {
               "type": "damage",
-              "value": 200,
+              "value": 0.8,
               "scaling": "ATK",
               "hits": 2
             },
@@ -4021,14 +4036,14 @@
         {
           "id": "mountain_leap",
           "name": "Mountain Leap",
-          "description": "Attacks all enemies and increases Attack Bar of all allies by 30%. Grants Attack buff for 2 turns.",
-          "damage_multiplier": 300,
+          "description": "Attacks all enemies and increases Attack Bar of all allies by 30%. Grants Increase ATK for 2 turns.",
+          "damage_multiplier": 1.2,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 300,
+              "value": 1.2,
               "scaling": "ATK"
             },
             {
@@ -4037,7 +4052,7 @@
             },
             {
               "type": "team_buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 2
             }
           ],
@@ -4060,10 +4075,10 @@
       "element": "fire",
       "tier": "epic",
       "base_stats": {
-        "hp": 10875,
-        "attack": 780,
-        "defense": 659,
-        "speed": 101,
+        "hp": 108,
+        "attack": 62,
+        "defense": 79,
+        "speed": 60,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -4075,20 +4090,26 @@
           "id": "multi_weapon",
           "name": "Multi-Weapon Strike",
           "description": "Attacks random enemies 5 times. Each hit has different effects.",
-          "damage_multiplier": 100,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "random",
           "hits": 5,
           "effects": [
             {
               "type": "damage",
-              "value": 100,
+              "value": 0.8,
               "scaling": "ATK",
               "hits": 5
             },
             {
               "type": "random_debuff_per_hit",
-              "debuff_pool": ["defense_break", "attack_break", "slow", "heal_block", "glancing"],
+              "debuff_pool": [
+                "decrease_defense",
+                "decrease_attack",
+                "slow",
+                "heal_block",
+                "glancing"
+              ],
               "chance": 50,
               "duration": 1
             }
@@ -4099,13 +4120,13 @@
           "id": "demon_slayer",
           "name": "Demon Slayer",
           "description": "Attacks all enemies. Damage increases by 30% per debuff on the target. Ignores defense.",
-          "damage_multiplier": 200,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 200,
+              "value": 0.8,
               "scaling": "ATK",
               "bonus_per_debuff": 30,
               "ignore_defense": true
@@ -4130,10 +4151,10 @@
       "element": "water",
       "tier": "rare",
       "base_stats": {
-        "hp": 9390,
-        "attack": 593,
-        "defense": 626,
-        "speed": 103,
+        "hp": 93,
+        "attack": 47,
+        "defense": 75,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -4155,7 +4176,7 @@
             },
             {
               "type": "buff",
-              "buff": "recovery",
+              "buff": "continuous_recovery",
               "duration": 2
             }
           ],
@@ -4176,7 +4197,12 @@
               "type": "random_buff",
               "count": 2,
               "duration": 2,
-              "buff_pool": ["attack_buff", "defense_buff", "speed_buff", "crit_rate_buff"]
+              "buff_pool": [
+                "increase_attack",
+                "increase_defense",
+                "increase_speed",
+                "increase_critical_rate"
+              ]
             }
           ],
           "cooldown": 4
@@ -4194,10 +4220,10 @@
       "element": "light",
       "tier": "rare",
       "base_stats": {
-        "hp": 8730,
-        "attack": 625,
-        "defense": 615,
-        "speed": 105,
+        "hp": 87,
+        "attack": 50,
+        "defense": 73,
+        "speed": 63,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -4209,13 +4235,13 @@
           "id": "wisdom_strike",
           "name": "Wisdom Strike",
           "description": "Attacks an enemy and removes one beneficial effect. Increases your Attack Bar by 25%.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -4242,7 +4268,7 @@
             },
             {
               "type": "buff",
-              "buff": "crit_rate_buff",
+              "buff": "increase_critical_rate",
               "duration": 2
             }
           ],
@@ -4261,10 +4287,10 @@
       "element": "lightning",
       "tier": "rare",
       "base_stats": {
-        "hp": 10050,
-        "attack": 736,
-        "defense": 593,
-        "speed": 105,
+        "hp": 100,
+        "attack": 58,
+        "defense": 71,
+        "speed": 63,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -4276,13 +4302,13 @@
           "id": "vajra_bolt",
           "name": "Vajra Bolt",
           "description": "Attacks an enemy with lightning that always lands as a Critical Hit.",
-          "damage_multiplier": 400,
+          "damage_multiplier": 1.6,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 400,
+              "value": 1.6,
               "scaling": "ATK",
               "guaranteed_crit": true
             }
@@ -4293,13 +4319,13 @@
           "id": "storm_command",
           "name": "Storm Command",
           "description": "Attacks all enemies with chain lightning. Each enemy hit has a 50% chance to be stunned for 1 turn.",
-          "damage_multiplier": 280,
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 280,
+              "value": 1.1,
               "scaling": "ATK"
             },
             {
@@ -4324,10 +4350,10 @@
       "element": "dark",
       "tier": "rare",
       "base_stats": {
-        "hp": 9720,
-        "attack": 812,
-        "defense": 493,
-        "speed": 108,
+        "hp": 97,
+        "attack": 64,
+        "defense": 59,
+        "speed": 64,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -4339,13 +4365,13 @@
           "id": "time_strike",
           "name": "Time Strike",
           "description": "Attacks an enemy and resets all their beneficial effect durations to 1 turn.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -4359,14 +4385,14 @@
           "id": "destruction_dance",
           "name": "Destruction Dance",
           "description": "Attacks all enemies 2 times. Each hit ignores 30% defense. Grants yourself immunity for 1 turn.",
-          "damage_multiplier": 140,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "hits": 2,
           "effects": [
             {
               "type": "damage",
-              "value": 140,
+              "value": 0.8,
               "scaling": "ATK",
               "hits": 2,
               "ignore_defense": 30
@@ -4392,10 +4418,10 @@
       "element": "fire",
       "tier": "common",
       "base_stats": {
-        "hp": 8895,
-        "attack": 703,
-        "defense": 538,
-        "speed": 103,
+        "hp": 88,
+        "attack": 56,
+        "defense": 64,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -4407,13 +4433,13 @@
           "id": "solar_ray",
           "name": "Solar Ray",
           "description": "Attacks an enemy and inflicts Continuous Damage for 2 turns.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -4440,7 +4466,7 @@
             },
             {
               "type": "buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 2
             }
           ],
@@ -4459,10 +4485,10 @@
       "element": "water",
       "tier": "common",
       "base_stats": {
-        "hp": 8565,
-        "attack": 625,
-        "defense": 571,
-        "speed": 102,
+        "hp": 85,
+        "attack": 50,
+        "defense": 68,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -4474,13 +4500,13 @@
           "id": "moon_strike",
           "name": "Moon Strike",
           "description": "Attacks an enemy with a 30% chance to put them to sleep for 1 turn.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -4525,10 +4551,10 @@
       "element": "earth",
       "tier": "legendary",
       "base_stats": {
-        "hp": 13005,
-        "attack": 780,
-        "defense": 736,
-        "speed": 93,
+        "hp": 130,
+        "attack": 62,
+        "defense": 88,
+        "speed": 55,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -4540,13 +4566,13 @@
           "id": "club_strike",
           "name": "Club Strike",
           "description": "Attacks an enemy with massive force. Damage scales with MAX HP. Stuns for 1 turn.",
-          "damage_multiplier": 30,
+          "damage_multiplier": 0.8,
           "scaling_stat": "MAX_HP",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 30,
+              "value": 0.8,
               "scaling": "MAX_HP"
             },
             {
@@ -4595,10 +4621,10 @@
       "element": "fire",
       "tier": "epic",
       "base_stats": {
-        "hp": 10545,
-        "attack": 703,
-        "defense": 659,
-        "speed": 99,
+        "hp": 105,
+        "attack": 56,
+        "defense": 79,
+        "speed": 59,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -4609,19 +4635,19 @@
         {
           "id": "forge_strike",
           "name": "Forge Strike",
-          "description": "Attacks an enemy and increases all allies' Critical Damage for 2 turns.",
-          "damage_multiplier": 380,
+          "description": "Attacks an enemy and increases all allies' CRI DMG for 2 turns.",
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
               "type": "team_buff",
-              "buff": "crit_damage_buff",
+              "buff": "increase_critical_damage",
               "duration": 2
             }
           ],
@@ -4643,7 +4669,13 @@
               "type": "random_buff",
               "count": 3,
               "duration": 2,
-              "buff_pool": ["attack_buff", "defense_buff", "speed_buff", "crit_rate_buff", "immunity"]
+              "buff_pool": [
+                "increase_attack",
+                "increase_defense",
+                "increase_speed",
+                "increase_critical_rate",
+                "immunity"
+              ]
             }
           ],
           "cooldown": 4
@@ -4665,10 +4697,10 @@
       "element": "light",
       "tier": "epic",
       "base_stats": {
-        "hp": 10215,
-        "attack": 780,
-        "defense": 593,
-        "speed": 105,
+        "hp": 102,
+        "attack": 62,
+        "defense": 71,
+        "speed": 63,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -4680,20 +4712,24 @@
           "id": "skill_strike",
           "name": "Skillful Strike",
           "description": "Attacks an enemy 3 times. Each hit has a different effect: Defense break, Attack break, and Slow for 1 turn.",
-          "damage_multiplier": 130,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "single",
           "hits": 3,
           "effects": [
             {
               "type": "damage",
-              "value": 130,
+              "value": 0.8,
               "scaling": "ATK",
               "hits": 3
             },
             {
               "type": "sequential_debuffs",
-              "debuffs": ["defense_break", "attack_break", "slow"],
+              "debuffs": [
+                "decrease_defense",
+                "decrease_attack",
+                "slow"
+              ],
               "duration": 1,
               "chance": 75
             }
@@ -4704,13 +4740,13 @@
           "id": "harvest_festival",
           "name": "Harvest Festival",
           "description": "Attacks all enemies and increases all allies' Attack Bar by 35%.",
-          "damage_multiplier": 300,
+          "damage_multiplier": 1.2,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 300,
+              "value": 1.2,
               "scaling": "ATK"
             },
             {
@@ -4737,10 +4773,10 @@
       "element": "dark",
       "tier": "epic",
       "base_stats": {
-        "hp": 9885,
-        "attack": 812,
-        "defense": 549,
-        "speed": 108,
+        "hp": 98,
+        "attack": 64,
+        "defense": 65,
+        "speed": 64,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -4752,20 +4788,26 @@
           "id": "crow_strike",
           "name": "Crow Strike",
           "description": "Attacks an enemy and inflicts 2 random debuffs for 2 turns.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
               "type": "random_debuffs",
               "count": 2,
               "duration": 2,
-              "debuff_pool": ["defense_break", "attack_break", "heal_block", "brand", "slow"]
+              "debuff_pool": [
+                "decrease_defense",
+                "decrease_attack",
+                "heal_block",
+                "brand",
+                "slow"
+              ]
             }
           ],
           "cooldown": 0
@@ -4773,7 +4815,7 @@
         {
           "id": "doom_prophecy",
           "name": "Doom Prophecy",
-          "description": "Marks all enemies with doom, increasing damage they take by 25% for 2 turns. Allies gain Attack buff.",
+          "description": "Marks all enemies with doom, increasing damage they take by 25% for 2 turns. Allies gain Increase ATK.",
           "damage_multiplier": 0,
           "targets": "all_enemies",
           "effects": [
@@ -4785,7 +4827,7 @@
             },
             {
               "type": "team_buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 2
             }
           ],
@@ -4808,10 +4850,10 @@
       "element": "earth",
       "tier": "rare",
       "base_stats": {
-        "hp": 10215,
-        "attack": 703,
-        "defense": 681,
-        "speed": 99,
+        "hp": 102,
+        "attack": 56,
+        "defense": 81,
+        "speed": 59,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -4823,13 +4865,13 @@
           "id": "antler_charge",
           "name": "Antler Charge",
           "description": "Charges at an enemy with antlers. Damage scales with Defense.",
-          "damage_multiplier": 400,
+          "damage_multiplier": 1.6,
           "scaling_stat": "DEF",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 400,
+              "value": 1.6,
               "scaling": "DEF"
             },
             {
@@ -4845,18 +4887,18 @@
           "id": "wild_hunt",
           "name": "Wild Hunt",
           "description": "Summons the wild hunt to attack all enemies and grant all allies increased Critical Rate for 2 turns.",
-          "damage_multiplier": 280,
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 280,
+              "value": 1.1,
               "scaling": "ATK"
             },
             {
               "type": "team_buff",
-              "buff": "crit_rate_buff",
+              "buff": "increase_critical_rate",
               "duration": 2
             }
           ],
@@ -4875,10 +4917,10 @@
       "element": "water",
       "tier": "rare",
       "base_stats": {
-        "hp": 9390,
-        "attack": 670,
-        "defense": 626,
-        "speed": 112,
+        "hp": 93,
+        "attack": 53,
+        "defense": 75,
+        "speed": 67,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -4890,19 +4932,19 @@
           "id": "swift_strike",
           "name": "Swift Strike",
           "description": "Attacks an enemy. Speed increases by 15 for 1 turn if the attack lands as a Critical Hit.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
               "type": "conditional_buff",
               "condition": "on_crit",
-              "buff": "speed_buff",
+              "buff": "increase_speed",
               "value": 15,
               "duration": 1
             }
@@ -4922,7 +4964,7 @@
             },
             {
               "type": "buff",
-              "buff": "speed_buff",
+              "buff": "increase_speed",
               "duration": 2
             }
           ],
@@ -4941,10 +4983,10 @@
       "element": "water",
       "tier": "rare",
       "base_stats": {
-        "hp": 9555,
-        "attack": 703,
-        "defense": 659,
-        "speed": 105,
+        "hp": 95,
+        "attack": 56,
+        "defense": 79,
+        "speed": 63,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -4956,13 +4998,13 @@
           "id": "sea_strike",
           "name": "Sea Strike",
           "description": "Attacks an enemy and freezes them for 1 turn with a 35% chance.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -4981,12 +5023,6 @@
           "damage_multiplier": 0,
           "targets": "all_allies",
           "effects": [
-            {
-              "type": "buff",
-              "buff": "increased_dodge",
-              "value": 30,
-              "duration": 2
-            },
             {
               "type": "heal",
               "value": 20,
@@ -5008,10 +5044,10 @@
       "element": "fire",
       "tier": "rare",
       "base_stats": {
-        "hp": 9390,
-        "attack": 736,
-        "defense": 549,
-        "speed": 102,
+        "hp": 93,
+        "attack": 58,
+        "defense": 65,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -5023,13 +5059,13 @@
           "id": "solar_strike",
           "name": "Solar Strike",
           "description": "Attacks an enemy with solar fire. Inflicts 2 Continuous Damage for 2 turns.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -5046,13 +5082,13 @@
           "id": "beltane_fire",
           "name": "Beltane Fire",
           "description": "Attacks all enemies with sacred fire and heals all allies by 15%.",
-          "damage_multiplier": 250,
+          "damage_multiplier": 1.0,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 250,
+              "value": 1.0,
               "scaling": "ATK"
             },
             {
@@ -5076,10 +5112,10 @@
       "element": "light",
       "tier": "common",
       "base_stats": {
-        "hp": 9225,
-        "attack": 593,
-        "defense": 626,
-        "speed": 96,
+        "hp": 92,
+        "attack": 47,
+        "defense": 75,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -5119,7 +5155,7 @@
             },
             {
               "type": "buff",
-              "buff": "recovery",
+              "buff": "continuous_recovery",
               "duration": 3
             }
           ],
@@ -5138,10 +5174,10 @@
       "element": "lightning",
       "tier": "common",
       "base_stats": {
-        "hp": 9555,
-        "attack": 703,
-        "defense": 593,
-        "speed": 99,
+        "hp": 95,
+        "attack": 56,
+        "defense": 71,
+        "speed": 59,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -5153,13 +5189,13 @@
           "id": "silver_strike",
           "name": "Silver Strike",
           "description": "Attacks an enemy with the silver arm. Damage increases by 50% if the enemy has beneficial effects.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK",
               "bonus_vs_buffed": 50
             }
@@ -5175,12 +5211,12 @@
           "effects": [
             {
               "type": "buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 2
             },
             {
               "type": "buff",
-              "buff": "defense_buff",
+              "buff": "increase_defense",
               "duration": 2
             }
           ],
@@ -5189,7 +5225,7 @@
       ],
       "passive_abilities": [],
       "leader_skill": null,
-      "description": "Silver-armed king of the Tuatha Dé Danann.",
+      "description": "Silver-armed king of the Tuatha D\u00e9 Danann.",
       "summon_weight": 60
     },
     {
@@ -5199,10 +5235,10 @@
       "element": "light",
       "tier": "legendary",
       "base_stats": {
-        "hp": 12345,
-        "attack": 812,
-        "defense": 659,
-        "speed": 101,
+        "hp": 123,
+        "attack": 64,
+        "defense": 79,
+        "speed": 60,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -5214,13 +5250,13 @@
           "id": "sun_burst",
           "name": "Sun Burst",
           "description": "Attacks all enemies with the power of the sun. Removes one beneficial effect from each enemy.",
-          "damage_multiplier": 350,
+          "damage_multiplier": 1.4,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 350,
+              "value": 1.4,
               "scaling": "ATK"
             },
             {
@@ -5267,10 +5303,10 @@
       "element": "lightning",
       "tier": "epic",
       "base_stats": {
-        "hp": 10710,
-        "attack": 812,
-        "defense": 593,
-        "speed": 103,
+        "hp": 107,
+        "attack": 64,
+        "defense": 71,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -5282,14 +5318,14 @@
           "id": "storm_blade",
           "name": "Storm Blade",
           "description": "Attacks an enemy 3 times with storm-infused blade strikes.",
-          "damage_multiplier": 140,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "single",
           "hits": 3,
           "effects": [
             {
               "type": "damage",
-              "value": 140,
+              "value": 0.8,
               "scaling": "ATK",
               "hits": 3
             }
@@ -5300,13 +5336,13 @@
           "id": "tempest_rage",
           "name": "Tempest Rage",
           "description": "Attacks all enemies and decreases their Attack Bar by 30%. Stuns for 1 turn with 50% chance.",
-          "damage_multiplier": 280,
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 280,
+              "value": 1.1,
               "scaling": "ATK"
             },
             {
@@ -5339,10 +5375,10 @@
       "element": "dark",
       "tier": "epic",
       "base_stats": {
-        "hp": 10215,
-        "attack": 703,
-        "defense": 692,
-        "speed": 108,
+        "hp": 102,
+        "attack": 56,
+        "defense": 83,
+        "speed": 64,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -5354,13 +5390,13 @@
           "id": "lunar_strike",
           "name": "Lunar Strike",
           "description": "Attacks an enemy with moonlight. Puts them to sleep for 1 turn with 50% chance.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -5376,25 +5412,19 @@
           "id": "night_veil",
           "name": "Night Veil",
           "description": "Attacks all enemies and applies Glancing Hit debuff for 2 turns. Allies gain 15% dodge chance.",
-          "damage_multiplier": 280,
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 280,
+              "value": 1.1,
               "scaling": "ATK"
             },
             {
               "type": "debuff",
               "debuff": "glancing",
               "chance": 100,
-              "duration": 2
-            },
-            {
-              "type": "team_buff",
-              "buff": "increased_dodge",
-              "value": 15,
               "duration": 2
             }
           ],
@@ -5417,10 +5447,10 @@
       "element": "earth",
       "tier": "rare",
       "base_stats": {
-        "hp": 9720,
-        "attack": 670,
-        "defense": 659,
-        "speed": 102,
+        "hp": 97,
+        "attack": 53,
+        "defense": 79,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -5432,13 +5462,13 @@
           "id": "fox_bite",
           "name": "Fox Bite",
           "description": "Attacks an enemy and steals 20% of their Attack Bar.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -5462,12 +5492,12 @@
             },
             {
               "type": "buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 2
             },
             {
               "type": "buff",
-              "buff": "defense_buff",
+              "buff": "increase_defense",
               "duration": 2
             }
           ],
@@ -5486,10 +5516,10 @@
       "element": "lightning",
       "tier": "common",
       "base_stats": {
-        "hp": 9060,
-        "attack": 714,
-        "defense": 560,
-        "speed": 105,
+        "hp": 90,
+        "attack": 57,
+        "defense": 67,
+        "speed": 63,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -5501,13 +5531,13 @@
           "id": "thunder_drums",
           "name": "Thunder Drums",
           "description": "Attacks all enemies with thunder drums and decreases their Attack Bar by 20%.",
-          "damage_multiplier": 270,
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 270,
+              "value": 1.1,
               "scaling": "ATK"
             },
             {
@@ -5521,13 +5551,13 @@
           "id": "storm_calling",
           "name": "Storm Calling",
           "description": "Summons lightning storms that stun all enemies for 1 turn with 40% chance.",
-          "damage_multiplier": 300,
+          "damage_multiplier": 1.2,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 300,
+              "value": 1.2,
               "scaling": "ATK"
             },
             {
@@ -5552,10 +5582,10 @@
       "element": "lightning",
       "tier": "common",
       "base_stats": {
-        "hp": 8730,
-        "attack": 681,
-        "defense": 571,
-        "speed": 108,
+        "hp": 87,
+        "attack": 54,
+        "defense": 68,
+        "speed": 64,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -5567,13 +5597,13 @@
           "id": "wind_bag",
           "name": "Wind Bag",
           "description": "Attacks an enemy and increases your Attack Bar by 25%.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -5587,13 +5617,13 @@
           "id": "tornado_creation",
           "name": "Tornado Creation",
           "description": "Attacks all enemies with wind and applies slow for 2 turns.",
-          "damage_multiplier": 280,
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 280,
+              "value": 1.1,
               "scaling": "ATK"
             },
             {
@@ -5618,10 +5648,10 @@
       "element": "water",
       "tier": "common",
       "base_stats": {
-        "hp": 8565,
-        "attack": 615,
-        "defense": 626,
-        "speed": 102,
+        "hp": 85,
+        "attack": 49,
+        "defense": 75,
+        "speed": 61,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -5662,7 +5692,7 @@
             },
             {
               "type": "buff",
-              "buff": "crit_rate_buff",
+              "buff": "increase_critical_rate",
               "duration": 2
             }
           ],
@@ -5681,10 +5711,10 @@
       "element": "earth",
       "tier": "common",
       "base_stats": {
-        "hp": 9390,
-        "attack": 703,
-        "defense": 615,
-        "speed": 96,
+        "hp": 93,
+        "attack": 56,
+        "defense": 73,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -5696,19 +5726,19 @@
           "id": "divine_archery",
           "name": "Divine Archery",
           "description": "Attacks an enemy with a guaranteed critical hit and applies Defense break for 2 turns.",
-          "damage_multiplier": 350,
+          "damage_multiplier": 1.4,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 350,
+              "value": 1.4,
               "scaling": "ATK",
               "always_crit": true
             },
             {
               "type": "debuff",
-              "debuff": "defense_break",
+              "debuff": "decrease_defense",
               "chance": 100,
               "duration": 2
             }
@@ -5724,12 +5754,12 @@
           "effects": [
             {
               "type": "buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 2
             },
             {
               "type": "buff",
-              "buff": "crit_rate_buff",
+              "buff": "increase_critical_rate",
               "duration": 2
             }
           ],
@@ -5748,10 +5778,10 @@
       "element": "light",
       "tier": "common",
       "base_stats": {
-        "hp": 9555,
-        "attack": 560,
-        "defense": 670,
-        "speed": 93,
+        "hp": 95,
+        "attack": 44,
+        "defense": 80,
+        "speed": 55,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -5811,10 +5841,10 @@
       "element": "lightning",
       "tier": "common",
       "base_stats": {
-        "hp": 8730,
-        "attack": 736,
-        "defense": 538,
-        "speed": 108,
+        "hp": 87,
+        "attack": 58,
+        "defense": 64,
+        "speed": 64,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -5826,14 +5856,14 @@
           "id": "sword_training",
           "name": "Sword Training",
           "description": "Attacks an enemy 2 times with increased critical rate.",
-          "damage_multiplier": 200,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "single",
           "hits": 2,
           "effects": [
             {
               "type": "damage",
-              "value": 200,
+              "value": 0.8,
               "scaling": "ATK",
               "hits": 2,
               "crit_rate_bonus": 30
@@ -5845,18 +5875,18 @@
           "id": "wind_flight",
           "name": "Wind Flight",
           "description": "Attacks all enemies and increases your Speed for 3 turns.",
-          "damage_multiplier": 270,
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 270,
+              "value": 1.1,
               "scaling": "ATK"
             },
             {
               "type": "self_buff",
-              "buff": "speed_buff",
+              "buff": "increase_speed",
               "duration": 3
             }
           ],
@@ -5875,10 +5905,10 @@
       "element": "lightning",
       "tier": "legendary",
       "base_stats": {
-        "hp": 12675,
-        "attack": 856,
-        "defense": 692,
-        "speed": 96,
+        "hp": 126,
+        "attack": 68,
+        "defense": 83,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -5890,13 +5920,13 @@
           "id": "dragon_slayer",
           "name": "Dragon Slayer",
           "description": "Attacks an enemy with massive force, ignoring 50% of their defense. Always lands as a Critical Hit.",
-          "damage_multiplier": 420,
+          "damage_multiplier": 1.7,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 420,
+              "value": 1.7,
               "scaling": "ATK",
               "ignore_def_percent": 50,
               "always_crit": true
@@ -5918,7 +5948,14 @@
               "type": "random_debuffs",
               "count": 3,
               "duration": 2,
-              "debuff_pool": ["stun", "freeze", "sleep", "silence", "oblivion", "provoke"]
+              "debuff_pool": [
+                "stun",
+                "freeze",
+                "sleep",
+                "silence",
+                "oblivion",
+                "provoke"
+              ]
             }
           ],
           "cooldown": 5
@@ -5940,10 +5977,10 @@
       "element": "water",
       "tier": "legendary",
       "base_stats": {
-        "hp": 13665,
-        "attack": 780,
-        "defense": 714,
-        "speed": 93,
+        "hp": 136,
+        "attack": 62,
+        "defense": 85,
+        "speed": 55,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -5955,13 +5992,13 @@
           "id": "primordial_chaos",
           "name": "Primordial Chaos",
           "description": "Attacks all enemies and decreases their Max HP by 15% for the battle.",
-          "damage_multiplier": 300,
+          "damage_multiplier": 1.2,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 300,
+              "value": 1.2,
               "scaling": "ATK"
             },
             {
@@ -5976,14 +6013,14 @@
           "id": "spawn_monsters",
           "name": "Spawn Monsters",
           "description": "Summons chaotic minions that attack random enemies 5 times.",
-          "damage_multiplier": 120,
+          "damage_multiplier": 0.8,
           "scaling_stat": "ATK",
           "targets": "random",
           "hits": 5,
           "effects": [
             {
               "type": "damage",
-              "value": 120,
+              "value": 0.8,
               "scaling": "ATK",
               "hits": 5
             }
@@ -6007,10 +6044,10 @@
       "element": "lightning",
       "tier": "epic",
       "base_stats": {
-        "hp": 10875,
-        "attack": 812,
-        "defense": 626,
-        "speed": 99,
+        "hp": 108,
+        "attack": 64,
+        "defense": 75,
+        "speed": 59,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -6021,19 +6058,19 @@
         {
           "id": "divine_wind",
           "name": "Divine Wind",
-          "description": "Attacks all enemies with divine wind and increases all allies' Speed for 2 turns.",
-          "damage_multiplier": 280,
+          "description": "Attacks all enemies with divine wind and increases all allies' SPD for 2 turns.",
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 280,
+              "value": 1.1,
               "scaling": "ATK"
             },
             {
               "type": "team_buff",
-              "buff": "speed_buff",
+              "buff": "increase_speed",
               "duration": 2
             }
           ],
@@ -6043,13 +6080,13 @@
           "id": "storm_bringer",
           "name": "Storm Bringer",
           "description": "Brings storms that stun all enemies for 1 turn and decrease their Attack Bar by 30%.",
-          "damage_multiplier": 320,
+          "damage_multiplier": 1.3,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 320,
+              "value": 1.3,
               "scaling": "ATK"
             },
             {
@@ -6082,10 +6119,10 @@
       "element": "dark",
       "tier": "epic",
       "base_stats": {
-        "hp": 10545,
-        "attack": 747,
-        "defense": 681,
-        "speed": 96,
+        "hp": 105,
+        "attack": 59,
+        "defense": 81,
+        "speed": 57,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -6097,13 +6134,13 @@
           "id": "death_gaze",
           "name": "Death Gaze",
           "description": "Attacks an enemy and inflicts brand and continuous damage for 3 turns.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -6124,13 +6161,13 @@
           "id": "underworld_dominion",
           "name": "Underworld Dominion",
           "description": "Claims dominion over all enemies, applying oblivion and heal block for 2 turns.",
-          "damage_multiplier": 280,
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 280,
+              "value": 1.1,
               "scaling": "ATK"
             },
             {
@@ -6165,10 +6202,10 @@
       "element": "light",
       "tier": "epic",
       "base_stats": {
-        "hp": 10215,
-        "attack": 780,
-        "defense": 659,
-        "speed": 101,
+        "hp": 102,
+        "attack": 62,
+        "defense": 79,
+        "speed": 60,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -6180,13 +6217,13 @@
           "id": "solar_justice",
           "name": "Solar Justice",
           "description": "Attacks an enemy with solar light and removes all beneficial effects.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -6198,7 +6235,7 @@
         {
           "id": "law_codex",
           "name": "Law Codex",
-          "description": "Enforces divine law, granting all allies immunity and attack buff for 2 turns.",
+          "description": "Enforces divine law, granting all allies immunity and Increase ATK for 2 turns.",
           "damage_multiplier": 0,
           "targets": "all_allies",
           "effects": [
@@ -6209,7 +6246,7 @@
             },
             {
               "type": "buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 2
             }
           ],
@@ -6232,10 +6269,10 @@
       "element": "fire",
       "tier": "rare",
       "base_stats": {
-        "hp": 9720,
-        "attack": 780,
-        "defense": 571,
-        "speed": 105,
+        "hp": 97,
+        "attack": 62,
+        "defense": 68,
+        "speed": 63,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -6247,13 +6284,13 @@
           "id": "love_and_war",
           "name": "Love and War",
           "description": "Attacks an enemy and applies random buff to allies or random debuff to enemies.",
-          "damage_multiplier": 380,
+          "damage_multiplier": 1.5,
           "scaling_stat": "ATK",
           "targets": "single",
           "effects": [
             {
               "type": "damage",
-              "value": 380,
+              "value": 1.5,
               "scaling": "ATK"
             },
             {
@@ -6266,7 +6303,7 @@
         {
           "id": "descent_return",
           "name": "Descent and Return",
-          "description": "Revives all fallen allies with 50% HP and grants them attack buff.",
+          "description": "Revives all fallen allies with 50% HP and grants them Increase ATK.",
           "damage_multiplier": 0,
           "targets": "all_allies",
           "effects": [
@@ -6276,7 +6313,7 @@
             },
             {
               "type": "buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 3
             }
           ],
@@ -6295,10 +6332,10 @@
       "element": "dark",
       "tier": "rare",
       "base_stats": {
-        "hp": 9885,
-        "attack": 747,
-        "defense": 593,
-        "speed": 99,
+        "hp": 98,
+        "attack": 59,
+        "defense": 71,
+        "speed": 59,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -6310,13 +6347,13 @@
           "id": "plague_bringer",
           "name": "Plague Bringer",
           "description": "Attacks all enemies and applies continuous damage for 3 turns.",
-          "damage_multiplier": 280,
+          "damage_multiplier": 1.1,
           "scaling_stat": "ATK",
           "targets": "all_enemies",
           "effects": [
             {
               "type": "damage",
-              "value": 280,
+              "value": 1.1,
               "scaling": "ATK"
             },
             {
@@ -6331,18 +6368,18 @@
         {
           "id": "war_frenzy",
           "name": "War Frenzy",
-          "description": "Grants all allies attack buff and counter-attack for 2 turns.",
+          "description": "Grants all allies Increase ATK and counterattack for 2 turns.",
           "damage_multiplier": 0,
           "targets": "all_allies",
           "effects": [
             {
               "type": "buff",
-              "buff": "attack_buff",
+              "buff": "increase_attack",
               "duration": 2
             },
             {
               "type": "buff",
-              "buff": "counter",
+              "buff": "counterattack",
               "duration": 2
             }
           ],
@@ -6361,10 +6398,10 @@
       "element": "earth",
       "tier": "common",
       "base_stats": {
-        "hp": 9225,
-        "attack": 593,
-        "defense": 648,
-        "speed": 93,
+        "hp": 92,
+        "attack": 47,
+        "defense": 77,
+        "speed": 55,
         "crit_rate": 15,
         "crit_damage": 50,
         "resistance": 15,
@@ -6386,7 +6423,7 @@
             },
             {
               "type": "buff",
-              "buff": "recovery",
+              "buff": "continuous_recovery",
               "duration": 3
             }
           ],
@@ -6401,7 +6438,7 @@
           "effects": [
             {
               "type": "buff",
-              "buff": "defense_buff",
+              "buff": "increase_defense",
               "duration": 3
             },
             {
@@ -6420,23 +6457,20 @@
       "summon_weight": 60
     }
   ],
-
   "tier_multipliers": {
     "common": 1.0,
     "rare": 1.5,
     "epic": 2.0,
     "legendary": 2.5
   },
-
   "element_advantages": {
     "fire": "earth",
-    "earth": "lightning", 
+    "earth": "lightning",
     "lightning": "water",
     "water": "fire",
     "light": "dark",
     "dark": "light"
   },
-
   "level_progression": {
     "max_level": 30,
     "experience_per_level": 100,
@@ -6453,7 +6487,6 @@
       "speed": 20
     }
   },
-
   "summon_rates": {
     "basic_summon": {
       "cost": 100,
@@ -6535,7 +6568,6 @@
       }
     }
   },
-
   "multi_summon_config": {
     "basic_10x": {
       "count": 10,
@@ -6561,7 +6593,6 @@
       }
     }
   },
-
   "ascension_system": {
     "duplicate_conversion": {
       "common": 1,
@@ -6570,11 +6601,26 @@
       "legendary": 25
     },
     "ascension_requirements": {
-      "silver": { "duplicates": 1, "materials": 5 },
-      "gold": { "duplicates": 3, "materials": 15 },
-      "platinum": { "duplicates": 6, "materials": 35 },
-      "diamond": { "duplicates": 10, "materials": 75 },
-      "mythic": { "duplicates": 15, "materials": 150 }
+      "silver": {
+        "duplicates": 1,
+        "materials": 5
+      },
+      "gold": {
+        "duplicates": 3,
+        "materials": 15
+      },
+      "platinum": {
+        "duplicates": 6,
+        "materials": 35
+      },
+      "diamond": {
+        "duplicates": 10,
+        "materials": 75
+      },
+      "mythic": {
+        "duplicates": 15,
+        "materials": 150
+      }
     }
   }
 }
