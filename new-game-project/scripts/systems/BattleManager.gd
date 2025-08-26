@@ -284,6 +284,12 @@ func process_god_action(god: God, action: Dictionary):
 			print("Unknown action: %s" % action)
 			return
 	
+	# CRITICAL: Check if battle ended after action processing
+	# This prevents showing victory before HP updates complete
+	await get_tree().create_timer(0.1).timeout  # Brief pause for UI updates
+	if _check_battle_end():
+		return  # Battle ended, don't continue
+	
 	# End turn and advance
 	_end_unit_turn(god)
 
@@ -306,6 +312,11 @@ func process_enemy_action(enemy: Dictionary):
 			battle_log_updated.emit("%s skips their turn" % _get_stat(enemy, "name", "Unknown"))
 		_:
 			print("Enemy unknown action: %s" % action)
+	
+	# CRITICAL: Check if battle ended after enemy action processing
+	await get_tree().create_timer(0.1).timeout  # Brief pause for UI updates
+	if _check_battle_end():
+		return  # Battle ended, don't continue
 	
 	# End turn and advance
 	_end_unit_turn(enemy)
@@ -451,16 +462,25 @@ func _process_attack_action(attacker, target):
 		crit_text
 	])
 	
-	# Update UI
+	# Update UI IMMEDIATELY after damage application
 	if battle_screen:
 		if target is God:
 			battle_screen.update_god_hp_instantly(target)
 		else:
 			battle_screen.update_enemy_hp_instantly(target)
 	
-	# Check if target died
+	# CRITICAL: Wait a moment for UI to update before checking death
 	if new_hp <= 0:
 		battle_log_updated.emit("%s is defeated!" % _get_stat(target, "name", "Unknown"))
+		
+		# Give UI a moment to show the HP change before death effects
+		await get_tree().create_timer(0.3).timeout
+		
+		# Now check if battle should end
+		if _check_battle_end():
+			return  # Battle ended, don't continue processing
+	
+	# Check for counters or other death-related effects here
 
 func _determine_ability_type(ability: Dictionary) -> String:
 	"""Automatically determine ability type based on effects"""
@@ -623,6 +643,12 @@ func _process_damage_ability(caster, ability: Dictionary, target):
 			battle_screen.update_god_status_effects(target)
 		else:
 			battle_screen.update_enemy_status_effects(target)
+	
+	# CRITICAL: Give time for UI to update if target died during multi-hit
+	if _get_stat(target, "current_hp", 100) <= 0:
+		battle_log_updated.emit("%s is defeated!" % _get_stat(target, "name", "Unknown"))
+		# Extra time for death animation/UI updates
+		await get_tree().create_timer(0.4).timeout
 
 func _process_healing_ability(caster, ability: Dictionary, target):
 	"""Process healing ability"""
@@ -856,6 +882,10 @@ func _award_victory_rewards():
 	if base_xp > 0:
 		reward_parts.append("%d XP" % base_xp)
 		GameManager.award_experience_to_gods(base_xp)
+		
+		# Add XP gain message to battle log for better feedback
+		var xp_per_god = int(float(base_xp) / float(current_battle_gods.size()))
+		battle_log_updated.emit("[color=cyan]All gods gained %d experience![/color]" % xp_per_god)
 	
 	# Display rewards
 	if reward_parts.size() > 0:

@@ -377,8 +377,16 @@ func award_experience_to_gods(xp_amount: int):
 	"""Award experience to current battle gods"""
 	if battle_system and battle_system.current_battle_gods.size() > 0:
 		var xp_per_god = int(float(xp_amount) / float(battle_system.current_battle_gods.size()))
+		print("=== GameManager: Awarding %d XP to %d gods (%d each) ===" % [xp_amount, battle_system.current_battle_gods.size(), xp_per_god])
+		
 		for god in battle_system.current_battle_gods:
 			god.add_experience(xp_per_god)
+			
+			# Update battle UI if battle screen exists (for all gods, not just leveled ones)
+			if battle_system.battle_screen and battle_system.battle_screen.has_method("update_god_xp_instantly"):
+				battle_system.battle_screen.update_god_xp_instantly(god)
+			
+			# Special handling for level ups (the God class emits level_up signal automatically)
 	
 func battle_territory_stage(territory: Territory, stage_number: int, attacking_gods: Array) -> bool:
 	# Legacy function - kept for backward compatibility but redirects to new system

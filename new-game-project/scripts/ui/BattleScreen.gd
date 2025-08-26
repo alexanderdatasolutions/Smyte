@@ -762,6 +762,10 @@ func _create_god_displays():
 		if display:
 			player_team_container.add_child(display)
 			god_displays[god.id] = display
+			
+		# Connect to god's level up signal for XP bar updates
+		if not god.level_up.is_connected(_on_god_level_up):
+			god.level_up.connect(_on_god_level_up)
 
 func _create_enemy_displays():
 	"""Create enemy displays instantly"""
@@ -819,12 +823,12 @@ func _create_god_display(god: God) -> Control:
 	"""Create enhanced god display matching enemy style"""
 	print("=== DEBUG: Creating god display for: %s ===" % god.name)
 	var container = VBoxContainer.new()
-	container.custom_minimum_size = Vector2(150, 100)
+	container.custom_minimum_size = Vector2(150, 130)  # Increased height for XP bar + status effects
 	print("=== DEBUG: Created god display container with instance ID: %s ===" % container.get_instance_id())
 	
 	# Main clickable button - same style as enemies but blue
 	var main_button = Button.new()
-	main_button.custom_minimum_size = Vector2(150, 100)
+	main_button.custom_minimum_size = Vector2(150, 130)  # Match container height
 	main_button.disabled = true  # Gods aren't clickable targets
 	
 	# Style the button like god panel
@@ -892,17 +896,61 @@ func _create_god_display(god: God) -> Control:
 	level_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content.add_child(level_label)
 	
+	# Experience Bar - BATTLE FEEDBACK SYSTEM (Compact Design)
+	var xp_container = HBoxContainer.new()
+	xp_container.custom_minimum_size = Vector2(140, 6)  # Reduced height from 12 to 6
+	xp_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_child(xp_container)
+	
+	# XP Progress Bar (Thinner)
+	var xp_bar = ProgressBar.new()
+	xp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	xp_bar.custom_minimum_size = Vector2(100, 5)  # Reduced height from 10 to 5
+	xp_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	# Calculate XP progress
+	var current_xp = god.experience
+	var xp_needed = god.get_experience_to_next_level()
+	if god.level >= 40:  # Max level
+		xp_bar.value = 100
+		xp_bar.modulate = Color.GOLD
+	else:
+		var xp_progress = (float(current_xp) / float(xp_needed)) * 100.0 if xp_needed > 0 else 100.0
+		xp_bar.value = xp_progress
+		# Color coding for XP bar
+		if xp_progress >= 80:
+			xp_bar.modulate = Color.CYAN  # Close to leveling up
+		elif xp_progress >= 50:
+			xp_bar.modulate = Color.YELLOW
+		else:
+			xp_bar.modulate = Color.WHITE
+	
+	xp_container.add_child(xp_bar)
+	
+	# XP Text Label (Smaller font for compact design)
+	var xp_label = Label.new()
+	xp_label.custom_minimum_size = Vector2(35, 0)
+	xp_label.add_theme_font_size_override("font_size", 7)  # Reduced from 8 to 7
+	xp_label.add_theme_color_override("font_color", Color.LIGHT_GRAY)
+	xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	xp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if god.level >= 40:
+		xp_label.text = "MAX"
+	else:
+		xp_label.text = "%d/%d" % [current_xp, xp_needed]
+	xp_container.add_child(xp_label)
+	
 	print("=== DEBUG: God display created with %d total children ===" % container.get_child_count())
 	return container
 
 func _create_enemy_display(enemy: Dictionary, _index: int) -> Control:
 	"""Create enemy display with BIG, EASY-TO-CLICK buttons"""
 	var container = VBoxContainer.new()
-	container.custom_minimum_size = Vector2(150, 100)
+	container.custom_minimum_size = Vector2(150, 120)  # Increased height for status effects
 	
 	# Main clickable button - THIS IS THE WHOLE THING
 	var main_button = Button.new()
-	main_button.custom_minimum_size = Vector2(150, 100)
+	main_button.custom_minimum_size = Vector2(150, 120)  # Match container height
 	main_button.pressed.connect(_on_enemy_clicked_instantly.bind(enemy))
 	
 	# Style the button to look like an enemy panel
@@ -1641,7 +1689,7 @@ func update_god_hp_instantly(god: God):
 		var display = god_displays[god.id]
 		var main_button = display.get_child(0)  # The main button
 		var content = main_button.get_child(0)  # The content VBox
-		var hp_label = content.get_child(1)  # HP label (name=0, hp=1, level=2)
+		var hp_label = content.get_child(1)  # HP label (name=0, hp=1, level=2, xp_container=3)
 		
 		# Calculate HP percentage and color
 		var current_hp = _get_stat(god, "hp", 0)
@@ -1935,6 +1983,60 @@ func _show_battle_result_options(is_victory: bool):
 	# Make visible
 	action_buttons_container.visible = true
 
+func _on_god_level_up(god: God):
+	"""Handle god level up - update displays with visual feedback"""
+	print("=== BattleScreen: God %s leveled up to %d! ===" % [god.name, god.level])
+	
+	# Update both HP and XP displays
+	update_god_hp_instantly(god)  # Heal to full on level up
+	update_god_xp_instantly(god)  # Update XP bar and level
+	
+	# Add visual feedback in battle log - use the proper signal pathway
+	_add_battle_log_line("[color=gold][b]⭐ %s LEVELED UP to %d! ⭐[/b][/color]" % [god.name, god.level])
+	
+	# Could add screen flash or particle effect here for more polish
+
+func update_god_xp_instantly(god: God):
+	"""Update god XP display INSTANTLY - called when gods gain experience"""
+	print("=== BattleScreen: Updating XP for god %s (ID: %s) ===" % [god.name, god.id])
+	
+	if god_displays.has(god.id):
+		var display = god_displays[god.id]
+		var main_button = display.get_child(0)  # The main button
+		var content = main_button.get_child(0)  # The content VBox
+		var xp_container = content.get_child(3)  # XP container (name=0, hp=1, level=2, xp_container=3)
+		var xp_bar = xp_container.get_child(0)  # XP progress bar
+		var xp_label = xp_container.get_child(1)  # XP text label
+		
+		# Update XP progress
+		var current_xp = god.experience
+		var xp_needed = god.get_experience_to_next_level()
+		
+		if god.level >= 40:  # Max level
+			xp_bar.value = 100
+			xp_bar.modulate = Color.GOLD
+			xp_label.text = "MAX"
+		else:
+			var xp_progress = (float(current_xp) / float(xp_needed)) * 100.0 if xp_needed > 0 else 100.0
+			xp_bar.value = xp_progress
+			xp_label.text = "%d/%d" % [current_xp, xp_needed]
+			
+			# Color coding for XP bar with visual feedback
+			if xp_progress >= 80:
+				xp_bar.modulate = Color.CYAN  # Close to leveling up
+			elif xp_progress >= 50:
+				xp_bar.modulate = Color.YELLOW
+			else:
+				xp_bar.modulate = Color.WHITE
+		
+		# Also update level label if it changed
+		var level_label = content.get_child(2)  # Level label
+		level_label.text = "Lv.%d" % god.level
+		
+		print("Updated god %s XP display: %s (%.1f%%)" % [god.name, xp_label.text, xp_bar.value])
+	else:
+		print("No display found for god %s (ID: %s)" % [god.name, god.id])
+
 # Status Effect Display Methods
 func update_god_status_effects(god: God):
 	"""Update status effect display for a god"""
@@ -1977,11 +2079,14 @@ func _update_god_status_effect_display(display: Control, god: God):
 			break
 	
 	if not status_container:
-		# Create status effects display
+		# Create status effects display - ensure it's visible and properly sized
 		status_container = HBoxContainer.new()
 		status_container.set_meta("status_effects", true)
 		status_container.add_theme_constant_override("separation", 2)
+		status_container.custom_minimum_size = Vector2(140, 18)  # Slightly reduced from 20 to 18
+		status_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		content.add_child(status_container)
+		print("Created new status container for god")
 	else:
 		# Clear existing effects
 		for child in status_container.get_children():
@@ -2021,10 +2126,14 @@ func _update_enemy_status_effect_display(display: Control, enemy: Dictionary):
 			break
 	
 	if not status_container:
+		# Create status effects display - ensure it's visible and properly sized
 		status_container = HBoxContainer.new()
 		status_container.set_meta("status_effects", true)
 		status_container.add_theme_constant_override("separation", 2)
+		status_container.custom_minimum_size = Vector2(140, 18)  # Proper sizing for enemies
+		status_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		content.add_child(status_container)
+		print("Created new status container for enemy")
 	else:
 		for child in status_container.get_children():
 			child.queue_free()
