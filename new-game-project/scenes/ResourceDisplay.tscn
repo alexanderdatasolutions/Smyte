@@ -13,7 +13,7 @@ offset_bottom = 40.0
 grow_horizontal = 0
 script = ExtResource("1_resource_display")
 
-[node name="EssenceLabel" type="Label" parent="."]
+[node name="ManaLabel" type="Label" parent="."]
 layout_mode = 2
 text = "Mana: 0"
 horizontal_alignment = 1

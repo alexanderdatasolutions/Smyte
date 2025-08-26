@@ -107,9 +107,9 @@ grow_horizontal = 0
 alignment = 1
 script = ExtResource("2_jjidi")
 
-[node name="EssenceLabel" type="Label" parent="ResourceDisplay"]
+[node name="ManaLabel" type="Label" parent="ResourceDisplay"]
 layout_mode = 2
-text = "Divine Essence: 1000"
+text = "Mana: 1000"
 horizontal_alignment = 1
 
 [node name="VSeparator" type="VSeparator" parent="ResourceDisplay"]

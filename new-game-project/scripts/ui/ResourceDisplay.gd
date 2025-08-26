@@ -1,19 +1,65 @@
 # scripts/ui/ResourceDisplay.gd
+# 
+# ResourceDisplay manages the main resource UI shown across all game screens
+# Displays: Mana (primary currency), Divine Crystals (premium), Energy (stamina), etc.
+# 
+# Architecture: Uses singleton pattern to sync all instances globally
+# Data Source: GameManager.player_data via PlayerData.get_resource() method
+#
 extends HBoxContainer
 
-# Dynamic UI elements - created based on ResourceManager configuration
-var currency_labels: Array[Label] = []
-var separator_labels: Array[Label] = []
-var energy_label: Label = null
-var tickets_label: Label = null
-var materials_button: Button = null
-var materials_count_label: Label = null
+# === SINGLETON PATTERN ===
+# All ResourceDisplay instances sync updates globally when resources change
+static var _instances: Array = []
 
-# Reference to ResourceManager for complete modularity
-var resource_manager: Node = null
+# === UI ELEMENTS ===
+# These correspond to nodes in ResourceDisplay.tscn
+@onready var mana_label: Label = $ManaLabel           # Primary currency (per prompt architecture)
+@onready var crystal_label: Label = $CrystalLabel     # Premium currency  
+@onready var energy_label: Label = $EnergyLabel       # Stamina for battles (regenerates)
+@onready var tickets_label: Label = $TicketsLabel     # Summon tickets
+@onready var materials_button: Button = $MaterialsButton           # Opens materials inventory
+@onready var materials_count_label: Label = $MaterialsCountLabel   # Shows total materials count
 
+# === SYSTEM REFERENCES ===
+var resource_manager: Node = null  # Reference to ResourceManager for materials data
+
+# === LIFECYCLE METHODS ===
+	
 func _ready():
-	# Get ResourceManager reference
+	"""Initialize this ResourceDisplay instance"""
+	print("ResourceDisplay: New instance created")
+	
+	# Add to instances list for global synchronization
+	_instances.append(self)
+	
+	# Initialize ResourceManager reference
+	_initialize_resource_manager()
+	
+	# Connect to global resource update signals (first instance only)
+	_setup_signal_connections()
+	
+	# Setup UI interactions
+	_setup_materials_button()
+	
+	# Perform initial display update
+	call_deferred("_update_this_instance")
+
+func _exit_tree():
+	"""Clean up when leaving the scene tree"""
+	# Remove from instances list
+	_instances.erase(self)
+	
+	# Disconnect signals to prevent errors
+	if GameManager and GameManager.resources_updated.is_connected(_update_all_instances):
+		GameManager.resources_updated.disconnect(_update_all_instances)
+	
+	print("ResourceDisplay: Instance destroyed, %d instances remaining" % _instances.size())
+
+# === INITIALIZATION HELPERS ===
+
+func _initialize_resource_manager():
+	"""Get or create ResourceManager reference"""
 	resource_manager = get_node("/root/ResourceManager") if has_node("/root/ResourceManager") else null
 	
 	if not resource_manager:
@@ -21,200 +67,86 @@ func _ready():
 		resource_manager = preload("res://scripts/systems/ResourceManager.gd").new()
 		resource_manager.name = "ResourceManager"
 		get_tree().root.add_child(resource_manager)
-	
-	# Wait for resource definitions to load, then build UI
-	if resource_manager.resource_definitions.is_empty():
-		resource_manager.resource_definitions_loaded.connect(_build_dynamic_ui)
-	else:
-		_build_dynamic_ui()
-	
-	# Connect to signals
-	if GameManager:
-		GameManager.resources_updated.connect(_update_display)
-	
-	if resource_manager:
-		resource_manager.resources_updated.connect(_update_display)
+		print("ResourceDisplay: Created new ResourceManager instance")
 
-func _build_dynamic_ui():
-	"""Build UI completely dynamically based on ResourceManager configuration"""
-	print("ResourceDisplay: Building dynamic UI...")
-	
-	# Clear existing children (except those we want to keep)
-	_clear_dynamic_elements()
-	
-	# Get currency display configuration from ResourceManager
-	var display_currencies = resource_manager.get_display_currencies()
-	
-	# Create currency labels dynamically
-	for i in range(display_currencies.size()):
-		var currency_data = display_currencies[i]
-		var currency_info = currency_data.info
-		
-		# Create currency label
-		var label = Label.new()
-		label.name = currency_data.id.capitalize() + "Label"
-		label.text = currency_info.get("name", "Unknown") + ": 0"
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		add_child(label)
-		currency_labels.append(label)
-		
-		# Add separator if not the last element
-		if i < display_currencies.size() - 1 or _should_add_extra_elements():
-			var separator = Label.new()
-			separator.name = "Separator" + str(i + 1)
-			separator.text = " | "
-			separator.modulate = Color(0.7, 0.7, 0.7, 1)
-			separator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			separator.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-			add_child(separator)
-			separator_labels.append(separator)
-	
-	# Add additional elements based on configuration
-	_add_extra_ui_elements()
-	
-	print("ResourceDisplay: Dynamic UI built with ", currency_labels.size(), " currency displays")
-	_update_display()
+func _setup_signal_connections():
+	"""Connect to GameManager signals (first instance only to avoid duplicates)"""
+	if _instances.size() == 1:
+		if GameManager and GameManager.has_signal("resources_updated"):
+			GameManager.resources_updated.connect(_update_all_instances)
+			print("ResourceDisplay: Connected to GameManager.resources_updated signal")
+		else:
+			print("ResourceDisplay: Warning - GameManager.resources_updated signal not available")
 
-func _should_add_extra_elements() -> bool:
-	"""Check if we should add energy, tickets, materials button"""
-	return true  # For now, always add them. Later this can be config-driven
+func _setup_materials_button():
+	"""Setup materials button interactions"""
+	if materials_button:
+		materials_button.pressed.connect(_show_materials_table)
+		# Add hover effects for better UX
+		materials_button.mouse_entered.connect(func(): materials_button.modulate = Color(1.2, 1.2, 1.2))
+		materials_button.mouse_exited.connect(func(): materials_button.modulate = Color.WHITE)
 
-func _add_extra_ui_elements():
-	"""Add energy, tickets, materials button dynamically"""
-	# Add energy label
-	energy_label = Label.new()
-	energy_label.name = "EnergyLabel"
-	energy_label.text = "Energy: 80/80"
-	energy_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	energy_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	add_child(energy_label)
-	
-	# Add separator
-	var separator = Label.new()
-	separator.text = " | "
-	separator.modulate = Color(0.7, 0.7, 0.7, 1)
-	separator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	separator.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	add_child(separator)
-	separator_labels.append(separator)
-	
-	# Add tickets label
-	tickets_label = Label.new()
-	tickets_label.name = "TicketsLabel"
-	tickets_label.text = "Tickets: 0"
-	tickets_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tickets_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	add_child(tickets_label)
-	
-	# Add separator
-	separator = Label.new()
-	separator.text = " | "
-	separator.modulate = Color(0.7, 0.7, 0.7, 1)
-	separator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	separator.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	add_child(separator)
-	separator_labels.append(separator)
-	
-	# Add materials button
-	materials_button = Button.new()
-	materials_button.name = "MaterialsButton"
-	materials_button.text = "Materials"
-	materials_button.custom_minimum_size = Vector2(80, 25)
-	add_child(materials_button)
-	
-	# Add materials count label
-	materials_count_label = Label.new()
-	materials_count_label.name = "MaterialsCountLabel"
-	materials_count_label.text = "(0)"
-	materials_count_label.modulate = Color(0.7, 0.7, 0.7, 1)
-	materials_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	materials_count_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	add_child(materials_count_label)
-	
-	# Connect materials button
-	materials_button.pressed.connect(_show_materials_table)
-	materials_button.mouse_entered.connect(func(): materials_button.modulate = Color(1.2, 1.2, 1.2))
-	materials_button.mouse_exited.connect(func(): materials_button.modulate = Color.WHITE)
+# === DISPLAY UPDATE METHODS ===
 
-func _clear_dynamic_elements():
-	"""Clear dynamically created elements"""
-	for label in currency_labels:
-		if label and is_instance_valid(label):
-			label.queue_free()
-	
-	for separator in separator_labels:
-		if separator and is_instance_valid(separator):
-			separator.queue_free()
-	
-	if energy_label and is_instance_valid(energy_label):
-		energy_label.queue_free()
-		energy_label = null
-	
-	if tickets_label and is_instance_valid(tickets_label):
-		tickets_label.queue_free()
-		tickets_label = null
-	
-	if materials_button and is_instance_valid(materials_button):
-		materials_button.queue_free()
-		materials_button = null
-	
-	if materials_count_label and is_instance_valid(materials_count_label):
-		materials_count_label.queue_free()
-		materials_count_label = null
-	
-	currency_labels.clear()
-	separator_labels.clear()
+static func _update_all_instances():
+	"""Update all ResourceDisplay instances when resources change globally"""
+	for instance in _instances:
+		if instance and is_instance_valid(instance):
+			instance._update_this_instance()
 
-func _update_display():
-	"""Update all display elements using ResourceManager data"""
-	if not resource_manager or not GameManager or not GameManager.player_data:
+func _update_this_instance():
+	"""Update this specific instance's display with current resource values"""
+	if not GameManager or not GameManager.player_data:
+		print("ResourceDisplay: Cannot update - GameManager or PlayerData not available")
 		return
 	
-	# Update currency displays dynamically
-	var display_currencies = resource_manager.get_display_currencies()
-	
-	for i in range(min(display_currencies.size(), currency_labels.size())):
-		var currency_data = display_currencies[i]
-		var currency_info = currency_data.info
-		var currency_id = currency_data.id
-		
-		if currency_labels[i] and is_instance_valid(currency_labels[i]):
-			# Get current value from player data using helper function
-			var current_value = _get_player_resource(currency_id)
-			var display_name = currency_info.get("name", currency_id.capitalize())
-			
-			# Format large numbers
-			if current_value > 1000000000:
-				currency_labels[i].text = display_name + ": " + format_large_number(current_value)
-			else:
-				currency_labels[i].text = display_name + ": " + str(current_value)
-	
-	# Update energy (special handling)
-	if energy_label and is_instance_valid(energy_label):
-		_update_energy_display()
-	
-	# Update tickets
-	if tickets_label and is_instance_valid(tickets_label):
+	# Update each resource display according to prompt architecture
+	_update_mana_display()
+	_update_crystals_display()
+	_update_energy_display()
+	_update_tickets_display()
+	_update_materials_count()
+
+func _update_mana_display():
+	"""Update mana display (primary currency per prompt architecture)"""
+	if mana_label:
+		var mana_value = _get_player_resource("mana")
+		mana_label.text = "Mana: " + format_large_number(mana_value)
+
+func _update_crystals_display():
+	"""Update divine crystals display (premium currency)"""
+	if crystal_label:
+		var crystals_value = _get_player_resource("divine_crystals")
+		crystal_label.text = "Crystals: " + str(crystals_value)
+
+func _update_tickets_display():
+	"""Update summon tickets display"""
+	if tickets_label:
 		var tickets_count = _get_player_resource("summon_tickets")
 		tickets_label.text = "Tickets: " + str(tickets_count)
-	
-	# Update materials count
-	if materials_count_label and is_instance_valid(materials_count_label):
+
+func _update_materials_count():
+	"""Update materials count display"""
+	if materials_count_label:
 		var total_count = _get_total_materials_count()
 		materials_count_label.text = "(%d)" % total_count
 
 func _update_energy_display():
-	"""Update energy display with regeneration info"""
+	"""Update energy display with regeneration timer (stamina for battles)"""
+	if not energy_label:
+		return
+		
 	if not GameManager.player_data.has_method("update_energy"):
 		energy_label.text = "Energy: N/A"
+		print("ResourceDisplay: PlayerData missing update_energy method")
 		return
 	
+	# Update energy regeneration and get current status
 	GameManager.player_data.update_energy()
 	var energy_status = GameManager.player_data.get_energy_status()
 	var energy_text = "Energy: %d/%d" % [energy_status.current, energy_status.max]
 	
-	# Add time to full energy if not at max
+	# Add regeneration timer if not at maximum
 	if energy_status.current < energy_status.max:
 		var minutes_to_full = energy_status.minutes_to_full
 		if minutes_to_full < 60:
@@ -225,8 +157,10 @@ func _update_energy_display():
 	
 	energy_label.text = energy_text
 
+# === UTILITY FUNCTIONS ===
+
 func format_large_number(number: int) -> String:
-	"""Format large numbers for display (e.g., 1.5B instead of 1500000000)"""
+	"""Format large numbers with suffixes for better readability (1.5K, 2.3M, 1.1B)"""
 	if number >= 1000000000:
 		return "%.1fB" % (float(number) / 1000000000.0)
 	elif number >= 1000000:
@@ -237,28 +171,32 @@ func format_large_number(number: int) -> String:
 		return str(number)
 
 func _get_total_materials_count() -> int:
-	"""Get total count of all materials using ResourceManager"""
+	"""Calculate total count of all materials in player inventory"""
 	if not resource_manager or not GameManager or not GameManager.player_data:
+		print("ResourceDisplay: Cannot get materials count - missing dependencies")
 		return 0
 	
 	var total = 0
 	var all_materials = resource_manager.get_all_materials()
 	
-	# Count materials that exist in player data
+	# Count all materials that the player currently owns
 	for resource_id in all_materials:
 		var count = _get_player_resource(resource_id)
 		total += count
 	
 	return total
 
+# === MATERIALS TABLE UI ===
+
 func _show_materials_table():
-	"""Show materials in a completely dynamic table driven by ResourceManager"""
+	"""Display comprehensive materials inventory in a popup window"""
 	if not resource_manager:
-		push_error("ResourceManager not available for materials table")
+		push_error("ResourceDisplay: ResourceManager not available for materials table")
 		return
 	
-	print("Materials button clicked - opening dynamic table")
+	print("ResourceDisplay: Opening materials inventory table")
 	
+	# Create popup dialog window
 	var popup = AcceptDialog.new()
 	popup.title = "Materials Inventory"
 	popup.size = Vector2(700, 500)
@@ -317,14 +255,14 @@ func _populate_materials_table(grid: GridContainer):
 		var player_count = _get_player_resource(resource_id)
 		
 		# Only show materials the player actually has (configurable)
-		if player_count > 0 or true:  # Change to false to hide zero-count materials
+		if player_count > 0:
 			sorted_materials.append({
 				"id": resource_id,
 				"info": resource_info,
 				"count": player_count
 			})
 	
-	# Sort by category, then by name
+	# Sort by category then by name
 	sorted_materials.sort_custom(func(a, b):
 		var cat_a = a.info.get("category", "unknown")
 		var cat_b = b.info.get("category", "unknown")
@@ -333,19 +271,18 @@ func _populate_materials_table(grid: GridContainer):
 		return a.info.get("name", a.id) < b.info.get("name", b.id)
 	)
 	
-	# Add sorted materials to table
+	# Add sorted materials to grid
 	for material_data in sorted_materials:
 		_add_material_row(grid, material_data)
 
 func _add_material_row(grid: GridContainer, material_data: Dictionary):
-	"""Add a single material row to the table"""
+	"""Add a material row to the grid"""
 	var resource_info = material_data.info
-	var resource_id = material_data.id
 	var count = material_data.count
 	
-	# Resource name
+	# Name
 	var name_label = Label.new()
-	name_label.text = resource_info.get("name", resource_id.capitalize().replace("_", " "))
+	name_label.text = resource_info.get("name", material_data.id.capitalize().replace("_", " "))
 	grid.add_child(name_label)
 	
 	# Category
@@ -398,47 +335,26 @@ func _create_header_style() -> StyleBoxFlat:
 	style.border_color = Color.WHITE
 	return style
 
-# === Debug Functions ===
+# === RESOURCE DATA ACCESS ===
 
-func debug_print_resources():
-	"""Debug function to print resource information"""
-	if resource_manager:
-		resource_manager.print_all_resources()
-
-# Helper function for robust player data access
 func _get_player_resource(resource_id: String) -> int:
-	"""Safely get resource amount from player data"""
+	"""Get resource amount from PlayerData using the modular resource system (prompt architecture)"""
 	if not GameManager or not GameManager.player_data:
+		print("ResourceDisplay: GameManager or PlayerData not available")
 		return 0
 	
-	# Use Godot's get() method with null check for Resources
-	var value = GameManager.player_data.get(resource_id)
-	if value != null and typeof(value) == TYPE_INT:
-		return value
+	# Use PlayerData.get_resource() as defined in prompt architecture
+	if GameManager.player_data.has_method("get_resource"):
+		return GameManager.player_data.get_resource(resource_id)
 	
-	# Try common aliases for backwards compatibility
-	match resource_id:
-		"skrib", "mana":
-			var essence = GameManager.player_data.get("divine_essence")
-			if essence != null:
-				return essence
-			var mana_val = GameManager.player_data.get("mana")
-			if mana_val != null:
-				return mana_val
-			var skrib_val = GameManager.player_data.get("skrib")
-			if skrib_val != null:
-				return skrib_val
-		"divine_crystals":
-			var crystals = GameManager.player_data.get("premium_crystals")
-			if crystals != null:
-				return crystals
-		"energy":
-			var energy = GameManager.player_data.get("current_energy")
-			if energy != null:
-				return energy
-		"summon_tickets":
-			var tickets = GameManager.player_data.get("summon_tickets")
-			if tickets != null:
-				return tickets
-	
+	print("ResourceDisplay: ERROR - PlayerData missing get_resource method (required by prompt architecture)")
 	return 0
+
+# === DEBUG FUNCTIONS ===
+
+func debug_print_resources():
+	"""Debug helper to print all resource information"""
+	if resource_manager:
+		resource_manager.print_all_resources()
+	else:
+		print("ResourceDisplay: ResourceManager not available for debug")

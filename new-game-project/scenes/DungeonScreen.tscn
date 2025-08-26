@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://cjqw5f0g1w5ky"]
 
-[ext_resource type="Script" path="res://scripts/ui/DungeonScreen.gd" id="1_2n8kj"]
+[ext_resource type="Script" uid="uid://hcpu5ft4eddu" path="res://scripts/ui/DungeonScreen.gd" id="1_2n8kj"]
 [ext_resource type="PackedScene" uid="uid://cbw7xpldky1p7" path="res://scenes/ResourceDisplay.tscn" id="2_resource"]
 
 [node name="DungeonScreen" type="Control"]
@@ -8,6 +8,8 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_2n8kj")
 
 [node name="Background" type="ColorRect" parent="."]
@@ -40,13 +42,10 @@ vertical_alignment = 1
 
 [node name="ResourceDisplay" parent="." instance=ExtResource("2_resource")]
 layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
 offset_left = -466.0
 offset_top = 25.0
+offset_right = 0.0
 offset_bottom = 56.0
-grow_horizontal = 0
 
 [node name="MainContainer" type="HSplitContainer" parent="."]
 layout_mode = 1
@@ -83,9 +82,11 @@ layout_mode = 2
 [node name="CategoryTabs" type="TabContainer" parent="MainContainer/LeftPanel"]
 layout_mode = 2
 size_flags_vertical = 3
+current_tab = 0
 
 [node name="Elemental" type="ScrollContainer" parent="MainContainer/LeftPanel/CategoryTabs"]
 layout_mode = 2
+metadata/_tab_index = 0
 
 [node name="ElementalDungeonList" type="VBoxContainer" parent="MainContainer/LeftPanel/CategoryTabs/Elemental"]
 layout_mode = 2
@@ -94,6 +95,7 @@ size_flags_horizontal = 3
 [node name="Pantheon" type="ScrollContainer" parent="MainContainer/LeftPanel/CategoryTabs"]
 visible = false
 layout_mode = 2
+metadata/_tab_index = 1
 
 [node name="PantheonDungeonList" type="VBoxContainer" parent="MainContainer/LeftPanel/CategoryTabs/Pantheon"]
 layout_mode = 2
@@ -102,6 +104,7 @@ size_flags_horizontal = 3
 [node name="Equipment" type="ScrollContainer" parent="MainContainer/LeftPanel/CategoryTabs"]
 visible = false
 layout_mode = 2
+metadata/_tab_index = 2
 
 [node name="EquipmentDungeonList" type="VBoxContainer" parent="MainContainer/LeftPanel/CategoryTabs/Equipment"]
 layout_mode = 2

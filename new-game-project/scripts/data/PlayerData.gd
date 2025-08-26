@@ -31,7 +31,7 @@ func initialize_default_resources():
 	# Get ResourceManager instance
 	resource_manager = get_resource_manager()
 	if not resource_manager:
-		print("Warning: ResourceManager not available during PlayerData init")
+		print("Warning: ResourceManager not available during PlayerData init - using fallback")
 		create_fallback_resources()
 		return
 	
@@ -41,7 +41,7 @@ func initialize_default_resources():
 		if not resources.has(currency_id):
 			resources[currency_id] = get_default_amount_for_resource(currency_id)
 	
-	# Initialize all premium currencies
+	# Initialize all premium currencies  
 	var premium_currencies = resource_manager.get_resources_by_category("premium_currency")
 	for currency_id in premium_currencies:
 		if not resources.has(currency_id):
@@ -59,7 +59,11 @@ func initialize_default_resources():
 		if not resources.has(material_id):
 			resources[material_id] = get_default_amount_for_resource(material_id)
 	
-	print("PlayerData: Initialized ", resources.size(), " resources")
+	# Ensure energy is properly initialized
+	if not resources.has("energy"):
+		resources["energy"] = get_default_amount_for_resource("energy")
+	
+	print("PlayerData: Initialized ", resources.size(), " resources - Energy: ", resources.get("energy", "NOT_SET"))
 
 func create_fallback_resources():
 	"""Create fallback resources if ResourceManager isn't available"""
@@ -173,8 +177,20 @@ func get_max_storage(resource_id: String) -> int:
 	var rm = get_resource_manager_safe()
 	if rm:
 		var resource_info = rm.get_resource_info(resource_id)
-		return resource_info.get("max_storage", 0)
-	return 0
+		var max_storage = resource_info.get("max_storage", 0)
+		if max_storage > 0:
+			return max_storage
+	
+	# Fallback for known resources without ResourceManager or missing max_storage
+	match resource_id:
+		"energy":
+			return 150  # Match resources.json max_storage value
+		"mana":
+			return 999999  # Effectively unlimited
+		"divine_crystals":
+			return 999999  # Effectively unlimited
+		_:
+			return 0  # No limit
 
 func can_afford_cost(cost: Dictionary) -> bool:
 	"""Check if player can afford a cost dictionary"""
@@ -312,31 +328,36 @@ func update_energy():
 	var energy_to_add = int(minutes_passed * 0.2)
 	
 	if energy_to_add > 0:
-		energy = min(energy + energy_to_add, max_energy)
+		var current_energy = get_resource("energy")
+		var max_energy_val = get_max_storage("energy")
+		var new_energy = min(current_energy + energy_to_add, max_energy_val)
+		resources["energy"] = new_energy
 		last_energy_update = current_time
-		print("Energy regenerated: +", energy_to_add, " (", energy, "/", max_energy, ")")
+		print("Energy regenerated: +", energy_to_add, " (", new_energy, "/", max_energy_val, ")")
 
 func can_afford_energy(cost: int) -> bool:
 	"""Check if player has enough energy"""
 	update_energy()  # Make sure energy is current
-	return energy >= cost
+	return has_resource("energy", cost)
 
 func spend_energy(cost: int) -> bool:
 	"""Spend energy if available"""
 	update_energy()  # Make sure energy is current
 	
-	if energy >= cost:
-		energy -= cost
-		print("Energy spent: -", cost, " (", energy, "/", max_energy, ")")
+	if has_resource("energy", cost):
+		var current_energy = get_resource("energy")
+		var max_energy_val = get_max_storage("energy")
+		resources["energy"] = current_energy - cost
+		print("Energy spent: -", cost, " (", get_resource("energy"), "/", max_energy_val, ")")
 		return true
 	else:
-		print("Not enough energy! Need: ", cost, ", Have: ", energy)
+		print("Not enough energy! Need: ", cost, ", Have: ", get_resource("energy"))
 		return false
 
 func add_energy(amount: int):
 	"""Add energy (from items, crystal refreshes, etc.)"""
-	energy = min(energy + amount, max_energy)
-	print("Energy added: +", amount, " (", energy, "/", max_energy, ")")
+	add_resource("energy", amount)
+	print("Energy added: +", amount, " (", get_resource("energy"), "/", get_max_storage("energy"), ")")
 
 func refresh_energy_with_crystals() -> bool:
 	"""Refresh energy using premium crystals (30 crystals = 90 energy)"""
@@ -344,7 +365,7 @@ func refresh_energy_with_crystals() -> bool:
 	var energy_gained = 90
 	
 	if spend_resource("premium_crystals", crystal_cost):
-		energy = min(energy + energy_gained, max_energy)
+		add_resource("energy", energy_gained)
 		print("Energy refreshed with crystals: +", energy_gained, " energy for ", crystal_cost, " crystals")
 		return true
 	else:
@@ -354,11 +375,13 @@ func refresh_energy_with_crystals() -> bool:
 func get_energy_status() -> Dictionary:
 	"""Get current energy status"""
 	update_energy()
+	var current_energy = get_resource("energy")
+	var max_energy_val = get_max_storage("energy")
 	return {
-		"current": energy,
-		"max": max_energy,
-		"percentage": float(energy) / float(max_energy) * 100.0,
-		"minutes_to_full": (max_energy - energy) * 5,  # 5 minutes per energy
+		"current": current_energy,
+		"max": max_energy_val,
+		"percentage": float(current_energy) / float(max_energy_val) * 100.0,
+		"minutes_to_full": (max_energy_val - current_energy) * 5,  # 5 minutes per energy
 		"can_refresh": get_resource("premium_crystals") >= 30
 	}
 
