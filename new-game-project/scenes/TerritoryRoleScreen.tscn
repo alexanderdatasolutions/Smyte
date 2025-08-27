@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cs3g0yjgdhvn3"]
 
-[ext_resource type="Script" uid="uid://byv4eajpuctd4" path="res://scripts/ui/TerritoryRoleScreen.gd" id="1_xrjlh"]
+[ext_resource type="Script" uid="uid://byv4eajpuctd4" path="res://scripts/ui/screens/TerritoryRoleScreen.gd" id="1_xrjlh"]
 
 [node name="TerritoryRoleScreen" type="Control"]
 layout_mode = 3

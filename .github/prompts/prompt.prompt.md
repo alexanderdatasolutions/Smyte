@@ -1,382 +1,754 @@
 ---
 mode: agent
 ---
-USE THE BELOW BLUEPRINT WHEN REFERRING TO THE CODEBASE AND MAKING ADJUSTMENTS
+# SUMMONERS WAR CLONE - AI CODER REFERENCE DOCUMENT
 
-ultimately i want a modular and robust codebase with good logging and logic and clean simple code. Scalable systems are a must. Im a JR dev so have good comments and make it modular and simple and clean code. organize it for easy readability as well. Use the below as a source of truth, its the god code.
+## STOP - READ THIS FIRST
+You are implementing a Summoners War clone in Godot. The codebase has been audited and has critical architectural problems. You MUST follow this document exactly. Any deviation will break the architecture. 
 
-# MYTHOS ARCHITECTURE REFERENCE
+## CRITICAL RULES - VIOLATING THESE BREAKS EVERYTHING
 
-## CORE GAME FLOW
+### RULE 1: FILE SIZE LIMITS
+- **HARD LIMIT**: No file exceeds 500 lines
+- **TARGET**: 150-200 lines per file
+- If you're at 300+ lines, STOP and split the file
 
-### Battle Flow
-```
-1. INITIATION
-   ResourceManager.check_energy(cost) 
-   → BattleScreen.setup_team()
-   → BattleManager.start_battle(team, enemies)
+### RULE 2: SINGLE RESPONSIBILITY
+- Each class does ONE thing
+- If you write "and" in a class description, STOP and split it
+- WRONG: "BattleAndUIManager" 
+- RIGHT: "BattleManager" + "BattleUIController"
 
-2. TURN LOOP
-   TurnSystem.calculate_order()
-   → Unit gets turn
-   → AI or Player chooses ability
-   → CombatCalculator.execute(ability, target)
-   → BattleEffectProcessor.apply_effects()
-   → Check victory conditions
-
-3. RESOLUTION  
-   LootSystem.award_loot(table_id)
-   → Experience to gods
-   → Resources to player
-   → StatisticsManager.record()
-```
-
-### Resource Flow
-```
-Generation → Collection → Spending
-TerritoryManager.calculate_passive()
-→ PlayerData.add_resource()
-→ UI checks PlayerData.get_resource()
-→ Systems use PlayerData.spend_resource()
-```
-
-### Summoning Flow
-```
-SummonSystem.summon_with_soul(type)
-→ Check cost via PlayerData
-→ Roll rarity from rates
-→ God.create_from_json(id)
-→ PlayerData.add_god()
-→ Signal: god_summoned
-```
-
----
-
-## SYSTEM RESPONSIBILITIES
-
-### GameManager
-**Owns:** PlayerData, System initialization, Save/Load, Timers
-**Signals:** god_summoned, territory_captured, resources_updated
-**Talks to:** All systems for initialization
-
-### BattleManager
-**Owns:** Battle state, Turn flow, Victory conditions
-**Uses:** CombatCalculator, TurnSystem, BattleEffectProcessor, EnemyFactory
-**Signals:** battle_completed(result)
-
-### SummonSystem
-**Owns:** Summon rates, Pity counters, God creation
-**Uses:** PlayerData for costs, God.create_from_json()
-**Signals:** summon_completed(god), multi_summon_completed(gods[])
-
-### LootSystem
-**Owns:** Loot tables, Template resolution, Reward distribution
-**Uses:** PlayerData.add_resource(), ResourceManager definitions
-**Signals:** loot_awarded(results)
-
-### TerritoryManager
-**Owns:** Role assignments, Passive generation, Efficiency calculations
-**Uses:** PlayerData for god lookups
-**Signals:** territory_role_assigned, territory_resources_generated
-
-### AwakeningSystem
-**Owns:** Awakening requirements, Material costs, God transformation
-**Uses:** PlayerData resources, God data
-**Signals:** awakening_completed(god), awakening_failed(god, reason)
-
-### DungeonSystem
-**Owns:** Dungeon progression, Difficulty unlocks, Daily rotation
-**Uses:** BattleManager for combat, LootSystem for rewards
-**Signals:** dungeon_completed, dungeon_failed
-
-### EquipmentManager
-**Owns:** Equipment inventory, Equip/Unequip, Set bonuses, Enhancement
-**Uses:** Equipment.create_from_dungeon()
-**Signals:** equipment_equipped, equipment_unequipped, equipment_enhanced
-
-### ResourceManager
-**Owns:** Resource definitions, Currency display, Element mappings
-**Uses:** Nothing - pure data provider
-**Signals:** resources_updated, resource_definitions_loaded
-
-### DataLoader
-**Owns:** JSON loading, Configuration caching
-**Provides:** get_god_config(), get_territory_config(), get_loot_table()
-
----
-
-### UIManager
-**Owns:** Popup management, Notification system, Tutorial overlays
-**Uses:** Control nodes for UI elements
-**Signals:** popup_shown, popup_closed, tutorial_pointer_shown
-
-### TutorialManager
-**Owns:** Tutorial flow, Step management
-**Uses:** UIManager for displaying tutorial steps
-**Signals:** tutorial_step_completed, tutorial_pointer_shown
-
-### InventoryManager
-**Owns:** Item management, Inventory slots
-**Uses:** PlayerData for item storage
-**Signals:** item_added, item_removed, inventory_updated
-
-### NotificationManager
-**Owns:** Notification display, Toast messages
-**Uses:** UIManager for showing notifications
-**Signals:** notification_shown, notification_closed
-
-### ProgressionManager
-**Owns:** Level progression, Experience tracking
-**Uses:** PlayerData for experience management
-**Signals:** level_up, experience_gained
-
-### StatisticsManager
-**Owns:** Player statistics, Battle logs
-**Uses:** PlayerData for tracking
-**Signals:** statistics_updated
-
-### AchievementManager
-**Owns:** Player achievements, Milestone tracking
-**Uses:** PlayerData for achievement progress
-**Signals:** achievement_unlocked
-
-### QuestManager
-**Owns:** Active quests, Quest tracking
-**Uses:** PlayerData for quest progress
-**Signals:** quest_started, quest_completed
-
-### LeaderboardManager
-**Owns:** Player rankings, Leaderboard data
-**Uses:** PlayerData for ranking calculations
-**Signals:** leaderboard_updated
-
-### PVPManager
-**Owns:** Player vs Player matchmaking, Duel tracking
-**Uses:** PlayerData for participant stats
-**Signals:** pvp_match_started, pvp_match_ended
-
-### BuffManager - Not sure if needed
-**Owns:** Active buffs, Buff application
-**Uses:** PlayerData for buff tracking
-**Signals:** buff_applied, buff_removed
-
-### ResourceManager
-**Owns:** Resource definitions, Currency display, Element mappings
-**Uses:** Nothing - pure data provider
-**Signals:** resources_updated, resource_definitions_loaded
-
-## DATA ENTITIES
-
-### God
+### RULE 3: NO LOGIC IN DATA CLASSES
 ```gdscript
-Properties:
-- id, name, element, tier, level
-- equipped_runes[6] (equipment slots)
-- stationed_territory, current_hp
+# NEVER DO THIS in God.gd:
+func calculate_damage():
+    return attack * multiplier  # NO!
 
-Key Methods:
-- create_from_json(id) → God
-- get_current_attack/defense/hp/speed() (includes equipment)
-- add_experience(amount)
+# ALWAYS DO THIS:
+# God.gd - data only
+var attack: int
+
+# CombatCalculator.gd - logic only  
+static func calculate_damage(god: God):
+    return god.attack * multiplier
 ```
 
-### PlayerData
+### RULE 4: NO UI IN SYSTEMS
 ```gdscript
-Properties:
-- resources{} (all currencies/materials)
-- gods[] (collection)
-- controlled_territories[]
+# NEVER DO THIS in BattleManager:
+func show_victory():
+    var popup = create_popup()  # NO!
 
-Key Methods:
-- get_resource(id) → int
-- add_resource(id, amount)
-- spend_resource(id, amount) → bool
-- add_god(god)
+# ALWAYS DO THIS:
+func end_battle():
+    emit_signal("battle_ended", result)
+    # UI listens to signal
 ```
 
-### Territory
+### RULE 5: USE SYSTEMREGISTRY FOR EVERYTHING
 ```gdscript
-Properties:
-- current_stage, max_stages
-- stationed_gods[], territory_level, minimum_combat_power
-- resource_upgrades, defense_upgrades
+# NEVER DO THIS:
+GameManager.player_data.resources["mana"] -= 100  # NO!
 
-Key Methods:
-- clear_stage(num) → bool
-- get_pending_resources() → Dictionary
+# ALWAYS DO THIS:
+SystemRegistry.get_system(ResourceManager).spend("mana", 100)
 ```
 
-### Equipment
+## THE ARCHITECTURE - MEMORIZE THIS
+
+### Three Layers (NEVER MIX THEM)
+```
+DATA LAYER (scripts/data/)
+- God.gd, Equipment.gd, Quest.gd
+- ONLY properties, NO methods except simple getters
+- Think: Database tables
+
+SYSTEM LAYER (scripts/systems/)  
+- BattleManager, ResourceManager, QuestManager
+- ONLY logic, NO UI creation
+- Think: Business logic
+
+UI LAYER (scripts/ui/)
+- BattleScreen, CollectionScreen, ShopScreen  
+- ONLY display, NO data modification
+- Think: Views/Components
+```
+
+### The Flow Pattern (ALWAYS FOLLOW)
+```
+User Input → UI Screen → System Manager → Data Update → Event Signal → UI Refresh
+```
+
+## CURRENT PROBLEMS YOU'RE FIXING
+-- getting all code scripts to proper layers
+
+## FILE STRUCTURE - USE EXACTLY THIS
+
+```
+project/
+├── scripts/
+│   ├── data/           # Pure data classes
+│   │   ├── God.gd
+│   │   ├── Equipment.gd
+│   │   └── BattleUnit.gd
+│   ├── systems/        # Business logic
+│   │   ├── core/
+│   │   │   ├── SystemRegistry.gd
+│   │   │   └── EventBus.gd
+│   │   ├── battle/
+│   │   │   ├── BattleCoordinator.gd
+│   │   │   └── CombatCalculator.gd
+│   │   └── resources/
+│   │       └── ResourceManager.gd
+│   ├── ui/            # UI screens
+│   │   ├── battle/
+│   │   │   ├── BattleUICoordinator.gd
+│   │   │   └── BattleDisplayManager.gd
+│   │   └── components/
+│   │       └── GodCard.gd
+│   └── utilities/     # Shared utilities
+│       ├── JSONLoader.gd
+│       └── UICardFactory.gd
+```
+
+## CODE PATTERNS - COPY THESE EXACTLY
+
+### Pattern 1: System Access
 ```gdscript
-Properties:
-- type, rarity, level, slot
-- main_stat_type/value
-- substats[], sockets[]
+# ALWAYS access systems through SystemRegistry
+extends Node
 
-Key Methods:
-- create_from_dungeon() → Equipment
-- get_stat_bonuses() → Dictionary
+func _ready():
+    var resource_mgr = SystemRegistry.get_system(ResourceManager)
+    var battle_mgr = SystemRegistry.get_system(BattleCoordinator)
 ```
 
-
----
-
-## RESOURCE TYPES
-
-### Currencies
-- **mana** - Primary currency for upgrades/summons
-- **divine_crystals** - Premium currency  
-- **energy** - Stamina for battles (regenerates)
-
-### Summoning Materials
-- **common_soul**, **rare_soul**, **epic_soul**, **legendary_soul**
-- **{element}_soul** - Element-specific souls
-
-### Awakening Materials
-- **{element}_powder_low/mid/high** - Element-specific
-- **magic_powder_low/mid/high** - Universal
-
-### Equipment Materials
-- **iron_ore**, **mythril_ore**, **adamantite_ore** - Crafting
-- **enhancement_powder** - Enhancement
-- **socket_crystal** - Socket unlocking
-
-
-
----
-
-## LOOT SYSTEM
-
-### Direct Tables
-```
-"stage_victory" → Basic stage rewards
-"boss_stage" → Boss rewards
-"territory_passive_income" → Hourly generation
-```
-
-### Template System
-Templates use placeholders that get substituted:
-```
-"fire_dungeon_beginner" uses template "elemental_dungeon_beginner"
-Substitutes: {element: "fire"}
-
-Pattern: {element}_dungeon_{difficulty}
-Elements: fire, water, earth, lightning, light, dark
-Difficulties: beginner, intermediate, advanced, expert, master
-```
-
-### Loot Flow
-```
-LootSystem.award_loot(table_id, stage_level, element)
-→ Resolve template if needed
-→ Roll guaranteed_drops (100% chance)
-→ Roll rare_drops (chance-based)
-→ Scale by stage level
-→ PlayerData.add_resource() for each
-```
-
----
-
-## COMMUNICATION PATTERNS
-
-### Signal Usage
+### Pattern 2: Event Communication
 ```gdscript
-# Emitter
-signal something_happened(data)
-something_happened.emit(data)
+# Systems emit events, UI listens
+extends Node
 
-# Listener  
-emitter.something_happened.connect(_on_something_happened)
-
-func _on_something_happened(data):
-    # Handle event
+func complete_quest(quest_id: String):
+    # Process quest
+    EventBus.emit_signal("quest_completed", quest_id, rewards)
+    # Never directly update UI
 ```
 
-### Resource Checking
+### Pattern 3: Data Updates
 ```gdscript
-# Check affordability
-if PlayerData.get_resource("mana") >= cost:
-    PlayerData.spend_resource("mana", cost)
-    # Do action
+# Always validate, update, emit
+func spend_resources(cost: Dictionary) -> bool:
+    # 1. Validate
+    if not ResourceManager.can_afford(cost):
+        return false
+    
+    # 2. Update
+    for resource_id in cost:
+        resources[resource_id] -= cost[resource_id]
+    
+    # 3. Emit
+    EventBus.emit_signal("resources_changed", resources)
+    return true
 ```
 
-### God Management
+### Pattern 4: UI Updates
 ```gdscript
-# Get god
-var god = PlayerData.get_god_by_id(id)
+# UI only listens and displays
+extends Control
 
-# Add god
-var new_god = God.create_from_json("zeus")
-PlayerData.add_god(new_god)
+func _ready():
+    EventBus.connect("resources_changed", _on_resources_changed)
+
+func _on_resources_changed(resources: Dictionary):
+    # Only update display, never modify data
+    mana_label.text = str(resources.get("mana", 0))
 ```
 
-### Battle Initiation
+## WHEN SPLITTING FILES
+
+### Splitting BattleScreen.gd:
 ```gdscript
-# Start dungeon
-DungeonSystem.attempt_dungeon(id, difficulty, team)
-→ Creates enemies
-→ Starts BattleManager
-→ Awards loot on completion
+# FROM: BattleScreen.gd (2779 lines doing everything)
 
-# Start territory
-GameManager.start_territory_stage_battle(territory, stage, team)
-→ Similar flow
+# TO: 8 focused files
+BattleUICoordinator.gd     # Orchestrates battle UI (200 lines)
+BattleDisplayManager.gd    # Creates god/enemy displays (300 lines)
+BattleActionUI.gd         # Action buttons and targeting (250 lines)
+BattleTooltipManager.gd   # Tooltip system (200 lines)
+BattleStatusTracker.gd    # HP/status updates (200 lines)
+BattleLogManager.gd       # Battle log display (150 lines)
+BattleVictoryScreen.gd    # Victory and rewards (200 lines)
+BattleControlsUI.gd       # Speed/auto controls (150 lines)
 ```
 
----
-
-## EQUIPMENT SYSTEM
-
-### Slots (6 total)
-1. Weapon - Attack focus
-2. Armor - Defense focus  
-3. Helm - HP/Defense
-4. Boots - Speed (only slot with speed)
-5. Amulet - Crit Rate/Damage
-6. Ring - Resistance/Accuracy
-
-### Set Bonuses
-- 2-piece sets: Small bonuses (Precision +20% Accuracy)
-- 4-piece sets: Major bonuses (Berserker +35% ATK)
-- 6-piece sets: Divine sets with special effects
-
-### Enhancement
-- Levels 0-15
-- Main stat increases each level
-- Substats upgrade at 3, 6, 9, 12, 15
-
----
-
-## QUICK USAGE GUIDE
-
-### Start a Battle
+### Each split file template:
 ```gdscript
-BattleManager.start_battle(team_gods, enemies)
+class_name BattleDisplayManager
+extends Node
+
+# Single responsibility: Create and update battle displays
+
+signal displays_created
+signal display_updated(unit_id: String)
+
+var god_displays: Dictionary = {}
+var enemy_displays: Dictionary = {}
+
+func create_displays(gods: Array, enemies: Array):
+    # Create display logic
+    emit_signal("displays_created")
+
+func update_display(unit_id: String, hp: int):
+    # Update display logic
+    emit_signal("display_updated", unit_id)
 ```
 
-### Award Loot
+## COMMON MISTAKES - DON'T DO THESE
+
+### Mistake 1: Direct Access
 ```gdscript
-LootSystem.award_loot("fire_dungeon_beginner", stage_level)
+# WRONG:
+GameManager.player_data.gods.append(new_god)
+
+# RIGHT:
+SystemRegistry.get_system(CollectionManager).add_god(new_god)
 ```
 
-### Summon a God
+### Mistake 2: UI Creating Data
 ```gdscript
-SummonSystem.summon_with_soul("rare_soul")
+# WRONG:
+class BattleScreen:
+    func _on_summon_pressed():
+        var new_god = God.new()  # UI creating data!
+
+# RIGHT:
+class BattleScreen:
+    func _on_summon_pressed():
+        SystemRegistry.get_system(SummonManager).perform_summon()
 ```
 
-### Assign God to Territory
+### Mistake 3: System Managing UI
 ```gdscript
-TerritoryManager.assign_god_to_territory_role(god, territory, "gatherer")
+# WRONG:
+class BattleManager:
+    func show_damage(amount):
+        var label = Label.new()  # System creating UI!
+
+# RIGHT:
+class BattleManager:
+    func apply_damage(amount):
+        EventBus.emit_signal("damage_dealt", amount)
 ```
 
-### Check Resource
+## EQUIPMENT SYSTEM (NOT RUNES)
+- 6 slots for equipment
+- Sets provide bonuses
+- Main stat + substats
+- Use Equipment.gd, not Rune.gd
+
+## SKILL SYSTEM
+- Each god has 2-4 skills
+- Each skill upgrades to level 10
+- Upgrades increase damage/effect/reduce cooldown
+- Use SkillUpgradeManager.gd
+
+## CRITICAL SYSTEMS LIST
+These 85 systems must exist. Create them as needed:
+
+Core Systems (10)
+
+GameCoordinator - Main game flow (100 lines)
+SystemRegistry - Service locator (50 lines)
+EventBus - Global events (100 lines)
+SaveManager - Save/load (200 lines)
+ConfigurationManager - JSON loading (150 lines)
+NetworkService - Server communication (200 lines)
+AnalyticsService - Metrics tracking (100 lines)
+ValidationService - Anti-cheat (150 lines)
+SceneManager - Scene transitions (100 lines)
+AudioManager - Sound/music (150 lines)
+
+Battle Systems (12)
+
+BattleCoordinator - Battle orchestration (200 lines)
+TurnOrderManager - Turn calculation (150 lines)
+BattleActionProcessor - Action execution (200 lines)
+SkillCooldownManager - Cooldown tracking (100 lines)
+StatusEffectManager - Effect processing (150 lines)
+WaveManager - Multi-wave battles (150 lines)
+BattleValidator - Battle verification (100 lines)
+CombatCalculator - Damage math (200 lines)
+BattleAI - Enemy AI (200 lines)
+BattleEffectProcessor - Effect application (150 lines)
+BattleFactory - Battle configuration (100 lines)
+EnemyFactory - Enemy creation (200 lines)
+
+Resource Systems (8)
+
+ResourceManager - Resource tracking (200 lines)
+EnergyManager - Energy regeneration (100 lines)
+CurrencyManager - Premium currency (100 lines)
+PassiveIncomeManager - Territory income (150 lines)
+LootSystem - Loot generation (200 lines)
+InventoryManager - Materials/consumables (150 lines)
+EquipmentManager - Equipment system (200 lines)
+ResourceCalculator - Resource math (100 lines)
+
+Collection Systems (6)
+
+CollectionManager - God/equipment collections (150 lines)
+SummonManager - Summoning with pity (200 lines)
+SacrificeManager - God sacrifice (150 lines)
+AwakeningManager - God awakening (150 lines)
+SkillUpgradeManager - Skill upgrades (150 lines)
+GodProgressionManager - God leveling (150 lines)
+
+Progression Systems (8)
+
+PlayerProgressionManager - Player leveling (150 lines)
+AchievementManager - Achievement tracking (200 lines)
+QuestManager - Daily/weekly quests (200 lines)
+BattlePassManager - Season pass (200 lines)
+EventManager - Limited events (150 lines)
+TutorialOrchestrator - Tutorial flow (200 lines)
+FeatureUnlockManager - Progressive unlocks (150 lines)
+MilestoneManager - Milestone rewards (100 lines)
+
+PvP Systems (8)
+
+ArenaManager - 1v1 PvP arena (200 lines)
+TerritoryWarManager - Territory PvP (250 lines)
+GuildWarManager - Guild battles (200 lines)
+MatchmakingManager - Opponent matching (150 lines)
+LeaderboardManager - Rankings (150 lines)
+ReplayManager - Battle replays (150 lines)
+DefenseManager - Defense teams (100 lines)
+PvPRewardManager - PvP rewards (100 lines)
+
+Social Systems (6)
+
+GuildManager - Guild functionality (200 lines)
+FriendManager - Friend system (150 lines)
+ChatManager - Chat system (200 lines)
+GiftManager - Daily gifts (100 lines)
+SocialPointManager - Social currency (100 lines)
+ProfileManager - Player profiles (100 lines)
+
+Territory Systems (6)
+
+TerritoryManager - Territory control (200 lines)
+TerritoryProductionManager - Resource generation (150 lines)
+TerritoryDefenseManager - Defense assignments (150 lines)
+TerritoryRoleManager - Role assignments (150 lines)
+SiegeManager - Siege mechanics (200 lines)
+TerritoryCalculator - Territory math (100 lines)
+
+Shop Systems (5)
+
+ShopManager - In-game shop (150 lines)
+SpecialOfferManager - Limited offers (150 lines)
+PackManager - Bundle purchases (100 lines)
+PurchaseValidator - Purchase verification (100 lines)
+ShopRotationManager - Daily rotations (100 lines)
+
+Dungeon Systems (4)
+
+DungeonManager - Dungeon battles (200 lines)
+RaidManager - Raid bosses (200 lines)
+WorldBossManager - World boss events (150 lines)
+DungeonRotationManager - Daily dungeons (100 lines)
+
+UI Systems (12)
+
+UICoordinator - UI orchestration (150 lines)
+ScreenManager - Screen navigation (150 lines)
+PopupManager - Popup dialogs (150 lines)
+TooltipManager - Tooltip system (150 lines)
+NotificationManager - Notifications (100 lines)
+LoadingManager - Loading screens (100 lines)
+TransitionManager - Screen transitions (100 lines)
+UIEffectManager - UI animations (150 lines)
+UIThemeManager - Theming/styling (100 lines)
+UIPoolManager - UI object pooling (150 lines)
+HUDManager - Persistent HUD (150 lines)
+TutorialUIManager - Tutorial overlays (150 lines)
+
+## PRIORITY ORDER
+1. Fix god classes first (BattleScreen, GameManager)
+2. Extract utilities (JSONLoader, UICardFactory)
+3. Implement missing systems (SkillUpgradeManager, ArenaManager)
+4. Add PvP systems
+5. Polish and optimize
+
+## TESTING REQUIREMENT
+Every system must be testable:
 ```gdscript
-var has_enough = PlayerData.get_resource("mana") >= 1000
+func test_resource_spending():
+    var mgr = ResourceManager.new()
+    mgr.add_resource("mana", 100)
+    assert(mgr.spend("mana", 50) == true)
+    assert(mgr.get_resource("mana") == 50)
 ```
 
-### Save Game
+## IF YOU'RE UNSURE
+1. Check if file is over 300 lines → Split it
+2. Check if class has "and" in purpose → Split it
+3. Check if mixing layers → Separate them
+4. Check if using SystemRegistry → Always use it
+5. Check if emitting events → Always emit after changes
+
+**REMEMBER**: The current code is badly architected. You're fixing it. Don't copy existing patterns - follow THIS document.
+
+
+# SUMMONERS WAR CLONE - CORE GAMEPLAY LOOP SPECIFICATION
+
+## CORE LOOP OVERVIEW
+The game revolves around conquering territories to generate passive resources, which fund summoning gods, who then conquer more territories. This creates an infinite progression loop.
+
+## TERRITORY SYSTEM - THE HEART OF THE GAME
+
+### Territory Basics
 ```gdscript
-GameManager.save_game()
+# 13 Territories with progressive difficulty
+Territories = {
+    # Tier 1 (Starter)
+    "sacred_grove": {tier: 1, element: "earth", stages: 10},
+    "crystal_springs": {tier: 1, element: "water", stages: 10},
+    "ember_hills": {tier: 1, element: "fire", stages: 10},
+    "storm_peaks": {tier: 1, element: "lightning", stages: 10},
+    
+    # Tier 2 (Mid-game)
+    "ancient_ruins": {tier: 2, element: "neutral", stages: 10},
+    "shadow_realm": {tier: 2, element: "dark", stages: 10},
+    "elemental_nexus": {tier: 2, element: "multi", stages: 10},
+    "divine_sanctum": {tier: 2, element: "light", stages: 10},
+    "frozen_wastes": {tier: 2, element: "water", stages: 10},
+    
+    # Tier 3 (End-game)
+    "primordial_chaos": {tier: 3, element: "dark", stages: 10},
+    "celestial_throne": {tier: 3, element: "light", stages: 10},
+    "volcanic_core": {tier: 3, element: "fire", stages: 10},
+    "world_tree": {tier: 3, element: "earth", stages: 10}
+}
 ```
 
-This architecture represents how systems connect and communicate. Each system has clear ownership and uses signals for loose coupling. Data flows through defined paths and all systems respect these boundaries.
+### Territory Conquest Flow
+1. **Stage Battles**: Each territory has 10 stages
+2. **Progressive Difficulty**: Each stage harder than last
+3. **Stage 10 = Boss**: Defeating stage 10 captures territory
+4. **Permanent Control**: Once captured, generates resources forever
+
+### Territory Stage Requirements
+```gdscript
+func get_stage_power_requirement(territory: Territory, stage: int) -> int:
+    var base = territory.tier * 1000  # Tier 1=1000, Tier 2=2000, Tier 3=3000
+    var stage_multiplier = 1.0 + (stage * 0.2)  # +20% per stage
+    return int(base * stage_multiplier)
+    
+# Examples:
+# Tier 1, Stage 1: 1000 power
+# Tier 1, Stage 5: 2000 power
+# Tier 1, Stage 10: 3000 power (boss)
+# Tier 3, Stage 10: 9000 power (endgame boss)
+```
+
+## RESOURCE GENERATION SYSTEM
+
+### Base Production Rates
+```gdscript
+# Per hour, per territory controlled
+TerritoryProduction = {
+    tier_1: {
+        mana_per_hour: 1000,
+        crystals_per_day: 5,
+        materials_per_day: {"low": 10}
+    },
+    tier_2: {
+        mana_per_hour: 2500,
+        crystals_per_day: 10,
+        materials_per_day: {"low": 20, "mid": 10}
+    },
+    tier_3: {
+        mana_per_hour: 5000,
+        crystals_per_day: 20,
+        materials_per_day: {"mid": 20, "high": 10}
+    }
+}
+```
+
+### GOD ROLE SYSTEM - CRITICAL MECHANIC
+
+Each captured territory has slots for gods to boost production:
+
+```gdscript
+# Territory Slots by Tier
+SlotConfiguration = {
+    tier_1: {
+        defender_slots: 1,    # Defense power
+        gatherer_slots: 2,    # Resource boost
+        crafter_slots: 0      # Material conversion
+    },
+    tier_2: {
+        defender_slots: 2,
+        gatherer_slots: 2,
+        crafter_slots: 1
+    },
+    tier_3: {
+        defender_slots: 3,
+        gatherer_slots: 3,
+        crafter_slots: 2
+    }
+}
+```
+
+### Role Bonuses
+```gdscript
+# GATHERER: Boosts resource production
+func calculate_gatherer_bonus(god: God, territory: Territory) -> float:
+    var base_bonus = 0.1  # 10% base
+    var tier_bonus = god.tier * 0.05  # +5% per tier
+    var element_match = god.element == territory.element ? 0.1 : 0
+    return base_bonus + tier_bonus + element_match
+    
+# Example: Legendary fire god on fire territory = 30% bonus
+
+# DEFENDER: Increases territory defense
+func calculate_defender_bonus(god: God) -> int:
+    return god.get_power_rating() * 1.5
+    
+# CRAFTER: Converts low materials to high
+func calculate_crafter_output(god: God) -> Dictionary:
+    var conversions_per_hour = 1 + (god.tier * 0.5)
+    return {"mid_from_low": conversions_per_hour * 5}
+```
+
+### Total Resource Calculation
+```gdscript
+func calculate_territory_income(territory: Territory) -> Dictionary:
+    var base = get_base_production(territory.tier)
+    var total_income = base.duplicate()
+    
+    # Apply gatherer bonuses
+    for god in territory.gatherers:
+        var bonus = calculate_gatherer_bonus(god, territory)
+        total_income.mana_per_hour *= (1 + bonus)
+    
+    # Apply crafter conversions
+    for god in territory.crafters:
+        var conversions = calculate_crafter_output(god)
+        # Add conversion logic
+    
+    return total_income
+```
+
+## PROGRESSION GATES
+
+### Territory Unlock Requirements
+```gdscript
+# Player level requirements
+TerritoryUnlocks = {
+    "sacred_grove": 1,      # Starter
+    "crystal_springs": 1,    # Starter
+    "ember_hills": 1,        # Starter
+    "storm_peaks": 1,        # Starter
+    "ancient_ruins": 10,     # Mid-game
+    "shadow_realm": 15,
+    "elemental_nexus": 20,
+    "divine_sanctum": 25,
+    "frozen_wastes": 30,
+    "primordial_chaos": 40,  # End-game
+    "celestial_throne": 45,
+    "volcanic_core": 50,
+    "world_tree": 55
+}
+
+# Stage clear requirements for next territory
+NextTerritoryRequirements = {
+    tier_2_unlock: "Clear 3 tier 1 territories",
+    tier_3_unlock: "Clear 3 tier 2 territories"
+}
+```
+
+## BATTLE REWARDS PER STAGE
+
+```gdscript
+func get_stage_rewards(territory: Territory, stage: int) -> Dictionary:
+    var base_xp = 100 * territory.tier * stage
+    var base_mana = 500 * territory.tier * stage
+    
+    var rewards = {
+        "player_xp": base_xp,
+        "god_xp": base_xp / 2,  # Split among team
+        "mana": base_mana
+    }
+    
+    # Boss stage (10) gives bonus
+    if stage == 10:
+        rewards["crystals"] = 10 * territory.tier
+        rewards["summon_scroll"] = 1 if randf() < 0.3 else 0
+    
+    return rewards
+```
+
+## AUTO-COLLECTION SYSTEM
+
+```gdscript
+# Resources generate continuously
+func _process(delta):
+    time_since_collection += delta
+    
+    # Auto-collect every hour
+    if time_since_collection >= 3600:
+        for territory in controlled_territories:
+            var income = calculate_territory_income(territory)
+            ResourceManager.add_bulk(income)
+        time_since_collection = 0
+
+# Manual collection bonus
+func collect_territory_resources(territory: Territory):
+    var hours_passed = (Time.get_ticks_msec() - territory.last_collection) / 3600000.0
+    var income = calculate_territory_income(territory)
+    
+    # Bonus for active play
+    if hours_passed < 2:
+        income.mana_per_hour *= 1.1  # 10% bonus for frequent collection
+    
+    ResourceManager.add_bulk(income * hours_passed)
+    territory.last_collection = Time.get_ticks_msec()
+```
+
+## ELEMENT ADVANTAGE IN TERRITORIES
+
+```gdscript
+# Element matching provides significant bonuses
+ElementBonus = {
+    same_element: 1.3,      # 30% bonus
+    advantage: 1.15,        # 15% bonus
+    neutral: 1.0,
+    disadvantage: 0.85     # 15% penalty
+}
+
+# Fire > Earth > Lightning > Water > Fire
+# Light <> Dark (mutual advantage)
+```
+
+## EARLY GAME PROGRESSION PATH
+
+### Tutorial Flow
+1. **Start**: 3 starter gods (Ares, Athena, Poseidon)
+2. **Stage 1-1**: Beat Sacred Grove stage 1
+3. **Unlock**: Collection screen
+4. **Stage 1-2**: Beat Sacred Grove stage 2
+5. **Unlock**: Summoning
+6. **Stage 1-3**: Beat Sacred Grove stage 3
+7. **Unlock**: God sacrifice for XP
+8. **Stage 1-5**: Beat Sacred Grove stage 5
+9. **Unlock**: Territory role assignment
+10. **Stage 1-10**: Capture first territory
+11. **Unlock**: Passive income begins
+
+### First Hour Goals
+- Capture 1-2 territories
+- Summon 5-10 gods
+- Assign gods to territory roles
+- Reach player level 5
+
+### First Day Goals
+- Capture all tier 1 territories
+- Build team of 20+ gods
+- Optimize role assignments
+- Begin tier 2 territory assault
+
+## MID-GAME LOOP
+
+### Daily Activities
+```gdscript
+DailyTasks = {
+    collect_all_territories: {"reward": "mana", "frequency": "every_2_hours"},
+    complete_daily_quests: {"reward": "crystals", "frequency": "once"},
+    attempt_new_stages: {"reward": "progression", "frequency": "energy_limited"},
+    optimize_god_roles: {"reward": "efficiency", "frequency": "after_summons"},
+    participate_in_arena: {"reward": "glory_points", "frequency": "10_daily"}
+}
+```
+
+### Resource Priorities
+1. **Mana**: Summon gods, upgrade skills
+2. **Crystals**: Premium summons, energy refills
+3. **Materials**: Awaken gods, craft equipment
+4. **Energy**: Attempt territory stages
+
+## END-GAME SYSTEMS
+
+### Territory Defense (PvP)
+```gdscript
+# Other players can attack your territories
+func defend_territory(territory: Territory):
+    var defense_power = 0
+    for god in territory.defenders:
+        defense_power += calculate_defender_bonus(god)
+    
+    # Successful defense maintains control
+    # Failed defense loses 10% production for 24 hours
+```
+
+### Territory Upgrades
+```gdscript
+TerritoryUpgrades = {
+    production_boost: {
+        levels: 10,
+        cost_per_level: "1000 * level * territory.tier",
+        effect: "+5% production per level"
+    },
+    defense_fortification: {
+        levels: 10,
+        cost_per_level: "2000 * level * territory.tier",
+        effect: "+10% defense per level"
+    },
+    slot_expansion: {
+        levels: 5,
+        cost_per_level: "5000 * level * territory.tier",
+        effect: "+1 slot every 2 levels"
+    }
+}
+```
+
+## BALANCING CONSTANTS
+
+```gdscript
+# Core economy balance
+const MANA_SINK_RATE = 10000  # Mana per summon
+const CRYSTAL_VALUE = 100     # 100 crystals = 1 premium summon
+const ENERGY_REGEN = 12        # 12 minutes per energy
+const STAGE_ENERGY_COST = 5    # Per territory stage attempt
+
+# Production multipliers
+const GATHERER_EFFICIENCY = {
+    "common": 1.1,
+    "rare": 1.2,
+    "epic": 1.35,
+    "legendary": 1.5
+}
+
+# Combat scaling
+const POWER_PER_LEVEL = 50
+const POWER_PER_TIER = 500
+const ELEMENT_ADVANTAGE = 1.15
+```
+
+## CRITICAL IMPLEMENTATION NOTES
+
+1. **Territories ARE the game** - Everything else supports territory control
+2. **God roles CREATE strategy** - Optimize gatherer/defender/crafter balance
+3. **Element matching MATTERS** - 30% bonus is huge
+4. **Passive income ENABLES progress** - Even offline players progress
+5. **Stage battles GATE progression** - Power requirements force summoning
+
+## MISSING SYSTEMS TO IMPLEMENT
+
+3. **PassiveIncomeCalculator** - Resource generation math
+4. **TerritoryUpgradeManager** - Territory improvements
+5. **ElementAdvantageCalculator** - Element bonus calculations
+
+This IS your game. Without this territory loop, it's just a generic gacha. The territories create the "why" for summoning gods.

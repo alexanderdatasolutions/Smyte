@@ -11,13 +11,14 @@ config_version=5
 [application]
 
 config/name="Gods RPG MVP"
-run/main_scene="res://scenes/LoadingScreen.tscn"
+run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.4", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
 
-GameManager="*res://scripts/systems/GameManager.gd"
+GameCoordinator="*res://scripts/systems/core/GameCoordinator.gd"
+EventBus="*res://scripts/systems/core/EventBus.gd"
 
 [display]
 

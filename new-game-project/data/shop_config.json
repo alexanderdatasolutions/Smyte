@@ -1,0 +1,66 @@
+{
+  "shop_config": {
+    "daily_shop": {
+      "refresh_cost": {
+        "crystals": 10
+      },
+      "free_refreshes": 3,
+      "items": [
+        {
+          "id": "mystical_scroll",
+          "name": "Mystical Scroll",
+          "cost": {
+            "crystals": 75
+          },
+          "daily_limit": 5,
+          "weight": 30
+        },
+        {
+          "id": "energy_refill",
+          "name": "Energy Refill (50)",
+          "cost": {
+            "crystals": 30
+          },
+          "daily_limit": 10,
+          "weight": 50
+        },
+        {
+          "id": "gold_pack",
+          "name": "Gold Pack (10k)",
+          "cost": {
+            "crystals": 20
+          },
+          "daily_limit": 3,
+          "weight": 40
+        }
+      ]
+    },
+    "guild_shop": {
+      "currency": "guild_points",
+      "items": [
+        {
+          "id": "legendary_scroll",
+          "name": "Legendary Scroll",
+          "cost": {
+            "guild_points": 500
+          },
+          "weekly_limit": 1
+        }
+      ]
+    }
+  },
+  "special_offers": [
+    {
+      "id": "starter_pack",
+      "name": "Starter Pack",
+      "description": "Great value for new players",
+      "real_money_cost": 4.99,
+      "available_until_level": 10,
+      "contents": {
+        "crystals": 500,
+        "mystical_scrolls": 5,
+        "energy": 200
+      }
+    }
+  ]
+}

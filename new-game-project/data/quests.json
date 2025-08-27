@@ -1,0 +1,61 @@
+{
+  "quests": [
+    {
+      "id": "daily_summon",
+      "type": "daily",
+      "name": "Daily Summoning",
+      "description": "Perform 3 summons today",
+      "objectives": [
+        {
+          "type": "summon",
+          "target_count": 3
+        }
+      ],
+      "rewards": {
+        "gold": 1000,
+        "experience": 100,
+        "summon_scrolls": 1
+      }
+    },
+    {
+      "id": "daily_battles",
+      "type": "daily",
+      "name": "Daily Battles",
+      "description": "Win 5 battles in any mode",
+      "objectives": [
+        {
+          "type": "battle_victory",
+          "target_count": 5
+        }
+      ],
+      "rewards": {
+        "gold": 1500,
+        "experience": 150,
+        "energy": 50
+      }
+    },
+    {
+      "id": "weekly_territory",
+      "type": "weekly",
+      "name": "Territory Conqueror",
+      "description": "Clear 3 different territories",
+      "objectives": [
+        {
+          "type": "territory_clear",
+          "target_count": 3
+        }
+      ],
+      "rewards": {
+        "gold": 5000,
+        "crystals": 100,
+        "epic_equipment": 1
+      }
+    }
+  ],
+  "quest_config": {
+    "daily_reset_hour": 0,
+    "weekly_reset_day": "monday",
+    "max_active_daily": 5,
+    "max_active_weekly": 3
+  }
+}

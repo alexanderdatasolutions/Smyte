@@ -1,0 +1,51 @@
+{
+  "arena_config": {
+    "seasons": [
+      {
+        "id": "season_1",
+        "name": "Challenger Season",
+        "duration_days": 30,
+        "reward_tiers": [
+          {
+            "rank_range": [1, 100],
+            "rewards": {
+              "arena_tokens": 500,
+              "crystals": 300,
+              "equipment": ["legendary_weapon"]
+            }
+          },
+          {
+            "rank_range": [101, 500],
+            "rewards": {
+              "arena_tokens": 300,
+              "crystals": 200,
+              "equipment": ["epic_armor"]
+            }
+          }
+        ]
+      }
+    ],
+    "matchmaking": {
+      "rank_difference_threshold": 200,
+      "win_streak_bonus": 50,
+      "lose_streak_protection": true,
+      "placement_matches": 10
+    }
+  },
+  "pvp_rewards": {
+    "daily_victory": {
+      "arena_tokens": 50,
+      "experience": 100
+    },
+    "weekly_rewards": {
+      "tier_1": {
+        "arena_tokens": 200,
+        "crystals": 100
+      },
+      "tier_2": {
+        "arena_tokens": 400,
+        "crystals": 200
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://cjqw5f0g1w5ky"]
 
-[ext_resource type="Script" uid="uid://hcpu5ft4eddu" path="res://scripts/ui/DungeonScreen.gd" id="1_2n8kj"]
+[ext_resource type="Script" uid="uid://hcpu5ft4eddu" path="res://scripts/ui/screens/DungeonScreen.gd" id="1_2n8kj"]
 [ext_resource type="PackedScene" uid="uid://cbw7xpldky1p7" path="res://scenes/ResourceDisplay.tscn" id="2_resource"]
 
 [node name="DungeonScreen" type="Control"]

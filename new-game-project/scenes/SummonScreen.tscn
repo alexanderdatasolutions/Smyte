@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c7bmxesdp6kfa"]
 
-[ext_resource type="Script" uid="uid://c04jprppny8y6" path="res://scripts/ui/SummonScreen.gd" id="1_summon"]
+[ext_resource type="Script" uid="uid://c04jprppny8y6" path="res://scripts/ui/screens/SummonScreen.gd" id="1_summon"]
 
 [node name="SummonScreen" type="Control"]
 layout_mode = 3

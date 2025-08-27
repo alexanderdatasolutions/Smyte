@@ -22,10 +22,10 @@ enum Rarity { COMMON, RARE, EPIC, LEGENDARY, MYTHIC }
 @export var main_stat_base: int = 0
 
 # Substats (up to 4)
-@export var substats: Array[Dictionary] = []
+@export var substats: Array = []  # Array[Dictionary]
 
 # Sockets and gems
-@export var sockets: Array[Dictionary] = []  # Socket types and gems
+@export var sockets: Array = []  # Array[Dictionary] - Socket types and gems
 @export var max_sockets: int = 0
 
 # Equipment origin/lore
@@ -39,7 +39,7 @@ var enhancement_level: int:
 	set(value):
 		level = value
 
-var socket_slots: Array[Dictionary]:
+var socket_slots: Array:  # Array[Dictionary]
 	get:
 		return sockets
 	set(value):
@@ -389,8 +389,8 @@ static func _get_max_sockets_for_rarity(rarity_str: String) -> int:
 	var max_socket_config = socket_config.get("max_sockets", {})
 	return max_socket_config.get(rarity_str, 0)
 
-static func _generate_sockets(socket_count: int) -> Array[Dictionary]:
-	var socket_list: Array[Dictionary] = []
+static func _generate_sockets(socket_count: int) -> Array:  # Array[Dictionary]
+	var socket_list: Array = []  # Array[Dictionary]
 	var socket_types = ["red", "blue", "yellow", "green"]
 	
 	for i in range(socket_count):

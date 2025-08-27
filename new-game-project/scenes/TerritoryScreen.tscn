@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://58w18k2qjipa"]
 
-[ext_resource type="Script" uid="uid://bebu6xd7awcxs" path="res://scripts/ui/TerritoryScreen.gd" id="1_territory"]
+[ext_resource type="Script" uid="uid://bebu6xd7awcxs" path="res://scripts/ui/screens/TerritoryScreen.gd" id="1_territory"]
 
 [node name="TerritoryScreen" type="Control"]
 layout_mode = 3

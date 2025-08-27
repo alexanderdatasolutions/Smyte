@@ -1,15 +1,19 @@
-[gd_scene load_steps=4 format=3 uid="uid://drf52wgxcijaa"]
+[gd_scene load_steps=5 format=3 uid="uid://drf52wgxcijaa"]
 
-[ext_resource type="PackedScene" uid="uid://b6wj4kunigp3v" path="res://scenes/WorldView.tscn" id="1_worldview"]
-[ext_resource type="PackedScene" path="res://scenes/DebugOverlay.tscn" id="2_debug"]
-[ext_resource type="PackedScene" uid="uid://do86vtymrnow4" path="res://scenes/MainUIOverlay.tscn" id="3_main_ui_overlay"]
+[ext_resource type="Script" uid="uid://ca4wfrqq4w42f" path="res://scripts/Main.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://b6wj4kunigp3v" path="res://scenes/WorldView.tscn" id="2_worldview"]
+[ext_resource type="PackedScene" path="res://scenes/DebugOverlay.tscn" id="3_debug"]
+[ext_resource type="PackedScene" uid="uid://do86vtymrnow4" path="res://scenes/MainUIOverlay.tscn" id="4_main_ui_overlay"]
 
 [node name="Main" type="Node2D"]
+script = ExtResource("1_main")
 
-[node name="WorldView" parent="." instance=ExtResource("1_worldview")]
+[node name="WorldView" parent="." instance=ExtResource("2_worldview")]
 
-[node name="MainUIOverlay" parent="." instance=ExtResource("3_main_ui_overlay")]
+[node name="MainUIOverlay" parent="." instance=ExtResource("4_main_ui_overlay")]
+script = null
 
-[node name="DebugOverlay" parent="." instance=ExtResource("2_debug")]
+[node name="DebugOverlay" parent="." instance=ExtResource("3_debug")]
 grow_horizontal = 2
 grow_vertical = 2
+script = null

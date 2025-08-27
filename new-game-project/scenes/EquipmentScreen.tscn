@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://btcxk8wah2qrf"]
 
-[ext_resource type="Script" uid="uid://c732s55dmrj80" path="res://scripts/ui/EquipmentScreen.gd" id="1_h8q3j"]
+[ext_resource type="Script" uid="uid://c732s55dmrj80" path="res://scripts/ui/screens/EquipmentScreen.gd" id="1_h8q3j"]
 [ext_resource type="PackedScene" uid="uid://cbw7xpldky1p7" path="res://scenes/ResourceDisplay.tscn" id="2_sj7ji"]
 
 [node name="EquipmentScreen" type="Control"]

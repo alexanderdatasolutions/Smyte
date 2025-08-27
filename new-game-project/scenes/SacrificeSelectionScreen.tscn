@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c87a12riv1vib"]
 
-[ext_resource type="Script" uid="uid://dmb0tnf6m8jyq" path="res://scripts/ui/SacrificeSelectionScreen.gd" id="1_vqglr"]
+[ext_resource type="Script" uid="uid://dmb0tnf6m8jyq" path="res://scripts/ui/screens/SacrificeSelectionScreen.gd" id="1_vqglr"]
 
 [node name="SacrificeSelectionScreen" type="Control"]
 layout_mode = 3

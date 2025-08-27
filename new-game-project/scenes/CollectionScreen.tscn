@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bwojti5lt3fec"]
 
-[ext_resource type="Script" uid="uid://b4h7kip8xohgv" path="res://scripts/ui/CollectionScreen.gd" id="1_collection"]
+[ext_resource type="Script" uid="uid://b4h7kip8xohgv" path="res://scripts/ui/screens/CollectionScreen.gd" id="1_collection"]
 
 [node name="CollectionScreen" type="Control"]
 layout_mode = 3
