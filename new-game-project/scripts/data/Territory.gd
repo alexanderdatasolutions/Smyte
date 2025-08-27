@@ -188,8 +188,17 @@ func upgrade_zone_amplification() -> bool:
 		return true
 	return false
 
-# Resource collection functions
+# Resource collection functions - UPDATED TO USE MODULAR TERRITORYMANAGER
 func get_pending_resources() -> Dictionary:
+	"""Get pending resources using modular TerritoryManager through GameManager"""
+	if GameManager and GameManager.has_method("get_territory_pending_resources"):
+		return GameManager.get_territory_pending_resources(self)
+	
+	# Fallback to old method if GameManager integration not available
+	return _get_pending_resources_fallback()
+
+func _get_pending_resources_fallback() -> Dictionary:
+	"""Fallback method for pending resources calculation"""
 	var current_time = Time.get_unix_time_from_system()
 	var time_diff = current_time - last_resource_generation
 	var hours_passed = time_diff / 3600.0
@@ -221,6 +230,11 @@ func get_resource_upgrade_multiplier() -> float:
 	return resource_upgrades * 0.08
 
 func collect_resources() -> Dictionary:
+	"""Collect resources using modular TerritoryManager through GameManager"""
+	if GameManager and GameManager.has_method("collect_territory_resources"):
+		return GameManager.collect_territory_resources(self)
+	
+	# Fallback to old method if GameManager integration not available
 	var resources = get_pending_resources()
 	last_resource_generation = Time.get_unix_time_from_system()
 	return resources
@@ -283,14 +297,23 @@ func capture_by_neutral():
 	is_unlocked = false
 	clear_stationed_gods()
 
-func clear_stage(stage_number: int):
-	# Player clears a specific stage
+func clear_stage(stage_number: int) -> bool:
+	"""Player clears a specific stage - returns true if territory is fully completed"""
+	print("Territory %s: Attempting to clear stage %d (current: %d, max: %d)" % [name, stage_number, current_stage, max_stages])
+	
 	if stage_number > current_stage:
 		current_stage = stage_number
+		print("Territory %s: Stage %d cleared! Progress: %d/%d" % [name, stage_number, current_stage, max_stages])
+		
+		# Check if territory is fully completed
 		if current_stage >= max_stages:
 			is_unlocked = true
 			capture_by_player()
-			return true  # Territory unlocked
+			print("Territory %s: FULLY COMPLETED!" % name)
+			return true  # Territory fully unlocked
+	else:
+		print("Territory %s: Stage %d already cleared (current: %d)" % [name, stage_number, current_stage])
+	
 	return false  # Still need to clear more stages
 
 func reset_progress():

@@ -25,6 +25,11 @@ var territory_manager  # NEW: Territory manager for role-based territory system
 var resource_manager  # NEW: Resource manager for modular resource system
 var inventory_manager  # NEW: Inventory manager for items and consumables
 var statistics_manager  # NEW: Statistics manager for battle analytics
+# Progression and tutorial systems
+var progression_manager: ProgressionManager
+var tutorial_manager: TutorialManager
+var notification_manager: NotificationManager
+var ui_manager: UIManager
 
 # Preload the DataLoader class
 const GameDataLoader = preload("res://scripts/systems/DataLoader.gd")
@@ -48,6 +53,10 @@ func initialize_game():
 	territory_manager = preload("res://scripts/systems/TerritoryManager.gd").new()  # NEW: Territory manager
 	inventory_manager = preload("res://scripts/systems/InventoryManager.gd").new()  # NEW: Inventory manager  
 	statistics_manager = preload("res://scripts/systems/StatisticsManager.gd").new()  # NEW: Statistics manager
+	progression_manager = preload("res://scripts/systems/ProgressionManager.gd").new()  # NEW: Player progression system
+	tutorial_manager = preload("res://scripts/systems/TutorialManager.gd").new()  # NEW: Tutorial system
+	notification_manager = preload("res://scripts/systems/NotificationManager.gd").new()  # NEW: Notification system
+	ui_manager = preload("res://scripts/systems/UIManager.gd").new()  # NEW: Modular UI system
 	
 	# Initialize ResourceManager - will be created by LootSystem if needed
 	resource_manager = get_node("/root/ResourceManager") if has_node("/root/ResourceManager") else null
@@ -67,6 +76,13 @@ func initialize_game():
 	add_child(territory_manager)
 	add_child(inventory_manager)
 	add_child(statistics_manager)
+	add_child(progression_manager)
+	add_child(tutorial_manager)
+	add_child(notification_manager)
+	add_child(ui_manager)
+	
+	# Connect to game initialization complete signal
+	game_initializer.initialization_complete.connect(_on_initialization_complete)
 	
 	# Get ResourceManager reference after LootSystem creates it
 	if not resource_manager:
@@ -113,11 +129,45 @@ func initialize_game():
 	initialize_territories()
 	
 	# Try to load existing save data first
-	if not load_game():
-		# If no save file exists, give player starter content
-		give_starter_gods()
+	var is_new_player = not load_game()
+	
+	if is_new_player:
+		# New player - don't give starter gods, let tutorial handle it
+		print("New player detected - tutorial will handle initial setup")
+		# Set up basic resources but no gods
 		generate_offline_resources()
-		print("Starting new game with initial content")
+		# Ensure first time player flag is set correctly for new players
+		player_data.is_first_time_player = true
+	else:
+		# Returning player - generate offline resources as normal
+		generate_offline_resources()
+		print("Returning player - save data loaded successfully")
+	
+	# Start the game initialization process (loading screen, etc.)
+	game_initializer.start_initialization()
+	
+	print("Game initialization started - waiting for completion...")
+
+func _on_initialization_complete():
+	"""Called when GameInitializer finishes loading everything"""
+	print("GameManager: Game initialization complete - checking tutorial needs...")
+	
+	# Verify all systems are properly initialized
+	if not player_data:
+		print("ERROR: PlayerData not initialized!")
+		return
+		
+	if not tutorial_manager:
+		print("ERROR: TutorialManager not initialized!")
+		return
+	
+	# Check if first time player needs tutorial - Now handled by WorldView when UI is ready
+	if player_data.is_first_time_player and tutorial_manager:
+		print("GameManager: First-time player detected - tutorial will be triggered by WorldView when UI is ready")
+	else:
+		print("GameManager: Returning player - no tutorial needed")
+	
+	print("GameManager: Game fully ready and operational!")
 
 func give_starter_gods():
 	# Give the player a few starting gods for testing using JSON system
@@ -164,41 +214,97 @@ func get_inventory_manager():
 func get_statistics_manager():
 	return statistics_manager
 
+func get_progression_manager():
+	return progression_manager
+
+func get_tutorial_manager():
+	return tutorial_manager
+
+func get_notification_manager():
+	return notification_manager
+
 # System signal handlers
 func _on_summon_completed(god):
 	god_summoned.emit(god)
 	resources_updated.emit()
+	
+	# Award progression XP for summoning (MYTHOS ARCHITECTURE)
+	if progression_manager:
+		var xp_amount = 5  # XP per summon
+		if god.tier >= 4:  # Legendary god
+			xp_amount = 25
+		elif god.tier >= 3:  # Epic god  
+			xp_amount = 15
+		progression_manager.add_player_experience(xp_amount)
+	
 	# Auto-save after summoning
 	save_game()
 
 func _on_summon_failed(reason):
 	print("Summon failed: ", reason)
 
-func _on_battle_completed(result):
-	print("Battle completed with result: ", result)
+func _on_battle_completed(result: int):
+	print("GameManager: Battle completed with result: ", result)
 	
-	# Handle territory progress if this was a territory battle
-	if battle_system and battle_system.current_battle_territory and result == battle_system.BattleResult.VICTORY:
-		var territory = battle_system.current_battle_territory
-		var stage_number = battle_system.current_battle_stage
+	# Award player experience based on battle type and success
+	if result == 0 and progression_manager:  # Victory
+		# Get battle context from BattleManager (MYTHOS ARCHITECTURE)
+		var battle_context = {}
+		if battle_system and battle_system.has_method("_get_current_battle_context"):
+			battle_context = battle_system._get_current_battle_context()
 		
-		print("Updating territory progress: %s Stage %d" % [territory.name, stage_number])
+		var battle_type = battle_context.get("type", "unknown")
 		
-		# Stage cleared - advance territory progress
-		var territory_unlocked = territory.clear_stage(stage_number)
+		print("GameManager: Battle type: %s, Context: %s" % [battle_type, battle_context])
 		
-		if territory_unlocked:
-			# Territory fully unlocked - add to player's controlled territories
-			player_data.control_territory(territory.id)
-			territory_captured.emit(territory)
-			print("Territory %s FULLY UNLOCKED!" % territory.name)
-		else:
-			print("Stage %d cleared! Progress: %d/%d" % [stage_number, territory.current_stage, territory.max_stages])
-		
-		# Update resources
-		resources_updated.emit()
+		match battle_type:
+			"territory":
+				var territory_id = battle_context.get("territory_id", "")
+				var stage_num = battle_context.get("stage", 1)
+				var territory = get_territory_by_id(territory_id)
+				
+				print("GameManager: Processing territory victory - Territory: %s, Stage: %d" % [territory_id, stage_num])
+				
+				if territory_id != "" and territory:
+					# Update territory progress
+					var was_fully_cleared = territory.clear_stage(stage_num)
+					
+					print("GameManager: Territory stage cleared - Stage %d complete, Territory fully cleared: %s" % [stage_num, was_fully_cleared])
+					
+					# Award experience for stage completion (Simplified MYTHOS ARCHITECTURE)
+					progression_manager.award_stage_completion_xp(stage_num)
+					
+					# Trigger tutorial for territory stage completion (Summoners War style progression)
+					if tutorial_manager:
+						tutorial_manager.trigger_territory_stage_completion(stage_num)
+					
+					# Award bonus experience if territory was fully completed
+					if was_fully_cleared:
+						progression_manager.award_territory_completion_xp()
+						territory_captured.emit(territory)
+						print("🏆 Territory Completed: %s" % territory.name)
+					
+					# CRITICAL: Save progress after stage completion (MYTHOS ARCHITECTURE)
+					save_game()
+					print("GameManager: Stage progress saved to disk")
+				else:
+					print("GameManager: ERROR - Territory not found: %s" % territory_id)
+			"dungeon":
+				# Award dungeon completion XP (smaller amount)
+				progression_manager.award_milestone_xp("dungeon_clear", 15)
+			_:
+				# Default battle XP
+				progression_manager.award_milestone_xp("battle_victory", 10)
 	
-	# Auto-save after battles
+	# Update statistics
+	if statistics_manager and battle_system:
+		# Get gods that participated in battle from BattleManager
+		var gods_used = battle_system.current_battle_gods if battle_system.current_battle_gods else []
+		
+		# Record battle completion with victory status and participating gods
+		statistics_manager.record_battle_end(result == 0, gods_used)
+	
+	# Save progress
 	save_game()
 
 func _on_awakening_completed(god):
@@ -417,6 +523,10 @@ func start_territory_stage_battle(territory: Territory, stage_number: int, attac
 	for god in attacking_gods:
 		god.prepare_for_battle()
 	
+	# Set battle context for progression tracking
+	battle_system.current_battle_territory = territory
+	battle_system.current_battle_stage = stage_number
+	
 	# Set up the battle system for territory assault with stage information
 	battle_system.start_territory_assault(attacking_gods, territory, stage_number)
 	
@@ -593,6 +703,18 @@ func get_territory_efficiency_summary(territory: Territory) -> Dictionary:
 			"resource_generation": {}
 		}
 
+func get_territory_pending_resources(territory: Territory) -> Dictionary:
+	"""Get pending resources for a territory using TerritoryManager"""
+	if territory_manager and territory_manager.has_method("get_pending_resources_for_territory"):
+		return territory_manager.get_pending_resources_for_territory(territory)
+	return {}
+
+func collect_territory_resources(territory: Territory) -> Dictionary:
+	"""Collect resources for a territory using TerritoryManager"""
+	if territory_manager and territory_manager.has_method("collect_territory_resources"):
+		return territory_manager.collect_territory_resources(territory)
+	return {}
+
 func generate_resources():
 	"""Enhanced territory passive income generation using TerritoryManager"""
 	# Safety check - make sure player_data exists
@@ -765,8 +887,8 @@ func save_game() -> bool:
 		"timestamp": Time.get_unix_time_from_system(),
 		"player_data": {
 			"player_name": player_data.player_name,
-			"level": player_data.level,
-			"experience": player_data.experience,
+			"player_experience": player_data.player_experience,  # Player progression XP (MYTHOS ARCHITECTURE)
+			"is_first_time_player": player_data.is_first_time_player,  # Track FTUE status
 			"resources": player_data.resources.duplicate(),  # Save all modular resources
 			"controlled_territories": player_data.controlled_territories,
 			"last_save_time": player_data.last_save_time,
@@ -836,8 +958,8 @@ func load_game() -> bool:
 	# Load player data
 	var player_info = save_data.get("player_data", {})
 	player_data.player_name = player_info.get("player_name", "Player")
-	player_data.level = player_info.get("level", 1)
-	player_data.experience = player_info.get("experience", 0)
+	player_data.player_experience = player_info.get("player_experience", 0)
+	player_data.is_first_time_player = player_info.get("is_first_time_player", true)
 	player_data.total_summons = player_info.get("total_summons", 0)
 	player_data.controlled_territories = player_info.get("controlled_territories", [])
 	player_data.last_save_time = player_info.get("last_save_time", Time.get_unix_time_from_system())

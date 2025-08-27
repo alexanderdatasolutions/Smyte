@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://c7bmxesdp6kfa"]
+[gd_scene load_steps=2 format=3 uid="uid://c7bmxesdp6kfa"]
 
 [ext_resource type="Script" uid="uid://c04jprppny8y6" path="res://scripts/ui/SummonScreen.gd" id="1_summon"]
-[ext_resource type="Script" uid="uid://dkl6lpcqoqw2" path="res://scripts/ui/ResourceDisplay.gd" id="2_jjidi"]
 
 [node name="SummonScreen" type="Control"]
 layout_mode = 3
@@ -93,48 +92,3 @@ text = "✨ Your summoned gods will appear here! ✨
 Try a summon to see the magic happen!"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="ResourceDisplay" type="HBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -400.0
-offset_top = 18.0
-offset_right = -50.0
-offset_bottom = 58.0
-grow_horizontal = 0
-alignment = 1
-script = ExtResource("2_jjidi")
-
-[node name="ManaLabel" type="Label" parent="ResourceDisplay"]
-layout_mode = 2
-text = "Mana: 1000"
-horizontal_alignment = 1
-
-[node name="VSeparator" type="VSeparator" parent="ResourceDisplay"]
-visible = false
-layout_mode = 2
-
-[node name="CrystalLabel" type="Label" parent="ResourceDisplay"]
-layout_mode = 2
-text = "Crystals: 0"
-horizontal_alignment = 1
-
-[node name="VSeparator2" type="VSeparator" parent="ResourceDisplay"]
-visible = false
-layout_mode = 2
-
-[node name="TicketLabel" type="Label" parent="ResourceDisplay"]
-layout_mode = 2
-text = "Tickets: 0"
-horizontal_alignment = 1
-
-[node name="VSeparator3" type="VSeparator" parent="ResourceDisplay"]
-visible = false
-layout_mode = 2
-
-[node name="MaterialLabel" type="Label" parent="ResourceDisplay"]
-layout_mode = 2
-text = "Materials: 0"
-horizontal_alignment = 1

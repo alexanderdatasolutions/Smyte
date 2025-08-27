@@ -497,6 +497,41 @@
       "description": "Required for god ascension",
       "icon": "ascension_crystal",
       "category": "special_material"
+    },
+    "energy_boost_temp": {
+      "id": "energy_boost_temp",
+      "name": "Energy Conduit Boost",
+      "description": "Temporary energy regeneration increase from stationed gods",
+      "duration": "1_hour",
+      "effect": "25% faster energy regeneration",
+      "icon": "energy_boost",
+      "category": "consumable"
+    },
+    "celestial_essence": {
+      "id": "celestial_essence",
+      "name": "Celestial Essence",
+      "description": "Divine essence from the Celestial Throne",
+      "tier": "mythic",
+      "icon": "celestial_essence",
+      "category": "premium_material"
+    },
+    "chaos_soul": {
+      "id": "chaos_soul",
+      "name": "Chaos Soul",
+      "description": "Unpredictable soul from the Primordial Chaos",
+      "rarity": "chaos",
+      "element": "chaos",
+      "icon": "chaos_soul",
+      "category": "summoning_material"
+    },
+    "elemental_powder_mid": {
+      "id": "elemental_powder_mid",
+      "name": "Elemental Powder (Mid)",
+      "description": "Mixed elemental essence for multi-element awakening",
+      "element": "universal",
+      "tier": "mid",
+      "icon": "elemental_powder_mid",
+      "category": "awakening_material"
     }
   },
   

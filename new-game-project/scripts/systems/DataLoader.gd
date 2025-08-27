@@ -691,3 +691,37 @@ static func _get_fallback_passive_income(tier_key: String, _assigned_gods: Array
 		}
 	
 	return base_generation.duplicate()
+
+# ==============================================================================
+# TERRITORY SYSTEM DATA LOADING - MODULAR ARCHITECTURE
+# ==============================================================================
+
+static func get_god_roles_config() -> Dictionary:
+	"""Get god roles configuration - used by TerritoryManager"""
+	return _load_json_file_static("res://data/god_roles.json")
+
+static func get_territory_roles_config() -> Dictionary:
+	"""Get territory roles configuration - used by TerritoryManager"""
+	return _load_json_file_static("res://data/territory_roles.json")
+
+static func get_territory_balance_config() -> Dictionary:
+	"""Get territory balance configuration - used by TerritoryManager"""
+	return _load_json_file_static("res://data/territory_balance_config.json")
+
+static func _load_json_file_static(file_path: String) -> Dictionary:
+	"""Static JSON file loader for DataLoader - CENTRALIZED LOADING"""
+	var file = FileAccess.open(file_path, FileAccess.READ)
+	if not file:
+		push_warning("DataLoader: Could not open file: " + file_path)
+		return {}
+	
+	var json_string = file.get_as_text()
+	file.close()
+	
+	var json = JSON.new()
+	var parse_result = json.parse(json_string)
+	if parse_result != OK:
+		push_error("DataLoader: JSON parse error in " + file_path + ": " + json.error_string)
+		return {}
+	
+	return json.get_data()

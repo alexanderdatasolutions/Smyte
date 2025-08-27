@@ -115,13 +115,18 @@ func start_battle(config: BattleFactory) -> bool:
 		"territory":
 			current_battle_territory = config.battle_territory
 			current_battle_stage = config.battle_stage
-			# Clear any previous dungeon context
-			current_battle_context = {}
+			# Set territory battle context for GameManager (MYTHOS ARCHITECTURE)
+			current_battle_context = {
+				"type": "territory",
+				"territory_id": config.battle_territory.id if config.battle_territory else "",
+				"stage": config.battle_stage
+			}
 		"dungeon":
 			current_battle_territory = null
 			current_battle_stage = 1
 			# Set dungeon context for loot system
 			current_battle_context = {
+				"type": "dungeon",
 				"loot_table_id": config.loot_table_id if "loot_table_id" in config else "",
 				"context": {
 					"element": config.element if "element" in config else "",
@@ -134,7 +139,9 @@ func start_battle(config: BattleFactory) -> bool:
 		_:
 			current_battle_territory = null
 			current_battle_stage = 1
-			current_battle_context = {}
+			current_battle_context = {
+				"type": "unknown"
+			}
 	
 	# Reset all gods to full HP at start of battle
 	_reset_gods_hp()
@@ -225,6 +232,21 @@ func start_wave_battle(enemies: Array) -> bool:
 	# Set wave enemies
 	current_battle_enemies = enemies.duplicate()
 	battle_active = true
+	
+	# CRITICAL: Set battle context for GameManager to track progress
+	# This was missing and causing empty context in battle completion
+	if current_battle_territory:
+		current_battle_context = {
+			"type": "territory",
+			"territory_id": current_battle_territory.id,
+			"stage": current_battle_stage
+		}
+		print("=== BattleManager: Set territory battle context - %s stage %d ===" % [current_battle_territory.id, current_battle_stage])
+	else:
+		current_battle_context = {
+			"type": "unknown"
+		}
+		print("=== BattleManager: Set unknown battle context ===")
 	
 	print("=== BattleManager: current_battle_enemies set to %d enemies ===" % current_battle_enemies.size())
 	
@@ -750,13 +772,16 @@ func _check_battle_end() -> bool:
 	return false
 
 func _end_battle(result: BattleResult):
-	"""End battle with result"""
+	"""End battle with result - clean, single source of truth implementation"""
+	if not battle_active:
+		print("=== BATTLE MANAGER: Battle already ended, ignoring duplicate call ===")
+		return
+		
+	print("=== BATTLE MANAGER: Ending battle with result: %s ===" % result)
 	battle_active = false
 	auto_battle_enabled = false  # Reset auto-battle
 	
-	# Reset all god HP to full after battle
-	_reset_gods_hp()
-	
+	# Process battle result and award rewards
 	match result:
 		BattleResult.VICTORY:
 			battle_log_updated.emit("VICTORY!")
@@ -775,7 +800,21 @@ func _end_battle(result: BattleResult):
 			
 			_award_consolation_rewards()
 	
+	# Emit battle completion - this is the ONLY signal for battle end
 	battle_completed.emit(result)
+	print("=== BATTLE MANAGER: Battle completion signal emitted, HP will be reset by UI callback ===")
+
+# Clean HP reset - only called by UI after it finishes displaying results
+func reset_gods_hp_after_ui():
+	"""Called by BattleScreen after it finishes showing battle results"""
+	if not current_battle_gods.is_empty():
+		print("=== BATTLE MANAGER: Resetting gods HP after UI completion ===")
+		_reset_gods_hp()
+		# Update UI one final time to show restored HP
+		if battle_screen:
+			for god in current_battle_gods:
+				if god and god is God:
+					battle_screen.update_god_hp_instantly(god)
 
 func _get_current_battle_context() -> Dictionary:
 	"""Get current battle context for loot system"""
@@ -788,7 +827,7 @@ func set_battle_context(context: Dictionary):
 
 func _reset_gods_hp():
 	"""Reset all gods to full HP"""
-	print("Resetting all gods to full HP")
+	print("=== BATTLE MANAGER: Resetting all gods to full HP ===")
 	for god in current_battle_gods:
 		if god and god is God:
 			var max_hp = god.get_max_hp()
@@ -800,13 +839,6 @@ func _reset_gods_hp():
 				god.clear_status_effects()
 			elif "status_effects" in god:
 				god.status_effects.clear()
-	
-	# Update UI if battle screen exists
-	if battle_screen:
-		for god in current_battle_gods:
-			if god and god is God:
-				battle_screen.update_god_hp_instantly(god)
-				battle_screen.update_god_status_effects(god)
 
 func _award_victory_rewards():
 	"""Award rewards for victory using the new template-based loot system"""

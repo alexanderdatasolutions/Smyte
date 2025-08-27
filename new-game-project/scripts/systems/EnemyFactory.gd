@@ -359,15 +359,15 @@ static func _get_element_display_name(element: String) -> String:
 static func _calculate_enemy_stats(_element: Territory.ElementType, enemy_type: String, level: int, tier: int) -> Dictionary:
 	"""Calculate enemy stats using Summoners War scaling - matches your gods system"""
 	# Base stats following SW conventions (similar to 2-3★ monsters)
-	var base_hp = 80        # Pokemon-style base HP (was 800)
-	var base_attack = 50    # Pokemon-style base ATK (was 150)  
-	var base_defense = 40   # Pokemon-style base DEF (was 120)
+	var base_hp = 100        # Increased base HP
+	var base_attack = 65     # Increased base ATK  
+	var base_defense = 55    # Increased base DEF
 	var base_speed = 70     # Pokemon-style base SPD (was 90)
 	
-	# Per-level growth (substantial like SW)
-	var hp_per_level = 4    # Pokemon-style growth (was 45)
-	var attack_per_level = 2 # Pokemon-style growth (was 8)
-	var defense_per_level = 1.5 # Pokemon-style growth (was 6)
+	# Per-level growth (substantial like SW) - increased for meaningful level gaps
+	var hp_per_level = 8    # Increased from 4 for stronger level scaling
+	var attack_per_level = 4 # Increased from 2 for stronger level scaling
+	var defense_per_level = 3 # Increased from 1.5 for stronger level scaling
 	var speed_per_level = 1  # Pokemon-style growth (was 2)
 	
 	# Role multipliers based on enemy type (matching enemies.json design)
@@ -561,9 +561,9 @@ static func _get_dungeon_config(dungeon_id: String, difficulty: String) -> Dicti
 static func _calculate_dungeon_enemy_stats(_element: Territory.ElementType, enemy_type: String, level: int, difficulty: String) -> Dictionary:
 	"""Calculate stats for dungeon enemies with difficulty scaling"""
 	# Base stats for dungeon enemies (stronger than territory enemies)
-	var base_hp = 120       # Pokemon-style dungeon HP (was 1200)
-	var base_attack = 60    # Pokemon-style dungeon ATK (was 200)  
-	var base_defense = 50   # Pokemon-style dungeon DEF (was 150)
+	var base_hp = 150       # Increased for better level scaling
+	var base_attack = 80    # Increased for better level scaling  
+	var base_defense = 70   # Increased for better level scaling
 	
 	# Difficulty multipliers - BALANCED for better gameplay
 	var difficulty_multiplier = 1.0
@@ -600,7 +600,7 @@ static func _calculate_dungeon_enemy_stats(_element: Territory.ElementType, enem
 			type_defense_multiplier = 1.5 # Reduced from 1.6
 	
 	# Level scaling (exponential growth like Summoners War)
-	var level_multiplier = 1.0 + (level - 1) * 0.03  # 3% per level (was 6%)
+	var level_multiplier = 1.0 + (level - 1) * 0.08  # 8% per level - stronger scaling for level gaps
 	
 	# Calculate final stats
 	var final_hp = int(base_hp * level_multiplier * type_hp_multiplier * difficulty_multiplier)

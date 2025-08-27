@@ -1,5 +1,6 @@
 # scripts/systems/LootSystem.gd
 extends Node
+class_name LootSystem
 
 signal loot_awarded(loot_results)
 

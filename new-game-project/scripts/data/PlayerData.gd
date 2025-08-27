@@ -3,8 +3,10 @@ extends Resource
 class_name PlayerData
 
 @export var player_name: String = "Player"
-@export var level: int = 1
-@export var experience: int = 0
+
+# PLAYER PROGRESSION SYSTEM (MYTHOS ARCHITECTURE)
+@export var player_experience: int = 0  # Simple XP tracking for player level
+@export var is_first_time_player: bool = true  # Track if this is first time playing
 
 # Modular resource system - uses ResourceManager for all operations
 @export var resources: Dictionary = {}

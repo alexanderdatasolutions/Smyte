@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dm3vbko3g1dyu"]
 
-[ext_resource type="Script" path="res://scripts/ui/BattleSetupScreen.gd" id="1_8h7nq"]
+[ext_resource type="Script" uid="uid://bjte5dqdx616k" path="res://scripts/ui/BattleSetupScreen.gd" id="1_8h7nq"]
 
 [node name="BattleSetupScreen" type="Control"]
 layout_mode = 3
@@ -88,7 +88,6 @@ columns = 5
 [node name="BattleInfoPanel" type="VBoxContainer" parent="MainContainer/ContentContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.0
 
 [node name="EnemyPreviewContainer" type="VBoxContainer" parent="MainContainer/ContentContainer/BattleInfoPanel"]
 layout_mode = 2
@@ -103,11 +102,11 @@ layout_mode = 2
 alignment = 1
 
 [node name="CancelButton" type="Button" parent="MainContainer/BottomContainer"]
+custom_minimum_size = Vector2(150, 50)
 layout_mode = 2
 text = "CANCEL"
-custom_minimum_size = Vector2(150, 50)
 
 [node name="StartBattleButton" type="Button" parent="MainContainer/BottomContainer"]
+custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "START BATTLE"
-custom_minimum_size = Vector2(200, 50)

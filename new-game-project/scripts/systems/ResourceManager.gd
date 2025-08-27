@@ -1,5 +1,6 @@
 # scripts/systems/ResourceManager.gd
 extends Node
+class_name ResourceManager
 
 signal resources_updated
 signal resource_definitions_loaded

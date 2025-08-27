@@ -1846,10 +1846,13 @@ func _on_battle_completed(result):
 				# Show loot collection window instead of just text
 				_hide_action_buttons()
 				_show_loot_collection_window(rewards)
+				
+				# Schedule HP reset after UI processing
+				_schedule_hp_reset()
 				return
 	elif current_battle_type == "dungeon" and result == 0 and is_wave_battle:
 		print("=== BattleScreen: Wave battle in progress, letting WaveSystem handle progression ===")
-		# Let wave system handle the flow
+		# Let wave system handle the flow - HP reset will be handled by wave system
 	
 	# Handle single territory battles (non-wave)
 	elif result == 0 and current_territory and not is_wave_battle:
@@ -1869,6 +1872,9 @@ func _on_battle_completed(result):
 		
 		_hide_action_buttons()
 		_show_loot_collection_window(territory_rewards)
+		
+		# Schedule HP reset after UI processing
+		_schedule_hp_reset()
 		return
 	
 	# Only show in battle_status_label (main display) for defeats or non-victory cases
@@ -1887,6 +1893,18 @@ func _on_battle_completed(result):
 	if result != 0:
 		await get_tree().create_timer(1.0).timeout
 		_show_battle_result_options(result == 0)
+	
+	# Schedule HP reset after UI has finished displaying the results
+	_schedule_hp_reset()
+
+func _schedule_hp_reset():
+	"""Schedule HP reset through BattleManager after UI finishes"""
+	# Use a short delay to let the UI finish updating, then tell BattleManager to reset HP
+	await get_tree().create_timer(2.0).timeout
+	
+	if GameManager and GameManager.battle_system and GameManager.battle_system.has_method("reset_gods_hp_after_ui"):
+		print("=== BattleScreen: Requesting HP reset from BattleManager ===")
+		GameManager.battle_system.reset_gods_hp_after_ui()
 
 func _format_rewards(rewards: Dictionary) -> String:
 	"""Format rewards dictionary into readable text"""

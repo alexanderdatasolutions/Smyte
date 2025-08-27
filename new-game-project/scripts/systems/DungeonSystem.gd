@@ -135,7 +135,7 @@ func is_dungeon_unlocked(dungeon_id: String) -> bool:
 	# Player level check
 	if unlock_requirements.has("player_level"):
 		var required_level = unlock_requirements.player_level
-		var player_level = GameManager.player_data.level
+		var player_level = GameManager.progression_manager.calculate_level_from_experience(GameManager.player_data.player_experience) if GameManager.progression_manager else 1
 		if player_level < required_level:
 			return false
 	

@@ -1,0 +1,172 @@
+[gd_scene load_steps=2 format=3 uid="uid://debug_overlay_uid"]
+
+[ext_resource type="Script" path="res://scripts/ui/DebugOverlay.gd" id="1"]
+
+[node name="DebugOverlay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("1")
+
+[node name="DebugPanel" type="Panel" parent="."]
+layout_mode = 0
+anchor_left = 0.02
+anchor_top = 0.02
+anchor_right = 0.35
+anchor_bottom = 0.6
+mouse_filter = 0
+modulate = Color(1, 1, 1, 0.9)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DebugPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+
+[node name="Title" type="Label" parent="DebugPanel/VBoxContainer"]
+layout_mode = 2
+text = "🐛 DEBUG CONSOLE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="DebugPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="ProgressionSection" type="VBoxContainer" parent="DebugPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="ProgressionLabel" type="Label" parent="DebugPanel/VBoxContainer/ProgressionSection"]
+layout_mode = 2
+text = "⭐ PLAYER PROGRESSION"
+horizontal_alignment = 1
+
+[node name="PlayerLevelInfo" type="Label" parent="DebugPanel/VBoxContainer/ProgressionSection"]
+layout_mode = 2
+text = "Level: 1 | XP: 0/100"
+
+[node name="XPButtonsContainer" type="HBoxContainer" parent="DebugPanel/VBoxContainer/ProgressionSection"]
+layout_mode = 2
+
+[node name="AddXP100" type="Button" parent="DebugPanel/VBoxContainer/ProgressionSection/XPButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+100 XP"
+
+[node name="AddXP500" type="Button" parent="DebugPanel/VBoxContainer/ProgressionSection/XPButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+500 XP"
+
+[node name="AddXP1000" type="Button" parent="DebugPanel/VBoxContainer/ProgressionSection/XPButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+1000 XP"
+
+[node name="LevelButtonsContainer" type="HBoxContainer" parent="DebugPanel/VBoxContainer/ProgressionSection"]
+layout_mode = 2
+
+[node name="SetLevel5" type="Button" parent="DebugPanel/VBoxContainer/ProgressionSection/LevelButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "→ Lvl 5"
+
+[node name="SetLevel10" type="Button" parent="DebugPanel/VBoxContainer/ProgressionSection/LevelButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "→ Lvl 10"
+
+[node name="MaxLevel" type="Button" parent="DebugPanel/VBoxContainer/ProgressionSection/LevelButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "→ Max"
+
+[node name="HSeparator2" type="HSeparator" parent="DebugPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="TutorialSection" type="VBoxContainer" parent="DebugPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="TutorialLabel" type="Label" parent="DebugPanel/VBoxContainer/TutorialSection"]
+layout_mode = 2
+text = "📚 TUTORIAL SYSTEM"
+horizontal_alignment = 1
+
+[node name="TutorialButtonsContainer" type="HBoxContainer" parent="DebugPanel/VBoxContainer/TutorialSection"]
+layout_mode = 2
+
+[node name="ResetTutorials" type="Button" parent="DebugPanel/VBoxContainer/TutorialSection/TutorialButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Reset Tutorials"
+
+[node name="StartFTUE" type="Button" parent="DebugPanel/VBoxContainer/TutorialSection/TutorialButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Start FTUE"
+
+[node name="TutorialButtons2Container" type="HBoxContainer" parent="DebugPanel/VBoxContainer/TutorialSection"]
+layout_mode = 2
+
+[node name="Test3Gods" type="Button" parent="DebugPanel/VBoxContainer/TutorialSection/TutorialButtons2Container"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Grant 3 Base Gods"
+
+[node name="ShowGodCount" type="Button" parent="DebugPanel/VBoxContainer/TutorialSection/TutorialButtons2Container"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Show God Count"
+
+[node name="HSeparator3" type="HSeparator" parent="DebugPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="ResourceSection" type="VBoxContainer" parent="DebugPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="ResourceLabel" type="Label" parent="DebugPanel/VBoxContainer/ResourceSection"]
+layout_mode = 2
+text = "💎 RESOURCES"
+horizontal_alignment = 1
+
+[node name="ResourceButtonsContainer" type="HBoxContainer" parent="DebugPanel/VBoxContainer/ResourceSection"]
+layout_mode = 2
+
+[node name="AddMana" type="Button" parent="DebugPanel/VBoxContainer/ResourceSection/ResourceButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+10K Mana"
+
+[node name="AddCrystals" type="Button" parent="DebugPanel/VBoxContainer/ResourceSection/ResourceButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+100 Crystals"
+
+[node name="HSeparator4" type="HSeparator" parent="DebugPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="InfoSection" type="VBoxContainer" parent="DebugPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="InfoLabel" type="Label" parent="DebugPanel/VBoxContainer/InfoSection"]
+layout_mode = 2
+text = "ℹ️ Press F1 to toggle this debug panel"
+horizontal_alignment = 1
+
+[connection signal="pressed" from="DebugPanel/VBoxContainer/ProgressionSection/XPButtonsContainer/AddXP100" to="." method="_on_add_xp_100_pressed"]
+[connection signal="pressed" from="DebugPanel/VBoxContainer/ProgressionSection/XPButtonsContainer/AddXP500" to="." method="_on_add_xp_500_pressed"]
+[connection signal="pressed" from="DebugPanel/VBoxContainer/ProgressionSection/XPButtonsContainer/AddXP1000" to="." method="_on_add_xp_1000_pressed"]
+[connection signal="pressed" from="DebugPanel/VBoxContainer/ProgressionSection/LevelButtonsContainer/SetLevel5" to="." method="_on_set_level_5_pressed"]
+[connection signal="pressed" from="DebugPanel/VBoxContainer/ProgressionSection/LevelButtonsContainer/SetLevel10" to="." method="_on_set_level_10_pressed"]
+[connection signal="pressed" from="DebugPanel/VBoxContainer/ProgressionSection/LevelButtonsContainer/MaxLevel" to="." method="_on_max_level_pressed"]
+[connection signal="pressed" from="DebugPanel/VBoxContainer/TutorialSection/TutorialButtonsContainer/ResetTutorials" to="." method="_on_reset_tutorials_pressed"]
+[connection signal="pressed" from="DebugPanel/VBoxContainer/TutorialSection/TutorialButtonsContainer/StartFTUE" to="." method="_on_start_ftue_pressed"]
+[connection signal="pressed" from="DebugPanel/VBoxContainer/TutorialSection/TutorialButtons2Container/Test3Gods" to="." method="_on_test_3_gods_pressed"]
+[connection signal="pressed" from="DebugPanel/VBoxContainer/TutorialSection/TutorialButtons2Container/ShowGodCount" to="." method="_on_show_god_count_pressed"]
+[connection signal="pressed" from="DebugPanel/VBoxContainer/ResourceSection/ResourceButtonsContainer/AddMana" to="." method="_on_add_mana_pressed"]
+[connection signal="pressed" from="DebugPanel/VBoxContainer/ResourceSection/ResourceButtonsContainer/AddCrystals" to="." method="_on_add_crystals_pressed"]

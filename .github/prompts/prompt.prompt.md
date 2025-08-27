@@ -105,6 +105,66 @@ SummonSystem.summon_with_soul(type)
 
 ---
 
+### UIManager
+**Owns:** Popup management, Notification system, Tutorial overlays
+**Uses:** Control nodes for UI elements
+**Signals:** popup_shown, popup_closed, tutorial_pointer_shown
+
+### TutorialManager
+**Owns:** Tutorial flow, Step management
+**Uses:** UIManager for displaying tutorial steps
+**Signals:** tutorial_step_completed, tutorial_pointer_shown
+
+### InventoryManager
+**Owns:** Item management, Inventory slots
+**Uses:** PlayerData for item storage
+**Signals:** item_added, item_removed, inventory_updated
+
+### NotificationManager
+**Owns:** Notification display, Toast messages
+**Uses:** UIManager for showing notifications
+**Signals:** notification_shown, notification_closed
+
+### ProgressionManager
+**Owns:** Level progression, Experience tracking
+**Uses:** PlayerData for experience management
+**Signals:** level_up, experience_gained
+
+### StatisticsManager
+**Owns:** Player statistics, Battle logs
+**Uses:** PlayerData for tracking
+**Signals:** statistics_updated
+
+### AchievementManager
+**Owns:** Player achievements, Milestone tracking
+**Uses:** PlayerData for achievement progress
+**Signals:** achievement_unlocked
+
+### QuestManager
+**Owns:** Active quests, Quest tracking
+**Uses:** PlayerData for quest progress
+**Signals:** quest_started, quest_completed
+
+### LeaderboardManager
+**Owns:** Player rankings, Leaderboard data
+**Uses:** PlayerData for ranking calculations
+**Signals:** leaderboard_updated
+
+### PVPManager
+**Owns:** Player vs Player matchmaking, Duel tracking
+**Uses:** PlayerData for participant stats
+**Signals:** pvp_match_started, pvp_match_ended
+
+### BuffManager - Not sure if needed
+**Owns:** Active buffs, Buff application
+**Uses:** PlayerData for buff tracking
+**Signals:** buff_applied, buff_removed
+
+### ResourceManager
+**Owns:** Resource definitions, Currency display, Element mappings
+**Uses:** Nothing - pure data provider
+**Signals:** resources_updated, resource_definitions_loaded
+
 ## DATA ENTITIES
 
 ### God
@@ -138,7 +198,7 @@ Key Methods:
 ```gdscript
 Properties:
 - current_stage, max_stages
-- stationed_gods[], territory_level
+- stationed_gods[], territory_level, minimum_combat_power
 - resource_upgrades, defense_upgrades
 
 Key Methods:
@@ -157,6 +217,7 @@ Key Methods:
 - create_from_dungeon() → Equipment
 - get_stat_bonuses() → Dictionary
 ```
+
 
 ---
 
@@ -179,6 +240,8 @@ Key Methods:
 - **iron_ore**, **mythril_ore**, **adamantite_ore** - Crafting
 - **enhancement_powder** - Enhancement
 - **socket_crystal** - Socket unlocking
+
+
 
 ---
 

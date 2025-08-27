@@ -297,23 +297,6 @@
     }
   },
 
-  "crafting_system": {
-    "essence_requirements": {
-      "common": {"mana": 1000, "iron_ore": 10},
-      "rare": {"mana": 2500, "iron_ore": 25, "mythril_ore": 5},
-      "epic": {"mana": 5000, "mythril_ore": 50, "adamantite_ore": 15, "enhancement_powder": 5},
-      "legendary": {"mana": 10000, "mythril_ore": 100, "adamantite_ore": 30, "enhancement_powder": 15, "awakening_stone": 1},
-      "mythic": {"mana": 25000, "adamantite_ore": 250, "forging_flame": 75, "enhancement_powder": 50, "awakening_stone": 5, "blessed_oil": 1}
-    },
-    "material_sources": {
-      "crafting_materials": ["titans_forge", "valhalla_armory", "oracles_sanctum"],
-      "rare_crystals": ["equipment_dungeons_intermediate_plus"],
-      "epic_fragments": ["equipment_dungeons_advanced_plus"],
-      "legendary_core": ["equipment_dungeons_expert_plus", "raid_rewards"],
-      "mythic_shard": ["special_events", "world_boss", "mythic_chest"]
-    }
-  },
-
   "socketing_system": {
     "socket_types": {
       "red": {
@@ -407,29 +390,6 @@
       "name": "Jade of Initiative",
       "stat_bonus": {"turn_meter_boost": [5, 15]},
       "socket_type": "green"
-    }
-  },
-
-  "equipment_origins": {
-    "divine_weapons": {
-      "dungeon": "titans_forge",
-      "lore": "Forged in the sacred flames where titans once crafted weapons for the gods themselves."
-    },
-    "divine_armor": {
-      "dungeon": "valhalla_armory", 
-      "lore": "Blessed armor worn by the greatest warriors in the eternal halls of valor."
-    },
-    "divine_accessories": {
-      "dungeon": "oracles_sanctum",
-      "lore": "Mystical accessories imbued with the prophetic powers of ancient oracles."
-    },
-    "divine_runes": {
-      "dungeon": "elysian_fields",
-      "lore": "Crystallized divine energy from the blessed fields of eternal paradise."
-    },
-    "shadow_gear": {
-      "dungeon": "styx_crossing",
-      "lore": "Cursed equipment left behind by souls crossing the river of the underworld."
     }
   }
 }

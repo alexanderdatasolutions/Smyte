@@ -88,5 +88,30 @@ func _on_initialization_complete():
 	load_main_game()
 
 func load_main_game():
-	"""Load the main game scene"""
-	get_tree().change_scene_to_file("res://scenes/Main.tscn")
+	"""Load the main game scene with proper error handling"""
+	print("LoadingScreen: Attempting to load main game scene...")
+	
+	# Robust scene tree checking following MYTHOS ARCHITECTURE
+	var tree = get_tree()
+	if not tree:
+		print("ERROR: LoadingScreen - SceneTree is null! Cannot transition to main game.")
+		# Fallback: Try to access through GameManager if available
+		if GameManager and is_instance_valid(GameManager):
+			tree = GameManager.get_tree()
+		
+		if not tree:
+			print("CRITICAL ERROR: No valid SceneTree found. Game cannot continue.")
+			return
+	
+	# Verify the main scene file exists
+	if not FileAccess.file_exists("res://scenes/Main.tscn"):
+		print("ERROR: Main.tscn scene file not found!")
+		return
+	
+	print("LoadingScreen: Scene tree and file verified. Changing scene...")
+	var result = tree.change_scene_to_file("res://scenes/Main.tscn")
+	
+	if result != OK:
+		print("ERROR: Failed to change scene to Main.tscn. Error code: %d" % result)
+	else:
+		print("LoadingScreen: Successfully initiated scene change to Main.tscn")

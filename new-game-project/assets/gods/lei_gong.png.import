@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cqhveb4bssl8e"
-path="res://.godot/imported/leigong.png-cf5739a83142bfe61c557a5ab7dac4c8.ctex"
+path="res://.godot/imported/lei_gong.png-89ce6fe25eb00c6cc7b8b915cdabc097.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/gods/leigong.png"
-dest_files=["res://.godot/imported/leigong.png-cf5739a83142bfe61c557a5ab7dac4c8.ctex"]
+source_file="res://assets/gods/lei_gong.png"
+dest_files=["res://.godot/imported/lei_gong.png-89ce6fe25eb00c6cc7b8b915cdabc097.ctex"]
 
 [params]
 

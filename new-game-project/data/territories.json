@@ -5,7 +5,7 @@
       "name": "Sacred Grove",
       "tier": 1,
       "element": "earth",
-      "required_power": 300,
+      "required_power": 0,
       "unlock_requirements": {
         "player_level": 1,
         "prerequisite_territories": []

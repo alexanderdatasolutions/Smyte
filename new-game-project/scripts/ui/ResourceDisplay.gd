@@ -14,6 +14,7 @@ static var _instances: Array = []
 
 # === UI ELEMENTS ===
 # These correspond to nodes in ResourceDisplay.tscn
+@onready var player_level_label: Label = null # Player level (new progression system) - will be created dynamically
 @onready var mana_label: Label = $ManaLabel           # Primary currency (per prompt architecture)
 @onready var crystal_label: Label = $CrystalLabel     # Premium currency  
 @onready var energy_label: Label = $EnergyLabel       # Stamina for battles (regenerates)
@@ -33,11 +34,17 @@ func _ready():
 	# Add to instances list for global synchronization
 	_instances.append(self)
 	
+	# Create player level label dynamically (MYTHOS ARCHITECTURE - robust system)
+	_create_player_level_label()
+	
 	# Initialize ResourceManager reference
 	_initialize_resource_manager()
 	
 	# Connect to global resource update signals (first instance only)
 	_setup_signal_connections()
+	
+	# Connect to progression signals for player level updates
+	_setup_progression_signals()
 	
 	# Setup UI interactions
 	_setup_materials_button()
@@ -53,6 +60,11 @@ func _exit_tree():
 	# Disconnect signals to prevent errors
 	if GameManager and GameManager.resources_updated.is_connected(_update_all_instances):
 		GameManager.resources_updated.disconnect(_update_all_instances)
+		
+	# Disconnect progression signals
+	if GameManager and GameManager.progression_manager and GameManager.progression_manager.has_signal("player_leveled_up"):
+		if GameManager.progression_manager.player_leveled_up.is_connected(_update_all_instances):
+			GameManager.progression_manager.player_leveled_up.disconnect(_update_all_instances)
 	
 	print("ResourceDisplay: Instance destroyed, %d instances remaining" % _instances.size())
 
@@ -78,6 +90,20 @@ func _setup_signal_connections():
 		else:
 			print("ResourceDisplay: Warning - GameManager.resources_updated signal not available")
 
+func _setup_progression_signals():
+	"""Connect to progression system signals for player level updates"""
+	if not GameManager:
+		return
+		
+	# Only connect once globally for all instances
+	if _instances.size() > 1:
+		return
+		
+	if GameManager.progression_manager and GameManager.progression_manager.has_signal("player_leveled_up"):
+		if not GameManager.progression_manager.player_leveled_up.is_connected(_update_all_instances):
+			GameManager.progression_manager.player_leveled_up.connect(_update_all_instances)
+			print("ResourceDisplay: Connected to player level up signal")
+
 func _setup_materials_button():
 	"""Setup materials button interactions"""
 	if materials_button:
@@ -85,6 +111,26 @@ func _setup_materials_button():
 		# Add hover effects for better UX
 		materials_button.mouse_entered.connect(func(): materials_button.modulate = Color(1.2, 1.2, 1.2))
 		materials_button.mouse_exited.connect(func(): materials_button.modulate = Color.WHITE)
+
+func _create_player_level_label():
+	"""Create player level label dynamically (MYTHOS ARCHITECTURE - robust design)"""
+	# Try to find existing node first
+	if has_node("PlayerLevelLabel"):
+		player_level_label = $PlayerLevelLabel
+		print("ResourceDisplay: Found existing PlayerLevelLabel")
+		return
+	
+	# Create label dynamically and add to the beginning of the container
+	player_level_label = Label.new()
+	player_level_label.name = "PlayerLevelLabel"
+	player_level_label.text = "Level 1 (0/100 XP)"
+	player_level_label.add_theme_font_size_override("font_size", 14)
+	
+	# Add it as the first child (leftmost position)
+	add_child(player_level_label)
+	move_child(player_level_label, 0)
+	
+	print("ResourceDisplay: Created PlayerLevelLabel dynamically")
 
 # === DISPLAY UPDATE METHODS ===
 
@@ -101,11 +147,32 @@ func _update_this_instance():
 		return
 	
 	# Update each resource display according to prompt architecture
+	_update_player_level_display()
 	_update_mana_display()
 	_update_crystals_display()
 	_update_energy_display()
 	_update_tickets_display()
 	_update_materials_count()
+
+func _update_player_level_display():
+	"""Update player level display (new progression system)"""
+	if not player_level_label:
+		print("ResourceDisplay: PlayerLevelLabel is null - this should not happen!")
+		return
+		
+	var player_level = 1
+	var player_xp = 0
+	var xp_to_next = 100
+	
+	if GameManager and GameManager.player_data and GameManager.progression_manager:
+		# Get level from ProgressionManager (MYTHOS ARCHITECTURE)
+		player_level = GameManager.progression_manager.calculate_level_from_experience(GameManager.player_data.player_experience)
+		player_xp = GameManager.player_data.player_experience
+		xp_to_next = GameManager.progression_manager.get_experience_to_next_level(player_level, player_xp)
+	
+	# Format as "Level 5 (120/300 XP)"
+	var level_text = "Level %d (%d/%d XP)" % [player_level, player_xp, xp_to_next]
+	player_level_label.text = level_text
 
 func _update_mana_display():
 	"""Update mana display (primary currency per prompt architecture)"""

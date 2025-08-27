@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3 uid="uid://do86vtymrnow4"]
+
+[ext_resource type="Script" uid="uid://dyv5q023n6727" path="res://scripts/ui/MainUIOverlay.gd" id="1_main_ui_overlay"]
+[ext_resource type="PackedScene" uid="uid://cbw7xpldky1p7" path="res://scenes/ResourceDisplay.tscn" id="2_64nlv"]
+
+[node name="MainUIOverlay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main_ui_overlay")
+
+[node name="ResourceDisplay" parent="." instance=ExtResource("2_64nlv")]
+layout_mode = 0
+anchors_preset = 0
+anchor_left = 0.0
+anchor_right = 0.0
+offset_left = 453.0
+offset_top = 3.0
+offset_right = 980.0
+offset_bottom = 34.0
+grow_horizontal = 1

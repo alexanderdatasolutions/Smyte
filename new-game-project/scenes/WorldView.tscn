@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://b6wj4kunigp3v"]
 
 [ext_resource type="Script" uid="uid://sftntg4hcaha" path="res://scripts/ui/WorldView.gd" id="1_1q2k3"]
-[ext_resource type="PackedScene" uid="uid://cbw7xpldky1p7" path="res://scenes/ResourceDisplay.tscn" id="2_sj7ji"]
+[ext_resource type="PackedScene" path="res://scenes/DebugOverlay.tscn" id="3_debug_overlay"]
 
 [node name="WorldView" type="Control"]
 layout_mode = 3
@@ -83,13 +83,12 @@ EQUIPMENT
 FORGE"
 flat = true
 
-[node name="ResourceDisplay" parent="." instance=ExtResource("2_sj7ji")]
+[node name="DebugOverlay" parent="." instance=ExtResource("3_debug_overlay")]
 layout_mode = 0
 anchors_preset = 0
-anchor_left = 0.0
 anchor_right = 0.0
-offset_left = 553.0
-offset_top = 16.0
-offset_right = 1019.0
-offset_bottom = 47.0
-grow_horizontal = 1
+anchor_bottom = 0.0
+offset_left = 332.0
+offset_top = 272.0
+offset_right = 332.0
+offset_bottom = 272.0

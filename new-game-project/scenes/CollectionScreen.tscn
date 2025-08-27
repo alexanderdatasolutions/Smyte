@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://bwojti5lt3fec"]
+[gd_scene load_steps=2 format=3 uid="uid://bwojti5lt3fec"]
 
 [ext_resource type="Script" uid="uid://b4h7kip8xohgv" path="res://scripts/ui/CollectionScreen.gd" id="1_collection"]
-[ext_resource type="PackedScene" uid="uid://cbw7xpldky1p7" path="res://scenes/ResourceDisplay.tscn" id="2_sj7ji"]
 
 [node name="CollectionScreen" type="Control"]
 layout_mode = 3
@@ -90,14 +89,3 @@ layout_mode = 2
 text = "Click on a god to view details"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="ResourceDisplay" parent="." instance=ExtResource("2_sj7ji")]
-layout_mode = 0
-anchors_preset = 0
-anchor_left = 0.0
-anchor_right = 0.0
-offset_left = 864.0
-offset_top = 18.0
-offset_right = 1330.0
-offset_bottom = 49.0
-grow_horizontal = 1

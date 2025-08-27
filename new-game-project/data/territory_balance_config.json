@@ -1,0 +1,59 @@
+{
+  "generation_timing": {
+    "base_collection_interval_hours": 1.0,
+    "max_storage_hours": 12.0,
+    "overflow_protection": true,
+    "cache_timeout_seconds": 300,
+    "manual_collection_bonus": 1.1
+  },
+  
+  "summoners_war_balance": {
+    "description": "Summoners War style conservative balance to prevent resource explosion",
+    "base_generation_conservative": true,
+    "conservative_reduction": 0.8,
+    "require_god_assignment": true,
+    "god_efficiency_matters": true,
+    "element_matching_bonus": 0.25,
+    "awakened_god_bonus": 0.3
+  },
+  
+  "resource_flow_control": {
+    "description": "Control resource flow to maintain game economy balance",
+    "max_hourly_mana_per_territory": 500,
+    "max_hourly_crystals_per_territory": 15,
+    "progressive_diminishing_returns": 0.95,
+    "territory_count_for_diminishing": 3,
+    "frequent_collection_bonus": 1.1,
+    "frequent_collection_threshold_hours": 2.0
+  },
+  
+  "territory_upgrades": {
+    "description": "Balance for territory upgrade bonuses",
+    "level_bonus_per_level": 0.05,
+    "max_level_for_bonus": 15,
+    "resource_upgrade_bonus": 0.08,
+    "max_resource_upgrades": 15,
+    "defense_upgrade_bonus": 0.1,
+    "zone_upgrade_bonus": 0.12
+  },
+  
+  "god_assignment_balance": {
+    "description": "Balance for god assignment bonuses and efficiency",
+    "primary_role_efficiency": 1.0,
+    "secondary_role_efficiency": 0.8,
+    "awakened_god_secondary_role": true,
+    "tier_bonuses": {
+      "common": 1.0,
+      "rare": 1.2,
+      "epic": 1.4,
+      "legendary": 1.8
+    }
+  },
+  
+  "debug_settings": {
+    "enable_detailed_logging": true,
+    "log_collection_events": true,
+    "log_generation_calculations": false,
+    "warn_on_fallback_systems": true
+  }
+}

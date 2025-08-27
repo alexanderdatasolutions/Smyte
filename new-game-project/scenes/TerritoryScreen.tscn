@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://58w18k2qjipa"]
+[gd_scene load_steps=2 format=3 uid="uid://58w18k2qjipa"]
 
 [ext_resource type="Script" uid="uid://bebu6xd7awcxs" path="res://scripts/ui/TerritoryScreen.gd" id="1_territory"]
-[ext_resource type="PackedScene" uid="uid://cbw7xpldky1p7" path="res://scenes/ResourceDisplay.tscn" id="2_xlxuo"]
 
 [node name="TerritoryScreen" type="Control"]
 layout_mode = 3
@@ -36,21 +35,14 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
-custom_minimum_size = Vector2(1000, 600)
+custom_minimum_size = Vector2(1000, 480)
 layout_mode = 0
 offset_left = 182.0
-offset_top = 63.0
+offset_top = 150.0
 offset_right = 1182.0
-offset_bottom = 663.0
+offset_bottom = 630.0
 
 [node name="TerritoryList" type="VBoxContainer" parent="ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-
-[node name="ResourceDisplay2" parent="." instance=ExtResource("2_xlxuo")]
-layout_mode = 1
-offset_left = -545.0
-offset_top = 25.0
-offset_right = -79.0
-offset_bottom = 56.0
