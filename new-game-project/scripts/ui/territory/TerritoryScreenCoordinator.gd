@@ -36,23 +36,24 @@ func _ready():
 func _create_ui_structure():
 	"""Create clean UI structure"""
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	
+
 	main_container = VBoxContainer.new()
 	main_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	main_container.add_theme_constant_override("margin_top", 60)  # Space for resource bar
 	add_child(main_container)
-	
-	# Back button
-	back_button = Button.new()
-	back_button.text = "← BACK TO WORLD"
-	back_button.custom_minimum_size = Vector2(150, 40)
-	back_button.pressed.connect(_on_back_pressed)
-	main_container.add_child(back_button)
-	
+
 	# Scroll container for territory list
 	scroll_container = ScrollContainer.new()
 	scroll_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll_container.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	main_container.add_child(scroll_container)
+
+	# Back button at bottom
+	back_button = Button.new()
+	back_button.text = "← BACK TO WORLD"
+	back_button.custom_minimum_size = Vector2(150, 40)
+	back_button.pressed.connect(_on_back_pressed)
+	main_container.add_child(back_button)
 
 func _setup_managers():
 	"""Create component managers"""
@@ -67,11 +68,11 @@ func _setup_managers():
 
 func _setup_ui_components():
 	"""Setup UI using managers"""
-	# Add header
+	# Add header at top
 	var header_panel = header_manager.create_header()
 	main_container.add_child(header_panel)
-	main_container.move_child(header_panel, 1)  # After back button
-	
+	main_container.move_child(header_panel, 0)  # At top, before scroll container
+
 	# Add territory list
 	var territory_list = list_manager.create_territory_list()
 	scroll_container.add_child(territory_list)
