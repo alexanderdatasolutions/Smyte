@@ -29,6 +29,12 @@ func _ready():
 	if back_button:
 		back_button.pressed.connect(_on_back_pressed)
 
+	# Check if there's an active battle
+	var battle_coordinator = SystemRegistry.get_instance().get_system("BattleCoordinator")
+	if battle_coordinator and battle_coordinator.has_method("is_in_battle"):
+		if not battle_coordinator.is_in_battle():
+			_show_no_battle_state()
+
 func _on_back_pressed():
 	"""Handle back button press - RULE 4: UI signals"""
 	back_pressed.emit()
@@ -45,3 +51,12 @@ func _on_battle_ended(_result: Dictionary):
 	# Update UI based on result
 	# Individual UI components handle their own updates via EventBus
 	pass
+
+func _show_no_battle_state():
+	"""Show friendly message when no battle is active"""
+	if battle_status_label:
+		battle_status_label.text = "No active battle. Start a battle from Dungeons or Territories."
+	if action_label:
+		action_label.text = "Ready to fight!"
+	if battle_title_label:
+		battle_title_label.text = "BATTLE ARENA"
