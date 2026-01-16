@@ -5,7 +5,7 @@ class_name AwakeningSystem
 signal awakening_completed(god)
 signal awakening_failed(god, reason)
 
-const GameDataLoader = preload("res://scripts/utilities/JSONLoader.gd")
+const GameDataLoader = preload("res://scripts/utilities/JSONDataLoader.gd")
 
 # Load awakening data from JSON
 var awakening_data: Dictionary = {}

@@ -1,6 +1,7 @@
-# scripts/utilities/JSONLoader.gd
+# scripts/utilities/JSONDataLoader.gd
 # Replaces 10+ duplicate JSON loading implementations across the codebase
-class_name JSONLoader extends RefCounted
+# Note: class_name is derived from filename (JSONDataLoader.gd -> JSONDataLoader)
+extends RefCounted
 
 # Cache for loaded JSON data to avoid repeated file I/O
 static var _cache: Dictionary = {}
@@ -14,7 +15,7 @@ static func load_file(path: String) -> Dictionary:
 	
 	var file = FileAccess.open(path, FileAccess.READ)
 	if not file:
-		push_error("JSONLoader: Could not open file: " + path)
+		push_error("JSONDataLoader: Could not open file: " + path)
 		return {}
 	
 	var json_text = file.get_as_text()
@@ -24,7 +25,7 @@ static func load_file(path: String) -> Dictionary:
 	var parse_result = json.parse(json_text)
 	
 	if parse_result != OK:
-		push_error("JSONLoader: Error parsing JSON from " + path + ": " + json.error_string)
+		push_error("JSONDataLoader: Error parsing JSON from " + path + ": " + json.error_string)
 		return {}
 	
 	var data = json.data
@@ -49,7 +50,7 @@ static func load_directory(dir_path: String, file_pattern: String = "*.json") ->
 	var dir = DirAccess.open(dir_path)
 	
 	if not dir:
-		push_error("JSONLoader: Could not open directory: " + dir_path)
+		push_error("JSONDataLoader: Could not open directory: " + dir_path)
 		return {}
 	
 	dir.list_dir_begin()
@@ -73,7 +74,7 @@ static func load_directory(dir_path: String, file_pattern: String = "*.json") ->
 static func validate_data(data: Dictionary, required_fields: Array) -> bool:
 	for field in required_fields:
 		if not data.has(field):
-			push_error("JSONLoader: Missing required field: " + field)
+			push_error("JSONDataLoader: Missing required field: " + field)
 			return false
 	return true
 
