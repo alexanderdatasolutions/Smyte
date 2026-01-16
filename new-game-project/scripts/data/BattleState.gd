@@ -29,7 +29,7 @@ func _init():
 ## Setup battle state from configuration
 func setup_from_config(config: BattleConfig):
 	battle_type = BattleConfig.BattleType.keys()[config.battle_type]
-	battle_id = config.dungeon_id if not config.dungeon_id.is_empty() else config.territory_id
+	battle_id = config.dungeon_name if not config.dungeon_name.is_empty() else config.territory_id
 	
 	# Create player units from attacker team
 	player_units.clear()
