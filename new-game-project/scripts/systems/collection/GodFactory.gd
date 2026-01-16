@@ -44,7 +44,17 @@ static func create_from_json(god_id: String) -> God:
 	
 	# Initialize equipment slots (6 slots as per prompt.prompt.md)
 	god.equipment = [null, null, null, null, null, null]
-	
+
+	# Initialize traits from god definition
+	var trait_manager = SystemRegistry.get_instance().get_system("TraitManager")
+	if trait_manager:
+		trait_manager.initialize_god_traits(god, god_id)
+
+	# Initialize role from god definition
+	var role_manager = SystemRegistry.get_instance().get_system("RoleManager")
+	if role_manager:
+		role_manager.initialize_god_role(god, god_data)
+
 	return god
 
 static func parse_element(element_value) -> God.ElementType:

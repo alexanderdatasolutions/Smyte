@@ -496,3 +496,57 @@ func test_role_manager_bonus_with_no_roles():
 
 	var bonus = manager.get_stat_bonus_for_god(god, "attack_percent")
 	runner.assert_equal(bonus, 0.0, "should return 0 for god with no roles")
+
+# ==============================================================================
+# ROLE INITIALIZATION TESTS
+# ==============================================================================
+
+func test_initialize_god_role_with_default_role():
+	var manager = RoleManager.new()
+	manager.load_roles_from_json()
+	var god = create_mock_god()
+	var god_data = {"default_role": "fighter", "role_affinities": ["support"]}
+
+	manager.initialize_god_role(god, god_data)
+
+	runner.assert_equal(god.primary_role, "fighter", "should set primary role from default_role")
+	runner.assert_equal(god.secondary_role, "", "should not auto-assign secondary role")
+
+func test_initialize_god_role_with_invalid_default_role():
+	var manager = RoleManager.new()
+	manager.load_roles_from_json()
+	var god = create_mock_god()
+	var god_data = {"default_role": "invalid_role", "role_affinities": []}
+
+	manager.initialize_god_role(god, god_data)
+
+	runner.assert_equal(god.primary_role, "", "should not set invalid role")
+
+func test_initialize_god_role_with_empty_default_role():
+	var manager = RoleManager.new()
+	manager.load_roles_from_json()
+	var god = create_mock_god()
+	var god_data = {"default_role": "", "role_affinities": []}
+
+	manager.initialize_god_role(god, god_data)
+
+	runner.assert_equal(god.primary_role, "", "should handle empty default_role")
+
+func test_initialize_god_role_with_null_god():
+	var manager = RoleManager.new()
+	manager.load_roles_from_json()
+	var god_data = {"default_role": "fighter"}
+
+	# Should not crash with null god
+	manager.initialize_god_role(null, god_data)
+	runner.assert_true(true, "should handle null god gracefully")
+
+func test_initialize_god_role_with_missing_default_role():
+	var manager = RoleManager.new()
+	manager.load_roles_from_json()
+	var god = create_mock_god()
+	var god_data = {"role_affinities": ["support"]}  # No default_role key
+
+	manager.initialize_god_role(god, god_data)
+
+	runner.assert_equal(god.primary_role, "", "should handle missing default_role key")

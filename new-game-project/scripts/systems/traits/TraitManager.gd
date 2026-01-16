@@ -102,7 +102,11 @@ func get_traits_by_rarity(rarity: GodTrait.TraitRarity) -> Array[GodTrait]:
 
 func get_innate_traits_for_god(god_base_id: String) -> Array[String]:
 	"""Get the innate trait IDs for a god based on their base ID (e.g., 'zeus', 'hephaestus')"""
-	return _god_innate_traits.get(god_base_id, [])
+	var traits = _god_innate_traits.get(god_base_id, [])
+	var result: Array[String] = []
+	for trait_id in traits:
+		result.append(trait_id)
+	return result
 
 # ==============================================================================
 # TRAIT ASSIGNMENT

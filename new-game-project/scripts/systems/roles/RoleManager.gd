@@ -96,6 +96,20 @@ func get_role_ids() -> Array[String]:
 # ROLE ASSIGNMENT
 # ==============================================================================
 
+func initialize_god_role(god: God, god_data: Dictionary) -> void:
+	"""Initialize a god's role from god definition data (default_role and role_affinities)"""
+	if not god:
+		return
+
+	# Set primary role from default_role
+	var default_role = god_data.get("default_role", "")
+	if not default_role.is_empty() and _roles.has(default_role):
+		god.primary_role = default_role
+
+	# Note: role_affinities are stored in god_data but not auto-assigned
+	# They indicate which roles the god can potentially learn/switch to
+	# Secondary roles are assigned manually through gameplay
+
 func assign_primary_role(god: God, role_id: String) -> bool:
 	"""Assign a primary role to a god"""
 	if not god:
