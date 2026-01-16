@@ -7,7 +7,7 @@ extends RefCounted
 ## Creates a styled summon button with title, description, and cost
 static func create_summon_card(title: String, description: String, cost: String, color: Color) -> Button:
 	var button = Button.new()
-	button.custom_minimum_size = Vector2(180, 150)
+	button.custom_minimum_size = Vector2(180, 180)  # Uniform height for all buttons
 	button.text = ""  # Remove built-in text to prevent overlap
 
 	# Button visual style
@@ -65,10 +65,10 @@ static func create_summon_card(title: String, description: String, cost: String,
 	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(cost_label)
 
-	# Spacer to push description down
+	# Spacer to push description down (fixed height for consistency)
 	var spacer = Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	spacer.custom_minimum_size = Vector2(0, 20)
+	spacer.size_flags_vertical = Control.SIZE_FILL
+	spacer.custom_minimum_size = Vector2(0, 40)  # Fixed height for uniform button layout
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(spacer)
 
