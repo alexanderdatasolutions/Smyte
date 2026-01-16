@@ -13,8 +13,13 @@ Following prompt.prompt.md architecture:
 """
 
 # UI Components (following RULE 2: Single responsibility)
-@onready var battle_ui_coordinator = $BattleUICoordinator
-@onready var back_button = $BackButton
+@onready var back_button = $MainContainer/BottomContainer/ButtonContainer/BackButton
+@onready var battle_title_label = $MainContainer/HeaderContainer/BattleTitleLabel
+@onready var action_label = $MainContainer/BattleArenaContainer/BattleCenter/ActionDisplay/ActionLabel
+@onready var battle_status_label = $MainContainer/BottomContainer/BattleStatusLabel
+@onready var player_team_container = $MainContainer/BattleArenaContainer/PlayerTeamSide/PlayerTeamContainer
+@onready var enemy_team_container = $MainContainer/BattleArenaContainer/EnemyTeamSide/EnemyTeamContainer
+@onready var turn_indicator = $MainContainer/BattleArenaContainer/BattleCenter/TurnIndicator
 
 # Signal for screen navigation (RULE 4: UI signals)
 signal back_pressed
