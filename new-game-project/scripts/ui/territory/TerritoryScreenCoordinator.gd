@@ -37,7 +37,7 @@ func _create_ui_structure():
 
 	main_container = VBoxContainer.new()
 	main_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	main_container.add_theme_constant_override("margin_top", 60)  # Space for resource bar
+	main_container.add_theme_constant_override("margin_top", 80)  # Space for resource bar (increased from 60px)
 	add_child(main_container)
 
 	# Scroll container for territory list
