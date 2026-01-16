@@ -75,8 +75,7 @@ func _update_button_visibility():
 	if not progression_manager:
 		return
 
-	# FOR DEVELOPMENT: Show all buttons to test functionality
-	# TODO: Restore proper feature unlocking after core systems are working
+	# All buttons visible for development - feature unlocking not implemented yet
 	for feature_name in feature_buttons:
 		var button = feature_buttons[feature_name]
 		if button:
@@ -91,47 +90,31 @@ func _update_button_visibility():
 		collection_button.visible = true
 		collection_button.modulate = Color.WHITE
 
-func _on_summon_building_pressed():
+func _navigate_to_screen(screen_name: String):
+	"""Helper function to navigate to a screen"""
 	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
 	if screen_manager:
-		screen_manager.change_screen("summon")
+		screen_manager.change_screen(screen_name)
 	else:
 		push_error("WorldView: ScreenManager not found")
+
+func _on_summon_building_pressed():
+	_navigate_to_screen("summon")
 
 func _on_collection_building_pressed():
-	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
-	if screen_manager:
-		screen_manager.change_screen("collection")
-	else:
-		push_error("WorldView: ScreenManager not found")
+	_navigate_to_screen("collection")
 
 func _on_territory_building_pressed():
-	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
-	if screen_manager:
-		screen_manager.change_screen("territory")
-	else:
-		push_error("WorldView: ScreenManager not found")
+	_navigate_to_screen("territory")
 
 func _on_sacrifice_building_pressed():
-	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
-	if screen_manager:
-		screen_manager.change_screen("sacrifice")
-	else:
-		push_error("WorldView: ScreenManager not found")
+	_navigate_to_screen("sacrifice")
 
 func _on_dungeon_building_pressed():
-	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
-	if screen_manager:
-		screen_manager.change_screen("dungeon")
-	else:
-		push_error("WorldView: ScreenManager not found")
+	_navigate_to_screen("dungeon")
 
 func _on_equipment_building_pressed():
-	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
-	if screen_manager:
-		screen_manager.change_screen("equipment")
-	else:
-		push_error("WorldView: ScreenManager not found")
+	_navigate_to_screen("equipment")
 
 # ==============================================================================
 # TUTORIAL SYSTEM INTEGRATION (MYTHOS ARCHITECTURE)
