@@ -12,14 +12,6 @@ script = ExtResource("1_territory")
 [node name="Background" type="NinePatchRect" parent="."]
 layout_mode = 0
 
-[node name="BackButton" type="Button" parent="."]
-layout_mode = 0
-offset_left = 38.0
-offset_top = 640.0
-offset_right = 118.0
-offset_bottom = 680.0
-text = "← Back"
-
 [node name="TitleLabel" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = 5
