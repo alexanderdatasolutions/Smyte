@@ -21,13 +21,11 @@ func create_territory_list() -> Control:
 
 func refresh_territories():
 	"""Refresh the territory list display"""
-	print("TerritoryListManager: Refreshing territory list...")
 	_clear_list()
 	_populate_territories()
 
 func on_filter_changed(filter_id: String):
 	"""Handle filter changes from header"""
-	print("TerritoryListManager: Filter changed to: %s" % filter_id)
 	current_filter = filter_id
 	refresh_territories()
 
@@ -40,8 +38,6 @@ func _clear_list():
 
 func _populate_territories():
 	"""Populate territory list using TerritoryManager's enhanced method"""
-	print("TerritoryListManager: Populating territories...")
-	
 	# Get territories through TerritoryManager's enhanced method
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
 	if not territory_manager:
@@ -67,31 +63,30 @@ func _populate_territories():
 		# Create territory card
 		var territory_card = _create_territory_card_from_data(territory_id, territory_data)
 		territory_list.add_child(territory_card)
-	
-	print("TerritoryListManager: Created %d territory cards" % total_count)
-	
+
 	# Emit refresh signal for header updates
 	territories_refreshed.emit(total_count, controlled_count)
 
 func _create_territory_card_from_data(territory_id: String, territory_data: Dictionary) -> Control:
 	"""Create enhanced territory card with all rich UI features from old implementation"""
-	
+
 	# Build enhanced territory card with full details using static method
-	var enhanced_card = TerritoryCardBuilderScript.create_enhanced_territory_card(territory_id, territory_data)
-	
-	return enhanced_card
+	var card_result = TerritoryCardBuilderScript.create_enhanced_territory_card(territory_id, territory_data)
+
+	# Connect attack button signal
+	if card_result.has("attack_button") and card_result.attack_button:
+		card_result.attack_button.pressed.connect(_on_attack_territory.bind(territory_id))
+
+	return card_result.card
 
 func _on_collect_resources(territory_id: String):
 	"""Handle collect resources action"""
-	print("TerritoryListManager: Collect resources from territory: %s" % territory_id)
 	territory_action_requested.emit(territory_id, "collect_resources", {})
 
 func _on_manage_territory(territory_id: String):
 	"""Handle manage territory action"""
-	print("TerritoryListManager: Manage territory: %s" % territory_id)
 	territory_action_requested.emit(territory_id, "manage_gods", {})
 
 func _on_attack_territory(territory_id: String):
 	"""Handle attack territory action"""
-	print("TerritoryListManager: Attack territory: %s" % territory_id)
 	territory_action_requested.emit(territory_id, "attack", {})

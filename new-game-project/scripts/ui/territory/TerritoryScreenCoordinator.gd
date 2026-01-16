@@ -26,12 +26,10 @@ var actions_manager: TerritoryActionsManager
 var back_button: Button
 
 func _ready():
-	print("TerritoryScreenCoordinator: Creating complete territory interface...")
 	_create_ui_structure()
 	_setup_managers()
 	_setup_ui_components()
 	_connect_signals()
-	print("TerritoryScreenCoordinator: Enhanced territory interface ready!")
 
 func _create_ui_structure():
 	"""Create clean UI structure"""

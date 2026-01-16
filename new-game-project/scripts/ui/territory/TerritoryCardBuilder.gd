@@ -6,17 +6,18 @@ extends Node
 
 const UIStyler = preload("res://scripts/ui/territory/TerritoryUIStyler.gd")
 
-static func create_enhanced_territory_card(territory_id: String, territory_data: Dictionary) -> Control:
-	"""Create FULL-FEATURED territory card matching old_territory_role_screen.gd functionality"""
-	
+static func create_enhanced_territory_card(territory_id: String, territory_data: Dictionary) -> Dictionary:
+	"""Create FULL-FEATURED territory card matching old_territory_role_screen.gd functionality
+	Returns: Dictionary with keys 'card' (the Control), 'attack_button' (Button reference)"""
+
 	# Main card container with enhanced styling
 	var card_panel = _create_enhanced_card_panel(territory_data)
-	
+
 	# Main vertical layout with proper margins
 	var main_vbox = VBoxContainer.new()
 	main_vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	main_vbox.add_theme_constant_override("separation", 8)
-	
+
 	var margin_container = MarginContainer.new()
 	margin_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	margin_container.add_theme_constant_override("margin_left", 12)
@@ -25,43 +26,46 @@ static func create_enhanced_territory_card(territory_id: String, territory_data:
 	margin_container.add_theme_constant_override("margin_bottom", 10)
 	card_panel.add_child(margin_container)
 	margin_container.add_child(main_vbox)
-	
+
 	# HEADER ROW - Territory name, tier, element, status badges
 	var header_row = _create_enhanced_territory_header(territory_id, territory_data)
 	main_vbox.add_child(header_row)
-	
+
 	# STAGE PROGRESS - Visual progress bar with stage indicators
 	var progress_section = _create_stage_progress_with_indicators(territory_data)
 	main_vbox.add_child(progress_section)
-	
+
 	# MAIN CONTENT SECTIONS - 4 detailed sections side by side
 	var content_hbox = HBoxContainer.new()
 	content_hbox.add_theme_constant_override("separation", 12)
 	content_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	main_vbox.add_child(content_hbox)
-	
+
 	# 1. RESOURCE PRODUCTION SECTION - Detailed production rates
 	var production_content = _create_detailed_resource_production(territory_data)
 	var production_box = UIStyler.create_section_box("📊 Resources", production_content, Color(0.2, 0.7, 0.9, 1), 240)
 	content_hbox.add_child(production_box)
-	
+
 	# 2. GOD ROLE ASSIGNMENTS SECTION - Detailed god assignments
 	var roles_content = _create_detailed_role_assignments(territory_data)
 	var roles_box = UIStyler.create_section_box("⚔️ Gods", roles_content, Color(0.8, 0.4, 0.9, 1), 220)
 	content_hbox.add_child(roles_box)
-	
+
 	# 3. COMBAT & FARMING SECTION - Stage selection and combat
-	var combat_content = _create_combat_farming_section(territory_data)
-	var combat_box = UIStyler.create_section_box("⚔️ Combat", combat_content, Color(0.9, 0.6, 0.2, 1), 200)
+	var combat_result = _create_combat_farming_section(territory_data)
+	var combat_box = UIStyler.create_section_box("⚔️ Combat", combat_result.content, Color(0.9, 0.6, 0.2, 1), 200)
 	content_hbox.add_child(combat_box)
-	
+
 	# 4. UPGRADES & POWER SECTION - Territory upgrades
 	var upgrade_content = _create_upgrade_power_section(territory_data)
 	var upgrade_box = UIStyler.create_section_box("⬆️ Upgrades", upgrade_content, Color(0.2, 0.9, 0.4, 1), 200)
 	content_hbox.add_child(upgrade_box)
-	
-	return card_panel
+
+	return {
+		"card": card_panel,
+		"attack_button": combat_result.attack_button
+	}
 
 static func _create_enhanced_card_panel(territory_data: Dictionary) -> Panel:
 	"""Create enhanced card panel with tier-based styling and status effects"""
@@ -389,31 +393,32 @@ static func _create_detailed_role_line(role_data: Dictionary, _territory_data: D
 	
 	return line
 
-static func _create_combat_farming_section(territory_data: Dictionary) -> Control:
-	"""Create combat and farming section with stage selection"""
+static func _create_combat_farming_section(territory_data: Dictionary) -> Dictionary:
+	"""Create combat and farming section with stage selection
+	Returns: Dictionary with 'content' (Control) and 'attack_button' (Button)"""
 	var section = VBoxContainer.new()
 	section.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	section.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	section.add_theme_constant_override("separation", 5)
-	
+
 	var territory_id = territory_data.get("id", "")
 	var current_stage = 0
 	var max_stages = territory_data.get("stages", 10)
-	
+
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
 	if territory_manager and territory_manager.has_method("get_territory_stage"):
 		current_stage = territory_manager.get_territory_stage(territory_id)
-	
+
 	# Stage selector
 	var stage_selector = HBoxContainer.new()
 	stage_selector.add_theme_constant_override("separation", 3)
-	
+
 	var prev_btn = Button.new()
 	prev_btn.text = "◀"
 	prev_btn.custom_minimum_size = Vector2(20, 20)
 	prev_btn.add_theme_font_size_override("font_size", 8)
 	stage_selector.add_child(prev_btn)
-	
+
 	var stage_label = Label.new()
 	var selected_stage = min(current_stage + 1, max_stages)  # Next stage to attack
 	stage_label.text = "Stage %d" % selected_stage
@@ -421,15 +426,15 @@ static func _create_combat_farming_section(territory_data: Dictionary) -> Contro
 	stage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	stage_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	stage_selector.add_child(stage_label)
-	
+
 	var next_btn = Button.new()
 	next_btn.text = "▶"
 	next_btn.custom_minimum_size = Vector2(20, 20)
 	next_btn.add_theme_font_size_override("font_size", 8)
 	stage_selector.add_child(next_btn)
-	
+
 	section.add_child(stage_selector)
-	
+
 	# Power requirement
 	var power_req = _calculate_power_requirement(territory_data, selected_stage)
 	var power_label = Label.new()
@@ -438,7 +443,7 @@ static func _create_combat_farming_section(territory_data: Dictionary) -> Contro
 	power_label.add_theme_color_override("font_color", Color.ORANGE)
 	power_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	section.add_child(power_label)
-	
+
 	# Attack button
 	var attack_btn = Button.new()
 	if current_stage >= max_stages:
@@ -447,12 +452,15 @@ static func _create_combat_farming_section(territory_data: Dictionary) -> Contro
 	else:
 		attack_btn.text = "⚔️ Attack"
 		attack_btn.modulate = Color.RED
-	
+
 	attack_btn.add_theme_font_size_override("font_size", 10)
 	attack_btn.custom_minimum_size = Vector2(0, 25)
 	section.add_child(attack_btn)
-	
-	return section
+
+	return {
+		"content": section,
+		"attack_button": attack_btn
+	}
 
 static func _create_upgrade_power_section(territory_data: Dictionary) -> Control:
 	"""Create upgrades and power section"""
