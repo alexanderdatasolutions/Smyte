@@ -41,35 +41,60 @@ func _register_screen_scenes():
 		"battle": "res://scenes/BattleScreen.tscn"
 	}
 
+func _normalize_screen_name(screen_name: String) -> String:
+	"""Normalize screen name to handle different naming conventions"""
+	var normalized = screen_name.to_lower()
+
+	# Handle common aliases
+	var aliases = {
+		"worldview": "worldview",
+		"collectionscreen": "collection",
+		"summonscreen": "summon",
+		"territoryscreen": "territory",
+		"sacrificescreen": "sacrifice",
+		"sacrificeselectionscreen": "sacrifice_selection",
+		"dungeonscreen": "dungeon",
+		"equipmentscreen": "equipment",
+		"battlescreen": "battle"
+	}
+
+	if aliases.has(normalized):
+		return aliases[normalized]
+
+	return normalized
+
 func change_screen(screen_name: String) -> bool:
 	"""Change to a different screen - RULE 3: Validate, update, emit"""
+	# Normalize screen name to handle different naming conventions
+	var normalized_name = _normalize_screen_name(screen_name)
+
 	# 1. Validate
-	if not screen_scenes.has(screen_name):
-		push_error("ScreenManager: Screen not found: %s" % screen_name)
+	if not screen_scenes.has(normalized_name):
+		push_error("ScreenManager: Screen not found: %s (normalized: %s)" % [screen_name, normalized_name])
 		return false
 
-	if screen_name == current_screen_name:
+	if normalized_name == current_screen_name:
 		return true
 	
 	# 2. Update
 	var old_screen_name = current_screen_name
-	screen_transition_started.emit(old_screen_name, screen_name)
-	
+	screen_transition_started.emit(old_screen_name, normalized_name)
+
 	# Load new screen if not cached
-	var new_screen = _get_or_load_screen(screen_name)
+	var new_screen = _get_or_load_screen(normalized_name)
 	if not new_screen:
-		push_error("ScreenManager: Failed to load screen: %s" % screen_name)
+		push_error("ScreenManager: Failed to load screen: %s" % normalized_name)
 		return false
-	
+
 	# Switch screens
-	_switch_to_screen(new_screen, screen_name)
-	
+	_switch_to_screen(new_screen, normalized_name)
+
 	# 3. Emit
 	previous_screen = old_screen_name
-	current_screen_name = screen_name
-	screen_changed.emit(screen_name)
-	screen_transition_completed.emit(screen_name)
-	
+	current_screen_name = normalized_name
+	screen_changed.emit(normalized_name)
+	screen_transition_completed.emit(normalized_name)
+
 	return true
 
 func go_back() -> bool:
@@ -109,15 +134,16 @@ func _switch_to_screen(new_screen: Control, _screen_name: String):
 	if not main_scene:
 		push_error("ScreenManager: No main scene found")
 		return
-	
-	# Hide current screen
-	if current_screen and is_instance_valid(current_screen):
-		current_screen.visible = false
-	
+
+	# Hide ALL loaded screens before showing the new one
+	for screen in loaded_screens.values():
+		if screen and is_instance_valid(screen):
+			screen.visible = false
+
 	# Add new screen if not already in tree
 	if not new_screen.get_parent():
 		main_scene.add_child(new_screen)
-	
+
 	# Show new screen
 	new_screen.visible = true
 	current_screen = new_screen
