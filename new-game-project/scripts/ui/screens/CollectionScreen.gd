@@ -47,9 +47,8 @@ func get_tier_name(tier: int) -> String:
 		_: return "Unknown"
 
 func get_power_rating(god) -> int:
-	# Calculate power rating from base stats
-	var power = god.base_attack + god.base_defense + god.base_hp + god.base_speed
-	return int(power * 0.8)  # Adjust multiplier as needed
+	# Use GodCalculator for consistent power rating calculation (RULE 3)
+	return GodCalculator.get_power_rating(god)
 
 func get_experience_to_next_level(god) -> int:
 	# Use centralized experience calculator for consistency
