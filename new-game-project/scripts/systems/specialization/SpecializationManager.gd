@@ -58,7 +58,12 @@ func load_specializations_from_json() -> void:
 	# Load specialization definitions
 	if data.has("specializations"):
 		for spec_id in data.specializations:
+			# Skip comment entries (string values used for documentation)
+			if spec_id.begins_with("_"):
+				continue
 			var spec_data = data.specializations[spec_id]
+			if typeof(spec_data) != TYPE_DICTIONARY:
+				continue
 			spec_data["id"] = spec_id
 			var spec = GodSpecialization.from_dict(spec_data)
 			if spec:
@@ -181,12 +186,16 @@ func can_god_unlock_specialization(god: God, spec_id: String) -> bool:
 	if god.level < spec.level_required:
 		return false
 
-	# Check role requirement (assume god has primary_role field - will be added in P5-01)
-	if spec.role_required != "" and god.get("primary_role") != spec.role_required:
+	# Check role requirement
+	if spec.role_required != "" and god.primary_role != spec.role_required:
 		return false
 
-	# Check trait requirements (assume god has trait_ids field)
-	var god_trait_ids = god.get("trait_ids", [])
+	# Check trait requirements - combine innate and learned traits
+	var god_trait_ids: Array = []
+	for t in god.innate_traits:
+		god_trait_ids.append(t)
+	for t in god.learned_traits:
+		god_trait_ids.append(t)
 	if not spec.meets_trait_requirements(god_trait_ids):
 		return false
 
@@ -241,7 +250,7 @@ func get_available_specializations_for_god(god: God) -> Array[GodSpecialization]
 
 	if next_tier == 1:
 		# Tier 1: All root specializations for god's role
-		var god_role = god.get("primary_role", "")
+		var god_role = god.primary_role if god.primary_role else ""
 		candidates = get_root_specializations(god_role)
 	else:
 		# Tier 2/3: Children of current specialization

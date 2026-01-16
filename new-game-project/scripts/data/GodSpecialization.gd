@@ -125,7 +125,7 @@ func has_cost_requirement() -> bool:
 	"""Check if this specialization has unlock costs"""
 	return not costs.is_empty()
 
-func meets_trait_requirements(god_traits: Array[String]) -> bool:
+func meets_trait_requirements(god_traits: Array) -> bool:
 	"""Check if god's traits meet requirements"""
 	# Check blocked traits
 	for trait_id in blocked_traits:
@@ -266,8 +266,8 @@ func get_tooltip() -> String:
 				if value:
 					tooltip += "  • %s\n" % stat_name.replace("_", " ").capitalize()
 			else:
-				var sign = "+" if value >= 0 else ""
-				tooltip += "  • %s: %s%d%%\n" % [stat_name.replace("_percent", "").replace("_", " ").capitalize(), sign, int(value * 100)]
+				var prefix = "+" if value >= 0 else ""
+				tooltip += "  • %s: %s%d%%\n" % [stat_name.replace("_percent", "").replace("_", " ").capitalize(), prefix, int(value * 100)]
 
 	# Task bonuses
 	if not task_bonuses.is_empty():
@@ -362,7 +362,8 @@ static func from_dict(data: Dictionary):
 
 	# Tree structure
 	new_spec.tier = data.get("tier", 1)
-	new_spec.parent_spec = data.get("parent_spec", "")
+	var parent_value = data.get("parent_spec", "")
+	new_spec.parent_spec = parent_value if parent_value != null else ""
 
 	# Convert children_specs array
 	var children_data = data.get("children_specs", [])

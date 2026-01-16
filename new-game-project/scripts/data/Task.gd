@@ -73,7 +73,7 @@ enum TaskRarity {
 # METHODS
 # ==============================================================================
 
-func get_duration_for_god(god: God, trait_bonus: float = 0.0, skill_level: int = 0) -> int:
+func get_duration_for_god(_god: God, trait_bonus: float = 0.0, skill_level: int = 0) -> int:
 	"""Calculate actual task duration considering bonuses"""
 	var duration = float(base_duration_seconds)
 
@@ -88,7 +88,7 @@ func get_duration_for_god(god: God, trait_bonus: float = 0.0, skill_level: int =
 
 	return int(duration)
 
-func get_rewards_for_god(god: God, trait_bonus: float = 0.0, skill_level: int = 0) -> Dictionary:
+func get_rewards_for_god(_god: God, trait_bonus: float = 0.0, skill_level: int = 0) -> Dictionary:
 	"""Calculate actual rewards considering bonuses"""
 	var rewards = {}
 

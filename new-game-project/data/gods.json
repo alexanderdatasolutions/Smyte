@@ -25,7 +25,9 @@
       },
       "description": "King of the gods, master of lightning and thunder.",
       "summon_weight": 1,
-      "tier": 4
+      "tier": 4,
+      "default_role": "fighter",
+      "role_affinities": ["support"]
     },
     "poseidon": {
       "id": "poseidon",
@@ -52,7 +54,9 @@
       },
       "description": "God of the seas, earthquakes, and horses.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": ["gatherer"]
     },
     "hades": {
       "id": "hades",
@@ -79,7 +83,9 @@
       },
       "description": "God of the underworld and the dead.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "scholar",
+      "role_affinities": ["gatherer"]
     },
     "athena": {
       "id": "athena",
@@ -106,7 +112,9 @@
       },
       "description": "Goddess of wisdom, warfare, and crafts.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "scholar",
+      "role_affinities": ["fighter"]
     },
     "apollo": {
       "id": "apollo",
@@ -133,7 +141,9 @@
       },
       "description": "God of the sun, music, poetry, and prophecy.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "support",
+      "role_affinities": ["fighter"]
     },
     "artemis": {
       "id": "artemis",
@@ -160,7 +170,9 @@
       },
       "description": "Goddess of the hunt, wilderness, and the moon.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "gatherer",
+      "role_affinities": ["fighter"]
     },
     "ares": {
       "id": "ares",
@@ -182,7 +194,9 @@
       ],
       "description": "God of war and courage.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": []
     },
     "hermes": {
       "id": "hermes",
@@ -204,7 +218,9 @@
       ],
       "description": "Messenger of the gods, god of trade and thieves.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "support",
+      "role_affinities": ["gatherer"]
     },
     "odin": {
       "id": "odin",
@@ -231,7 +247,9 @@
       },
       "description": "The All-Father, god of wisdom, war, and death.",
       "summon_weight": 1,
-      "tier": 4
+      "tier": 4,
+      "default_role": "scholar",
+      "role_affinities": ["fighter"]
     },
     "thor": {
       "id": "thor",
@@ -258,7 +276,9 @@
       },
       "description": "God of thunder, wielder of Mjolnir.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": []
     },
     "freya": {
       "id": "freya",
@@ -285,7 +305,9 @@
       },
       "description": "Goddess of love, beauty, fertility, and war.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": ["support"]
     },
     "loki": {
       "id": "loki",
@@ -312,7 +334,9 @@
       },
       "description": "The trickster god, shapeshifter and master of lies.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": ["scholar"]
     },
     "baldur": {
       "id": "baldur",
@@ -339,7 +363,9 @@
       },
       "description": "God of light, purity, beauty, and innocence.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "support",
+      "role_affinities": []
     },
     "tyr": {
       "id": "tyr",
@@ -366,7 +392,9 @@
       },
       "description": "God of war and justice, the one-handed god.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": ["support"]
     },
     "heimdall": {
       "id": "heimdall",
@@ -388,7 +416,9 @@
       ],
       "description": "Guardian of the rainbow bridge Bifrost.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "support",
+      "role_affinities": ["fighter"]
     },
     "frigg": {
       "id": "frigg",
@@ -410,7 +440,9 @@
       ],
       "description": "Queen of Asgard, goddess of marriage and motherhood.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "support",
+      "role_affinities": ["scholar"]
     },
     "ra": {
       "id": "ra",
@@ -437,7 +469,9 @@
       },
       "description": "The sun god, king of the gods in Egyptian mythology.",
       "summon_weight": 1,
-      "tier": 4
+      "tier": 4,
+      "default_role": "fighter",
+      "role_affinities": ["support"]
     },
     "anubis": {
       "id": "anubis",
@@ -464,7 +498,9 @@
       },
       "description": "God of mummification and the afterlife.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "scholar",
+      "role_affinities": ["crafter"]
     },
     "isis": {
       "id": "isis",
@@ -491,7 +527,9 @@
       },
       "description": "Goddess of magic, motherhood, and healing.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "support",
+      "role_affinities": ["scholar"]
     },
     "thoth": {
       "id": "thoth",
@@ -513,7 +551,9 @@
       ],
       "description": "God of wisdom, writing, and judgment.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "scholar",
+      "role_affinities": []
     },
     "hera": {
       "id": "hera",
@@ -540,7 +580,9 @@
       },
       "description": "Queen of the gods, goddess of marriage and family.",
       "summon_weight": 1,
-      "tier": 4
+      "tier": 4,
+      "default_role": "support",
+      "role_affinities": ["fighter"]
     },
     "hestia": {
       "id": "hestia",
@@ -567,7 +609,9 @@
       },
       "description": "Goddess of the hearth, home, and domestic life.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "support",
+      "role_affinities": ["gatherer"]
     },
     "demeter": {
       "id": "demeter",
@@ -594,7 +638,9 @@
       },
       "description": "Goddess of the harvest, agriculture, and fertility.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "gatherer",
+      "role_affinities": []
     },
     "dionysus": {
       "id": "dionysus",
@@ -616,7 +662,9 @@
       ],
       "description": "God of wine, celebration, and ecstasy.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "gatherer",
+      "role_affinities": ["support"]
     },
     "hephaestus": {
       "id": "hephaestus",
@@ -638,7 +686,9 @@
       ],
       "description": "God of fire, metalworking, and crafts.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "crafter",
+      "role_affinities": ["gatherer"]
     },
     "aphrodite": {
       "id": "aphrodite",
@@ -660,7 +710,9 @@
       ],
       "description": "Goddess of love, beauty, and pleasure.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "support",
+      "role_affinities": []
     },
     "persephone": {
       "id": "persephone",
@@ -682,7 +734,9 @@
       ],
       "description": "Queen of the underworld, goddess of spring and the dead.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "gatherer",
+      "role_affinities": ["scholar"]
     },
     "jade_emperor": {
       "id": "jade_emperor",
@@ -709,7 +763,9 @@
       },
       "description": "Supreme ruler of heaven and all celestial beings.",
       "summon_weight": 1,
-      "tier": 4
+      "tier": 4,
+      "default_role": "support",
+      "role_affinities": ["scholar"]
     },
     "dragon_king": {
       "id": "dragon_king",
@@ -736,7 +792,9 @@
       },
       "description": "King of dragons, ruler of seas and bringer of rain.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": ["gatherer"]
     },
     "sun_wukong": {
       "id": "sun_wukong",
@@ -763,7 +821,9 @@
       },
       "description": "The Monkey King, immortal trickster and master of 72 transformations.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": ["scholar"]
     },
     "chang_e": {
       "id": "chang_e",
@@ -785,7 +845,9 @@
       ],
       "description": "Moon goddess living in the lunar palace with her jade rabbit.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "support",
+      "role_affinities": ["scholar"]
     },
     "nezha": {
       "id": "nezha",
@@ -807,7 +869,9 @@
       ],
       "description": "Child deity warrior with incredible power and righteous fury.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": []
     },
     "guanyin": {
       "id": "guanyin",
@@ -829,7 +893,9 @@
       ],
       "description": "Goddess of mercy and compassion, protector of all beings.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "support",
+      "role_affinities": []
     },
     "lei_gong": {
       "id": "lei_gong",
@@ -851,7 +917,9 @@
       ],
       "description": "God of thunder, punisher of evil and protector of justice.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": []
     },
     "guan_yu": {
       "id": "guan_yu",
@@ -873,7 +941,9 @@
       ],
       "description": "Deified general, god of war and loyalty.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": ["support"]
     },
     "perun": {
       "id": "perun",
@@ -900,7 +970,9 @@
       },
       "description": "Thunder god, wielder of lightning and protector of justice.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": []
     },
     "svarog": {
       "id": "svarog",
@@ -927,7 +999,9 @@
       },
       "description": "Sky father, divine smith, and creator of cosmic order.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "crafter",
+      "role_affinities": ["scholar"]
     },
     "mokosh": {
       "id": "mokosh",
@@ -954,7 +1028,9 @@
       },
       "description": "Mother Earth goddess, spinner of fate and giver of life.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "gatherer",
+      "role_affinities": ["support"]
     },
     "veles": {
       "id": "veles",
@@ -976,7 +1052,9 @@
       ],
       "description": "God of the underworld, cattle, and ancient wisdom.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "scholar",
+      "role_affinities": ["gatherer"]
     },
     "lada": {
       "id": "lada",
@@ -998,7 +1076,9 @@
       ],
       "description": "Goddess of love, beauty, and harmony.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "support",
+      "role_affinities": []
     },
     "domovoi": {
       "id": "domovoi",
@@ -1020,7 +1100,9 @@
       ],
       "description": "Household protector spirit, guardian of home and hearth.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "support",
+      "role_affinities": ["gatherer"]
     },
     "jormungandr": {
       "id": "jormungandr",
@@ -1047,7 +1129,9 @@
       },
       "description": "The World Serpent, destined to fight Thor at Ragnarok.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": []
     },
     "fenrir": {
       "id": "fenrir",
@@ -1069,7 +1153,9 @@
       ],
       "description": "The great wolf, bound until Ragnarok when he will devour Odin.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": []
     },
     "vidar": {
       "id": "vidar",
@@ -1091,7 +1177,9 @@
       ],
       "description": "The silent god of vengeance, destined to avenge Odin's death.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": []
     },
     "bragi": {
       "id": "bragi",
@@ -1113,7 +1201,9 @@
       ],
       "description": "God of poetry, wisdom, and eloquence.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "scholar",
+      "role_affinities": ["support"]
     },
     "osiris": {
       "id": "osiris",
@@ -1140,7 +1230,9 @@
       },
       "description": "God of the underworld, judge of the dead, and resurrection.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "scholar",
+      "role_affinities": ["support"]
     },
     "horus": {
       "id": "horus",
@@ -1167,7 +1259,9 @@
       },
       "description": "Sky god, protector of pharaohs, and symbol of divine kingship.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": ["support"]
     },
     "bastet": {
       "id": "bastet",
@@ -1189,7 +1283,9 @@
       ],
       "description": "Cat goddess, protector of homes and pregnant women.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "support",
+      "role_affinities": ["fighter"]
     },
     "sobek": {
       "id": "sobek",
@@ -1211,7 +1307,9 @@
       ],
       "description": "Crocodile god of the Nile, protector and creator deity.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": ["gatherer"]
     },
     "set": {
       "id": "set",
@@ -1233,7 +1331,9 @@
       ],
       "description": "God of chaos, storms, and the desert.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": []
     },
     "ptah": {
       "id": "ptah",
@@ -1255,7 +1355,9 @@
       ],
       "description": "Creator god, patron of craftsmen and architects.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "crafter",
+      "role_affinities": ["scholar"]
     },
     "sekhmet": {
       "id": "sekhmet",
@@ -1277,7 +1379,9 @@
       ],
       "description": "Lioness goddess of war, fire, and vengeance.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": []
     },
     "nephthys": {
       "id": "nephthys",
@@ -1299,7 +1403,9 @@
       ],
       "description": "Goddess of death, mourning, and funeral rites.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "support",
+      "role_affinities": ["scholar"]
     },
     "brahma": {
       "id": "brahma",
@@ -1326,7 +1432,9 @@
       },
       "description": "The Creator, first of the Hindu trinity.",
       "summon_weight": 1,
-      "tier": 4
+      "tier": 4,
+      "default_role": "scholar",
+      "role_affinities": ["crafter"]
     },
     "vishnu": {
       "id": "vishnu",
@@ -1353,7 +1461,9 @@
       },
       "description": "The Preserver, maintainer of cosmic order.",
       "summon_weight": 1,
-      "tier": 4
+      "tier": 4,
+      "default_role": "support",
+      "role_affinities": ["fighter"]
     },
     "shiva": {
       "id": "shiva",
@@ -1380,7 +1490,9 @@
       },
       "description": "The Destroyer, lord of dance and meditation.",
       "summon_weight": 1,
-      "tier": 4
+      "tier": 4,
+      "default_role": "fighter",
+      "role_affinities": ["scholar"]
     },
     "ganesha": {
       "id": "ganesha",
@@ -1407,7 +1519,9 @@
       },
       "description": "Remover of obstacles, patron of arts and sciences.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "scholar",
+      "role_affinities": ["support"]
     },
     "hanuman": {
       "id": "hanuman",
@@ -1434,7 +1548,9 @@
       },
       "description": "Monkey deity, devoted follower of Rama.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": ["support"]
     },
     "durga": {
       "id": "durga",
@@ -1461,7 +1577,9 @@
       },
       "description": "Warrior goddess, slayer of demons and protector of dharma.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": []
     },
     "lakshmi": {
       "id": "lakshmi",
@@ -1483,7 +1601,9 @@
       ],
       "description": "Goddess of wealth, fortune, and prosperity.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "support",
+      "role_affinities": ["gatherer"]
     },
     "saraswati": {
       "id": "saraswati",
@@ -1505,7 +1625,9 @@
       ],
       "description": "Goddess of knowledge, music, and the arts.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "scholar",
+      "role_affinities": []
     },
     "indra": {
       "id": "indra",
@@ -1527,7 +1649,9 @@
       ],
       "description": "King of gods, lord of storms and rain.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": ["support"]
     },
     "kali": {
       "id": "kali",
@@ -1549,7 +1673,9 @@
       ],
       "description": "Goddess of time, change, and destruction.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": []
     },
     "surya": {
       "id": "surya",
@@ -1571,7 +1697,9 @@
       ],
       "description": "Sun god, bringer of light and life.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "support",
+      "role_affinities": []
     },
     "chandra": {
       "id": "chandra",
@@ -1593,7 +1721,9 @@
       ],
       "description": "Moon god, controller of tides and time.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "scholar",
+      "role_affinities": ["support"]
     },
     "dagda": {
       "id": "dagda",
@@ -1620,7 +1750,9 @@
       },
       "description": "The Good God, master of all skills and keeper of the cauldron of plenty.",
       "summon_weight": 1,
-      "tier": 4
+      "tier": 4,
+      "default_role": "support",
+      "role_affinities": ["crafter"]
     },
     "brigid": {
       "id": "brigid",
@@ -1647,7 +1779,9 @@
       },
       "description": "Triple goddess of smithing, poetry, and healing.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "crafter",
+      "role_affinities": ["support"]
     },
     "lugh": {
       "id": "lugh",
@@ -1674,7 +1808,9 @@
       },
       "description": "God of skill, crafts, and the harvest.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "crafter",
+      "role_affinities": ["gatherer"]
     },
     "morrigan": {
       "id": "morrigan",
@@ -1701,7 +1837,9 @@
       },
       "description": "Phantom queen of war, fate, and death.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": ["scholar"]
     },
     "cernunnos": {
       "id": "cernunnos",
@@ -1723,7 +1861,9 @@
       ],
       "description": "Horned god of nature, fertility, and the wild hunt.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "gatherer",
+      "role_affinities": ["fighter"]
     },
     "rhiannon": {
       "id": "rhiannon",
@@ -1745,7 +1885,9 @@
       ],
       "description": "Goddess of horses, birds, and the otherworld.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "support",
+      "role_affinities": ["gatherer"]
     },
     "manannan": {
       "id": "manannan",
@@ -1767,7 +1909,9 @@
       ],
       "description": "Sea god, guardian of the otherworld.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": ["gatherer"]
     },
     "belenus": {
       "id": "belenus",
@@ -1789,7 +1933,9 @@
       ],
       "description": "Shining sun god of light and healing.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "support",
+      "role_affinities": ["fighter"]
     },
     "dian_cecht": {
       "id": "dian_cecht",
@@ -1811,7 +1957,9 @@
       ],
       "description": "God of healing and medicine.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "support",
+      "role_affinities": ["scholar"]
     },
     "nuada": {
       "id": "nuada",
@@ -1833,7 +1981,9 @@
       ],
       "description": "Silver-armed king of the Tuatha Dé Danann.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": ["support"]
     },
     "amaterasu": {
       "id": "amaterasu",
@@ -1860,7 +2010,9 @@
       },
       "description": "Supreme sun goddess, ruler of the heavens.",
       "summon_weight": 1,
-      "tier": 4
+      "tier": 4,
+      "default_role": "support",
+      "role_affinities": ["fighter"]
     },
     "susanoo": {
       "id": "susanoo",
@@ -1887,7 +2039,9 @@
       },
       "description": "God of storms and sea, Amaterasu's tempestuous brother.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": []
     },
     "tsukuyomi": {
       "id": "tsukuyomi",
@@ -1914,7 +2068,9 @@
       },
       "description": "Moon god, ruler of the night.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "scholar",
+      "role_affinities": ["fighter"]
     },
     "inari": {
       "id": "inari",
@@ -1936,7 +2092,9 @@
       ],
       "description": "Rice goddess, patron of agriculture and prosperity.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "gatherer",
+      "role_affinities": ["support"]
     },
     "raijin": {
       "id": "raijin",
@@ -1958,7 +2116,9 @@
       ],
       "description": "Thunder god, drumbeater of storms.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": []
     },
     "fujin": {
       "id": "fujin",
@@ -1980,7 +2140,9 @@
       ],
       "description": "Wind god, master of air currents.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": ["support"]
     },
     "benzaiten": {
       "id": "benzaiten",
@@ -2002,7 +2164,9 @@
       ],
       "description": "Goddess of music, eloquence, and flowing water.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "scholar",
+      "role_affinities": ["support"]
     },
     "hachiman": {
       "id": "hachiman",
@@ -2024,7 +2188,9 @@
       ],
       "description": "God of war and divine protection.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": ["support"]
     },
     "jizo": {
       "id": "jizo",
@@ -2046,7 +2212,9 @@
       ],
       "description": "Protector of travelers and children.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "support",
+      "role_affinities": []
     },
     "tengu": {
       "id": "tengu",
@@ -2068,7 +2236,9 @@
       ],
       "description": "Mountain spirit, master of martial arts.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": ["scholar"]
     },
     "marduk": {
       "id": "marduk",
@@ -2095,7 +2265,9 @@
       },
       "description": "King of gods, slayer of Tiamat and bringer of cosmic order.",
       "summon_weight": 1,
-      "tier": 4
+      "tier": 4,
+      "default_role": "fighter",
+      "role_affinities": ["scholar"]
     },
     "tiamat": {
       "id": "tiamat",
@@ -2122,7 +2294,9 @@
       },
       "description": "Primordial goddess of chaos and salt water, mother of monsters.",
       "summon_weight": 1,
-      "tier": 4
+      "tier": 4,
+      "default_role": "fighter",
+      "role_affinities": ["gatherer"]
     },
     "enlil": {
       "id": "enlil",
@@ -2149,7 +2323,9 @@
       },
       "description": "Lord of air and earth, controller of storms.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": ["support"]
     },
     "ereshkigal": {
       "id": "ereshkigal",
@@ -2176,7 +2352,9 @@
       },
       "description": "Queen of the underworld, ruler of the dead.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "scholar",
+      "role_affinities": ["fighter"]
     },
     "shamash": {
       "id": "shamash",
@@ -2203,7 +2381,9 @@
       },
       "description": "Sun god of justice and law.",
       "summon_weight": 9,
-      "tier": 3
+      "tier": 3,
+      "default_role": "scholar",
+      "role_affinities": ["fighter"]
     },
     "ishtar": {
       "id": "ishtar",
@@ -2225,7 +2405,9 @@
       ],
       "description": "Goddess of love, beauty, and warfare.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": ["support"]
     },
     "nergal": {
       "id": "nergal",
@@ -2247,7 +2429,9 @@
       ],
       "description": "God of war, plague, and the underworld.",
       "summon_weight": 30,
-      "tier": 2
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": []
     },
     "ninlil": {
       "id": "ninlil",
@@ -2269,7 +2453,9 @@
       ],
       "description": "Goddess of grain and the wind.",
       "summon_weight": 60,
-      "tier": 1
+      "tier": 1,
+      "default_role": "gatherer",
+      "role_affinities": ["support"]
     }
   },
   "elements": {

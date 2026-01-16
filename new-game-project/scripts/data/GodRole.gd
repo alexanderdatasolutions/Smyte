@@ -180,8 +180,8 @@ func get_tooltip() -> String:
 		tooltip += "Stat Bonuses:\n"
 		for stat_name in stat_bonuses:
 			var value = stat_bonuses[stat_name]
-			var sign = "+" if value >= 0 else ""
-			tooltip += "  • %s: %s%d%%\n" % [stat_name.replace("_percent", "").replace("_", " ").capitalize(), sign, int(value * 100)]
+			var prefix = "+" if value >= 0 else ""
+			tooltip += "  • %s: %s%d%%\n" % [stat_name.replace("_percent", "").replace("_", " ").capitalize(), prefix, int(value * 100)]
 
 	if not task_bonuses.is_empty():
 		tooltip += "\nTask Bonuses:\n"

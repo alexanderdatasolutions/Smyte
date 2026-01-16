@@ -308,7 +308,7 @@ func get_available_specializations() -> Array[String]:
 	# UI code should call: SystemRegistry.get_system("SpecializationManager").get_available_specializations_for_god(god)
 	return []
 
-func apply_specialization(spec_id: String, current_tier: int) -> bool:
+func apply_specialization(_spec_id: String, _current_tier: int) -> bool:
 	"""Apply a specialization at a specific tier - delegates to SpecializationManager"""
 	# This is a placeholder - actual logic is in SpecializationManager
 	# Game code should call: SystemRegistry.get_system("SpecializationManager").unlock_specialization(god_id, spec_id)
