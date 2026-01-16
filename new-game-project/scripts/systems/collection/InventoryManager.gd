@@ -130,12 +130,15 @@ func _apply_consumable_effect(effect: Dictionary, target_god: God = null):
 				target_god.heal(value)
 				print("Healed %s for %d HP" % [target_god.name, value])
 		"restore_energy":
-			if GameManager and GameManager.player_data:
-				GameManager.player_data.add_resource("energy", value)
+			var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager")
+			if resource_manager:
+				resource_manager.add_resource("energy", value)
 				print("Restored %d energy" % value)
 		"add_experience":
 			if target_god:
-				target_god.add_experience(value)
+				var system_registry = SystemRegistry.get_instance()
+				var god_progression_manager = system_registry.get_system("GodProgressionManager")
+				god_progression_manager.add_experience_to_god(target_god, value)
 				print("Gave %d XP to %s" % [value, target_god.name])
 
 # BATTLE INTEGRATION METHODS
