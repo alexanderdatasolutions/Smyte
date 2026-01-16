@@ -1,0 +1,160 @@
+{
+  "roles": {
+    "fighter": {
+      "id": "fighter",
+      "name": "Fighter",
+      "description": "Gods of war, battle, and conflict",
+      "icon": "res://assets/icons/role_fighter.png",
+      "stat_bonuses": {
+        "attack_percent": 0.15,
+        "defense_percent": 0.10
+      },
+      "task_bonuses": {
+        "combat": 0.20,
+        "defense": 0.20,
+        "training": 0.15,
+        "hunt_monsters": 0.15
+      },
+      "task_penalties": {
+        "crafting": -0.10,
+        "forging": -0.10,
+        "alchemy": -0.10,
+        "enchanting": -0.10,
+        "research": -0.05
+      },
+      "specialization_trees": ["berserker", "guardian", "tactician", "assassin"]
+    },
+    "gatherer": {
+      "id": "gatherer",
+      "name": "Gatherer",
+      "description": "Gods of nature, harvest, and abundance",
+      "icon": "res://assets/icons/role_gatherer.png",
+      "stat_bonuses": {
+        "hp_percent": 0.05
+      },
+      "task_bonuses": {
+        "mining": 0.25,
+        "mine_ore": 0.25,
+        "mine_gems": 0.25,
+        "harvesting": 0.25,
+        "harvest_plants": 0.25,
+        "gather_herbs": 0.25,
+        "fishing": 0.25,
+        "fish": 0.25,
+        "hunting": 0.25,
+        "hunt_monsters": 0.25,
+        "gather_pelts": 0.25
+      },
+      "task_penalties": {
+        "research": -0.10,
+        "study_lore": -0.10
+      },
+      "resource_bonuses": {
+        "gather_yield_percent": 0.25,
+        "rare_chance_percent": 0.10
+      },
+      "specialization_trees": ["miner", "fisher", "herbalist", "hunter"]
+    },
+    "crafter": {
+      "id": "crafter",
+      "name": "Crafter",
+      "description": "Gods of creation, artifice, and craftsmanship",
+      "icon": "res://assets/icons/role_crafter.png",
+      "stat_bonuses": {
+        "hp_percent": 0.10,
+        "defense_percent": 0.05
+      },
+      "task_bonuses": {
+        "forging": 0.30,
+        "forge_equipment": 0.30,
+        "repair_equipment": 0.30,
+        "alchemy": 0.30,
+        "brew_potions": 0.30,
+        "create_elixirs": 0.30,
+        "enchanting": 0.30,
+        "cut_gems": 0.30,
+        "enchant_equipment": 0.30,
+        "artifact_creation": 0.30,
+        "create_artifacts": 0.30
+      },
+      "task_penalties": {
+        "gathering": -0.10,
+        "mining": -0.10,
+        "mine_ore": -0.10,
+        "harvesting": -0.10,
+        "harvest_plants": -0.10
+      },
+      "crafting_bonuses": {
+        "quality_percent": 0.30,
+        "speed_percent": 0.20,
+        "masterwork_chance": 0.05
+      },
+      "specialization_trees": ["forgemaster", "alchemist", "enchanter", "artificer"]
+    },
+    "scholar": {
+      "id": "scholar",
+      "name": "Scholar",
+      "description": "Gods of wisdom, knowledge, and magic",
+      "icon": "res://assets/icons/role_scholar.png",
+      "stat_bonuses": {
+        "speed_percent": 0.10,
+        "skill_points_percent": 0.15
+      },
+      "task_bonuses": {
+        "research": 0.40,
+        "study_lore": 0.40,
+        "scouting": 0.30,
+        "scout": 0.30,
+        "explore": 0.30,
+        "training": 0.25,
+        "train": 0.25,
+        "teaching": 0.35
+      },
+      "task_penalties": {
+        "mining": -0.15,
+        "mine_ore": -0.15,
+        "harvesting": -0.15,
+        "harvest_plants": -0.15
+      },
+      "other_bonuses": {
+        "xp_gain_percent": 0.25,
+        "scouting_range_percent": 0.15
+      },
+      "specialization_trees": ["researcher", "explorer", "mentor", "strategist"]
+    },
+    "support": {
+      "id": "support",
+      "name": "Support",
+      "description": "Gods of healing, protection, and leadership",
+      "icon": "res://assets/icons/role_support.png",
+      "stat_bonuses": {
+        "hp_percent": 0.15,
+        "speed_percent": 0.10
+      },
+      "task_bonuses": {
+        "healing": 0.40,
+        "brew_potions": 0.30,
+        "buffing": 0.35,
+        "leadership": 0.30,
+        "manage_territory": 0.30,
+        "defense": 0.25,
+        "defend": 0.25
+      },
+      "task_penalties": {
+        "gathering": -0.20,
+        "mining": -0.20,
+        "mine_ore": -0.20,
+        "harvesting": -0.20,
+        "harvest_plants": -0.20,
+        "crafting": -0.20,
+        "forging": -0.20,
+        "forge_equipment": -0.20
+      },
+      "aura_bonuses": {
+        "ally_efficiency_percent": 0.15,
+        "territory_defense_percent": 0.10
+      },
+      "specialization_trees": ["healer", "buffer", "protector", "leader"]
+    }
+  }
+}
