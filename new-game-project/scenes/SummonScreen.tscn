@@ -56,7 +56,7 @@ size_flags_stretch_ratio = 0.3
 
 [node name="SummonTitle" type="Label" parent="MainContainer/LeftPanel"]
 layout_mode = 2
-text = "⚡ DIVINE SUMMONS ⚡"
+text = "DIVINE SUMMONS"
 horizontal_alignment = 1
 
 [node name="SummonContainer" type="VBoxContainer" parent="MainContainer/LeftPanel"]
@@ -72,7 +72,7 @@ size_flags_stretch_ratio = 0.7
 
 [node name="ShowcaseTitle" type="Label" parent="MainContainer/RightPanel"]
 layout_mode = 2
-text = "🎁 SUMMON SHOWCASE 🎁"
+text = "SUMMON SHOWCASE"
 horizontal_alignment = 1
 
 [node name="ShowcaseContainer" type="ScrollContainer" parent="MainContainer/RightPanel"]
@@ -87,8 +87,8 @@ size_flags_vertical = 0
 
 [node name="DefaultMessage" type="Label" parent="MainContainer/RightPanel/ShowcaseContainer/ShowcaseContent"]
 layout_mode = 2
-text = "✨ Your summoned gods will appear here! ✨
+text = "Your summoned gods will appear here!
 
-Try a summon to see the magic happen!"
+Try a summon to see what you get!"
 horizontal_alignment = 1
 vertical_alignment = 1
