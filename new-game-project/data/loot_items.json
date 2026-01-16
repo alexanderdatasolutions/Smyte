@@ -41,9 +41,15 @@
     },
     "crystals_medium": {
       "id": "crystals_medium",
-      "resource_id": "divine_crystals", 
+      "resource_id": "divine_crystals",
       "min_amount": 3,
       "max_amount": 8
+    },
+    "crystals_large": {
+      "id": "crystals_large",
+      "resource_id": "divine_crystals",
+      "min_amount": 8,
+      "max_amount": 20
     },
     "energy_refill": {
       "id": "energy_refill",
@@ -120,6 +126,18 @@
       "resource_id": "rare_soul",
       "min_amount": 1,
       "max_amount": 1
+    },
+    "legendary_soul": {
+      "id": "legendary_soul",
+      "resource_id": "legendary_soul",
+      "min_amount": 1,
+      "max_amount": 1
+    },
+    "divine_essence": {
+      "id": "divine_essence",
+      "resource_id": "divine_essence",
+      "min_amount": 1,
+      "max_amount": 3
     },
     "common_ore": {
       "id": "common_ore",
