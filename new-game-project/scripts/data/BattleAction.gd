@@ -24,12 +24,12 @@ static func create_attack_action(attacker, target) -> BattleAction:
 	return action
 
 ## Create a skill action
-static func create_skill_action(caster, skill, targets) -> BattleAction:
+static func create_skill_action(p_caster, p_skill, p_targets) -> BattleAction:
 	var action = BattleAction.new()
 	action.action_type = ActionType.SKILL
-	action.caster = caster
-	action.skill = skill
-	action.targets = targets
+	action.caster = p_caster
+	action.skill = p_skill
+	action.targets = p_targets
 	return action
 
 ## Create a defend action
