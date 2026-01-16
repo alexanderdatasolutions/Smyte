@@ -42,6 +42,7 @@ func _ready():
 	_initialize_systems()
 	_initialize_components()
 	_connect_signals()
+	_style_center_panel()
 
 func _initialize_systems():
 	"""Initialize system references - RULE 5: SystemRegistry only"""
@@ -164,3 +165,12 @@ func set_selected_god(god: God):
 	"""Set selected god externally"""
 	if god_selector:
 		god_selector.select_god(god)
+
+func _style_center_panel():
+	"""Apply lighter background styling to center panel"""
+	if selected_god_panel:
+		var panel_style = StyleBoxFlat.new()
+		panel_style.bg_color = Color(0.28, 0.28, 0.32)  # Lighter than default dark panel
+		panel_style.set_border_width_all(1)
+		panel_style.border_color = Color(0.4, 0.4, 0.45)
+		selected_god_panel.add_theme_stylebox_override("panel", panel_style)
