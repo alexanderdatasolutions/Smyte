@@ -5,7 +5,7 @@ class_name AwakeningSystem
 signal awakening_completed(god)
 signal awakening_failed(god, reason)
 
-const GameDataLoader = preload("res://scripts/systems/DataLoader.gd")
+const GameDataLoader = preload("res://scripts/utilities/JSONLoader.gd")
 
 # Load awakening data from JSON
 var awakening_data: Dictionary = {}
@@ -94,30 +94,30 @@ func get_awakening_materials_cost(god: God) -> Dictionary:
 	var awakened_god_data = awakening_data.get("awakened_gods", {}).get(awakened_god_id, {})
 	return awakened_god_data.get("awakening_materials", {})
 
-func attempt_awakening(god: God, player_data) -> bool:
+func attempt_awakening(god: God) -> bool:
 	"""Try to awaken a god if requirements are met"""
 	var requirements_check = can_awaken_god(god)
 	if not requirements_check.can_awaken:
 		awakening_failed.emit(god, "Requirements not met")
 		return false
-	
+
 	# Check materials in player inventory
 	var materials_needed = get_awakening_materials_cost(god)
-	var materials_check = check_awakening_materials(materials_needed, player_data)
-	
+	var materials_check = check_awakening_materials(materials_needed)
+
 	if not materials_check.can_afford:
 		awakening_failed.emit(god, "Insufficient materials")
 		return false
-	
+
 	# Consume materials
-	consume_awakening_materials(materials_needed, player_data)
-	
+	consume_awakening_materials(materials_needed)
+
 	# Get awakened god data
 	var awakened_god_id = requirements_check.awakened_god_id
 	var awakened_god_data = awakening_data.get("awakened_gods", {}).get(awakened_god_id, {})
-	
+
 	# Replace the god with the awakened version
-	if replace_god_with_awakened(god, awakened_god_data, player_data):
+	if replace_god_with_awakened(god, awakened_god_data):
 		awakening_completed.emit(god)
 		print("Successfully awakened %s into %s!" % [god.name, awakened_god_data.get("name", "Unknown")])
 		return true
@@ -125,38 +125,43 @@ func attempt_awakening(god: God, player_data) -> bool:
 		awakening_failed.emit(god, "Awakening process failed")
 		return false
 
-func replace_god_with_awakened(old_god: God, awakened_data: Dictionary, player_data) -> bool:
+func replace_god_with_awakened(old_god: God, awakened_data: Dictionary) -> bool:
 	"""Replace the base god with its awakened form"""
+	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager")
+	if not collection_manager:
+		print("Error: CollectionManager not available")
+		return false
+
 	# Find the god in player's collection
 	var god_index = -1
-	for i in range(player_data.gods.size()):
-		if player_data.gods[i] == old_god:
+	for i in range(collection_manager.gods.size()):
+		if collection_manager.gods[i] == old_god:
 			god_index = i
 			break
-	
+
 	if god_index == -1:
 		print("Error: Could not find god in player collection")
 		return false
-	
+
 	# Create the awakened god from the JSON data
 	var awakened_god = create_awakened_god_from_data(awakened_data)
 	if not awakened_god:
 		print("Error: Could not create awakened god")
 		return false
-	
+
 	# Preserve some stats from the original god
 	awakened_god.level = old_god.level
 	awakened_god.experience = old_god.experience
 	awakened_god.ascension_level = old_god.ascension_level
 	awakened_god.skill_levels = old_god.skill_levels.duplicate()
 	awakened_god.stationed_territory = old_god.stationed_territory
-	
+
 	# Mark as awakened
 	awakened_god.is_awakened = true
-	
+
 	# Replace in collection
-	player_data.gods[god_index] = awakened_god
-	
+	collection_manager.gods[god_index] = awakened_god
+
 	return true
 
 func create_awakened_god_from_data(awakened_data: Dictionary) -> God:
@@ -185,18 +190,18 @@ func create_awakened_god_from_data(awakened_data: Dictionary) -> God:
 	
 	return god
 
-func check_awakening_materials(materials_needed: Dictionary, player_data) -> Dictionary:
+func check_awakening_materials(materials_needed: Dictionary) -> Dictionary:
 	"""Check if player has required materials"""
 	var result = {
 		"can_afford": true,
 		"missing_materials": []
 	}
-	
+
 	# Check each material type
 	for material_type in materials_needed.keys():
 		var needed_amount = materials_needed[material_type]
-		var current_amount = get_player_material_amount(material_type, player_data)
-		
+		var current_amount = get_player_material_amount(material_type)
+
 		if current_amount < needed_amount:
 			result.can_afford = false
 			result.missing_materials.append({
@@ -205,24 +210,27 @@ func check_awakening_materials(materials_needed: Dictionary, player_data) -> Dic
 				"current": current_amount,
 				"missing": needed_amount - current_amount
 			})
-	
+
 	return result
 
-func consume_awakening_materials(materials_needed: Dictionary, player_data):
+func consume_awakening_materials(materials_needed: Dictionary):
 	"""Remove materials from player inventory"""
 	for material_type in materials_needed.keys():
 		var amount = materials_needed[material_type]
-		consume_player_material(material_type, amount, player_data)
+		consume_player_material(material_type, amount)
 
-func get_player_material_amount(material_type: String, player_data) -> int:
+func get_player_material_amount(material_type: String) -> int:
 	"""Get how much of a material the player has"""
-	# Use the modular resource system for all materials
-	return player_data.get_resource(material_type)
+	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager")
+	if not resource_manager:
+		return 0
+	return resource_manager.get_resource(material_type)
 
-func consume_player_material(material_type: String, amount: int, player_data):
+func consume_player_material(material_type: String, amount: int):
 	"""Remove materials from player inventory"""
-	# Use the modular resource system for all materials
-	player_data.spend_resource(material_type, amount)
+	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager")
+	if resource_manager:
+		resource_manager.spend_resource(material_type, amount)
 
 func get_ascension_level_from_string(ascension_string: String) -> int:
 	"""Convert ascension string to level number"""
