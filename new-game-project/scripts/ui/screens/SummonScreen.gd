@@ -247,12 +247,12 @@ func create_summon_cards():
 	update_daily_free_availability()
 
 func create_summon_card(title: String, description: String, cost: String, color: Color) -> Button:
-	# Create the main summon button - make it very obvious for testing
+	# Create the main summon button
 	var button = Button.new()
-	button.custom_minimum_size = Vector2(180, 120)  
+	button.custom_minimum_size = Vector2(180, 120)
 	button.flat = false  # IMPORTANT: Set to false to show background styling
-	button.text = title + "\n" + cost  # Add basic text to button itself as fallback
-	
+	button.text = ""  # Remove built-in text - we'll use custom labels for better control
+
 	# Create a simple, very visible background first
 	var simple_style = StyleBoxFlat.new()
 	simple_style.bg_color = color
@@ -266,41 +266,61 @@ func create_summon_card(title: String, description: String, cost: String, color:
 	simple_style.border_width_right = 2
 	simple_style.border_width_bottom = 2
 	simple_style.border_color = Color.WHITE
-	
+
 	# Apply the simple style immediately
 	button.add_theme_stylebox_override("normal", simple_style)
 	button.add_theme_color_override("font_color", Color.WHITE)
-	
-	# Create a container for additional content
+
+	# Create a container for custom content layout
 	var content_container = VBoxContainer.new()
 	content_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	content_container.offset_left = 8
-	content_container.offset_top = 25  # Leave room for button text
+	content_container.offset_top = 8
 	content_container.offset_right = -8
-	content_container.offset_bottom = -5
-	content_container.add_theme_constant_override("separation", 1)
-	
-	content_container.add_theme_constant_override("separation", 1)
-	
-	# Add description label below the button text
+	content_container.offset_bottom = -8
+	content_container.add_theme_constant_override("separation", 4)
+
+	# Add title label (main summon type)
+	var title_label = Label.new()
+	title_label.text = title
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.add_theme_font_size_override("font_size", 14)
+	title_label.add_theme_color_override("font_color", Color.WHITE)
+	title_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	title_label.add_theme_constant_override("outline_size", 1)
+	content_container.add_child(title_label)
+
+	# Add cost label
+	var cost_label = Label.new()
+	cost_label.text = cost
+	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cost_label.add_theme_font_size_override("font_size", 11)
+	cost_label.add_theme_color_override("font_color", Color.WHITE)
+	cost_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content_container.add_child(cost_label)
+
+	# Add spacer to push description to bottom
+	var spacer = Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content_container.add_child(spacer)
+
+	# Add description label at bottom (smaller, subtle text)
 	var desc_label = Label.new()
 	desc_label.text = description
 	desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc_label.add_theme_font_size_override("font_size", 8)
+	desc_label.add_theme_font_size_override("font_size", 9)
 	desc_label.add_theme_color_override("font_color", Color.LIGHT_GRAY)
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	
-	# Add description to container
+	desc_label.size_flags_vertical = Control.SIZE_SHRINK_END
 	content_container.add_child(desc_label)
-	
+
 	# Add container to button
 	button.add_child(content_container)
-	
+
 	# Apply enhanced styling
 	style_summon_button(button, color, title)
-	
+
 	return button
 
 func style_summon_button(button: Button, color: Color, _summon_type: String = ""):
