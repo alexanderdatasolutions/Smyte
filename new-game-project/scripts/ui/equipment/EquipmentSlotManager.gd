@@ -73,7 +73,7 @@ func _create_equipment_slot_button(slot_index: int, slot_name: String) -> Contro
 		card_style.bg_color = Color(0.2, 0.4, 0.2, 0.9)  # Green for equipped
 		card_style.border_color = _get_rarity_color(equipped_equipment.rarity)
 	else:
-		card_style.bg_color = Color(0.3, 0.3, 0.3, 0.5)  # Gray for empty
+		card_style.bg_color = Color(0.165, 0.165, 0.23, 0.9)  # Lighter gray for empty (#2a2a3a) for better contrast
 		card_style.border_color = Color(0.5, 0.5, 0.5, 1.0)
 	
 	card_style.border_width_left = 3
@@ -251,7 +251,7 @@ func _on_slot_hover_enter(container: Panel, is_equipped: bool):
 	if is_equipped:
 		style.bg_color = Color(0.3, 0.5, 0.3, 0.95)  # Brighter green
 	else:
-		style.bg_color = Color(0.4, 0.4, 0.4, 0.7)  # Lighter gray
+		style.bg_color = Color(0.21, 0.21, 0.28, 0.95)  # Lighter hover state for better feedback
 	container.add_theme_stylebox_override("panel", style)
 
 func _on_slot_hover_exit(container: Panel, is_equipped: bool):
@@ -260,7 +260,7 @@ func _on_slot_hover_exit(container: Panel, is_equipped: bool):
 	if is_equipped:
 		style.bg_color = Color(0.2, 0.4, 0.2, 0.9)  # Return to green
 	else:
-		style.bg_color = Color(0.3, 0.3, 0.3, 0.5)  # Return to gray
+		style.bg_color = Color(0.165, 0.165, 0.23, 0.9)  # Return to base gray (#2a2a3a)
 	container.add_theme_stylebox_override("panel", style)
 
 func _get_equipped_equipment_for_slot(slot_index: int) -> Equipment:
