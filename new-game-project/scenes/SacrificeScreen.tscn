@@ -14,7 +14,7 @@ layout_mode = 0
 offset_left = 2.0
 offset_right = 1282.0
 offset_bottom = 720.0
-color = Color(0.1, 0.1, 0.15, 1)
+color = Color(0.251, 0.251, 0.314, 1)
 
 [node name="ContentContainer" type="VBoxContainer" parent="."]
 layout_mode = 0
