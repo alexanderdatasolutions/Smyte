@@ -50,9 +50,7 @@ static func calculate_total_stats(god: God) -> Dictionary:
 	stats.attack = int(stats.attack * level_multiplier)
 	stats.defense = int(stats.defense * level_multiplier)
 	
-	# Add equipment stats (simplified - would normally check equipped equipment)
-	# TODO: Implement actual equipment stat calculation
-	
+	# Equipment stats not yet implemented
 	return stats
 
 ## Get element multiplier for damage calculation
@@ -92,8 +90,8 @@ static func calculate_healing(healer: BattleUnit, _target: BattleUnit, skill: Sk
 static func get_detailed_attack_breakdown(god: God) -> Dictionary:
 	var base_attack = god.base_attack
 	var level_bonus = int(base_attack * (god.level - 1) * 0.1)
-	var equipment_bonus = 0  # TODO: Calculate from equipped items
-	var buff_bonus = 0  # TODO: Calculate from active buffs
+	var equipment_bonus = 0  # Not implemented
+	var buff_bonus = 0  # Not implemented
 	
 	return {
 		"base_value": base_attack,
@@ -107,8 +105,8 @@ static func get_detailed_attack_breakdown(god: God) -> Dictionary:
 static func get_detailed_defense_breakdown(god: God) -> Dictionary:
 	var base_defense = god.base_defense
 	var level_bonus = int(base_defense * (god.level - 1) * 0.1)
-	var equipment_bonus = 0  # TODO: Calculate from equipped items
-	var buff_bonus = 0  # TODO: Calculate from active buffs
+	var equipment_bonus = 0  # Not implemented
+	var buff_bonus = 0  # Not implemented
 	
 	return {
 		"base_value": base_defense,
@@ -122,8 +120,8 @@ static func get_detailed_defense_breakdown(god: God) -> Dictionary:
 static func get_detailed_hp_breakdown(god: God) -> Dictionary:
 	var base_hp = god.base_hp
 	var level_bonus = int(base_hp * (god.level - 1) * 0.1)
-	var equipment_bonus = 0  # TODO: Calculate from equipped items
-	var buff_bonus = 0  # TODO: Calculate from active buffs
+	var equipment_bonus = 0  # Not implemented
+	var buff_bonus = 0  # Not implemented
 	
 	return {
 		"base_value": base_hp,
@@ -137,8 +135,8 @@ static func get_detailed_hp_breakdown(god: God) -> Dictionary:
 static func get_detailed_speed_breakdown(god: God) -> Dictionary:
 	var base_speed = god.base_speed
 	var level_bonus = 0  # Speed typically doesn't scale with level in SW
-	var equipment_bonus = 0  # TODO: Calculate from equipped items
-	var buff_bonus = 0  # TODO: Calculate from active buffs
+	var equipment_bonus = 0  # Not implemented
+	var buff_bonus = 0  # Not implemented
 	
 	return {
 		"base_value": base_speed,
