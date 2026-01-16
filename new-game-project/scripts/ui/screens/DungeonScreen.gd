@@ -110,6 +110,7 @@ func _style_tab_container():
 	category_tabs.add_theme_stylebox_override("tab_unselected", tab_unselected)
 	category_tabs.add_theme_stylebox_override("tab_hovered", tab_hover)
 	category_tabs.add_theme_font_size_override("font_size", 16)  # Also increase tab text size
+	category_tabs.add_theme_constant_override("h_separation", 12)  # Add 12px horizontal spacing between tabs
 
 func _update_schedule_display():
 	"""Update the schedule information like Summoners War - only rotating dungeons"""
