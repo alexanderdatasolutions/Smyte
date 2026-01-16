@@ -57,7 +57,12 @@ func _get_unit_hp(unit) -> int:
 func _get_unit_max_hp(unit) -> int:
 	"""Get max HP of a unit"""
 	if unit is God:
-		return unit.get_max_hp()
+		var stat_calc = SystemRegistry.get_instance().get_system("EquipmentStatCalculator")
+		if stat_calc:
+			var total_stats = stat_calc.calculate_god_total_stats(unit)
+			return total_stats.hp
+		else:
+			return unit.base_hp
 	else:
 		return unit.get("max_hp", unit.get("hp", 100))
 

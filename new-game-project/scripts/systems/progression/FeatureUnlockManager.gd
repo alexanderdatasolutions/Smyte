@@ -50,20 +50,17 @@ var feature_introductions: Dictionary = {
 
 func _ready():
 	name = "FeatureUnlockManager"
-	print("FeatureUnlockManager: Initializing feature unlock system...")
-	
+
 	# Listen to player progression events
 	var player_progression = SystemRegistry.get_instance().get_system("PlayerProgressionManager")
 	if player_progression:
 		player_progression.player_leveled_up.connect(_on_player_level_up)
-	
+
 	# Check for any features that should already be unlocked
 	_validate_unlocked_features()
 
 func _on_player_level_up(old_level: int, new_level: int):
 	"""Handle player level up - unlock appropriate features"""
-	print("FeatureUnlockManager: Player leveled up from %d to %d" % [old_level, new_level])
-	
 	# Check for features to unlock in the new level range
 	for level in range(old_level + 1, new_level + 1):
 		if feature_unlock_levels.has(level):
@@ -97,9 +94,7 @@ func unlock_feature(feature_name: String):
 	
 	# Get feature data
 	var feature_data = get_feature_data(feature_name)
-	
-	print("FeatureUnlockManager: Feature unlocked - %s" % feature_name)
-	
+
 	# Emit unlock signal
 	feature_unlocked.emit(feature_name, feature_data)
 	

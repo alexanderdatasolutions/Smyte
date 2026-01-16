@@ -31,13 +31,10 @@ func _ready():
 	
 	# Add safety checks for all node references
 	if not summon_container:
-		print("ERROR: summon_container not found!")
 		return
 	if not showcase_content:
-		print("ERROR: showcase_content not found!")
 		return
 	if not default_message:
-		print("ERROR: default_message not found!")
 		return
 		
 	# Convert showcase_content to GridContainer for 2-column layout
@@ -67,9 +64,9 @@ func _ready():
 		summon_manager.summon_failed.connect(_on_summon_failed)
 		summon_manager.multi_summon_completed.connect(_on_multi_summon_completed)
 		
-		print("SummonScreen: Connected to SummonManager signals")
+		pass
 	else:
-		print("ERROR: SummonManager not found in SystemRegistry!")
+		pass
 	
 	# Create summon cards in grid layout
 	create_summon_cards()
@@ -77,7 +74,6 @@ func _ready():
 func setup_showcase_grid():
 	# Convert showcase_content from VBoxContainer to GridContainer for 2-column layout
 	if not showcase_content:
-		print("ERROR: showcase_content is null, cannot setup grid")
 		return
 		
 	if showcase_content is GridContainer:
@@ -85,7 +81,6 @@ func setup_showcase_grid():
 		
 	var showcase_parent = showcase_content.get_parent()
 	if not showcase_parent:
-		print("ERROR: showcase_content has no parent, cannot setup grid")
 		return
 		
 	var showcase_pos = showcase_content.get_index()
@@ -122,14 +117,12 @@ func setup_showcase_grid():
 func create_summon_cards():
 	# Add safety check
 	if not summon_container:
-		print("ERROR: summon_container is null, cannot create summon cards")
 		return
-		
+
 	# Convert summon_container to GridContainer if it isn't already
 	if not summon_container is GridContainer:
 		var parent = summon_container.get_parent()
 		if not parent:
-			print("ERROR: summon_container has no parent")
 			return
 			
 		var pos = summon_container.get_index()
@@ -562,13 +555,11 @@ func show_error_message(message: String):
 	
 	if showcase_content and is_instance_valid(showcase_content):
 		showcase_content.add_child(error_label)
-		
+
 		# Remove error after 3 seconds
 		await get_tree().create_timer(3.0).timeout
 		if error_label and is_instance_valid(error_label):
 			error_label.queue_free()
-	else:
-		print("ERROR: showcase_content not available for error message: ", message)
 
 func _on_back_pressed():
 	back_pressed.emit()
@@ -580,7 +571,6 @@ func _on_god_summoned(god):
 		return
 		
 	is_processing_summon = true
-	print("UI: Summoned %s (%s %s)" % [god.name, God.tier_to_string(god.tier), God.element_to_string(god.element)])
 	
 	# Remove default message completely (not just hide it)
 	if default_message and is_instance_valid(default_message):
@@ -700,8 +690,12 @@ func create_god_showcase(god: God):
 	image_container.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	image_container.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	
-	# Load god image using the new sprite function
-	var god_texture = god.get_sprite()
+	# Load god image using the same pattern as CollectionScreen
+	var sprite_path = "res://assets/gods/" + god.id + ".png"
+	var god_texture = null
+	if ResourceLoader.exists(sprite_path):
+		god_texture = load(sprite_path)
+	
 	if god_texture:
 		image_container.texture = god_texture
 	else:
@@ -738,10 +732,26 @@ func create_god_showcase(god: God):
 	
 	# Stats preview
 	var stats_label = Label.new()
-	stats_label.text = "HP: %d | ATK: %d | DEF: %d | SPD: %d" % [
-		god.get_max_hp(), god.get_current_attack(), 
-		god.get_current_defense(), god.get_current_speed()
-	]
+	
+	# Get current stats through EquipmentStatCalculator (RULE 3 compliance)
+	var stat_calc = SystemRegistry.get_instance().get_system("EquipmentStatCalculator")
+	var hp: int
+	var attack: int
+	var defense: int
+	var speed: int
+	if stat_calc:
+		var total_stats = stat_calc.calculate_god_total_stats(god)
+		hp = total_stats.hp
+		attack = total_stats.attack
+		defense = total_stats.defense
+		speed = total_stats.speed
+	else:
+		hp = god.base_hp
+		attack = god.base_attack
+		defense = god.base_defense
+		speed = god.base_speed
+	
+	stats_label.text = "HP: %d | ATK: %d | DEF: %d | SPD: %d" % [hp, attack, defense, speed]
 	stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	stats_label.add_theme_font_size_override("font_size", 9)
 	stats_label.add_theme_color_override("font_color", Color.LIGHT_GRAY)
@@ -819,10 +829,9 @@ func get_tier_text_color(tier: int) -> Color:
 
 func _on_resources_updated():
 	# UI automatically updates when resources change
-	print("UI: Resources updated")
+	pass
 
 func _on_summon_failed(reason):
-	print("Summon failed: ", reason)
 	show_error_message(reason)
 
 # New summon button handlers
@@ -830,7 +839,7 @@ func _on_basic_10x_summon_pressed():
 	set_buttons_enabled(false)
 	var summon_system = get_summon_system()
 	if summon_system:
-		var success = summon_system.multi_summon_soul_pack()
+		var success = summon_system.multi_summon_premium()
 		if not success:
 			set_buttons_enabled(true)
 	else:
@@ -854,7 +863,7 @@ func _on_element_summon_pressed():
 	if summon_system:
 		var element_names = ["fire", "water", "earth", "lightning", "light", "dark"]
 		var element = element_names[selected_element % element_names.size()]
-		var success = summon_system.summon_element_soul(element)
+		var success = summon_system.summon_with_soul(element)
 		if not success:
 			set_buttons_enabled(true)
 	else:
@@ -864,8 +873,6 @@ func _on_element_summon_pressed():
 func _on_element_focus_pressed():
 	# Cycle through elements for element summons
 	selected_element = (selected_element + 1) % 6  # 6 elements: fire, water, earth, lightning, light, dark
-	var element_names = ["Fire", "Water", "Earth", "Lightning", "Light", "Dark"]
-	print("Element focus changed to: " + element_names[selected_element])
 
 func _on_crystal_summon_pressed():
 	set_buttons_enabled(false)
@@ -882,7 +889,7 @@ func _on_daily_free_summon_pressed():
 	set_buttons_enabled(false)
 	var summon_system = get_summon_system()
 	if summon_system:
-		var success = summon_system.daily_free_summon()
+		var success = summon_system.summon_free_daily()
 		if not success:
 			set_buttons_enabled(true)
 		else:
@@ -905,7 +912,6 @@ func update_daily_free_availability():
 
 # Handler for multi-summon results (connect this to the new signal)
 func _on_multi_summon_completed(gods: Array):
-	print("UI: Multi-summon completed with %d gods" % gods.size())
 	
 	# Remove default message
 	if default_message and is_instance_valid(default_message):
@@ -920,6 +926,6 @@ func _on_multi_summon_completed(gods: Array):
 	set_buttons_enabled(true)
 
 # Handler for duplicate god notifications
-func _on_duplicate_obtained(god, existing_count: int):
-	print("Duplicate god obtained: %s (now have %d total)" % [god.name, existing_count + 1])
+func _on_duplicate_obtained(_god, _existing_count: int):
 	# Could show a special UI notification here for duplicates
+	pass

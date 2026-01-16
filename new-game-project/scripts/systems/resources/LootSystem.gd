@@ -9,7 +9,6 @@ var loot_tables: Dictionary = {}
 var loot_items: Dictionary = {}
 
 func _ready():
-	print("LootSystem: Initialized")
 	_load_loot_configuration()
 
 ## Load loot configuration through ConfigurationManager
@@ -19,7 +18,6 @@ func _load_loot_configuration():
 		var loot_config = config_manager.get_loot_config()
 		loot_tables = loot_config.get("loot_templates", {})  # Fixed: was "loot_tables"
 		loot_items = loot_config.get("loot_items", {})
-		print("LootSystem: Loaded ", loot_tables.size(), " loot templates and ", loot_items.size(), " items")
 	else:
 		push_warning("LootSystem: ConfigurationManager not available, loading fallback")
 		_load_fallback_loot_tables()
@@ -53,13 +51,11 @@ func _load_fallback_loot_tables():
 		if items_json.parse(items_json_text) == OK:
 			var items_data = items_json.get_data()
 			loot_items = items_data.get("loot_items", {})
-			print("LootSystem: Fallback loaded ", loot_tables.size(), " loot templates and ", loot_items.size(), " items")
 		else:
 			push_error("LootSystem: Error parsing loot_items.json")
 	else:
 		push_warning("LootSystem: Could not load loot_items.json - using empty loot_items")
 		loot_items = {}
-		print("LootSystem: Fallback loaded ", loot_tables.size(), " loot templates")
 
 ## Generate loot from a table
 func generate_loot(table_id: String, multiplier: float = 1.0) -> Dictionary:
@@ -108,9 +104,8 @@ func award_loot(loot_results: Dictionary):
 	for resource_id in loot_results:
 		var amount = loot_results[resource_id]
 		resource_manager.add_resource(resource_id, amount)
-	
+
 	loot_awarded.emit(loot_results)
-	print("LootSystem: Awarded loot: ", loot_results)
 
 ## Check if player can roll for specific loot
 func can_roll_loot(table_id: String) -> bool:

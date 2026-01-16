@@ -16,26 +16,22 @@ var loot_config: Dictionary = {}
 var is_loaded: bool = false
 
 func _ready():
-	print("ConfigurationManager: Initialized")
+	pass
 
 ## Load all game configurations
 func load_all_configurations():
 	if is_loaded:
-		print("ConfigurationManager: Configurations already loaded")
 		return
-	
-	print("ConfigurationManager: Loading all configurations...")
-	
+
 	_load_territories_config()
 	_load_gods_config()
 	_load_equipment_config()
 	_load_resources_config()
 	_load_battle_config()
 	_load_loot_config()
-	
+
 	is_loaded = true
 	all_configurations_loaded.emit()
-	print("ConfigurationManager: All configurations loaded")
 
 ## Load territories configuration
 func _load_territories_config():
@@ -69,7 +65,13 @@ func _load_battle_config():
 
 ## Load loot configuration
 func _load_loot_config():
-	loot_config = _load_json_file("res://data/loot.json")
+	loot_config = _load_json_file("res://data/loot_tables.json")
+	
+	# Also load loot_items.json and merge it into loot_config
+	var loot_items_data = _load_json_file("res://data/loot_items.json")
+	if not loot_items_data.is_empty():
+		loot_config["loot_items"] = loot_items_data.get("loot_items", {})
+	
 	if not loot_config.is_empty():
 		configuration_loaded.emit("loot")
 
@@ -89,8 +91,7 @@ func _load_json_file(file_path: String) -> Dictionary:
 	if parse_result != OK:
 		push_error("ConfigurationManager: Error parsing " + file_path + ": " + json.get_error_message())
 		return {}
-	
-	print("ConfigurationManager: Loaded " + file_path)
+
 	return json.get_data()
 
 ## Get territories configuration
@@ -103,7 +104,12 @@ func get_gods_config() -> Dictionary:
 
 ## Get a specific god configuration by ID
 func get_god_config(god_id: String) -> Dictionary:
-	# Search in the gods array
+	# Check new dictionary format first
+	if gods_config.has("gods") and gods_config.gods is Dictionary:
+		if gods_config.gods.has(god_id):
+			return gods_config.gods[god_id]
+	
+	# Fallback: Search in the legacy array format
 	if gods_config.has("gods") and gods_config.gods is Array:
 		for god_data in gods_config.gods:
 			if god_data.get("id", "") == god_id:
@@ -117,8 +123,7 @@ func get_god_config(god_id: String) -> Dictionary:
 				return god_data
 	elif awakened_gods.has(god_id):
 		return awakened_gods[god_id]
-	
-	print("ConfigurationManager: God config not found for ID: ", god_id)
+
 	return {}
 
 ## Get equipment configuration
@@ -136,6 +141,11 @@ func get_battle_config() -> Dictionary:
 ## Get loot configuration
 func get_loot_config() -> Dictionary:
 	return loot_config
+
+func get_territory_roles_config() -> Dictionary:
+	# Load territory roles if not already loaded
+	var territory_roles_path = "res://data/territory_roles.json"
+	return _load_json_file(territory_roles_path)
 
 ## Check if configurations are loaded
 func is_configuration_loaded() -> bool:

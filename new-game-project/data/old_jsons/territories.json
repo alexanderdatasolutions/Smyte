@@ -1,0 +1,1760 @@
+{
+  "territories": [
+    {
+      "id": "sacred_grove",
+      "name": "Sacred Grove",
+      "tier": 1,
+      "element": "earth",
+      "required_power": 0,
+      "unlock_requirements": {
+        "player_level": 1,
+        "prerequisite_territories": []
+      },
+      "stages": {
+        "max": 10,
+        "energy_cost": 6,
+        "difficulty_curve": "linear"
+      },
+      "resource_generation": {
+        "loot_table": "territory_passive_income",
+        "base_tier": "tier_1_territories",
+        "collection_cap_hours": 8,
+        "upgrade_levels": 10,
+        "upgrade_bonus_per_level": 0.1,
+        "god_assignment_slots": 3,
+        "max_assignment_slots": 5,
+        "slot_unlock_costs": {
+          "slot_4": {"divine_essence": 5000, "awakening_stone": 2},
+          "slot_5": {"divine_essence": 15000, "divine_crystals": 10}
+        }
+      },
+      "zone_bonuses": {
+        "passive_effects": [
+          {
+            "type": "regeneration",
+            "description": "Heroes regenerate 2% HP per turn",
+            "value": 0.02,
+            "applies_to": "all_earth_heroes",
+            "combat_system_mapping": {
+              "status_effect": "regeneration",
+              "duration": "permanent",
+              "heal_per_turn": 0.02
+            }
+          },
+          {
+            "type": "defense_boost", 
+            "description": "Earth heroes gain 10% defense",
+            "value": 0.1,
+            "applies_to": "earth_element",
+            "combat_system_mapping": {
+              "status_effect": "defense_boost",
+              "stat_modifier": "defense",
+              "multiplier": 0.1
+            }
+          }
+        ],
+        "resource_multiplier": 1.0,
+        "special_rules": [
+          {
+            "rule": "nature_blessing",
+            "description": "Healing effects are 15% more effective",
+            "value": 0.15,
+            "combat_system_mapping": {
+              "effect_type": "healing_effectiveness",
+              "multiplier": 1.15
+            }
+          }
+        ],
+        "adjacency_bonus": {
+          "type": "resource_boost",
+          "value": 0.05,
+          "per_controlled_adjacent": true
+        },
+        "stationed_god_bonuses": {
+          "earth_element_gods": {
+            "resource_generation": 0.25,
+            "zone_effect_strength": 0.1
+          },
+          "any_god": {
+            "resource_generation": 0.1,
+            "defense_power": 50
+          }
+        }
+      },
+      "enemy_modifiers": {
+        "stat_multiplier": 1.0,
+        "element_focus": "earth",
+        "special_mechanics": [
+          {
+            "mechanic": "rooted_ground",
+            "description": "25% chance to root attackers for 1 turn",
+            "proc_chance": 0.25,
+            "combat_system_mapping": {
+              "trigger": "on_hit_received",
+              "effect": "immobilize",
+              "duration": 1,
+              "chance": 0.25
+            }
+          }
+        ],
+        "stage_enemies": {
+          "1-3": {
+            "enemy_types": ["basic"],
+            "count_range": [2, 3],
+            "level_scaling": 1.0,
+            "abilities": [
+              {
+                "name": "Nature's Strike",
+                "base_effect": "damage",
+                "damage_type": "physical_damage",
+                "status_effects": ["slow"],
+                "chance": 0.3
+              }
+            ]
+          },
+          "4-6": {
+            "enemy_types": ["basic", "leader"],
+            "count_range": [3, 4],
+            "level_scaling": 1.2,
+            "abilities": [
+              {
+                "name": "Earthen Shield",
+                "base_effect": "buff",
+                "status_effects": ["defense_boost"],
+                "targets": "all_allies"
+              }
+            ]
+          },
+          "7-9": {
+            "enemy_types": ["basic", "leader", "elite"],
+            "count_range": [3, 5],
+            "level_scaling": 1.4,
+            "abilities": [
+              {
+                "name": "Grove Guardian's Wrath",
+                "base_effect": "damage",
+                "special_effects": ["area_damage"],
+                "damage_type": "magical_damage"
+              }
+            ]
+          },
+          "10": {
+            "enemy_types": ["boss"],
+            "count_range": [1, 1],
+            "level_scaling": 2.0,
+            "boss_name": "Ancient Grove Warden",
+            "abilities": [
+              {
+                "name": "Overgrowth",
+                "base_effect": "damage",
+                "special_effects": ["heal_block"],
+                "status_effects": ["immobilize"]
+              },
+              {
+                "name": "Nature's Resurgence",
+                "base_effect": "heal",
+                "special_effects": ["resurrect"],
+                "targets": "all_allies"
+              }
+            ]
+          }
+        }
+      },
+      "completion_rewards": {
+        "first_clear": {
+          "crystals": 10,
+          "divine_essence": 200,
+          "awakening_stones": 1
+        },
+        "territory_mastery": {
+          "requirement": "3_star_all_stages",
+          "rewards": {
+            "hero_summon_ticket": 1,
+            "crystals": 20
+          }
+        }
+      },
+      "description": "A peaceful grove protected by ancient earth spirits. The very ground here pulses with life."
+    },
+    {
+      "id": "crystal_springs",
+      "name": "Crystal Springs",
+      "tier": 1,
+      "element": "water",
+      "required_power": 350,
+      "unlock_requirements": {
+        "player_level": 7,
+        "prerequisite_territories": ["sacred_grove"]
+      },
+      "stages": {
+        "max": 10,
+        "energy_cost": 6,
+        "difficulty_curve": "linear"
+      },
+      "resource_generation": {
+        "loot_table": "territory_passive_income",
+        "base_tier": "tier_1_territories",
+        "collection_cap_hours": 8,
+        "upgrade_levels": 10,
+        "upgrade_bonus_per_level": 0.1,
+        "god_assignment_slots": 3,
+        "max_assignment_slots": 5,
+        "slot_unlock_costs": {
+          "slot_4": {"divine_essence": 5000, "awakening_stone": 2},
+          "slot_5": {"divine_essence": 15000, "divine_crystals": 10}
+        }
+      },
+      "zone_bonuses": {
+        "passive_effects": [
+          {
+            "type": "healing_boost",
+            "description": "Healing abilities are 20% more effective",
+            "value": 0.2,
+            "applies_to": "all_heroes",
+            "combat_system_mapping": {
+              "effect_type": "healing_effectiveness",
+              "multiplier": 1.2
+            }
+          },
+          {
+            "type": "cleanse_chance",
+            "description": "10% chance to cleanse debuffs each turn",
+            "value": 0.1,
+            "applies_to": "water_element",
+            "combat_system_mapping": {
+              "trigger": "turn_start",
+              "effect": "cleanse",
+              "chance": 0.1,
+              "debuff_count": 1
+            }
+          }
+        ],
+        "resource_multiplier": 1.1,
+        "special_rules": [
+          {
+            "rule": "flowing_waters",
+            "description": "Speed is increased by 10% for all heroes",
+            "value": 0.1,
+            "combat_system_mapping": {
+              "status_effect": "speed_boost",
+              "stat_modifier": "speed",
+              "multiplier": 0.1
+            }
+          }
+        ],
+        "adjacency_bonus": {
+          "type": "cooldown_reduction",
+          "value": 1,
+          "once_per_battle": true
+        },
+        "stationed_god_bonuses": {
+          "water_element_gods": {
+            "resource_generation": 0.3,
+            "healing_effectiveness": 0.15
+          },
+          "any_god": {
+            "resource_generation": 0.12,
+            "defense_power": 45
+          }
+        }
+      },
+      "enemy_modifiers": {
+        "stat_multiplier": 1.05,
+        "element_focus": "water",
+        "special_mechanics": [
+          {
+            "mechanic": "frozen_splash",
+            "description": "Attacks have 20% chance to slow nearby enemies",
+            "proc_chance": 0.2,
+            "combat_system_mapping": {
+              "trigger": "on_hit_dealt",
+              "effect": "slow",
+              "targets": "area_enemies",
+              "chance": 0.2,
+              "duration": 2
+            }
+          }
+        ],
+        "stage_enemies": {
+          "1-3": {
+            "enemy_types": ["basic"],
+            "count_range": [2, 3],
+            "level_scaling": 1.05,
+            "abilities": [
+              {
+                "name": "Frost Bolt",
+                "base_effect": "damage",
+                "damage_type": "magical_damage",
+                "status_effects": ["slow"],
+                "chance": 0.4
+              }
+            ]
+          },
+          "4-6": {
+            "enemy_types": ["basic", "leader"],
+            "count_range": [3, 4],
+            "level_scaling": 1.25,
+            "abilities": [
+              {
+                "name": "Healing Spring",
+                "base_effect": "heal",
+                "targets": "all_allies",
+                "heal_multiplier": 0.3
+              }
+            ]
+          },
+          "7-9": {
+            "enemy_types": ["basic", "leader", "elite"],
+            "count_range": [3, 5],
+            "level_scaling": 1.45,
+            "abilities": [
+              {
+                "name": "Tidal Wave",
+                "base_effect": "damage",
+                "special_effects": ["area_damage", "cannot_miss"],
+                "damage_type": "magical_damage"
+              }
+            ]
+          },
+          "10": {
+            "enemy_types": ["boss"],
+            "count_range": [1, 1],
+            "level_scaling": 2.1,
+            "boss_name": "Crystal Spring Guardian",
+            "abilities": [
+              {
+                "name": "Purifying Waters",
+                "base_effect": "heal",
+                "special_effects": ["cleanse"],
+                "targets": "all_allies"
+              },
+              {
+                "name": "Frozen Prison",
+                "base_effect": "damage",
+                "status_effects": ["freeze"],
+                "targets": "multiple"
+              }
+            ]
+          }
+        }
+      },
+      "completion_rewards": {
+        "first_clear": {
+          "crystals": 10,
+          "divine_essence": 250,
+          "equipment_box": 1
+        },
+        "territory_mastery": {
+          "requirement": "no_deaths_all_stages",
+          "rewards": {
+            "rune_box": 1,
+            "crystals": 25
+          }
+        }
+      },
+      "description": "Magical springs that flow with crystalline water. Legends say these waters can heal any wound."
+    },
+    {
+      "id": "ember_hills",
+      "name": "Ember Hills",
+      "tier": 1,
+      "element": "fire",
+      "required_power": 400,
+      "unlock_requirements": {
+        "player_level": 10,
+        "prerequisite_territories": ["sacred_grove"]
+      },
+      "stages": {
+        "max": 10,
+        "energy_cost": 6,
+        "difficulty_curve": "linear"
+      },
+      "resource_generation": {
+        "loot_table": "territory_passive_income",
+        "base_tier": "tier_1_territories",
+        "collection_cap_hours": 8,
+        "upgrade_levels": 10,
+        "upgrade_bonus_per_level": 0.12,
+        "god_assignment_slots": 3,
+        "max_assignment_slots": 5,
+        "slot_unlock_costs": {
+          "slot_4": {"divine_essence": 5000, "awakening_stone": 2},
+          "slot_5": {"divine_essence": 15000, "divine_crystals": 10}
+        }
+      },
+      "zone_bonuses": {
+        "passive_effects": [
+          {
+            "type": "attack_boost",
+            "description": "Fire heroes gain 15% attack",
+            "value": 0.15,
+            "applies_to": "fire_element",
+            "combat_system_mapping": {
+              "status_effect": "attack_boost",
+              "stat_modifier": "attack",
+              "multiplier": 0.15,
+              "condition": "element == fire"
+            }
+          },
+          {
+            "type": "burn_on_hit",
+            "description": "Attacks have 15% chance to burn",
+            "value": 0.15,
+            "applies_to": "all_heroes",
+            "combat_system_mapping": {
+              "trigger": "on_hit_dealt",
+              "effect": "burn",
+              "chance": 0.15,
+              "duration": 3
+            }
+          }
+        ],
+        "resource_multiplier": 1.15,
+        "special_rules": [
+          {
+            "rule": "scorching_battlefield",
+            "description": "All enemies take 3% max HP damage per turn",
+            "value": 0.03,
+            "combat_system_mapping": {
+              "trigger": "turn_start",
+              "effect": "damage",
+              "targets": "all_enemies",
+              "damage_type": "true_damage",
+              "damage": "max_hp * 0.03"
+            }
+          }
+        ],
+        "adjacency_bonus": {
+          "type": "attack_boost",
+          "value": 0.05,
+          "stacks": true
+        },
+        "stationed_god_bonuses": {
+          "fire_element_gods": {
+            "resource_generation": 0.35,
+            "attack_boost_enhancement": 0.1
+          },
+          "any_god": {
+            "resource_generation": 0.15,
+            "defense_power": 60
+          }
+        }
+      },
+      "enemy_modifiers": {
+        "stat_multiplier": 1.1,
+        "element_focus": "fire",
+        "special_mechanics": [
+          {
+            "mechanic": "explosive_death",
+            "description": "Enemies explode on death, dealing area damage",
+            "damage": 0.2,
+            "combat_system_mapping": {
+              "trigger": "on_death",
+              "effect": "damage",
+              "targets": "area_enemies_and_allies",
+              "damage_type": "true_damage",
+              "damage": "max_hp * 0.2"
+            }
+          }
+        ],
+        "stage_enemies": {
+          "1-3": {
+            "enemy_types": ["basic"],
+            "count_range": [2, 4],
+            "level_scaling": 1.1,
+            "abilities": [
+              {
+                "name": "Ember Strike",
+                "base_effect": "damage",
+                "damage_type": "physical_damage",
+                "status_effects": ["burn"],
+                "chance": 0.3
+              }
+            ]
+          },
+          "4-6": {
+            "enemy_types": ["basic", "leader"],
+            "count_range": [3, 4],
+            "level_scaling": 1.3,
+            "abilities": [
+              {
+                "name": "Flame Aura",
+                "base_effect": "buff",
+                "status_effects": ["attack_boost"],
+                "targets": "all_allies",
+                "passive_damage": 0.05
+              }
+            ]
+          },
+          "7-9": {
+            "enemy_types": ["basic", "leader", "elite"],
+            "count_range": [3, 5],
+            "level_scaling": 1.5,
+            "abilities": [
+              {
+                "name": "Inferno Blast",
+                "base_effect": "damage",
+                "special_effects": ["area_damage", "guaranteed_crit"],
+                "damage_type": "magical_damage"
+              }
+            ]
+          },
+          "10": {
+            "enemy_types": ["boss"],
+            "count_range": [1, 1],
+            "level_scaling": 2.2,
+            "boss_name": "Ember Hill Overlord",
+            "abilities": [
+              {
+                "name": "Volcanic Eruption",
+                "base_effect": "damage",
+                "special_effects": ["area_damage", "ignore_defense"],
+                "status_effects": ["burn"],
+                "targets": "all_enemies"
+              },
+              {
+                "name": "Phoenix Rebirth",
+                "base_effect": "resurrect",
+                "special_effects": ["full_heal"],
+                "triggers_once": true
+              }
+            ]
+          }
+        }
+      },
+      "completion_rewards": {
+        "first_clear": {
+          "crystals": 12,
+          "divine_essence": 300,
+          "skill_books": 2
+        },
+        "territory_mastery": {
+          "requirement": "complete_under_30_seconds",
+          "rewards": {
+            "speed_rune_set": 1,
+            "crystals": 30
+          }
+        }
+      },
+      "description": "Volcanic hills where flames dance eternally. The heat here forges warriors of incredible strength."
+    },
+    {
+      "id": "storm_peaks",
+      "name": "Storm Peaks",
+      "tier": 1,
+      "element": "lightning",
+      "required_power": 450,
+      "unlock_requirements": {
+        "player_level": 12,
+        "prerequisite_territories": ["crystal_springs", "ember_hills"]
+      },
+      "stages": {
+        "max": 10,
+        "energy_cost": 6,
+        "difficulty_curve": "moderate"
+      },
+      "resource_generation": {
+        "loot_table": "territory_passive_income",
+        "base_tier": "tier_1_territories",
+        "collection_cap_hours": 8,
+        "upgrade_levels": 10,
+        "upgrade_bonus_per_level": 0.12,
+        "god_assignment_slots": 3,
+        "max_assignment_slots": 5,
+        "slot_unlock_costs": {
+          "slot_4": {"divine_essence": 5000, "awakening_stone": 2},
+          "slot_5": {"divine_essence": 15000, "divine_crystals": 10}
+        }
+      },
+      "zone_bonuses": {
+        "passive_effects": [
+          {
+            "type": "speed_boost",
+            "description": "Lightning heroes gain 20% speed",
+            "value": 0.2,
+            "applies_to": "lightning_element"
+          },
+          {
+            "type": "chain_chance",
+            "description": "25% chance for attacks to chain",
+            "value": 0.25,
+            "applies_to": "lightning_abilities"
+          }
+        ],
+        "resource_multiplier": 1.2,
+        "special_rules": [
+          {
+            "rule": "static_field",
+            "description": "Start of battle: All enemies are slowed for 1 turn",
+            "duration": 1
+          }
+        ],
+        "adjacency_bonus": {
+          "type": "action_bar_boost",
+          "value": 100,
+          "start_of_battle": true
+        }
+      },
+      "enemy_modifiers": {
+        "stat_multiplier": 1.15,
+        "element_focus": "lightning",
+        "special_mechanics": [
+          {
+            "mechanic": "lightning_reflexes",
+            "description": "Enemies have 20% dodge chance",
+            "dodge_chance": 0.2
+          },
+          {
+            "mechanic": "storm_surge",
+            "description": "Every 3 turns, all enemies gain 50% speed",
+            "interval": 3
+          }
+        ],
+        "stage_enemies": {
+          "1-3": ["basic"],
+          "4-6": ["basic", "leader"],
+          "7-9": ["basic", "leader", "elite"],
+          "10": ["boss"]
+        }
+      },
+      "completion_rewards": {
+        "first_clear": {
+          "crystals": 15,
+          "divine_essence": 350,
+          "awakening_stones": 2
+        },
+        "territory_mastery": {
+          "requirement": "no_abilities_used",
+          "rewards": {
+            "legendary_equipment": 1,
+            "crystals": 35
+          }
+        }
+      },
+      "description": "Mountain peaks wreathed in eternal storms. Lightning strikes here grant speed beyond mortal limits."
+    },
+    {
+      "id": "ancient_ruins",
+      "name": "Ancient Ruins",
+      "tier": 2,
+      "element": "light",
+      "required_power": 800,
+      "unlock_requirements": {
+        "player_level": 20,
+        "prerequisite_territories": ["storm_peaks"],
+        "heroes_owned": 10
+      },
+      "stages": {
+        "max": 12,
+        "energy_cost": 8,
+        "difficulty_curve": "exponential"
+      },
+      "resource_generation": {
+        "loot_table": "territory_passive_income",
+        "base_tier": "tier_2_territories",
+        "collection_cap_hours": 10,
+        "upgrade_levels": 15,
+        "upgrade_bonus_per_level": 0.15,
+        "god_assignment_slots": 4,
+        "max_assignment_slots": 6,
+        "slot_unlock_costs": {
+          "slot_5": {"divine_essence": 15000, "awakening_stone": 5},
+          "slot_6": {"divine_essence": 50000, "divine_crystals": 25}
+        }
+      },
+      "zone_bonuses": {
+        "passive_effects": [
+          {
+            "type": "experience_boost",
+            "description": "Heroes gain 30% more experience",
+            "value": 0.3,
+            "applies_to": "all_heroes"
+          },
+          {
+            "type": "debuff_immunity",
+            "description": "Light heroes immune to blind and fear",
+            "applies_to": "light_element"
+          }
+        ],
+        "resource_multiplier": 1.5,
+        "special_rules": [
+          {
+            "rule": "ancient_knowledge",
+            "description": "All abilities have -1 cooldown",
+            "value": 1
+          },
+          {
+            "rule": "divine_protection",
+            "description": "Heroes cannot be one-shot (survive with 1 HP)",
+            "once_per_hero": true
+          }
+        ],
+        "adjacency_bonus": {
+          "type": "skill_point_generation",
+          "value": 1,
+          "per_hour": true
+        }
+      },
+      "enemy_modifiers": {
+        "stat_multiplier": 1.3,
+        "element_focus": "light",
+        "special_mechanics": [
+          {
+            "mechanic": "divine_shield",
+            "description": "Enemies start with 30% HP shield",
+            "shield_value": 0.3
+          },
+          {
+            "mechanic": "resurrection",
+            "description": "Elite enemies revive once at 50% HP",
+            "revive_hp": 0.5
+          }
+        ],
+        "stage_enemies": {
+          "1-3": ["basic", "leader"],
+          "4-6": ["leader", "elite"],
+          "7-9": ["elite", "elite"],
+          "10-11": ["elite", "boss"],
+          "12": ["boss", "elite"]
+        }
+      },
+      "completion_rewards": {
+        "first_clear": {
+          "crystals": 30,
+          "divine_essence": 500,
+          "epic_hero_summon": 1
+        },
+        "territory_mastery": {
+          "requirement": "complete_with_3_heroes_or_less",
+          "rewards": {
+            "legendary_hero_summon": 1,
+            "crystals": 50
+          }
+        }
+      },
+      "description": "Crumbling ruins of a once-great civilization. Ancient magic still lingers in these stones."
+    },
+    {
+      "id": "shadow_realm",
+      "name": "Shadow Realm",
+      "tier": 2,
+      "element": "dark",
+      "required_power": 900,
+      "unlock_requirements": {
+        "player_level": 22,
+        "prerequisite_territories": ["storm_peaks"],
+        "pvp_rank": "silver"
+      },
+      "stages": {
+        "max": 12,
+        "energy_cost": 8,
+        "difficulty_curve": "exponential"
+      },
+      "resource_generation": {
+        "base_rate": 60,
+        "resource_types": {
+          "gold": 35,
+          "divine_essence": 20,
+          "crystals": 5
+        },
+        "collection_cap": 10,
+        "upgrade_levels": 15,
+        "upgrade_bonus_per_level": 0.15
+      },
+      "zone_bonuses": {
+        "passive_effects": [
+          {
+            "type": "lifesteal",
+            "description": "All attacks heal for 20% damage dealt",
+            "value": 0.2,
+            "applies_to": "all_heroes"
+          },
+          {
+            "type": "execute_chance",
+            "description": "Dark heroes can execute enemies below 20% HP",
+            "threshold": 0.2,
+            "applies_to": "dark_element"
+          }
+        ],
+        "resource_multiplier": 1.6,
+        "special_rules": [
+          {
+            "rule": "shadow_step",
+            "description": "Heroes have 20% dodge chance",
+            "value": 0.2
+          },
+          {
+            "rule": "nightmare_realm",
+            "description": "Enemies have 15% chance to be feared each turn",
+            "proc_chance": 0.15
+          }
+        ],
+        "adjacency_bonus": {
+          "type": "crystal_generation",
+          "value": 1,
+          "per_day": true
+        }
+      },
+      "enemy_modifiers": {
+        "stat_multiplier": 1.35,
+        "element_focus": "dark",
+        "special_mechanics": [
+          {
+            "mechanic": "life_drain",
+            "description": "All enemy attacks heal them for 30% damage",
+            "heal_percentage": 0.3
+          },
+          {
+            "mechanic": "shadow_clone",
+            "description": "Elites spawn a clone at 50% HP",
+            "clone_hp": 0.3
+          }
+        ],
+        "stage_enemies": {
+          "1-3": ["basic", "leader"],
+          "4-6": ["leader", "elite"],
+          "7-9": ["elite", "elite"],
+          "10-11": ["elite", "boss"],
+          "12": ["boss", "elite"]
+        }
+      },
+      "completion_rewards": {
+        "first_clear": {
+          "crystals": 35,
+          "divine_essence": 600,
+          "dark_essence": 100
+        },
+        "territory_mastery": {
+          "requirement": "no_light_heroes",
+          "rewards": {
+            "dark_legendary_summon": 1,
+            "crystals": 60
+          }
+        }
+      },
+      "description": "A realm where shadows have taken physical form. Reality itself bends to darkness here."
+    },
+    {
+      "id": "elemental_nexus",
+      "name": "Elemental Nexus",
+      "tier": 2,
+      "element": "fire",
+      "required_power": 1000,
+      "unlock_requirements": {
+        "player_level": 25,
+        "prerequisite_territories": ["ancient_ruins", "shadow_realm"],
+        "total_power": 5000
+      },
+      "stages": {
+        "max": 12,
+        "energy_cost": 8,
+        "difficulty_curve": "steep"
+      },
+      "resource_generation": {
+        "base_rate": 70,
+        "resource_types": {
+          "gold": 40,
+          "divine_essence": 25,
+          "elemental_cores": 5
+        },
+        "collection_cap": 10,
+        "upgrade_levels": 15,
+        "upgrade_bonus_per_level": 0.18
+      },
+      "zone_bonuses": {
+        "passive_effects": [
+          {
+            "type": "elemental_mastery",
+            "description": "All elemental advantages are increased by 50%",
+            "value": 0.5,
+            "applies_to": "all_heroes"
+          },
+          {
+            "type": "multi_element",
+            "description": "Heroes gain random element buff each turn",
+            "random_buff": true
+          }
+        ],
+        "resource_multiplier": 1.7,
+        "special_rules": [
+          {
+            "rule": "elemental_chaos",
+            "description": "Elements randomly shift each turn",
+            "chaos_mode": true
+          },
+          {
+            "rule": "convergence_power",
+            "description": "Using 5 different elements grants team-wide ultimate",
+            "ultimate_charge": true
+          }
+        ],
+        "adjacency_bonus": {
+          "type": "element_resistance",
+          "value": 0.1,
+          "all_elements": true
+        }
+      },
+      "enemy_modifiers": {
+        "stat_multiplier": 1.4,
+        "element_focus": "random",
+        "special_mechanics": [
+          {
+            "mechanic": "element_shift",
+            "description": "Enemies change element when hit",
+            "on_hit": true
+          },
+          {
+            "mechanic": "elemental_explosion",
+            "description": "On death, enemies deal their element damage to all",
+            "explosion_damage": 0.3
+          }
+        ],
+        "stage_enemies": {
+          "1-3": ["basic", "leader"],
+          "4-6": ["leader", "elite"],
+          "7-9": ["elite", "elite", "leader"],
+          "10-11": ["boss", "elite"],
+          "12": ["boss", "boss"]
+        }
+      },
+      "completion_rewards": {
+        "first_clear": {
+          "crystals": 40,
+          "divine_essence": 700,
+          "element_selector_ticket": 1
+        },
+        "territory_mastery": {
+          "requirement": "use_all_6_elements",
+          "rewards": {
+            "mythic_equipment_selector": 1,
+            "crystals": 70
+          }
+        }
+      },
+      "description": "A convergence point of all elemental energies. The very fabric of magic is visible here."
+    },
+    {
+      "id": "divine_sanctum",
+      "name": "Divine Sanctum",
+      "tier": 2,
+      "element": "light",
+      "required_power": 1100,
+      "unlock_requirements": {
+        "player_level": 28,
+        "prerequisite_territories": ["ancient_ruins"],
+        "light_heroes_owned": 3
+      },
+      "stages": {
+        "max": 12,
+        "energy_cost": 8,
+        "difficulty_curve": "steep"
+      },
+      "resource_generation": {
+        "base_rate": 80,
+        "resource_types": {
+          "gold": 45,
+          "divine_essence": 30,
+          "blessing_tokens": 5
+        },
+        "collection_cap": 12,
+        "upgrade_levels": 15,
+        "upgrade_bonus_per_level": 0.2
+      },
+      "zone_bonuses": {
+        "passive_effects": [
+          {
+            "type": "divine_grace",
+            "description": "Revive first fallen hero at 30% HP",
+            "revive_hp": 0.3,
+            "once_per_battle": true
+          },
+          {
+            "type": "holy_aura",
+            "description": "All heroes immune to curse and fear",
+            "immunity_list": ["curse", "fear"]
+          }
+        ],
+        "resource_multiplier": 1.8,
+        "special_rules": [
+          {
+            "rule": "divine_intervention",
+            "description": "Lethal damage has 30% chance to be negated",
+            "save_chance": 0.3
+          },
+          {
+            "rule": "blessing_cascade",
+            "description": "Buffs spread to adjacent allies",
+            "buff_spread": true
+          }
+        ],
+        "adjacency_bonus": {
+          "type": "blessing_power",
+          "value": 0.15,
+          "buff_effectiveness": true
+        }
+      },
+      "enemy_modifiers": {
+        "stat_multiplier": 1.45,
+        "element_focus": "light",
+        "special_mechanics": [
+          {
+            "mechanic": "divine_retribution",
+            "description": "Counters all debuff attempts with damage",
+            "counter_damage": 0.5
+          },
+          {
+            "mechanic": "sanctified_ground",
+            "description": "Enemies heal 5% per turn",
+            "regen_rate": 0.05
+          }
+        ],
+        "stage_enemies": {
+          "1-3": ["leader", "leader"],
+          "4-6": ["elite", "leader", "leader"],
+          "7-9": ["elite", "elite", "leader"],
+          "10-11": ["boss", "elite"],
+          "12": ["boss", "elite", "elite"]
+        }
+      },
+      "completion_rewards": {
+        "first_clear": {
+          "crystals": 45,
+          "divine_essence": 800,
+          "legendary_light_hero": 1
+        },
+        "territory_mastery": {
+          "requirement": "no_dark_damage_taken",
+          "rewards": {
+            "divine_artifact": 1,
+            "crystals": 80
+          }
+        }
+      },
+      "description": "A holy shrine blessed by divine power. The gods themselves watch over this sacred place."
+    },
+    {
+      "id": "primordial_chaos",
+      "name": "Primordial Chaos",
+      "tier": 3,
+      "element": "dark",
+      "required_power": 1800,
+      "unlock_requirements": {
+        "player_level": 35,
+        "prerequisite_territories": ["shadow_realm", "elemental_nexus"],
+        "total_victories": 500
+      },
+      "stages": {
+        "max": 15,
+        "energy_cost": 10,
+        "difficulty_curve": "extreme"
+      },
+      "resource_generation": {
+        "base_rate": 120,
+        "resource_types": {
+          "gold": 60,
+          "divine_essence": 40,
+          "chaos_essence": 10,
+          "crystals": 10
+        },
+        "collection_cap": 16,
+        "upgrade_levels": 20,
+        "upgrade_bonus_per_level": 0.25
+      },
+      "zone_bonuses": {
+        "passive_effects": [
+          {
+            "type": "chaos_empowerment",
+            "description": "Random stats increased by 50% each battle",
+            "random_stat_boost": 0.5
+          },
+          {
+            "type": "reality_distortion",
+            "description": "25% chance to ignore any attack",
+            "phase_chance": 0.25
+          }
+        ],
+        "resource_multiplier": 2.5,
+        "special_rules": [
+          {
+            "rule": "primordial_surge",
+            "description": "Every 3 turns, all heroes gain random legendary buff",
+            "surge_interval": 3
+          },
+          {
+            "rule": "chaos_evolution",
+            "description": "Heroes can temporarily evolve mid-battle",
+            "evolution_chance": 0.1
+          },
+          {
+            "rule": "reality_break",
+            "description": "Normal rules don't always apply",
+            "chaos_factor": "maximum"
+          }
+        ],
+        "adjacency_bonus": {
+          "type": "chaos_multiplication",
+          "value": 0.3,
+          "all_resources": true
+        }
+      },
+      "enemy_modifiers": {
+        "stat_multiplier": 1.6,
+        "element_focus": "chaos",
+        "special_mechanics": [
+          {
+            "mechanic": "chaos_form",
+            "description": "Enemies randomly change form and abilities",
+            "morph_interval": 2
+          },
+          {
+            "mechanic": "reality_tear",
+            "description": "Attacks can hit through immunity",
+            "pierce_immunity": true
+          },
+          {
+            "mechanic": "entropy_field",
+            "description": "Buffs and debuffs randomly swap targets",
+            "swap_chance": 0.2
+          }
+        ],
+        "stage_enemies": {
+          "1-3": ["elite", "elite"],
+          "4-6": ["elite", "elite", "elite"],
+          "7-9": ["boss", "elite", "elite"],
+          "10-12": ["boss", "boss", "elite"],
+          "13-14": ["boss", "boss", "boss"],
+          "15": ["chaos_overlord"]
+        }
+      },
+      "completion_rewards": {
+        "first_clear": {
+          "crystals": 100,
+          "divine_essence": 1500,
+          "chaos_legendary_hero": 1,
+          "mythic_equipment_chest": 1
+        },
+        "territory_mastery": {
+          "requirement": "complete_without_deaths",
+          "rewards": {
+            "transcendent_upgrade_stone": 1,
+            "crystals": 150
+          }
+        }
+      },
+      "description": "The birthplace of chaos itself, where reality bends and breaks. Only the strongest dare enter."
+    },
+    {
+      "id": "celestial_throne",
+      "name": "Celestial Throne",
+      "tier": 3,
+      "element": "light",
+      "required_power": 2000,
+      "unlock_requirements": {
+        "player_level": 40,
+        "prerequisite_territories": ["divine_sanctum", "elemental_nexus"],
+        "legendary_heroes_owned": 2
+      },
+      "stages": {
+        "max": 15,
+        "energy_cost": 10,
+        "difficulty_curve": "extreme"
+      },
+      "resource_generation": {
+        "base_rate": 150,
+        "resource_types": {
+          "gold": 75,
+          "divine_essence": 50,
+          "celestial_tokens": 15,
+          "crystals": 10
+        },
+        "collection_cap": 16,
+        "upgrade_levels": 20,
+        "upgrade_bonus_per_level": 0.3
+      },
+      "zone_bonuses": {
+        "passive_effects": [
+          {
+            "type": "celestial_ascension",
+            "description": "All heroes gain flying and +30% all stats",
+            "stat_boost": 0.3,
+            "grants_flying": true
+          },
+          {
+            "type": "divine_mandate",
+            "description": "Immune to all debuffs",
+            "full_debuff_immunity": true
+          }
+        ],
+        "resource_multiplier": 3.0,
+        "special_rules": [
+          {
+            "rule": "throne_of_gods",
+            "description": "Heroes can use abilities twice per turn",
+            "double_cast": true
+          },
+          {
+            "rule": "celestial_army",
+            "description": "Summon angel reinforcements when ally falls",
+            "angel_summon": true
+          },
+          {
+            "rule": "divine_judgment",
+            "description": "Enemies below 30% HP are instantly defeated",
+            "execute_threshold": 0.3
+          }
+        ],
+        "adjacency_bonus": {
+          "type": "divine_multiplication",
+          "value": 0.5,
+          "all_resources": true
+        }
+      },
+      "enemy_modifiers": {
+        "stat_multiplier": 1.8,
+        "element_focus": "celestial",
+        "special_mechanics": [
+          {
+            "mechanic": "godly_presence",
+            "description": "Enemies have 50% damage reduction",
+            "damage_reduction": 0.5
+          },
+          {
+            "mechanic": "divine_wrath",
+            "description": "Every attack has 30% chance to smite",
+            "smite_chance": 0.3
+          },
+          {
+            "mechanic": "immortal_legion",
+            "description": "All enemies revive once",
+            "guaranteed_revive": true
+          }
+        ],
+        "stage_enemies": {
+          "1-3": ["elite", "elite", "elite"],
+          "4-6": ["boss", "elite", "elite"],
+          "7-9": ["boss", "boss", "elite"],
+          "10-12": ["boss", "boss", "boss"],
+          "13-14": ["celestial_guardian", "boss", "boss"],
+          "15": ["god_king"]
+        }
+      },
+      "completion_rewards": {
+        "first_clear": {
+          "crystals": 150,
+          "divine_essence": 2000,
+          "god_tier_hero_selector": 1,
+          "celestial_artifact": 1
+        },
+        "territory_mastery": {
+          "requirement": "complete_in_under_20_turns",
+          "rewards": {
+            "divine_ascension_material": 1,
+            "crystals": 200
+          }
+        }
+      },
+      "description": "The throne of the gods, gleaming with celestial light. To stand here is to touch divinity itself."
+    },
+    {
+      "id": "frozen_wastes",
+      "name": "Frozen Wastes",
+      "tier": 2,
+      "element": "water",
+      "required_power": 1300,
+      "unlock_requirements": {
+        "player_level": 30,
+        "prerequisite_territories": ["shadow_realm", "divine_sanctum"],
+        "water_heroes_owned": 3
+      },
+      "stages": {
+        "max": 12,
+        "energy_cost": 8,
+        "difficulty_curve": "steep"
+      },
+      "resource_generation": {
+        "base_rate": 65,
+        "resource_types": {
+          "gold": 40,
+          "divine_essence": 20,
+          "frost_shards": 5
+        },
+        "collection_cap": 10,
+        "upgrade_levels": 15,
+        "upgrade_bonus_per_level": 0.15
+      },
+      "zone_bonuses": {
+        "passive_effects": [
+          {
+            "type": "frost_armor",
+            "description": "Attackers are slowed for 1 turn",
+            "slow_attackers": true
+          },
+          {
+            "type": "ice_shield",
+            "description": "Water heroes start with 20% HP shield",
+            "shield_value": 0.2,
+            "applies_to": "water_element"
+          }
+        ],
+        "resource_multiplier": 1.65,
+        "special_rules": [
+          {
+            "rule": "eternal_winter",
+            "description": "All enemies are permanently slowed by 20%",
+            "slow_value": 0.2
+          },
+          {
+            "rule": "shatter",
+            "description": "Frozen enemies take 2x damage",
+            "shatter_multiplier": 2.0
+          }
+        ],
+        "adjacency_bonus": {
+          "type": "freeze_resistance",
+          "value": 0.5,
+          "cc_reduction": true
+        }
+      },
+      "enemy_modifiers": {
+        "stat_multiplier": 1.5,
+        "element_focus": "water",
+        "special_mechanics": [
+          {
+            "mechanic": "permafrost",
+            "description": "Immune to freeze but vulnerable to fire",
+            "freeze_immune": true,
+            "fire_weakness": 0.3
+          },
+          {
+            "mechanic": "ice_giants",
+            "description": "Enemies are 50% larger with more HP",
+            "size_increase": 1.5
+          }
+        ],
+        "stage_enemies": {
+          "1-3": ["leader", "leader"],
+          "4-6": ["elite", "leader", "leader"],
+          "7-9": ["elite", "elite", "elite"],
+          "10-11": ["boss", "elite", "elite"],
+          "12": ["frost_giant_king"]
+        }
+      },
+      "completion_rewards": {
+        "first_clear": {
+          "crystals": 50,
+          "divine_essence": 900,
+          "ice_legendary_equipment": 1
+        },
+        "territory_mastery": {
+          "requirement": "no_fire_heroes",
+          "rewards": {
+            "frost_lord_summon": 1,
+            "crystals": 90
+          }
+        }
+      },
+      "description": "An endless expanse of ice and snow, where frost giants roam. The cold here can freeze gods themselves."
+    },
+    {
+      "id": "volcanic_core",
+      "name": "Volcanic Core",
+      "tier": 3,
+      "element": "fire",
+      "required_power": 2800,
+      "unlock_requirements": {
+        "player_level": 45,
+        "prerequisite_territories": ["primordial_chaos", "celestial_throne", "frozen_wastes"],
+        "total_power": 15000
+      },
+      "stages": {
+        "max": 15,
+        "energy_cost": 12,
+        "difficulty_curve": "nightmare"
+      },
+      "resource_generation": {
+        "base_rate": 140,
+        "resource_types": {
+          "gold": 70,
+          "divine_essence": 45,
+          "molten_cores": 15,
+          "crystals": 10
+        },
+        "collection_cap": 20,
+        "upgrade_levels": 25,
+        "upgrade_bonus_per_level": 0.35
+      },
+      "zone_bonuses": {
+        "passive_effects": [
+          {
+            "type": "molten_fury",
+            "description": "All attacks burn and deal +40% damage",
+            "damage_boost": 0.4,
+            "guaranteed_burn": true
+          },
+          {
+            "type": "phoenix_blood",
+            "description": "Heroes revive once with 50% HP",
+            "revive_all": true,
+            "revive_hp": 0.5
+          }
+        ],
+        "resource_multiplier": 2.8,
+        "special_rules": [
+          {
+            "rule": "core_meltdown",
+            "description": "Battlefield damage increases 5% per turn",
+            "escalating_damage": 0.05
+          },
+          {
+            "rule": "lava_eruption",
+            "description": "Random lava eruptions deal massive damage",
+            "eruption_chance": 0.2
+          },
+          {
+            "rule": "primordial_flame",
+            "description": "Fire damage ignores all resistances",
+            "true_fire_damage": true
+          }
+        ],
+        "adjacency_bonus": {
+          "type": "volcanic_multiplication",
+          "value": 0.6,
+          "all_resources": true
+        }
+      },
+      "enemy_modifiers": {
+        "stat_multiplier": 2.0,
+        "element_focus": "primordial_fire",
+        "special_mechanics": [
+          {
+            "mechanic": "living_lava",
+            "description": "Enemies regenerate 10% HP per turn",
+            "regen_rate": 0.1
+          },
+          {
+            "mechanic": "molten_explosion",
+            "description": "On death, enemies deal 50% max HP as area damage",
+            "death_explosion": 0.5
+          },
+          {
+            "mechanic": "fire_immunity",
+            "description": "Completely immune to fire damage",
+            "element_immunity": "fire"
+          },
+          {
+            "mechanic": "heat_wave",
+            "description": "Heroes lose 5% max HP per turn",
+            "environmental_damage": 0.05
+          }
+        ],
+        "stage_enemies": {
+          "1-3": ["elite", "elite", "elite"],
+          "4-6": ["boss", "elite", "elite", "elite"],
+          "7-9": ["boss", "boss", "elite", "elite"],
+          "10-12": ["primordial_flame", "boss", "boss"],
+          "13-14": ["ancient_magma_lord", "primordial_flame"],
+          "15": ["world_ender_surtr"]
+        }
+      },
+      "completion_rewards": {
+        "first_clear": {
+          "crystals": 200,
+          "divine_essence": 3000,
+          "primordial_hero_selector": 1,
+          "world_forge_artifact": 1,
+          "mythic_rune_set": 1
+        },
+        "territory_mastery": {
+          "requirement": "complete_with_only_fire_heroes",
+          "rewards": {
+            "eternal_flame_essence": 1,
+            "crystals": 300,
+            "title": "Flame_Eternal"
+          }
+        }
+      },
+      "description": "The molten heart of the world, where fire elementals are born. Here burns the flame that forged reality."
+    }
+  ],
+
+  "territory_progression": {
+    "unlock_paths": {
+      "starter": ["sacred_grove"],
+      "tier_1_branches": [
+        ["sacred_grove", "crystal_springs", "storm_peaks"],
+        ["sacred_grove", "ember_hills", "storm_peaks"]
+      ],
+      "tier_2_gates": [
+        ["storm_peaks", "ancient_ruins"],
+        ["storm_peaks", "shadow_realm"],
+        ["ancient_ruins", "divine_sanctum"],
+        ["shadow_realm", "elemental_nexus"]
+      ],
+      "tier_3_requirements": {
+        "primordial_chaos": ["shadow_realm", "elemental_nexus"],
+        "celestial_throne": ["divine_sanctum", "elemental_nexus"],
+        "volcanic_core": ["primordial_chaos", "celestial_throne", "frozen_wastes"]
+      }
+    },
+    
+    "conquest_bonuses": {
+      "first_territory": {
+        "bonus": "10% global resource generation",
+        "value": 0.1
+      },
+      "tier_completion": {
+        "tier_1": {
+          "bonus": "Unlock tier 2 heroes in summon pool",
+          "crystals": 50
+        },
+        "tier_2": {
+          "bonus": "Unlock tier 3 heroes in summon pool",
+          "crystals": 100
+        },
+        "tier_3": {
+          "bonus": "Unlock mythic ascension",
+          "crystals": 200
+        }
+      },
+      "full_conquest": {
+        "bonus": "Unlock infinite progression mode",
+        "title": "World_Conqueror",
+        "special_currency_generation": true
+      }
+    }
+  },
+
+  "territory_synergies": {
+    "element_chains": {
+      "nature_cycle": {
+        "territories": ["sacred_grove", "crystal_springs", "frozen_wastes"],
+        "bonus": "20% healing effectiveness",
+        "resource_bonus": 0.15
+      },
+      "destruction_path": {
+        "territories": ["ember_hills", "storm_peaks", "volcanic_core"],
+        "bonus": "30% damage increase",
+        "resource_bonus": 0.2
+      },
+      "balance_of_light_dark": {
+        "territories": ["ancient_ruins", "shadow_realm", "divine_sanctum"],
+        "bonus": "Immunity to instant death effects",
+        "resource_bonus": 0.25
+      },
+      "primordial_trinity": {
+        "territories": ["primordial_chaos", "celestial_throne", "volcanic_core"],
+        "bonus": "50% to all stats",
+        "resource_bonus": 0.5
+      }
+    }
+  },
+
+  "territory_management": {
+    "comment": "New modular territory management system integrated with combat system",
+    
+    "god_assignment_system": {
+      "base_assignment_slots": 3,
+      "slot_unlock_requirements": {
+        "slot_4": {"territory_level": 5, "cost": {"gold": 10000}},
+        "slot_5": {"territory_level": 10, "cost": {"divine_essence": 500}}
+      },
+      "assignment_benefits": {
+        "resource_generation": {
+          "base_bonus": 0.1,
+          "element_match_bonus": 0.15,
+          "legendary_god_bonus": 0.05
+        },
+        "defense_power": {
+          "base_power_per_god": 50,
+          "scaling_with_god_level": 5,
+          "element_synergy_multiplier": 1.2
+        },
+        "zone_effect_enhancement": {
+          "passive_effect_boost": 0.1,
+          "special_rule_efficiency": 0.15
+        }
+      },
+      "assignment_restrictions": {
+        "max_gods_per_territory": 5,
+        "cooldown_after_reassignment": 3600,
+        "energy_cost_for_emergency_reassignment": 10
+      }
+    },
+    
+    "territory_upgrade_system": {
+      "upgrade_categories": [
+        {
+          "name": "Resource Generation",
+          "max_level": 15,
+          "cost_formula": "base_cost * (level ^ 1.5) * rarity_multiplier",
+          "benefits_per_level": {
+            "resource_rate": 0.08,
+            "collection_cap": 2,
+            "quality_bonus": 0.02
+          }
+        },
+        {
+          "name": "Defense Infrastructure",
+          "max_level": 10,
+          "cost_formula": "base_cost * (level ^ 1.3) * 2",
+          "benefits_per_level": {
+            "stationed_god_power": 0.1,
+            "enemy_stat_reduction": 0.05,
+            "stage_clear_rewards": 0.03
+          }
+        },
+        {
+          "name": "Zone Amplification",
+          "max_level": 8,
+          "cost_formula": "base_cost * (level ^ 2) * tier_multiplier",
+          "benefits_per_level": {
+            "passive_effect_strength": 0.12,
+            "adjacency_bonus": 0.05,
+            "synergy_chain_bonus": 0.08
+          }
+        }
+      ],
+      "upgrade_costs": {
+        "tier_1": {"base_cost": 1000, "rarity_multiplier": 1.0},
+        "tier_2": {"base_cost": 5000, "rarity_multiplier": 1.5},
+        "tier_3": {"base_cost": 15000, "rarity_multiplier": 2.0}
+      }
+    },
+    
+    "automated_collection": {
+      "collection_intervals": {
+        "manual": 0,
+        "hourly": 3600,
+        "every_4_hours": 14400,
+        "daily": 86400
+      },
+      "collection_efficiency": {
+        "manual": 1.0,
+        "auto_hourly": 0.9,
+        "auto_4hour": 0.95,
+        "auto_daily": 1.1
+      },
+      "overflow_protection": {
+        "enabled": true,
+        "overflow_conversion_rate": 0.5,
+        "converted_to": "gold"
+      }
+    },
+    
+    "territory_events": {
+      "random_events": {
+        "resource_surge": {
+          "chance": 0.05,
+          "duration": 7200,
+          "bonus": 0.5,
+          "description": "Territory experiences resource surge"
+        },
+        "divine_blessing": {
+          "chance": 0.02,
+          "duration": 3600,
+          "effects": ["double_xp", "enhanced_drops"],
+          "description": "Gods bless this territory"
+        },
+        "elemental_storm": {
+          "chance": 0.03,
+          "duration": 1800,
+          "effects": ["matching_element_damage_boost"],
+          "description": "Elemental energies rage"
+        }
+      },
+      "seasonal_events": {
+        "harvest_season": {
+          "frequency": "monthly",
+          "duration": 604800,
+          "global_resource_multiplier": 1.25
+        },
+        "war_time": {
+          "frequency": "bi_monthly", 
+          "duration": 432000,
+          "pvp_rewards_boost": 1.5,
+          "territory_conquest_bonuses": 1.3
+        }
+      }
+    },
+    
+    "advanced_mechanics": {
+      "territory_resonance": {
+        "description": "Territories with same element gods stationed boost each other",
+        "resonance_range": 2,
+        "bonus_per_resonating_territory": 0.08,
+        "max_resonance_bonus": 0.4
+      },
+      "supply_lines": {
+        "description": "Adjacent controlled territories share resources",
+        "resource_sharing_rate": 0.1,
+        "emergency_support": {
+          "enabled": true,
+          "support_threshold": 0.2,
+          "support_amount": 0.05
+        }
+      },
+      "fortification_network": {
+        "description": "Connected territories provide mutual defense",
+        "defense_sharing": 0.15,
+        "network_effects": {
+          "early_warning": true,
+          "coordinated_counterattack": true,
+          "shared_intelligence": true
+        }
+      }
+    }
+  },
+  
+  "combat_integration": {
+    "comment": "How territories integrate with the new combat system",
+    
+    "battlefield_effects": {
+      "environmental_modifiers": {
+        "apply_to_all_battles": true,
+        "stacks_with_hero_abilities": true,
+        "affected_by_god_assignments": true
+      },
+      "element_advantage_enhancement": {
+        "matching_territory_element": 0.1,
+        "stationed_matching_gods": 0.05,
+        "territory_level_scaling": 0.01
+      }
+    },
+    
+    "stage_progression_rewards": {
+      "first_clear_bonuses": {
+        "experience_multiplier": 1.5,
+        "guaranteed_rare_drop": true,
+        "territory_unlock_progress": 1
+      },
+      "perfect_clear_bonuses": {
+        "no_deaths": {"bonus_experience": 0.2, "extra_rewards": 1},
+        "under_time_limit": {"efficiency_bonus": 0.15},
+        "elemental_mastery": {"matching_element_only": true, "mastery_points": 5}
+      },
+      "repeated_clear_rewards": {
+        "base_rewards": 0.6,
+        "scaling_with_clear_count": 0.02,
+        "weekly_bonus_reset": true
+      }
+    },
+    
+    "god_battle_integration": {
+      "stationed_god_benefits": {
+        "pre_battle_buffs": {
+          "resource_blessing": {"duration": 3, "effect": "resource_generation_boost"},
+          "territorial_knowledge": {"accuracy_bonus": 0.1, "crit_bonus": 0.05}
+        },
+        "during_battle_support": {
+          "emergency_heal": {"trigger": "ally_below_30_hp", "chance": 0.1},
+          "divine_intervention": {"prevent_death_once": true, "per_stationed_god": true}
+        }
+      },
+      "battle_experience_for_stationed_gods": {
+        "experience_share": 0.1,
+        "bonus_for_element_match": 0.05,
+        "skill_point_chance": 0.02
+      }
+    }
+  }
+}

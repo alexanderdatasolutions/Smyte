@@ -14,7 +14,6 @@ signal turn_ended(unit: BattleUnit)
 func setup_turn_order(units: Array):  # Array[BattleUnit]
 	battle_units = units.duplicate()
 	_calculate_initial_turn_order()
-	print("TurnManager: Turn order established with ", battle_units.size(), " units")
 
 ## Start the battle turn cycle
 func start_battle():
@@ -40,7 +39,6 @@ func end_battle():
 	battle_units.clear()
 	turn_queue.clear()
 	current_unit_index = 0
-	print("TurnManager: Battle ended")
 
 # ============================================================================
 # PRIVATE METHODS
@@ -101,7 +99,6 @@ func _begin_next_turn():
 	
 	# Check if battle should end
 	if turn_queue.is_empty():
-		print("TurnManager: No more units can take turns")
 		return
 	
 	# Get next unit
@@ -119,11 +116,9 @@ func _begin_next_turn():
 	
 	# Emit turn started signal
 	turn_started.emit(current_unit)
-	print("TurnManager: Turn started for ", current_unit.display_name)
 
 func _end_current_turn():
 	"""End the current unit's turn"""
 	var current_unit = get_current_unit()
 	if current_unit:
 		turn_ended.emit(current_unit)
-		print("TurnManager: Turn ended for ", current_unit.display_name)

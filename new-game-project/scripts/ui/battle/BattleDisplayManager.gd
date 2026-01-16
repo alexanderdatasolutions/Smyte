@@ -93,7 +93,12 @@ func _update_display_hp(display: Control, unit):
 	
 	if unit is God:
 		current_hp = unit.current_hp
-		max_hp = unit.get_max_hp()
+		var stat_calc = SystemRegistry.get_instance().get_system("EquipmentStatCalculator")
+		if stat_calc:
+			var total_stats = stat_calc.calculate_god_total_stats(unit)
+			max_hp = total_stats.hp
+		else:
+			max_hp = unit.base_hp
 	else:
 		# Enemy dictionary
 		current_hp = unit.get("current_hp", unit.get("hp", 0))

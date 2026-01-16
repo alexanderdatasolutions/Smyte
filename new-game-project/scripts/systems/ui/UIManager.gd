@@ -57,8 +57,6 @@ signal tutorial_pointer_shown(target_element: Control, message: String)
 
 func _ready():
 	"""Initialize the UI Management System"""
-	print("UIManager: Initializing modular UI system...")
-	
 	# Wait for GameManager
 	if not GameManager:
 		await get_tree().create_timer(0.1).timeout
@@ -67,8 +65,6 @@ func _ready():
 	
 	# Setup UI layer containers
 	_setup_ui_containers()
-	
-	print("UIManager: Ready - Modular UI system initialized")
 
 func _setup_ui_containers():
 	"""Setup layered UI containers for proper z-ordering"""
@@ -106,13 +102,11 @@ func show_dialog(config: Dictionary) -> Control:
 	"""
 	var popup_id = config.get("id", "dialog_" + str(Time.get_unix_time_from_system()))
 	var popup_type = config.get("type", PopupType.DIALOG)
-	
-	print("UIManager: Showing dialog - ID: %s, Type: %s" % [popup_id, popup_type])
-	
+
 	# Create dialog instance
 	var dialog = _create_dialog_popup(config)
 	if not dialog:
-		print("UIManager: ERROR - Failed to create dialog")
+		push_error("UIManager: Failed to create dialog")
 		return null
 	
 	# Configure dialog
@@ -131,8 +125,7 @@ func show_dialog(config: Dictionary) -> Control:
 	
 	# Emit signal
 	popup_shown.emit(popup_id, popup_type)
-	
-	print("UIManager: Dialog '%s' displayed successfully" % popup_id)
+
 	return dialog
 
 func show_tutorial_step(config: Dictionary) -> Control:
@@ -153,9 +146,7 @@ func show_tutorial_step(config: Dictionary) -> Control:
 	}
 	"""
 	var popup_id = config.get("id", "tutorial_" + str(Time.get_unix_time_from_system()))
-	
-	print("UIManager: Showing tutorial step - ID: %s" % popup_id)
-	
+
 	# Create tutorial dialog
 	var dialog = show_dialog({
 		"id": popup_id,
@@ -197,15 +188,8 @@ func show_notification(config: Dictionary):
 		"style": "info"  # "success", "warning", "error"
 	}
 	"""
-	var notification_id = config.get("id", "notification_" + str(Time.get_unix_time_from_system()))
-	
-	print("UIManager: Showing notification - ID: %s" % notification_id)
-	
+	var _notification_id = config.get("id", "notification_" + str(Time.get_unix_time_from_system()))
 	# TODO: Create notification toast implementation
-	# For now, fallback to simple print
-	var title = config.get("title", "")
-	var message = config.get("message", "")
-	print("🔔 NOTIFICATION: %s - %s" % [title, message])
 
 func show_feature_unlock_celebration(feature_name: String, feature_description: String):
 	"""Show celebration popup for feature unlocks"""
@@ -223,17 +207,17 @@ func show_feature_unlock_celebration(feature_name: String, feature_description: 
 # POPUP CREATION AND CONFIGURATION
 # ==============================================================================
 
-func _create_dialog_popup(config: Dictionary) -> Control:
+func _create_dialog_popup(_config: Dictionary) -> Control:
 	"""Create dialog popup instance from scene"""
 	if not dialog_scene:
-		print("UIManager: ERROR - Dialog scene not loaded")
+		push_error("UIManager: Dialog scene not loaded")
 		return null
-	
+
 	var dialog = dialog_scene.instantiate()
 	if not dialog:
-		print("UIManager: ERROR - Failed to instantiate dialog scene")
+		push_error("UIManager: Failed to instantiate dialog scene")
 		return null
-	
+
 	return dialog
 
 func _configure_popup(popup: Control, config: Dictionary):
@@ -275,7 +259,7 @@ func _add_popup_to_scene(popup: Control, layer: int):
 	if get_tree().current_scene:
 		get_tree().current_scene.add_child(popup)
 	else:
-		print("UIManager: WARNING - No current scene for popup")
+		push_warning("UIManager: No current scene for popup")
 
 # ==============================================================================
 # TUTORIAL POINTER SYSTEM
@@ -286,11 +270,9 @@ func _show_tutorial_pointer(target_element: Control, config: Dictionary):
 	if not target_element or not is_instance_valid(target_element):
 		return
 	
-	var pointer_position = config.get("pointer_position", "bottom")
+	var _pointer_position = config.get("pointer_position", "bottom")
 	var message = config.get("message", "")
-	
-	print("UIManager: Showing tutorial pointer to element at position: %s" % pointer_position)
-	
+
 	# TODO: Implement arrow/pointer graphics
 	# For now, just highlight the target
 	if config.get("highlight_target", true):
@@ -303,9 +285,7 @@ func _highlight_ui_element(element: Control):
 	"""Add highlight effect to UI element"""
 	if not element:
 		return
-	
 	# TODO: Add visual highlight (outline, glow, pulsing, etc.)
-	print("UIManager: Highlighting UI element: %s" % element.name)
 
 func _auto_advance_tutorial(dialog: Control):
 	"""Auto-advance tutorial after delay"""
@@ -319,8 +299,6 @@ func _auto_advance_tutorial(dialog: Control):
 
 func _on_popup_completed(popup_id: String, popup_type: PopupType, popup: Control):
 	"""Handle popup completion/closure"""
-	print("UIManager: Popup completed - ID: %s, Type: %s" % [popup_id, popup_type])
-	
 	# Remove from active list
 	if active_popups.has(popup):
 		active_popups.erase(popup)
@@ -365,9 +343,7 @@ func _play_popup_sound(sound_name: String):
 	"""Play sound for popup events"""
 	if sound_name == "":
 		return
-	
 	# TODO: Integrate with audio manager
-	print("UIManager: Playing popup sound: %s" % sound_name)
 
 # ==============================================================================
 # UTILITY FUNCTIONS

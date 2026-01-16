@@ -29,7 +29,6 @@ var selected_difficulty: String = ""
 
 func _ready():
 	"""Initialize the dungeon tab"""
-	print("DungeonTab: Initializing")
 	setup_component_managers()
 	connect_signals()
 	setup_initial_ui_state()
@@ -72,8 +71,6 @@ func connect_signals():
 		entry_manager.dungeon_entry_started.connect(_on_dungeon_entry_started)
 		entry_manager.dungeon_completed.connect(_on_dungeon_completed)
 		entry_manager.dungeon_failed.connect(_on_dungeon_failed)
-	
-	print("DungeonTab: Signals connected")
 
 func setup_initial_ui_state():
 	"""Setup initial UI state"""
@@ -85,8 +82,6 @@ func setup_initial_ui_state():
 
 func refresh_dungeons():
 	"""Refresh dungeon displays - RULE 4: UI coordination only"""
-	print("DungeonTab: Refreshing dungeons")
-	
 	# Delegate to list manager
 	if list_manager:
 		list_manager.refresh_dungeon_list()
@@ -95,8 +90,6 @@ func refresh_dungeons():
 
 func _on_dungeon_selected(dungeon_id: String):
 	"""Handle dungeon selection from list manager"""
-	print("DungeonTab: Dungeon selected - %s" % dungeon_id)
-	
 	selected_dungeon_id = dungeon_id
 	
 	# Get dungeon data and show info
@@ -107,75 +100,63 @@ func _on_dungeon_selected(dungeon_id: String):
 
 func _on_dungeon_list_refreshed():
 	"""Handle dungeon list refresh completion"""
-	print("DungeonTab: Dungeon list refreshed")
+	pass
 
 func _on_difficulty_selected(dungeon_id: String, difficulty: String):
 	"""Handle difficulty selection from info display manager"""
-	print("DungeonTab: Difficulty selected - %s (%s)" % [dungeon_id, difficulty])
-	
 	selected_dungeon_id = dungeon_id
 	selected_difficulty = difficulty
-	
+
 	update_enter_button_state()
 
 func _on_rewards_display_updated():
 	"""Handle rewards display updates"""
-	print("DungeonTab: Rewards display updated")
+	pass
 
 func _on_enter_button_pressed():
 	"""Handle enter dungeon button press"""
-	print("DungeonTab: Enter button pressed")
-	
 	if selected_dungeon_id.is_empty() or selected_difficulty.is_empty():
 		show_notification("Please select a dungeon and difficulty first", Color.YELLOW)
 		return
-	
+
 	# Delegate to entry manager
 	if entry_manager:
 		entry_manager.attempt_dungeon_entry(selected_dungeon_id, selected_difficulty)
 
 func _on_entry_validated(can_enter: bool, validation_message: String):
 	"""Handle entry validation result"""
-	print("DungeonTab: Entry validated - Can enter: %s, Message: %s" % [can_enter, validation_message])
-	
 	if can_enter:
 		show_notification("Entering dungeon...", Color.GREEN)
 	else:
 		show_notification(validation_message, Color.RED)
 
-func _on_dungeon_entry_started(dungeon_id: String, difficulty: String):
+func _on_dungeon_entry_started(_dungeon_id: String, _difficulty: String):
 	"""Handle dungeon entry start"""
-	print("DungeonTab: Dungeon entry started - %s (%s)" % [dungeon_id, difficulty])
-	
 	# Disable enter button during dungeon
 	if enter_button:
 		enter_button.disabled = true
 		enter_button.text = "In Dungeon..."
 
-func _on_dungeon_completed(dungeon_id: String, difficulty: String, _rewards: Dictionary):
+func _on_dungeon_completed(_dungeon_id: String, _difficulty: String, _rewards: Dictionary):
 	"""Handle dungeon completion"""
-	print("DungeonTab: Dungeon completed - %s (%s)" % [dungeon_id, difficulty])
-	
 	# Re-enable enter button
 	if enter_button:
 		enter_button.disabled = false
 		update_enter_button_text()
-	
+
 	# Show success notification
 	show_notification("Dungeon completed successfully!", Color.GREEN)
-	
+
 	# Refresh displays to show updated state
 	refresh_dungeons()
 
-func _on_dungeon_failed(dungeon_id: String, difficulty: String):
+func _on_dungeon_failed(_dungeon_id: String, _difficulty: String):
 	"""Handle dungeon failure"""
-	print("DungeonTab: Dungeon failed - %s (%s)" % [dungeon_id, difficulty])
-	
 	# Re-enable enter button
 	if enter_button:
 		enter_button.disabled = false
 		update_enter_button_text()
-	
+
 	# Show failure notification
 	show_notification("Dungeon failed. Try again!", Color.ORANGE)
 
@@ -204,8 +185,6 @@ func update_enter_button_text():
 
 func show_notification(message: String, _color: Color):
 	"""Show notification message - RULE 4: UI feedback only"""
-	print("🔔 DUNGEON NOTIFICATION: %s" % message)
-	
 	# Could integrate with NotificationManager through SystemRegistry if available
 	var system_registry = SystemRegistry.get_instance()
 	if system_registry:
@@ -271,7 +250,7 @@ func get_current_selection() -> Dictionary:
 
 func _exit_tree():
 	"""Clean up when tab is removed"""
-	print("DungeonTab: Cleaning up")
+	pass
 	
 	# Component managers are children and will be automatically freed
 	# Just ensure any remaining connections are cleared

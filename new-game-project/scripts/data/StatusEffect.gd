@@ -58,7 +58,12 @@ func apply_turn_effects(target) -> Dictionary:
 	if damage_per_turn > 0:
 		var turn_dot_damage = 0
 		if target is God:
-			turn_dot_damage = int(target.get_max_hp() * damage_per_turn * stacks)
+			var stat_calc = SystemRegistry.get_instance().get_system("EquipmentStatCalculator")
+			if stat_calc:
+				var total_stats = stat_calc.calculate_god_total_stats(target)
+				turn_dot_damage = int(total_stats.hp * damage_per_turn * stacks)
+			else:
+				turn_dot_damage = int(target.base_hp * damage_per_turn * stacks)
 		else:
 			turn_dot_damage = int(target.hp * damage_per_turn * stacks)
 		
@@ -75,7 +80,12 @@ func apply_turn_effects(target) -> Dictionary:
 	if heal_per_turn > 0:
 		var hot_healing = 0
 		if target is God:
-			hot_healing = int(target.get_max_hp() * heal_per_turn * stacks)
+			var stat_calc = SystemRegistry.get_instance().get_system("EquipmentStatCalculator")
+			if stat_calc:
+				var total_stats = stat_calc.calculate_god_total_stats(target)
+				hot_healing = int(total_stats.hp * heal_per_turn * stacks)
+			else:
+				hot_healing = int(target.base_hp * heal_per_turn * stacks)
 		else:
 			hot_healing = int(target.hp * heal_per_turn * stacks)
 		
@@ -103,7 +113,12 @@ func _get_target_name(target) -> String:
 # Helper function to get attack stat from caster
 static func _get_attack(caster) -> int:
 	if caster is God:
-		return caster.get_current_attack()
+		var stat_calc = SystemRegistry.get_instance().get_system("EquipmentStatCalculator")
+		if stat_calc:
+			var total_stats = stat_calc.calculate_god_total_stats(caster)
+			return total_stats.attack
+		else:
+			return caster.base_attack
 	else:
 		return caster.get("attack", 100)  # Fallback for enemies
 
@@ -157,7 +172,6 @@ static func create_attack_boost(_caster, turns: int = 3) -> StatusEffect:
 	effect.stat_modifier["attack"] = 0.5
 	effect.description = "Attack increased by 50%"
 	effect.color = Color.RED
-	print("BUFF SCALING: Attack Boost = +50% ATK for %d turns" % turns)
 	return effect
 
 static func create_defense_boost(_caster, turns: int = 3) -> StatusEffect:
@@ -190,7 +204,6 @@ static func create_shield(caster, turns: int = 3) -> StatusEffect:
 	effect.shield_value = shield_amount
 	effect.description = "Absorbs %d damage" % shield_amount
 	effect.color = Color.LIGHT_BLUE
-	print("SHIELD SCALING: %s ATK(%d) × 0.5 = %d shield HP" % [caster.name if caster else "Unknown", caster_attack, shield_amount])
 	return effect
 
 static func create_fear(_caster, turns: int = 2) -> StatusEffect:

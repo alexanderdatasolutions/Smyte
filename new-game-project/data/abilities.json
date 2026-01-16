@@ -1,0 +1,3987 @@
+{
+  "abilities": {
+    "lightning_strike": {
+      "id": "lightning_strike",
+      "name": "Lightning Strike",
+      "description": "Attacks an enemy with lightning and stuns them for 1 turn with a 35% chance.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 35,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "olympian_thunder": {
+      "id": "olympian_thunder",
+      "name": "Olympian Thunder",
+      "description": "Attacks all enemies 2 times with lightning. Each attack has a 30% chance to decrease Attack Speed for 2 turns.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "hits": 2,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "hits": 2
+        },
+        {
+          "type": "debuff",
+          "debuff": "slow",
+          "chance": 30,
+          "duration": 2,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 4
+    },
+    "tidal_wave": {
+      "id": "tidal_wave",
+      "name": "Tidal Wave",
+      "description": "Attacks an enemy and decreases its Attack Bar by 30% with a 50% chance.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "atb_decrease",
+          "value": 30,
+          "chance": 50
+        }
+      ],
+      "cooldown": 0
+    },
+    "ocean_fury": {
+      "id": "ocean_fury",
+      "name": "Ocean's Fury",
+      "description": "Attacks all enemies and decreases their Attack Speed for 2 turns. Damage increases by 20% for each debuff on the enemy.",
+      "damage_multiplier": 1.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.2,
+          "scaling": "ATK",
+          "bonus_per_debuff": 20
+        },
+        {
+          "type": "debuff",
+          "debuff": "slow",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "soul_reaper": {
+      "id": "soul_reaper",
+      "name": "Soul Reaper",
+      "description": "Attacks an enemy and recovers HP by 30% of the damage dealt. Damage increases by 50% if the enemy is under harmful effects.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK",
+          "bonus_vs_debuffed": 50
+        },
+        {
+          "type": "life_drain",
+          "value": 30
+        }
+      ],
+      "cooldown": 0
+    },
+    "underworld_chains": {
+      "id": "underworld_chains",
+      "name": "Underworld Chains",
+      "description": "Attacks all enemies with chains from the underworld, inflicting Unrecoverable for 2 turns and stealing 20% of their Attack Bar.",
+      "damage_multiplier": 0,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "heal_block",
+          "chance": 100,
+          "duration": 2
+        },
+        {
+          "type": "atb_steal",
+          "value": 20,
+          "chance": 100
+        }
+      ],
+      "cooldown": 4
+    },
+    "spear_strike": {
+      "id": "spear_strike",
+      "name": "Spear Strike",
+      "description": "Attacks an enemy with a spear. Damage increases by 20% for each buff on yourself.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK",
+          "bonus_per_buff": 20
+        }
+      ],
+      "cooldown": 0
+    },
+    "aegis_protection": {
+      "id": "aegis_protection",
+      "name": "Aegis Protection",
+      "description": "Grants a shield on all allies for 3 turns. Shield amount is proportional to 20% of Athena's MAX HP.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "shield",
+          "value": 20,
+          "scaling": "MAX_HP",
+          "duration": 3
+        }
+      ],
+      "cooldown": 4
+    },
+    "solar_arrow": {
+      "id": "solar_arrow",
+      "name": "Solar Arrow",
+      "description": "Shoots a burning arrow at an enemy, dealing damage and inflicting Continuous Damage for 2 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 75,
+          "duration": 2,
+          "stacks": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "healing_light": {
+      "id": "healing_light",
+      "name": "Healing Light",
+      "description": "Recovers the HP of all allies by 25% and increases their ATK for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 25,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "buff",
+          "buff": "increase_attack",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "hunter_shot": {
+      "id": "hunter_shot",
+      "name": "Hunter's Shot",
+      "description": "Attacks an enemy and decreases its Defense for 2 turns. Always lands as a Critical Hit if the enemy's HP is below 50%.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK",
+          "conditional_crit": "enemy_hp_below_50"
+        },
+        {
+          "type": "debuff",
+          "debuff": "decrease_defense",
+          "chance": 75,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "arrow_volley": {
+      "id": "arrow_volley",
+      "name": "Arrow Volley",
+      "description": "Attacks random enemies 4 times. Each attack has a 30% chance to decrease Attack Bar by 30%.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "random",
+      "hits": 4,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "hits": 4
+        },
+        {
+          "type": "atb_decrease",
+          "value": 30,
+          "chance": 30,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 3
+    },
+    "brutal_strike": {
+      "id": "brutal_strike",
+      "name": "Brutal Strike",
+      "description": "Attacks an enemy with a 30% chance to attack again.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK"
+        },
+        {
+          "type": "additional_turn",
+          "chance": 30
+        }
+      ],
+      "cooldown": 0
+    },
+    "war_cry": {
+      "id": "war_cry",
+      "name": "War Cry",
+      "description": "Increases the Attack Power and Critical Rate of all allies for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "increase_attack",
+          "duration": 2
+        },
+        {
+          "type": "buff",
+          "buff": "increase_critical_rate",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "swift_strike": {
+      "id": "swift_strike",
+      "name": "Swift Strike",
+      "description": "Attacks an enemy. Speed increases by 15 for 1 turn if the attack lands as a Critical Hit.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "conditional_buff",
+          "condition": "on_crit",
+          "buff": "increase_speed",
+          "value": 15,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "messenger_blessing": {
+      "id": "messenger_blessing",
+      "name": "Messenger's Blessing",
+      "description": "Increases the Attack Bar of all allies by 30% and their Attack Speed for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "atb_increase",
+          "value": 30
+        },
+        {
+          "type": "buff",
+          "buff": "increase_speed",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "gungnir_thrust": {
+      "id": "gungnir_thrust",
+      "name": "Gungnir Thrust",
+      "description": "Attacks an enemy with the legendary spear. This attack always lands as a Critical Hit and ignores Defense.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK",
+          "guaranteed_crit": true,
+          "ignore_defense": true
+        }
+      ],
+      "cooldown": 0
+    },
+    "ravens_wisdom": {
+      "id": "ravens_wisdom",
+      "name": "Raven's Wisdom",
+      "description": "Attacks all enemies and brands them for 2 turns. Branded enemies receive 25% increased damage.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "brand",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "hammer_strike": {
+      "id": "hammer_strike",
+      "name": "Hammer Strike",
+      "description": "Attacks an enemy with Mjolnir and stuns the target for 1 turn with a 35% chance.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 35,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "thunder_crash": {
+      "id": "thunder_crash",
+      "name": "Thunder Crash",
+      "description": "Attacks all enemies with lightning, stunning them for 1 turn with a 60% chance. Damage is proportional to your MAX HP.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "MAX_HP",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "MAX_HP"
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 60,
+          "duration": 1
+        }
+      ],
+      "cooldown": 4
+    },
+    "charm_strike": {
+      "id": "charm_strike",
+      "name": "Charm Strike",
+      "description": "Attacks an enemy and provokes them for 1 turn with a 75% chance.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "provoke",
+          "chance": 75,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "battle_blessing": {
+      "id": "battle_blessing",
+      "name": "Battle Blessing",
+      "description": "Removes all harmful effects on all allies and grants immunity for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "cleanse"
+        },
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 2
+        }
+      ],
+      "cooldown": 5
+    },
+    "trick_attack": {
+      "id": "trick_attack",
+      "name": "Trick Attack",
+      "description": "Attacks an enemy and steals one beneficial effect. Damage increases by 30% per harmful effect on the enemy.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK",
+          "bonus_per_debuff": 30
+        },
+        {
+          "type": "steal_buff",
+          "count": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "chaos_field": {
+      "id": "chaos_field",
+      "name": "Chaos Field",
+      "description": "Attacks all enemies and randomly applies 2 harmful effects for 2 turns (Defense Break, Attack Break, Glancing, or Slow).",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK"
+        },
+        {
+          "type": "random_debuffs",
+          "count": 2,
+          "duration": 2,
+          "debuff_pool": [
+            "decrease_defense",
+            "decrease_attack",
+            "glancing",
+            "slow"
+          ]
+        }
+      ],
+      "cooldown": 4
+    },
+    "radiant_strike": {
+      "id": "radiant_strike",
+      "name": "Radiant Strike",
+      "description": "Attacks an enemy with holy light. Recovers the HP of the ally with the lowest HP ratio by 15%.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "smart_heal",
+          "value": 15,
+          "target": "lowest_hp_ally"
+        }
+      ],
+      "cooldown": 0
+    },
+    "light_sanctuary": {
+      "id": "light_sanctuary",
+      "name": "Light Sanctuary",
+      "description": "Creates a shield on all allies for 2 turns equal to 15% of Baldur's MAX HP and increases Defense for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "shield",
+          "value": 15,
+          "scaling": "MAX_HP",
+          "duration": 2
+        },
+        {
+          "type": "buff",
+          "buff": "increase_defense",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "justice_blade": {
+      "id": "justice_blade",
+      "name": "Justice Blade",
+      "description": "Attacks an enemy and decreases their ATK and DEF for 2 turns with a 50% chance each.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "decrease_attack",
+          "chance": 50,
+          "duration": 2
+        },
+        {
+          "type": "debuff",
+          "debuff": "decrease_defense",
+          "chance": 50,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "valor_charge": {
+      "id": "valor_charge",
+      "name": "Valor Charge",
+      "description": "Charges at the enemy with the lowest HP, dealing damage proportional to your Defense. Gains Increase DEF for 2 turns.",
+      "damage_multiplier": 1.8,
+      "scaling_stat": "DEF",
+      "targets": "enemy_lowest_hp",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.8,
+          "scaling": "DEF"
+        },
+        {
+          "type": "self_buff",
+          "buff": "increase_defense",
+          "duration": 2
+        }
+      ],
+      "cooldown": 3
+    },
+    "vigilant_strike": {
+      "id": "vigilant_strike",
+      "name": "Vigilant Strike",
+      "description": "Attacks an enemy. Gains 50% increased Accuracy for your next turn.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "self_buff",
+          "buff": "increase_accuracy",
+          "value": 50,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "rainbow_sight": {
+      "id": "rainbow_sight",
+      "name": "Rainbow Sight",
+      "description": "Grants all allies increased Critical Rate for 2 turns and increases their Attack Bar by 20%.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "increase_critical_rate",
+          "duration": 2
+        },
+        {
+          "type": "atb_increase",
+          "value": 20
+        }
+      ],
+      "cooldown": 4
+    },
+    "frost_touch": {
+      "id": "frost_touch",
+      "name": "Frost Touch",
+      "description": "Attacks an enemy and freezes them for 1 turn with a 25% chance.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "freeze",
+          "chance": 25,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "foresight": {
+      "id": "foresight",
+      "name": "Foresight",
+      "description": "All allies gain 20% chance to Glancing Hit Rate for 2 turns and recover 15% HP.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 15,
+          "scaling": "target_max_hp"
+        }
+      ],
+      "cooldown": 4
+    },
+    "sun_ray": {
+      "id": "sun_ray",
+      "name": "Sun Ray",
+      "description": "Attacks an enemy with the power of the sun. Damage increases by 50% if the target is under inability effects.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK",
+          "bonus_vs_inability": 50
+        }
+      ],
+      "cooldown": 0
+    },
+    "solar_blessing": {
+      "id": "solar_blessing",
+      "name": "Solar Blessing",
+      "description": "Attacks all enemies and inflicts 2 Continuous Damage for 3 turns. Grants all allies Increase ATK for 2 turns.",
+      "damage_multiplier": 1.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.2,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 100,
+          "duration": 3,
+          "stacks": 2
+        },
+        {
+          "type": "team_buff",
+          "buff": "increase_attack",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "soul_judge": {
+      "id": "soul_judge",
+      "name": "Soul Judge",
+      "description": "Attacks an enemy and inflicts Brand for 2 turns. Recovers HP by 20% of damage dealt.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "brand",
+          "chance": 100,
+          "duration": 2
+        },
+        {
+          "type": "life_drain",
+          "value": 20
+        }
+      ],
+      "cooldown": 0
+    },
+    "death_sentence": {
+      "id": "death_sentence",
+      "name": "Death Sentence",
+      "description": "Attacks all enemies and blocks beneficial effects for 2 turns. Damage increases according to enemy's current HP.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "enemy_current_hp",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "enemy_current_hp"
+        },
+        {
+          "type": "debuff",
+          "debuff": "block_beneficial_effects",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "mystic_wave": {
+      "id": "mystic_wave",
+      "name": "Mystic Wave",
+      "description": "Attacks an enemy and heals all allies by 10% of their MAX HP.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK"
+        },
+        {
+          "type": "team_heal",
+          "value": 10,
+          "scaling": "target_max_hp"
+        }
+      ],
+      "cooldown": 0
+    },
+    "divine_protection": {
+      "id": "divine_protection",
+      "name": "Divine Protection",
+      "description": "Removes 2 harmful effects from all allies and grants them a shield for 3 turns (20% of Isis's MAX HP).",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "cleanse",
+          "count": 2
+        },
+        {
+          "type": "shield",
+          "value": 20,
+          "scaling": "MAX_HP",
+          "duration": 3
+        }
+      ],
+      "cooldown": 4
+    },
+    "knowledge_strike": {
+      "id": "knowledge_strike",
+      "name": "Knowledge Strike",
+      "description": "Attacks an enemy with a 50% chance to remove a beneficial effect.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "strip",
+          "chance": 50,
+          "count": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "wisdom_share": {
+      "id": "wisdom_share",
+      "name": "Wisdom Share",
+      "description": "Increases Attack Bar of all allies by 25% and grants Attack Increase SPD for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "atb_increase",
+          "value": 25
+        },
+        {
+          "type": "buff",
+          "buff": "increase_speed",
+          "duration": 2
+        }
+      ],
+      "cooldown": 3
+    },
+    "divine_punishment": {
+      "id": "divine_punishment",
+      "name": "Divine Punishment",
+      "description": "Attacks an enemy and removes all beneficial effects. Stuns for 1 turn if any effects were removed.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "strip_all"
+        },
+        {
+          "type": "conditional_debuff",
+          "condition": "if_stripped",
+          "debuff": "stun",
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "queen_authority": {
+      "id": "queen_authority",
+      "name": "Queen's Authority",
+      "description": "Attacks all enemies and decreases their ATK and DEF for 2 turns. Allies gain Counterattack for 2 turns.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "decrease_attack",
+          "chance": 100,
+          "duration": 2
+        },
+        {
+          "type": "debuff",
+          "debuff": "decrease_defense",
+          "chance": 100,
+          "duration": 2
+        },
+        {
+          "type": "team_buff",
+          "buff": "counterattack",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "sacred_flame": {
+      "id": "sacred_flame",
+      "name": "Sacred Flame",
+      "description": "Attacks an enemy with holy fire and recovers the HP of all allies by 10%.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK"
+        },
+        {
+          "type": "team_heal",
+          "value": 10,
+          "scaling": "target_max_hp"
+        }
+      ],
+      "cooldown": 0
+    },
+    "hearth_blessing": {
+      "id": "hearth_blessing",
+      "name": "Hearth Blessing",
+      "description": "Heals all allies by 30% and grants them Continuous Recovery for 3 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 30,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "buff",
+          "buff": "continuous_recovery",
+          "duration": 3,
+          "stacks": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "nature_strike": {
+      "id": "nature_strike",
+      "name": "Nature's Strike",
+      "description": "Attacks an enemy and grants all allies Continuous Recovery for 2 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "team_buff",
+          "buff": "continuous_recovery",
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "harvest_blessing": {
+      "id": "harvest_blessing",
+      "name": "Harvest Blessing",
+      "description": "Increases the Attack Bar of all allies by 30% and their Attack and Defense for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "atb_increase",
+          "value": 30
+        },
+        {
+          "type": "buff",
+          "buff": "increase_attack",
+          "duration": 2
+        },
+        {
+          "type": "buff",
+          "buff": "increase_defense",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "intoxicate": {
+      "id": "intoxicate",
+      "name": "Intoxicate",
+      "description": "Attacks an enemy and applies Glancing Hit debuff for 2 turns with a 75% chance.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "glancing",
+          "chance": 75,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "madness_field": {
+      "id": "madness_field",
+      "name": "Madness Field",
+      "description": "Attacks all enemies with a 50% chance to provoke them for 1 turn.",
+      "damage_multiplier": 1.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.2,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "provoke",
+          "chance": 50,
+          "duration": 1
+        }
+      ],
+      "cooldown": 3
+    },
+    "forge_hammer": {
+      "id": "forge_hammer",
+      "name": "Forge Hammer",
+      "description": "Attacks an enemy with a chance to inflict Defense break for 2 turns (75% chance).",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "decrease_defense",
+          "chance": 75,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "molten_forge": {
+      "id": "molten_forge",
+      "name": "Molten Forge",
+      "description": "Attacks all enemies with molten metal and increases all allies' CRI DMG for 2 turns.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK"
+        },
+        {
+          "type": "team_buff",
+          "buff": "increase_critical_damage",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "charm_touch": {
+      "id": "charm_touch",
+      "name": "Charm Touch",
+      "description": "Attacks an enemy and puts them to sleep for 1 turn with a 50% chance.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "sleep",
+          "chance": 50,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "beauty_blessing": {
+      "id": "beauty_blessing",
+      "name": "Beauty's Blessing",
+      "description": "Removes one harmful effect from all allies and heals them by 20%. Grants immunity for 1 turn.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "cleanse",
+          "count": 1
+        },
+        {
+          "type": "heal",
+          "value": 20,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 1
+        }
+      ],
+      "cooldown": 4
+    },
+    "underworld_grasp": {
+      "id": "underworld_grasp",
+      "name": "Underworld Grasp",
+      "description": "Attacks an enemy with a 30% chance to decrease their Attack Bar by 50%.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "atb_decrease",
+          "value": 50,
+          "chance": 30
+        }
+      ],
+      "cooldown": 0
+    },
+    "season_change": {
+      "id": "season_change",
+      "name": "Season Change",
+      "description": "Recovers the HP of all allies by 20% and increases their Attack Speed for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 20,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "buff",
+          "buff": "increase_speed",
+          "duration": 2
+        }
+      ],
+      "cooldown": 3
+    },
+    "celestial_strike": {
+      "id": "celestial_strike",
+      "name": "Celestial Strike",
+      "description": "Attacks an enemy and ignores all damage reduction effects. Always lands as a crushing hit.",
+      "damage_multiplier": 1.7,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.7,
+          "scaling": "ATK",
+          "ignore_damage_reduction": true,
+          "crushing_hit": true
+        }
+      ],
+      "cooldown": 0
+    },
+    "heavenly_decree": {
+      "id": "heavenly_decree",
+      "name": "Heavenly Decree",
+      "description": "Attacks all enemies and applies Oblivion for 2 turns, preventing passive abilities. Increases all allies' Attack Bar by 25%.",
+      "damage_multiplier": 1.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.2,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "oblivion",
+          "chance": 100,
+          "duration": 2
+        },
+        {
+          "type": "team_atb_increase",
+          "value": 25
+        }
+      ],
+      "cooldown": 4
+    },
+    "dragon_claw": {
+      "id": "dragon_claw",
+      "name": "Dragon Claw",
+      "description": "Attacks an enemy 2 times. Each attack has a 30% chance to decrease Attack Speed for 2 turns.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 2,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "hits": 2
+        },
+        {
+          "type": "debuff",
+          "debuff": "slow",
+          "chance": 30,
+          "duration": 2,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 0
+    },
+    "tidal_dragon": {
+      "id": "tidal_dragon",
+      "name": "Tidal Dragon",
+      "description": "Transforms into dragon form and attacks all enemies. Freezes them for 1 turn with a 75% chance.",
+      "damage_multiplier": 1.3,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.3,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "freeze",
+          "chance": 75,
+          "duration": 1
+        }
+      ],
+      "cooldown": 4
+    },
+    "staff_strike": {
+      "id": "staff_strike",
+      "name": "Staff Strike",
+      "description": "Attacks an enemy and gains another turn with a 30% chance.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK"
+        },
+        {
+          "type": "additional_turn",
+          "chance": 30
+        }
+      ],
+      "cooldown": 0
+    },
+    "clone_attack": {
+      "id": "clone_attack",
+      "name": "Clone Attack",
+      "description": "Creates clones and attacks random enemies 5 times. Each hit decreases Attack Bar by 15%.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "random",
+      "hits": 5,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "hits": 5
+        },
+        {
+          "type": "atb_decrease",
+          "value": 15,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 3
+    },
+    "moon_strike": {
+      "id": "moon_strike",
+      "name": "Moon Strike",
+      "description": "Attacks an enemy with a 30% chance to put them to sleep for 1 turn.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "sleep",
+          "chance": 30,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "lunar_blessing": {
+      "id": "lunar_blessing",
+      "name": "Lunar Blessing",
+      "description": "All allies recover 25% HP and gain a shield equal to 15% of their MAX HP for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 25,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "shield",
+          "value": 15,
+          "scaling": "target_max_hp",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "fire_spear": {
+      "id": "fire_spear",
+      "name": "Fire Spear",
+      "description": "Attacks an enemy with a fire spear and inflicts Continuous Damage for 3 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 100,
+          "duration": 3,
+          "stacks": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "lotus_rebirth": {
+      "id": "lotus_rebirth",
+      "name": "Lotus Rebirth",
+      "description": "Attacks all enemies and grants yourself immunity and invincibility for 1 turn.",
+      "damage_multiplier": 1.0,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.0,
+          "scaling": "ATK"
+        },
+        {
+          "type": "self_buff",
+          "buff": "immunity",
+          "duration": 1
+        },
+        {
+          "type": "self_buff",
+          "buff": "endure",
+          "duration": 1
+        }
+      ],
+      "cooldown": 5
+    },
+    "mercy_touch": {
+      "id": "mercy_touch",
+      "name": "Mercy Touch",
+      "description": "Heals an ally by 50% of their MAX HP and grants immunity for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "single_ally",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 50,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "thousand_hands": {
+      "id": "thousand_hands",
+      "name": "Thousand Hands",
+      "description": "Heals all allies by 30% and removes all harmful effects. Grants 2-turn Continuous Recovery.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 30,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "cleanse_all"
+        },
+        {
+          "type": "buff",
+          "buff": "continuous_recovery",
+          "duration": 2,
+          "stacks": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "thunder_drum": {
+      "id": "thunder_drum",
+      "name": "Thunder Drum",
+      "description": "Attacks an enemy with thunder and has a 25% chance to stun for 1 turn.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 25,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "lightning_justice": {
+      "id": "lightning_justice",
+      "name": "Lightning Justice",
+      "description": "Attacks all enemies. Damage increases by 20% for each debuff on the target.",
+      "damage_multiplier": 1.0,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.0,
+          "scaling": "ATK",
+          "bonus_per_debuff": 20
+        }
+      ],
+      "cooldown": 3
+    },
+    "dragon_blade": {
+      "id": "dragon_blade",
+      "name": "Dragon Blade",
+      "description": "Attacks an enemy and decreases their Defense for 2 turns with a 75% chance.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "decrease_defense",
+          "chance": 75,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "brotherhood_oath": {
+      "id": "brotherhood_oath",
+      "name": "Brotherhood Oath",
+      "description": "Increases Attack and Defense of all allies for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "increase_attack",
+          "duration": 2
+        },
+        {
+          "type": "buff",
+          "buff": "increase_defense",
+          "duration": 2
+        }
+      ],
+      "cooldown": 3
+    },
+    "thunder_axe": {
+      "id": "thunder_axe",
+      "name": "Thunder Axe",
+      "description": "Attacks an enemy with a thunderous axe strike. Always lands as a Critical Hit.",
+      "damage_multiplier": 1.7,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.7,
+          "scaling": "ATK",
+          "guaranteed_crit": true
+        }
+      ],
+      "cooldown": 0
+    },
+    "storm_call": {
+      "id": "storm_call",
+      "name": "Storm Call",
+      "description": "Attacks all enemies with lightning and thunder, stunning them for 1 turn with a 50% chance.",
+      "damage_multiplier": 1.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.2,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 50,
+          "duration": 1
+        }
+      ],
+      "cooldown": 4
+    },
+    "forge_strike": {
+      "id": "forge_strike",
+      "name": "Forge Strike",
+      "description": "Attacks an enemy and increases all allies' CRI DMG for 2 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "team_buff",
+          "buff": "increase_critical_damage",
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "celestial_forge": {
+      "id": "celestial_forge",
+      "name": "Celestial Forge",
+      "description": "Grants all allies Attack and Increase DEFs for 3 turns and increases their Attack Bar by 25%.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "increase_attack",
+          "duration": 3
+        },
+        {
+          "type": "buff",
+          "buff": "increase_defense",
+          "duration": 3
+        },
+        {
+          "type": "atb_increase",
+          "value": 25
+        }
+      ],
+      "cooldown": 5
+    },
+    "earth_blessing": {
+      "id": "earth_blessing",
+      "name": "Earth Blessing",
+      "description": "Heals all allies by 30% and grants Continuous Recovery for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 30,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "buff",
+          "buff": "continuous_recovery",
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "mother_protection": {
+      "id": "mother_protection",
+      "name": "Mother's Protection",
+      "description": "Grants shields to all allies equal to 20% of Mokosh's MAX HP for 3 turns and immunity for 1 turn.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "shield",
+          "value": 20,
+          "scaling": "MAX_HP",
+          "duration": 3
+        },
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 1
+        }
+      ],
+      "cooldown": 4
+    },
+    "serpent_strike": {
+      "id": "serpent_strike",
+      "name": "Serpent Strike",
+      "description": "Attacks an enemy and steals 30% of their Attack Bar.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "atb_steal",
+          "value": 30
+        }
+      ],
+      "cooldown": 0
+    },
+    "underworld_wisdom": {
+      "id": "underworld_wisdom",
+      "name": "Underworld Wisdom",
+      "description": "Attacks all enemies and applies 2 random debuffs for 2 turns.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK"
+        },
+        {
+          "type": "random_debuffs",
+          "count": 2,
+          "duration": 2,
+          "debuff_pool": [
+            "slow",
+            "decrease_attack",
+            "decrease_defense",
+            "heal_block"
+          ]
+        }
+      ],
+      "cooldown": 4
+    },
+    "love_touch": {
+      "id": "love_touch",
+      "name": "Love's Touch",
+      "description": "Heals an ally by 40% and removes one harmful effect.",
+      "damage_multiplier": 0,
+      "targets": "single_ally",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 40,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "cleanse",
+          "count": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "harmony_field": {
+      "id": "harmony_field",
+      "name": "Harmony Field",
+      "description": "Removes one harmful effect from all allies and heals them by 20%.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "cleanse",
+          "count": 1
+        },
+        {
+          "type": "heal",
+          "value": 20,
+          "scaling": "target_max_hp"
+        }
+      ],
+      "cooldown": 3
+    },
+    "protective_strike": {
+      "id": "protective_strike",
+      "name": "Protective Strike",
+      "description": "Attacks an enemy and grants yourself a shield for 2 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "self_buff",
+          "buff": "shield",
+          "value": 20,
+          "scaling": "MAX_HP",
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "household_blessing": {
+      "id": "household_blessing",
+      "name": "Household Blessing",
+      "description": "Grants all allies Increase DEF and shield for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "increase_defense",
+          "duration": 2
+        },
+        {
+          "type": "shield",
+          "value": 15,
+          "scaling": "MAX_HP",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "serpent_bite": {
+      "id": "serpent_bite",
+      "name": "Serpent Bite",
+      "description": "Attacks an enemy and inflicts Continuous Damage for 3 turns. Damage scales with MAX HP.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "MAX_HP",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "MAX_HP"
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 100,
+          "duration": 3,
+          "stacks": 3
+        }
+      ],
+      "cooldown": 0
+    },
+    "world_coil": {
+      "id": "world_coil",
+      "name": "World Coil",
+      "description": "Attacks all enemies and decreases their Attack Speed for 2 turns. Applies inability effects for 1 turn with 50% chance.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "MAX_HP",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "MAX_HP"
+        },
+        {
+          "type": "debuff",
+          "debuff": "slow",
+          "chance": 100,
+          "duration": 2
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 50,
+          "duration": 1
+        }
+      ],
+      "cooldown": 4
+    },
+    "wolf_bite": {
+      "id": "wolf_bite",
+      "name": "Wolf Bite",
+      "description": "Attacks an enemy and inflicts Brand and Defense break for 2 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "brand",
+          "chance": 75,
+          "duration": 2
+        },
+        {
+          "type": "debuff",
+          "debuff": "decrease_defense",
+          "chance": 75,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "ragnarok_howl": {
+      "id": "ragnarok_howl",
+      "name": "Ragnarok Howl",
+      "description": "Attacks all enemies ignoring defense. Damage increases by 30% per debuff on self.",
+      "damage_multiplier": 1.0,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.0,
+          "scaling": "ATK",
+          "ignore_defense": true,
+          "bonus_per_self_debuff": 30
+        }
+      ],
+      "cooldown": 4
+    },
+    "silent_strike": {
+      "id": "silent_strike",
+      "name": "Silent Strike",
+      "description": "Attacks an enemy and silences them for 2 turns with 75% chance.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "silence",
+          "chance": 75,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "vengeance_boot": {
+      "id": "vengeance_boot",
+      "name": "Vengeance Boot",
+      "description": "Attacks the enemy with the highest Attack, stunning them for 1 turn. Damage increases by 50% if any ally has died.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "enemy_highest_attack",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK",
+          "bonus_if_ally_dead": 50
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 100,
+          "duration": 1
+        }
+      ],
+      "cooldown": 3
+    },
+    "word_strike": {
+      "id": "word_strike",
+      "name": "Word Strike",
+      "description": "Attacks an enemy with magical words. Damage increases with your speed.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "SPD",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "SPD"
+        }
+      ],
+      "cooldown": 0
+    },
+    "inspiring_poem": {
+      "id": "inspiring_poem",
+      "name": "Inspiring Poem",
+      "description": "Increases Attack Bar of all allies by 30% and their Attack Power for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "atb_increase",
+          "value": 30
+        },
+        {
+          "type": "buff",
+          "buff": "increase_attack",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "death_touch": {
+      "id": "death_touch",
+      "name": "Death Touch",
+      "description": "Attacks an enemy and brands them for 2 turns. Recovers HP equal to 30% of damage dealt.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "brand",
+          "chance": 100,
+          "duration": 2
+        },
+        {
+          "type": "life_drain",
+          "value": 30
+        }
+      ],
+      "cooldown": 0
+    },
+    "judgment_of_dead": {
+      "id": "judgment_of_dead",
+      "name": "Judgment of Dead",
+      "description": "Attacks all enemies. Damage increases by 50% against enemies with inability effects. Applies heal block for 2 turns.",
+      "damage_multiplier": 1.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.2,
+          "scaling": "ATK",
+          "bonus_vs_inability": 50
+        },
+        {
+          "type": "debuff",
+          "debuff": "heal_block",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "falcon_strike": {
+      "id": "falcon_strike",
+      "name": "Falcon Strike",
+      "description": "Attacks an enemy 2 times. Each hit has a 50% chance to increase your Attack Bar by 15%.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 2,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "hits": 2
+        },
+        {
+          "type": "self_atb_increase",
+          "value": 15,
+          "chance": 50,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 0
+    },
+    "eye_of_horus": {
+      "id": "eye_of_horus",
+      "name": "Eye of Horus",
+      "description": "Removes all harmful effects from all allies and grants them immunity and shield for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "cleanse_all"
+        },
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 2
+        },
+        {
+          "type": "shield",
+          "value": 15,
+          "scaling": "MAX_HP",
+          "duration": 2
+        }
+      ],
+      "cooldown": 5
+    },
+    "cat_scratch": {
+      "id": "cat_scratch",
+      "name": "Cat Scratch",
+      "description": "Attacks an enemy 3 times. Each hit has a 30% chance to decrease Defense for 2 turns.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 3,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "hits": 3
+        },
+        {
+          "type": "debuff",
+          "debuff": "decrease_defense",
+          "chance": 30,
+          "duration": 2,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 0
+    },
+    "feline_agility": {
+      "id": "feline_agility",
+      "name": "Feline Agility",
+      "description": "Increases Attack Bar of all allies by 25% and their Attack Speed for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "atb_increase",
+          "value": 25
+        },
+        {
+          "type": "buff",
+          "buff": "increase_speed",
+          "duration": 2
+        }
+      ],
+      "cooldown": 3
+    },
+    "crocodile_bite": {
+      "id": "crocodile_bite",
+      "name": "Crocodile Bite",
+      "description": "Attacks an enemy and provokes them for 1 turn with a 75% chance.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "provoke",
+          "chance": 75,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "death_roll": {
+      "id": "death_roll",
+      "name": "Death Roll",
+      "description": "Attacks an enemy based on your MAX HP and stuns them for 1 turn.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "MAX_HP",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "MAX_HP"
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 100,
+          "duration": 1
+        }
+      ],
+      "cooldown": 4
+    },
+    "chaos_strike": {
+      "id": "chaos_strike",
+      "name": "Chaos Strike",
+      "description": "Attacks an enemy and applies a random debuff for 2 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "random_debuffs",
+          "count": 1,
+          "duration": 2,
+          "debuff_pool": [
+            "decrease_attack",
+            "decrease_defense",
+            "slow",
+            "heal_block",
+            "glancing"
+          ]
+        }
+      ],
+      "cooldown": 0
+    },
+    "desert_storm": {
+      "id": "desert_storm",
+      "name": "Desert Storm",
+      "description": "Attacks all enemies and inflicts Unrecoverable for 2 turns. Damage increases against enemies with beneficial effects.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK",
+          "bonus_vs_buffed": 50
+        },
+        {
+          "type": "debuff",
+          "debuff": "heal_block",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "creator_strike": {
+      "id": "creator_strike",
+      "name": "Creator's Strike",
+      "description": "Attacks an enemy and increases your Defense for 2 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "self_buff",
+          "buff": "increase_defense",
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "divine_construction": {
+      "id": "divine_construction",
+      "name": "Divine Construction",
+      "description": "Grants all allies shields for 3 turns and Increase DEF for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "shield",
+          "value": 15,
+          "scaling": "MAX_HP",
+          "duration": 3
+        },
+        {
+          "type": "buff",
+          "buff": "increase_defense",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "lioness_strike": {
+      "id": "lioness_strike",
+      "name": "Lioness Strike",
+      "description": "Attacks an enemy with a 50% chance to inflict Continuous Damage for 2 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 50,
+          "duration": 2,
+          "stacks": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "solar_fury": {
+      "id": "solar_fury",
+      "name": "Solar Fury",
+      "description": "Attacks all enemies with burning solar energy. Inflicts Continuous Damage for 2 turns.",
+      "damage_multiplier": 1.0,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.0,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 100,
+          "duration": 2,
+          "stacks": 1
+        }
+      ],
+      "cooldown": 3
+    },
+    "shadow_strike": {
+      "id": "shadow_strike",
+      "name": "Shadow Strike",
+      "description": "Attacks an enemy and decreases their Attack Bar by 30%.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "atb_decrease",
+          "value": 30,
+          "chance": 50
+        }
+      ],
+      "cooldown": 0
+    },
+    "mourning_veil": {
+      "id": "mourning_veil",
+      "name": "Mourning Veil",
+      "description": "Heals all allies by 25% and removes one harmful effect from each ally.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 25,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "cleanse",
+          "count": 1
+        }
+      ],
+      "cooldown": 3
+    },
+    "creation_touch": {
+      "id": "creation_touch",
+      "name": "Creation Touch",
+      "description": "Attacks an enemy and grants a random beneficial effect to all allies for 2 turns.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK"
+        },
+        {
+          "type": "random_team_buff",
+          "duration": 2,
+          "buff_pool": [
+            "increase_attack",
+            "increase_defense",
+            "increase_speed",
+            "increase_critical_rate"
+          ]
+        }
+      ],
+      "cooldown": 0
+    },
+    "cosmic_knowledge": {
+      "id": "cosmic_knowledge",
+      "name": "Cosmic Knowledge",
+      "description": "Removes all harmful effects from all allies and increases their Attack Bar by 30%. Grants 2-turn immunity.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "cleanse_all"
+        },
+        {
+          "type": "atb_increase",
+          "value": 30
+        },
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 2
+        }
+      ],
+      "cooldown": 5
+    },
+    "discus_throw": {
+      "id": "discus_throw",
+      "name": "Discus Throw",
+      "description": "Attacks all enemies 2 times. Each hit has a 35% chance to decrease Attack Bar by 20%.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "hits": 2,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "hits": 2
+        },
+        {
+          "type": "atb_decrease",
+          "value": 20,
+          "chance": 35,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 0
+    },
+    "preservation_shield": {
+      "id": "preservation_shield",
+      "name": "Preservation Shield",
+      "description": "Grants all allies a shield for 3 turns and immunity for 2 turns. Shield amount equals 25% of Vishnu's MAX HP.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "shield",
+          "value": 25,
+          "scaling": "MAX_HP",
+          "duration": 3
+        },
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 2
+        }
+      ],
+      "cooldown": 5
+    },
+    "trident_strike": {
+      "id": "trident_strike",
+      "name": "Trident Strike",
+      "description": "Attacks an enemy 3 times. Each critical hit ignores 50% of the target's defense.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 3,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "hits": 3,
+          "crit_ignore_def": 50
+        }
+      ],
+      "cooldown": 0
+    },
+    "cosmic_dance": {
+      "id": "cosmic_dance",
+      "name": "Cosmic Dance",
+      "description": "Attacks all enemies ignoring defense and immunity. Inflicts 2 Continuous Damage for 3 turns.",
+      "damage_multiplier": 1.0,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.0,
+          "scaling": "ATK",
+          "ignore_defense": true,
+          "ignore_immunity": true
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 100,
+          "duration": 3,
+          "stacks": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "tusk_strike": {
+      "id": "tusk_strike",
+      "name": "Tusk Strike",
+      "description": "Attacks an enemy based on your Defense and provokes them for 1 turn.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "DEF",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "DEF"
+        },
+        {
+          "type": "debuff",
+          "debuff": "provoke",
+          "chance": 100,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "obstacle_removal": {
+      "id": "obstacle_removal",
+      "name": "Obstacle Removal",
+      "description": "Removes all harmful effects from all allies and grants them immunity for 1 turn. Increases Attack Bar by 20%.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "cleanse_all"
+        },
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 1
+        },
+        {
+          "type": "atb_increase",
+          "value": 20
+        }
+      ],
+      "cooldown": 4
+    },
+    "monkey_strike": {
+      "id": "monkey_strike",
+      "name": "Monkey Strike",
+      "description": "Attacks an enemy 2 times. Each hit has a 25% chance to gain another turn.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 2,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "hits": 2
+        },
+        {
+          "type": "additional_turn",
+          "chance": 25,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 0
+    },
+    "mountain_leap": {
+      "id": "mountain_leap",
+      "name": "Mountain Leap",
+      "description": "Attacks all enemies and increases Attack Bar of all allies by 30%. Grants Increase ATK for 2 turns.",
+      "damage_multiplier": 1.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.2,
+          "scaling": "ATK"
+        },
+        {
+          "type": "team_atb_increase",
+          "value": 30
+        },
+        {
+          "type": "team_buff",
+          "buff": "increase_attack",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "multi_weapon": {
+      "id": "multi_weapon",
+      "name": "Multi-Weapon Strike",
+      "description": "Attacks random enemies 5 times. Each hit has different effects.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "random",
+      "hits": 5,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "hits": 5
+        },
+        {
+          "type": "random_debuff_per_hit",
+          "debuff_pool": [
+            "decrease_defense",
+            "decrease_attack",
+            "slow",
+            "heal_block",
+            "glancing"
+          ],
+          "chance": 50,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "demon_slayer": {
+      "id": "demon_slayer",
+      "name": "Demon Slayer",
+      "description": "Attacks all enemies. Damage increases by 30% per debuff on the target. Ignores defense.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "bonus_per_debuff": 30,
+          "ignore_defense": true
+        }
+      ],
+      "cooldown": 4
+    },
+    "lotus_blessing": {
+      "id": "lotus_blessing",
+      "name": "Lotus Blessing",
+      "description": "Heals all allies by 35% and grants them Continuous Recovery for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 35,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "buff",
+          "buff": "continuous_recovery",
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "prosperity_wave": {
+      "id": "prosperity_wave",
+      "name": "Prosperity Wave",
+      "description": "Increases Attack Bar of all allies by 30% and grants random beneficial effects for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "atb_increase",
+          "value": 30
+        },
+        {
+          "type": "random_buff",
+          "count": 2,
+          "duration": 2,
+          "buff_pool": [
+            "increase_attack",
+            "increase_defense",
+            "increase_speed",
+            "increase_critical_rate"
+          ]
+        }
+      ],
+      "cooldown": 4
+    },
+    "wisdom_strike": {
+      "id": "wisdom_strike",
+      "name": "Wisdom Strike",
+      "description": "Attacks an enemy and removes one beneficial effect. Increases your Attack Bar by 25%.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "strip",
+          "count": 1
+        },
+        {
+          "type": "self_atb_increase",
+          "value": 25
+        }
+      ],
+      "cooldown": 0
+    },
+    "knowledge_flow": {
+      "id": "knowledge_flow",
+      "name": "Knowledge Flow",
+      "description": "Increases Attack Bar of all allies by 40% and their Critical Rate for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "atb_increase",
+          "value": 40
+        },
+        {
+          "type": "buff",
+          "buff": "increase_critical_rate",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "vajra_bolt": {
+      "id": "vajra_bolt",
+      "name": "Vajra Bolt",
+      "description": "Attacks an enemy with lightning that always lands as a Critical Hit.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK",
+          "guaranteed_crit": true
+        }
+      ],
+      "cooldown": 0
+    },
+    "storm_command": {
+      "id": "storm_command",
+      "name": "Storm Command",
+      "description": "Attacks all enemies with chain lightning. Each enemy hit has a 50% chance to be stunned for 1 turn.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 50,
+          "duration": 1
+        }
+      ],
+      "cooldown": 4
+    },
+    "time_strike": {
+      "id": "time_strike",
+      "name": "Time Strike",
+      "description": "Attacks an enemy and resets all their beneficial effect durations to 1 turn.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "reset_buff_duration",
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "destruction_dance": {
+      "id": "destruction_dance",
+      "name": "Destruction Dance",
+      "description": "Attacks all enemies 2 times. Each hit ignores 30% defense. Grants yourself immunity for 1 turn.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "hits": 2,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "hits": 2,
+          "ignore_defense": 30
+        },
+        {
+          "type": "self_buff",
+          "buff": "immunity",
+          "duration": 1
+        }
+      ],
+      "cooldown": 4
+    },
+    "solar_ray": {
+      "id": "solar_ray",
+      "name": "Solar Ray",
+      "description": "Attacks an enemy and inflicts Continuous Damage for 2 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 75,
+          "duration": 2,
+          "stacks": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "dawn_blessing": {
+      "id": "dawn_blessing",
+      "name": "Dawn Blessing",
+      "description": "Heals all allies by 25% and increases their Attack for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 25,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "buff",
+          "buff": "increase_attack",
+          "duration": 2
+        }
+      ],
+      "cooldown": 3
+    },
+    "tidal_pull": {
+      "id": "tidal_pull",
+      "name": "Tidal Pull",
+      "description": "Decreases Attack Bar of all enemies by 20% and slows them for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "atb_decrease",
+          "value": 20
+        },
+        {
+          "type": "debuff",
+          "debuff": "slow",
+          "chance": 75,
+          "duration": 2
+        }
+      ],
+      "cooldown": 3
+    },
+    "club_strike": {
+      "id": "club_strike",
+      "name": "Club Strike",
+      "description": "Attacks an enemy with massive force. Damage scales with MAX HP. Stuns for 1 turn.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "MAX_HP",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "MAX_HP"
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 100,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "cauldron_plenty": {
+      "id": "cauldron_plenty",
+      "name": "Cauldron of Plenty",
+      "description": "Heals all allies to full HP and grants them immunity for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 100,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 2
+        }
+      ],
+      "cooldown": 6
+    },
+    "triple_blessing": {
+      "id": "triple_blessing",
+      "name": "Triple Blessing",
+      "description": "Heals all allies by 30% and grants 3 random beneficial effects for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 30,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "random_buff",
+          "count": 3,
+          "duration": 2,
+          "buff_pool": [
+            "increase_attack",
+            "increase_defense",
+            "increase_speed",
+            "increase_critical_rate",
+            "immunity"
+          ]
+        }
+      ],
+      "cooldown": 4
+    },
+    "skill_strike": {
+      "id": "skill_strike",
+      "name": "Skillful Strike",
+      "description": "Attacks an enemy 3 times. Each hit has a different effect: Defense break, Attack break, and Slow for 1 turn.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 3,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "hits": 3
+        },
+        {
+          "type": "sequential_debuffs",
+          "debuffs": [
+            "decrease_defense",
+            "decrease_attack",
+            "slow"
+          ],
+          "duration": 1,
+          "chance": 75
+        }
+      ],
+      "cooldown": 0
+    },
+    "harvest_festival": {
+      "id": "harvest_festival",
+      "name": "Harvest Festival",
+      "description": "Attacks all enemies and increases all allies' Attack Bar by 35%.",
+      "damage_multiplier": 1.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.2,
+          "scaling": "ATK"
+        },
+        {
+          "type": "team_atb_increase",
+          "value": 35
+        }
+      ],
+      "cooldown": 4
+    },
+    "crow_strike": {
+      "id": "crow_strike",
+      "name": "Crow Strike",
+      "description": "Attacks an enemy and inflicts 2 random debuffs for 2 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "random_debuffs",
+          "count": 2,
+          "duration": 2,
+          "debuff_pool": [
+            "decrease_defense",
+            "decrease_attack",
+            "heal_block",
+            "brand",
+            "slow"
+          ]
+        }
+      ],
+      "cooldown": 0
+    },
+    "doom_prophecy": {
+      "id": "doom_prophecy",
+      "name": "Doom Prophecy",
+      "description": "Marks all enemies with doom, increasing damage they take by 25% for 2 turns. Allies gain Increase ATK.",
+      "damage_multiplier": 0,
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "debuff",
+          "debuff": "brand",
+          "chance": 100,
+          "duration": 2
+        },
+        {
+          "type": "team_buff",
+          "buff": "increase_attack",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "antler_charge": {
+      "id": "antler_charge",
+      "name": "Antler Charge",
+      "description": "Charges at an enemy with antlers. Damage scales with Defense.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "DEF",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "DEF"
+        },
+        {
+          "type": "debuff",
+          "debuff": "provoke",
+          "chance": 75,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "wild_hunt": {
+      "id": "wild_hunt",
+      "name": "Wild Hunt",
+      "description": "Summons the wild hunt to attack all enemies and grant all allies increased Critical Rate for 2 turns.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK"
+        },
+        {
+          "type": "team_buff",
+          "buff": "increase_critical_rate",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "otherworld_song": {
+      "id": "otherworld_song",
+      "name": "Otherworld Song",
+      "description": "Sings a magical song that increases all allies' Attack Bar by 40% and Speed for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "atb_increase",
+          "value": 40
+        },
+        {
+          "type": "buff",
+          "buff": "increase_speed",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "sea_strike": {
+      "id": "sea_strike",
+      "name": "Sea Strike",
+      "description": "Attacks an enemy and freezes them for 1 turn with a 35% chance.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "freeze",
+          "chance": 35,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "mist_veil": {
+      "id": "mist_veil",
+      "name": "Mist Veil",
+      "description": "All allies gain increased dodge chance by 30% for 2 turns and recover 20% HP.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 20,
+          "scaling": "target_max_hp"
+        }
+      ],
+      "cooldown": 4
+    },
+    "solar_strike": {
+      "id": "solar_strike",
+      "name": "Solar Strike",
+      "description": "Attacks an enemy with solar fire. Inflicts 2 Continuous Damage for 2 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 100,
+          "duration": 2,
+          "stacks": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "beltane_fire": {
+      "id": "beltane_fire",
+      "name": "Beltane Fire",
+      "description": "Attacks all enemies with sacred fire and heals all allies by 15%.",
+      "damage_multiplier": 1.0,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.0,
+          "scaling": "ATK"
+        },
+        {
+          "type": "team_heal",
+          "value": 15,
+          "scaling": "target_max_hp"
+        }
+      ],
+      "cooldown": 3
+    },
+    "healing_touch": {
+      "id": "healing_touch",
+      "name": "Healing Touch",
+      "description": "Heals an ally by 50% and removes all harmful effects.",
+      "damage_multiplier": 0,
+      "targets": "single_ally",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 50,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "cleanse_all"
+        }
+      ],
+      "cooldown": 0
+    },
+    "healing_well": {
+      "id": "healing_well",
+      "name": "Healing Well",
+      "description": "All allies recover 30% HP and gain Continuous Recovery for 3 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 30,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "buff",
+          "buff": "continuous_recovery",
+          "duration": 3
+        }
+      ],
+      "cooldown": 4
+    },
+    "silver_strike": {
+      "id": "silver_strike",
+      "name": "Silver Strike",
+      "description": "Attacks an enemy with the silver arm. Damage increases by 50% if the enemy has beneficial effects.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK",
+          "bonus_vs_buffed": 50
+        }
+      ],
+      "cooldown": 0
+    },
+    "royal_command": {
+      "id": "royal_command",
+      "name": "Royal Command",
+      "description": "Increases all allies' Attack and Defense for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "increase_attack",
+          "duration": 2
+        },
+        {
+          "type": "buff",
+          "buff": "increase_defense",
+          "duration": 2
+        }
+      ],
+      "cooldown": 3
+    },
+    "sun_burst": {
+      "id": "sun_burst",
+      "name": "Sun Burst",
+      "description": "Attacks all enemies with the power of the sun. Removes one beneficial effect from each enemy.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK"
+        },
+        {
+          "type": "strip",
+          "count": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "divine_radiance": {
+      "id": "divine_radiance",
+      "name": "Divine Radiance",
+      "description": "Heals all allies by 50% and grants them immunity for 3 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 50,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 3
+        }
+      ],
+      "cooldown": 5
+    },
+    "storm_blade": {
+      "id": "storm_blade",
+      "name": "Storm Blade",
+      "description": "Attacks an enemy 3 times with storm-infused blade strikes.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 3,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "hits": 3
+        }
+      ],
+      "cooldown": 0
+    },
+    "tempest_rage": {
+      "id": "tempest_rage",
+      "name": "Tempest Rage",
+      "description": "Attacks all enemies and decreases their Attack Bar by 30%. Stuns for 1 turn with 50% chance.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK"
+        },
+        {
+          "type": "atb_decrease",
+          "value": 30
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 50,
+          "duration": 1
+        }
+      ],
+      "cooldown": 4
+    },
+    "lunar_strike": {
+      "id": "lunar_strike",
+      "name": "Lunar Strike",
+      "description": "Attacks an enemy with moonlight. Puts them to sleep for 1 turn with 50% chance.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "sleep",
+          "chance": 50,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0
+    },
+    "night_veil": {
+      "id": "night_veil",
+      "name": "Night Veil",
+      "description": "Attacks all enemies and applies Glancing Hit debuff for 2 turns. Allies gain 15% dodge chance.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "glancing",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "fox_bite": {
+      "id": "fox_bite",
+      "name": "Fox Bite",
+      "description": "Attacks an enemy and steals 20% of their Attack Bar.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "atb_steal",
+          "value": 20
+        }
+      ],
+      "cooldown": 0
+    },
+    "rice_blessing": {
+      "id": "rice_blessing",
+      "name": "Rice Blessing",
+      "description": "Increases all allies' Attack and Defense for 2 turns and heals them by 20%.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 20,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "buff",
+          "buff": "increase_attack",
+          "duration": 2
+        },
+        {
+          "type": "buff",
+          "buff": "increase_defense",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "thunder_drums": {
+      "id": "thunder_drums",
+      "name": "Thunder Drums",
+      "description": "Attacks all enemies with thunder drums and decreases their Attack Bar by 20%.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK"
+        },
+        {
+          "type": "atb_decrease",
+          "value": 20
+        }
+      ],
+      "cooldown": 0
+    },
+    "storm_calling": {
+      "id": "storm_calling",
+      "name": "Storm Calling",
+      "description": "Summons lightning storms that stun all enemies for 1 turn with 40% chance.",
+      "damage_multiplier": 1.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.2,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 40,
+          "duration": 1
+        }
+      ],
+      "cooldown": 4
+    },
+    "wind_bag": {
+      "id": "wind_bag",
+      "name": "Wind Bag",
+      "description": "Attacks an enemy and increases your Attack Bar by 25%.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "atb_increase",
+          "value": 25
+        }
+      ],
+      "cooldown": 0
+    },
+    "tornado_creation": {
+      "id": "tornado_creation",
+      "name": "Tornado Creation",
+      "description": "Attacks all enemies with wind and applies slow for 2 turns.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "slow",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 3
+    },
+    "flowing_music": {
+      "id": "flowing_music",
+      "name": "Flowing Music",
+      "description": "Heals all allies by 30% and increases their Attack Bar by 15%.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 30,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "atb_increase",
+          "value": 15
+        }
+      ],
+      "cooldown": 0
+    },
+    "knowledge_stream": {
+      "id": "knowledge_stream",
+      "name": "Knowledge Stream",
+      "description": "Grants all allies immunity for 1 turn and increases their Critical Rate for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 1
+        },
+        {
+          "type": "buff",
+          "buff": "increase_critical_rate",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "divine_archery": {
+      "id": "divine_archery",
+      "name": "Divine Archery",
+      "description": "Attacks an enemy with a guaranteed critical hit and applies Defense break for 2 turns.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK",
+          "always_crit": true
+        },
+        {
+          "type": "debuff",
+          "debuff": "decrease_defense",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "battle_strategy": {
+      "id": "battle_strategy",
+      "name": "Battle Strategy",
+      "description": "Increases all allies' Attack and Critical Rate for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "increase_attack",
+          "duration": 2
+        },
+        {
+          "type": "buff",
+          "buff": "increase_critical_rate",
+          "duration": 2
+        }
+      ],
+      "cooldown": 3
+    },
+    "protection_ward": {
+      "id": "protection_ward",
+      "name": "Protection Ward",
+      "description": "Grants a shield to all allies for 3 turns and cleanses harmful effects.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "shield",
+          "value": 20,
+          "scaling": "MAX_HP",
+          "duration": 3
+        },
+        {
+          "type": "cleanse_all"
+        }
+      ],
+      "cooldown": 0
+    },
+    "compassionate_aid": {
+      "id": "compassionate_aid",
+      "name": "Compassionate Aid",
+      "description": "Heals all allies by 40% and grants immunity for 1 turn.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 40,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 1
+        }
+      ],
+      "cooldown": 4
+    },
+    "sword_training": {
+      "id": "sword_training",
+      "name": "Sword Training",
+      "description": "Attacks an enemy 2 times with increased critical rate.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 2,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "hits": 2,
+          "crit_rate_bonus": 30
+        }
+      ],
+      "cooldown": 0
+    },
+    "wind_flight": {
+      "id": "wind_flight",
+      "name": "Wind Flight",
+      "description": "Attacks all enemies and increases your Speed for 3 turns.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK"
+        },
+        {
+          "type": "self_buff",
+          "buff": "increase_speed",
+          "duration": 3
+        }
+      ],
+      "cooldown": 3
+    },
+    "dragon_slayer": {
+      "id": "dragon_slayer",
+      "name": "Dragon Slayer",
+      "description": "Attacks an enemy with massive force, ignoring 50% of their defense. Always lands as a Critical Hit.",
+      "damage_multiplier": 1.7,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.7,
+          "scaling": "ATK",
+          "ignore_def_percent": 50,
+          "always_crit": true
+        }
+      ],
+      "cooldown": 0
+    },
+    "cosmic_order": {
+      "id": "cosmic_order",
+      "name": "Cosmic Order",
+      "description": "Restores order to the battlefield, cleansing all allies and applying 3 random debuffs to all enemies.",
+      "damage_multiplier": 0,
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "team_cleanse_all"
+        },
+        {
+          "type": "random_debuffs",
+          "count": 3,
+          "duration": 2,
+          "debuff_pool": [
+            "stun",
+            "freeze",
+            "sleep",
+            "silence",
+            "oblivion",
+            "provoke"
+          ]
+        }
+      ],
+      "cooldown": 5
+    },
+    "primordial_chaos": {
+      "id": "primordial_chaos",
+      "name": "Primordial Chaos",
+      "description": "Attacks all enemies and decreases their Max HP by 15% for the battle.",
+      "damage_multiplier": 1.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.2,
+          "scaling": "ATK"
+        },
+        {
+          "type": "max_hp_reduction",
+          "value": 15,
+          "permanent": true
+        }
+      ],
+      "cooldown": 0
+    },
+    "spawn_monsters": {
+      "id": "spawn_monsters",
+      "name": "Spawn Monsters",
+      "description": "Summons chaotic minions that attack random enemies 5 times.",
+      "damage_multiplier": 0.8,
+      "scaling_stat": "ATK",
+      "targets": "random",
+      "hits": 5,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.8,
+          "scaling": "ATK",
+          "hits": 5
+        }
+      ],
+      "cooldown": 4
+    },
+    "divine_wind": {
+      "id": "divine_wind",
+      "name": "Divine Wind",
+      "description": "Attacks all enemies with divine wind and increases all allies' SPD for 2 turns.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK"
+        },
+        {
+          "type": "team_buff",
+          "buff": "increase_speed",
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "storm_bringer": {
+      "id": "storm_bringer",
+      "name": "Storm Bringer",
+      "description": "Brings storms that stun all enemies for 1 turn and decrease their Attack Bar by 30%.",
+      "damage_multiplier": 1.3,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.3,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 75,
+          "duration": 1
+        },
+        {
+          "type": "atb_decrease",
+          "value": 30
+        }
+      ],
+      "cooldown": 4
+    },
+    "death_gaze": {
+      "id": "death_gaze",
+      "name": "Death Gaze",
+      "description": "Attacks an enemy and inflicts brand and continuous damage for 3 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "brand",
+          "duration": 3
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "duration": 3,
+          "stacks": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "underworld_dominion": {
+      "id": "underworld_dominion",
+      "name": "Underworld Dominion",
+      "description": "Claims dominion over all enemies, applying oblivion and heal block for 2 turns.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "oblivion",
+          "chance": 100,
+          "duration": 2
+        },
+        {
+          "type": "debuff",
+          "debuff": "heal_block",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "solar_justice": {
+      "id": "solar_justice",
+      "name": "Solar Justice",
+      "description": "Attacks an enemy with solar light and removes all beneficial effects.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "strip_all"
+        }
+      ],
+      "cooldown": 0
+    },
+    "law_codex": {
+      "id": "law_codex",
+      "name": "Law Codex",
+      "description": "Enforces divine law, granting all allies immunity and Increase ATK for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 2
+        },
+        {
+          "type": "buff",
+          "buff": "increase_attack",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "love_and_war": {
+      "id": "love_and_war",
+      "name": "Love and War",
+      "description": "Attacks an enemy and applies random buff to allies or random debuff to enemies.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "random_team_buff_or_enemy_debuff",
+          "duration": 2
+        }
+      ],
+      "cooldown": 0
+    },
+    "descent_return": {
+      "id": "descent_return",
+      "name": "Descent and Return",
+      "description": "Revives all fallen allies with 50% HP and grants them Increase ATK.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "revive_all",
+          "value": 50
+        },
+        {
+          "type": "buff",
+          "buff": "increase_attack",
+          "duration": 3
+        }
+      ],
+      "cooldown": 6
+    },
+    "plague_bringer": {
+      "id": "plague_bringer",
+      "name": "Plague Bringer",
+      "description": "Attacks all enemies and applies continuous damage for 3 turns.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 100,
+          "duration": 3
+        }
+      ],
+      "cooldown": 0
+    },
+    "war_frenzy": {
+      "id": "war_frenzy",
+      "name": "War Frenzy",
+      "description": "Grants all allies Increase ATK and counterattack for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "increase_attack",
+          "duration": 2
+        },
+        {
+          "type": "buff",
+          "buff": "counterattack",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    },
+    "grain_blessing": {
+      "id": "grain_blessing",
+      "name": "Grain Blessing",
+      "description": "Heals all allies by 35% and grants them continuous recovery for 3 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 35,
+          "scaling": "target_max_hp"
+        },
+        {
+          "type": "buff",
+          "buff": "continuous_recovery",
+          "duration": 3
+        }
+      ],
+      "cooldown": 0
+    },
+    "earth_nurture": {
+      "id": "earth_nurture",
+      "name": "Earth Nurture",
+      "description": "Increases all allies' Defense for 3 turns and provides shields.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "increase_defense",
+          "duration": 3
+        },
+        {
+          "type": "shield",
+          "value": 25,
+          "scaling": "MAX_HP",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4
+    }
+  }
+}

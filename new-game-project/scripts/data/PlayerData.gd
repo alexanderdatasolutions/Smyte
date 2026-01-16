@@ -33,7 +33,6 @@ func initialize_default_resources():
 	# Get ResourceManager instance
 	resource_manager = get_resource_manager()
 	if not resource_manager:
-		print("Warning: ResourceManager not available during PlayerData init - using fallback")
 		create_fallback_resources()
 		return
 	
@@ -64,8 +63,6 @@ func initialize_default_resources():
 	# Ensure energy is properly initialized
 	if not resources.has("energy"):
 		resources["energy"] = get_default_amount_for_resource("energy")
-	
-	print("PlayerData: Initialized ", resources.size(), " resources - Energy: ", resources.get("energy", "NOT_SET"))
 
 func create_fallback_resources():
 	"""Create fallback resources if ResourceManager isn't available"""

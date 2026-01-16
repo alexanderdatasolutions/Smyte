@@ -83,20 +83,10 @@ func _setup_signal_connections():
 	if _instances.size() == 1:
 		var system_registry = SystemRegistry.get_instance()
 		if system_registry:
-			var event_bus = system_registry.get_system("EventBus")
-			if event_bus and event_bus.has_signal("resources_updated"):
-				event_bus.resources_updated.connect(_update_all_instances)
-				print("ResourceDisplay: Connected to EventBus.resources_updated")
-			else:
-				print("ResourceDisplay: EventBus or resources_updated signal not found")
-		else:
-			print("ResourceDisplay: SystemRegistry not available")
-		var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
-		if event_bus and event_bus.has_signal("resources_updated"):
-			event_bus.resources_updated.connect(_update_all_instances)
-			print("ResourceDisplay: Connected to EventBus.resources_updated signal")
-		else:
-			print("ResourceDisplay: Warning - EventBus.resources_updated signal not available")
+			var eb = system_registry.get_system("EventBus")
+			if eb and eb.has_signal("resources_updated"):
+				eb.resources_updated.connect(_update_all_instances)
+			# Note: resources_updated signal may not exist in EventBus - this is expected
 
 func _setup_progression_signals():
 	"""Connect to progression system signals for player level updates"""

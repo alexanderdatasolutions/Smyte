@@ -1,9 +1,11 @@
 # scripts/ui/screens/BattleSetupScreen.gd
-# Clean replacement - orchestrates battle setup functionality
+# Clean replacement - orchestrates battle setup functionality using standardized GodCard component
 extends Control
 
 signal battle_setup_complete(context: Dictionary)
 signal setup_cancelled
+
+const GodCardFactory = preload("res://scripts/utilities/GodCardFactory.gd")
 
 # Load the split components  
 const BattleSetupCoordinatorScript = preload("res://scripts/ui/battle_setup/BattleSetupCoordinator.gd")

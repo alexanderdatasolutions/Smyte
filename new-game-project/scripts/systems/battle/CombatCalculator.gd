@@ -147,3 +147,19 @@ static func get_detailed_speed_breakdown(god: God) -> Dictionary:
 		"buff_bonus": buff_bonus,
 		"final_value": base_speed + level_bonus + equipment_bonus + buff_bonus
 	}
+
+## Calculate total power rating for a god (RULE 3 compliance - logic in calculator, not data class)
+static func calculate_total_power(god: God) -> int:
+	# Base power from stats (HP + ATK + DEF) / 3
+	var base_power = (god.base_hp + god.base_attack + god.base_defense) / 3.0
+	
+	# Level bonus: 50 power per level (from prompt specification)
+	var level_bonus = god.level * 50
+	
+	# Tier bonus: 500 power per tier (from prompt specification)
+	var tier_bonus = god.tier * 500
+	
+	# Total power calculation
+	var total_power = base_power + level_bonus + tier_bonus
+	
+	return int(total_power)

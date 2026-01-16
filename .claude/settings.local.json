@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tasklist:*)",
+      "Bash(where:*)",
+      "Bash(node --version:*)",
+      "Bash(npm --version)",
+      "Bash(git clone:*)",
+      "Bash(npm install)",
+      "mcp__godot__get_godot_version",
+      "mcp__godot__list_projects",
+      "mcp__godot__get_project_info",
+      "Bash(npm run build:*)",
+      "mcp__godot__run_project",
+      "Bash(timeout /t 5 /nobreak)",
+      "mcp__godot__get_debug_output",
+      "mcp__godot__stop_project",
+      "Bash(nc:*)",
+      "Bash(powershell -Command \"$client = New-Object System.Net.Sockets.TcpClient\\(''127.0.0.1'', 9999\\); $stream = $client.GetStream\\(\\); $writer = New-Object System.IO.StreamWriter\\($stream\\); $reader = New-Object System.IO.StreamReader\\($stream\\); $writer.WriteLine\\(''{\"\"action\"\":\"\"ping\"\"}''\\); $writer.Flush\\(\\); Start-Sleep -Milliseconds 500; $response = $reader.ReadLine\\(\\); Write-Output $response; $client.Close\\(\\)\")",
+      "Bash(powershell:*)",
+      "Bash(dir:*)",
+      "Bash(git -C \"c:\\\\Users\\\\alexa\\\\Documents\\\\Coding\\\\Smyte\\\\new-game-project\" diff --name-only HEAD~1)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "godot"
+  ]
+}

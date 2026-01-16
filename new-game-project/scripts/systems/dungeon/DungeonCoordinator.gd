@@ -227,10 +227,9 @@ func get_current_battle_info() -> Dictionary:
 # System interface methods
 func initialize():
 	"""Initialize system - called by SystemRegistry"""
-	print("DungeonCoordinator: System initialized")
+	pass
 
 func shutdown():
 	"""Shutdown system - called by SystemRegistry"""
 	if battle_in_progress:
 		_reset_battle_state()
-	print("DungeonCoordinator: System shutdown")

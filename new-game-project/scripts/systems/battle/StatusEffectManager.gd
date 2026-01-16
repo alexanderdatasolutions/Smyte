@@ -13,7 +13,7 @@ signal status_effect_removed(target, effect_id)
 signal status_effect_triggered(target, effect, result)
 
 func _ready():
-	print("StatusEffectManager: Status effect system ready")
+	pass
 
 # ==============================================================================
 # MAIN STATUS EFFECT PROCESSING - Clean and focused
@@ -151,8 +151,6 @@ func apply_status_effect(target, effect):
 	
 	target.add_status_effect(effect)
 	status_effect_applied.emit(target, effect)
-	
-	print("StatusEffectManager: Applied %s to %s" % [effect.name, target.get_display_name()])
 	return true
 
 func remove_status_effect(target, effect_id: String):

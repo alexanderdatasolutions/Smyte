@@ -1,0 +1,3856 @@
+{
+  "awakened_gods": {
+    "athena_awakened": {
+      "id": "athena_awakened",
+      "name": "Athena, The Strategist",
+      "pantheon": "greek",
+      "element": "light",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 180,
+        "attack": 85,
+        "defense": 95,
+        "speed": 70,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 10.0,
+      "active_abilities": [
+        {
+          "id": "divine_strategy",
+          "name": "Divine Strategy",
+          "description": "Uses divine wisdom to boost all allies and control the battlefield.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "defense_buff",
+              "duration": 4.0
+            },
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "shield_slam",
+          "name": "Shield Slam",
+          "description": "Slams with divine shield, stunning and dealing damage.",
+          "damage_multiplier": 320.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 320.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "stun",
+              "chance": 75.0,
+              "duration": 1.0
+            }
+          ],
+          "cooldown": 4.0
+        },
+        {
+          "id": "tactical_support",
+          "name": "Tactical Support",
+          "description": "Provides tactical support to all allies.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "heal",
+              "value": 30.0,
+              "scaling": "target_max_hp"
+            },
+            {
+              "type": "cleanse"
+            }
+          ],
+          "cooldown": 4.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "defense",
+        "value": 40.0
+      },
+      "description": "The awakened form of Athena.",
+      "summon_weight": 0.0,
+      "base_god_id": "athena",
+      "awakening_materials": {
+        "light_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "light_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "light_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "zeus_awakened": {
+      "id": "zeus_awakened",
+      "name": "Zeus, King of Olympus",
+      "pantheon": "greek",
+      "element": "lightning",
+      "tier": "legendary",
+      "base_stats": {
+        "hp": 221,
+        "attack": 111,
+        "defense": 86,
+        "speed": 69,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 18.0,
+      "active_abilities": [
+        {
+          "id": "olympian_wrath",
+          "name": "Olympian Wrath",
+          "description": "Unleashes the full power of the king of gods, stunning all enemies and dealing massive damage.",
+          "damage_multiplier": 450.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 450.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "stun",
+              "chance": 100.0,
+              "duration": 2.0
+            },
+            {
+              "type": "atb_decrease",
+              "value": 100.0
+            }
+          ],
+          "cooldown": 8.0,
+          "awakened_only": true
+        },
+        {
+          "id": "divine_lightning",
+          "name": "Divine Lightning",
+          "description": "Strikes with divine lightning that chains between enemies.",
+          "damage_multiplier": 420.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 420.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "chain_damage",
+              "value": 300.0,
+              "scaling": "ATK",
+              "chains": 3.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "stun",
+              "chance": 50.0,
+              "duration": 1.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "royal_decree",
+          "name": "Royal Decree",
+          "description": "Commands the battlefield, granting all allies immunity and massive stat boosts.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 3.0
+            },
+            {
+              "type": "buff",
+              "buff": "attack_buff",
+              "duration": 4.0
+            },
+            {
+              "type": "buff",
+              "buff": "crit_damage_buff",
+              "duration": 4.0
+            },
+            {
+              "type": "atb_increase",
+              "value": 50.0
+            }
+          ],
+          "cooldown": 6.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "hp",
+        "value": 55.0,
+        "area": "all"
+      },
+      "description": "The awakened form of Zeus, supreme ruler of Olympus.",
+      "summon_weight": 0.0,
+      "base_god_id": "zeus",
+      "awakening_materials": {
+        "lightning_powder_high": 20.0,
+        "magic_powder_high": 10.0,
+        "lightning_powder_mid": 40.0,
+        "magic_powder_mid": 20.0,
+        "lightning_powder_low": 15.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "odin_awakened": {
+      "id": "odin_awakened",
+      "name": "Odin, The All-Father",
+      "pantheon": "norse",
+      "element": "dark",
+      "tier": "legendary",
+      "base_stats": {
+        "hp": 215,
+        "attack": 117,
+        "defense": 90,
+        "speed": 68,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 18.0,
+      "active_abilities": [
+        {
+          "id": "valhalla_\u53ec\u5524",
+          "name": "Call of Valhalla",
+          "description": "Summons the spirits of Valhalla to fight alongside the team.",
+          "damage_multiplier": 380.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 380.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "team_buff",
+              "buff": "invincible",
+              "duration": 1.0
+            },
+            {
+              "type": "team_revive",
+              "value": 75.0
+            }
+          ],
+          "cooldown": 8.0,
+          "awakened_only": true
+        },
+        {
+          "id": "gungnir_mastery",
+          "name": "Gungnir Mastery",
+          "description": "Throws Gungnir with perfect accuracy, always hitting and ignoring all defenses.",
+          "damage_multiplier": 520.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 520.0,
+              "scaling": "ATK",
+              "always_hit": true,
+              "ignore_def_percent": 100.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "brand",
+              "chance": 100.0,
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "all_seeing_wisdom",
+          "name": "All-Seeing Wisdom",
+          "description": "Grants divine wisdom to all allies, providing immunity and perfect vision.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 2.0
+            },
+            {
+              "type": "cleanse_all"
+            },
+            {
+              "type": "buff",
+              "buff": "crit_rate_buff",
+              "duration": 4.0
+            },
+            {
+              "type": "buff",
+              "buff": "accuracy_buff",
+              "duration": 4.0
+            }
+          ],
+          "cooldown": 6.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "resistance",
+        "value": 60.0,
+        "area": "all"
+      },
+      "description": "The awakened form of Odin, wielding ultimate wisdom and power.",
+      "summon_weight": 0.0,
+      "base_god_id": "odin",
+      "awakening_materials": {
+        "dark_powder_high": 20.0,
+        "magic_powder_high": 10.0,
+        "dark_powder_mid": 40.0,
+        "magic_powder_mid": 20.0,
+        "dark_powder_low": 15.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "ra_awakened": {
+      "id": "ra_awakened",
+      "name": "Ra, The Solar Supreme",
+      "pantheon": "egyptian",
+      "element": "fire",
+      "tier": "legendary",
+      "base_stats": {
+        "hp": 202,
+        "attack": 111,
+        "defense": 83,
+        "speed": 65,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 18.0,
+      "active_abilities": [
+        {
+          "id": "solar_eclipse",
+          "name": "Solar Eclipse",
+          "description": "Causes a solar eclipse that devastates all enemies and empowers all allies.",
+          "damage_multiplier": 400.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 400.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "glancing",
+              "chance": 100.0,
+              "duration": 3.0
+            },
+            {
+              "type": "team_buff",
+              "buff": "attack_buff",
+              "duration": 4.0
+            },
+            {
+              "type": "team_heal",
+              "value": 30.0,
+              "scaling": "target_max_hp"
+            }
+          ],
+          "cooldown": 8.0,
+          "awakened_only": true
+        },
+        {
+          "id": "divine_judgment",
+          "name": "Divine Judgment",
+          "description": "Judges enemies with solar fire, dealing damage based on their missing HP.",
+          "damage_multiplier": 350.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 350.0,
+              "scaling": "ATK",
+              "bonus_vs_low_hp": 100.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "continuous_damage",
+              "chance": 100.0,
+              "duration": 4.0,
+              "stacks": 3.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "solar_blessing",
+          "name": "Solar Blessing",
+          "description": "Blesses all allies with the power of the sun.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "heal",
+              "value": 50.0,
+              "scaling": "target_max_hp"
+            },
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 2.0
+            },
+            {
+              "type": "buff",
+              "buff": "crit_damage_buff",
+              "duration": 4.0
+            }
+          ],
+          "cooldown": 6.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "crit_damage",
+        "value": 50.0,
+        "area": "all"
+      },
+      "description": "The awakened form of Ra, supreme ruler of the Egyptian pantheon.",
+      "summon_weight": 0.0,
+      "base_god_id": "ra",
+      "awakening_materials": {
+        "fire_powder_high": 20.0,
+        "magic_powder_high": 10.0,
+        "fire_powder_mid": 40.0,
+        "magic_powder_mid": 20.0,
+        "fire_powder_low": 15.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "shiva_awakened": {
+      "id": "shiva_awakened",
+      "name": "Shiva, The Cosmic Destroyer",
+      "pantheon": "hindu",
+      "element": "fire",
+      "tier": "legendary",
+      "base_stats": {
+        "hp": 221,
+        "attack": 117,
+        "defense": 86,
+        "speed": 69,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 18.0,
+      "active_abilities": [
+        {
+          "id": "cosmic_destruction",
+          "name": "Cosmic Destruction",
+          "description": "Performs the dance of destruction, devastating all enemies and resetting the battlefield.",
+          "damage_multiplier": 500.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 500.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "strip_all"
+            },
+            {
+              "type": "team_cleanse_all"
+            },
+            {
+              "type": "reset_cooldowns"
+            }
+          ],
+          "cooldown": 8.0,
+          "awakened_only": true
+        },
+        {
+          "id": "third_eye_annihilation",
+          "name": "Third Eye Annihilation",
+          "description": "Opens the third eye to annihilate a single enemy completely.",
+          "damage_multiplier": 800.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 800.0,
+              "scaling": "ATK",
+              "ignore_def_percent": 100.0,
+              "always_crit": true
+            },
+            {
+              "type": "execute_low_hp",
+              "threshold": 30.0
+            }
+          ],
+          "cooldown": 6.0
+        },
+        {
+          "id": "cosmic_meditation",
+          "name": "Cosmic Meditation",
+          "description": "Enters deep meditation, gaining invincibility and empowering the team.",
+          "damage_multiplier": 0.0,
+          "targets": "self",
+          "effects": [
+            {
+              "type": "self_buff",
+              "buff": "invincible",
+              "duration": 2.0
+            },
+            {
+              "type": "team_buff",
+              "buff": "attack_buff",
+              "duration": 5.0
+            },
+            {
+              "type": "team_buff",
+              "buff": "crit_rate_buff",
+              "duration": 5.0
+            }
+          ],
+          "cooldown": 7.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "crit_damage",
+        "value": 55.0,
+        "area": "all"
+      },
+      "description": "The awakened form of Shiva, cosmic destroyer and creator.",
+      "summon_weight": 0.0,
+      "base_god_id": "shiva",
+      "awakening_materials": {
+        "fire_powder_high": 20.0,
+        "magic_powder_high": 10.0,
+        "fire_powder_mid": 40.0,
+        "magic_powder_mid": 20.0,
+        "fire_powder_low": 15.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "amaterasu_awakened": {
+      "id": "amaterasu_awakened",
+      "name": "Amaterasu, Celestial Empress",
+      "pantheon": "japanese",
+      "element": "light",
+      "tier": "legendary",
+      "base_stats": {
+        "hp": 227,
+        "attack": 111,
+        "defense": 90,
+        "speed": 69,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 18.0,
+      "active_abilities": [
+        {
+          "id": "celestial_radiance",
+          "name": "Celestial Radiance",
+          "description": "Bathes the battlefield in celestial light, healing allies and purifying all.",
+          "damage_multiplier": 350.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 350.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "strip_all"
+            },
+            {
+              "type": "team_heal",
+              "value": 75.0,
+              "scaling": "target_max_hp"
+            },
+            {
+              "type": "team_buff",
+              "buff": "immunity",
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 8.0,
+          "awakened_only": true
+        },
+        {
+          "id": "mirror_reflection",
+          "name": "Sacred Mirror",
+          "description": "Reflects all attacks back at enemies while becoming invulnerable.",
+          "damage_multiplier": 0.0,
+          "targets": "self",
+          "effects": [
+            {
+              "type": "self_buff",
+              "buff": "invincible",
+              "duration": 2.0
+            },
+            {
+              "type": "reflect_damage",
+              "value": 150.0,
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 6.0
+        },
+        {
+          "id": "divine_resurrection",
+          "name": "Divine Resurrection",
+          "description": "Revives all fallen allies with full HP and grants them powerful buffs.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "revive_all",
+              "value": 100.0
+            },
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 2.0
+            },
+            {
+              "type": "buff",
+              "buff": "attack_buff",
+              "duration": 4.0
+            }
+          ],
+          "cooldown": 10.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "hp",
+        "value": 50.0,
+        "area": "light"
+      },
+      "description": "The awakened form of Amaterasu, supreme empress of the heavens.",
+      "summon_weight": 0.0,
+      "base_god_id": "amaterasu",
+      "awakening_materials": {
+        "light_powder_high": 20.0,
+        "magic_powder_high": 10.0,
+        "light_powder_mid": 40.0,
+        "magic_powder_mid": 20.0,
+        "light_powder_low": 15.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "jade_emperor_awakened": {
+      "id": "jade_emperor_awakened",
+      "name": "Jade Emperor, Celestial Sovereign",
+      "pantheon": "chinese",
+      "element": "light",
+      "tier": "legendary",
+      "base_stats": {
+        "hp": 215,
+        "attack": 102,
+        "defense": 93,
+        "speed": 64,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 18.0,
+      "active_abilities": [
+        {
+          "id": "heavenly_mandate",
+          "name": "Heavenly Mandate",
+          "description": "Issues a heavenly mandate that controls the battlefield completely.",
+          "damage_multiplier": 0.0,
+          "targets": "all_units",
+          "effects": [
+            {
+              "type": "enemy_disable_all",
+              "duration": 2.0
+            },
+            {
+              "type": "team_buff",
+              "buff": "immunity",
+              "duration": 3.0
+            },
+            {
+              "type": "team_heal",
+              "value": 50.0,
+              "scaling": "target_max_hp"
+            }
+          ],
+          "cooldown": 8.0,
+          "awakened_only": true
+        },
+        {
+          "id": "celestial_judgment",
+          "name": "Celestial Judgment",
+          "description": "Judges all enemies with the authority of heaven.",
+          "damage_multiplier": 380.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 380.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "oblivion",
+              "chance": 100.0,
+              "duration": 3.0
+            },
+            {
+              "type": "atb_decrease",
+              "value": 50.0
+            }
+          ],
+          "cooldown": 6.0
+        },
+        {
+          "id": "imperial_blessing",
+          "name": "Imperial Blessing",
+          "description": "Grants the blessing of the Jade Emperor to all allies.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 2.0
+            },
+            {
+              "type": "shield",
+              "value": 40.0,
+              "scaling": "MAX_HP",
+              "duration": 4.0
+            },
+            {
+              "type": "atb_increase",
+              "value": 50.0
+            }
+          ],
+          "cooldown": 7.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "speed",
+        "value": 40.0,
+        "area": "all"
+      },
+      "description": "The awakened form of the Jade Emperor, supreme ruler of all celestial beings.",
+      "summon_weight": 0.0,
+      "base_god_id": "jade_emperor",
+      "awakening_materials": {
+        "light_powder_high": 20.0,
+        "magic_powder_high": 10.0,
+        "light_powder_mid": 40.0,
+        "magic_powder_mid": 20.0,
+        "light_powder_low": 15.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "marduk_awakened": {
+      "id": "marduk_awakened",
+      "name": "Marduk, Cosmic Sovereign",
+      "pantheon": "mesopotamian",
+      "element": "lightning",
+      "tier": "legendary",
+      "base_stats": {
+        "hp": 233,
+        "attack": 117,
+        "defense": 95,
+        "speed": 66,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 18.0,
+      "active_abilities": [
+        {
+          "id": "cosmic_dominion",
+          "name": "Cosmic Dominion",
+          "description": "Establishes absolute dominion over the cosmic order.",
+          "damage_multiplier": 450.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 450.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "strip_all"
+            },
+            {
+              "type": "debuff",
+              "debuff": "silence",
+              "chance": 100.0,
+              "duration": 2.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "oblivion",
+              "chance": 100.0,
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 8.0,
+          "awakened_only": true
+        },
+        {
+          "id": "dragon_annihilation",
+          "name": "Dragon Annihilation",
+          "description": "Channels the power that slew Tiamat to annihilate enemies.",
+          "damage_multiplier": 650.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 650.0,
+              "scaling": "ATK",
+              "ignore_def_percent": 75.0,
+              "always_crit": true
+            },
+            {
+              "type": "execute_low_hp",
+              "threshold": 25.0
+            }
+          ],
+          "cooldown": 6.0
+        },
+        {
+          "id": "universal_order",
+          "name": "Universal Order",
+          "description": "Restores perfect order to the battlefield.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "team_cleanse_all"
+            },
+            {
+              "type": "heal",
+              "value": 60.0,
+              "scaling": "target_max_hp"
+            },
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 3.0
+            },
+            {
+              "type": "reset_cooldowns"
+            }
+          ],
+          "cooldown": 10.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "attack",
+        "value": 60.0,
+        "area": "all"
+      },
+      "description": "The awakened form of Marduk, supreme sovereign of cosmic order.",
+      "summon_weight": 0.0,
+      "base_god_id": "marduk",
+      "awakening_materials": {
+        "lightning_powder_high": 20.0,
+        "magic_powder_high": 10.0,
+        "lightning_powder_mid": 40.0,
+        "magic_powder_mid": 20.0,
+        "lightning_powder_low": 15.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "poseidon_awakened": {
+      "id": "poseidon_awakened",
+      "name": "Poseidon, Lord of the Seas",
+      "pantheon": "greek",
+      "element": "water",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 187,
+        "attack": 93,
+        "defense": 85,
+        "speed": 62,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "tsunami",
+          "name": "Tsunami",
+          "description": "Unleashes a devastating tsunami that damages all enemies and reduces their attack bar.",
+          "damage_multiplier": 320.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 320.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "atb_decrease",
+              "value": 50.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "slow",
+              "chance": 100.0,
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 6.0,
+          "awakened_only": true
+        },
+        {
+          "id": "trident_strike",
+          "name": "Trident Strike",
+          "description": "Strikes with divine trident, dealing damage and applying defense break.",
+          "damage_multiplier": 400.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 400.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "defense_break",
+              "chance": 75.0,
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 4.0
+        },
+        {
+          "id": "oceanic_blessing",
+          "name": "Oceanic Blessing",
+          "description": "Grants all allies immunity and heals them.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "heal",
+              "value": 35.0,
+              "scaling": "target_max_hp"
+            },
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 5.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "hp",
+        "value": 33.0,
+        "area": "water"
+      },
+      "description": "The awakened form of Poseidon, ruler of all oceans.",
+      "summon_weight": 0.0,
+      "base_god_id": "poseidon",
+      "awakening_materials": {
+        "water_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "water_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "water_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "hades_awakened": {
+      "id": "hades_awakened",
+      "name": "Hades, Lord of the Underworld",
+      "pantheon": "greek",
+      "element": "dark",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 187,
+        "attack": 93,
+        "defense": 85,
+        "speed": 62,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "underworld_dominion",
+          "name": "Underworld Dominion",
+          "description": "Brings the power of death to all enemies, dealing damage based on their max HP.",
+          "damage_multiplier": 280.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 280.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "damage_percent_hp",
+              "value": 15.0,
+              "scaling": "target_max_hp"
+            },
+            {
+              "type": "debuff",
+              "debuff": "continuous_damage",
+              "chance": 100.0,
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 6.0,
+          "awakened_only": true
+        },
+        {
+          "id": "soul_harvest",
+          "name": "Soul Harvest",
+          "description": "Harvests souls from enemies, dealing massive damage to low HP enemies.",
+          "damage_multiplier": 450.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 450.0,
+              "scaling": "ATK",
+              "bonus_vs_low_hp": 200.0
+            },
+            {
+              "type": "execute_low_hp",
+              "threshold": 20.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "death_immunity",
+          "name": "Death Immunity",
+          "description": "Grants all allies immunity to death effects and continuous damage.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 3.0
+            },
+            {
+              "type": "cleanse_debuff",
+              "debuff": "continuous_damage"
+            }
+          ],
+          "cooldown": 7.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "hp",
+        "value": 33.0,
+        "area": "dark"
+      },
+      "description": "The awakened form of Hades, supreme ruler of death.",
+      "summon_weight": 0.0,
+      "base_god_id": "hades",
+      "awakening_materials": {
+        "dark_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "dark_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "dark_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "hera_awakened": {
+      "id": "hera_awakened",
+      "name": "Hera, Queen of Olympus",
+      "pantheon": "greek",
+      "element": "light",
+      "tier": "legendary",
+      "base_stats": {
+        "hp": 209,
+        "attack": 102,
+        "defense": 90,
+        "speed": 64,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 18.0,
+      "active_abilities": [
+        {
+          "id": "divine_wrath",
+          "name": "Divine Wrath",
+          "description": "Unleashes the full wrath of the Queen of Gods upon all enemies.",
+          "damage_multiplier": 420.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 420.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "provoke",
+              "chance": 100.0,
+              "duration": 2.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "attack_break",
+              "chance": 100.0,
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 7.0,
+          "awakened_only": true
+        },
+        {
+          "id": "royal_judgment",
+          "name": "Royal Judgment",
+          "description": "Judges a single enemy with divine authority.",
+          "damage_multiplier": 580.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 580.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "strip_all"
+            },
+            {
+              "type": "debuff",
+              "debuff": "silence",
+              "chance": 100.0,
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "olympian_protection",
+          "name": "Olympian Protection",
+          "description": "Protects all allies with the authority of Olympus.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 3.0
+            },
+            {
+              "type": "shield",
+              "value": 30.0,
+              "scaling": "MAX_HP",
+              "duration": 4.0
+            }
+          ],
+          "cooldown": 6.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "resistance",
+        "value": 50.0,
+        "area": "all"
+      },
+      "description": "The awakened form of Hera, supreme queen of the gods.",
+      "summon_weight": 0.0,
+      "base_god_id": "hera",
+      "awakening_materials": {
+        "light_powder_high": 20.0,
+        "magic_powder_high": 10.0,
+        "light_powder_mid": 40.0,
+        "magic_powder_mid": 20.0,
+        "light_powder_low": 15.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "thor_awakened": {
+      "id": "thor_awakened",
+      "name": "Thor, God of Thunder",
+      "pantheon": "norse",
+      "element": "lightning",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 196,
+        "attack": 102,
+        "defense": 88,
+        "speed": 62,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "ragnarok_hammer",
+          "name": "Ragnarok Hammer",
+          "description": "Strikes with Mjolnir enhanced by Ragnarok's power.",
+          "damage_multiplier": 380.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 380.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "stun",
+              "chance": 50.0,
+              "duration": 1.0
+            },
+            {
+              "type": "atb_decrease",
+              "value": 30.0
+            }
+          ],
+          "cooldown": 6.0,
+          "awakened_only": true
+        },
+        {
+          "id": "mjolnir_return",
+          "name": "Mjolnir Return",
+          "description": "Throws Mjolnir, which always returns and hits twice.",
+          "damage_multiplier": 300.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "hits": 2.0,
+          "effects": [
+            {
+              "type": "damage",
+              "value": 300.0,
+              "scaling": "ATK",
+              "hits": 2.0,
+              "always_hit": true
+            },
+            {
+              "type": "debuff",
+              "debuff": "defense_break",
+              "chance": 75.0,
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 4.0
+        },
+        {
+          "id": "thunder_blessing",
+          "name": "Thunder Blessing",
+          "description": "Blesses all allies with the power of thunder.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "attack_buff",
+              "duration": 4.0
+            },
+            {
+              "type": "buff",
+              "buff": "crit_rate_buff",
+              "duration": 4.0
+            }
+          ],
+          "cooldown": 5.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "attack",
+        "value": 40.0,
+        "area": "lightning"
+      },
+      "description": "The awakened form of Thor, wielding Mjolnir with divine fury.",
+      "summon_weight": 0.0,
+      "base_god_id": "thor",
+      "awakening_materials": {
+        "lightning_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "lightning_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "lightning_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "freya_awakened": {
+      "id": "freya_awakened",
+      "name": "Freya, Goddess of Love and War",
+      "pantheon": "norse",
+      "element": "light",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 181,
+        "attack": 93,
+        "defense": 83,
+        "speed": 70,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "valkyrie_call",
+          "name": "Valkyrie Call",
+          "description": "Calls upon the Valkyries to aid in battle.",
+          "damage_multiplier": 350.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 350.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "team_buff",
+              "buff": "attack_buff",
+              "duration": 3.0
+            },
+            {
+              "type": "team_revive",
+              "value": 50.0
+            }
+          ],
+          "cooldown": 7.0,
+          "awakened_only": true
+        },
+        {
+          "id": "love_and_war",
+          "name": "Love and War",
+          "description": "Combines the power of love and war in one strike.",
+          "damage_multiplier": 420.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 420.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "provoke",
+              "chance": 100.0,
+              "duration": 2.0
+            },
+            {
+              "type": "self_heal",
+              "value": 30.0,
+              "scaling": "damage_dealt"
+            }
+          ],
+          "cooldown": 4.0
+        },
+        {
+          "id": "divine_charm",
+          "name": "Divine Charm",
+          "description": "Charms enemies and blesses allies simultaneously.",
+          "damage_multiplier": 0.0,
+          "targets": "all_units",
+          "effects": [
+            {
+              "type": "enemy_debuff",
+              "debuff": "provoke",
+              "chance": 75.0,
+              "duration": 2.0
+            },
+            {
+              "type": "ally_buff",
+              "buff": "immunity",
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 6.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "crit_rate",
+        "value": 24.0,
+        "area": "light"
+      },
+      "description": "The awakened form of Freya, embodying both love and war.",
+      "summon_weight": 0.0,
+      "base_god_id": "freya",
+      "awakening_materials": {
+        "light_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "light_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "light_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "anubis_awakened": {
+      "id": "anubis_awakened",
+      "name": "Anubis, Lord of the Dead",
+      "pantheon": "egyptian",
+      "element": "dark",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 181,
+        "attack": 102,
+        "defense": 83,
+        "speed": 64,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "judgment_of_souls",
+          "name": "Judgment of Souls",
+          "description": "Judges all enemies, dealing damage based on their debuffs.",
+          "damage_multiplier": 300.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 300.0,
+              "scaling": "ATK",
+              "bonus_per_debuff": 50.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "continuous_damage",
+              "chance": 100.0,
+              "duration": 4.0,
+              "stacks": 2.0
+            }
+          ],
+          "cooldown": 6.0,
+          "awakened_only": true
+        },
+        {
+          "id": "mummification",
+          "name": "Mummification",
+          "description": "Mummifies an enemy, disabling them completely.",
+          "damage_multiplier": 450.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 450.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "silence",
+              "chance": 100.0,
+              "duration": 3.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "oblivion",
+              "chance": 100.0,
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "afterlife_blessing",
+          "name": "Afterlife Blessing",
+          "description": "Grants allies protection from death effects.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "endure",
+              "duration": 3.0
+            },
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 7.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "accuracy",
+        "value": 30.0,
+        "area": "dark"
+      },
+      "description": "The awakened form of Anubis, supreme judge of the dead.",
+      "summon_weight": 0.0,
+      "base_god_id": "anubis",
+      "awakening_materials": {
+        "dark_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "dark_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "dark_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "brahma_awakened": {
+      "id": "brahma_awakened",
+      "name": "Brahma, The Creator Supreme",
+      "pantheon": "hindu",
+      "element": "light",
+      "tier": "legendary",
+      "base_stats": {
+        "hp": 221,
+        "attack": 102,
+        "defense": 90,
+        "speed": 66,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 18.0,
+      "active_abilities": [
+        {
+          "id": "universal_creation",
+          "name": "Universal Creation",
+          "description": "Creates a new reality that heals allies and resets the battle state.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "heal",
+              "value": 100.0,
+              "scaling": "target_max_hp"
+            },
+            {
+              "type": "revive_all",
+              "value": 100.0
+            },
+            {
+              "type": "reset_cooldowns"
+            },
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 10.0,
+          "awakened_only": true
+        },
+        {
+          "id": "divine_knowledge",
+          "name": "Divine Knowledge",
+          "description": "Shares the knowledge of creation with all allies.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "crit_rate_buff",
+              "duration": 5.0
+            },
+            {
+              "type": "buff",
+              "buff": "accuracy_buff",
+              "duration": 5.0
+            },
+            {
+              "type": "atb_increase",
+              "value": 50.0
+            }
+          ],
+          "cooldown": 6.0
+        },
+        {
+          "id": "cosmic_balance",
+          "name": "Cosmic Balance",
+          "description": "Restores balance to the battlefield.",
+          "damage_multiplier": 280.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 280.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "strip_all"
+            },
+            {
+              "type": "team_cleanse_all"
+            }
+          ],
+          "cooldown": 5.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "hp",
+        "value": 50.0,
+        "area": "all"
+      },
+      "description": "The awakened form of Brahma, supreme creator of all existence.",
+      "summon_weight": 0.0,
+      "base_god_id": "brahma",
+      "awakening_materials": {
+        "light_powder_high": 20.0,
+        "magic_powder_high": 10.0,
+        "light_powder_mid": 40.0,
+        "magic_powder_mid": 20.0,
+        "light_powder_low": 15.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "vishnu_awakened": {
+      "id": "vishnu_awakened",
+      "name": "Vishnu, The Preserver Supreme",
+      "pantheon": "hindu",
+      "element": "light",
+      "tier": "legendary",
+      "base_stats": {
+        "hp": 215,
+        "attack": 111,
+        "defense": 93,
+        "speed": 66,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 18.0,
+      "active_abilities": [
+        {
+          "id": "avatar_manifestation",
+          "name": "Avatar Manifestation",
+          "description": "Manifests multiple avatars to devastate enemies.",
+          "damage_multiplier": 200.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "hits": 4.0,
+          "effects": [
+            {
+              "type": "damage",
+              "value": 200.0,
+              "scaling": "ATK",
+              "hits": 4.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "defense_break",
+              "chance": 50.0,
+              "duration": 2.0,
+              "per_hit": true
+            }
+          ],
+          "cooldown": 7.0,
+          "awakened_only": true
+        },
+        {
+          "id": "sudarshana_chakra",
+          "name": "Sudarshana Chakra",
+          "description": "Throws the divine discus that pierces through all enemies.",
+          "damage_multiplier": 500.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 500.0,
+              "scaling": "ATK",
+              "ignore_def_percent": 50.0,
+              "always_hit": true
+            },
+            {
+              "type": "chain_damage",
+              "value": 300.0,
+              "scaling": "ATK",
+              "chains": 2.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "universal_preservation",
+          "name": "Universal Preservation",
+          "description": "Preserves all allies from harm with divine protection.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "shield",
+              "value": 50.0,
+              "scaling": "MAX_HP",
+              "duration": 5.0
+            },
+            {
+              "type": "buff",
+              "buff": "endure",
+              "duration": 3.0
+            },
+            {
+              "type": "heal",
+              "value": 40.0,
+              "scaling": "target_max_hp"
+            }
+          ],
+          "cooldown": 8.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "defense",
+        "value": 50.0,
+        "area": "all"
+      },
+      "description": "The awakened form of Vishnu, supreme preserver of the universe.",
+      "summon_weight": 0.0,
+      "base_god_id": "vishnu",
+      "awakening_materials": {
+        "light_powder_high": 20.0,
+        "magic_powder_high": 10.0,
+        "light_powder_mid": 40.0,
+        "magic_powder_mid": 20.0,
+        "light_powder_low": 15.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "ganesha_awakened": {
+      "id": "ganesha_awakened",
+      "name": "Ganesha, Remover of Obstacles",
+      "pantheon": "hindu",
+      "element": "earth",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 205,
+        "attack": 87,
+        "defense": 102,
+        "speed": 57,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "obstacle_annihilation",
+          "name": "Obstacle Annihilation",
+          "description": "Removes all obstacles and debuffs while damaging enemies.",
+          "damage_multiplier": 350.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 350.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "team_cleanse_all"
+            },
+            {
+              "type": "team_buff",
+              "buff": "immunity",
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 6.0,
+          "awakened_only": true
+        },
+        {
+          "id": "divine_tusk",
+          "name": "Divine Tusk",
+          "description": "Strikes with divine tusks that pierce through defenses.",
+          "damage_multiplier": 420.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 420.0,
+              "scaling": "ATK",
+              "ignore_def_percent": 75.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "defense_break",
+              "chance": 100.0,
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 4.0
+        },
+        {
+          "id": "prosperity_blessing",
+          "name": "Prosperity Blessing",
+          "description": "Blesses all allies with prosperity and fortune.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "crit_damage_buff",
+              "duration": 4.0
+            },
+            {
+              "type": "atb_increase",
+              "value": 30.0
+            },
+            {
+              "type": "heal",
+              "value": 25.0,
+              "scaling": "target_max_hp"
+            }
+          ],
+          "cooldown": 5.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "resistance",
+        "value": 40.0,
+        "area": "earth"
+      },
+      "description": "The awakened form of Ganesha, divine remover of all obstacles.",
+      "summon_weight": 0.0,
+      "base_god_id": "ganesha",
+      "awakening_materials": {
+        "earth_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "earth_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "earth_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "hanuman_awakened": {
+      "id": "hanuman_awakened",
+      "name": "Hanuman, The Devoted Warrior",
+      "pantheon": "hindu",
+      "element": "fire",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 187,
+        "attack": 111,
+        "defense": 83,
+        "speed": 75,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "mountain_crusher",
+          "name": "Mountain Crusher",
+          "description": "Crushes enemies with the force that moved mountains.",
+          "damage_multiplier": 400.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 400.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "stun",
+              "chance": 75.0,
+              "duration": 1.0
+            },
+            {
+              "type": "atb_decrease",
+              "value": 50.0
+            }
+          ],
+          "cooldown": 6.0,
+          "awakened_only": true
+        },
+        {
+          "id": "devotion_strike",
+          "name": "Devotion Strike",
+          "description": "Strikes with unwavering devotion, gaining power from team HP.",
+          "damage_multiplier": 350.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 350.0,
+              "scaling": "ATK",
+              "bonus_from_team_hp": 100.0
+            },
+            {
+              "type": "self_heal",
+              "value": 20.0,
+              "scaling": "damage_dealt"
+            }
+          ],
+          "cooldown": 4.0
+        },
+        {
+          "id": "wind_blessing",
+          "name": "Wind Blessing",
+          "description": "Blesses team with the speed of wind.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "speed_buff",
+              "duration": 5.0
+            },
+            {
+              "type": "atb_increase",
+              "value": 50.0
+            },
+            {
+              "type": "cleanse_all"
+            }
+          ],
+          "cooldown": 6.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "speed",
+        "value": 33.0,
+        "area": "fire"
+      },
+      "description": "The awakened form of Hanuman, devoted warrior of unmatched strength.",
+      "summon_weight": 0.0,
+      "base_god_id": "hanuman",
+      "awakening_materials": {
+        "fire_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "fire_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "fire_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "durga_awakened": {
+      "id": "durga_awakened",
+      "name": "Durga, The Invincible Goddess",
+      "pantheon": "hindu",
+      "element": "fire",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 181,
+        "attack": 111,
+        "defense": 87,
+        "speed": 66,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "ten_armed_destruction",
+          "name": "Ten-Armed Destruction",
+          "description": "Attacks with all ten divine weapons simultaneously.",
+          "damage_multiplier": 150.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "hits": 10.0,
+          "effects": [
+            {
+              "type": "damage",
+              "value": 150.0,
+              "scaling": "ATK",
+              "hits": 10.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "defense_break",
+              "chance": 30.0,
+              "duration": 2.0,
+              "per_hit": true
+            }
+          ],
+          "cooldown": 7.0,
+          "awakened_only": true
+        },
+        {
+          "id": "divine_rage",
+          "name": "Divine Rage",
+          "description": "Enters divine rage, increasing damage based on missing HP.",
+          "damage_multiplier": 450.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 450.0,
+              "scaling": "ATK",
+              "bonus_from_missing_hp": 200.0
+            },
+            {
+              "type": "self_buff",
+              "buff": "attack_buff",
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "protective_shield",
+          "name": "Protective Shield",
+          "description": "Creates divine shields around all allies.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "shield",
+              "value": 40.0,
+              "scaling": "MAX_HP",
+              "duration": 4.0
+            },
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 6.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "attack",
+        "value": 44.0,
+        "area": "fire"
+      },
+      "description": "The awakened form of Durga, the invincible warrior goddess.",
+      "summon_weight": 0.0,
+      "base_god_id": "durga",
+      "awakening_materials": {
+        "fire_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "fire_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "fire_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "hestia_awakened": {
+      "id": "hestia_awakened",
+      "name": "Hestia, Keeper of Sacred Flame",
+      "pantheon": "greek",
+      "element": "fire",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 199,
+        "attack": 87,
+        "defense": 97,
+        "speed": 61,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "eternal_hearth",
+          "name": "Eternal Hearth",
+          "description": "Creates an eternal hearth that continuously heals and empowers allies.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "continuous_heal",
+              "duration": 5.0,
+              "heal_per_turn": 15.0
+            },
+            {
+              "type": "buff",
+              "buff": "attack_buff",
+              "duration": 5.0
+            },
+            {
+              "type": "team_atb_increase",
+              "value": 30.0
+            }
+          ],
+          "cooldown": 8.0,
+          "awakened_only": true
+        },
+        {
+          "id": "sacred_fire",
+          "name": "Sacred Fire",
+          "description": "Burns enemies with purifying sacred flames.",
+          "damage_multiplier": 320.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 320.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "continuous_damage",
+              "chance": 100.0,
+              "duration": 4.0,
+              "stacks": 2.0
+            },
+            {
+              "type": "strip_buffs",
+              "chance": 75.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "home_blessing",
+          "name": "Home Blessing",
+          "description": "Blesses allies with the comfort and safety of home.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "heal",
+              "value": 40.0,
+              "scaling": "target_max_hp"
+            },
+            {
+              "type": "cleanse_all"
+            },
+            {
+              "type": "buff",
+              "buff": "defense_buff",
+              "duration": 4.0
+            }
+          ],
+          "cooldown": 6.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "hp",
+        "value": 44.0,
+        "area": "fire"
+      },
+      "description": "The awakened form of Hestia, keeper of the sacred eternal flame.",
+      "summon_weight": 0.0,
+      "base_god_id": "hestia",
+      "awakening_materials": {
+        "fire_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "fire_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "fire_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "demeter_awakened": {
+      "id": "demeter_awakened",
+      "name": "Demeter, Bringer of Abundance",
+      "pantheon": "greek",
+      "element": "earth",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 205,
+        "attack": 92,
+        "defense": 94,
+        "speed": 59,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "harvest_apocalypse",
+          "name": "Harvest Apocalypse",
+          "description": "Brings forth a devastating harvest that drains enemy life.",
+          "damage_multiplier": 350.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 350.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "heal_block",
+              "chance": 100.0,
+              "duration": 4.0
+            },
+            {
+              "type": "team_heal",
+              "value": 15.0,
+              "scaling": "damage_dealt"
+            }
+          ],
+          "cooldown": 7.0,
+          "awakened_only": true
+        },
+        {
+          "id": "seasonal_wrath",
+          "name": "Seasonal Wrath",
+          "description": "Unleashes the wrath of all seasons at once.",
+          "damage_multiplier": 300.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "hits": 4.0,
+          "effects": [
+            {
+              "type": "damage",
+              "value": 300.0,
+              "scaling": "ATK",
+              "hits": 4.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "freeze",
+              "chance": 50.0,
+              "duration": 1.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "earth_mother",
+          "name": "Earth Mother",
+          "description": "Channels the power of the earth to heal and protect.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "heal",
+              "value": 50.0,
+              "scaling": "target_max_hp"
+            },
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 3.0
+            },
+            {
+              "type": "atb_increase",
+              "value": 40.0
+            }
+          ],
+          "cooldown": 7.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "hp",
+        "value": 44.0,
+        "area": "earth"
+      },
+      "description": "The awakened form of Demeter, goddess of abundant harvests.",
+      "summon_weight": 0.0,
+      "base_god_id": "demeter",
+      "awakening_materials": {
+        "earth_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "earth_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "earth_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "dragon_king_awakened": {
+      "id": "dragon_king_awakened",
+      "name": "Dragon King, Lord of All Seas",
+      "pantheon": "chinese",
+      "element": "water",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 193,
+        "attack": 102,
+        "defense": 89,
+        "speed": 64,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "tsunami_command",
+          "name": "Tsunami Command",
+          "description": "Commands all oceans to create a devastating tsunami.",
+          "damage_multiplier": 380.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 380.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "freeze",
+              "chance": 100.0,
+              "duration": 2.0
+            },
+            {
+              "type": "atb_decrease",
+              "value": 75.0
+            }
+          ],
+          "cooldown": 7.0,
+          "awakened_only": true
+        },
+        {
+          "id": "dragon_breath",
+          "name": "Dragon Breath",
+          "description": "Breathes water and ice with devastating force.",
+          "damage_multiplier": 450.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 450.0,
+              "scaling": "ATK",
+              "ignore_def_percent": 50.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "attack_break",
+              "chance": 100.0,
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 4.0
+        },
+        {
+          "id": "oceanic_blessing",
+          "name": "Oceanic Blessing",
+          "description": "Blesses allies with the power of the ocean.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "crit_rate_buff",
+              "duration": 4.0
+            },
+            {
+              "type": "cleanse_all"
+            },
+            {
+              "type": "heal",
+              "value": 30.0,
+              "scaling": "target_max_hp"
+            }
+          ],
+          "cooldown": 6.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "attack",
+        "value": 44.0,
+        "area": "water"
+      },
+      "description": "The awakened form of the Dragon King, supreme ruler of all waters.",
+      "summon_weight": 0.0,
+      "base_god_id": "dragon_king",
+      "awakening_materials": {
+        "water_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "water_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "water_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "sun_wukong_awakened": {
+      "id": "sun_wukong_awakened",
+      "name": "Sun Wukong, The Immortal Sage",
+      "pantheon": "chinese",
+      "element": "fire",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 181,
+        "attack": 118,
+        "defense": 81,
+        "speed": 75,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "72_transformations",
+          "name": "72 Transformations",
+          "description": "Uses 72 transformations to confuse and devastate enemies.",
+          "damage_multiplier": 250.0,
+          "scaling_stat": "ATK",
+          "targets": "random",
+          "hits": 6.0,
+          "effects": [
+            {
+              "type": "damage",
+              "value": 250.0,
+              "scaling": "ATK",
+              "hits": 6.0
+            },
+            {
+              "type": "self_buff",
+              "buff": "invisibility",
+              "duration": 2.0
+            },
+            {
+              "type": "reset_cooldowns"
+            }
+          ],
+          "cooldown": 8.0,
+          "awakened_only": true
+        },
+        {
+          "id": "golden_cudgel_strike",
+          "name": "Golden Cudgel Strike",
+          "description": "Strikes with the legendary expanding staff.",
+          "damage_multiplier": 500.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 500.0,
+              "scaling": "ATK",
+              "always_crit": true
+            },
+            {
+              "type": "debuff",
+              "debuff": "stun",
+              "chance": 100.0,
+              "duration": 1.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "monkey_king_fury",
+          "name": "Monkey King Fury",
+          "description": "Enters a state of divine fury, empowering all abilities.",
+          "damage_multiplier": 0.0,
+          "targets": "self",
+          "effects": [
+            {
+              "type": "self_buff",
+              "buff": "attack_buff",
+              "duration": 5.0
+            },
+            {
+              "type": "self_buff",
+              "buff": "speed_buff",
+              "duration": 5.0
+            },
+            {
+              "type": "self_buff",
+              "buff": "immunity",
+              "duration": 3.0
+            },
+            {
+              "type": "atb_increase",
+              "value": 100.0
+            }
+          ],
+          "cooldown": 7.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "speed",
+        "value": 33.0,
+        "area": "fire"
+      },
+      "description": "The awakened form of Sun Wukong, the immortal monkey sage.",
+      "summon_weight": 0.0,
+      "base_god_id": "sun_wukong",
+      "awakening_materials": {
+        "fire_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "fire_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "fire_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "perun_awakened": {
+      "id": "perun_awakened",
+      "name": "Perun, The Thunder Lord",
+      "pantheon": "slavic",
+      "element": "lightning",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 187,
+        "attack": 108,
+        "defense": 84,
+        "speed": 70,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "thunderbolt_barrage",
+          "name": "Thunderbolt Barrage",
+          "description": "Unleashes countless thunderbolts from the sky.",
+          "damage_multiplier": 200.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "hits": 8.0,
+          "effects": [
+            {
+              "type": "damage",
+              "value": 200.0,
+              "scaling": "ATK",
+              "hits": 8.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "stun",
+              "chance": 25.0,
+              "duration": 1.0,
+              "per_hit": true
+            }
+          ],
+          "cooldown": 7.0,
+          "awakened_only": true
+        },
+        {
+          "id": "divine_hammer",
+          "name": "Divine Hammer",
+          "description": "Strikes with Mjolnir's eastern counterpart.",
+          "damage_multiplier": 480.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 480.0,
+              "scaling": "ATK",
+              "ignore_def_percent": 50.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "defense_break",
+              "chance": 100.0,
+              "duration": 3.0
+            },
+            {
+              "type": "chain_lightning",
+              "value": 200.0,
+              "scaling": "ATK",
+              "chains": 3.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "storm_blessing",
+          "name": "Storm Blessing",
+          "description": "Blesses allies with the power of storms.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "crit_damage_buff",
+              "duration": 4.0
+            },
+            {
+              "type": "buff",
+              "buff": "speed_buff",
+              "duration": 4.0
+            },
+            {
+              "type": "atb_increase",
+              "value": 50.0
+            }
+          ],
+          "cooldown": 6.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "attack",
+        "value": 44.0,
+        "area": "lightning"
+      },
+      "description": "The awakened form of Perun, supreme lord of thunder and lightning.",
+      "summon_weight": 0.0,
+      "base_god_id": "perun",
+      "awakening_materials": {
+        "lightning_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "lightning_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "lightning_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "svarog_awakened": {
+      "id": "svarog_awakened",
+      "name": "Svarog, The Divine Smith",
+      "pantheon": "slavic",
+      "element": "fire",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 199,
+        "attack": 97,
+        "defense": 98,
+        "speed": 59,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "divine_forge",
+          "name": "Divine Forge",
+          "description": "Creates legendary weapons for all allies while burning enemies.",
+          "damage_multiplier": 300.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 300.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "continuous_damage",
+              "chance": 100.0,
+              "duration": 5.0,
+              "stacks": 3.0
+            },
+            {
+              "type": "team_buff",
+              "buff": "attack_buff",
+              "duration": 5.0
+            }
+          ],
+          "cooldown": 8.0,
+          "awakened_only": true
+        },
+        {
+          "id": "hammer_of_creation",
+          "name": "Hammer of Creation",
+          "description": "Strikes with the hammer that forged the world.",
+          "damage_multiplier": 420.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 420.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "stun",
+              "chance": 75.0,
+              "duration": 1.0
+            },
+            {
+              "type": "self_buff",
+              "buff": "defense_buff",
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 4.0
+        },
+        {
+          "id": "craftsman_blessing",
+          "name": "Craftsman's Blessing",
+          "description": "Blesses allies with masterful craftsmanship.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "crit_rate_buff",
+              "duration": 5.0
+            },
+            {
+              "type": "shield",
+              "value": 30.0,
+              "scaling": "MAX_HP",
+              "duration": 4.0
+            },
+            {
+              "type": "heal",
+              "value": 25.0,
+              "scaling": "target_max_hp"
+            }
+          ],
+          "cooldown": 6.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "defense",
+        "value": 44.0,
+        "area": "fire"
+      },
+      "description": "The awakened form of Svarog, the divine blacksmith of creation.",
+      "summon_weight": 0.0,
+      "base_god_id": "svarog",
+      "awakening_materials": {
+        "fire_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "fire_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "fire_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "jormungandr_awakened": {
+      "id": "jormungandr_awakened",
+      "name": "Jormungandr, The World Serpent",
+      "pantheon": "norse",
+      "element": "water",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 210,
+        "attack": 95,
+        "defense": 92,
+        "speed": 57,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "ragnarok_venom",
+          "name": "Ragnarok Venom",
+          "description": "Spits the venom that will poison the world at Ragnarok.",
+          "damage_multiplier": 350.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 350.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "continuous_damage",
+              "chance": 100.0,
+              "duration": 6.0,
+              "stacks": 4.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "heal_block",
+              "chance": 100.0,
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 7.0,
+          "awakened_only": true
+        },
+        {
+          "id": "world_crusher",
+          "name": "World Crusher",
+          "description": "Coils around the world and crushes it.",
+          "damage_multiplier": 500.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 500.0,
+              "scaling": "ATK",
+              "bonus_from_target_max_hp": 15.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "defense_break",
+              "chance": 100.0,
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "ocean_dominion",
+          "name": "Ocean Dominion",
+          "description": "Asserts dominion over all waters.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 3.0
+            },
+            {
+              "type": "cleanse_all"
+            },
+            {
+              "type": "atb_increase",
+              "value": 40.0
+            }
+          ],
+          "cooldown": 6.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "hp",
+        "value": 44.0,
+        "area": "water"
+      },
+      "description": "The awakened form of Jormungandr, the world-encircling serpent.",
+      "summon_weight": 0.0,
+      "base_god_id": "jormungandr",
+      "awakening_materials": {
+        "water_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "water_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "water_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "osiris_awakened": {
+      "id": "osiris_awakened",
+      "name": "Osiris, Lord of the Afterlife",
+      "pantheon": "egyptian",
+      "element": "dark",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 193,
+        "attack": 97,
+        "defense": 90,
+        "speed": 63,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "resurrection_mastery",
+          "name": "Resurrection Mastery",
+          "description": "Masters death itself, reviving and empowering all fallen allies.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "revive_all",
+              "value": 100.0
+            },
+            {
+              "type": "buff",
+              "buff": "attack_buff",
+              "duration": 5.0,
+              "apply_to_revived": true
+            },
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 3.0,
+              "apply_to_all": true
+            }
+          ],
+          "cooldown": 10.0,
+          "awakened_only": true
+        },
+        {
+          "id": "judgment_staff",
+          "name": "Judgment Staff",
+          "description": "Strikes with the staff that judges souls.",
+          "damage_multiplier": 400.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 400.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "oblivion",
+              "chance": 100.0,
+              "duration": 3.0
+            },
+            {
+              "type": "heal_team",
+              "value": 15.0,
+              "scaling": "damage_dealt"
+            }
+          ],
+          "cooldown": 4.0
+        },
+        {
+          "id": "eternal_life",
+          "name": "Eternal Life",
+          "description": "Grants eternal life blessing to all allies.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "endure",
+              "duration": 4.0
+            },
+            {
+              "type": "heal",
+              "value": 35.0,
+              "scaling": "target_max_hp"
+            },
+            {
+              "type": "cleanse_all"
+            }
+          ],
+          "cooldown": 7.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "hp",
+        "value": 44.0,
+        "area": "dark"
+      },
+      "description": "The awakened form of Osiris, supreme lord of death and rebirth.",
+      "summon_weight": 0.0,
+      "base_god_id": "osiris",
+      "awakening_materials": {
+        "dark_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "dark_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "dark_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "horus_awakened": {
+      "id": "horus_awakened",
+      "name": "Horus, The Sky Lord",
+      "pantheon": "egyptian",
+      "element": "wind",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 181,
+        "attack": 111,
+        "defense": 84,
+        "speed": 72,
+        "crit_rate": 15.0,
+        "crit_damage": 50.0,
+        "resistance": 15.0,
+        "accuracy": 0.0
+      },
+      "resource_generation": 12.0,
+      "active_abilities": [
+        {
+          "id": "eye_of_horus",
+          "name": "Eye of Horus",
+          "description": "Opens the all-seeing eye that pierces through all deceptions.",
+          "damage_multiplier": 400.0,
+          "scaling_stat": "ATK",
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 400.0,
+              "scaling": "ATK",
+              "always_hit": true,
+              "ignore_def_percent": 25.0
+            },
+            {
+              "type": "strip_all_buffs"
+            },
+            {
+              "type": "debuff",
+              "debuff": "defense_break",
+              "chance": 100.0,
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 7.0,
+          "awakened_only": true
+        },
+        {
+          "id": "falcon_dive",
+          "name": "Falcon Dive",
+          "description": "Dives from the heavens with incredible speed and precision.",
+          "damage_multiplier": 520.0,
+          "scaling_stat": "ATK",
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 520.0,
+              "scaling": "ATK",
+              "always_crit": true
+            },
+            {
+              "type": "atb_increase_self",
+              "value": 75.0
+            }
+          ],
+          "cooldown": 4.0
+        },
+        {
+          "id": "sky_dominion",
+          "name": "Sky Dominion",
+          "description": "Commands the sky to empower all allies.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "speed_buff",
+              "duration": 5.0
+            },
+            {
+              "type": "buff",
+              "buff": "crit_rate_buff",
+              "duration": 5.0
+            },
+            {
+              "type": "atb_increase",
+              "value": 60.0
+            }
+          ],
+          "cooldown": 6.0
+        }
+      ],
+      "passive_abilities": [],
+      "leader_skill": {
+        "type": "speed",
+        "value": 33.0,
+        "area": "wind"
+      },
+      "description": "The awakened form of Horus, the falcon-headed sky god.",
+      "summon_weight": 0.0,
+      "base_god_id": "horus",
+      "awakening_materials": {
+        "wind_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "wind_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "wind_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "brigid_awakened": {
+      "id": "brigid_awakened",
+      "name": "Brigid, The Sacred Flame",
+      "pantheon": "celtic",
+      "element": "fire",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 172,
+        "attack": 86,
+        "defense": 78,
+        "speed": 64,
+        "crit_rate": 20.0,
+        "crit_damage": 65.0,
+        "resistance": 25.0,
+        "accuracy": 15.0
+      },
+      "resource_generation": 15.0,
+      "active_abilities": [
+        {
+          "id": "sacred_forge",
+          "name": "Sacred Forge",
+          "description": "Creates blessed weapons that empower all allies with increased attack and critical rate for 3 turns.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "attack_boost",
+              "value": 50.0,
+              "duration": 3.0
+            },
+            {
+              "type": "buff",
+              "buff": "crit_rate_boost",
+              "value": 25.0,
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "healing_flame",
+          "name": "Healing Flame",
+          "description": "Attacks an enemy and heals the ally with lowest HP. Grants regeneration for 2 turns.",
+          "damage_multiplier": 320.0,
+          "healing_multiplier": 80.0,
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 320.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "heal",
+              "value": 80.0,
+              "scaling": "ATK",
+              "target": "lowest_hp_ally"
+            },
+            {
+              "type": "buff",
+              "buff": "regeneration",
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 4.0
+        }
+      ],
+      "awakening_materials": {
+        "fire_powder_high": 15.0,
+        "magic_powder_high": 8.0,
+        "fire_powder_mid": 30.0,
+        "magic_powder_mid": 15.0,
+        "fire_powder_low": 20.0,
+        "magic_powder_low": 10.0
+      }
+    },
+    "lugh_awakened": {
+      "id": "lugh_awakened",
+      "name": "Lugh, Master of All Arts",
+      "pantheon": "celtic",
+      "element": "light",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 165,
+        "attack": 91,
+        "defense": 74,
+        "speed": 69,
+        "crit_rate": 20.0,
+        "crit_damage": 65.0,
+        "resistance": 25.0,
+        "accuracy": 15.0
+      },
+      "resource_generation": 15.0,
+      "active_abilities": [
+        {
+          "id": "master_strike",
+          "name": "Master of All Skills",
+          "description": "Attacks all enemies with mastery of all combat arts. Each hit has different effects.",
+          "damage_multiplier": 250.0,
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 250.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "defense_break",
+              "chance": 75.0,
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "light_mastery",
+          "name": "Light Mastery",
+          "description": "Channels pure light to blind enemies and inspire allies.",
+          "damage_multiplier": 380.0,
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 380.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "blind",
+              "chance": 85.0,
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 3.0
+        }
+      ],
+      "awakening_materials": {
+        "light_powder_high": 15,
+        "light_powder_mid": 8,
+        "light_powder_low": 30,
+        "magic_powder_high": 15,
+        "magic_powder_mid": 20,
+        "magic_powder_low": 10
+      }
+    },
+    "morrigan_awakened": {
+      "id": "morrigan_awakened",
+      "name": "Morrigan, Phantom Queen",
+      "pantheon": "celtic",
+      "element": "dark",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 159,
+        "attack": 93,
+        "defense": 69,
+        "speed": 70,
+        "crit_rate": 25.0,
+        "crit_damage": 70.0,
+        "resistance": 25.0,
+        "accuracy": 20.0
+      },
+      "resource_generation": 15.0,
+      "active_abilities": [
+        {
+          "id": "phantom_strike",
+          "name": "Phantom Strike",
+          "description": "Attacks from the shadows, dealing massive damage with chance to instantly kill low HP enemies.",
+          "damage_multiplier": 420.0,
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 420.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "special",
+              "effect": "execute",
+              "threshold": 25.0
+            }
+          ],
+          "cooldown": 4.0
+        },
+        {
+          "id": "ravens_curse",
+          "name": "Raven's Curse",
+          "description": "Curses all enemies, reducing their accuracy and applying fear.",
+          "damage_multiplier": 0.0,
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "debuff",
+              "debuff": "accuracy_reduction",
+              "value": 30.0,
+              "duration": 3.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "fear",
+              "chance": 70.0,
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 5.0
+        }
+      ],
+      "awakening_materials": {
+        "dark_powder_high": 15,
+        "dark_powder_mid": 8,
+        "dark_powder_low": 30,
+        "magic_powder_high": 15,
+        "magic_powder_mid": 20,
+        "magic_powder_low": 10
+      }
+    },
+    "dagda_awakened": {
+      "id": "dagda_awakened",
+      "name": "Dagda, The Great Provider",
+      "pantheon": "celtic",
+      "element": "earth",
+      "tier": "legendary",
+      "base_stats": {
+        "hp": 253,
+        "attack": 90,
+        "defense": 105,
+        "speed": 57,
+        "crit_rate": 20.0,
+        "crit_damage": 65.0,
+        "resistance": 30.0,
+        "accuracy": 10.0
+      },
+      "resource_generation": 20.0,
+      "active_abilities": [
+        {
+          "id": "endless_bounty",
+          "name": "Endless Bounty",
+          "description": "Provides endless sustenance, fully healing all allies and granting immunity for 3 turns.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "heal",
+              "value": 100.0,
+              "scaling": "target_max_hp"
+            },
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 3.0
+            },
+            {
+              "type": "buff",
+              "buff": "regeneration",
+              "duration": 4.0
+            }
+          ],
+          "cooldown": 6.0
+        },
+        {
+          "id": "earth_dominion",
+          "name": "Earth Dominion",
+          "description": "Commands the earth itself, dealing massive damage and stunning all enemies.",
+          "damage_multiplier": 340.0,
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 340.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "stun",
+              "chance": 80.0,
+              "duration": 1.0
+            }
+          ],
+          "cooldown": 5.0
+        }
+      ],
+      "awakening_materials": {
+        "earth_powder_high": 20,
+        "earth_powder_mid": 10,
+        "earth_powder_low": 40,
+        "magic_powder_high": 20,
+        "magic_powder_mid": 15,
+        "magic_powder_low": 10
+      }
+    },
+    "susanoo_awakened": {
+      "id": "susanoo_awakened",
+      "name": "Susanoo, Storm God Supreme",
+      "pantheon": "japanese",
+      "element": "lightning",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 168,
+        "attack": 100,
+        "defense": 72,
+        "speed": 75,
+        "crit_rate": 25.0,
+        "crit_damage": 70.0,
+        "resistance": 25.0,
+        "accuracy": 15.0
+      },
+      "resource_generation": 15.0,
+      "active_abilities": [
+        {
+          "id": "tempest_blade",
+          "name": "Tempest Blade",
+          "description": "Unleashes a storm of lightning strikes, hitting all enemies multiple times.",
+          "damage_multiplier": 180.0,
+          "targets": "all_enemies",
+          "hits": 3,
+          "effects": [
+            {
+              "type": "damage",
+              "value": 180.0,
+              "scaling": "ATK",
+              "hits": 3
+            },
+            {
+              "type": "debuff",
+              "debuff": "shock",
+              "chance": 60.0,
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 4.0
+        },
+        {
+          "id": "divine_storm",
+          "name": "Divine Storm",
+          "description": "Calls down a divine lightning storm that paralyzes enemies.",
+          "damage_multiplier": 380.0,
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 380.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "paralyze",
+              "chance": 90.0,
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 3.0
+        }
+      ],
+      "awakening_materials": {
+        "lightning_powder_high": 15,
+        "lightning_powder_mid": 8,
+        "lightning_powder_low": 30,
+        "magic_powder_high": 15,
+        "magic_powder_mid": 20,
+        "magic_powder_low": 10
+      }
+    },
+    "tsukuyomi_awakened": {
+      "id": "tsukuyomi_awakened",
+      "name": "Tsukuyomi, Lord of the Night",
+      "pantheon": "japanese",
+      "element": "dark",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 163,
+        "attack": 86,
+        "defense": 76,
+        "speed": 66,
+        "crit_rate": 30.0,
+        "crit_damage": 75.0,
+        "resistance": 30.0,
+        "accuracy": 25.0
+      },
+      "resource_generation": 15.0,
+      "active_abilities": [
+        {
+          "id": "moonlight_slash",
+          "name": "Moonlight Slash",
+          "description": "Strikes with the power of the moon, dealing more damage in darkness.",
+          "damage_multiplier": 350.0,
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 350.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "sleep",
+              "chance": 75.0,
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 3.0
+        },
+        {
+          "id": "eternal_night",
+          "name": "Eternal Night",
+          "description": "Casts eternal darkness, reducing all enemies' accuracy and speed.",
+          "damage_multiplier": 0.0,
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "debuff",
+              "debuff": "blind",
+              "chance": 100.0,
+              "duration": 3.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "speed_reduction",
+              "value": 50.0,
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 6.0
+        }
+      ],
+      "awakening_materials": {
+        "dark_powder_high": 15,
+        "dark_powder_mid": 8,
+        "dark_powder_low": 30,
+        "magic_powder_high": 15,
+        "magic_powder_mid": 20,
+        "magic_powder_low": 10
+      }
+    },
+    "enlil_awakened": {
+      "id": "enlil_awakened",
+      "name": "Enlil, Lord of Wind and Storm",
+      "pantheon": "mesopotamian",
+      "element": "lightning",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 167,
+        "attack": 93,
+        "defense": 74,
+        "speed": 72,
+        "crit_rate": 20.0,
+        "crit_damage": 65.0,
+        "resistance": 25.0,
+        "accuracy": 20.0
+      },
+      "resource_generation": 15.0,
+      "active_abilities": [
+        {
+          "id": "storm_lord",
+          "name": "Storm Lord's Wrath",
+          "description": "Commands wind and storm to devastate all enemies.",
+          "damage_multiplier": 280.0,
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 280.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "debuff",
+              "debuff": "speed_reduction",
+              "value": 30.0,
+              "duration": 2.0
+            }
+          ],
+          "cooldown": 4.0
+        },
+        {
+          "id": "wind_mastery",
+          "name": "Wind Mastery",
+          "description": "Controls the winds to increase ally speed and decrease enemy accuracy.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "buff",
+              "buff": "speed_boost",
+              "value": 40.0,
+              "duration": 3.0
+            },
+            {
+              "type": "aoe_debuff",
+              "debuff": "accuracy_reduction",
+              "value": 25.0,
+              "duration": 3.0,
+              "target": "all_enemies"
+            }
+          ],
+          "cooldown": 5.0
+        }
+      ],
+      "awakening_materials": {
+        "lightning_powder_high": 15,
+        "lightning_powder_mid": 8,
+        "lightning_powder_low": 30,
+        "magic_powder_high": 15,
+        "magic_powder_mid": 20,
+        "magic_powder_low": 10
+      }
+    },
+    "ereshkigal_awakened": {
+      "id": "ereshkigal_awakened",
+      "name": "Ereshkigal, Queen of the Underworld",
+      "pantheon": "mesopotamian",
+      "element": "dark",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 178,
+        "attack": 88,
+        "defense": 84,
+        "speed": 63,
+        "crit_rate": 25.0,
+        "crit_damage": 70.0,
+        "resistance": 35.0,
+        "accuracy": 20.0
+      },
+      "resource_generation": 15.0,
+      "active_abilities": [
+        {
+          "id": "underworld_dominion",
+          "name": "Underworld Dominion",
+          "description": "Rules over death itself, instantly defeating enemies below 30% HP.",
+          "damage_multiplier": 320.0,
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 320.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "special",
+              "effect": "execute",
+              "threshold": 30.0
+            }
+          ],
+          "cooldown": 4.0
+        },
+        {
+          "id": "death_curse",
+          "name": "Curse of Death",
+          "description": "Curses all enemies with death magic, applying damage over time and preventing healing.",
+          "damage_multiplier": 0.0,
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "dot",
+              "damage": 15.0,
+              "duration": 4.0
+            },
+            {
+              "type": "debuff",
+              "debuff": "heal_block",
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 5.0
+        }
+      ],
+      "awakening_materials": {
+        "dark_powder_high": 15,
+        "dark_powder_mid": 8,
+        "dark_powder_low": 30,
+        "magic_powder_high": 15,
+        "magic_powder_mid": 20,
+        "magic_powder_low": 10
+      }
+    },
+    "shamash_awakened": {
+      "id": "shamash_awakened",
+      "name": "Shamash, Judge of Heaven and Earth",
+      "pantheon": "mesopotamian",
+      "element": "light",
+      "tier": "epic",
+      "base_stats": {
+        "hp": 172,
+        "attack": 91,
+        "defense": 79,
+        "speed": 64,
+        "crit_rate": 20.0,
+        "crit_damage": 65.0,
+        "resistance": 30.0,
+        "accuracy": 25.0
+      },
+      "resource_generation": 15.0,
+      "active_abilities": [
+        {
+          "id": "divine_judgment",
+          "name": "Divine Judgment",
+          "description": "Passes divine judgment, dealing more damage to debuffed enemies.",
+          "damage_multiplier": 400.0,
+          "targets": "single",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 400.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "special",
+              "effect": "bonus_vs_debuffed",
+              "multiplier": 1.5
+            }
+          ],
+          "cooldown": 3.0
+        },
+        {
+          "id": "light_of_justice",
+          "name": "Light of Justice",
+          "description": "Shines purifying light that cleanses allies and blinds enemies.",
+          "damage_multiplier": 0.0,
+          "targets": "all_allies",
+          "effects": [
+            {
+              "type": "cleanse_all"
+            },
+            {
+              "type": "buff",
+              "buff": "immunity",
+              "duration": 2.0
+            },
+            {
+              "type": "aoe_debuff",
+              "debuff": "blind",
+              "chance": 80.0,
+              "duration": 2.0,
+              "target": "all_enemies"
+            }
+          ],
+          "cooldown": 5.0
+        }
+      ],
+      "awakening_materials": {
+        "light_powder_high": 15,
+        "light_powder_mid": 8,
+        "light_powder_low": 30,
+        "magic_powder_high": 15,
+        "magic_powder_mid": 20,
+        "magic_powder_low": 10
+      }
+    },
+    "tiamat_awakened": {
+      "id": "tiamat_awakened",
+      "name": "Tiamat, Primordial Chaos",
+      "pantheon": "mesopotamian",
+      "element": "water",
+      "tier": "legendary",
+      "base_stats": {
+        "hp": 266,
+        "attack": 105,
+        "defense": 96,
+        "speed": 60,
+        "crit_rate": 20.0,
+        "crit_damage": 65.0,
+        "resistance": 25.0,
+        "accuracy": 15.0
+      },
+      "resource_generation": 20.0,
+      "active_abilities": [
+        {
+          "id": "primordial_chaos",
+          "name": "Primordial Chaos Unleashed",
+          "description": "Unleashes the chaos that existed before creation, dealing massive random damage to all enemies.",
+          "damage_multiplier": 320.0,
+          "targets": "all_enemies",
+          "effects": [
+            {
+              "type": "damage",
+              "value": 320.0,
+              "scaling": "ATK"
+            },
+            {
+              "type": "special",
+              "effect": "chaos_damage",
+              "variance": 0.5
+            },
+            {
+              "type": "debuff",
+              "debuff": "chaos_mark",
+              "duration": 3.0
+            }
+          ],
+          "cooldown": 5.0
+        },
+        {
+          "id": "mother_of_monsters",
+          "name": "Mother of Monsters",
+          "description": "Spawns chaotic minions that attack random enemies multiple times with increasing damage.",
+          "damage_multiplier": 150.0,
+          "targets": "random",
+          "hits": 6,
+          "effects": [
+            {
+              "type": "damage",
+              "value": 150.0,
+              "scaling": "ATK",
+              "hits": 6
+            },
+            {
+              "type": "special",
+              "effect": "escalating_damage",
+              "increase_per_hit": 20.0
+            }
+          ],
+          "cooldown": 4.0
+        }
+      ],
+      "awakening_materials": {
+        "water_powder_high": 20,
+        "water_powder_mid": 10,
+        "water_powder_low": 40,
+        "magic_powder_high": 20,
+        "magic_powder_mid": 15,
+        "magic_powder_low": 10
+      }
+    }
+  },
+  "awakening_requirements": {
+    "base_god_level": 40.0,
+    "base_god_max_level": true,
+    "all_skills_level_1": true
+  }
+}

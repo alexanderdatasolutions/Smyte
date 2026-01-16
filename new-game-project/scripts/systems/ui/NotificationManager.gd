@@ -24,12 +24,10 @@ func _connect_to_progression_events():
 	"""Connect to progression manager signals"""
 	var system_registry = SystemRegistry.get_instance()
 	if not system_registry:
-		print("NotificationManager: SystemRegistry not available")
 		return
-	
+
 	var prog_mgr = system_registry.get_system("PlayerProgressionManager")
 	if not prog_mgr:
-		print("NotificationManager: PlayerProgressionManager not available")
 		return
 	
 	if prog_mgr.has_signal("player_leveled_up"):
@@ -78,9 +76,7 @@ func show_notification(type: String, message: String, duration: float = 3.0):
 	
 	active_notifications.append(notif_data)
 	notification_shown.emit(type, message)
-	
-	print("🔔 NOTIFICATION: %s" % message)
-	
+
 	# Auto-dismiss after duration
 	if duration > 0:
 		await get_tree().create_timer(duration).timeout

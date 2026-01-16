@@ -3,7 +3,7 @@
 extends Node
 
 # ============================================================================
-# COMBAT EVENTS  
+# COMBAT EVENTS
 # ============================================================================
 signal damage_dealt(attacker, target, damage)
 signal unit_defeated(unit)
@@ -96,6 +96,7 @@ signal game_paused()
 signal game_resumed()
 signal game_saved()
 signal game_loaded()
+signal save_requested()  # Request to save game state
 signal settings_changed(setting_key: String, new_value: Variant)
 signal error_occurred(error_message: String, context: String)
 
@@ -127,8 +128,6 @@ func _log_event(event_name: String, data: Dictionary = {}):
 	# Keep history size manageable
 	while _event_history.size() > _max_history_size:
 		_event_history.pop_front()
-	
-	print("EventBus: ", event_name, " - ", data)
 
 ## Get recent event history for debugging
 func get_event_history(count: int = 10) -> Array:

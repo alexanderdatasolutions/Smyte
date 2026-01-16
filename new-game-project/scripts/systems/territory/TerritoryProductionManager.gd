@@ -18,12 +18,10 @@ var generation_timers: Dictionary = {}
 var last_update_time: float = 0.0
 
 func _ready():
-	print("TerritoryProductionManager: Resource generation system ready")
 	last_update_time = Time.get_unix_time_from_system()
 
 func initialize():
 	"""Initialize production system - called by SystemRegistry"""
-	print("TerritoryProductionManager: Initializing resource generation")
 	_start_generation_cycle()
 
 func _start_generation_cycle():
@@ -37,7 +35,7 @@ func _start_generation_cycle():
 
 func _process_all_territory_generation():
 	"""Process resource generation for all territories - RULE 5: SystemRegistry"""
-	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryController")
+	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
 	if not territory_manager:
 		return
 	
@@ -172,19 +170,16 @@ func collect_territory_resources(territory: Territory) -> Dictionary:
 	
 	# 4. Emit event
 	resources_generated.emit(territory.id, pending)
-	
-	print("TerritoryProductionManager: Collected %s from %s" % [pending, territory.name])
+
 	return pending
 
 func _generate_territory_resources(territory: Territory):
 	"""Generate resources for a single territory"""
-	var resources = collect_territory_resources(territory)
-	if not resources.is_empty():
-		print("TerritoryProductionManager: Auto-generated %s from %s" % [resources, territory.name])
+	var _resources = collect_territory_resources(territory)
 
 func _get_territory_data(territory_id: String) -> Territory:
 	"""Get territory data through SystemRegistry - helper function"""
-	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryController") 
+	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager") 
 	if territory_manager and territory_manager.has_method("get_territory_by_id"):
 		return territory_manager.get_territory_by_id(territory_id)
 	return null
@@ -192,7 +187,7 @@ func _get_territory_data(territory_id: String) -> Territory:
 func get_total_hourly_production() -> Dictionary:
 	"""Get total production across all territories"""
 	var total_production = {}
-	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryController")
+	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
 	
 	if not territory_manager:
 		return total_production

@@ -1,227 +1,189 @@
 {
   "equipment_types": {
     "weapon": {
-      "id": "weapon",
-      "name": "Weapon",
-      "slot": "main_hand",
-      "primary_stats": ["attack", "critical_rate"],
-      "possible_substats": ["attack", "attack_percent", "critical_rate", "critical_damage", "accuracy", "speed"],
-      "socket_types": ["offensive", "universal"],
-      "base_sockets": 0,
-      "max_sockets": 3
+      "name": "Sword",
+      "slot": 0,
+      "primary_stats": ["attack"],
+      "secondary_stats": ["hp", "defense", "crit_rate"],
+      "set_types": ["berserker", "guardian", "swift"]
     },
     "armor": {
-      "id": "armor",
       "name": "Armor",
-      "slot": "chest",
+      "slot": 1,
       "primary_stats": ["defense", "hp"],
-      "possible_substats": ["hp", "hp_percent", "defense", "defense_percent", "resistance", "speed"],
-      "socket_types": ["defensive", "universal"],
-      "base_sockets": 0,
-      "max_sockets": 2
+      "secondary_stats": ["attack", "speed", "crit_damage"],
+      "set_types": ["guardian", "berserker", "swift"]
     },
-    "accessory": {
-      "id": "accessory",
-      "name": "Accessory",
-      "slot": "accessory",
-      "primary_stats": ["hp", "defense", "attack"],
-      "possible_substats": ["hp", "hp_percent", "attack", "attack_percent", "defense", "defense_percent", "speed", "accuracy", "resistance"],
-      "socket_types": ["offensive", "defensive", "universal"],
-      "base_sockets": 1,
-      "max_sockets": 4
+    "helm": {
+      "name": "Helmet",
+      "slot": 2,
+      "primary_stats": ["hp", "defense"],
+      "secondary_stats": ["attack", "speed", "crit_rate"],
+      "set_types": ["guardian", "berserker", "swift"]
+    },
+    "boots": {
+      "name": "Boots",
+      "slot": 3,
+      "primary_stats": ["speed"],
+      "secondary_stats": ["hp", "defense", "attack"],
+      "set_types": ["swift", "guardian", "berserker"]
+    },
+    "amulet": {
+      "name": "Amulet",
+      "slot": 4,
+      "primary_stats": ["crit_rate", "crit_damage"],
+      "secondary_stats": ["attack", "hp", "defense"],
+      "set_types": ["berserker", "swift", "guardian"]
     },
     "ring": {
-      "id": "ring",
       "name": "Ring",
-      "slot": "ring",
-      "primary_stats": ["hp", "attack", "critical_rate"],
-      "possible_substats": ["hp", "hp_percent", "attack", "attack_percent", "critical_rate", "critical_damage", "accuracy", "resistance", "speed"],
-      "socket_types": ["offensive", "defensive", "universal"],
-      "base_sockets": 1,
-      "max_sockets": 3
+      "slot": 5,
+      "primary_stats": ["resistance", "accuracy"],
+      "secondary_stats": ["attack", "hp", "speed"],
+      "set_types": ["guardian", "swift", "berserker"]
     }
   },
-  
   "equipment_rarities": {
     "common": {
-      "id": "common",
       "name": "Common",
       "color": "#FFFFFF",
       "stat_multiplier": 1.0,
-      "substat_count": {
-        "min": 1,
-        "max": 2
-      },
-      "enhancement_limit": 9
-    },
-    "uncommon": {
-      "id": "uncommon",
-      "name": "Uncommon",
-      "color": "#00FF00",
-      "stat_multiplier": 1.2,
-      "substat_count": {
-        "min": 2,
-        "max": 3
-      },
-      "enhancement_limit": 12
+      "max_substats": 2,
+      "enhancement_limit": 15
     },
     "rare": {
-      "id": "rare",
       "name": "Rare",
-      "color": "#0080FF",
-      "stat_multiplier": 1.4,
-      "substat_count": {
-        "min": 2,
-        "max": 4
-      },
+      "color": "#00FFFF",
+      "stat_multiplier": 1.3,
+      "max_substats": 3,
       "enhancement_limit": 15
     },
     "epic": {
-      "id": "epic",
       "name": "Epic",
-      "color": "#8000FF",
-      "stat_multiplier": 1.7,
-      "substat_count": {
-        "min": 3,
-        "max": 4
-      },
+      "color": "#FF00FF",
+      "stat_multiplier": 1.6,
+      "max_substats": 4,
       "enhancement_limit": 15
     },
     "legendary": {
-      "id": "legendary",
       "name": "Legendary",
-      "color": "#FF8000",
+      "color": "#FFD700",
       "stat_multiplier": 2.0,
-      "substat_count": {
-        "min": 4,
-        "max": 4
-      },
+      "max_substats": 4,
+      "enhancement_limit": 15
+    },
+    "mythic": {
+      "name": "Mythic",
+      "color": "#FF0000",
+      "stat_multiplier": 2.5,
+      "max_substats": 4,
       "enhancement_limit": 15
     }
   },
-  
-  "crafting_recipes": {
-    "common_weapon": {
-      "result_type": "weapon",
-      "result_rarity": "common",
-      "base_level": 1,
-      "materials": {
-        "iron_ore": 5,
-        "mana": 1000
-      },
-      "territory_required": true,
-      "territory_element_bonus": {
-        "matching_element": {
-          "success_rate": 1.1,
-          "stat_bonus": 0.05
-        }
+  "equipment_sets": {
+    "berserker": {
+      "name": "Berserker",
+      "bonuses": {
+        "2": {"attack": 50},
+        "4": {"attack": 100},
+        "6": {"attack": 200}
       }
     },
-    "uncommon_weapon": {
-      "result_type": "weapon",
-      "result_rarity": "uncommon",
-      "base_level": 1,
-      "materials": {
-        "iron_ore": 8,
-        "mythril_ore": 2,
-        "enhancement_powder": 3,
-        "mana": 3000
-      },
-      "territory_required": true,
-      "crafting_god_bonus": {
-        "hephaestus": {
-          "success_rate": 1.2,
-          "material_efficiency": 0.9
-        }
+    "guardian": {
+      "name": "Guardian",
+      "bonuses": {
+        "2": {"defense": 75},
+        "4": {"hp": 500},
+        "6": {"defense": 150}
       }
     },
-    "rare_weapon": {
-      "result_type": "weapon",
-      "result_rarity": "rare",
-      "base_level": 1,
-      "materials": {
-        "mythril_ore": 5,
-        "adamantite_ore": 1,
-        "forging_flame": 2,
-        "enhancement_powder": 5,
-        "mana": 8000
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 2
-    },
-    "epic_weapon": {
-      "result_type": "weapon",
-      "result_rarity": "epic",
-      "base_level": 1,
-      "materials": {
-        "mythril_ore": 10,
-        "adamantite_ore": 3,
-        "forging_flame": 5,
-        "blessed_oil": 1,
-        "mana": 25000
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 2,
-      "god_level_requirement": 40
-    },
-    "legendary_weapon": {
-      "result_type": "weapon",
-      "result_rarity": "legendary",
-      "base_level": 1,
-      "materials": {
-        "adamantite_ore": 8,
-        "forging_flame": 10,
-        "blessed_oil": 3,
-        "awakening_stone": 1,
-        "mana": 100000
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 3,
-      "god_level_requirement": 50,
-      "awakened_god_required": true
-    },
-    "common_armor": {
-      "result_type": "armor",
-      "result_rarity": "common",
-      "base_level": 1,
-      "materials": {
-        "iron_ore": 6,
-        "mana": 1200
-      },
-      "territory_required": true
-    },
-    "rare_armor": {
-      "result_type": "armor",
-      "result_rarity": "rare",
-      "base_level": 1,
-      "materials": {
-        "mythril_ore": 6,
-        "adamantite_ore": 1,
-        "forging_flame": 3,
-        "enhancement_powder": 4,
-        "mana": 10000
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 2
-    },
-    "epic_accessory": {
-      "result_type": "accessory",
-      "result_rarity": "epic",
-      "base_level": 1,
-      "materials": {
-        "mythril_ore": 4,
-        "adamantite_ore": 2,
-        "ruby": 1,
-        "sapphire": 1,
-        "forging_flame": 3,
-        "mana": 20000
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 2,
-      "god_level_requirement": 35
+    "swift": {
+      "name": "Swift",
+      "bonuses": {
+        "2": {"speed": 25},
+        "4": {"speed": 50},
+        "6": {"attack": 100}
+      }
     }
   },
-  
+  "stat_ranges": {
+    "base_values": {
+      "attack": {
+        "weapon": [50, 120],
+        "armor": [10, 30],
+        "helm": [10, 30],
+        "boots": [10, 30],
+        "amulet": [20, 50],
+        "ring": [20, 50]
+      },
+      "defense": {
+        "weapon": [10, 30],
+        "armor": [40, 100],
+        "helm": [30, 70],
+        "boots": [10, 30],
+        "amulet": [15, 40],
+        "ring": [15, 40]
+      },
+      "hp": {
+        "weapon": [100, 300],
+        "armor": [300, 800],
+        "helm": [200, 500],
+        "boots": [100, 300],
+        "amulet": [150, 400],
+        "ring": [150, 400]
+      },
+      "speed": {
+        "boots": [15, 40],
+        "weapon": [3, 8],
+        "armor": [3, 8],
+        "helm": [3, 8],
+        "amulet": [5, 15],
+        "ring": [5, 15]
+      },
+      "crit_rate": {
+        "amulet": [5, 20],
+        "weapon": [3, 12],
+        "armor": [2, 8],
+        "helm": [2, 8],
+        "boots": [2, 8],
+        "ring": [3, 12]
+      },
+      "crit_damage": {
+        "amulet": [10, 30],
+        "weapon": [5, 20],
+        "armor": [3, 15],
+        "helm": [3, 15],
+        "boots": [3, 15],
+        "ring": [5, 20]
+      },
+      "resistance": {
+        "ring": [10, 30],
+        "armor": [5, 20],
+        "helm": [5, 20],
+        "weapon": [2, 10],
+        "boots": [2, 10],
+        "amulet": [3, 15]
+      },
+      "accuracy": {
+        "ring": [10, 30],
+        "weapon": [5, 20],
+        "amulet": [5, 20],
+        "armor": [2, 10],
+        "helm": [2, 10],
+        "boots": [2, 10]
+      }
+    },
+    "substat_values": {
+      "attack": [10, 35],
+      "defense": [8, 25],
+      "hp": [50, 200],
+      "speed": [2, 12],
+      "crit_rate": [2, 8],
+      "crit_damage": [3, 12],
+      "resistance": [3, 15],
+      "accuracy": [3, 15]
+    }
+  },
   "enhancement_system": {
     "costs": {
       "mana_base": 500,
@@ -232,162 +194,64 @@
       }
     },
     "success_rates": {
-      "common": [100, 100, 100, 90, 80, 70, 60, 50, 40],
-      "uncommon": [100, 100, 100, 100, 90, 80, 70, 60, 50, 40, 30, 20],
-      "rare": [100, 100, 100, 100, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 5],
-      "epic": [100, 100, 100, 100, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 5],
-      "legendary": [100, 100, 100, 100, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 5]
-    },
-    "blessed_oil_bonus": 20,
-    "failure_consequences": {
-      "common": "none",
-      "uncommon": "level_reset_chance_10",
-      "rare": "level_reset_chance_20",
-      "epic": "level_reset_chance_30",
-      "legendary": "level_reset_chance_50"
+      "common": [100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 8, 6, 4, 2, 1],
+      "rare": [100, 95, 85, 75, 65, 55, 45, 35, 25, 15, 12, 9, 6, 3, 1],
+      "epic": [100, 100, 90, 80, 70, 60, 50, 40, 30, 20, 15, 12, 8, 5, 2],
+      "legendary": [100, 100, 95, 85, 75, 65, 55, 45, 35, 25, 20, 15, 10, 7, 3],
+      "mythic": [100, 100, 100, 90, 80, 70, 60, 50, 40, 30, 25, 20, 15, 10, 5]
     }
   },
-  
   "socket_system": {
+    "max_sockets": {
+      "common": 0,
+      "rare": 1,
+      "epic": 2,
+      "legendary": 3,
+      "mythic": 4
+    },
     "unlock_costs": {
-      "socket_1": {
-        "socket_crystal": 1,
-        "mana": 5000
-      },
-      "socket_2": {
-        "socket_crystal": 2,
-        "mana": 15000
-      },
-      "socket_3": {
-        "socket_crystal": 4,
-        "mana": 50000
-      },
-      "socket_4": {
-        "socket_crystal": 8,
-        "mana": 150000
-      }
-    },
-    "gemstone_effects": {
-      "ruby": {
-        "compatible_sockets": ["offensive", "universal"],
-        "stats": {
-          "attack": 50,
-          "critical_rate": 8
-        }
-      },
-      "sapphire": {
-        "compatible_sockets": ["defensive", "universal"],
-        "stats": {
-          "hp": 500,
-          "defense": 40
-        }
-      },
-      "emerald": {
-        "compatible_sockets": ["defensive", "universal"],
-        "stats": {
-          "hp_percent": 8,
-          "resistance": 12
-        }
-      },
-      "topaz": {
-        "compatible_sockets": ["offensive", "universal"],
-        "stats": {
-          "speed": 15,
-          "accuracy": 10
-        }
-      },
-      "diamond": {
-        "compatible_sockets": ["offensive", "defensive", "universal"],
-        "stats": {
-          "critical_damage": 15,
-          "hp": 300
-        }
-      },
-      "onyx": {
-        "compatible_sockets": ["offensive", "universal"],
-        "stats": {
-          "attack_percent": 10,
-          "critical_damage": 12
-        }
-      }
+      "socket_1": {"socket_crystal": 1, "mana": 5000},
+      "socket_2": {"socket_crystal": 3, "mana": 15000},
+      "socket_3": {"socket_crystal": 5, "mana": 30000},
+      "socket_4": {"socket_crystal": 10, "mana": 50000}
     }
   },
-  
-  "territory_crafting_bonuses": {
-    "tier_1_territories": {
-      "crafting_slots": 2,
-      "recipe_level_limit": "uncommon",
-      "efficiency_bonus": 1.0,
-      "element_bonus": {
-        "matching_element_recipes": {
-          "success_rate": 1.1,
-          "cost_reduction": 0.9
-        }
-      }
+  "gem_types": {
+    "red_attack": {
+      "name": "Red Attack Gem",
+      "stat_bonus": {"attack": 25}
     },
-    "tier_2_territories": {
-      "crafting_slots": 4,
-      "recipe_level_limit": "epic",
-      "efficiency_bonus": 1.2,
-      "element_bonus": {
-        "matching_element_recipes": {
-          "success_rate": 1.2,
-          "cost_reduction": 0.8,
-          "stat_bonus": 0.1
-        }
-      }
+    "blue_defense": {
+      "name": "Blue Defense Gem",
+      "stat_bonus": {"defense": 20}
     },
-    "tier_3_territories": {
-      "crafting_slots": 6,
-      "recipe_level_limit": "legendary",
-      "efficiency_bonus": 1.5,
-      "element_bonus": {
-        "matching_element_recipes": {
-          "success_rate": 1.3,
-          "cost_reduction": 0.7,
-          "stat_bonus": 0.15
-        }
-      },
-      "special_recipes": ["legendary_weapons", "mythic_accessories"]
+    "yellow_hp": {
+      "name": "Yellow HP Gem",
+      "stat_bonus": {"hp": 150}
+    },
+    "green_speed": {
+      "name": "Green Speed Gem",
+      "stat_bonus": {"speed": 8}
     }
   },
-  
-  "god_crafting_specializations": {
-    "hephaestus": {
-      "specialization": "weapons_and_armor",
-      "bonuses": {
-        "weapon_crafting_success_rate": 1.25,
-        "armor_crafting_success_rate": 1.2,
-        "material_cost_reduction": 0.85,
-        "exclusive_recipes": ["divine_hammer", "aegis_shield"]
-      }
+  "equipment_origins": {
+    "weapon": {
+      "lore": "A divine weapon forged by the gods themselves, imbued with celestial power."
     },
-    "brigid": {
-      "specialization": "accessories_and_enhancement",
-      "bonuses": {
-        "accessory_crafting_success_rate": 1.3,
-        "enhancement_success_rate": 1.15,
-        "socket_unlock_cost_reduction": 0.8,
-        "exclusive_recipes": ["celtic_torque", "blessing_ring"]
-      }
+    "armor": {
+      "lore": "Sacred armor blessed by divine light, offering protection against both physical and magical attacks."
     },
-    "ptah": {
-      "specialization": "advanced_crafting",
-      "bonuses": {
-        "rare_material_efficiency": 1.2,
-        "legendary_recipe_access": true,
-        "gemstone_creation": true,
-        "exclusive_recipes": ["pharaoh_crown", "pyramid_amulet"]
-      }
+    "helm": {
+      "lore": "A mystical helmet that grants the wearer enhanced perception and mental fortitude."
     },
-    "wayland": {
-      "specialization": "enhancement_and_sockets",
-      "bonuses": {
-        "enhancement_cost_reduction": 0.75,
-        "socket_unlock_success_rate": 1.4,
-        "blessed_oil_efficiency": 2.0,
-        "exclusive_recipes": ["runic_blade", "berserker_armor"]
-      }
+    "boots": {
+      "lore": "Swift boots that allow the wearer to move with the speed of the wind itself."
+    },
+    "amulet": {
+      "lore": "A powerful amulet containing concentrated divine essence, enhancing the wearer's combat prowess."
+    },
+    "ring": {
+      "lore": "An ancient ring that sharpens the mind and spirit, improving precision and resilience."
     }
   }
 }

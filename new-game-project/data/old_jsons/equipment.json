@@ -1,0 +1,395 @@
+{
+  "equipment_types": {
+    "weapon": {
+      "name": "Divine Weapons",
+      "slot": 1,
+      "icon": "sword",
+      "primary_stats": ["attack"],
+      "secondary_stats": ["crit_rate", "crit_damage", "accuracy"],
+      "set_types": ["berserker", "precision", "divine_wrath"]
+    },
+    "armor": {
+      "name": "Divine Armor", 
+      "slot": 2,
+      "icon": "shield",
+      "primary_stats": ["defense", "hp"],
+      "secondary_stats": ["resistance", "speed"],
+      "set_types": ["guardian", "vitality", "divine_protection"]
+    },
+    "helm": {
+      "name": "Divine Helms",
+      "slot": 3, 
+      "icon": "helmet",
+      "primary_stats": ["hp", "defense"],
+      "secondary_stats": ["accuracy", "resistance", "crit_rate"],
+      "set_types": ["wisdom", "guardian", "divine_sight"]
+    },
+    "boots": {
+      "name": "Divine Boots",
+      "slot": 4,
+      "icon": "boots", 
+      "primary_stats": ["speed"],
+      "secondary_stats": ["hp", "defense", "attack"],
+      "set_types": ["swift", "endurance", "divine_swiftness"]
+    },
+    "amulet": {
+      "name": "Divine Amulets",
+      "slot": 5,
+      "icon": "amulet",
+      "primary_stats": ["crit_rate", "crit_damage"],
+      "secondary_stats": ["attack", "hp", "accuracy"],
+      "set_types": ["focus", "fury", "divine_power"]
+    },
+    "ring": {
+      "name": "Divine Rings", 
+      "slot": 6,
+      "icon": "ring",
+      "primary_stats": ["resistance", "accuracy"],
+      "secondary_stats": ["hp", "defense", "speed"],
+      "set_types": ["will", "shield", "divine_ward"]
+    }
+  },
+
+  "equipment_rarities": {
+    "common": {
+      "name": "Common",
+      "color": "#FFFFFF",
+      "stat_multiplier": 1.0,
+      "max_substats": 2,
+      "enhancement_cost_multiplier": 1.0
+    },
+    "rare": {
+      "name": "Rare", 
+      "color": "#00FF00",
+      "stat_multiplier": 1.3,
+      "max_substats": 3,
+      "enhancement_cost_multiplier": 1.5
+    },
+    "epic": {
+      "name": "Epic",
+      "color": "#0080FF", 
+      "stat_multiplier": 1.7,
+      "max_substats": 4,
+      "enhancement_cost_multiplier": 2.0
+    },
+    "legendary": {
+      "name": "Legendary",
+      "color": "#FF8000",
+      "stat_multiplier": 2.2,
+      "max_substats": 4,
+      "enhancement_cost_multiplier": 3.0
+    },
+    "mythic": {
+      "name": "Mythic",
+      "color": "#FF0080",
+      "stat_multiplier": 2.8,
+      "max_substats": 4,
+      "enhancement_cost_multiplier": 5.0
+    }
+  },
+
+  "equipment_sets": {
+    "berserker": {
+      "name": "Berserker's Fury",
+      "pieces_required": 4,
+      "set_bonus": {
+        "attack_percent": 35
+      },
+      "description": "4-Set: +35% ATK"
+    },
+    "guardian": {
+      "name": "Guardian's Resolve", 
+      "pieces_required": 4,
+      "set_bonus": {
+        "defense_percent": 35
+      },
+      "description": "4-Set: +35% DEF"
+    },
+    "swift": {
+      "name": "Swift Wind",
+      "pieces_required": 4,
+      "set_bonus": {
+        "speed_percent": 25
+      }, 
+      "description": "4-Set: +25% SPD"
+    },
+    "vitality": {
+      "name": "Vitality",
+      "pieces_required": 4,
+      "set_bonus": {
+        "hp_percent": 35
+      },
+      "description": "4-Set: +35% HP"
+    },
+    "precision": {
+      "name": "Precision",
+      "pieces_required": 2,
+      "set_bonus": {
+        "accuracy": 20
+      },
+      "description": "2-Set: +20% Accuracy"
+    },
+    "focus": {
+      "name": "Focus",
+      "pieces_required": 2,
+      "set_bonus": {
+        "crit_rate": 12
+      },
+      "description": "2-Set: +12% Critical Rate"
+    },
+    "fury": {
+      "name": "Fury",
+      "pieces_required": 2,
+      "set_bonus": {
+        "crit_damage": 40
+      },
+      "description": "2-Set: +40% Critical Damage"
+    },
+    "will": {
+      "name": "Will",
+      "pieces_required": 2,
+      "set_bonus": {
+        "resistance": 20
+      },
+      "description": "2-Set: +20% Resistance"
+    },
+    "shield": {
+      "name": "Shield",
+      "pieces_required": 2,
+      "set_bonus": {
+        "special": "shield_on_battle_start"
+      },
+      "description": "2-Set: Gain 15% Max HP as Shield at battle start"
+    },
+    "endurance": {
+      "name": "Endurance", 
+      "pieces_required": 2,
+      "set_bonus": {
+        "hp_percent": 15
+      },
+      "description": "2-Set: +15% HP"
+    },
+    "divine_wrath": {
+      "name": "Divine Wrath",
+      "pieces_required": 6,
+      "set_bonus": {
+        "attack_percent": 50,
+        "special": "ignore_defense_15"
+      },
+      "description": "6-Set: +50% ATK, ignore 15% of enemy DEF"
+    },
+    "divine_protection": {
+      "name": "Divine Protection",
+      "pieces_required": 6, 
+      "set_bonus": {
+        "defense_percent": 50,
+        "special": "damage_reduction_15"
+      },
+      "description": "6-Set: +50% DEF, reduce all incoming damage by 15%"
+    },
+    "divine_swiftness": {
+      "name": "Divine Swiftness",
+      "pieces_required": 6,
+      "set_bonus": {
+        "speed_percent": 40,
+        "special": "first_turn_immunity"
+      },
+      "description": "6-Set: +40% SPD, immunity to debuffs on first turn"
+    },
+    "divine_sight": {
+      "name": "Divine Sight",
+      "pieces_required": 6,
+      "set_bonus": {
+        "accuracy": 40,
+        "special": "ignore_buffs"
+      },
+      "description": "6-Set: +40% Accuracy, attacks ignore beneficial effects"
+    },
+    "divine_power": {
+      "name": "Divine Power", 
+      "pieces_required": 6,
+      "set_bonus": {
+        "crit_rate": 25,
+        "crit_damage": 75,
+        "special": "crit_heals_team"
+      },
+      "description": "6-Set: +25% Crit Rate, +75% Crit Dmg, critical hits heal team for 10% damage dealt"
+    },
+    "divine_ward": {
+      "name": "Divine Ward",
+      "pieces_required": 6,
+      "set_bonus": {
+        "resistance": 40,
+        "special": "debuff_reflect"
+      },
+      "description": "6-Set: +40% Resistance, 25% chance to reflect debuffs back to caster"
+    }
+  },
+
+  "stat_ranges": {
+    "base_values": {
+      "hp": {
+        "weapon": [0, 0], "armor": [375, 1875], "helm": [300, 1500], 
+        "boots": [200, 1000], "amulet": [150, 750], "ring": [150, 750]
+      },
+      "attack": {
+        "weapon": [75, 375], "armor": [0, 0], "helm": [0, 0],
+        "boots": [15, 75], "amulet": [30, 150], "ring": [0, 0]
+      },
+      "defense": {
+        "weapon": [0, 0], "armor": [75, 375], "helm": [60, 300],
+        "boots": [15, 75], "amulet": [0, 0], "ring": [30, 150]
+      },
+      "speed": {
+        "weapon": [0, 0], "armor": [0, 0], "helm": [0, 0],
+        "boots": [25, 42], "amulet": [0, 0], "ring": [0, 0]
+      },
+      "crit_rate": {
+        "weapon": [4, 12], "armor": [0, 0], "helm": [3, 9],
+        "boots": [0, 0], "amulet": [15, 25], "ring": [0, 0]
+      },
+      "crit_damage": {
+        "weapon": [20, 35], "armor": [0, 0], "helm": [0, 0],
+        "boots": [0, 0], "amulet": [20, 35], "ring": [0, 0]
+      },
+      "resistance": {
+        "weapon": [0, 0], "armor": [8, 20], "helm": [8, 20],
+        "boots": [0, 0], "amulet": [0, 0], "ring": [15, 25]
+      },
+      "accuracy": {
+        "weapon": [8, 20], "armor": [0, 0], "helm": [8, 20],
+        "boots": [0, 0], "amulet": [8, 20], "ring": [15, 25]
+      }
+    },
+    "substat_values": {
+      "hp": [100, 550],
+      "hp_percent": [3, 15],
+      "attack": [10, 55],
+      "attack_percent": [3, 15], 
+      "defense": [10, 55],
+      "defense_percent": [3, 15],
+      "speed": [2, 12],
+      "crit_rate": [2, 10],
+      "crit_damage": [3, 18],
+      "resistance": [3, 18],
+      "accuracy": [3, 18]
+    }
+  },
+
+  "enhancement_system": {
+    "max_level": 15,
+    "enhancement_chances": {
+      "0": 1.00, "1": 1.00, "2": 1.00, "3": 0.95, "4": 0.90,
+      "5": 0.85, "6": 0.80, "7": 0.75, "8": 0.70, "9": 0.65,
+      "10": 0.60, "11": 0.55, "12": 0.50, "13": 0.45, "14": 0.40
+    },
+    "enhancement_costs": {
+      "mana_base": 500,
+      "level_multiplier": 2.0,
+      "rarity_multipliers": {
+        "common": 1.0, "rare": 1.5, "epic": 2.0, "legendary": 3.0, "mythic": 5.0
+      }
+    },
+    "enhancement_effects": {
+      "main_stat_increase": 0.10,
+      "substat_powerup_levels": [3, 6, 9, 12, 15],
+      "substat_increase_range": [0.8, 1.2]
+    }
+  },
+
+  "socketing_system": {
+    "socket_types": {
+      "red": {
+        "name": "Power Socket",
+        "allowed_gems": ["attack_gem", "crit_damage_gem", "penetration_gem"]
+      },
+      "blue": {
+        "name": "Wisdom Socket", 
+        "allowed_gems": ["accuracy_gem", "resistance_gem", "mana_gem"]
+      },
+      "yellow": {
+        "name": "Vitality Socket",
+        "allowed_gems": ["hp_gem", "defense_gem", "healing_gem"] 
+      },
+      "green": {
+        "name": "Agility Socket",
+        "allowed_gems": ["speed_gem", "evasion_gem", "initiative_gem"]
+      },
+      "prismatic": {
+        "name": "Prismatic Socket",
+        "allowed_gems": ["any"]
+      }
+    },
+    "socket_unlock_costs": {
+      "socket_1": {"mana": 5000, "socket_crystal": 5},
+      "socket_2": {"mana": 15000, "socket_crystal": 15, "mythril_ore": 5}, 
+      "socket_3": {"mana": 50000, "socket_crystal": 50, "adamantite_ore": 20, "enhancement_powder": 5}
+    },
+    "max_sockets": {
+      "common": 0, "rare": 1, "epic": 2, "legendary": 3, "mythic": 3
+    }
+  },
+
+  "gem_types": {
+    "attack_gem": {
+      "name": "Ruby of Power",
+      "stat_bonus": {"attack_percent": [5, 15]},
+      "socket_type": "red"
+    },
+    "crit_damage_gem": {
+      "name": "Garnet of Fury", 
+      "stat_bonus": {"crit_damage": [10, 30]},
+      "socket_type": "red"
+    },
+    "penetration_gem": {
+      "name": "Obsidian of Piercing",
+      "stat_bonus": {"ignore_defense": [5, 15]},
+      "socket_type": "red"
+    },
+    "accuracy_gem": {
+      "name": "Sapphire of Precision",
+      "stat_bonus": {"accuracy": [8, 25]},
+      "socket_type": "blue"
+    },
+    "resistance_gem": {
+      "name": "Lapis of Warding", 
+      "stat_bonus": {"resistance": [8, 25]},
+      "socket_type": "blue"
+    },
+    "mana_gem": {
+      "name": "Aquamarine of Wisdom",
+      "stat_bonus": {"mana_regen": [5, 15]},
+      "socket_type": "blue"
+    },
+    "hp_gem": {
+      "name": "Citrine of Vitality",
+      "stat_bonus": {"hp_percent": [8, 25]},
+      "socket_type": "yellow"
+    },
+    "defense_gem": {
+      "name": "Topaz of Protection",
+      "stat_bonus": {"defense_percent": [8, 25]},
+      "socket_type": "yellow"
+    },
+    "healing_gem": {
+      "name": "Amber of Regeneration", 
+      "stat_bonus": {"healing_received": [10, 30]},
+      "socket_type": "yellow"
+    },
+    "speed_gem": {
+      "name": "Emerald of Swiftness",
+      "stat_bonus": {"speed": [3, 12]},
+      "socket_type": "green"
+    },
+    "evasion_gem": {
+      "name": "Peridot of Evasion",
+      "stat_bonus": {"evasion": [5, 15]},
+      "socket_type": "green"
+    },
+    "initiative_gem": {
+      "name": "Jade of Initiative",
+      "stat_bonus": {"turn_meter_boost": [5, 15]},
+      "socket_type": "green"
+    }
+  }
+}

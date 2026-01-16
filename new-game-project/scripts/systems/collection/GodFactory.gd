@@ -19,8 +19,8 @@ static func create_from_json(god_id: String) -> God:
 	god.id = god_id
 	god.name = god_data.get("name", "Unknown God")
 	god.pantheon = god_data.get("pantheon", "unknown")
-	god.element = string_to_element(god_data.get("element", "fire"))
-	god.tier = string_to_tier(god_data.get("tier", "common"))
+	god.element = parse_element(god_data.get("element", "fire"))
+	god.tier = parse_tier(god_data.get("tier", "common"))
 	
 	# Base stats - handle nested base_stats structure
 	var base_stats = god_data.get("base_stats", {})
@@ -46,6 +46,54 @@ static func create_from_json(god_id: String) -> God:
 	god.equipment = [null, null, null, null, null, null]
 	
 	return god
+
+static func parse_element(element_value) -> God.ElementType:
+	# Handle both integer, float, and string formats
+	if element_value is int or element_value is float:
+		var index = int(element_value)
+		match index:
+			0:
+				return God.ElementType.FIRE
+			1:
+				return God.ElementType.WATER
+			2:
+				return God.ElementType.EARTH
+			3:
+				return God.ElementType.LIGHTNING
+			4:
+				return God.ElementType.LIGHT
+			5:
+				return God.ElementType.DARK
+			_:
+				push_warning("Unknown element index: " + str(index) + ". Defaulting to FIRE.")
+				return God.ElementType.FIRE
+	elif element_value is String:
+		return string_to_element(element_value)
+	else:
+		push_warning("Invalid element type. Expected int/float or String. Defaulting to FIRE.")
+		return God.ElementType.FIRE
+
+static func parse_tier(tier_value) -> God.TierType:
+	# Handle both integer, float, and string formats
+	if tier_value is int or tier_value is float:
+		var index = int(tier_value)
+		match index:
+			1:
+				return God.TierType.COMMON
+			2:
+				return God.TierType.RARE
+			3:
+				return God.TierType.EPIC
+			4:
+				return God.TierType.LEGENDARY
+			_:
+				push_warning("Unknown tier index: " + str(index) + ". Defaulting to COMMON.")
+				return God.TierType.COMMON
+	elif tier_value is String:
+		return string_to_tier(tier_value)
+	else:
+		push_warning("Invalid tier type. Expected int/float or String. Defaulting to COMMON.")
+		return God.TierType.COMMON
 
 static func string_to_element(element_string: String) -> God.ElementType:
 	match element_string.to_lower():

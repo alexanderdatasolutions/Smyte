@@ -26,7 +26,7 @@ var last_weekly_premium_date = ""
 var weekly_premium_used = false
 
 func _ready():
-	print("SummonSystem: Initialized - using SystemRegistry architecture")
+	pass
 
 # ==============================================================================
 # MAIN SUMMON FUNCTIONS - Using SystemRegistry Pattern
@@ -188,14 +188,64 @@ func _get_random_tier(rates: Dictionary) -> String:
 	return "common"  # Fallback
 
 func _create_god_of_tier(tier: String) -> God:
-	"""Create a random god of specified tier"""
-	# This would use the existing God creation system
-	# For now, create a simple god
-	var god = God.new()
-	god.tier = tier
-	god.name = "Random " + tier.capitalize() + " God"
-	god.level = 1
+	"""Create a random god of specified tier using real god data"""
+	# Get all available gods from configuration
+	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager") if SystemRegistry.get_instance() else null
+	if not config_manager:
+		push_error("SummonSystem: ConfigurationManager not available")
+		return null
+	
+	var gods_config = config_manager.get_gods_config()
+	if not gods_config.has("gods"):
+		push_error("SummonSystem: No gods data found in configuration")
+		return null
+	
+	# Convert tier string to number for comparison
+	var tier_number = _tier_string_to_number(tier)
+	if tier_number == -1:
+		push_error("SummonSystem: Invalid tier: " + tier)
+		return null
+	
+	# Filter gods by tier
+	var available_gods = []
+	for god_id in gods_config.gods:
+		var god_data = gods_config.gods[god_id]
+		if god_data.get("tier", 1) == tier_number:
+			available_gods.append(god_id)
+	
+	if available_gods.is_empty():
+		push_error("SummonSystem: No gods found for tier: " + tier)
+		# Fallback to creating a simple god
+		var fallback_god = God.new()
+		fallback_god.name = "Random " + tier.capitalize() + " God"
+		fallback_god.tier = GodFactory.string_to_tier(tier)
+		fallback_god.level = 1
+		return fallback_god
+	
+	# Randomly select a god from available gods
+	var random_god_id = available_gods[randi() % available_gods.size()]
+	
+	# Create god using GodFactory
+	var god = GodFactory.create_from_json(random_god_id)
+	if not god:
+		push_error("SummonSystem: Failed to create god with id: " + random_god_id)
+		return null
+	
 	return god
+
+func _tier_string_to_number(tier: String) -> int:
+	"""Convert tier string to number for configuration matching"""
+	match tier.to_lower():
+		"common":
+			return 1
+		"rare":
+			return 2
+		"epic":
+			return 3
+		"legendary":
+			return 4
+		_:
+			return -1
 
 func _add_god_to_collection(god: God):
 	"""Add god to player collection using CollectionManager"""
@@ -308,5 +358,3 @@ func load_save_data(save_data: Dictionary):
 		last_weekly_premium_date = save_data.last_weekly_premium_date
 	if save_data.has("weekly_premium_used"):
 		weekly_premium_used = save_data.weekly_premium_used
-	
-	print("SummonSystem: Loaded save data")

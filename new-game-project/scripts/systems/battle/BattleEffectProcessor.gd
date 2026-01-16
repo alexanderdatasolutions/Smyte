@@ -9,8 +9,6 @@ signal effect_failed(effect_type: String, reason: String)
 
 ## Process a single battle effect
 func process_effect(effect_type: String, effect_data: Dictionary, caster: BattleUnit, target: BattleUnit = null) -> bool:
-	print("BattleEffectProcessor: Processing ", effect_type)
-	
 	match effect_type:
 		"damage":
 			return _process_damage_effect(effect_data, caster, target)
@@ -58,7 +56,7 @@ func _process_heal_effect(effect_data: Dictionary, caster: BattleUnit, target: B
 		return false
 	
 	var heal_amount = effect_data.get("amount", 0)
-	var max_hp = target.get_max_hp()
+	var max_hp = target.max_hp
 	
 	# Apply percentage healing if specified
 	if effect_data.has("percentage"):

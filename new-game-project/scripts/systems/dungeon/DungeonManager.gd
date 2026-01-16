@@ -1,0 +1,461 @@
+# scripts/systems/dungeon/DungeonManager.gd
+# RULE 2: Single responsibility - Manage dungeon data and validation only
+# RULE 3: No UI logic - pure business logic
+# RULE 5: SystemRegistry integration
+extends Node
+class_name DungeonManager
+
+# Signals for UI communication (RULE 4: No UI in systems)
+signal dungeon_data_loaded
+signal dungeon_unlocked(dungeon_id: String)
+signal validation_completed(result: Dictionary)
+
+# Core data
+var dungeon_data: Dictionary = {}
+var player_progress: Dictionary = {}
+
+func _ready():
+	"""Initialize dungeon manager"""
+	load_dungeon_data()
+	initialize_player_progress()
+
+func load_dungeon_data():
+	"""Load dungeon definitions from JSON - RULE 5: Data-driven approach"""
+	var file_path = "res://data/dungeons.json"
+	var file = FileAccess.open(file_path, FileAccess.READ)
+	
+	if not file:
+		push_warning("DungeonManager: Could not open dungeons.json, using fallback data")
+		_load_fallback_data()
+		return
+	
+	var json_text = file.get_as_text()
+	file.close()
+	
+	var json = JSON.new()
+	var parse_result = json.parse(json_text)
+	
+	if parse_result != OK:
+		push_error("DungeonManager: Error parsing dungeons.json: " + json.error_string)
+		_load_fallback_data()
+		return
+	
+	dungeon_data = json.get_data()
+	dungeon_data_loaded.emit()
+
+func _load_fallback_data():
+	"""Load minimal fallback data if JSON fails"""
+	dungeon_data = {
+		"elemental_sanctums": {
+			"fire_sanctum": {
+				"name": "Sanctum of Flames",
+				"element": "fire",
+				"description": "Ancient temple where fire spirits guard powerful flame essences.",
+				"difficulty_levels": {
+					"beginner": {"energy_cost": 8, "recommended_level": 10}
+				}
+			}
+		},
+		"schedule": {
+			"always_available": ["fire_sanctum"]
+		}
+	}
+
+func initialize_player_progress():
+	"""Initialize player dungeon progress"""
+	player_progress = {
+		"unlocked_dungeons": [],
+		"clear_counts": {},
+		"best_times": {},
+		"total_clears": 0
+	}
+
+func get_available_dungeons() -> Array:
+	"""Get all available dungeons for today"""
+	var available = []
+	var all_dungeons = get_all_dungeons()
+	
+	for dungeon_info in all_dungeons:
+		if is_dungeon_available(dungeon_info.id):
+			available.append(dungeon_info)
+	
+	return available
+
+func get_all_dungeons() -> Array:
+	"""Get all dungeons across all categories"""
+	var all_dungeons = []
+	
+	# Elemental sanctums
+	var elemental = dungeon_data.get("elemental_sanctums", {})
+	for dungeon_id in elemental.keys():
+		var info = elemental[dungeon_id].duplicate()
+		info["id"] = dungeon_id
+		info["category"] = "elemental"
+		all_dungeons.append(info)
+	
+	# Special sanctums
+	var special = dungeon_data.get("special_sanctums", {})
+	for dungeon_id in special.keys():
+		var info = special[dungeon_id].duplicate()
+		info["id"] = dungeon_id  
+		info["category"] = "special"
+		all_dungeons.append(info)
+	
+	# Pantheon trials
+	var pantheon = dungeon_data.get("pantheon_trials", {})
+	for dungeon_id in pantheon.keys():
+		var info = pantheon[dungeon_id].duplicate()
+		info["id"] = dungeon_id
+		info["category"] = "pantheon" 
+		all_dungeons.append(info)
+		
+	# Equipment dungeons
+	var equipment_dungeons = dungeon_data.get("equipment_dungeons", {})
+	for dungeon_id in equipment_dungeons.keys():
+		var info = equipment_dungeons[dungeon_id].duplicate()
+		info["id"] = dungeon_id
+		info["category"] = "equipment"
+		all_dungeons.append(info)
+	
+	return all_dungeons
+
+func get_dungeon_info(dungeon_id: String) -> Dictionary:
+	"""Get specific dungeon information with enhanced details"""
+	# Check elemental sanctums
+	var elemental = dungeon_data.get("elemental_sanctums", {})
+	if elemental.has(dungeon_id):
+		var info = elemental[dungeon_id].duplicate()
+		info["id"] = dungeon_id
+		info["category"] = "elemental"
+		_enhance_dungeon_info(info)
+		return info
+	
+	# Check special sanctums
+	var special = dungeon_data.get("special_sanctums", {})
+	if special.has(dungeon_id):
+		var info = special[dungeon_id].duplicate()
+		info["id"] = dungeon_id
+		info["category"] = "special"
+		_enhance_dungeon_info(info)
+		return info
+	
+	# Check pantheon trials
+	var pantheon = dungeon_data.get("pantheon_trials", {})
+	if pantheon.has(dungeon_id):
+		var info = pantheon[dungeon_id].duplicate()
+		info["id"] = dungeon_id
+		info["category"] = "pantheon"
+		_enhance_dungeon_info(info)
+		return info
+	
+	# Check equipment dungeons
+	var equipment_dungeons = dungeon_data.get("equipment_dungeons", {})
+	if equipment_dungeons.has(dungeon_id):
+		var info = equipment_dungeons[dungeon_id].duplicate()
+		info["id"] = dungeon_id
+		info["category"] = "equipment"
+		return info
+	
+	return {}
+
+func is_dungeon_available(_dungeon_id: String) -> bool:
+	"""Check if dungeon is available today based on schedule"""
+	# For now, all dungeons are available
+	# TODO: Implement daily rotation system
+	return true
+
+func get_dungeon_schedule_info() -> Dictionary:
+	"""Get today's dungeon schedule information - Only show rotating dungeons like Summoners War"""
+	var current_date = Time.get_date_dict_from_system()
+	var weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+	var today = weekdays[current_date.weekday]
+	
+	var schedule_info = {
+		"today": today.capitalize(),
+		"available_dungeons": [],
+		"featured_dungeon": "",
+		"next_rotation": "Tomorrow"
+	}
+	
+	var all_dungeons = get_all_dungeons()
+	for dungeon in all_dungeons:
+		var schedule = dungeon.get("schedule", "always_available")
+		var schedule_day = dungeon.get("schedule_day", "")
+		
+		# Only include dungeons with rotating schedules (NOT always_available)
+		var is_rotating_and_available = false
+		match schedule:
+			"always_available":
+				# Skip - these don't appear in "Today's Dungeons"
+				continue
+			"daily_rotation":
+				is_rotating_and_available = schedule_day == today
+			"weekend_special":
+				is_rotating_and_available = (today == "saturday" or today == "sunday")
+			"weekend_saturday":
+				is_rotating_and_available = (today == "saturday")
+			"weekend_sunday":
+				is_rotating_and_available = (today == "sunday")
+			"weekend_rotating":
+				is_rotating_and_available = (today == "saturday" or today == "sunday")
+		
+		if is_rotating_and_available:
+			schedule_info.available_dungeons.append({
+				"name": dungeon.get("name", "Unknown"),
+				"element": dungeon.get("element", "neutral"),
+				"id": dungeon.get("id", "")
+			})
+			
+			# Set featured dungeon (first daily rotation dungeon)
+			if schedule_day == today and schedule_info.featured_dungeon == "":
+				schedule_info.featured_dungeon = dungeon.get("name", "Unknown")
+	
+	return schedule_info
+
+func validate_dungeon_entry(dungeon_id: String, difficulty: String, team: Array) -> Dictionary:
+	"""Validate if player can enter dungeon - RULE 3: Pure validation logic"""
+	var result = {
+		"success": false,
+		"error_message": "",
+		"energy_cost": 0
+	}
+	
+	# Check if dungeon exists
+	var dungeon_info = get_dungeon_info(dungeon_id)
+	if dungeon_info.is_empty():
+		result.error_message = "Dungeon not found"
+		validation_completed.emit(result)
+		return result
+	
+	# Check difficulty
+	var difficulties = dungeon_info.get("difficulty_levels", {})
+	if not difficulties.has(difficulty):
+		result.error_message = "Invalid difficulty"
+		validation_completed.emit(result)
+		return result
+	
+	# Check team
+	if team.is_empty() or team.size() > 4:
+		result.error_message = "Invalid team size (1-4 gods required)"
+		validation_completed.emit(result)
+		return result
+	
+	# Check energy cost
+	var difficulty_info = difficulties[difficulty]
+	var energy_cost = difficulty_info.get("energy_cost", 8)
+	result.energy_cost = energy_cost
+	
+	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager")
+	if resource_manager:
+		var current_energy = resource_manager.get_resource("energy")
+		if current_energy < energy_cost:
+			result.error_message = "Not enough energy (%d required, %d available)" % [energy_cost, current_energy]
+			validation_completed.emit(result)
+			return result
+	
+	result.success = true
+	validation_completed.emit(result)
+	return result
+
+func get_dungeon_categories() -> Dictionary:
+	"""Get dungeons organized by category"""
+	var categories = {
+		"elemental": [],
+		"pantheon": [], 
+		"equipment": [],
+		"special": []
+	}
+	
+	var all_dungeons = get_available_dungeons()
+	for dungeon_info in all_dungeons:
+		var category = dungeon_info.get("category", "elemental")
+		if categories.has(category):
+			categories[category].append(dungeon_info)
+	
+	return categories
+
+func get_loot_table_name(dungeon_id: String, difficulty: String) -> String:
+	"""Generate loot table name for dungeon rewards"""
+	var dungeon_info = get_dungeon_info(dungeon_id)
+	if dungeon_info.is_empty():
+		return ""
+	
+	var category = dungeon_info.get("category", "")
+	
+	# Map categories to loot table templates that actually exist
+	match category:
+		"elemental":
+			return "elemental_dungeon_" + difficulty
+		"special":
+			if dungeon_id == "magic_sanctum":
+				return "magic_dungeon"
+			return "elemental_dungeon_" + difficulty  # Fallback to elemental template
+		"pantheon":
+			return "pantheon_trial_" + difficulty
+		"equipment":
+			return "equipment_dungeon_" + difficulty
+		_:
+			# Fallback to elemental template for unknown categories
+			if dungeon_id.ends_with("_sanctum"):
+				return "elemental_dungeon_" + difficulty
+			else:
+				return "elemental_dungeon_" + difficulty
+
+func get_battle_configuration(dungeon_id: String, difficulty: String) -> Dictionary:
+	"""Get battle configuration for dungeon fight"""
+	var dungeon_info = get_dungeon_info(dungeon_id)
+	if dungeon_info.is_empty():
+		return {}
+	
+	var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
+	if difficulty_info.is_empty():
+		return {}
+	
+	return {
+		"enemies": difficulty_info.get("enemies", []),
+		"boss": difficulty_info.get("boss", ""),
+		"battle_type": "dungeon",
+		"background": dungeon_info.get("background_theme", "default"),
+		"special_conditions": difficulty_info.get("special_conditions", [])
+	}
+
+func get_completion_rewards(dungeon_id: String, difficulty: String) -> Dictionary:
+	"""Get rewards for completing dungeon"""
+	var dungeon_info = get_dungeon_info(dungeon_id)
+	if dungeon_info.is_empty():
+		return {}
+	
+	var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
+	return difficulty_info.get("rewards", {})
+
+func record_completion(dungeon_id: String, difficulty: String, completion_time: float):
+	"""Record dungeon completion for statistics"""
+	update_clear_count(dungeon_id, difficulty)
+	
+	# Update best time
+	var time_key = dungeon_id + "_" + difficulty + "_best_time"
+	var current_best = player_progress.best_times.get(time_key, INF)
+	if completion_time < current_best:
+		player_progress.best_times[time_key] = completion_time
+
+# Save/Load functionality for player progress
+func save_progress() -> Dictionary:
+	"""Save dungeon progress data"""
+	return player_progress.duplicate()
+
+func load_progress(saved_data: Dictionary):
+	"""Load dungeon progress data"""
+	if saved_data.has("unlocked_dungeons"):
+		player_progress = saved_data.duplicate()
+
+func update_clear_count(dungeon_id: String, difficulty: String):
+	"""Update clear count for completed dungeon"""
+	var clear_key = dungeon_id + "_" + difficulty
+	var current_count = player_progress.clear_counts.get(clear_key, 0)
+	player_progress.clear_counts[clear_key] = current_count + 1
+	player_progress.total_clears += 1
+
+func _enhance_dungeon_info(info: Dictionary):
+	"""Enhance dungeon info with calculated power ratings and detailed information"""
+	var difficulty_levels = info.get("difficulty_levels", {})
+	
+	for difficulty_name in difficulty_levels.keys():
+		var difficulty_info = difficulty_levels[difficulty_name]
+		
+		# Calculate enemy power for this difficulty
+		var enemy_power = _calculate_enemy_power(info, difficulty_name)
+		difficulty_info["enemy_power"] = enemy_power
+		
+		# Add recommended team power (slightly higher than enemy power)
+		difficulty_info["recommended_team_power"] = int(enemy_power * 1.2)
+		
+		# Add difficulty color for UI
+		difficulty_info["difficulty_color"] = _get_difficulty_color(difficulty_name)
+		
+		# Add stage progression info
+		difficulty_info["stage_count"] = 5  # Standard dungeon stage count
+		difficulty_info["boss_power"] = int(enemy_power * 1.5)  # Boss is 50% stronger
+
+func _calculate_enemy_power(dungeon_info: Dictionary, difficulty: String) -> int:
+	"""Calculate estimated enemy power based on dungeon category and difficulty"""
+	var base_power = 1000
+	
+	# Adjust base power by dungeon category
+	var category = dungeon_info.get("category", "elemental")
+	match category:
+		"elemental":
+			base_power = 800
+		"pantheon":
+			base_power = 1200
+		"equipment":
+			base_power = 1000
+		"special":
+			base_power = 1500
+	
+	# Apply difficulty multiplier
+	var difficulty_multiplier = 1.0
+	match difficulty:
+		"beginner":
+			difficulty_multiplier = 1.0
+		"intermediate":
+			difficulty_multiplier = 1.5
+		"advanced":
+			difficulty_multiplier = 2.2
+		"expert":
+			difficulty_multiplier = 3.0
+		"master":
+			difficulty_multiplier = 4.0
+	
+	# Apply level scaling from dungeon data if available
+	var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
+	var recommended_level = difficulty_info.get("recommended_level", 10)
+	var level_multiplier = 1.0 + (recommended_level - 10) * 0.1
+	
+	return int(base_power * difficulty_multiplier * level_multiplier)
+
+func _get_difficulty_color(difficulty: String) -> Color:
+	"""Get color coding for difficulty levels"""
+	match difficulty:
+		"beginner":
+			return Color.GREEN
+		"intermediate":
+			return Color.YELLOW
+		"advanced":
+			return Color.ORANGE
+		"expert":
+			return Color.RED
+		"master":
+			return Color.PURPLE
+		_:
+			return Color.WHITE
+
+func get_enemy_types_for_dungeon(dungeon_id: String) -> Array:
+	"""Get list of enemy types that appear in this dungeon"""
+	var dungeon_info = get_dungeon_info(dungeon_id)
+	var element = dungeon_info.get("element", "neutral")
+	var category = dungeon_info.get("category", "elemental")
+	
+	var enemy_types = []
+	
+	# Based on element and category, determine enemy types
+	match category:
+		"elemental":
+			enemy_types = [
+				element.capitalize() + " Guardian",
+				element.capitalize() + " Warden", 
+				element.capitalize() + " Spirit"
+			]
+		"pantheon":
+			enemy_types = [
+				"Divine Guardian",
+				"Sacred Protector",
+				"Celestial Champion"
+			]
+		"equipment":
+			enemy_types = [
+				"Armored Sentinel",
+				"Weapon Master",
+				"Equipment Guardian"
+			]
+	
+	return enemy_types

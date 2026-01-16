@@ -21,8 +21,6 @@ signal battle_log_message(message: String)
 
 func initialize():
 	"""Initialize battle coordinator and sub-systems"""
-	print("BattleCoordinator: Initializing...")
-	
 	# Create sub-systems
 	turn_manager = TurnManager.new()
 	action_processor = BattleActionProcessor.new()
@@ -39,8 +37,6 @@ func initialize():
 	wave_manager.wave_started.connect(_on_wave_started)
 	wave_manager.wave_completed.connect(_on_wave_completed)
 	wave_manager.all_waves_completed.connect(_on_all_waves_completed)
-	
-	print("BattleCoordinator: Initialization complete")
 
 ## Helper method to get EventBus from SystemRegistry
 func _get_event_bus():
@@ -53,8 +49,6 @@ func start_battle(config) -> bool:
 		push_warning("BattleCoordinator: Battle already active, ending previous battle")
 		end_battle(BattleResult.create_defeat("Battle interrupted"))
 		return false
-	
-	print("BattleCoordinator: Starting ", config.battle_type, " battle")
 	
 	# Validate battle configuration
 	if not _validate_battle_config(config):
@@ -85,9 +79,7 @@ func start_battle(config) -> bool:
 func end_battle(result: BattleResult):
 	if not is_battle_active:
 		return
-	
-	print("BattleCoordinator: Ending battle - ", "Victory" if result.victory else "Defeat")
-	
+
 	# Stop auto-battle if active
 	auto_battle_enabled = false
 	
@@ -107,19 +99,14 @@ func end_battle(result: BattleResult):
 	is_battle_active = false
 	battle_ended.emit(result)
 	
-	# TODO: Re-enable EventBus once parsing issues resolved  
+	# TODO: Re-enable EventBus once parsing issues resolved
 	# EventBus.battle_ended.emit(result)
-	
-	print("BattleCoordinator: Battle ended successfully")
 
 ## Toggle auto-battle mode
 func set_auto_battle(enabled: bool):
 	auto_battle_enabled = enabled
 	if enabled:
-		print("BattleCoordinator: Auto-battle enabled")
 		_process_auto_battle()
-	else:
-		print("BattleCoordinator: Auto-battle disabled")
 
 ## Execute a manual action (when auto-battle is off)
 func execute_action(action) -> bool:
@@ -175,8 +162,6 @@ func _initialize_battle_systems():
 
 func _begin_battle_flow():
 	"""Start the main battle loop"""
-	print("BattleCoordinator: Beginning battle flow")
-	
 	# Start first wave if applicable
 	if not current_battle_config.enemy_waves.is_empty():
 		wave_manager.start_wave(1)
@@ -315,7 +300,6 @@ func _cleanup_battle():
 # ============================================================================
 
 func _on_turn_started(unit: BattleUnit):
-	print("BattleCoordinator: Turn started for ", unit.get_name())
 	turn_changed.emit(unit)
 	
 	# Process auto-battle if enabled
@@ -324,9 +308,7 @@ func _on_turn_started(unit: BattleUnit):
 		await get_tree().create_timer(0.5).timeout
 		_process_auto_battle()
 
-func _on_turn_ended(unit: BattleUnit):
-	print("BattleCoordinator: Turn ended for ", unit.get_name())
-	
+func _on_turn_ended(_unit: BattleUnit):
 	# Check for battle end conditions
 	if _check_battle_end_conditions():
 		return  # Battle ended
@@ -378,5 +360,3 @@ func shutdown():
 	"""Shutdown the battle coordinator cleanly"""
 	if is_battle_active:
 		end_battle(BattleResult.create_defeat("Battle system shutdown"))
-	
-	print("BattleCoordinator: Shutdown complete")

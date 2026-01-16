@@ -12,7 +12,6 @@ signal resource_insufficient(resource_id: String, required: int, available: int)
 signal resource_limit_reached(resource_id: String, limit: int)
 
 func _ready():
-	print("ResourceManager: Initializing resource tracking...")
 	_load_resource_limits()
 
 ## Initialize resource limits from configuration
@@ -54,13 +53,12 @@ func add_resource(resource_id: String, amount: int) -> bool:
 	player_resources[resource_id] = new_amount
 	
 	resource_changed.emit(resource_id, new_amount, amount)
-	
+
 	# Emit to EventBus if available
 	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
 	if event_bus and event_bus.has_signal("resource_changed"):
 		event_bus.resource_changed.emit(resource_id, new_amount, amount)
-	
-	print("ResourceManager: Added ", amount, " ", resource_id, " (Total: ", new_amount, ")")
+
 	return true
 
 ## Spend resources from player inventory
@@ -82,8 +80,7 @@ func spend(resource_id: String, amount: int) -> bool:
 	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
 	if event_bus and event_bus.has_signal("resource_changed"):
 		event_bus.resource_changed.emit(resource_id, new_amount, -amount)
-	
-	print("ResourceManager: Spent ", amount, " ", resource_id, " (Remaining: ", new_amount, ")")
+
 	return true
 
 ## Check if player can afford a cost
@@ -173,8 +170,7 @@ func award_resources(rewards: Dictionary) -> Dictionary:
 func load_from_save(save_data: Dictionary):
 	if save_data.has("player_resources"):
 		player_resources = save_data.player_resources.duplicate()
-		print("ResourceManager: Loaded ", player_resources.size(), " resources from save")
-		
+
 		# Emit change events for all resources
 		for resource_id in player_resources:
 			var amount = player_resources[resource_id]
@@ -189,16 +185,12 @@ func get_save_data() -> Dictionary:
 ## Initialize resources for new game
 func initialize_new_game():
 	player_resources.clear()
-	print("ResourceManager: Initialized for new game")
 
 ## Debug: Print all resources
 func debug_print_resources():
-	print("ResourceManager: Current resources:")
 	for resource_id in player_resources:
-		var amount = player_resources[resource_id]
-		var limit = get_resource_limit(resource_id)
-		var limit_text = " (limit: " + str(limit) + ")" if limit > 0 else " (unlimited)"
-		print("  ", resource_id, ": ", amount, limit_text)
+		var _amount = player_resources[resource_id]
+		var _limit = get_resource_limit(resource_id)
 
 ## Debug: Add test resources
 func debug_add_test_resources():
@@ -207,4 +199,3 @@ func debug_add_test_resources():
 	add_resource("crystals", 500)
 	add_resource("energy", 80)
 	add_resource("arena_tokens", 15)
-	print("ResourceManager: Added test resources")

@@ -3,7 +3,8 @@
 class_name SaveLoadUtility extends RefCounted
 
 const SAVE_VERSION = "1.0"
-const SAVE_FILE_PATH = "user://save_game.dat"
+const SAVE_FILE_PATH = "user://save_game.dat"  # Match SaveManager and GameCoordinator
+const LEGACY_SAVE_FILE_PATH = "user://savegame.dat"  # Old filename for compatibility
 const SETTINGS_FILE_PATH = "user://settings.cfg"
 
 ## Serialize a God object to Dictionary for saving
@@ -16,10 +17,10 @@ static func serialize_god(god: God) -> Dictionary:
 		"level": god.level,
 		"experience": god.experience,
 		"skill_levels": god.skill_levels.duplicate(),
-		"equipped_equipment_ids": god.equipped_equipment_ids.duplicate(),
+		"equipment": god.equipment.duplicate(),  # Use correct property name
 		"current_hp": god.current_hp,
-		"max_hp": god.get_max_hp(),
-		"awakened": god.awakened if god.has_method("is_awakened") else false
+		"max_hp": _calculate_god_max_hp(god),
+		"awakened": god.is_awakened  # Use correct property name
 	}
 
 ## Deserialize Dictionary back to God object
@@ -32,12 +33,34 @@ static func deserialize_god(data: Dictionary) -> God:
 	god.level = data.get("level", 1)
 	god.experience = data.get("experience", 0)
 	god.skill_levels = data.get("skill_levels", [1, 1, 1]).duplicate()
-	god.equipped_equipment_ids = data.get("equipped_equipment_ids", ["", "", "", "", "", ""]).duplicate()
-	god.current_hp = data.get("current_hp", god.get_max_hp())
+	
+	# Properly deserialize equipment array
+	var equipment_data = data.get("equipment", [null, null, null, null, null, null])
+	god.equipment = []
+	for i in range(6):  # 6 equipment slots
+		if i < equipment_data.size() and equipment_data[i] != null:
+			if equipment_data[i] is Dictionary:
+				# Deserialize equipment object from dictionary data
+				var equipment = deserialize_equipment(equipment_data[i])
+				god.equipment.append(equipment)
+			elif equipment_data[i] is String and equipment_data[i] != "":
+				# Handle legacy string ID format - create equipment from ID
+				var equipment_manager = SystemRegistry.get_instance().get_system("EquipmentManager")
+				if equipment_manager:
+					var equipment = equipment_manager.get_equipment_by_id(equipment_data[i])
+					god.equipment.append(equipment)
+				else:
+					god.equipment.append(null)
+			else:
+				god.equipment.append(null)
+		else:
+			god.equipment.append(null)
+	
+	god.current_hp = data.get("current_hp", _calculate_god_max_hp(god))
 	
 	# Handle awakening if the god supports it
-	if god.has_method("set_awakened") and data.has("awakened"):
-		god.set_awakened(data.awakened)
+	if data.has("awakened"):
+		god.is_awakened = data.awakened
 	
 	return god
 
@@ -49,12 +72,11 @@ static func serialize_equipment(equipment: Equipment) -> Dictionary:
 	return {
 		"id": equipment.id,
 		"slot": equipment.slot,
-		"set_id": equipment.set_id,
-		"main_stat": equipment.main_stat,
+		"equipment_set_name": equipment.equipment_set_name,
+		"main_stat_type": equipment.main_stat_type,
 		"main_stat_value": equipment.main_stat_value,
-		"sub_stats": equipment.sub_stats.duplicate(),
-		"level": equipment.level,
-		"owner_god_id": equipment.owner_god_id if equipment.has("owner_god_id") else ""
+		"substats": equipment.substats.duplicate(),
+		"level": equipment.level
 	}
 
 ## Deserialize Dictionary back to Equipment object
@@ -62,14 +84,11 @@ static func deserialize_equipment(data: Dictionary) -> Equipment:
 	var equipment = Equipment.new()
 	equipment.id = data.get("id", "")
 	equipment.slot = data.get("slot", 1)
-	equipment.set_id = data.get("set_id", "")
-	equipment.main_stat = data.get("main_stat", 0)
+	equipment.equipment_set_name = data.get("equipment_set_name", "")
+	equipment.main_stat_type = data.get("main_stat_type", "")
 	equipment.main_stat_value = data.get("main_stat_value", 0)
-	equipment.sub_stats = data.get("sub_stats", []).duplicate()
+	equipment.substats = data.get("substats", []).duplicate()
 	equipment.level = data.get("level", 0)
-	
-	if equipment.has("owner_god_id"):
-		equipment.owner_god_id = data.get("owner_god_id", "")
 	
 	return equipment
 
@@ -143,8 +162,7 @@ static func save_game(player_data) -> bool:
 	var json_string = JSON.stringify(save_data)
 	file.store_string(json_string)
 	file.close()
-	
-	print("SaveLoadUtility: Game saved successfully")
+
 	return true
 
 ## Load game from file
@@ -181,3 +199,13 @@ static func delete_save_file() -> bool:
 		var result = DirAccess.remove_absolute(SAVE_FILE_PATH)
 		return result == OK
 	return true
+
+## Calculate god's max HP using EquipmentStatCalculator (RULE 3 compliance)
+static func _calculate_god_max_hp(god: God) -> int:
+	var equipment_stat_calc = SystemRegistry.get_instance().get_system("EquipmentStatCalculator")
+	if equipment_stat_calc:
+		var total_stats = equipment_stat_calc.calculate_god_total_stats(god)
+		return total_stats.hp
+	else:
+		# Fallback to base stats if system not available
+		return god.base_hp

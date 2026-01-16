@@ -8,7 +8,7 @@ signal load_completed(success: bool, data: Dictionary)
 signal save_failed(error: String)
 signal load_failed(error: String)
 
-const SAVE_FILE_PATH = "user://save_game.dat"
+const SAVE_FILE_PATH = "user://save_game.dat"  # Match GameCoordinator path
 const SAVE_VERSION = "1.0"
 
 var auto_save_enabled: bool = true
@@ -16,7 +16,7 @@ var auto_save_interval: float = 300.0  # 5 minutes
 var last_auto_save: float = 0.0
 
 func _ready():
-	print("SaveManager: Initialized")
+	pass
 
 func _process(delta):
 	if auto_save_enabled:
@@ -27,22 +27,21 @@ func _process(delta):
 
 ## Save game data
 func save_game() -> bool:
-	print("SaveManager: Starting save operation...")
-	
 	var save_data = {}
 	save_data["version"] = SAVE_VERSION
 	save_data["timestamp"] = Time.get_unix_time_from_system()
 	
 	# Get data from all systems through SystemRegistry
-	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
+	var system_registry = SystemRegistry.get_instance()
+	var resource_manager = system_registry.get_system("ResourceManager") if system_registry else null
 	if resource_manager and resource_manager.has_method("get_save_data"):
 		save_data["resources"] = resource_manager.get_save_data()
 	
-	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager") if SystemRegistry.get_instance() else null
+	var collection_manager = system_registry.get_system("CollectionManager") if system_registry else null
 	if collection_manager and collection_manager.has_method("get_save_data"):
 		save_data["collection"] = collection_manager.get_save_data()
 	
-	var battle_coordinator = SystemRegistry.get_instance().get_system("BattleCoordinator") if SystemRegistry.get_instance() else null
+	var battle_coordinator = system_registry.get_system("BattleCoordinator") if system_registry else null
 	if battle_coordinator and battle_coordinator.has_method("get_save_data"):
 		save_data["battle"] = battle_coordinator.get_save_data()
 	
@@ -56,15 +55,12 @@ func save_game() -> bool:
 	var json_string = JSON.stringify(save_data)
 	file.store_string(json_string)
 	file.close()
-	
-	print("SaveManager: Save completed successfully")
+
 	save_completed.emit(true)
 	return true
 
 ## Load game data
 func load_game() -> bool:
-	print("SaveManager: Starting load operation...")
-	
 	if not FileAccess.file_exists(SAVE_FILE_PATH):
 		var error = "Save file does not exist"
 		load_failed.emit(error)
@@ -91,29 +87,26 @@ func load_game() -> bool:
 	# Validate version
 	var version = save_data.get("version", "")
 	if version != SAVE_VERSION:
-		print("SaveManager: Warning - Save file version mismatch: ", version, " vs ", SAVE_VERSION)
+		push_warning("SaveManager: Save file version mismatch: " + version + " vs " + SAVE_VERSION)
 	
 	# Load data into systems through SystemRegistry
+	var system_registry = SystemRegistry.get_instance()
 	if save_data.has("resources"):
-		var resource_manager = SystemRegistry.get_system("ResourceManager")
+		var resource_manager = system_registry.get_system("ResourceManager") if system_registry else null
 		if resource_manager and resource_manager.has_method("load_save_data"):
 			resource_manager.load_save_data(save_data.resources)
 	
 	if save_data.has("collection"):
-		var collection_manager = SystemRegistry.get_system("CollectionManager")
+		var collection_manager = system_registry.get_system("CollectionManager") if system_registry else null
 		if collection_manager and collection_manager.has_method("load_save_data"):
 			collection_manager.load_save_data(save_data.collection)
-	
-	print("SaveManager: Load completed successfully")
+
 	load_completed.emit(true, save_data)
 	return true
 
 ## Auto-save
 func auto_save():
-	if save_game():
-		print("SaveManager: Auto-save completed")
-	else:
-		print("SaveManager: Auto-save failed")
+	save_game()
 
 ## Check if save file exists
 func has_save_file() -> bool:

@@ -13,12 +13,10 @@ var is_paused: bool = false
 var loading_operations: Array = []  # Array[String]
 
 func _ready():
-	print("GameCoordinator: Starting game initialization...")
 	_setup_core_systems()
 	_connect_global_events()
 	_load_game_data()
 	_initialize_game()
-	print("GameCoordinator: Game initialization complete")
 
 ## Initialize core systems
 func _setup_core_systems():
@@ -87,17 +85,13 @@ func _initialize_game():
 
 ## Load existing save game
 func _load_save_game():
-	print("GameCoordinator: Loading save game...")
-	
 	var save_manager = system_registry.get_system("SaveManager")
 	if save_manager and save_manager.load_game():
 		event_bus.game_loaded.emit()
-		print("GameCoordinator: Save game loaded successfully")
-		
+
 		# Check if we need to add starter equipment to existing save
 		var equipment_manager = system_registry.get_system("EquipmentManager")
 		if equipment_manager and equipment_manager.get_unequipped_equipment().is_empty():
-			print("GameCoordinator: Adding starter equipment to existing save...")
 			_setup_starting_equipment()
 			# Save the updated game
 			save_manager.save_game()
@@ -107,18 +101,15 @@ func _load_save_game():
 
 ## Start a new game
 func _start_new_game():
-	print("GameCoordinator: Starting new game...")
-	
 	# Initialize default game state
 	game_state.initialize_new_game()
-	
+
 	# Give player starting resources and gods
 	_setup_starting_resources()
 	_setup_starting_gods()
 	_setup_starting_equipment()
-	
+
 	event_bus.emit_notification("Welcome to the world of gods!", "info", 3.0)
-	print("GameCoordinator: New game started successfully")
 
 ## Setup starting resources for new players
 func _setup_starting_resources():
@@ -159,7 +150,6 @@ func _setup_starting_equipment():
 		iron_sword.level = 0
 		iron_sword.equipped_by_god_id = ""  # Ensure unequipped state
 		equipment_manager.add_equipment_to_inventory(iron_sword)
-		print("GameCoordinator: Added starter equipment: ", iron_sword.name)
 		
 		# Steel Armor (Armor)
 		var steel_armor = Equipment.new()
@@ -174,7 +164,6 @@ func _setup_starting_equipment():
 		steel_armor.level = 0
 		steel_armor.equipped_by_god_id = ""  # Ensure unequipped state
 		equipment_manager.add_equipment_to_inventory(steel_armor)
-		print("GameCoordinator: Added starter equipment: ", steel_armor.name)
 		
 		# Mystic Helm (Helm)
 		var mystic_helm = Equipment.new()
@@ -189,15 +178,12 @@ func _setup_starting_equipment():
 		mystic_helm.level = 0
 		mystic_helm.equipped_by_god_id = ""  # Ensure unequipped state
 		equipment_manager.add_equipment_to_inventory(mystic_helm)
-		print("GameCoordinator: Added starter equipment: ", mystic_helm.name)
 
 ## Save game to file
 func save_game() -> bool:
 	if not is_initialized:
 		return false
-	
-	print("GameCoordinator: Saving game...")
-	
+
 	var save_manager = system_registry.get_system("SaveManager")
 	if save_manager and save_manager.save_game():
 		event_bus.game_saved.emit()
@@ -223,47 +209,40 @@ func get_system_by_type(type: GDScript) -> Node:
 func pause_game():
 	if is_paused:
 		return
-	
+
 	is_paused = true
 	get_tree().paused = true
 	event_bus.game_paused.emit()
-	print("GameCoordinator: Game paused")
 
 ## Resume game
 func resume_game():
 	if not is_paused:
 		return
-	
+
 	is_paused = false
 	get_tree().paused = false
 	event_bus.game_resumed.emit()
-	print("GameCoordinator: Game resumed")
 
 ## Shutdown game cleanly
 func shutdown_game():
-	print("GameCoordinator: Shutting down game...")
-	
 	# Save before shutdown
 	save_game()
-	
+
 	# Shutdown all systems
 	if system_registry:
 		system_registry.shutdown_all_systems()
-	
-	print("GameCoordinator: Game shutdown complete")
 
 # ============================================================================
 # EVENT HANDLERS
 # ============================================================================
 
 func _on_game_paused():
-	print("GameCoordinator: Received pause event")
+	pass
 
 func _on_game_resumed():
-	print("GameCoordinator: Received resume event")
+	pass
 
 func _on_save_requested():
-	print("GameCoordinator: Save requested, triggering save...")
 	save_game()
 
 func _on_error_occurred(error_message: String, context: String):

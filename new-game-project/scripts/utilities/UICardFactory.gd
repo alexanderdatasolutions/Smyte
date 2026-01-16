@@ -23,10 +23,41 @@ static func create_god_card(god: God, style: CardStyle = CardStyle.COLLECTION) -
 		push_error("UICardFactory: Cannot create card for null god")
 		return null
 	
-	# TODO: Replace with actual scene instantiation when scenes are created
+	# Create card structure with proper UI elements
 	var card = Control.new()
 	card.name = "GodCard_" + god.name
 	card.set_meta("god_data", god)
+	card.custom_minimum_size = Vector2(120, 150)
+	
+	# Create background panel
+	var background = Panel.new()
+	background.anchors_preset = Control.PRESET_FULL_RECT
+	card.add_child(background)
+	
+	# Create vertical layout for card content
+	var vbox = VBoxContainer.new()
+	vbox.anchors_preset = Control.PRESET_FULL_RECT
+	vbox.add_theme_constant_override("separation", 4)
+	card.add_child(vbox)
+	
+	# Add god name label
+	var name_label = Label.new()
+	name_label.text = god.name
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(name_label)
+	
+	# Add tier/level info
+	var info_label = Label.new()
+	info_label.text = "Tier " + str(god.tier) + " | Lv." + str(god.level)
+	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info_label.add_theme_font_size_override("font_size", 10)
+	vbox.add_child(info_label)
+	
+	# Add select button (needed for sacrifice/awakening screens)
+	var select_button = Button.new()
+	select_button.name = "SelectButton"
+	select_button.text = "Select"
+	vbox.add_child(select_button)
 	
 	# Apply style-specific configurations
 	match style:

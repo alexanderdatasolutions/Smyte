@@ -25,7 +25,6 @@ var screen_scenes: Dictionary = {}
 var loaded_screens: Dictionary = {}
 
 func _ready():
-	print("ScreenManager: Initializing screen navigation system")
 	_register_screen_scenes()
 
 func _register_screen_scenes():
@@ -36,23 +35,20 @@ func _register_screen_scenes():
 		"summon": "res://scenes/SummonScreen.tscn",
 		"territory": "res://scenes/TerritoryScreen.tscn",
 		"sacrifice": "res://scenes/SacrificeScreen.tscn",
+		"sacrifice_selection": "res://scenes/SacrificeSelectionScreen.tscn",
 		"dungeon": "res://scenes/DungeonScreen.tscn",
 		"equipment": "res://scenes/EquipmentScreen.tscn",
 		"battle": "res://scenes/BattleScreen.tscn"
 	}
-	print("ScreenManager: Registered %d screen scenes" % screen_scenes.size())
 
 func change_screen(screen_name: String) -> bool:
 	"""Change to a different screen - RULE 3: Validate, update, emit"""
-	print("ScreenManager: Changing screen to: %s" % screen_name)
-	
 	# 1. Validate
 	if not screen_scenes.has(screen_name):
-		print("ScreenManager: ERROR - Screen not found: %s" % screen_name)
+		push_error("ScreenManager: Screen not found: %s" % screen_name)
 		return false
-	
+
 	if screen_name == current_screen_name:
-		print("ScreenManager: Already on screen: %s" % screen_name)
 		return true
 	
 	# 2. Update
@@ -62,7 +58,7 @@ func change_screen(screen_name: String) -> bool:
 	# Load new screen if not cached
 	var new_screen = _get_or_load_screen(screen_name)
 	if not new_screen:
-		print("ScreenManager: ERROR - Failed to load screen: %s" % screen_name)
+		push_error("ScreenManager: Failed to load screen: %s" % screen_name)
 		return false
 	
 	# Switch screens
@@ -79,9 +75,8 @@ func change_screen(screen_name: String) -> bool:
 func go_back() -> bool:
 	"""Go back to previous screen"""
 	if previous_screen.is_empty():
-		print("ScreenManager: No previous screen to return to")
 		return false
-	
+
 	return change_screen(previous_screen)
 
 func _get_or_load_screen(screen_name: String) -> Control:
@@ -94,26 +89,25 @@ func _get_or_load_screen(screen_name: String) -> Control:
 	var scene_path = screen_scenes[screen_name]
 	var scene_resource = load(scene_path)
 	if not scene_resource:
-		print("ScreenManager: ERROR - Failed to load scene: %s" % scene_path)
+		push_error("ScreenManager: Failed to load scene: %s" % scene_path)
 		return null
-	
+
 	var screen_instance = scene_resource.instantiate()
 	if not screen_instance:
-		print("ScreenManager: ERROR - Failed to instantiate scene: %s" % scene_path)
+		push_error("ScreenManager: Failed to instantiate scene: %s" % scene_path)
 		return null
-	
+
 	# Cache the screen
 	loaded_screens[screen_name] = screen_instance
-	print("ScreenManager: Loaded and cached screen: %s" % screen_name)
-	
+
 	return screen_instance
 
-func _switch_to_screen(new_screen: Control, screen_name: String):
+func _switch_to_screen(new_screen: Control, _screen_name: String):
 	"""Switch the active screen - RULE 2: Single responsibility"""
 	# Get the main scene root
 	var main_scene = get_tree().current_scene
 	if not main_scene:
-		print("ScreenManager: ERROR - No main scene found")
+		push_error("ScreenManager: No main scene found")
 		return
 	
 	# Hide current screen
@@ -135,35 +129,28 @@ func _switch_to_screen(new_screen: Control, screen_name: String):
 			new_screen.disconnect("back_pressed", _on_screen_back_pressed)
 		# Connect to our handler
 		new_screen.connect("back_pressed", _on_screen_back_pressed)
-	
-	print("ScreenManager: Switched to screen: %s" % screen_name)
 
 func _on_screen_back_pressed():
 	"""Handle back button from screens - RULE 4: UI signals"""
-	print("ScreenManager: Back button pressed, returning to previous screen")
 	go_back()
 
 # System interface for SystemRegistry
 func initialize():
 	"""Initialize the screen manager - called by SystemRegistry"""
-	print("ScreenManager: System initialization complete")
-	
 	# Set the initial screen to worldview when the system starts
 	call_deferred("_set_initial_screen")
 
 func _set_initial_screen():
 	"""Set up the initial WorldView screen"""
-	print("ScreenManager: Setting up initial WorldView screen")
-	
 	# Find the WorldView in the main scene
 	var main_scene = get_tree().current_scene
 	if not main_scene:
-		print("ScreenManager: ERROR - No main scene found")
+		push_error("ScreenManager: No main scene found")
 		return
-	
+
 	var world_view = main_scene.get_node_or_null("WorldView")
 	if not world_view:
-		print("ScreenManager: ERROR - WorldView not found in main scene")
+		push_error("ScreenManager: WorldView not found in main scene")
 		return
 	
 	# Register the existing WorldView as current screen
@@ -173,6 +160,5 @@ func _set_initial_screen():
 	
 	# Make sure it's visible
 	world_view.visible = true
-	
-	print("ScreenManager: WorldView registered as initial screen")
+
 	screen_changed.emit("worldview")

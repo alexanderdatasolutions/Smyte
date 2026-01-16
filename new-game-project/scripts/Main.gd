@@ -3,5 +3,4 @@
 extends Node
 
 func _ready():
-	print("Main: Game loaded with clean architecture")
-	print("Main: GameCoordinator autoload will handle initialization")
+	pass

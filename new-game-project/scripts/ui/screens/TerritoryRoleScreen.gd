@@ -27,7 +27,6 @@ var screen_title_label: Label
 
 func _ready():
 	"""Initialize the territory role screen"""
-	print("TerritoryRoleScreen: Initializing")
 	setup_ui_components()
 	setup_component_managers()
 	connect_signals()
@@ -179,17 +178,13 @@ func connect_signals():
 	if god_selection_panel:
 		god_selection_panel.god_selected.connect(_on_god_selected)
 		god_selection_panel.selection_cancelled.connect(_on_god_selection_cancelled)
-	
-	print("TerritoryRoleScreen: Signals connected")
 
 func display_territory(territory: Territory):
 	"""Display territory role management screen - RULE 4: UI display coordination only"""
 	if not territory:
-		print("TerritoryRoleScreen: No territory provided")
 		return
-	
+
 	current_territory = territory
-	print("TerritoryRoleScreen: Displaying territory: ", territory.name)
 	
 	# Update screen title
 	if screen_title_label:
@@ -206,58 +201,45 @@ func display_territory(territory: Territory):
 
 func _on_back_button_pressed():
 	"""Handle back to territories button press"""
-	print("TerritoryRoleScreen: Back button pressed")
-	
 	# Navigate back through GameCoordinator - RULE 5: SystemRegistry compliance
 	var system_registry = SystemRegistry.get_instance()
 	if system_registry:
 		var game_coordinator = system_registry.get_system("GameCoordinator")
 		if game_coordinator:
 			game_coordinator.show_territory_screen()
-		else:
-			print("TerritoryRoleScreen: GameCoordinator not found in SystemRegistry")
 
 func _on_refresh_button_pressed():
 	"""Handle refresh button press"""
-	print("TerritoryRoleScreen: Refresh button pressed")
 	if current_territory:
 		display_territory(current_territory)
 
 func _on_role_assignment_requested(role: String, _god_id: String, slot_index: int):
 	"""Handle role assignment request from role manager"""
-	print("TerritoryRoleScreen: Role assignment requested - Role: %s, Slot: %d" % [role, slot_index])
-	
 	# Show god selection panel
 	if god_selection_panel:
 		god_selection_panel.show_god_selection(role, slot_index)
 
 func _on_god_selected(god_id: String, role_name: String, slot_index: int):
 	"""Handle god selection from selection panel"""
-	print("TerritoryRoleScreen: God selected - ID: %s, Role: %s, Slot: %d" % [god_id, role_name, slot_index])
-	
 	# Process assignment through SystemRegistry - RULE 5 compliance
 	var system_registry = SystemRegistry.get_instance()
 	if system_registry:
 		var territory_manager = system_registry.get_system("TerritoryManager")
 		if territory_manager:
 			# This would need to be implemented in TerritoryManager
-			print("TerritoryRoleScreen: Would assign god %s to %s role slot %d" % [god_id, role_name, slot_index])
-			
 			# Refresh the role display to show changes
 			if role_manager:
 				role_manager.refresh_single_role_slots(role_name)
-		else:
-			print("TerritoryRoleScreen: TerritoryManager not found in SystemRegistry")
 
 func _on_god_selection_cancelled():
 	"""Handle god selection cancellation"""
-	print("TerritoryRoleScreen: God selection cancelled")
+	pass
 
 # === CLEANUP ===
 
 func _exit_tree():
 	"""Clean up when screen is removed"""
-	print("TerritoryRoleScreen: Cleaning up")
+	pass
 	
 	# Component managers are children and will be automatically freed
 	# Just ensure any remaining connections are cleared

@@ -1,653 +1,783 @@
+# scripts/ui/screens/DungeonScreen.gd
+# RULE 1: Under 500 lines - UI coordination only
+# RULE 2: Single responsibility - Display dungeon selection UI 
+# RULE 4: No business logic - UI display and event handling only
+# RULE 5: SystemRegistry access only
 extends Control
+class_name DungeonScreen
 
-@onready var elemental_dungeon_list = $MainContainer/LeftPanel/CategoryTabs/Elemental/ElementalDungeonList
-@onready var pantheon_dungeon_list = $MainContainer/LeftPanel/CategoryTabs/Pantheon/PantheonDungeonList
-@onready var equipment_dungeon_list = $MainContainer/LeftPanel/CategoryTabs/Equipment/EquipmentDungeonList
+# UI node references - Fixed positioning system like other scenes
+@onready var back_button = $BackButton
+@onready var title_label = $TitleLabel
+@onready var schedule_label = $MainContainer/LeftPanel/ScheduleInfo/ScheduleLabel
 @onready var category_tabs = $MainContainer/LeftPanel/CategoryTabs
+@onready var elemental_list = $MainContainer/LeftPanel/CategoryTabs/Elemental/ElementalDungeonList
+@onready var pantheon_list = $MainContainer/LeftPanel/CategoryTabs/Pantheon/PantheonDungeonList
+@onready var equipment_list = $MainContainer/LeftPanel/CategoryTabs/Equipment/EquipmentDungeonList
 @onready var dungeon_info_panel = $MainContainer/DungeonInfoPanel
 @onready var dungeon_name_label = $MainContainer/DungeonInfoPanel/InfoContainer/DungeonNameLabel
 @onready var dungeon_description = $MainContainer/DungeonInfoPanel/InfoContainer/DungeonDescription
 @onready var difficulty_buttons = $MainContainer/DungeonInfoPanel/InfoContainer/DifficultyContainer
 @onready var rewards_container = $MainContainer/DungeonInfoPanel/InfoContainer/RewardsContainer
-@onready var rewards_label = $MainContainer/DungeonInfoPanel/InfoContainer/RewardsContainer/RewardsLabel
 @onready var enter_button = $MainContainer/DungeonInfoPanel/InfoContainer/EnterButton
-@onready var schedule_label = $MainContainer/LeftPanel/ScheduleInfo/ScheduleLabel
-@onready var back_button = $BackButton
 
-var dungeon_system: Node
+# System references (RULE 5)
+var dungeon_manager: Node
+var resource_manager: Node
 var loot_system: Node
-var selected_dungeon_id: String = ""
-var selected_difficulty: String = ""
 
+# Current state
+var selected_dungeon_id: String = ""
+var selected_difficulty: String = "beginner"
+
+# Signals
 signal back_pressed
 
 func _ready():
-	# CRITICAL FIX: Remove any existing DungeonScreen instances before initializing this one
-	var root = get_tree().root
-	var dungeon_screens_to_remove = []
+	"""Initialize dungeon screen - RULE 4: UI setup only"""
+	_init_systems()
+	_connect_ui_signals()
+	_setup_initial_state()
+	_refresh_dungeons()
+
+func _init_systems():
+	"""Initialize system references through SystemRegistry"""
+	# Use correct SystemRegistry access pattern
+	dungeon_manager = SystemRegistry.get_instance().get_system("DungeonManager")
+	if not dungeon_manager:
+		push_error("DungeonScreen: DungeonManager not found in SystemRegistry")
 	
-	# Find old DungeonScreen instances to remove (but not this current one)
-	for child in root.get_children():
-		if child != self and child.get_script() == self.get_script():
-			dungeon_screens_to_remove.append(child)
+	resource_manager = SystemRegistry.get_instance().get_system("ResourceManager")
+	if not resource_manager:
+		push_error("DungeonScreen: ResourceManager not found in SystemRegistry")
 	
-	# Immediately remove old instances from scene tree
-	for old_screen in dungeon_screens_to_remove:
-		old_screen.queue_free()
-	
-	# Get dungeon system reference through SystemRegistry
-	var system_registry = SystemRegistry.get_instance()
-	if system_registry:
-		# TODO: Get DungeonSystem through SystemRegistry when implemented
-		print("DungeonScreen: SystemRegistry available, but DungeonSystem not yet registered")
-		dungeon_system = null
-	else:
-		print("DungeonScreen: SystemRegistry not available")
-		dungeon_system = null
-	
-	# Get LootSystem reference (optional - for enhanced loot display)
-	if system_registry:
-		loot_system = system_registry.get_system("LootSystem")
-	
-	# Connect UI signals with null checks
-	if enter_button:
-		enter_button.pressed.connect(_on_enter_button_pressed)
-	else:
-		print("DungeonScreen: WARNING - enter_button not found")
-	
+	loot_system = SystemRegistry.get_instance().get_system("LootSystem")
+	if not loot_system:
+		push_warning("DungeonScreen: LootSystem not found - loot previews will be limited")
+
+func _connect_ui_signals():
+	"""Connect UI element signals"""
 	if back_button:
 		back_button.pressed.connect(_on_back_button_pressed)
-	else:
-		print("DungeonScreen: WARNING - back_button not found")
 	
-	# Initialize UI
-	refresh_dungeon_list()
-	update_schedule_info()
+	if enter_button:
+		enter_button.pressed.connect(_on_enter_button_pressed)
 	
-	# Hide info panel initially
+	# Connect system signals if available
+	if dungeon_manager:
+		if dungeon_manager.has_signal("dungeon_data_loaded"):
+			dungeon_manager.dungeon_data_loaded.connect(_refresh_dungeons)
+
+func _setup_initial_state():
+	"""Setup initial UI state"""
 	dungeon_info_panel.visible = false
+	enter_button.disabled = true
 	
-	# Check if we need to refresh a previously selected dungeon
-	_check_for_dungeon_refresh()
+	# Update schedule information
+	_update_schedule_display()
 
-func refresh_dungeon_list():
-	"""Refresh the list of available dungeons, organized by category"""
+func _update_schedule_display():
+	"""Update the schedule information like Summoners War - only rotating dungeons"""
+	if not schedule_label or not dungeon_manager:
+		return
 	
-	# Clear all category lists
-	clear_dungeon_lists()
+	# Get today's dungeon schedule
+	var schedule_info = dungeon_manager.get_dungeon_schedule_info()
+	if schedule_info.is_empty():
+		schedule_label.text = "Loading schedule..."
+		return
 	
-	# TODO: Get available dungeons through SystemRegistry DungeonSystem
-	# For now, show placeholder
-	var placeholder_label = Label.new()
-	placeholder_label.text = "Dungeons loading through SystemRegistry..."
-	placeholder_label.custom_minimum_size = Vector2(200, 50)
+	var today = schedule_info.get("today", "Unknown")
+	var available_dungeons = schedule_info.get("available_dungeons", [])
 	
-	if elemental_dungeon_list:
-		elemental_dungeon_list.add_child(placeholder_label)
+	var schedule_text = "Today (%s): " % today.capitalize()
+	if available_dungeons.size() > 0:
+		var dungeon_names = PackedStringArray()
+		for dungeon in available_dungeons:
+			var dungeon_name = dungeon.get("name", "Unknown")
+			dungeon_names.append(dungeon_name)
+		schedule_text += ", ".join(dungeon_names)
+	else:
+		schedule_text += "No special dungeons today"
+	
+	schedule_label.text = schedule_text
+	if enter_button:
+		enter_button.disabled = true
+		enter_button.text = "Select Dungeon"
 
-func determine_dungeon_category(dungeon_info: Dictionary) -> String:
-	"""Determine the category of a dungeon based on its properties"""
-	var dungeon_id = dungeon_info.get("id", "")
+func _refresh_dungeons():
+	"""Refresh dungeon lists - RULE 4: Delegate to systems"""
+	if not dungeon_manager:
+		_show_placeholder_dungeons()
+		return
 	
-	# Check if it's an equipment dungeon
-	if dungeon_id.begins_with("titans_forge") or dungeon_id.begins_with("valhalla_armory") or \
-	   dungeon_id.begins_with("oracle_sanctum") or dungeon_id.begins_with("elysian_fields") or \
-	   dungeon_id.begins_with("styx_crossing"):
-		return "equipment"
+	var categories = dungeon_manager.get_dungeon_categories()
 	
-	# Check if it's a pantheon dungeon
-	if dungeon_id.begins_with("greek_trials") or dungeon_id.begins_with("norse_trials") or \
-	   dungeon_id.begins_with("egyptian_trials") or dungeon_id.begins_with("hindu_trials") or \
-	   dungeon_id.begins_with("celtic_trials") or dungeon_id.begins_with("aztec_trials") or \
-	   dungeon_id.begins_with("japanese_trials") or dungeon_id.begins_with("slavic_trials"):
-		return "pantheon"
-	
-	# Default to elemental (includes fire, water, earth, lightning, light, dark, magic sanctums)
-	return "elemental"
+	_populate_category_list(elemental_list, categories.get("elemental", []))
+	_populate_category_list(pantheon_list, categories.get("pantheon", []))
+	_populate_category_list(equipment_list, categories.get("equipment", []))
 
-func clear_dungeon_lists():
-	"""Clear all dungeon category lists"""
-	var lists = [elemental_dungeon_list, pantheon_dungeon_list, equipment_dungeon_list]
-	for dungeon_list in lists:
-		if dungeon_list:
-			for child in dungeon_list.get_children():
-				dungeon_list.remove_child(child)
-				child.queue_free()
+func _show_placeholder_dungeons():
+	"""Show placeholder while systems load"""
+	_clear_dungeon_lists()
+	
+	# Create a simple test button to verify the container works
+	if elemental_list:
+		var test_button = Button.new()
+		test_button.text = "Test Elemental Dungeon"
+		test_button.custom_minimum_size = Vector2(200, 50)
+		elemental_list.add_child(test_button)
 
-func create_dungeon_button(dungeon_info: Dictionary, container: VBoxContainer):
-	"""Create a button for a dungeon in the specified container"""
+func _populate_category_list(container: Node, dungeons: Array):
+	"""Populate a category list with dungeon buttons using grid layout"""
+	if not container:
+		return
+	
+	# Clear existing children
+	for child in container.get_children():
+		child.queue_free()
+	
+	# Create a grid container instead of vertical list
+	var grid_container = GridContainer.new()
+	grid_container.columns = 2  # Two columns for better space usage
+	grid_container.add_theme_constant_override("h_separation", 10)
+	grid_container.add_theme_constant_override("v_separation", 10)
+	container.add_child(grid_container)
+	
+	# Add dungeon buttons to grid
+	for dungeon_info in dungeons:
+		_create_dungeon_button(dungeon_info, grid_container)
+
+func _create_dungeon_button(dungeon_info: Dictionary, container: Node):
+	"""Create a button for a dungeon in the specified container with better formatting"""
 	var button = Button.new()
 	var dungeon_id = dungeon_info.get("id", "")
 	var dungeon_name = dungeon_info.get("name", "Unknown Dungeon")
-	var element = dungeon_info.get("element", "")
-	var category = determine_dungeon_category(dungeon_info)
 	
-	# Set button text and styling based on element/category
-	button.text = dungeon_name
-	button.custom_minimum_size = Vector2(300, 60)
+	# Get power information for beginner difficulty
+	var difficulty_levels = dungeon_info.get("difficulty_levels", {})
+	var beginner_difficulty = difficulty_levels.get("beginner", {})
+	var energy_cost = beginner_difficulty.get("energy_cost", 0)
+	var enemy_power = beginner_difficulty.get("enemy_power", 0)
+	var recommended_level = beginner_difficulty.get("recommended_level", 1)
 	
-	# Enhanced styling based on category and element
-	match category:
-		"elemental":
-			match element:
-				"fire":
-					button.modulate = Color.ORANGE_RED
-				"water":
-					button.modulate = Color.CYAN
-				"earth":
-					button.modulate = Color.SADDLE_BROWN
-				"lightning":
-					button.modulate = Color.YELLOW
-				"light":
-					button.modulate = Color.WHITE
-				"dark":
-					button.modulate = Color.PURPLE
-				"magic":
-					button.modulate = Color.MAGENTA
-				"neutral":
-					button.modulate = Color.LIGHT_GRAY
-				_:
-					button.modulate = Color.WHITE
-		"pantheon":
-			button.modulate = Color.GOLD
-		"equipment":
-			button.modulate = Color.SILVER
-		_:
-			button.modulate = Color.WHITE
+	# Create more compact button text
+	var button_text = dungeon_name + "\n"
+	button_text += "⚡%d • ⚔%s • Lv.%d+" % [
+		energy_cost,
+		_format_power(enemy_power),
+		recommended_level
+	]
 	
-	# Connect button signal
+	# Set button properties for grid layout
+	button.text = button_text
+	button.custom_minimum_size = Vector2(200, 70)  # Smaller, more compact
+	button.add_theme_font_size_override("font_size", 14)  # Add mobile-friendly font size
 	button.pressed.connect(_on_dungeon_selected.bind(dungeon_id))
 	
-	# Add to specified container
+	# Add styling based on element/category
+	_style_dungeon_button(button, dungeon_info)
+	
 	container.add_child(button)
 
-func _check_for_dungeon_refresh():
-	"""Check if we need to refresh a previously selected dungeon (after battle completion)"""
-	# Check if SystemRegistry has a last completed dungeon via temporary data storage
-	var system_registry = SystemRegistry.get_instance()
-	if system_registry.has_meta("last_dungeon_completed"):
-		var last_dungeon = system_registry.get_meta("last_dungeon_completed")
-		print("=== DungeonScreen: Auto-selecting last completed dungeon: %s ===" % last_dungeon)
-		
-		# Auto-select and show info for the last dungeon
-		selected_dungeon_id = last_dungeon
-		show_dungeon_info(last_dungeon)
-		
-		# Clear the meta to prevent auto-selection on future visits
-		system_registry.remove_meta("last_dungeon_completed")
+func _format_power(power: int) -> String:
+	"""Format power number for display"""
+	if power >= 1000000:
+		return "%.1fM" % (power / 1000000.0)
+	elif power >= 1000:
+		return "%.1fK" % (power / 1000.0)
+	else:
+		return str(power)
+
+func _style_dungeon_button(button: Button, dungeon_info: Dictionary):
+	"""Apply styling to dungeon button based on properties - Enhanced with element colors"""
+	var element = dungeon_info.get("element", "neutral")
+	
+	# Apply element-based color styling like original
+	var element_color: Color
+	match element:
+		"fire":
+			element_color = Color.ORANGE_RED
+		"water":
+			element_color = Color.CYAN
+		"earth":
+			element_color = Color.SADDLE_BROWN
+		"lightning":
+			element_color = Color.YELLOW
+		"light":
+			element_color = Color.WHITE
+		"dark":
+			element_color = Color.PURPLE
+		"neutral":
+			element_color = Color.LIGHT_GRAY
+		_:
+			element_color = Color.WHITE
+	
+	# Apply the color and store it for hover restoration
+	button.modulate = element_color
+	button.set_meta("original_color", element_color)
+	
+	# Add hover effects
+	button.mouse_entered.connect(_on_dungeon_button_hovered.bind(button, true))
+	button.mouse_exited.connect(_on_dungeon_button_hovered.bind(button, false))
+
+func _on_dungeon_button_hovered(button: Button, is_hovered: bool):
+	"""Handle dungeon button hover effects"""
+	if is_hovered:
+		button.modulate = button.modulate.lightened(0.2)
+	else:
+		# Restore original color
+		var original_color = button.get_meta("original_color", Color.WHITE)
+		button.modulate = original_color
+
+func _clear_dungeon_lists():
+	"""Clear all dungeon category lists"""
+	var lists = [elemental_list, pantheon_list, equipment_list]
+	for dungeon_list in lists:
+		if dungeon_list:
+			for child in dungeon_list.get_children():
+				child.queue_free()
 
 func _on_dungeon_selected(dungeon_id: String):
 	"""Handle dungeon selection"""
 	selected_dungeon_id = dungeon_id
 	
-	# Set appropriate default difficulty based on dungeon type
-	var dungeon_info = dungeon_system.get_dungeon_info(dungeon_id)
-	var available_difficulties = dungeon_info.get("difficulty_levels", {}).keys()
+	# Set default difficulty based on dungeon type
+	if dungeon_manager:
+		var dungeon_info = dungeon_manager.get_dungeon_info(dungeon_id)
+		var available_difficulties = dungeon_info.get("difficulty_levels", {}).keys()
+		
+		if available_difficulties.has("beginner"):
+			selected_difficulty = "beginner"
+		elif available_difficulties.has("heroic"):
+			selected_difficulty = "heroic"
+		else:
+			selected_difficulty = available_difficulties[0] if not available_difficulties.is_empty() else ""
 	
-	if available_difficulties.has("beginner"):
-		selected_difficulty = "beginner"  # Default to beginner for normal dungeons
-	elif available_difficulties.has("heroic"):
-		selected_difficulty = "heroic"    # Default to heroic for pantheon dungeons
-	else:
-		# Fallback to first available difficulty
-		selected_difficulty = available_difficulties[0] if available_difficulties.size() > 0 else "beginner"
-	
-	# Show dungeon info
-	show_dungeon_info(dungeon_id)
+	_show_dungeon_info(dungeon_id)
 
-func show_dungeon_info(dungeon_id: String):
+func _show_dungeon_info(dungeon_id: String):
 	"""Show detailed information about a dungeon"""
-	var dungeon_info = dungeon_system.get_dungeon_info(dungeon_id)
+	if not dungeon_manager:
+		return
+	
+	var dungeon_info = dungeon_manager.get_dungeon_info(dungeon_id)
 	if dungeon_info.is_empty():
+		_show_error_message("Dungeon information not found")
 		return
 	
 	# Show the info panel
 	dungeon_info_panel.visible = true
 	
 	# Update dungeon name and description
-	dungeon_name_label.text = dungeon_info.get("name", "Unknown Dungeon")
-	dungeon_description.text = dungeon_info.get("description", "No description available")
+	if dungeon_name_label:
+		dungeon_name_label.text = dungeon_info.get("name", "Unknown Dungeon")
+	if dungeon_description:
+		var description_text = dungeon_info.get("description", "No description available")
+		# Truncate description if too long to keep it compact
+		if description_text.length() > 150:
+			description_text = description_text.substr(0, 147) + "..."
+		dungeon_description.text = description_text
+		# Set a maximum height for the description to keep layout compact
+		dungeon_description.custom_minimum_size = Vector2(0, 40)
+		dungeon_description.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	
 	# Create difficulty buttons
-	update_difficulty_buttons(dungeon_id, dungeon_info)
+	_update_difficulty_buttons(dungeon_info)
 	
-	# Update rewards display with default difficulty (beginner)
-	update_rewards_display(dungeon_id, selected_difficulty)
+	# Update rewards display
+	_update_rewards_display(dungeon_id, selected_difficulty)
 	
-	# Show rewards for current difficulty
-	update_rewards_display(dungeon_id, selected_difficulty)
+	# Update enter button
+	_update_enter_button_state()
 
-func update_difficulty_buttons(dungeon_id: String, dungeon_info: Dictionary):
-	"""Update difficulty selection buttons"""
+func _update_difficulty_buttons(dungeon_info: Dictionary):
+	"""Update difficulty selection buttons with organized layout"""
+	if not difficulty_buttons:
+		return
 	
-	# Clear existing buttons properly - remove from scene tree immediately
+	# Clear existing buttons
 	for child in difficulty_buttons.get_children():
-		difficulty_buttons.remove_child(child)
 		child.queue_free()
 	
 	var difficulties = dungeon_info.get("difficulty_levels", {})
-	
-	# Create a button group so only one can be selected at a time
 	var button_group = ButtonGroup.new()
 	
+	# Create a more compact layout
 	for difficulty in difficulties.keys():
 		var button = Button.new()
-		button.text = difficulty.capitalize()
+		var difficulty_info = difficulties[difficulty]
+		
+		# Create more compact button text
+		var button_text = difficulty.capitalize()
+		var enemy_power = difficulty_info.get("enemy_power", 0)
+		var energy_cost = difficulty_info.get("energy_cost", 0)
+		
+		if enemy_power > 0:
+			button_text += "\n⚔%s • ⚡%d" % [_format_power(enemy_power), energy_cost]
+		
+		button.text = button_text
 		button.toggle_mode = true
-		button.button_group = button_group  # Add to button group
+		button.button_group = button_group
+		button.custom_minimum_size = Vector2(100, 55)  # More compact
+		button.add_theme_font_size_override("font_size", 14)  # Add mobile-friendly font size
 		
-		# Check if difficulty is unlocked
-		var unlocked = dungeon_system.is_difficulty_unlocked(dungeon_id, difficulty)
-		
-		button.disabled = not unlocked
-		
-		if not unlocked:
-			# Show unlock progress for locked difficulties
-			var unlock_info = dungeon_system.get_difficulty_unlock_requirements(dungeon_id, difficulty)
-			button.text += "\n🔒 " + unlock_info.get("progress_text", "Locked")
-			button.modulate = Color.GRAY
-		else:
-			# Show current clears for unlocked difficulties
-			var clear_key = dungeon_id + "_" + difficulty
-			var current_clears = dungeon_system.player_dungeon_progress.get("clear_counts", {}).get(clear_key, 0)
-			if current_clears > 0:
-				button.text += "\n✅ %d clears" % current_clears
-			
-			# Ensure unlocked buttons are properly styled
-			button.modulate = Color.WHITE
+		# Apply difficulty color
+		var difficulty_color = difficulty_info.get("difficulty_color", Color.WHITE)
+		button.modulate = difficulty_color.lerp(Color.WHITE, 0.7)  # Lighter tint
 		
 		# Set default selection
 		if difficulty == selected_difficulty:
 			button.button_pressed = true
 		
-		# Connect primary signal for button functionality
-		button.pressed.connect(_on_difficulty_button_pressed.bind(difficulty))
-		
+		# Use a simple callable approach
+		var callable = func(pressed: bool): _on_difficulty_selected(difficulty, pressed)
+		button.toggled.connect(callable)
 		difficulty_buttons.add_child(button)
 
 func _on_difficulty_selected(difficulty: String, pressed: bool):
 	"""Handle difficulty selection"""
-	
 	if not pressed:
 		return
 	
 	selected_difficulty = difficulty
-	
-	# ButtonGroup handles unpressing other buttons automatically
-	# Update rewards display
-	update_rewards_display(selected_dungeon_id, difficulty)
+	_update_rewards_display(selected_dungeon_id, difficulty)
+	_update_enter_button_state()
 
-func _on_difficulty_button_pressed(difficulty: String):
-	"""Handle difficulty button press - main selection logic"""
+func _update_rewards_display(dungeon_id: String, difficulty: String):
+	"""Update the rewards display with detailed dungeon information"""
 	
-	# Update selected difficulty
-	selected_difficulty = difficulty
+	if not rewards_container:
+		return
 	
-	# Manually handle button group selection - ensure only the clicked button is pressed
-	for child in difficulty_buttons.get_children():
-		if child is Button:
-			child.button_pressed = (child.text.to_lower() == difficulty)
-	
-	# Update the rewards display immediately
-	update_rewards_display(selected_dungeon_id, difficulty)
-
-func update_rewards_display(dungeon_id: String, difficulty: String):
-	"""Update the rewards display with detailed loot and enemy information"""
-	# Clear existing rewards properly - remove from scene tree immediately
+	# Clear existing rewards
 	for child in rewards_container.get_children():
-		if child.name != "RewardsLabel":  # Keep the title label
-			rewards_container.remove_child(child)
-			child.queue_free()
+		child.queue_free()
 	
-	# Update the main title
-	rewards_label.text = "%s - %s Difficulty" % [dungeon_id.replace("_", " ").capitalize(), difficulty.capitalize()]
+	if not dungeon_manager:
+		return
 	
-	# Get dungeon info for enemy and stats
-	var dungeon_info = dungeon_system.get_dungeon_info(dungeon_id)
+	var dungeon_info = dungeon_manager.get_dungeon_info(dungeon_id)
+	if dungeon_info.is_empty():
+		return
+	
 	var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
 	
-	# Add difficulty stats
-	var stats_label = RichTextLabel.new()
-	stats_label.custom_minimum_size.y = 80
-	stats_label.fit_content = true
-	stats_label.bbcode_enabled = true
-	stats_label.text = "[b]📊 Dungeon Stats:[/b]\n" + \
-		"• Recommended Power: %s\n" % _format_number(difficulty_info.get("recommended_power", 0)) + \
-		"• Energy Cost: %d\n" % difficulty_info.get("energy_cost", 0) + \
-		"• Waves: %d\n" % difficulty_info.get("waves", 0) + \
-		"• Boss: %s" % difficulty_info.get("boss", "Unknown")
-	rewards_container.add_child(stats_label)
+	# Create main info container
+	var info_container = VBoxContainer.new()
+	rewards_container.add_child(info_container)
 	
-	# Add separator
-	var separator1 = HSeparator.new()
-	rewards_container.add_child(separator1)
+	# Add dungeon stats section
+	_add_dungeon_stats(info_container, difficulty_info)
 	
-	# Add loot information - FULLY MODULAR using actual JSON data
-	var loot_table_name = _convert_dungeon_id_to_loot_table_name(dungeon_id, difficulty)
+	# Add enemy information section
+	_add_enemy_info(info_container, dungeon_info, difficulty_info)
 	
-	# Use LootSystem to get actual reward preview
-	var system_registry = SystemRegistry.get_instance()
-	var loot_system_ref = system_registry.get_system("LootSystem")
-	if loot_system_ref and loot_system_ref.has_method("get_loot_table_rewards_preview"):
-		var rewards_preview = loot_system_ref.get_loot_table_rewards_preview(loot_table_name)
-		if rewards_preview.size() > 0:
-			var loot_label = RichTextLabel.new()
-			loot_label.custom_minimum_size.y = 120
-			loot_label.fit_content = true
-			loot_label.bbcode_enabled = true
+	# Add rewards section
+	_add_rewards_section(info_container, dungeon_id, difficulty)
+
+func _add_dungeon_stats(container: Node, difficulty_info: Dictionary):
+	"""Add dungeon statistics information in a organized card layout"""
+	# Create a styled panel for stats
+	var stats_panel = Panel.new()
+	stats_panel.custom_minimum_size = Vector2(0, 120)
+	container.add_child(stats_panel)
+	
+	var stats_container = VBoxContainer.new()
+	stats_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	stats_container.add_theme_constant_override("separation", 5)
+	stats_panel.add_child(stats_container)
+	
+	# Title
+	var stats_title = Label.new()
+	stats_title.text = "📊 DUNGEON DETAILS"
+	stats_title.add_theme_font_size_override("font_size", 20)  # Increased from 14
+	stats_title.add_theme_color_override("font_color", Color.GOLD)
+	stats_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stats_container.add_child(stats_title)
+	
+	# Stats in a more organized grid
+	var stats_grid = GridContainer.new()
+	stats_grid.columns = 2
+	stats_grid.add_theme_constant_override("h_separation", 15)
+	stats_grid.add_theme_constant_override("v_separation", 3)
+	stats_container.add_child(stats_grid)
+	
+	var energy_cost = difficulty_info.get("energy_cost", 0)
+	var enemy_power = difficulty_info.get("enemy_power", 0)
+	var recommended_team_power = difficulty_info.get("recommended_team_power", 0)
+	var boss_power = difficulty_info.get("boss_power", 0)
+	
+	# Add stat pairs
+	_add_stat_pair(stats_grid, "⚡ Energy:", str(energy_cost))
+	_add_stat_pair(stats_grid, "⚔ Enemy Power:", _format_power(enemy_power))
+	_add_stat_pair(stats_grid, "🛡 Recommended:", _format_power(recommended_team_power))
+	_add_stat_pair(stats_grid, "👑 Boss Power:", _format_power(boss_power))
+
+func _add_stat_pair(grid: GridContainer, label_text: String, value_text: String):
+	"""Add a label-value pair to the grid"""
+	var label = Label.new()
+	label.text = label_text
+	label.add_theme_font_size_override("font_size", 16)  # Increased from 12
+	grid.add_child(label)
+	
+	var value = Label.new()
+	value.text = value_text
+	value.add_theme_font_size_override("font_size", 16)  # Increased from 12
+	value.add_theme_color_override("font_color", Color.CYAN)
+	grid.add_child(value)
+
+func _add_enemy_info(container: Node, dungeon_info: Dictionary, _difficulty_info: Dictionary):
+	"""Add enemy type information in compact format"""
+	# Add spacing
+	var spacer = Control.new()
+	spacer.custom_minimum_size = Vector2(0, 10)
+	container.add_child(spacer)
+	
+	# Create enemy info panel
+	var enemy_panel = Panel.new()
+	enemy_panel.custom_minimum_size = Vector2(0, 80)
+	container.add_child(enemy_panel)
+	
+	var enemy_container = VBoxContainer.new()
+	enemy_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	enemy_container.add_theme_constant_override("separation", 5)
+	enemy_panel.add_child(enemy_container)
+	
+	var enemies_title = Label.new()
+	enemies_title.text = "👹 ENEMY TYPES"
+	enemies_title.add_theme_font_size_override("font_size", 20)  # Increased from 14
+	enemies_title.add_theme_color_override("font_color", Color.ORANGE_RED)
+	enemies_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	enemy_container.add_child(enemies_title)
+	
+	if dungeon_manager:
+		var enemy_types = dungeon_manager.get_enemy_types_for_dungeon(dungeon_info.get("id", ""))
+		if not enemy_types.is_empty():
+			# Display enemies in a horizontal flow
+			var enemies_text = ""
+			for i in range(enemy_types.size()):
+				if i > 0:
+					enemies_text += " • "
+				enemies_text += enemy_types[i]
 			
-			var guaranteed_text = ""
-			var rare_text = ""
-			
-			# Separate guaranteed from rare drops
-			for reward_info in rewards_preview:
-				var resource_name = reward_info.get("resource_name", "Unknown")
-				var amount_text = reward_info.get("amount_text", "")
-				var chance_text = reward_info.get("chance_text", "")
-				
-				var line = "• %s: %s\n" % [resource_name, amount_text]
-				
-				if chance_text == "Guaranteed":
-					guaranteed_text += line
-				else:
-					rare_text += "• %s: %s (%s)\n" % [resource_name, amount_text, chance_text]
-			
-			var full_text = ""
-			if guaranteed_text != "":
-				full_text += "[b]💰 Guaranteed Rewards:[/b]\n" + guaranteed_text
-			if rare_text != "":
-				if full_text != "":
-					full_text += "\n"
-				full_text += "[b]🎲 Rare Drops:[/b]\n" + rare_text
-			
-			loot_label.text = full_text
-			rewards_container.add_child(loot_label)
+			var enemies_info = Label.new()
+			enemies_info.text = enemies_text
+			enemies_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			enemies_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			enemies_info.add_theme_font_size_override("font_size", 14)  # Increased from 11
+			enemy_container.add_child(enemies_info)
 		else:
-			var no_loot_label = Label.new()
-			no_loot_label.text = "⚠️ No reward data found for: " + loot_table_name
-			rewards_container.add_child(no_loot_label)
-	else:
-		var fallback_label = Label.new()
-		fallback_label.text = "⚠️ Loot system not available"
-		rewards_container.add_child(fallback_label)
-	
-	# Add separator
-	var separator2 = HSeparator.new()
-	rewards_container.add_child(separator2)
-	
-	# Add enemy preview (simplified)
-	var enemy_label = RichTextLabel.new()
-	enemy_label.custom_minimum_size.y = 60
-	enemy_label.fit_content = true
-	enemy_label.bbcode_enabled = true
-	enemy_label.text = "[b]👹 Enemy Information:[/b]\n" + \
-		"• Element: %s\n" % dungeon_info.get("element", "Unknown").capitalize() + \
-		"• Guardian Spirit: %s\n" % dungeon_info.get("guardian_spirit", "Unknown") + \
-		"• Boss: %s" % difficulty_info.get("boss", "Unknown")
-	rewards_container.add_child(enemy_label)
+			var fallback_label = Label.new()
+			fallback_label.text = "Various elemental enemies"
+			fallback_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			fallback_label.add_theme_font_size_override("font_size", 14)  # Increased from 11
+			enemy_container.add_child(fallback_label)
 
-func _convert_dungeon_id_to_loot_table_name(dungeon_id: String, difficulty: String) -> String:
-	"""Convert dungeon ID to the correct loot table name"""
-	var base_name = dungeon_id
+func _add_rewards_section(container: Node, dungeon_id: String, difficulty: String):
+	"""Add rewards preview section with better organization"""
+	# Add spacing
+	var spacer = Control.new()
+	spacer.custom_minimum_size = Vector2(0, 10)
+	container.add_child(spacer)
 	
-	# Convert sanctum names to dungeon names for loot tables
-	if dungeon_id.ends_with("_sanctum"):
-		base_name = dungeon_id.replace("_sanctum", "_dungeon")
+	# Create rewards panel
+	var rewards_panel = Panel.new()
+	container.add_child(rewards_panel)
 	
-	# Handle special mappings for other dungeon types
-	match dungeon_id:
-		"magic_sanctum":
-			return "magic_dungeon"  # Hall of Magic uses generic table (no difficulty suffix)
-		"titans_forge", "valhalla_armory", "oracle_sanctum", "elysian_fields", "styx_crossing":
-			return "equipment_dungeon"  # All equipment dungeons use generic table
-		_:
-			# For trial dungeons, keep the original name
-			if dungeon_id.ends_with("_trials"):
-				base_name = dungeon_id
-				# Pantheon trials only have heroic and legendary difficulties in loot tables
-				# Map beginner/intermediate/advanced/expert/master to heroic, and everything else to legendary
-				if difficulty in ["beginner", "intermediate", "advanced", "expert", "master"]:
-					return base_name + "_heroic"
-				else:
-					return base_name + "_legendary"
+	var rewards_content = VBoxContainer.new()
+	rewards_content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	rewards_content.add_theme_constant_override("separation", 8)
+	rewards_panel.add_child(rewards_content)
 	
-	return base_name + "_" + difficulty
-
-func _get_readable_item_name(item: Dictionary) -> String:
-	"""Convert item type to readable name using ResourceManager"""
-	var item_type = item.get("type", "")
-	var element = item.get("specific_element", "")
+	var rewards_title = Label.new()
+	rewards_title.text = "🎁 REWARDS"
+	rewards_title.add_theme_font_size_override("font_size", 20)  # Increased from 14
+	rewards_title.add_theme_color_override("font_color", Color.LIME_GREEN)
+	rewards_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rewards_content.add_child(rewards_title)
 	
-	# Check if ResourceManager is available
-	var resource_manager = null
-	var system_registry = SystemRegistry.get_instance()
-	resource_manager = system_registry.get_system("ResourceManager")
-	
-	if not resource_manager:
-		# Fallback to basic formatting if ResourceManager not available
-		if element and item_type.begins_with("powder"):
-			var tier_suffix = ""
-			if item_type.ends_with("_low"):
-				tier_suffix = " (Low)"
-			elif item_type.ends_with("_mid"):
-				tier_suffix = " (Mid)"
-			elif item_type.ends_with("_high"):
-				tier_suffix = " (High)"
-			return "%s Powder%s" % [element.capitalize(), tier_suffix]
-		elif element and item_type == "crystals":
-			return "%s Crystals" % element.capitalize()
+	# Try to get loot preview if LootSystem is available
+	if loot_system and dungeon_manager:
+		var loot_table_name = dungeon_manager.get_loot_table_name(dungeon_id, difficulty)
+		if not loot_table_name.is_empty():
+			var loot_preview = loot_system.get_loot_preview(loot_table_name)
+			
+			if not loot_preview.is_empty():
+				_display_loot_preview_compact(rewards_content, loot_preview)
+			else:
+				_show_fallback_rewards_compact(rewards_content, difficulty)
 		else:
-			return item_type.capitalize().replace("_", " ")
-	
-	# For items with specific elements, construct the full resource ID
-	if element and item_type.begins_with("powder"):
-		var full_resource_id = element + "_" + item_type
-		var resource_info = resource_manager.get_resource_info(full_resource_id)
-		return resource_info.get("name", full_resource_id.capitalize().replace("_", " "))
-	elif element and item_type == "crystals":
-		var full_resource_id = element + "_crystals"
-		var resource_info = resource_manager.get_resource_info(full_resource_id)
-		return resource_info.get("name", ("%s Crystals" % element.capitalize()))
+			_show_fallback_rewards_compact(rewards_content, difficulty)
 	else:
-		# Use ResourceManager for standard resources
-		var resource_info = resource_manager.get_resource_info(item_type)
-		return resource_info.get("name", item_type.capitalize().replace("_", " "))
+		_show_fallback_rewards_compact(rewards_content, difficulty)
 
-func _get_amount_text(item: Dictionary) -> String:
-	"""Get amount text for an item"""
-	var min_amt = item.get("min_amount", 1)
-	var max_amt = item.get("max_amount", 1)
+func _display_loot_preview_compact(container: Node, loot_preview: Array):
+	"""Display loot preview in a more compact, organized way"""
+	if loot_preview.is_empty():
+		var no_loot_label = Label.new()
+		no_loot_label.text = "No loot information available"
+		no_loot_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		container.add_child(no_loot_label)
+		return
 	
-	if min_amt == max_amt:
-		return str(min_amt)
-	else:
-		return "%d-%d" % [min_amt, max_amt]
+	# Group items by type
+	var guaranteed_items = []
+	var rare_items = []
+	
+	for item in loot_preview:
+		var chance = item.get("chance", 0.0)
+		if chance >= 100.0:
+			guaranteed_items.append(item)
+		else:
+			rare_items.append(item)
+	
+	# Create a scrollable area for rewards if there are many
+	var scroll_container = ScrollContainer.new()
+	scroll_container.custom_minimum_size = Vector2(0, 120)
+	container.add_child(scroll_container)
+	
+	var content_container = VBoxContainer.new()
+	content_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll_container.add_child(content_container)
+	
+	# Display guaranteed drops
+	if not guaranteed_items.is_empty():
+		var guaranteed_header = Label.new()
+		guaranteed_header.text = "✅ Guaranteed:"
+		guaranteed_header.add_theme_font_size_override("font_size", 16)  # Increased from 12
+		guaranteed_header.add_theme_color_override("font_color", Color.YELLOW)
+		content_container.add_child(guaranteed_header)
+		
+		for item in guaranteed_items.slice(0, 3):  # Limit to first 3 items
+			var item_label = Label.new()
+			var item_id = item.get("item_id", "Unknown")
+			var min_amount = item.get("min_amount", 1)
+			var max_amount = item.get("max_amount", 1)
+			
+			var amount_text = ""
+			if min_amount == max_amount:
+				amount_text = " x%d" % min_amount
+			else:
+				amount_text = " x%d-%d" % [min_amount, max_amount]
+			
+			item_label.text = "  • %s%s" % [_format_item_name(item_id), amount_text]
+			item_label.add_theme_font_size_override("font_size", 14)  # Increased from 10
+			content_container.add_child(item_label)
+	
+	# Display rare drops (limited)
+	if not rare_items.is_empty():
+		var rare_header = Label.new()
+		rare_header.text = "🎲 Rare Drops:"
+		rare_header.add_theme_font_size_override("font_size", 16)  # Increased from 12
+		rare_header.add_theme_color_override("font_color", Color.PURPLE)
+		content_container.add_child(rare_header)
+		
+		for item in rare_items.slice(0, 2):  # Limit to first 2 rare items
+			var item_label = Label.new()
+			var item_id = item.get("item_id", "Unknown")
+			var chance = item.get("chance", 0.0)
+			
+			item_label.text = "  • %s (%.1f%%)" % [_format_item_name(item_id), chance]
+			item_label.add_theme_font_size_override("font_size", 14)  # Increased from 10
+			content_container.add_child(item_label)
 
-func _format_number(number: float) -> String:
-	"""Format large numbers with K/M suffixes"""
-	if number >= 1000000:
-		return "%.1fM" % (number / 1000000.0)
-	elif number >= 1000:
-		return "%.1fK" % (number / 1000.0)
+func _show_fallback_rewards_compact(container: Node, difficulty: String):
+	"""Show fallback rewards information in compact format"""
+	var fallback_text = "⭐ Experience & Mana\n"
+	fallback_text += "🔮 Elemental Materials\n"
+	
+	# Add difficulty-specific rewards
+	match difficulty:
+		"beginner":
+			fallback_text += "🛡 Basic Equipment"
+		"intermediate":
+			fallback_text += "⚔ Rare Equipment"
+		"advanced":
+			fallback_text += "👑 Epic Equipment"
+		"expert":
+			fallback_text += "💎 Legendary Equipment"
+	
+	var fallback_label = Label.new()
+	fallback_label.text = fallback_text
+	fallback_label.add_theme_font_size_override("font_size", 14)  # Increased from 11
+	fallback_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	container.add_child(fallback_label)
+
+func _display_loot_preview(container: Node, loot_preview: Array):
+	"""Display actual loot preview from LootSystem"""
+	var preview_text = ""
+	
+	if loot_preview.is_empty():
+		preview_text = "No loot information available"
 	else:
-		return str(int(number))
+		# Group items by type or rarity
+		var guaranteed_items = []
+		var rare_items = []
+		
+		for item in loot_preview:
+			var chance = item.get("chance", 0.0)
+			if chance >= 100.0:
+				guaranteed_items.append(item)
+			else:
+				rare_items.append(item)
+		
+		# Display guaranteed drops
+		if not guaranteed_items.is_empty():
+			preview_text += "Guaranteed:\n"
+			for item in guaranteed_items:
+				var item_id = item.get("item_id", "Unknown")
+				var min_amount = item.get("min_amount", 1)
+				var max_amount = item.get("max_amount", 1)
+				
+				var amount_text = ""
+				if min_amount == max_amount:
+					amount_text = " x%d" % min_amount
+				else:
+					amount_text = " x%d-%d" % [min_amount, max_amount]
+				
+				preview_text += "• %s%s\n" % [_format_item_name(item_id), amount_text]
+		
+		# Display rare drops
+		if not rare_items.is_empty():
+			if not guaranteed_items.is_empty():
+				preview_text += "\n"
+			preview_text += "Rare Drops:\n"
+			for item in rare_items:
+				var item_id = item.get("item_id", "Unknown")
+				var chance = item.get("chance", 0.0)
+				var min_amount = item.get("min_amount", 1)
+				var max_amount = item.get("max_amount", 1)
+				
+				var amount_text = ""
+				if min_amount == max_amount:
+					amount_text = " x%d" % min_amount
+				else:
+					amount_text = " x%d-%d" % [min_amount, max_amount]
+				
+				preview_text += "• %s%s (%.1f%%)\n" % [_format_item_name(item_id), amount_text, chance]
+	
+	if preview_text.is_empty():
+		preview_text = "Loot information loading..."
+	
+	var preview_label = Label.new()
+	preview_label.text = preview_text
+	preview_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	container.add_child(preview_label)
+
+func _format_item_name(item_id: String) -> String:
+	"""Format item ID into a readable name"""
+	return item_id.replace("_", " ").capitalize()
+
+func _show_fallback_rewards(container: Node, dungeon_id: String, difficulty: String):
+	"""Show fallback rewards information when LootSystem is unavailable"""
+	var fallback_text = "• Experience for your gods\n"
+	fallback_text += "• Elemental materials\n"
+	fallback_text += "• Mana crystals\n"
+	
+	# Add difficulty-specific rewards
+	match difficulty:
+		"beginner":
+			fallback_text += "• Basic equipment materials"
+		"intermediate":
+			fallback_text += "• Rare equipment materials"
+		"advanced":
+			fallback_text += "• Epic equipment materials"
+		"expert":
+			fallback_text += "• Legendary equipment materials"
+	
+	var fallback_label = Label.new()
+	fallback_label.text = fallback_text
+	fallback_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	container.add_child(fallback_label)
+	
+	# Add title
+	var rewards_title = RichTextLabel.new()
+	rewards_title.custom_minimum_size.y = 40
+	rewards_title.fit_content = true
+	rewards_title.bbcode_enabled = true
+	rewards_title.text = "[b]Rewards - %s[/b]" % difficulty.capitalize()
+	rewards_container.add_child(rewards_title)
+	
+	# Get loot information from LootSystem
+	if loot_system:
+		var loot_table_name = _get_loot_table_name(dungeon_id, difficulty)
+		var loot_preview = loot_system.get_loot_preview(loot_table_name)
+		
+		if not loot_preview.is_empty():
+			_display_loot_preview(container, loot_preview)
+
+func _get_loot_table_name(dungeon_id: String, difficulty: String) -> String:
+	"""Convert dungeon ID and difficulty to loot table name"""
+	var loot_table_name = ""
+	
+	if dungeon_manager and dungeon_manager.has_method("get_loot_table_name"):
+		loot_table_name = dungeon_manager.get_loot_table_name(dungeon_id, difficulty)
+	
+	if loot_table_name == "":
+		# Fallback logic
+		if dungeon_id.ends_with("_sanctum"):
+			loot_table_name = "elemental_dungeon_" + difficulty
+		else:
+			loot_table_name = dungeon_id + "_" + difficulty
+	
+	return loot_table_name
+
+func _update_enter_button_state():
+	"""Update enter button state"""
+	if not enter_button:
+		return
+	
+	var can_enter = not selected_dungeon_id.is_empty() and not selected_difficulty.is_empty()
+	enter_button.disabled = not can_enter
+	
+	if can_enter:
+		enter_button.text = "Enter Dungeon"
+	else:
+		enter_button.text = "Select Dungeon & Difficulty"
 
 func _on_enter_button_pressed():
 	"""Handle enter dungeon button press"""
-	print("=== DEBUG: Enter button pressed ===")
-	print("  selected_dungeon_id: '%s'" % selected_dungeon_id)
-	print("  selected_difficulty: '%s'" % selected_difficulty)
-	
-	if selected_dungeon_id == "" or selected_difficulty == "":
-		show_error_message("Please select a dungeon and difficulty")
-		print("  ERROR: Missing dungeon or difficulty selection")
+	if selected_dungeon_id.is_empty() or selected_difficulty.is_empty():
+		_show_error_message("Please select a dungeon and difficulty first")
 		return
 	
-	# Check if player has gods
-	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager")
-	if not collection_manager or collection_manager.get_all_gods().size() == 0:
-		show_error_message("You need at least one god to enter a dungeon")
-		print("  ERROR: No gods available")
-		return
+	# Check energy requirements
+	if resource_manager:
+		var energy_cost = _get_energy_cost(selected_dungeon_id, selected_difficulty)
+		if not resource_manager.has_resource("energy", energy_cost):
+			_show_error_message("Not enough energy (need %d)" % energy_cost)
+			return
 	
-	print("  All checks passed, opening battle setup...")
-	# Open BattleSetupScreen for team selection
-	open_battle_setup_screen()
+	# Proceed to battle setup
+	_open_battle_setup()
 
-func open_battle_setup_screen():
-	"""Open the universal battle setup screen for dungeons"""
-	# Load battle setup scene
-	var setup_scene = load("res://scenes/BattleSetupScreen.tscn")
-	var setup_screen = setup_scene.instantiate()
+func _get_energy_cost(dungeon_id: String, difficulty: String) -> int:
+	"""Get energy cost for dungeon"""
+	if dungeon_manager:
+		var dungeon_info = dungeon_manager.get_dungeon_info(dungeon_id)
+		var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
+		return difficulty_info.get("energy_cost", 8)
 	
-	# Setup for dungeon battle
-	print("=== DEBUG: Setting up battle with dungeon_id='%s', difficulty='%s' ===" % [selected_dungeon_id, selected_difficulty])
-	setup_screen.setup_for_dungeon_battle(selected_dungeon_id, selected_difficulty)
-	
-	# Connect signals
-	setup_screen.battle_setup_complete.connect(_on_battle_setup_complete)
-	setup_screen.setup_cancelled.connect(_on_battle_setup_cancelled)
-	
-	# Add to scene tree
-	get_tree().root.add_child(setup_screen)
+	return 8  # Default cost
 
-func _on_battle_setup_complete(context: Dictionary):
-	"""Handle battle setup completion"""
-	var team = context.get("team", [])
-	var dungeon_id = context.get("dungeon_id", "")
-	var difficulty = context.get("difficulty", "")
-	
-	if team.size() == 0:
-		show_error_message("No team selected")
-		return
-	
-	# Remove setup screen
-	var setup_screen = get_tree().get_nodes_in_group("battle_setup")[0] if get_tree().get_nodes_in_group("battle_setup").size() > 0 else null
-	if setup_screen:
-		setup_screen.queue_free()
-	
-	# Check energy and validate battle (without starting it)
-	var validation_result = dungeon_system.validate_dungeon_attempt(dungeon_id, difficulty, team)
-	
-	if not validation_result.success:
-		show_error_message(validation_result.error_message)
-		return
-	
-	# Spend energy now
-	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager")
-	if resource_manager and resource_manager.has_method("spend_energy"):
-		resource_manager.spend_energy(validation_result.energy_cost)
-	
-	# Save game after spending energy (handled by ResourceManager internally)
-	# SystemRegistry systems handle their own persistence
-	
-	# Switch directly to BattleScreen with complete context
-	_switch_to_battle_screen_with_context(context)
+func _open_battle_setup():
+	"""Open battle setup screen for dungeon"""
+	# This would typically switch to a battle setup screen
+	# Could emit signal for parent to handle
+	# battle_setup_requested.emit(selected_dungeon_id, selected_difficulty)
+	pass
 
-func _switch_to_battle_screen_with_context(context: Dictionary):
-	"""Switch to BattleScreen with complete battle context"""
-	print("=== DungeonScreen: Switching to BattleScreen with context ===")
-	print("=== DEBUG: Current DungeonScreen instance ID before transition: ", get_instance_id())
-	
-	# Store battle context in SystemRegistry for the new scene to pick up
-	var system_registry = SystemRegistry.get_instance()
-	system_registry.set_meta("pending_battle_context", context)
-	
-	# Simple scene transition - let the BattleScreen pick up the context in _ready()
-	get_tree().change_scene_to_file("res://scenes/BattleScreen.tscn")
-
-func _on_battle_setup_cancelled():
-	"""Handle battle setup cancellation"""
-	# Remove setup screen
-	var setup_screen = get_tree().get_nodes_in_group("battle_setup")[0] if get_tree().get_nodes_in_group("battle_setup").size() > 0 else null
-	if setup_screen:
-		setup_screen.queue_free()
-
-func _on_dungeon_completed(_dungeon_id: String, _difficulty: String, rewards: Dictionary):
-	"""Handle dungeon completion"""
-	var message = "Dungeon completed!\nRewards:\n"
-	for reward_type in rewards:
-		message += "• " + reward_type + ": " + str(rewards[reward_type]) + "\n"
-	
-	show_success_message(message)
-
-func _on_dungeon_failed(_dungeon_id: String, _difficulty: String):
-	"""Handle dungeon failure"""
-	show_error_message("Dungeon failed! Your team wasn't strong enough.")
-
-func show_error_message(message: String):
-	"""Show error popup"""
-	# In a real implementation, you'd create a proper dialog
-	print("Error: " + message)
-	
-	# Simple notification (replace with proper UI)
-	var error_label = Label.new()
-	error_label.text = message
-	error_label.modulate = Color.RED
-	error_label.position = Vector2(100, 100)
-	get_parent().add_child(error_label)
-	
-	# Remove after 3 seconds
-	await get_tree().create_timer(3.0).timeout
-	if is_instance_valid(error_label):
-		error_label.queue_free()
-
-func show_success_message(message: String):
-	"""Show success popup"""
-	print("Success: " + message)
-	
-	# Simple notification (replace with proper UI)
-	var success_label = Label.new()
-	success_label.text = message
-	success_label.modulate = Color.GREEN
-	success_label.position = Vector2(100, 150)
-	get_parent().add_child(success_label)
-	
-	# Remove after 5 seconds
-	await get_tree().create_timer(5.0).timeout
-	if is_instance_valid(success_label):
-		success_label.queue_free()
-
-func update_schedule_info():
-	"""Update the schedule information display"""
-	var schedule_info = dungeon_system.get_dungeon_schedule_info()
-	var today = schedule_info.get("today", "unknown")
-	var todays_dungeons = schedule_info.get("todays_dungeons", [])
-	
-	var schedule_text = "Today (" + today.capitalize() + "): "
-	if todays_dungeons.size() > 0:
-		schedule_text += todays_dungeons[0].replace("_", " ").capitalize()
-		for i in range(1, todays_dungeons.size()):
-			schedule_text += ", " + todays_dungeons[i].replace("_", " ").capitalize()
-	else:
-		schedule_text += "No special dungeons"
-	
-	schedule_label.text = schedule_text
+func _show_error_message(_message: String):
+	"""Show error message to user"""
+	# Could integrate with NotificationManager through SystemRegistry
+	pass
 
 func _on_back_button_pressed():
 	"""Handle back button press"""
-	print("=== DungeonScreen: Back button pressed ===")
-	print("=== DEBUG: back_pressed signal connected count: ", get_signal_connection_list("back_pressed").size())
 	back_pressed.emit()
-	print("=== DungeonScreen: back_pressed signal emitted ===")
 
-	# Fallback: if no connections, navigate to MainUI or WorldView manually
-	if get_signal_connection_list("back_pressed").size() == 0:
-		print("=== DungeonScreen: No back_pressed connections, navigating manually ===")
-		var world_view = get_node_or_null("/root/Main/WorldView")
-		if world_view:
-			world_view.visible = true
-			queue_free()
-		else:
-			# Try to go to main scene as fallback
-			get_tree().change_scene_to_file("res://scenes/Main.tscn")
-
-# Called when the node enters the scene tree
 func _enter_tree():
-	# ALWAYS use SystemRegistry's dungeon system - never create a new one
-	var system_registry = SystemRegistry.get_instance()
-	dungeon_system = system_registry.get_system("DungeonSystem")
-	if not dungeon_system:
-		print("ERROR: DungeonSystem not available in SystemRegistry")
-		# Don't create a new instance - this breaks data persistence
-		return
+	"""Called when entering scene tree"""
+	if not SystemRegistry.get_instance():
+		push_error("DungeonScreen: SystemRegistry not available")

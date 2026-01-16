@@ -733,19 +733,15 @@ func _on_awaken_god_pressed():
 		return
 
 	if awakening_system.attempt_awakening(awakening_selected_god):
-		print("SacrificeScreen: God awakened successfully!")
-		
 		# Refresh displays
 		awakening_selected_god = null
 		refresh_awakening_god_list()
-		update_awakening_god_display() 
+		update_awakening_god_display()
 		update_awakening_materials_display()
 		update_awakening_button()
-		
+
 		# Also refresh sacrifice tab in case awakened god affects sacrifice options
 		refresh_god_list()
-	else:
-		print("SacrificeScreen: Awakening failed!")
 
 func _on_sacrifice_selection_screen_pressed():
 	"""Open the sacrifice selection screen using ScreenManager"""

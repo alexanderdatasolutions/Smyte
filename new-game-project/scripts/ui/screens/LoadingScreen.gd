@@ -58,7 +58,6 @@ func start_loading():
 	"""Start the loading process through GameCoordinator"""
 	# TODO: Implement proper loading system through SystemRegistry
 	# For now, skip directly to main game
-	print("LoadingScreen: Loading system temporarily disabled - transitioning to main game")
 	await get_tree().create_timer(1.0).timeout
 	load_main_game()
 
@@ -68,8 +67,6 @@ func _on_initialization_progress(step_name: String, progress: float):
 		status_label.text = step_name
 	if progress_bar:
 		progress_bar.value = progress * 100
-	
-	print("Loading: %s (%.1f%%)" % [step_name, progress * 100])
 
 func _on_initialization_complete():
 	"""Handle initialization completion"""
@@ -77,38 +74,25 @@ func _on_initialization_complete():
 		status_label.text = "Ready! Loading game..."
 	if progress_bar:
 		progress_bar.value = 100
-	
-	print("Loading complete! Starting main game...")
-	
+
 	# Small delay for visual feedback
 	await get_tree().create_timer(0.5).timeout
 	load_main_game()
 
 func load_main_game():
 	"""Load the main game scene with proper error handling"""
-	print("LoadingScreen: Attempting to load main game scene...")
-	
 	# Robust scene tree checking following MYTHOS ARCHITECTURE
 	var tree = get_tree()
 	if not tree:
-		print("ERROR: LoadingScreen - SceneTree is null! Cannot transition to main game.")
 		# Fallback: Try to access through GameCoordinator if available
 		if GameCoordinator and is_instance_valid(GameCoordinator):
 			tree = GameCoordinator.get_tree()
-		
+
 		if not tree:
-			print("CRITICAL ERROR: No valid SceneTree found. Game cannot continue.")
 			return
-	
+
 	# Verify the main scene file exists
 	if not FileAccess.file_exists("res://scenes/Main.tscn"):
-		print("ERROR: Main.tscn scene file not found!")
 		return
-	
-	print("LoadingScreen: Scene tree and file verified. Changing scene...")
-	var result = tree.change_scene_to_file("res://scenes/Main.tscn")
-	
-	if result != OK:
-		print("ERROR: Failed to change scene to Main.tscn. Error code: %d" % result)
-	else:
-		print("LoadingScreen: Successfully initiated scene change to Main.tscn")
+
+	tree.change_scene_to_file("res://scenes/Main.tscn")

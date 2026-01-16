@@ -70,13 +70,12 @@ func get_tier_base_value(tier: God.TierType) -> int:
 		God.TierType.COMMON:
 			return 500    # 1* equivalent
 		God.TierType.RARE:
-			return 1500   # 2-3* equivalent  
+			return 1500   # 2-3* equivalent
 		God.TierType.EPIC:
 			return 4000   # 4* equivalent
 		God.TierType.LEGENDARY:
 			return 10000  # 5* equivalent
 		_:
-			print("Warning: Unknown tier type: %d" % tier)
 			return 500
 
 func calculate_levels_gained(target_god: God, xp_gain: int) -> int:
@@ -144,19 +143,16 @@ func perform_sacrifice(target_god: God, material_gods: Array, player_data) -> bo
 	var sacrifice_result = calculate_sacrifice_experience(material_gods, target_god)
 	var total_xp = sacrifice_result.total_xp
 	
-	# Give experience to target god
-	target_god.add_experience(total_xp)
-	
-	# Remove material gods from player collection
+	# Remove material gods from player collection FIRST
+	var collection_manager = player_data  # player_data is actually the CollectionManager
 	for material_god in material_gods:
-		player_data.remove_god(material_god)
+		collection_manager.remove_god(material_god)
 	
-	print("Sacrifice complete! %s gained %d experience from %d gods" % [
-		target_god.name, 
-		total_xp, 
-		material_gods.size()
-	])
-	
+	# Then give experience to target god (this will trigger save via save_requested signal)
+	var system_registry = SystemRegistry.get_instance()
+	var god_progression_manager = system_registry.get_system("GodProgressionManager")
+	god_progression_manager.add_experience_to_god(target_god, total_xp)
+
 	# Emit success signal
 	sacrifice_completed.emit(target_god, material_gods, total_xp)
 	

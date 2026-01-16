@@ -38,8 +38,6 @@ var summon_statistics: Dictionary = {}
 
 ## Initialize a new game state
 func initialize_new_game():
-	print("GameState: Initializing new game state")
-	
 	# Reset all data
 	player_level = 1
 	player_experience = 0
@@ -78,7 +76,6 @@ func initialize_new_game():
 ## Store game data loaded from JSON files
 func store_game_data(category: String, data: Dictionary):
 	game_data[category] = data
-	print("GameState: Stored ", category, " data (", data.size(), " entries)")
 
 ## Get cached game data by category
 func get_game_data(category: String) -> Dictionary:
@@ -86,8 +83,6 @@ func get_game_data(category: String) -> Dictionary:
 
 ## Load state from save data
 func load_from_save(save_data: Dictionary):
-	print("GameState: Loading from save data")
-	
 	# Player data
 	player_level = save_data.get("level", 1)
 	player_experience = save_data.get("experience", 0)

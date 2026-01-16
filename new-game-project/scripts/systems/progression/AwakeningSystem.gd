@@ -19,7 +19,6 @@ func load_awakening_data():
 	var file = FileAccess.open(file_path, FileAccess.READ)
 	
 	if not file:
-		print("Warning: Could not open awakened_gods.json - awakening system disabled")
 		awakening_data = {}
 		return
 	
@@ -28,13 +27,11 @@ func load_awakening_data():
 	
 	var json = JSON.new()
 	var parse_result = json.parse(json_text)
-	
+
 	if parse_result != OK:
-		print("Error parsing awakened_gods.json: ", json.error_string)
 		return
-	
+
 	awakening_data = json.get_data()
-	print("Loaded awakening data for ", awakening_data.get("awakened_gods", {}).size(), " gods")
 
 func can_awaken_god(god: God) -> Dictionary:
 	"""Check if a god can be awakened and return requirements status"""
@@ -119,7 +116,6 @@ func attempt_awakening(god: God) -> bool:
 	# Replace the god with the awakened version
 	if replace_god_with_awakened(god, awakened_god_data):
 		awakening_completed.emit(god)
-		print("Successfully awakened %s into %s!" % [god.name, awakened_god_data.get("name", "Unknown")])
 		return true
 	else:
 		awakening_failed.emit(god, "Awakening process failed")
@@ -129,7 +125,6 @@ func replace_god_with_awakened(old_god: God, awakened_data: Dictionary) -> bool:
 	"""Replace the base god with its awakened form"""
 	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager")
 	if not collection_manager:
-		print("Error: CollectionManager not available")
 		return false
 
 	# Find the god in player's collection
@@ -140,13 +135,11 @@ func replace_god_with_awakened(old_god: God, awakened_data: Dictionary) -> bool:
 			break
 
 	if god_index == -1:
-		print("Error: Could not find god in player collection")
 		return false
 
 	# Create the awakened god from the JSON data
 	var awakened_god = create_awakened_god_from_data(awakened_data)
 	if not awakened_god:
-		print("Error: Could not create awakened god")
 		return false
 
 	# Preserve some stats from the original god

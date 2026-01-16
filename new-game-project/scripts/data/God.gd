@@ -92,13 +92,15 @@ func get_equipment_in_slot(slot: int) -> Equipment:
 	return equipment[slot]
 
 # ==============================================================================
-# DATA VALIDATION - Simple checks only
+# DATA VALIDATION - Simple checks only (NO CALCULATIONS - RULE 3)
 # ==============================================================================
 
 func is_valid() -> bool:
+	"""Simple data validation - RULE 3 compliant"""
 	return id != "" and name != "" and base_hp > 0 and base_attack > 0
 
 func can_level_up() -> bool:
+	"""Simple level cap check - RULE 3 compliant"""
 	return level < 40  # Max level cap
 
 func has_ability(ability_id: String) -> bool:
@@ -106,6 +108,17 @@ func has_ability(ability_id: String) -> bool:
 		if ability.get("id") == ability_id:
 			return true
 	return false
+
+func is_equipped() -> bool:
+	# Check if god has any equipment equipped
+	for eq in equipment:
+		if eq != null:
+			return true
+	return false
+
+func is_assigned_to_territory() -> bool:
+	# Check if god is assigned to a territory role
+	return stationed_territory != "" and territory_role != ""
 
 # Static utility method
 static func element_to_string(element_enum) -> String:
@@ -118,6 +131,17 @@ static func element_to_string(element_enum) -> String:
 		ElementType.DARK: return "dark"
 		_: return "unknown"
 
+# Static utility method for string to element conversion
+static func string_to_element(element_string: String) -> ElementType:
+	match element_string.to_lower():
+		"fire": return ElementType.FIRE
+		"water": return ElementType.WATER
+		"earth": return ElementType.EARTH
+		"lightning": return ElementType.LIGHTNING
+		"light": return ElementType.LIGHT
+		"dark": return ElementType.DARK
+		_: return ElementType.LIGHT  # Default fallback
+
 # Static utility method for tier conversion
 static func tier_to_string(tier_enum) -> String:
 	match tier_enum:
@@ -126,3 +150,12 @@ static func tier_to_string(tier_enum) -> String:
 		TierType.EPIC: return "epic"
 		TierType.LEGENDARY: return "legendary"
 		_: return "unknown"
+
+# Static utility method for string to tier conversion  
+static func string_to_tier(tier_string: String) -> TierType:
+	match tier_string.to_lower():
+		"common": return TierType.COMMON
+		"rare": return TierType.RARE
+		"epic": return TierType.EPIC
+		"legendary": return TierType.LEGENDARY
+		_: return TierType.COMMON  # Default fallback

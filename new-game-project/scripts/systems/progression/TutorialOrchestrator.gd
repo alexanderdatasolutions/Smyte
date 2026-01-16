@@ -30,7 +30,7 @@ var tutorial_steps: Dictionary = {
 }
 
 func _ready():
-	print("TutorialOrchestrator: Tutorial system ready")
+	pass
 
 # ==============================================================================
 # MAIN TUTORIAL FLOW - SystemRegistry Pattern
@@ -42,7 +42,6 @@ func start_tutorial(tutorial_name: String) -> bool:
 		return false
 	
 	if not tutorial_steps.has(tutorial_name):
-		print("TutorialOrchestrator: Unknown tutorial: %s" % tutorial_name)
 		return false
 	
 	current_tutorial = tutorial_name

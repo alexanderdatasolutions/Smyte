@@ -1,5 +1,13 @@
-# scripts/ui/CollectionScreen.gd
+class_name CollectionScreen
 extends Control
+
+"""
+CollectionScreen.gd - God collection management screen using SystemRegistry
+RULE 2: Single responsibility - ONLY orchestrates collection UI display
+RULE 4: No data modification - delegates to systems through SystemRegistry  
+RULE 5: Uses SystemRegistry for all system access
+Uses standardized GodCard component for consistent god display
+"""
 
 signal back_pressed
 
@@ -8,21 +16,71 @@ signal back_pressed
 @onready var details_content = $MainContainer/RightPanel/DetailsContainer/DetailsContent
 @onready var no_selection_label = $MainContainer/RightPanel/DetailsContainer/DetailsContent/NoSelectionLabel
 
-# Sorting state
+# SystemRegistry references
+var collection_manager
+var resource_manager
+
+# Sorting state (from old collection screen)
 enum SortType { POWER, LEVEL, TIER, ELEMENT, NAME }
 var current_sort: SortType = SortType.POWER
 var sort_ascending: bool = false  # Default to descending (highest first)
 var sort_buttons = []  # Store references to sort buttons
 var direction_button = null  # Store reference to direction button
 
+# Additional utility functions for god data
+func get_element_name(element_id: int) -> String:
+	match element_id:
+		0: return "Fire"
+		1: return "Water"
+		2: return "Wind"  
+		3: return "Lightning"
+		4: return "Light"
+		5: return "Dark"
+		_: return "Unknown"
+
+func get_tier_name(tier: int) -> String:
+	match tier:
+		0: return "⭐ Common"
+		1: return "⭐⭐ Rare"
+		2: return "⭐⭐⭐ Epic"
+		3: return "⭐⭐⭐⭐ Legendary"
+		_: return "Unknown"
+
+func get_power_rating(god) -> int:
+	# Calculate power rating from base stats
+	var power = god.base_attack + god.base_defense + god.base_hp + god.base_speed
+	return int(power * 0.8)  # Adjust multiplier as needed
+
+func get_experience_to_next_level(god) -> int:
+	# Use centralized experience calculator for consistency
+	var god_exp_calc = preload("res://scripts/utilities/GodExperienceCalculator.gd")
+	return god_exp_calc.get_experience_to_next_level(god.level)
+
+func get_experience_progress(god) -> float:
+	# Use centralized experience calculator for consistency
+	var god_exp_calc = preload("res://scripts/utilities/GodExperienceCalculator.gd")
+	return god_exp_calc.get_experience_progress(god)
+
+func get_max_hp(god) -> int:
+	return god.base_hp
+
+func get_current_attack(god) -> int:
+	return god.base_attack
+
+func get_current_defense(god) -> int:
+	return god.base_defense
+
+func get_current_speed(god) -> int:
+	return god.base_speed
+
+func has_valid_abilities(god) -> bool:
+	return "ability_ids" in god and god.ability_ids.size() > 0
+
 # Scroll position preservation
 var scroll_position: float = 0.0
 
 func _ready():
-	# Connect to EventBus signals for modular communication
-	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
-	if event_bus and event_bus.has_signal("god_obtained"):
-		event_bus.god_obtained.connect(_on_god_summoned)
+	_init_systems()
 	
 	if back_button:
 		back_button.pressed.connect(_on_back_pressed)
@@ -31,34 +89,64 @@ func _ready():
 	setup_sorting_ui()
 	refresh_collection()
 	show_no_selection()
+	
+	# Connect to EventBus to listen for collection changes
+	_connect_to_events()
 
-func _on_back_pressed():
-	back_pressed.emit()
+func _connect_to_events():
+	"""Connect to events that should trigger collection refresh"""
+	var registry = SystemRegistry.get_instance()
+	if registry:
+		var event_bus = registry.get_system("EventBus")
+		if event_bus:
+			# Refresh when gods gain experience or level up
+			if not event_bus.experience_gained.is_connected(_on_god_updated):
+				event_bus.experience_gained.connect(_on_god_updated)
+			if not event_bus.god_level_up.is_connected(_on_god_level_up):
+				event_bus.god_level_up.connect(_on_god_level_up)
+			if not event_bus.god_obtained.is_connected(_on_collection_changed):
+				event_bus.god_obtained.connect(_on_collection_changed)
+			# IMPORTANT: Listen to collection_updated for god removals (sacrifice)
+			if not event_bus.collection_updated.is_connected(_on_collection_changed):
+				event_bus.collection_updated.connect(_on_collection_changed)
 
-func _on_god_summoned(_god):
-	# When a new god is summoned, refresh the collection display
+func _on_god_updated(_god_id: String, _experience: int):
+	"""Called when a god gains experience - refresh display"""
 	refresh_collection()
 
-func show_no_selection():
-	# Show the default "no selection" message
-	if not details_content:
+func _on_god_level_up(_god, _new_level: int, _old_level: int):
+	"""Called when a god levels up - refresh display"""
+	refresh_collection()
+
+func _on_collection_changed(_god):
+	"""Called when collection changes - refresh display"""
+	refresh_collection()
+
+# Also add visibility change detection
+func _notification(what: int):
+	if what == NOTIFICATION_VISIBILITY_CHANGED and visible:
+		# Screen became visible - refresh collection
+		if collection_manager:
+			refresh_collection()
+
+func _init_systems():
+	"""Initialize SystemRegistry systems - RULE 5"""
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		push_error("CollectionScreen: SystemRegistry not available!")
 		return
 		
-	for child in details_content.get_children():
-		child.queue_free()
+	collection_manager = registry.get_system("CollectionManager")
+	resource_manager = registry.get_system("ResourceManager")
 	
-	# Wait a frame for cleanup
-	await get_tree().process_frame
-	
-	var no_selection = Label.new()
-	no_selection.text = "Click on a god to view details"
-	no_selection.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	no_selection.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	no_selection.add_theme_font_size_override("font_size", 16)
-	details_content.add_child(no_selection)
+	if not collection_manager:
+		push_error("CollectionScreen: CollectionManager not found!")
+	if not resource_manager:
+		push_error("CollectionScreen: ResourceManager not found!")
 
 func setup_sorting_ui():
-	"""Add sorting controls to the collection screen - only called once"""
+	"""Setup sorting controls like the old version with full functionality"""
+	
 	# Check if sorting UI already exists
 	var left_panel_vbox = $MainContainer/LeftPanel/ScrollContainer/VBoxContainer
 	if not left_panel_vbox:
@@ -97,251 +185,452 @@ func setup_sorting_ui():
 	
 	# Add sort direction button
 	direction_button = Button.new()
-	direction_button.text = "↓" if not sort_ascending else "↑"
+	direction_button.text = "↓"  # Down arrow for descending
 	direction_button.custom_minimum_size = Vector2(30, 30)
-	direction_button.pressed.connect(_on_sort_direction_changed)
+	direction_button.pressed.connect(_on_direction_changed)
 	sort_container.add_child(direction_button)
 	
-	# Insert sorting controls at the top of the VBox (before GridContainer)
+	# Insert at the top of the left panel (before the grid)
 	left_panel_vbox.add_child(sort_container)
 	left_panel_vbox.move_child(sort_container, 0)
 	
-	# Initial button highlighting
-	update_sort_buttons()
-
-func update_sort_buttons():
-	"""Update the visual state of sort buttons"""
-	for i in range(sort_buttons.size()):
-		var button = sort_buttons[i]
-		var button_type = [SortType.POWER, SortType.LEVEL, SortType.TIER, SortType.ELEMENT, SortType.NAME][i]
-		
-		if button_type == current_sort:
-			# Highlight current sort
-			var style = StyleBoxFlat.new()
-			style.bg_color = Color(0.3, 0.6, 1.0, 0.8)
-			button.add_theme_stylebox_override("normal", style)
-		else:
-			# Remove highlight
-			button.remove_theme_stylebox_override("normal")
-	
-	# Update direction button
-	if direction_button:
-		direction_button.text = "↓" if not sort_ascending else "↑"
+	# Update button styles to show current selection
+	_update_sort_button_styles()
 
 func _on_sort_changed(sort_type: SortType):
 	"""Handle sort type change"""
 	current_sort = sort_type
+	_update_sort_button_styles()
 	refresh_collection()
-	# Update button highlighting
-	update_sort_buttons()
 
-func _on_sort_direction_changed():
-	"""Toggle sort direction"""
-	sort_ascending = !sort_ascending
+func _on_direction_changed():
+	"""Handle sort direction change"""
+	sort_ascending = not sort_ascending
+	direction_button.text = "↑" if sort_ascending else "↓"
 	refresh_collection()
-	# Update direction arrow
-	update_sort_buttons()
+
+func _update_sort_button_styles():
+	"""Update sort button styles to show current selection"""
+	var button_configs = [SortType.POWER, SortType.LEVEL, SortType.TIER, SortType.ELEMENT, SortType.NAME]
+	
+	for i in range(sort_buttons.size()):
+		var button = sort_buttons[i]
+		if button_configs[i] == current_sort:
+			# Highlight selected button
+			var style = StyleBoxFlat.new()
+			style.bg_color = Color(0.3, 0.6, 1.0, 0.8)
+			button.add_theme_stylebox_override("normal", style)
+		else:
+			# Remove highlight from unselected buttons
+			button.remove_theme_stylebox_override("normal")
 
 func refresh_collection():
-	# Make sure the grid_container exists
-	if not grid_container:
-		grid_container = $MainContainer/LeftPanel/ScrollContainer/VBoxContainer/GridContainer
-		if not grid_container:
-			print("Error: Could not find GridContainer")
-			return
+	"""Refresh the god collection display using standardized GodCard component"""
 	
-	# Save scroll position
-	var scroll_container = grid_container.get_parent().get_parent()  # VBoxContainer -> ScrollContainer
-	if scroll_container is ScrollContainer:
-		scroll_position = scroll_container.get_v_scroll()
+	if not collection_manager:
+		return
+		
+	# Get gods from SystemRegistry
+	var gods_data = collection_manager.get_all_gods()
 	
-	# Clear existing god cards instantly
+	# Sort gods according to current settings
+	gods_data = _sort_gods(gods_data)
+	
+	# Clear existing god cards
 	for child in grid_container.get_children():
 		child.queue_free()
 	
-	# Start batched loading for instant response
-	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager")
-	if collection_manager:
-		load_collection_gods_batched()
-	
-	# Restore scroll position after a frame
 	await get_tree().process_frame
-	if scroll_container is ScrollContainer:
-		scroll_container.set_v_scroll(int(scroll_position))
-
-func load_collection_gods_batched():
-	"""Load collection gods using cached cards for instant display"""
-	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager") if SystemRegistry.get_instance() else null
-	if not collection_manager or not grid_container:
-		print("CollectionScreen: CollectionManager not available")
+	
+	if gods_data.is_empty():
+		var no_gods_label = Label.new()
+		no_gods_label.text = "No gods in your collection yet!"
+		no_gods_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		grid_container.add_child(no_gods_label)
 		return
 	
-	var gods = collection_manager.get_all_gods().duplicate()
-	sort_gods(gods)
+	# Create god cards using factory for consistency
+	for god in gods_data:
+		if god != null:
+			var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.COLLECTION_DETAILED)
+			grid_container.add_child(god_card)
+			god_card.setup_god_card(god)
+			god_card.god_selected.connect(show_god_details)
+
+func _sort_gods(gods: Array) -> Array:
+	"""Sort gods according to current sort settings"""
+	var sorted_gods = gods.duplicate()
 	
-	# For now, use fallback loading until we implement caching in the new architecture
-	load_collection_gods_batched_fallback(gods)
-
-func load_collection_gods_from_cache(gods: Array):
-	"""Load gods instantly from pre-cached cards"""
-	# For now, create god cards directly since GameManager caching is deprecated
-	# TODO: Implement UICardFactory caching system per prompt.prompt.md
-	for god in gods:
-		create_god_card(god)
-
-func load_collection_gods_batched_fallback(gods: Array):
-	"""Fallback batched loading if cache isn't ready"""
-	# Load gods in smaller batches for ultra-smooth loading
-	var batch_size = 8  # Smaller batches for ultra-smooth loading
-	var batch_state = {"current_batch": 0}  # Use dictionary for reference
+	match current_sort:
+		SortType.POWER:
+			sorted_gods.sort_custom(func(a, b): 
+				if sort_ascending:
+					return get_power_rating(a) < get_power_rating(b)
+				else:
+					return get_power_rating(a) > get_power_rating(b)
+			)
+		SortType.LEVEL:
+			sorted_gods.sort_custom(func(a, b): 
+				if sort_ascending:
+					return a.level < b.level
+				else:
+					return a.level > b.level
+			)
+		SortType.TIER:
+			sorted_gods.sort_custom(func(a, b): 
+				if sort_ascending:
+					return a.tier < b.tier
+				else:
+					return a.tier > b.tier
+			)
+		SortType.ELEMENT:
+			sorted_gods.sort_custom(func(a, b): 
+				if sort_ascending:
+					return a.element < b.element
+				else:
+					return a.element > b.element
+			)
+		SortType.NAME:
+			sorted_gods.sort_custom(func(a, b): 
+				if sort_ascending:
+					return a.name < b.name
+				else:
+					return a.name > b.name
+			)
 	
-	var batch_timer = Timer.new()
-	batch_timer.wait_time = 0.008  # ~120 FPS (8ms per frame)
-	batch_timer.timeout.connect(func():
-		var start_idx = batch_state.current_batch * batch_size
-		var end_idx = min(start_idx + batch_size, gods.size())
-		
-		# Load this batch
-		for i in range(start_idx, end_idx):
-			var god = gods[i]
-			create_god_card(god)
-		
-		batch_state.current_batch += 1
-		
-		# Check if we're done
-		if end_idx >= gods.size():
-			batch_timer.queue_free()
-	)
-	
-	add_child(batch_timer)
-	batch_timer.start()
+	return sorted_gods
 
-func add_click_handler_to_cached_card(card: Control, god: God, callback: Callable):
-	"""Add a click handler to a cached card"""
-	# Find the existing button in the cached card
-	var button = find_button_in_card(card)
-	if button:
-		# Clear any existing connections first
-		for connection in button.pressed.get_connections():
-			button.pressed.disconnect(connection.callable)
-		# Connect the new callback
-		button.pressed.connect(callback.bind(god))
-	else:
-		print("Warning: Could not find button in cached card for god: ", god.name)
-
-func find_button_in_card(card: Control) -> Button:
-	"""Recursively find the button in a cached card"""
-	if card is Button:
-		return card
-	
-	for child in card.get_children():
-		var result = find_button_in_card(child)
-		if result:
-			return result
-	
-	return null
-
-func sort_gods(gods: Array):
-	"""Sort gods array based on current sort settings"""
-	gods.sort_custom(func(a, b):
-		var result = false
-		match current_sort:
-			SortType.POWER:
-				result = a.get_power_rating() > b.get_power_rating()
-			SortType.LEVEL:
-				result = a.level > b.level
-			SortType.TIER:
-				result = a.tier > b.tier
-			SortType.ELEMENT:
-				result = a.element < b.element  # Sort by element enum value
-			SortType.NAME:
-				result = a.name < b.name
-		
-		# Apply sort direction
-		return result if not sort_ascending else !result
-	)
-
-func create_god_card(god):
-	# Create compact card similar to other screens
+func create_god_card(god: God):
+	"""Create an enhanced god card with experience bar and detailed info"""
+	# Create larger card for better detail display
 	var card = Panel.new()
-	card.custom_minimum_size = Vector2(120, 140)
+	card.custom_minimum_size = Vector2(160, 200)  # Bigger than before
 	
 	# Style with subtle tier colors
 	var style = StyleBoxFlat.new()
 	style.bg_color = get_subtle_tier_color(god.tier)
-	style.border_width_left = 2
-	style.border_width_right = 2
-	style.border_width_top = 2
-	style.border_width_bottom = 2
+	style.border_width_left = 3
+	style.border_width_right = 3
+	style.border_width_top = 3
+	style.border_width_bottom = 3
 	style.border_color = get_tier_border_color(god.tier)
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
+	style.corner_radius_top_left = 10
+	style.corner_radius_top_right = 10
+	style.corner_radius_bottom_left = 10
+	style.corner_radius_bottom_right = 10
 	card.add_theme_stylebox_override("panel", style)
 	
-	var vbox = VBoxContainer.new()
-	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	vbox.add_theme_constant_override("separation", 3)
-	card.add_child(vbox)
-	
-	# Add margin for better spacing
+	# Main container with margin
 	var margin = MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 5)
-	margin.add_theme_constant_override("margin_right", 5)
-	margin.add_theme_constant_override("margin_top", 5)
-	margin.add_theme_constant_override("margin_bottom", 5)
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
 	card.add_child(margin)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 5)
 	margin.add_child(vbox)
 	
-	# God image (compact)
+	# God image (larger)
 	var god_image = TextureRect.new()
-	god_image.custom_minimum_size = Vector2(48, 48)
+	god_image.custom_minimum_size = Vector2(64, 64)
 	god_image.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	god_image.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	god_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	
-	# Load god image using the new sprite function
-	var god_texture = god.get_sprite()
-	if god_texture:
-		god_image.texture = god_texture
+	# Load god image based on god ID
+	var sprite_path = "res://assets/gods/" + god.id + ".png"
+	if ResourceLoader.exists(sprite_path):
+		god_image.texture = load(sprite_path)
 	
 	vbox.add_child(god_image)
 	
-	# God name (compact)
+	# God name
 	var name_label = Label.new()
 	name_label.text = god.name
-	name_label.add_theme_font_size_override("font_size", 11)
+	name_label.add_theme_font_size_override("font_size", 13)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_label.add_theme_color_override("font_color", Color.WHITE)
 	vbox.add_child(name_label)
 	
-	# Level and tier (compact, SW style)
+	# Level and tier info
 	var level_label = Label.new()
 	level_label.text = "Lv.%d %s" % [god.level, get_tier_short_name(god.tier)]
-	level_label.add_theme_font_size_override("font_size", 10)
+	level_label.add_theme_font_size_override("font_size", 11)
 	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	level_label.modulate = Color.CYAN
 	vbox.add_child(level_label)
 	
-	# Element and power (compact)
+	# Experience bar with labels
+	var exp_container = VBoxContainer.new()
+	exp_container.add_theme_constant_override("separation", 2)
+	
+	# Experience info label
+	var god_exp_calc = preload("res://scripts/utilities/GodExperienceCalculator.gd")
+	var current_xp = god.experience
+	var remaining_xp = god_exp_calc.get_experience_remaining_to_next_level(god)
+	var progress_percent = god_exp_calc.get_experience_progress(god)
+	
+	var exp_info = Label.new()
+	if god.level >= 40:
+		exp_info.text = "MAX LEVEL"
+		exp_info.modulate = Color.GOLD
+	else:
+		exp_info.text = "XP: %d (-%d)" % [current_xp, remaining_xp]
+	exp_info.add_theme_font_size_override("font_size", 9)
+	exp_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	exp_info.modulate = Color.LIGHT_GRAY
+	exp_container.add_child(exp_info)
+	
+	# Experience progress bar
+	var exp_bar = ProgressBar.new()
+	exp_bar.custom_minimum_size = Vector2(140, 12)
+	exp_bar.min_value = 0.0
+	exp_bar.max_value = 100.0
+	exp_bar.value = progress_percent
+	exp_bar.show_percentage = false
+	
+	# Style the experience bar
+	var exp_fill_style = StyleBoxFlat.new()
+	if god.level >= 40:
+		exp_fill_style.bg_color = Color.GOLD
+	else:
+		exp_fill_style.bg_color = Color(0.2, 0.6, 1.0, 0.9)  # Nice blue
+	exp_fill_style.corner_radius_top_left = 3
+	exp_fill_style.corner_radius_top_right = 3
+	exp_fill_style.corner_radius_bottom_left = 3
+	exp_fill_style.corner_radius_bottom_right = 3
+	exp_bar.add_theme_stylebox_override("fill", exp_fill_style)
+	
+	var exp_bg_style = StyleBoxFlat.new()
+	exp_bg_style.bg_color = Color(0.1, 0.1, 0.1, 0.8)
+	exp_bg_style.corner_radius_top_left = 3
+	exp_bg_style.corner_radius_top_right = 3
+	exp_bg_style.corner_radius_bottom_left = 3
+	exp_bg_style.corner_radius_bottom_right = 3
+	exp_bar.add_theme_stylebox_override("background", exp_bg_style)
+	
+	exp_container.add_child(exp_bar)
+	
+	# Progress percentage label
+	var progress_label = Label.new()
+	if god.level >= 40:
+		progress_label.text = "MAX"
+	else:
+		progress_label.text = "%.1f%%" % progress_percent
+	progress_label.add_theme_font_size_override("font_size", 8)
+	progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	progress_label.modulate = Color.WHITE
+	exp_container.add_child(progress_label)
+	
+	vbox.add_child(exp_container)
+	
+	# Element and power info
 	var info_label = Label.new()
-	info_label.text = "%s P:%d" % [get_element_short_name(god.element), god.get_power_rating()]
+	info_label.text = "%s | Power: %d" % [get_element_short_name(god.element), get_power_rating(god)]
 	info_label.add_theme_font_size_override("font_size", 9)
 	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info_label.modulate = Color.LIGHT_GRAY
 	vbox.add_child(info_label)
 	
+	# Territory assignment indicator
+	if god.stationed_territory != "":
+		var territory_label = Label.new()
+		territory_label.text = "⚔ Stationed"
+		territory_label.add_theme_font_size_override("font_size", 8)
+		territory_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		territory_label.modulate = Color.GREEN
+		vbox.add_child(territory_label)
+	
 	# Make clickable
 	var button = Button.new()
 	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	button.flat = true
-	button.pressed.connect(_on_god_card_clicked.bind(god))
+	button.pressed.connect(func(): show_god_details(god))
 	card.add_child(button)
 	
 	grid_container.add_child(card)
+
+func show_god_details(god: God):
+	"""Show god details in right panel - EXACTLY like old version with full styling"""
+	
+	# Clear existing content
+	for child in details_content.get_children():
+		if child != no_selection_label:
+			child.queue_free()
+	
+	# Hide no selection label
+	if no_selection_label:
+		no_selection_label.visible = false
+	
+	# Wait a frame for cleanup
+	await get_tree().process_frame
+	
+	# Create content container
+	var content = VBoxContainer.new()
+	content.add_theme_constant_override("separation", 10)
+	
+	# God Image
+	var image_container = TextureRect.new()
+	image_container.custom_minimum_size = Vector2(200, 200)
+	image_container.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	image_container.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	
+	# Load god image based on god ID
+	var sprite_path = "res://assets/gods/" + god.id + ".png"
+	if ResourceLoader.exists(sprite_path):
+		image_container.texture = load(sprite_path)
+	else:
+		# Fallback - create a colored rectangle
+		var placeholder = ColorRect.new()
+		placeholder.color = get_tier_border_color(god.tier)
+		placeholder.custom_minimum_size = Vector2(200, 200)
+		content.add_child(placeholder)
+		image_container = null
+	
+	if image_container:
+		content.add_child(image_container)
+	
+	# Basic Info Section
+	var info_section = VBoxContainer.new()
+	var info_title = Label.new()
+	info_title.text = "═══ " + god.name.to_upper() + " ═══"
+	info_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info_title.add_theme_font_size_override("font_size", 18)
+	info_title.add_theme_color_override("font_color", get_tier_border_color(god.tier))
+	info_section.add_child(info_title)
+	
+	var basic_info = Label.new()
+	basic_info.text = """Pantheon: %s
+Element: %s
+Tier: %s
+Level: %d
+Power: %d""" % [
+		god.pantheon, get_element_name(god.element), 
+		get_tier_name(god.tier), god.level, get_power_rating(god)
+	]
+	basic_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info_section.add_child(basic_info)
+	content.add_child(info_section)
+	
+	# XP Section
+	var xp_section = VBoxContainer.new()
+	var xp_title = Label.new()
+	xp_title.text = "═══ EXPERIENCE ═══"
+	xp_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	xp_title.add_theme_font_size_override("font_size", 14)
+	xp_section.add_child(xp_title)
+	
+	# Use centralized experience calculator
+	var god_exp_calc = preload("res://scripts/utilities/GodExperienceCalculator.gd")
+	var current_xp = god.experience
+	var remaining_xp = god_exp_calc.get_experience_remaining_to_next_level(god)
+	var progress_percent = god_exp_calc.get_experience_progress(god)
+	var next_level_total = god_exp_calc.get_total_experience_for_level(god.level + 1)
+	
+	var xp_info = Label.new()
+	if god.level >= 40:
+		xp_info.text = """Current XP: %d
+Level: MAX
+Status: Maximum Level Reached""" % [current_xp]
+	else:
+		xp_info.text = """Current XP: %d
+Next Level Total: %d
+Remaining: %d
+Progress: %.1f%%""" % [current_xp, next_level_total, remaining_xp, progress_percent]
+	xp_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	xp_section.add_child(xp_info)
+	
+	# XP Progress Bar
+	var xp_bar = ProgressBar.new()
+	xp_bar.custom_minimum_size = Vector2(300, 20)
+	xp_bar.min_value = 0.0
+	xp_bar.max_value = 100.0
+	xp_bar.value = progress_percent
+	xp_bar.show_percentage = true
+	
+	# Style the XP bar
+	var xp_bar_style = StyleBoxFlat.new()
+	xp_bar_style.bg_color = Color(0.2, 0.2, 0.8, 0.8)
+	xp_bar_style.corner_radius_top_left = 4
+	xp_bar_style.corner_radius_top_right = 4
+	xp_bar_style.corner_radius_bottom_left = 4
+	xp_bar_style.corner_radius_bottom_right = 4
+	xp_bar.add_theme_stylebox_override("fill", xp_bar_style)
+	
+	xp_section.add_child(xp_bar)
+	content.add_child(xp_section)
+	
+	# Combat Stats Section  
+	var stats_section = VBoxContainer.new()
+	var stats_title = Label.new()
+	stats_title.text = "═══ COMBAT STATS ═══"
+	stats_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stats_title.add_theme_font_size_override("font_size", 14)
+	stats_section.add_child(stats_title)
+	
+	var stats_info = Label.new()
+	stats_info.text = """HP: %d
+Attack: %d
+Defense: %d
+Speed: %d
+Territory: %s""" % [
+		get_max_hp(god), get_current_attack(god), 
+		get_current_defense(god), get_current_speed(god),
+		god.stationed_territory if "stationed_territory" in god and god.stationed_territory != "" else "Unassigned"
+	]
+	stats_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stats_section.add_child(stats_info)
+	content.add_child(stats_section)
+	
+	# Abilities Section
+	if has_valid_abilities(god):
+		var abilities_section = VBoxContainer.new()
+		var abilities_title = Label.new()
+		abilities_title.text = "═══ ABILITIES ═══"
+		abilities_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		abilities_title.add_theme_font_size_override("font_size", 14)
+		abilities_section.add_child(abilities_title)
+		
+		for ability in god.active_abilities:
+			var ability_container = VBoxContainer.new()
+			ability_container.add_theme_constant_override("separation", 2)
+			
+			var ability_name = Label.new()
+			ability_name.text = "• " + ability.get("name", "Unknown")
+			ability_name.add_theme_font_size_override("font_size", 12)
+			ability_name.add_theme_color_override("font_color", Color.YELLOW)
+			ability_container.add_child(ability_name)
+			
+			var ability_desc = Label.new()
+			ability_desc.text = "  " + ability.get("description", "No description")
+			ability_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			ability_desc.custom_minimum_size.x = 300
+			ability_desc.add_theme_font_size_override("font_size", 10)
+			ability_container.add_child(ability_desc)
+			
+			abilities_section.add_child(ability_container)
+		
+		content.add_child(abilities_section)
+	
+	# Add content to details panel
+	details_content.add_child(content)
+
+func show_no_selection():
+	"""Show the no selection message"""
+	if no_selection_label:
+		no_selection_label.visible = true
+
+func _on_back_pressed():
+	"""Handle back button press"""
+	back_pressed.emit()
+
+# =============================================================================
+# VISUAL STYLING FUNCTIONS - From old working collection screen
+# =============================================================================
 
 func get_subtle_tier_color(tier: int) -> Color:
 	"""Get subtle background colors for tiers"""
@@ -390,160 +679,3 @@ func get_element_short_name(element: int) -> String:
 		4: return "☀️"  # LIGHT
 		5: return "🌙"  # DARK
 		_: return "?"
-
-func _on_god_card_clicked(god: God):
-	# Show detailed god information in side panel
-	show_god_details_in_panel(god)
-
-func show_god_details_in_panel(god: God):
-	# Clear existing details
-	if not details_content:
-		return
-		
-	for child in details_content.get_children():
-		child.queue_free()
-	
-	# Wait a frame for cleanup
-	await get_tree().process_frame
-	
-	# Create content container
-	var content = VBoxContainer.new()
-	content.add_theme_constant_override("separation", 10)
-	
-	# God Image
-	var image_container = TextureRect.new()
-	image_container.custom_minimum_size = Vector2(200, 200)
-	image_container.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	image_container.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	
-	# Load god image using the new sprite function
-	var god_texture = god.get_sprite()
-	if god_texture:
-		image_container.texture = god_texture
-	else:
-		# Fallback - create a colored rectangle
-		var placeholder = ColorRect.new()
-		placeholder.color = get_tier_border_color(god.tier)
-		placeholder.custom_minimum_size = Vector2(200, 200)
-		content.add_child(placeholder)
-		image_container = null
-	
-	if image_container:
-		content.add_child(image_container)
-	
-	# Basic Info Section
-	var info_section = VBoxContainer.new()
-	var info_title = Label.new()
-	info_title.text = "═══ " + god.name.to_upper() + " ═══"
-	info_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	info_title.add_theme_font_size_override("font_size", 18)
-	info_title.add_theme_color_override("font_color", get_tier_border_color(god.tier))
-	info_section.add_child(info_title)
-	
-	var basic_info = Label.new()
-	basic_info.text = """Pantheon: %s
-Element: %s
-Tier: %s
-Level: %d
-Power: %d""" % [
-		god.pantheon, God.element_to_string(god.element), 
-		God.tier_to_string(god.tier), god.level, god.get_power_rating()
-	]
-	basic_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	info_section.add_child(basic_info)
-	content.add_child(info_section)
-	
-	# XP Section
-	var xp_section = VBoxContainer.new()
-	var xp_title = Label.new()
-	xp_title.text = "═══ EXPERIENCE ═══"
-	xp_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	xp_title.add_theme_font_size_override("font_size", 14)
-	xp_section.add_child(xp_title)
-	
-	var xp_needed = god.get_experience_to_next_level()
-	var xp_progress = god.experience
-	var xp_info = Label.new()
-	xp_info.text = """Current XP: %d
-Next Level: %d
-Progress: %.1f%%""" % [
-		xp_progress, xp_needed, 
-		(float(xp_progress) / float(xp_needed)) * 100.0
-	]
-	xp_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	xp_section.add_child(xp_info)
-	
-	# XP Progress Bar
-	var xp_bar = ProgressBar.new()
-	xp_bar.custom_minimum_size = Vector2(300, 20)
-	xp_bar.min_value = 0
-	xp_bar.max_value = xp_needed
-	xp_bar.value = xp_progress
-	xp_bar.show_percentage = true
-	
-	# Style the XP bar
-	var xp_bar_style = StyleBoxFlat.new()
-	xp_bar_style.bg_color = Color(0.2, 0.2, 0.8, 0.8)
-	xp_bar_style.corner_radius_top_left = 4
-	xp_bar_style.corner_radius_top_right = 4
-	xp_bar_style.corner_radius_bottom_left = 4
-	xp_bar_style.corner_radius_bottom_right = 4
-	xp_bar.add_theme_stylebox_override("fill", xp_bar_style)
-	
-	xp_section.add_child(xp_bar)
-	content.add_child(xp_section)
-	
-	# Combat Stats Section  
-	var stats_section = VBoxContainer.new()
-	var stats_title = Label.new()
-	stats_title.text = "═══ COMBAT STATS ═══"
-	stats_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stats_title.add_theme_font_size_override("font_size", 14)
-	stats_section.add_child(stats_title)
-	
-	var stats_info = Label.new()
-	stats_info.text = """HP: %d
-Attack: %d
-Defense: %d
-Speed: %d
-Territory: %s""" % [
-		god.get_max_hp(), god.get_current_attack(), 
-		god.get_current_defense(), god.get_current_speed(),
-		god.stationed_territory if god.stationed_territory != "" else "Unassigned"
-	]
-	stats_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stats_section.add_child(stats_info)
-	content.add_child(stats_section)
-	
-	# Abilities Section
-	if god.has_valid_abilities():
-		var abilities_section = VBoxContainer.new()
-		var abilities_title = Label.new()
-		abilities_title.text = "═══ ABILITIES ═══"
-		abilities_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		abilities_title.add_theme_font_size_override("font_size", 14)
-		abilities_section.add_child(abilities_title)
-		
-		for ability in god.active_abilities:
-			var ability_container = VBoxContainer.new()
-			ability_container.add_theme_constant_override("separation", 2)
-			
-			var ability_name = Label.new()
-			ability_name.text = "• " + ability.get("name", "Unknown")
-			ability_name.add_theme_font_size_override("font_size", 12)
-			ability_name.add_theme_color_override("font_color", Color.YELLOW)
-			ability_container.add_child(ability_name)
-			
-			var ability_desc = Label.new()
-			ability_desc.text = "  " + ability.get("description", "No description")
-			ability_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			ability_desc.custom_minimum_size.x = 300
-			ability_desc.add_theme_font_size_override("font_size", 10)
-			ability_container.add_child(ability_desc)
-			
-			abilities_section.add_child(ability_container)
-		
-		content.add_child(abilities_section)
-	
-	# Add content to details panel
-	details_content.add_child(content)

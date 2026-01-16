@@ -10,7 +10,6 @@ var controlled_territories: Array[String] = []
 var territory_data: Dictionary = {}
 
 func _ready():
-	print("TerritoryManager: Initialized")
 	_load_territory_configuration()
 
 ## Load territory configuration
@@ -18,43 +17,39 @@ func _load_territory_configuration():
 	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager") if SystemRegistry.get_instance() else null
 	if config_manager:
 		territory_data = config_manager.get_territories_config()
-		print("TerritoryManager: Loaded ", territory_data.size(), " territories")
 
 ## Capture a territory
 func capture_territory(territory_id: String) -> bool:
 	if territory_id in controlled_territories:
-		print("TerritoryManager: Territory already controlled: ", territory_id)
 		return false
-	
+
 	if not territory_data.has(territory_id):
 		push_error("TerritoryManager: Unknown territory: " + territory_id)
 		return false
-	
+
 	controlled_territories.append(territory_id)
 	territory_captured.emit(territory_id)
-	
+
 	# Notify other systems
 	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
 	if event_bus:
 		event_bus.emit_signal("territory_captured", territory_id)
-	
-	print("TerritoryManager: Captured territory: ", territory_id)
+
 	return true
 
 ## Lose a territory
 func lose_territory(territory_id: String) -> bool:
 	if territory_id not in controlled_territories:
 		return false
-	
+
 	controlled_territories.erase(territory_id)
 	territory_lost.emit(territory_id)
-	
+
 	# Notify other systems
 	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
 	if event_bus:
 		event_bus.emit_signal("territory_lost", territory_id)
-	
-	print("TerritoryManager: Lost territory: ", territory_id)
+
 	return true
 
 ## Check if territory is controlled
@@ -81,25 +76,22 @@ func upgrade_territory(territory_id: String) -> bool:
 	
 	var current_level = territory_info.get("level", 1)
 	var max_level = territory_info.get("max_level", 10)
-	
+
 	if current_level >= max_level:
-		print("TerritoryManager: Territory already at max level: ", territory_id)
 		return false
 	
 	# Check upgrade cost through ResourceManager
 	var upgrade_cost = _get_upgrade_cost(territory_id, current_level + 1)
 	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
-	
+
 	if not resource_manager or not resource_manager.can_afford(upgrade_cost):
-		print("TerritoryManager: Cannot afford territory upgrade: ", territory_id)
 		return false
 	
 	# Spend resources and upgrade
 	resource_manager.spend_resources(upgrade_cost)
 	territory_data[territory_id]["level"] = current_level + 1
-	
+
 	territory_upgraded.emit(territory_id, current_level + 1)
-	print("TerritoryManager: Upgraded territory ", territory_id, " to level ", current_level + 1)
 	return true
 
 ## Get territory upgrade cost
@@ -156,8 +148,6 @@ func load_save_data(save_data: Dictionary):
 	for territory_id in saved_territory_data:
 		if territory_data.has(territory_id):
 			territory_data[territory_id].merge(saved_territory_data[territory_id])
-	
-	print("TerritoryManager: Loaded ", controlled_territories.size(), " controlled territories")
 
 # ==============================================================================
 # ENHANCED METHODS FOR TERRITORY UI SYSTEM

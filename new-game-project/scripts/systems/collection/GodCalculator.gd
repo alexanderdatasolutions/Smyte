@@ -85,11 +85,11 @@ static func _get_equipment_stat_bonus(god: God, stat_type: String) -> int:
 		var equipment = god.equipment[i]
 		if equipment and equipment is Equipment:
 			# Main stat bonus
-			if equipment.main_stat.type.to_lower() == stat_type.to_lower():
-				total_bonus += equipment.main_stat.value
+			if equipment.main_stat_type.to_lower() == stat_type.to_lower():
+				total_bonus += equipment.main_stat_value if equipment.main_stat_value > 0 else equipment.main_stat_base
 			
 			# Substat bonuses
-			for substat in equipment.sub_stats:
+			for substat in equipment.substats:
 				if substat.type.to_lower() == stat_type.to_lower():
 					total_bonus += substat.value
 	
@@ -137,8 +137,6 @@ static func get_tier_multiplier(god: God) -> float:
 			return 1.0
 
 static func get_experience_to_next_level(god: God) -> int:
-	var base_exp = 100
-	var level_multiplier = 1.5
-	var tier_multiplier = get_tier_multiplier(god)
-	
-	return int(base_exp * pow(level_multiplier, god.level - 1) * tier_multiplier)
+	# Use centralized experience calculator
+	var god_exp_calc = preload("res://scripts/utilities/GodExperienceCalculator.gd")
+	return god_exp_calc.get_experience_to_next_level(god.level)

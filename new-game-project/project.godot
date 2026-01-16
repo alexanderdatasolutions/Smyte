@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 GameCoordinator="*res://scripts/systems/core/GameCoordinator.gd"
 EventBus="*res://scripts/systems/core/EventBus.gd"
+TestHarness="*res://scripts/debug/TestHarness.gd"
 
 [display]
 
@@ -32,6 +33,10 @@ window/stretch/aspect="expand"
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true
+
+[debug]
+
+gdscript/warnings/unused_signal=0
 
 [rendering]
 

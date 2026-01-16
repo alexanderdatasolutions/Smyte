@@ -1,133 +1,22 @@
 {
-  "territory_roles": {
+  "roles": {
     "gatherer": {
-      "id": "gatherer",
+      "id": "gatherer", 
       "name": "Gatherer",
-      "description": "Raw resource production",
-      "sub_roles": {
-        "cultist": {
-          "id": "cultist",
-          "name": "Cultist",
-          "description": "Produces powder for awakening materials",
-          "base_production": {
-            "powder": 1
-          },
-          "hourly_rate": true
-        },
-        "soul_harvester": {
-          "id": "soul_harvester",
-          "name": "Soul Harvester", 
-          "description": "Produces souls for summon materials",
-          "base_production": {
-            "souls": 1
-          },
-          "hourly_rate": true
-        },
-        "miner": {
-          "id": "miner",
-          "name": "Miner",
-          "description": "Produces ore for equipment materials",
-          "base_production": {
-            "ore": 1
-          },
-          "hourly_rate": true
-        },
-        "energy_conduit": {
-          "id": "energy_conduit",
-          "name": "Energy Conduit",
-          "description": "Provides energy regeneration boost",
-          "base_production": {
-            "energy_regen": 1
-          },
-          "hourly_rate": true
-        }
-      }
+      "description": "Boosts resource production",
+      "bonus_formula": "Base 10% + 5% per god tier + 10% element match = up to 30% bonus"
     },
-    
+    "defender": {
+      "id": "defender",
+      "name": "Defender", 
+      "description": "Provides territory defense power",
+      "bonus_formula": "God power * 1.5 = defense rating"
+    },
     "crafter": {
       "id": "crafter",
       "name": "Crafter",
-      "description": "Convert resources and create items",
-      "sub_roles": {
-        "alchemist": {
-          "id": "alchemist",
-          "name": "Alchemist",
-          "description": "Convert powder types (fire→water, etc.)",
-          "conversion_recipes": [
-            {
-              "input": {"fire_powder": 1},
-              "output": {"water_powder": 1}
-            },
-            {
-              "input": {"earth_powder": 1},
-              "output": {"air_powder": 1}
-            },
-            {
-              "input": {"light_powder": 1},
-              "output": {"dark_powder": 1}
-            }
-          ]
-        },
-        "blacksmith": {
-          "id": "blacksmith",
-          "name": "Blacksmith",
-          "description": "Ore + Mana → Equipment/Runes",
-          "conversion_recipes": [
-            {
-              "input": {"ore": 3, "mana": 1500},
-              "output": {"equipment_rune": 1}
-            },
-            {
-              "input": {"ore": 5, "mana": 5000},
-              "output": {"enhancement_stone": 1}
-            }
-          ]
-        },
-        "chef": {
-          "id": "chef",
-          "name": "Chef",
-          "description": "Any Resource + Mana → Temporary buffs",
-          "conversion_recipes": [
-            {
-              "input": {"essence": 2, "mana": 2000},
-              "output": {"xp_boost_2x_1h": 1}
-            },
-            {
-              "input": {"ore": 3, "mana": 2500},
-              "output": {"drop_boost_50_1h": 1}
-            },
-            {
-              "input": {"souls": 1, "mana": 1000},
-              "output": {"energy_boost_25_1h": 1}
-            }
-          ]
-        }
-      }
-    },
-    
-    "defender": {
-      "id": "defender",
-      "name": "Defender",
-      "description": "Territory protection and combat bonuses",
-      "sub_roles": {
-        "guardian": {
-          "id": "guardian",
-          "name": "Guardian",
-          "description": "Base combat power, reduces territory takeover speed",
-          "effects": {
-            "territory_defense": 100
-                  }
-        },
-        "champion": {
-          "id": "champion",
-          "name": "Champion",
-          "description": "Bonus combat power when defending with other gods",
-          "effects": {
-            "base_combat_power": 50,
-            "synergy_bonus_per_god": 25
-          }
-        }
-      }
+      "description": "Converts low materials to high",
+      "bonus_formula": "1 + (god.tier * 0.5) conversions per hour"
     }
   }
 }

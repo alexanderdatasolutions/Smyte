@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://drf52wgxcijaa"]
+[gd_scene load_steps=6 format=3 uid="uid://drf52wgxcijaa"]
 
 [ext_resource type="Script" uid="uid://ca4wfrqq4w42f" path="res://scripts/Main.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://b6wj4kunigp3v" path="res://scenes/WorldView.tscn" id="2_worldview"]
 [ext_resource type="PackedScene" path="res://scenes/DebugOverlay.tscn" id="3_debug"]
 [ext_resource type="PackedScene" uid="uid://do86vtymrnow4" path="res://scenes/MainUIOverlay.tscn" id="4_main_ui_overlay"]
+[ext_resource type="PackedScene" path="res://scenes/debug/EquipmentTester.tscn" id="5_equipment_tester"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -17,3 +18,5 @@ script = null
 grow_horizontal = 2
 grow_vertical = 2
 script = null
+
+[node name="EquipmentTester" parent="." instance=ExtResource("5_equipment_tester")]

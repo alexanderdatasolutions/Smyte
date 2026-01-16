@@ -40,9 +40,7 @@ func register_system(system_name: String, system: Node, initialize_immediately: 
 	
 	# Track initialization order
 	_initialization_order.append(system_name)
-	
-	print("SystemRegistry: Registered system '", system_name, "' of type ", system.get_script())
-	
+
 	# Initialize if requested
 	if initialize_immediately and system.has_method("initialize"):
 		system.initialize()
@@ -80,8 +78,7 @@ func remove_system(system_name: String) -> bool:
 	
 	if system and is_instance_valid(system):
 		system.queue_free()
-	
-	print("SystemRegistry: Removed system '", system_name, "'")
+
 	return true
 
 ## Get all registered system names
@@ -94,32 +91,20 @@ func get_system_count() -> int:
 
 ## Initialize all systems in registration order
 func initialize_all_systems():
-	print("SystemRegistry: Initializing all systems...")
-	
 	for system_name in _initialization_order:
 		var system = _systems[system_name]
 		if system and system.has_method("initialize"):
-			print("SystemRegistry: Initializing ", system_name)
 			system.initialize()
-		else:
-			print("SystemRegistry: Skipping ", system_name, " (no initialize method)")
-	
-	print("SystemRegistry: All systems initialized")
 
 ## Shutdown all systems in reverse order
 func shutdown_all_systems():
-	print("SystemRegistry: Shutting down all systems...")
-	
 	var shutdown_order = _initialization_order.duplicate()
 	shutdown_order.reverse()
-	
+
 	for system_name in shutdown_order:
 		var system = _systems[system_name]
 		if system and system.has_method("shutdown"):
-			print("SystemRegistry: Shutting down ", system_name)
 			system.shutdown()
-	
-	print("SystemRegistry: All systems shut down")
 
 ## Get system registry statistics for debugging
 func get_debug_info() -> Dictionary:
@@ -144,13 +129,16 @@ func get_debug_info() -> Dictionary:
 ## Register standard game systems in proper order
 func register_core_systems():
 	"""Register the essential game systems in dependency order"""
-	print("SystemRegistry: Registering core systems...")
 	
 	# Phase 1: Core infrastructure (no dependencies)
 	var event_bus = preload("res://scripts/systems/core/EventBus.gd").new()
 	register_system("EventBus", event_bus)
 	
-	# Phase 1.5: Configuration Manager (needed by everything)
+	# Save/Load system (core infrastructure)
+	var save_manager = preload("res://scripts/systems/core/SaveManager.gd").new()
+	register_system("SaveManager", save_manager)
+	
+	# Phase 1.5: Configuration Manager (uses JSONDataLoader utility directly)
 	var config_manager = preload("res://scripts/systems/core/ConfigurationManager.gd").new()
 	register_system("ConfigurationManager", config_manager)
 	config_manager.load_all_configurations()
@@ -160,6 +148,11 @@ func register_core_systems():
 		var resource_manager = preload("res://scripts/systems/resources/ResourceManager.gd").new()
 		register_system("ResourceManager", resource_manager)
 	
+	# Add LootSystem to resources
+	if FileAccess.file_exists("res://scripts/systems/resources/LootSystem.gd"):
+		var loot_system = preload("res://scripts/systems/resources/LootSystem.gd").new()
+		register_system("LootSystem", loot_system)
+	
 	# Phase 3: Collection systems
 	var collection_manager = preload("res://scripts/systems/collection/CollectionManager.gd").new()
 	register_system("CollectionManager", collection_manager)
@@ -167,7 +160,7 @@ func register_core_systems():
 	# Phase 3.5: Territory systems (depend on collection and resource systems)
 	if FileAccess.file_exists("res://scripts/systems/territory/TerritoryManager.gd"):
 		var territory_manager = preload("res://scripts/systems/territory/TerritoryManager.gd").new()
-		register_system("TerritoryController", territory_manager)
+		register_system("TerritoryManager", territory_manager)
 	
 	if FileAccess.file_exists("res://scripts/systems/territory/TerritoryProductionManager.gd"):
 		var territory_production = preload("res://scripts/systems/territory/TerritoryProductionManager.gd").new()
@@ -177,10 +170,35 @@ func register_core_systems():
 	var battle_coordinator = preload("res://scripts/systems/battle/BattleCoordinator.gd").new()
 	register_system("BattleCoordinator", battle_coordinator)
 	
+	# Phase 4.5: Dungeon systems (depend on collection, resource, and battle systems)
+	if FileAccess.file_exists("res://scripts/systems/dungeon/DungeonManager.gd"):
+		var dungeon_manager = preload("res://scripts/systems/dungeon/DungeonManager.gd").new()
+		register_system("DungeonManager", dungeon_manager)
+	
+	if FileAccess.file_exists("res://scripts/systems/dungeon/DungeonCoordinator.gd"):
+		var dungeon_coordinator = preload("res://scripts/systems/dungeon/DungeonCoordinator.gd").new()
+		register_system("DungeonCoordinator", dungeon_coordinator)
+	
 	# Phase 5: Progression systems
 	if FileAccess.file_exists("res://scripts/systems/progression/PlayerProgressionManager.gd"):
 		var progression_manager = preload("res://scripts/systems/progression/PlayerProgressionManager.gd").new()
 		register_system("PlayerProgressionManager", progression_manager)
+	
+	if FileAccess.file_exists("res://scripts/systems/progression/GodProgressionManager.gd"):
+		var god_progression_manager = preload("res://scripts/systems/progression/GodProgressionManager.gd").new()
+		register_system("GodProgressionManager", god_progression_manager)
+	
+	if FileAccess.file_exists("res://scripts/systems/progression/SacrificeSystem.gd"):
+		var sacrifice_system = preload("res://scripts/systems/progression/SacrificeSystem.gd").new()
+		register_system("SacrificeSystem", sacrifice_system)
+	
+	if FileAccess.file_exists("res://scripts/systems/progression/AwakeningSystem.gd"):
+		var awakening_system = preload("res://scripts/systems/progression/AwakeningSystem.gd").new()
+		register_system("AwakeningSystem", awakening_system)
+	
+	if FileAccess.file_exists("res://scripts/systems/progression/SacrificeManager.gd"):
+		var sacrifice_manager = preload("res://scripts/systems/progression/SacrificeManager.gd").new()
+		register_system("SacrificeManager", sacrifice_manager)
 	
 	if FileAccess.file_exists("res://scripts/systems/collection/SummonManager.gd"):
 		var summon_manager = preload("res://scripts/systems/collection/SummonManager.gd").new()
@@ -200,8 +218,10 @@ func register_core_systems():
 		register_system("TutorialOrchestrator", tutorial_orchestrator)
 	
 	# Phase 7: Equipment system
-	if FileAccess.file_exists("res://scripts/systems/collection/EquipmentManager.gd"):
-		var equipment_manager = preload("res://scripts/systems/collection/EquipmentManager.gd").new()
+	if FileAccess.file_exists("res://scripts/systems/equipment/EquipmentManager.gd"):
+		var equipment_manager = preload("res://scripts/systems/equipment/EquipmentManager.gd").new()
 		register_system("EquipmentManager", equipment_manager)
-	
-	print("SystemRegistry: Core systems registered")
+		
+		# Register EquipmentStatCalculator separately for direct access
+		if equipment_manager.stat_calculator:
+			register_system("EquipmentStatCalculator", equipment_manager.stat_calculator)

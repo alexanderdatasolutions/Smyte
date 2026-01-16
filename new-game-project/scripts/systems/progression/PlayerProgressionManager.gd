@@ -30,7 +30,7 @@ var current_experience: int = 0
 var unlocked_features: Array = []
 
 func _ready():
-	print("PlayerProgressionManager: Player progression system ready")
+	pass
 
 # ==============================================================================
 # EXPERIENCE MANAGEMENT - SystemRegistry Pattern
@@ -74,8 +74,7 @@ func _level_up(new_level: int):
 	"""Handle player level up"""
 	var old_level = current_player_level
 	current_player_level = new_level
-	
-	print("PlayerProgressionManager: Level up! %d -> %d" % [old_level, new_level])
+
 	player_leveled_up.emit(old_level, new_level)
 	
 	# Check for feature unlocks
@@ -104,10 +103,9 @@ func unlock_feature(feature_name: String):
 	"""Unlock a specific feature"""
 	if feature_name in unlocked_features:
 		return
-	
+
 	unlocked_features.append(feature_name)
-	print("PlayerProgressionManager: Feature unlocked - %s" % feature_name)
-	
+
 	# Notify other systems
 	var event_bus = SystemRegistry.get_instance().get_system("EventBus")
 	if event_bus:
@@ -142,5 +140,3 @@ func load_save_data(data: Dictionary):
 	current_player_level = data.get("level", 1)
 	current_experience = data.get("experience", 0)
 	unlocked_features = data.get("unlocked_features", [])
-	
-	print("PlayerProgressionManager: Loaded - Level %d, XP %d" % [current_player_level, current_experience])

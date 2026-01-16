@@ -13,14 +13,12 @@ enum BattleType {
 }
 
 ## Create a territory battle
-func create_territory_battle(territory_id: String, player_gods: Array) -> Dictionary:
-	print("BattleFactory: Creating territory battle for ", territory_id)
-	
+func create_territory_battle(_territory_id: String, player_gods: Array) -> Dictionary:
 	var battle_config = {
 		"type": "territory",
-		"territory_id": territory_id,
+		"territory_id": _territory_id,
 		"player_team": player_gods,
-		"enemy_team": _generate_territory_enemies(territory_id),
+		"enemy_team": _generate_territory_enemies(_territory_id),
 		"waves": 1,
 		"victory_conditions": ["defeat_all_enemies"],
 		"defeat_conditions": ["all_players_dead"]
@@ -30,8 +28,6 @@ func create_territory_battle(territory_id: String, player_gods: Array) -> Dictio
 
 ## Create a dungeon battle
 func create_dungeon_battle(dungeon_id: String, stage: int, player_gods: Array) -> Dictionary:
-	print("BattleFactory: Creating dungeon battle - ", dungeon_id, " stage ", stage)
-	
 	var battle_config = {
 		"type": "dungeon",
 		"dungeon_id": dungeon_id,
@@ -47,8 +43,6 @@ func create_dungeon_battle(dungeon_id: String, stage: int, player_gods: Array) -
 
 ## Create an arena battle
 func create_arena_battle(player_gods: Array, opponent_gods: Array) -> Dictionary:
-	print("BattleFactory: Creating arena battle")
-	
 	var battle_config = {
 		"type": "arena",
 		"player_team": player_gods,

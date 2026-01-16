@@ -16,7 +16,6 @@ func setup_waves(waves: Array):  # Array[Array]
 	wave_data = waves.duplicate()
 	max_waves = wave_data.size()
 	current_wave = 0
-	print("WaveManager: Setup ", max_waves, " waves")
 
 ## Start a specific wave
 func start_wave(wave_number: int) -> bool:
@@ -26,21 +25,18 @@ func start_wave(wave_number: int) -> bool:
 	
 	current_wave = wave_number
 	wave_started.emit(wave_number)
-	print("WaveManager: Started wave ", wave_number, "/", max_waves)
 	return true
 
 ## Complete current wave and advance to next
 func complete_current_wave():
 	if current_wave <= 0:
 		return
-	
+
 	wave_completed.emit(current_wave)
-	print("WaveManager: Completed wave ", current_wave)
-	
+
 	# Check if there are more waves
 	if current_wave >= max_waves:
 		all_waves_completed.emit()
-		print("WaveManager: All waves completed!")
 	else:
 		# Start next wave
 		start_wave(current_wave + 1)
@@ -74,4 +70,3 @@ func reset():
 	wave_data.clear()
 	current_wave = 0
 	max_waves = 0
-	print("WaveManager: Reset complete")

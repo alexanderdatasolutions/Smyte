@@ -20,21 +20,18 @@ func load_item_config():
 	"""Load item configuration from loot_items.json"""
 	var file = FileAccess.open("res://data/loot_items.json", FileAccess.READ)
 	if not file:
-		print("InventoryManager: Could not load loot_items.json")
 		return
-	
+
 	var json_string = file.get_as_text()
 	file.close()
-	
+
 	var json = JSON.new()
 	var parse_result = json.parse(json_string)
 	if parse_result != OK:
-		print("InventoryManager: Error parsing loot_items.json")
 		return
-	
+
 	var data = json.get_data()
 	item_config = data.get("loot_items", {})
-	print("InventoryManager: Loaded %d item definitions" % item_config.size())
 
 # MAIN INVENTORY METHODS
 
@@ -53,8 +50,7 @@ func add_item(item_id: String, amount: int = 1):
 		_:
 			# Default to materials for unknown categories
 			materials[item_id] = materials.get(item_id, 0) + amount
-	
-	print("InventoryManager: Added %d %s to %s inventory" % [amount, item_id, category])
+
 	inventory_updated.emit(category)
 
 func remove_item(item_id: String, amount: int = 1) -> bool:
@@ -99,12 +95,10 @@ func get_item_count(item_id: String) -> int:
 func use_consumable(item_id: String, target_god: God = null) -> bool:
 	"""Use a consumable item with effects"""
 	if not has_item(item_id, 1):
-		print("InventoryManager: Don't have %s to use" % item_id)
 		return false
-	
+
 	var item_info = get_item_info(item_id)
 	if item_info.get("category") != "consumable":
-		print("InventoryManager: %s is not a consumable" % item_id)
 		return false
 	
 	# Process consumable effects
@@ -115,8 +109,7 @@ func use_consumable(item_id: String, target_god: God = null) -> bool:
 	# Remove the item
 	remove_item(item_id, 1)
 	item_consumed.emit(item_id, 1)
-	
-	print("InventoryManager: Used %s" % item_id)
+
 	return true
 
 func _apply_consumable_effect(effect: Dictionary, target_god: God = null):
@@ -128,18 +121,15 @@ func _apply_consumable_effect(effect: Dictionary, target_god: God = null):
 		"heal_god":
 			if target_god:
 				target_god.heal(value)
-				print("Healed %s for %d HP" % [target_god.name, value])
 		"restore_energy":
 			var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager")
 			if resource_manager:
 				resource_manager.add_resource("energy", value)
-				print("Restored %d energy" % value)
 		"add_experience":
 			if target_god:
 				var system_registry = SystemRegistry.get_instance()
 				var god_progression_manager = system_registry.get_system("GodProgressionManager")
 				god_progression_manager.add_experience_to_god(target_god, value)
-				print("Gave %d XP to %s" % [value, target_god.name])
 
 # BATTLE INTEGRATION METHODS
 
@@ -198,7 +188,3 @@ func load_inventory_data(data: Dictionary):
 	consumables = data.get("consumables", {})
 	materials = data.get("materials", {})
 	quest_items = data.get("quest_items", {})
-	
-	print("InventoryManager: Loaded %d consumables, %d materials, %d quest items" % [
-		consumables.size(), materials.size(), quest_items.size()
-	])
