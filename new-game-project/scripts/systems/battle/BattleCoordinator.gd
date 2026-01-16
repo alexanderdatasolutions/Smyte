@@ -66,10 +66,7 @@ func start_battle(config) -> bool:
 	# Start the battle
 	is_battle_active = true
 	battle_started.emit(config)
-	
-	# TODO: Re-enable EventBus once parsing issues resolved
-	# EventBus.battle_started.emit(config)
-	
+
 	# Begin battle flow
 	_begin_battle_flow()
 	
@@ -94,13 +91,10 @@ func end_battle(result: BattleResult):
 	
 	# Cleanup battle state
 	_cleanup_battle()
-	
+
 	# Emit events
 	is_battle_active = false
 	battle_ended.emit(result)
-	
-	# TODO: Re-enable EventBus once parsing issues resolved
-	# EventBus.battle_ended.emit(result)
 
 ## Toggle auto-battle mode
 func set_auto_battle(enabled: bool):
