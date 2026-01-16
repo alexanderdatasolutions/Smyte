@@ -498,19 +498,24 @@ func _take_screenshot(save_path: String) -> Dictionary:
 # ============================================================================
 
 func _get_system(system_name: String):
-	# Try SystemRegistry singleton first
-	var registry = SystemRegistry.get_instance()
-	if registry and registry.has_method("get_system"):
-		var system = registry.get_system(system_name)
+	# Use late binding to avoid parse-time dependency on SystemRegistry class_name
+	# This allows the autoload to load even before class_names are scanned
+
+	# Try GameCoordinator path first (where SystemRegistry lives)
+	var game_coordinator = get_node_or_null("/root/GameCoordinator")
+	if game_coordinator and game_coordinator.has_method("get_system"):
+		var system = game_coordinator.call("get_system", system_name)
 		if system:
 			return system
 
-	# Try GameCoordinator path (where SystemRegistry lives)
-	var game_coordinator = get_node_or_null("/root/GameCoordinator")
-	if game_coordinator and game_coordinator.has_method("get_system"):
-		var system = game_coordinator.get_system(system_name)
-		if system:
-			return system
+	# Try SystemRegistry via script load (late binding)
+	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+	if registry_script and registry_script.has_method("get_instance"):
+		var registry = registry_script.call("get_instance")
+		if registry and registry.has_method("get_system"):
+			var system = registry.call("get_system", system_name)
+			if system:
+				return system
 
 	# Try as direct autoload
 	var autoload = get_node_or_null("/root/" + system_name)

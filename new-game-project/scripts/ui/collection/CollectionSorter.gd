@@ -34,6 +34,7 @@ func setup_sorting_ui(parent_container: VBoxContainer, callback: Callable) -> vo
 	var sort_label = Label.new()
 	sort_label.text = "Sort by:"
 	sort_label.add_theme_font_size_override("font_size", 14)
+	sort_label.add_theme_color_override("font_color", Color(0.7, 0.65, 0.55))
 	sort_container.add_child(sort_label)
 
 	# Create sort buttons
@@ -48,16 +49,18 @@ func setup_sorting_ui(parent_container: VBoxContainer, callback: Callable) -> vo
 	for button_data in button_configs:
 		var sort_button = Button.new()
 		sort_button.text = button_data.text
-		sort_button.custom_minimum_size = Vector2(90, 30)  # Uniform width for all buttons
+		sort_button.custom_minimum_size = Vector2(80, 32)
 		sort_button.pressed.connect(_on_sort_changed.bind(button_data.type))
+		_apply_button_base_style(sort_button)
 		sort_buttons.append(sort_button)
 		sort_container.add_child(sort_button)
 
 	# Add sort direction button
 	direction_button = Button.new()
 	direction_button.text = "↓"  # Down arrow for descending
-	direction_button.custom_minimum_size = Vector2(30, 30)
+	direction_button.custom_minimum_size = Vector2(32, 32)
 	direction_button.pressed.connect(_on_direction_changed)
+	_apply_button_base_style(direction_button)
 	sort_container.add_child(direction_button)
 
 	# Insert at the top of the parent container
@@ -82,6 +85,26 @@ func _on_direction_changed() -> void:
 	if on_sort_changed_callback.is_valid():
 		on_sort_changed_callback.call()
 
+func _apply_button_base_style(button: Button) -> void:
+	"""Apply dark fantasy base style to a button"""
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.1, 0.15, 0.95)
+	style.border_color = Color(0.3, 0.25, 0.4, 0.8)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(4)
+	button.add_theme_stylebox_override("normal", style)
+
+	var hover = StyleBoxFlat.new()
+	hover.bg_color = Color(0.18, 0.15, 0.22, 0.98)
+	hover.border_color = Color(0.5, 0.45, 0.6, 1.0)
+	hover.set_border_width_all(1)
+	hover.set_corner_radius_all(4)
+	button.add_theme_stylebox_override("hover", hover)
+
+	button.add_theme_color_override("font_color", Color(0.8, 0.75, 0.65))
+	button.add_theme_color_override("font_hover_color", Color(1.0, 0.95, 0.85))
+	button.add_theme_font_size_override("font_size", 13)
+
 func _update_sort_button_styles() -> void:
 	"""Update sort button styles to show current selection"""
 	var button_configs = [SortType.POWER, SortType.LEVEL, SortType.TIER, SortType.ELEMENT, SortType.NAME]
@@ -89,13 +112,17 @@ func _update_sort_button_styles() -> void:
 	for i in range(sort_buttons.size()):
 		var button = sort_buttons[i]
 		if button_configs[i] == current_sort:
-			# Highlight selected button
+			# Highlight selected button with gold accent
 			var style = StyleBoxFlat.new()
-			style.bg_color = Color(0.3, 0.6, 1.0, 0.8)
+			style.bg_color = Color(0.2, 0.18, 0.12, 0.98)
+			style.border_color = Color(0.8, 0.65, 0.3, 1.0)
+			style.set_border_width_all(2)
+			style.set_corner_radius_all(4)
 			button.add_theme_stylebox_override("normal", style)
+			button.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
 		else:
-			# Remove highlight from unselected buttons
-			button.remove_theme_stylebox_override("normal")
+			# Apply base style to unselected buttons
+			_apply_button_base_style(button)
 
 func sort_gods(gods: Array, power_rating_func: Callable) -> Array:
 	"""Sort gods according to current sort settings"""

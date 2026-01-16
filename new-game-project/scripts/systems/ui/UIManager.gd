@@ -57,12 +57,14 @@ signal tutorial_pointer_shown(target_element: Control, message: String)
 
 func _ready():
 	"""Initialize the UI Management System"""
-	# Wait for GameManager
-	if not GameManager:
+	# Wait for GameCoordinator to be ready
+	var game_coordinator = get_node_or_null("/root/GameCoordinator")
+	if not game_coordinator:
 		await get_tree().create_timer(0.1).timeout
-	
-	game_manager = GameManager
-	
+		game_coordinator = get_node_or_null("/root/GameCoordinator")
+
+	game_manager = game_coordinator  # Legacy compatibility
+
 	# Setup UI layer containers
 	_setup_ui_containers()
 

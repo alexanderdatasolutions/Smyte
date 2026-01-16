@@ -1,76 +1,121 @@
-[gd_scene load_steps=2 format=3 uid="uid://cbw7xpldky1p7"]
+[gd_scene load_steps=3 format=3 uid="uid://cbw7xpldky1p7"]
 
 [ext_resource type="Script" path="res://scripts/ui/components/ResourceDisplay.gd" id="1_resource_display"]
 
-[node name="ResourceDisplay" type="HBoxContainer"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.08, 0.06, 0.12, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.25, 0.4, 0.8)
+corner_radius_left = 6
+corner_radius_top = 6
+corner_radius_right = 6
+corner_radius_bottom = 6
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 4
+shadow_offset = Vector2(2, 2)
+
+[node name="ResourceDisplay" type="PanelContainer"]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -400.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = 40.0
+offset_left = -520.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = 48.0
 grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 script = ExtResource("1_resource_display")
 
-[node name="ManaLabel" type="Label" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 2
-text = "Mana: 0"
-horizontal_alignment = 1
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="ManaContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ManaIcon" type="Label" parent="MarginContainer/HBoxContainer/ManaContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.6, 1.0, 1)
+theme_override_font_sizes/font_size = 16
+text = "✦"
+
+[node name="ManaLabel" type="Label" parent="MarginContainer/HBoxContainer/ManaContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 1.0, 1)
+theme_override_font_sizes/font_size = 14
+text = "0"
 vertical_alignment = 1
 
-[node name="Separator1" type="Label" parent="."]
-modulate = Color(0.7, 0.7, 0.7, 1)
+[node name="CrystalContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
-text = " | "
-horizontal_alignment = 1
+theme_override_constants/separation = 4
+
+[node name="CrystalIcon" type="Label" parent="MarginContainer/HBoxContainer/CrystalContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.5, 0.9, 1)
+theme_override_font_sizes/font_size = 16
+text = "◆"
+
+[node name="CrystalLabel" type="Label" parent="MarginContainer/HBoxContainer/CrystalContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.7, 0.95, 1)
+theme_override_font_sizes/font_size = 14
+text = "0"
 vertical_alignment = 1
 
-[node name="CrystalLabel" type="Label" parent="."]
+[node name="EnergyContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
-text = "Crystals: 0"
-horizontal_alignment = 1
+theme_override_constants/separation = 4
+
+[node name="EnergyIcon" type="Label" parent="MarginContainer/HBoxContainer/EnergyContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 0.4, 1)
+theme_override_font_sizes/font_size = 16
+text = "⚡"
+
+[node name="EnergyLabel" type="Label" parent="MarginContainer/HBoxContainer/EnergyContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.95, 0.7, 1)
+theme_override_font_sizes/font_size = 14
+text = "80/80"
 vertical_alignment = 1
 
-[node name="Separator2" type="Label" parent="."]
-modulate = Color(0.7, 0.7, 0.7, 1)
+[node name="TicketsContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
-text = " | "
-horizontal_alignment = 1
+theme_override_constants/separation = 4
+
+[node name="TicketsIcon" type="Label" parent="MarginContainer/HBoxContainer/TicketsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1.0, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 16
+text = "★"
+
+[node name="TicketsLabel" type="Label" parent="MarginContainer/HBoxContainer/TicketsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1.0, 0.95, 0.7, 1)
+theme_override_font_sizes/font_size = 14
+text = "0"
 vertical_alignment = 1
 
-[node name="EnergyLabel" type="Label" parent="."]
-layout_mode = 2
-text = "Energy: 80/80"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Separator3" type="Label" parent="."]
-modulate = Color(0.7, 0.7, 0.7, 1)
-layout_mode = 2
-text = " | "
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="TicketsLabel" type="Label" parent="."]
-layout_mode = 2
-text = "Tickets: 0"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Separator4" type="Label" parent="."]
-modulate = Color(0.7, 0.7, 0.7, 1)
-layout_mode = 2
-text = " | "
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="MaterialsButton" type="Button" parent="."]
+[node name="MaterialsButton" type="Button" parent="MarginContainer/HBoxContainer"]
+visible = false
 custom_minimum_size = Vector2(80, 25)
 layout_mode = 2
 text = "Materials"
 
-[node name="MaterialsCountLabel" type="Label" parent="."]
+[node name="MaterialsCountLabel" type="Label" parent="MarginContainer/HBoxContainer"]
+visible = false
 modulate = Color(0.7, 0.7, 0.7, 1)
 layout_mode = 2
 text = "(0)"

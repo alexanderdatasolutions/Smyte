@@ -1,0 +1,435 @@
+{
+  "specializations": {
+    "berserker": {
+      "id": "berserker",
+      "name": "Berserker",
+      "description": "Unleash devastating attacks at the cost of defense",
+      "type": "combat",
+      "icon_path": "res://assets/icons/specs/berserker.png",
+      "required_level": 20,
+      "required_traits": ["warrior"],
+      "blocked_traits": ["guardian"],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {
+        "attack": 0.25,
+        "critical_damage": 0.20,
+        "defense": -0.10
+      },
+      "task_bonuses": {
+        "hunt_monsters": 0.15
+      },
+      "skill_xp_bonuses": {
+        "combat": 0.10
+      },
+      "unlocked_ability_ids": ["berserker_rage"],
+      "enhanced_ability_ids": {}
+    },
+    "paladin": {
+      "id": "paladin",
+      "name": "Paladin",
+      "description": "Righteous defender who protects allies",
+      "type": "combat",
+      "icon_path": "res://assets/icons/specs/paladin.png",
+      "required_level": 20,
+      "required_traits": ["guardian"],
+      "blocked_traits": ["assassin"],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {
+        "defense": 0.20,
+        "hp": 0.15,
+        "resistance": 0.10
+      },
+      "task_bonuses": {
+        "defend": 0.25
+      },
+      "skill_xp_bonuses": {
+        "combat": 0.10
+      },
+      "unlocked_ability_ids": ["divine_shield"],
+      "enhanced_ability_ids": {}
+    },
+    "shadow_blade": {
+      "id": "shadow_blade",
+      "name": "Shadow Blade",
+      "description": "Master of critical strikes and evasion",
+      "type": "combat",
+      "icon_path": "res://assets/icons/specs/shadow_blade.png",
+      "required_level": 20,
+      "required_traits": ["assassin"],
+      "blocked_traits": ["guardian"],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {
+        "critical_chance": 0.15,
+        "critical_damage": 0.30,
+        "speed": 0.10
+      },
+      "task_bonuses": {
+        "scout": 0.20,
+        "hunt_monsters": 0.10
+      },
+      "skill_xp_bonuses": {
+        "combat": 0.15
+      },
+      "unlocked_ability_ids": ["shadow_step"],
+      "enhanced_ability_ids": {}
+    },
+    "arch_mage": {
+      "id": "arch_mage",
+      "name": "Arch Mage",
+      "description": "Master of elemental magic with devastating AoE",
+      "type": "combat",
+      "icon_path": "res://assets/icons/specs/arch_mage.png",
+      "required_level": 20,
+      "required_traits": ["scholar", "enchanter"],
+      "blocked_traits": [],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {
+        "attack": 0.20,
+        "accuracy": 0.15
+      },
+      "task_bonuses": {
+        "research": 0.20,
+        "enchant_equipment": 0.15
+      },
+      "skill_xp_bonuses": {
+        "enchanting": 0.15,
+        "research": 0.10
+      },
+      "unlocked_ability_ids": ["arcane_barrage"],
+      "enhanced_ability_ids": {}
+    },
+    "battle_cleric": {
+      "id": "battle_cleric",
+      "name": "Battle Cleric",
+      "description": "Healer who can hold their own in combat",
+      "type": "support",
+      "icon_path": "res://assets/icons/specs/battle_cleric.png",
+      "required_level": 20,
+      "required_traits": ["healer"],
+      "blocked_traits": [],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {
+        "healing_power": 0.25,
+        "defense": 0.10,
+        "hp": 0.10
+      },
+      "task_bonuses": {
+        "brew_potions": 0.20,
+        "create_elixirs": 0.15
+      },
+      "skill_xp_bonuses": {
+        "alchemy": 0.15
+      },
+      "unlocked_ability_ids": ["mass_heal"],
+      "enhanced_ability_ids": {}
+    },
+    "tactician": {
+      "id": "tactician",
+      "name": "Tactician",
+      "description": "Strategic commander who buffs the entire team",
+      "type": "support",
+      "icon_path": "res://assets/icons/specs/tactician.png",
+      "required_level": 20,
+      "required_traits": ["strategist", "commander"],
+      "blocked_traits": [],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {
+        "speed": 0.15,
+        "accuracy": 0.10
+      },
+      "task_bonuses": {
+        "train": 0.30,
+        "defend": 0.20,
+        "plan_battle": 0.25
+      },
+      "skill_xp_bonuses": {
+        "combat": 0.20
+      },
+      "unlocked_ability_ids": ["battle_orders"],
+      "enhanced_ability_ids": {}
+    },
+    "master_smith": {
+      "id": "master_smith",
+      "name": "Master Smith",
+      "description": "Legendary craftsman who forges superior equipment",
+      "type": "production",
+      "icon_path": "res://assets/icons/specs/master_smith.png",
+      "required_level": 20,
+      "required_traits": ["forgemaster"],
+      "blocked_traits": [],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {
+        "defense": 0.10
+      },
+      "task_bonuses": {
+        "forge_equipment": 0.35,
+        "smelt_ore": 0.25,
+        "repair_equipment": 0.30
+      },
+      "skill_xp_bonuses": {
+        "smithing": 0.25
+      },
+      "unlocked_ability_ids": [],
+      "enhanced_ability_ids": {}
+    },
+    "grand_alchemist": {
+      "id": "grand_alchemist",
+      "name": "Grand Alchemist",
+      "description": "Transmutation master who creates powerful elixirs",
+      "type": "production",
+      "icon_path": "res://assets/icons/specs/grand_alchemist.png",
+      "required_level": 20,
+      "required_traits": ["alchemist"],
+      "blocked_traits": [],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "brew_potions": 0.30,
+        "create_elixirs": 0.35,
+        "transmute": 0.25,
+        "gather_herbs": 0.15
+      },
+      "skill_xp_bonuses": {
+        "alchemy": 0.25,
+        "herbalism": 0.10
+      },
+      "unlocked_ability_ids": [],
+      "enhanced_ability_ids": {}
+    },
+    "deep_delver": {
+      "id": "deep_delver",
+      "name": "Deep Delver",
+      "description": "Expert miner who extracts the rarest ores",
+      "type": "production",
+      "icon_path": "res://assets/icons/specs/deep_delver.png",
+      "required_level": 20,
+      "required_traits": ["miner"],
+      "blocked_traits": [],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {
+        "defense": 0.05
+      },
+      "task_bonuses": {
+        "mine_ore": 0.25,
+        "mine_gems": 0.30,
+        "deep_mining": 0.40
+      },
+      "skill_xp_bonuses": {
+        "mining": 0.30
+      },
+      "unlocked_ability_ids": [],
+      "enhanced_ability_ids": {}
+    },
+    "nature_warden": {
+      "id": "nature_warden",
+      "name": "Nature Warden",
+      "description": "One with nature, master of all gathering",
+      "type": "production",
+      "icon_path": "res://assets/icons/specs/nature_warden.png",
+      "required_level": 20,
+      "required_traits": ["harvester"],
+      "blocked_traits": [],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {
+        "speed": 0.05
+      },
+      "task_bonuses": {
+        "harvest_plants": 0.30,
+        "gather_herbs": 0.35,
+        "lumber": 0.25
+      },
+      "skill_xp_bonuses": {
+        "farming": 0.20,
+        "herbalism": 0.20,
+        "woodcutting": 0.15
+      },
+      "unlocked_ability_ids": [],
+      "enhanced_ability_ids": {}
+    },
+    "sea_lord": {
+      "id": "sea_lord",
+      "name": "Sea Lord",
+      "description": "Master of the seas with unparalleled aquatic skills",
+      "type": "production",
+      "icon_path": "res://assets/icons/specs/sea_lord.png",
+      "required_level": 20,
+      "required_traits": ["fisher"],
+      "blocked_traits": [],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {
+        "speed": 0.10
+      },
+      "task_bonuses": {
+        "fish": 0.35,
+        "pearl_diving": 0.40,
+        "gather_scales": 0.25
+      },
+      "skill_xp_bonuses": {
+        "fishing": 0.30
+      },
+      "unlocked_ability_ids": [],
+      "enhanced_ability_ids": {}
+    },
+    "beast_master": {
+      "id": "beast_master",
+      "name": "Beast Master",
+      "description": "Hunter supreme who tracks any prey",
+      "type": "hybrid",
+      "icon_path": "res://assets/icons/specs/beast_master.png",
+      "required_level": 20,
+      "required_traits": ["hunter"],
+      "blocked_traits": [],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {
+        "attack": 0.10,
+        "speed": 0.10,
+        "critical_chance": 0.05
+      },
+      "task_bonuses": {
+        "hunt_monsters": 0.35,
+        "track_beasts": 0.30,
+        "gather_pelts": 0.25
+      },
+      "skill_xp_bonuses": {
+        "hunting": 0.25,
+        "combat": 0.10
+      },
+      "unlocked_ability_ids": ["summon_beast"],
+      "enhanced_ability_ids": {}
+    },
+    "arcane_artificer": {
+      "id": "arcane_artificer",
+      "name": "Arcane Artificer",
+      "description": "Creator of legendary magical items",
+      "type": "production",
+      "icon_path": "res://assets/icons/specs/arcane_artificer.png",
+      "required_level": 25,
+      "required_traits": ["artificer"],
+      "blocked_traits": [],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "create_artifacts": 0.40,
+        "enchant_equipment": 0.30,
+        "forge_equipment": 0.20
+      },
+      "skill_xp_bonuses": {
+        "artificing": 0.30,
+        "enchanting": 0.20,
+        "smithing": 0.10
+      },
+      "unlocked_ability_ids": [],
+      "enhanced_ability_ids": {}
+    },
+    "lore_keeper": {
+      "id": "lore_keeper",
+      "name": "Lore Keeper",
+      "description": "Guardian of ancient knowledge",
+      "type": "hybrid",
+      "icon_path": "res://assets/icons/specs/lore_keeper.png",
+      "required_level": 20,
+      "required_traits": ["scholar"],
+      "blocked_traits": [],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {
+        "accuracy": 0.10,
+        "resistance": 0.10
+      },
+      "task_bonuses": {
+        "research": 0.35,
+        "study_lore": 0.40,
+        "translate_texts": 0.30
+      },
+      "skill_xp_bonuses": {
+        "research": 0.30
+      },
+      "unlocked_ability_ids": ["ancient_wisdom"],
+      "enhanced_ability_ids": {}
+    },
+    "pathfinder": {
+      "id": "pathfinder",
+      "name": "Pathfinder",
+      "description": "Elite explorer who discovers hidden treasures",
+      "type": "hybrid",
+      "icon_path": "res://assets/icons/specs/pathfinder.png",
+      "required_level": 20,
+      "required_traits": ["explorer"],
+      "blocked_traits": [],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {
+        "speed": 0.15
+      },
+      "task_bonuses": {
+        "scout": 0.30,
+        "explore": 0.40,
+        "find_treasure": 0.35
+      },
+      "skill_xp_bonuses": {
+        "exploration": 0.30
+      },
+      "unlocked_ability_ids": ["treasure_sense"],
+      "enhanced_ability_ids": {}
+    },
+    "trade_prince": {
+      "id": "trade_prince",
+      "name": "Trade Prince",
+      "description": "Master negotiator with unbeatable deals",
+      "type": "support",
+      "icon_path": "res://assets/icons/specs/trade_prince.png",
+      "required_level": 20,
+      "required_traits": ["diplomat"],
+      "blocked_traits": [],
+      "required_pantheon": "",
+      "prerequisite_specialization_id": "",
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "trade": 0.40,
+        "negotiate": 0.35,
+        "manage_territory": 0.25
+      },
+      "skill_xp_bonuses": {
+        "trading": 0.35
+      },
+      "unlocked_ability_ids": [],
+      "enhanced_ability_ids": {}
+    }
+  },
+
+  "specialization_types": {
+    "combat": {
+      "name": "Combat",
+      "description": "Focused on battle prowess",
+      "color": "#F44336"
+    },
+    "production": {
+      "name": "Production",
+      "description": "Focused on gathering and crafting",
+      "color": "#4CAF50"
+    },
+    "support": {
+      "name": "Support",
+      "description": "Focused on team utility",
+      "color": "#2196F3"
+    },
+    "hybrid": {
+      "name": "Hybrid",
+      "description": "Balanced between roles",
+      "color": "#9C27B0"
+    }
+  }
+}

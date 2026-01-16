@@ -221,7 +221,32 @@ func register_core_systems():
 	if FileAccess.file_exists("res://scripts/systems/equipment/EquipmentManager.gd"):
 		var equipment_manager = preload("res://scripts/systems/equipment/EquipmentManager.gd").new()
 		register_system("EquipmentManager", equipment_manager)
-		
+
 		# Register EquipmentStatCalculator separately for direct access
 		if equipment_manager.stat_calculator:
 			register_system("EquipmentStatCalculator", equipment_manager.stat_calculator)
+
+	# Phase 8: Shop and cosmetics systems
+	if FileAccess.file_exists("res://scripts/systems/shop/SkinManager.gd"):
+		var skin_manager = preload("res://scripts/systems/shop/SkinManager.gd").new()
+		register_system("SkinManager", skin_manager)
+
+	if FileAccess.file_exists("res://scripts/systems/shop/ShopManager.gd"):
+		var shop_manager = preload("res://scripts/systems/shop/ShopManager.gd").new()
+		register_system("ShopManager", shop_manager)
+
+	# Phase 9: Trait and Task systems (depend on collection systems)
+	if FileAccess.file_exists("res://scripts/systems/traits/TraitManager.gd"):
+		var trait_manager = preload("res://scripts/systems/traits/TraitManager.gd").new()
+		register_system("TraitManager", trait_manager)
+
+	if FileAccess.file_exists("res://scripts/systems/tasks/TaskAssignmentManager.gd"):
+		var task_manager = preload("res://scripts/systems/tasks/TaskAssignmentManager.gd").new()
+		register_system("TaskAssignmentManager", task_manager)
+		# Connect trait manager to task manager
+		if has_system("TraitManager"):
+			task_manager.set_trait_manager(get_system("TraitManager"))
+
+	if FileAccess.file_exists("res://scripts/systems/specialization/SpecializationManager.gd"):
+		var spec_manager = preload("res://scripts/systems/specialization/SpecializationManager.gd").new()
+		register_system("SpecializationManager", spec_manager)

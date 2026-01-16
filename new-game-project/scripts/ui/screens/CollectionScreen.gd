@@ -32,10 +32,42 @@ var sorter: CollectionSorter
 var selected_god: God = null
 
 func _ready():
+	# Ensure fullscreen (needed when parent is Node2D)
+	_setup_fullscreen()
+
 	_init_systems()
 
 	if back_button:
 		back_button.pressed.connect(_on_back_pressed)
+		_style_back_button()
+
+func _setup_fullscreen():
+	"""Make this control fill the entire viewport"""
+	var viewport_size = get_viewport().get_visible_rect().size
+	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_size(viewport_size)
+	position = Vector2.ZERO
+
+func _style_back_button():
+	"""Style the back button to match dark fantasy theme"""
+	if not back_button:
+		return
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.1, 0.15, 0.95)
+	style.border_color = Color(0.4, 0.35, 0.5, 0.8)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(6)
+	back_button.add_theme_stylebox_override("normal", style)
+
+	var hover = StyleBoxFlat.new()
+	hover.bg_color = Color(0.18, 0.15, 0.22, 0.98)
+	hover.border_color = Color(0.5, 0.45, 0.6, 1.0)
+	hover.set_border_width_all(1)
+	hover.set_corner_radius_all(6)
+	back_button.add_theme_stylebox_override("hover", hover)
+
+	back_button.add_theme_color_override("font_color", Color(0.85, 0.8, 0.7))
+	back_button.add_theme_color_override("font_hover_color", Color(1.0, 0.95, 0.85))
 
 	# Setup sorting UI using helper
 	sorter = CollectionSorter.new()

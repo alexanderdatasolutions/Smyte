@@ -269,3 +269,84 @@ func _sum_dictionary_values(dict: Dictionary) -> int:
 	for value in dict.values():
 		total += value
 	return total
+
+# ==============================================================================
+# TASK INTEGRATION - Territory task slot management
+# ==============================================================================
+
+## Get buildings unlocked in a territory
+func get_territory_buildings(territory_id: String) -> Array[String]:
+	"""Get list of building IDs constructed in this territory"""
+	var territory_info = get_territory_info(territory_id)
+	var buildings: Array[String] = []
+	var building_list = territory_info.get("buildings", [])
+	for b in building_list:
+		buildings.append(str(b))
+	return buildings
+
+## Get territory level (for task requirements)
+func get_territory_level(territory_id: String) -> int:
+	"""Get the current level of a territory"""
+	var territory_info = get_territory_info(territory_id)
+	return territory_info.get("level", 1)
+
+## Check if territory has a specific building
+func has_building(territory_id: String, building_id: String) -> bool:
+	"""Check if a territory has a specific building"""
+	return building_id in get_territory_buildings(territory_id)
+
+## Get max task worker slots for territory
+func get_max_task_slots(territory_id: String) -> int:
+	"""Get maximum number of gods that can work on tasks in this territory"""
+	var territory_info = get_territory_info(territory_id)
+	var base_slots = territory_info.get("max_task_slots", 3)
+	var level = get_territory_level(territory_id)
+	# +1 slot per 3 levels
+	@warning_ignore("integer_division")
+	return base_slots + (level - 1) / 3
+
+## Get gods currently working in territory
+func get_working_gods(territory_id: String) -> Array[String]:
+	"""Get IDs of gods assigned to tasks in this territory"""
+	var task_manager = SystemRegistry.get_instance().get_system("TaskAssignmentManager") if SystemRegistry.get_instance() else null
+	if task_manager:
+		return task_manager.get_gods_working_in_territory(territory_id)
+	return []
+
+## Check if territory has available task slots
+func has_available_task_slots(territory_id: String) -> bool:
+	"""Check if more gods can be assigned to tasks in this territory"""
+	if not is_territory_controlled(territory_id):
+		return false
+	var working_count = get_working_gods(territory_id).size()
+	return working_count < get_max_task_slots(territory_id)
+
+## Add building to territory (unlocks new tasks)
+func add_building(territory_id: String, building_id: String) -> bool:
+	"""Add a building to a territory"""
+	if not is_territory_controlled(territory_id):
+		return false
+
+	if not territory_data.has(territory_id):
+		return false
+
+	if not territory_data[territory_id].has("buildings"):
+		territory_data[territory_id]["buildings"] = []
+
+	if building_id in territory_data[territory_id]["buildings"]:
+		return false
+
+	territory_data[territory_id]["buildings"].append(building_id)
+	return true
+
+## Get available tasks for a territory based on level and buildings
+func get_available_tasks(territory_id: String) -> Array:
+	"""Get tasks available in this territory"""
+	var task_manager = SystemRegistry.get_instance().get_system("TaskAssignmentManager") if SystemRegistry.get_instance() else null
+	if not task_manager:
+		return []
+
+	var level = get_territory_level(territory_id)
+	var buildings = get_territory_buildings(territory_id)
+
+	return task_manager.get_available_tasks_for_territory(level, buildings)

@@ -1,0 +1,120 @@
+[gd_scene load_steps=4 format=3 uid="uid://cshop_screen_001"]
+
+[ext_resource type="Script" uid="uid://dshop_screen_script" path="res://scripts/ui/screens/ShopScreen.gd" id="1_shop"]
+
+[sub_resource type="Gradient" id="Gradient_bg"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.08, 0.06, 0.12, 1, 0.12, 0.1, 0.18, 1, 0.06, 0.04, 0.1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_bg"]
+gradient = SubResource("Gradient_bg")
+fill = 1
+fill_from = Vector2(0.5, 0)
+fill_to = Vector2(0.5, 1)
+
+[node name="ShopScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_shop")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("GradientTexture2D_bg")
+expand_mode = 1
+
+[node name="MainContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+
+[node name="Header" type="HBoxContainer" parent="MainContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="MainContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.85, 0.6, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 32
+text = "DIVINE SHOP"
+
+[node name="CrystalDisplay" type="HBoxContainer" parent="MainContainer/Header"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CrystalIcon" type="Label" parent="MainContainer/Header/CrystalDisplay"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "💎"
+
+[node name="CrystalAmount" type="Label" parent="MainContainer/Header/CrystalDisplay"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="TabContainer" type="HBoxContainer" parent="MainContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 10
+
+[node name="CrystalsTab" type="Button" parent="MainContainer/TabContainer"]
+custom_minimum_size = Vector2(140, 40)
+layout_mode = 2
+text = "CRYSTALS"
+
+[node name="SkinsTab" type="Button" parent="MainContainer/TabContainer"]
+custom_minimum_size = Vector2(140, 40)
+layout_mode = 2
+text = "GOD SKINS"
+
+[node name="OffersTab" type="Button" parent="MainContainer/TabContainer"]
+custom_minimum_size = Vector2(140, 40)
+layout_mode = 2
+text = "OFFERS"
+
+[node name="ContentPanel" type="PanelContainer" parent="MainContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MainContainer/ContentPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ContentGrid" type="GridContainer" parent="MainContainer/ContentPanel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 15
+theme_override_constants/v_separation = 15
+columns = 3
+
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 100.0
+offset_bottom = 50.0
+text = "< BACK"

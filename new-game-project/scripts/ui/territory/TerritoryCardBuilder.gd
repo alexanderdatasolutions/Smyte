@@ -353,12 +353,24 @@ static func _create_detailed_role_assignments(territory_data: Dictionary) -> Con
 			var role_line = _create_detailed_role_line(role_data, territory_data)
 			section.add_child(role_line)
 		
-		# Management button
+		# Management buttons
+		var btn_row = HBoxContainer.new()
+		btn_row.add_theme_constant_override("separation", 4)
+		section.add_child(btn_row)
+
 		var manage_btn = Button.new()
-		manage_btn.text = "👥 Manage Roles"
+		manage_btn.text = "👥 Roles"
 		manage_btn.add_theme_font_size_override("font_size", 9)
 		manage_btn.custom_minimum_size = Vector2(0, 20)
-		section.add_child(manage_btn)
+		manage_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn_row.add_child(manage_btn)
+
+		var tasks_btn = Button.new()
+		tasks_btn.text = "📋 Tasks"
+		tasks_btn.add_theme_font_size_override("font_size", 9)
+		tasks_btn.custom_minimum_size = Vector2(0, 20)
+		tasks_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn_row.add_child(tasks_btn)
 	else:
 		var unlock_label = Label.new()
 		unlock_label.text = "Capture territory to\nassign gods to roles"

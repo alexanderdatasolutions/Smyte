@@ -51,7 +51,29 @@ func _create_ui_structure():
 	back_button.text = "← BACK TO WORLD"
 	back_button.custom_minimum_size = Vector2(150, 40)
 	back_button.pressed.connect(_on_back_pressed)
+	_style_back_button()
 	main_container.add_child(back_button)
+
+func _style_back_button():
+	"""Style the back button to match dark fantasy theme"""
+	if not back_button:
+		return
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.1, 0.15, 0.95)
+	style.border_color = Color(0.4, 0.35, 0.5, 0.8)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(6)
+	back_button.add_theme_stylebox_override("normal", style)
+
+	var hover = StyleBoxFlat.new()
+	hover.bg_color = Color(0.18, 0.15, 0.22, 0.98)
+	hover.border_color = Color(0.5, 0.45, 0.6, 1.0)
+	hover.set_border_width_all(1)
+	hover.set_corner_radius_all(6)
+	back_button.add_theme_stylebox_override("hover", hover)
+
+	back_button.add_theme_color_override("font_color", Color(0.85, 0.8, 0.7))
+	back_button.add_theme_color_override("font_hover_color", Color(1.0, 0.95, 0.85))
 
 func _setup_managers():
 	"""Create component managers"""

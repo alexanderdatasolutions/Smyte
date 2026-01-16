@@ -1,26 +1,33 @@
 # scripts/ui/ResourceDisplay.gd
-# 
+#
 # ResourceDisplay manages the main resource UI shown across all game screens
 # Displays: Mana (primary currency), Divine Crystals (premium), Energy (stamina), etc.
-# 
+#
 # Architecture: Uses singleton pattern to sync all instances globally
 # Data Source: GameManager.player_data via PlayerData.get_resource() method
 #
-extends HBoxContainer
+extends PanelContainer
+
+# Helper to get SystemRegistry without parse-time dependency
+static func _get_system_registry():
+	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+	if registry_script and registry_script.has_method("get_instance"):
+		return registry_script.get_instance()
+	return null
 
 # === SINGLETON PATTERN ===
 # All ResourceDisplay instances sync updates globally when resources change
 static var _instances: Array = []
 
 # === UI ELEMENTS ===
-# These correspond to nodes in ResourceDisplay.tscn
-@onready var player_level_label: Label = null # Player level (new progression system) - will be created dynamically
-@onready var mana_label: Label = $ManaLabel           # Primary currency (per prompt architecture)
-@onready var crystal_label: Label = $CrystalLabel     # Premium currency  
-@onready var energy_label: Label = $EnergyLabel       # Stamina for battles (regenerates)
-@onready var tickets_label: Label = $TicketsLabel     # Summon tickets
-@onready var materials_button: Button = $MaterialsButton           # Opens materials inventory
-@onready var materials_count_label: Label = $MaterialsCountLabel   # Shows total materials count
+# These correspond to nodes in ResourceDisplay.tscn (redesigned with containers)
+@onready var player_level_label: Label = null # Player level - created dynamically if needed
+@onready var mana_label: Label = $MarginContainer/HBoxContainer/ManaContainer/ManaLabel
+@onready var crystal_label: Label = $MarginContainer/HBoxContainer/CrystalContainer/CrystalLabel
+@onready var energy_label: Label = $MarginContainer/HBoxContainer/EnergyContainer/EnergyLabel
+@onready var tickets_label: Label = $MarginContainer/HBoxContainer/TicketsContainer/TicketsLabel
+@onready var materials_button: Button = $MarginContainer/HBoxContainer/MaterialsButton
+@onready var materials_count_label: Label = $MarginContainer/HBoxContainer/MaterialsCountLabel
 
 # === SYSTEM REFERENCES ===
 var resource_manager: Node = null  # Reference to ResourceManager for materials data
@@ -56,7 +63,7 @@ func _exit_tree():
 	_instances.erase(self)
 	
 	# Disconnect signals to prevent errors
-	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	var event_bus = _get_system_registry().get_system("EventBus") if _get_system_registry() else null
 	if event_bus and event_bus.has_signal("resources_updated") and event_bus.resources_updated.is_connected(_update_all_instances):
 		event_bus.resources_updated.disconnect(_update_all_instances)
 
@@ -64,14 +71,14 @@ func _exit_tree():
 
 func _initialize_resource_manager():
 	"""Get ResourceManager reference through SystemRegistry"""
-	var system_registry = SystemRegistry.get_instance()
+	var system_registry = _get_system_registry()
 	if system_registry:
 		resource_manager = system_registry.get_system("ResourceManager")
 
 func _setup_signal_connections():
 	"""Connect to system signals through SystemRegistry (first instance only to avoid duplicates)"""
 	if _instances.size() == 1:
-		var system_registry = SystemRegistry.get_instance()
+		var system_registry = _get_system_registry()
 		if system_registry:
 			var eb = system_registry.get_system("EventBus")
 			if eb and eb.has_signal("resources_updated"):
@@ -119,7 +126,7 @@ static func _update_all_instances():
 
 func _update_this_instance():
 	"""Update this specific instance's display with current resource values"""
-	var system_registry = SystemRegistry.get_instance()
+	var system_registry = _get_system_registry()
 	if not system_registry:
 		return
 
@@ -145,7 +152,7 @@ func _update_player_level_display():
 	var xp_to_next = 100
 	
 	# Get experience from ResourceManager instead of PlayerData
-	var resource_mgr = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
+	var resource_mgr = _get_system_registry().get_system("ResourceManager") if _get_system_registry() else null
 	if resource_mgr:
 		player_xp = resource_mgr.get_resource("experience")
 		# Simple level calculation: every 1000 XP = 1 level
@@ -159,26 +166,26 @@ func _update_player_level_display():
 func _update_mana_display():
 	"""Update mana display (primary currency per prompt architecture)"""
 	if mana_label:
-		var system_registry = SystemRegistry.get_instance()
+		var system_registry = _get_system_registry()
 		var resource_mgr = system_registry.get_system("ResourceManager") if system_registry else null
 		var mana_value = resource_mgr.get_resource("mana") if resource_mgr else 0
-		mana_label.text = "Mana: " + format_large_number(mana_value)
+		mana_label.text = format_large_number(mana_value)
 
 func _update_crystals_display():
 	"""Update divine crystals display (premium currency)"""
 	if crystal_label:
-		var system_registry = SystemRegistry.get_instance()
+		var system_registry = _get_system_registry()
 		var resource_mgr = system_registry.get_system("ResourceManager") if system_registry else null
 		var crystals_value = resource_mgr.get_resource("divine_crystals") if resource_mgr else 0
-		crystal_label.text = "Crystals: " + str(crystals_value)
+		crystal_label.text = str(crystals_value)
 
 func _update_tickets_display():
 	"""Update summon tickets display"""
 	if tickets_label:
-		var system_registry = SystemRegistry.get_instance()
+		var system_registry = _get_system_registry()
 		var resource_mgr = system_registry.get_system("ResourceManager") if system_registry else null
 		var tickets_count = resource_mgr.get_resource("summon_tickets") if resource_mgr else 0
-		tickets_label.text = "Tickets: " + str(tickets_count)
+		tickets_label.text = str(tickets_count)
 
 func _update_materials_count():
 	"""Update materials count display"""
@@ -189,11 +196,11 @@ func _update_materials_count():
 func _update_energy_display():
 	"""Update energy display (stamina for battles)"""
 	if energy_label:
-		var system_registry = SystemRegistry.get_instance()
+		var system_registry = _get_system_registry()
 		var resource_mgr = system_registry.get_system("ResourceManager") if system_registry else null
 		var energy_value = resource_mgr.get_resource("energy") if resource_mgr else 0
 		var energy_limit = resource_mgr.get_resource_limit("energy") if resource_mgr else 100
-		energy_label.text = "Energy: %d/%d" % [energy_value, energy_limit]
+		energy_label.text = "%d/%d" % [energy_value, energy_limit]
 
 # === UTILITY FUNCTIONS ===
 
@@ -210,7 +217,7 @@ func format_large_number(number: int) -> String:
 
 func _get_total_materials_count() -> int:
 	"""Calculate total count of all materials in player inventory"""
-	var resource_mgr = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
+	var resource_mgr = _get_system_registry().get_system("ResourceManager") if _get_system_registry() else null
 	if not resource_mgr:
 		return 0
 	
@@ -279,7 +286,7 @@ func _add_table_header(grid: GridContainer, text: String):
 
 func _populate_materials_table(grid: GridContainer):
 	"""Populate materials table through SystemRegistry"""
-	var system_registry = SystemRegistry.get_instance()
+	var system_registry = _get_system_registry()
 	if not system_registry:
 		return
 
@@ -357,7 +364,7 @@ func _create_header_style() -> StyleBoxFlat:
 
 func _get_player_resource(_resource_id: String) -> int:
 	"""Get player resource through SystemRegistry pattern"""
-	var system_registry = SystemRegistry.get_instance()
+	var system_registry = _get_system_registry()
 	if not system_registry:
 		return 0
 

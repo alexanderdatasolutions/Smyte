@@ -1,0 +1,388 @@
+{
+  "traits": {
+    "miner": {
+      "id": "miner",
+      "name": "Miner",
+      "description": "Skilled at extracting ore and gems from the earth",
+      "category": "production",
+      "rarity": "common",
+      "task_bonuses": {
+        "mine_ore": 0.5,
+        "mine_gems": 0.3,
+        "deep_mining": 0.4
+      },
+      "combat_stat_bonuses": {},
+      "icon_path": "res://assets/icons/traits/miner.png"
+    },
+    "harvester": {
+      "id": "harvester",
+      "name": "Harvester",
+      "description": "Expert at gathering plants, herbs, and natural materials",
+      "category": "production",
+      "rarity": "common",
+      "task_bonuses": {
+        "harvest_plants": 0.5,
+        "gather_herbs": 0.4,
+        "lumber": 0.3
+      },
+      "combat_stat_bonuses": {},
+      "icon_path": "res://assets/icons/traits/harvester.png"
+    },
+    "hunter": {
+      "id": "hunter",
+      "name": "Hunter",
+      "description": "Skilled at tracking and defeating monsters for materials",
+      "category": "production",
+      "rarity": "common",
+      "task_bonuses": {
+        "hunt_monsters": 0.5,
+        "track_beasts": 0.4,
+        "gather_pelts": 0.3
+      },
+      "combat_stat_bonuses": {
+        "attack": 0.05
+      },
+      "icon_path": "res://assets/icons/traits/hunter.png"
+    },
+    "fisher": {
+      "id": "fisher",
+      "name": "Fisher",
+      "description": "Master of aquatic resource gathering",
+      "category": "production",
+      "rarity": "common",
+      "task_bonuses": {
+        "fish": 0.5,
+        "pearl_diving": 0.4,
+        "gather_scales": 0.3
+      },
+      "combat_stat_bonuses": {},
+      "icon_path": "res://assets/icons/traits/fisher.png"
+    },
+    "forgemaster": {
+      "id": "forgemaster",
+      "name": "Forgemaster",
+      "description": "Master of the forge, creates superior equipment",
+      "category": "crafting",
+      "rarity": "rare",
+      "task_bonuses": {
+        "forge_equipment": 0.5,
+        "repair_equipment": 0.4,
+        "smelt_ore": 0.3
+      },
+      "combat_stat_bonuses": {
+        "defense": 0.05
+      },
+      "icon_path": "res://assets/icons/traits/forgemaster.png"
+    },
+    "alchemist": {
+      "id": "alchemist",
+      "name": "Alchemist",
+      "description": "Expert in brewing potions and transmuting materials",
+      "category": "crafting",
+      "rarity": "rare",
+      "task_bonuses": {
+        "brew_potions": 0.5,
+        "create_elixirs": 0.4,
+        "transmute": 0.3
+      },
+      "combat_stat_bonuses": {},
+      "icon_path": "res://assets/icons/traits/alchemist.png"
+    },
+    "enchanter": {
+      "id": "enchanter",
+      "name": "Enchanter",
+      "description": "Skilled at imbuing items with magical properties",
+      "category": "crafting",
+      "rarity": "rare",
+      "task_bonuses": {
+        "cut_gems": 0.5,
+        "enchant_equipment": 0.5,
+        "create_scrolls": 0.3
+      },
+      "combat_stat_bonuses": {},
+      "icon_path": "res://assets/icons/traits/enchanter.png"
+    },
+    "artificer": {
+      "id": "artificer",
+      "name": "Artificer",
+      "description": "Creator of powerful artifacts and magical devices",
+      "category": "crafting",
+      "rarity": "epic",
+      "task_bonuses": {
+        "create_artifacts": 0.5,
+        "forge_equipment": 0.3,
+        "enchant_equipment": 0.3
+      },
+      "combat_stat_bonuses": {},
+      "icon_path": "res://assets/icons/traits/artificer.png"
+    },
+    "scholar": {
+      "id": "scholar",
+      "name": "Scholar",
+      "description": "Devoted to research and unlocking ancient knowledge",
+      "category": "knowledge",
+      "rarity": "rare",
+      "task_bonuses": {
+        "research": 0.5,
+        "study_lore": 0.4,
+        "translate_texts": 0.3
+      },
+      "combat_stat_bonuses": {},
+      "icon_path": "res://assets/icons/traits/scholar.png"
+    },
+    "strategist": {
+      "id": "strategist",
+      "name": "Strategist",
+      "description": "Master tactician who enhances territory defense",
+      "category": "knowledge",
+      "rarity": "rare",
+      "task_bonuses": {
+        "defend": 0.5,
+        "plan_battle": 0.4,
+        "train": 0.3
+      },
+      "combat_stat_bonuses": {
+        "speed": 0.05
+      },
+      "icon_path": "res://assets/icons/traits/strategist.png"
+    },
+    "explorer": {
+      "id": "explorer",
+      "name": "Explorer",
+      "description": "Skilled at discovering new territories and hidden treasures",
+      "category": "knowledge",
+      "rarity": "common",
+      "task_bonuses": {
+        "scout": 0.5,
+        "explore": 0.5,
+        "find_treasure": 0.3
+      },
+      "combat_stat_bonuses": {
+        "speed": 0.03
+      },
+      "icon_path": "res://assets/icons/traits/explorer.png"
+    },
+    "diplomat": {
+      "id": "diplomat",
+      "name": "Diplomat",
+      "description": "Negotiator who secures better trade deals",
+      "category": "knowledge",
+      "rarity": "rare",
+      "task_bonuses": {
+        "trade": 0.5,
+        "negotiate": 0.4,
+        "manage_territory": 0.3
+      },
+      "combat_stat_bonuses": {},
+      "icon_path": "res://assets/icons/traits/diplomat.png"
+    },
+    "warrior": {
+      "id": "warrior",
+      "name": "Warrior",
+      "description": "Born for battle, deals increased damage",
+      "category": "combat",
+      "rarity": "common",
+      "task_bonuses": {
+        "train": 0.3,
+        "defend": 0.2
+      },
+      "combat_stat_bonuses": {
+        "attack": 0.1
+      },
+      "icon_path": "res://assets/icons/traits/warrior.png"
+    },
+    "guardian": {
+      "id": "guardian",
+      "name": "Guardian",
+      "description": "Protector of allies, takes reduced damage",
+      "category": "combat",
+      "rarity": "common",
+      "task_bonuses": {
+        "defend": 0.5,
+        "guard": 0.4
+      },
+      "combat_stat_bonuses": {
+        "defense": 0.1,
+        "hp": 0.05
+      },
+      "icon_path": "res://assets/icons/traits/guardian.png"
+    },
+    "assassin": {
+      "id": "assassin",
+      "name": "Assassin",
+      "description": "Strike from the shadows with deadly precision",
+      "category": "combat",
+      "rarity": "rare",
+      "task_bonuses": {
+        "hunt_monsters": 0.3,
+        "scout": 0.3
+      },
+      "combat_stat_bonuses": {
+        "critical_chance": 0.1,
+        "critical_damage": 0.15
+      },
+      "icon_path": "res://assets/icons/traits/assassin.png"
+    },
+    "healer": {
+      "id": "healer",
+      "name": "Healer",
+      "description": "Blessed with the power to mend wounds",
+      "category": "combat",
+      "rarity": "rare",
+      "task_bonuses": {
+        "brew_potions": 0.3,
+        "create_elixirs": 0.3
+      },
+      "combat_stat_bonuses": {
+        "healing_power": 0.2
+      },
+      "icon_path": "res://assets/icons/traits/healer.png"
+    },
+    "commander": {
+      "id": "commander",
+      "name": "Commander",
+      "description": "Inspires nearby gods to work more efficiently",
+      "category": "leadership",
+      "rarity": "epic",
+      "task_bonuses": {
+        "all": 0.1
+      },
+      "combat_stat_bonuses": {
+        "attack": 0.05,
+        "defense": 0.05
+      },
+      "icon_path": "res://assets/icons/traits/commander.png"
+    },
+    "mentor": {
+      "id": "mentor",
+      "name": "Mentor",
+      "description": "Nearby gods gain bonus experience",
+      "category": "leadership",
+      "rarity": "epic",
+      "task_bonuses": {
+        "train": 0.5
+      },
+      "combat_stat_bonuses": {},
+      "icon_path": "res://assets/icons/traits/mentor.png"
+    },
+    "overseer": {
+      "id": "overseer",
+      "name": "Overseer",
+      "description": "Reduces task completion time for all gods in territory",
+      "category": "leadership",
+      "rarity": "epic",
+      "task_bonuses": {
+        "all": 0.15
+      },
+      "combat_stat_bonuses": {},
+      "icon_path": "res://assets/icons/traits/overseer.png"
+    },
+    "multitasker": {
+      "id": "multitasker",
+      "name": "Multitasker",
+      "description": "Can work on multiple tasks simultaneously",
+      "category": "special",
+      "rarity": "rare",
+      "task_bonuses": {},
+      "combat_stat_bonuses": {},
+      "allows_multitask": true,
+      "multitask_count": 2,
+      "multitask_efficiency": 0.75,
+      "icon_path": "res://assets/icons/traits/multitasker.png"
+    },
+    "divine_multitasker": {
+      "id": "divine_multitasker",
+      "name": "Divine Multitasker",
+      "description": "Can work on many tasks with divine efficiency",
+      "category": "special",
+      "rarity": "legendary",
+      "task_bonuses": {},
+      "combat_stat_bonuses": {},
+      "allows_multitask": true,
+      "multitask_count": 3,
+      "multitask_efficiency": 0.6,
+      "icon_path": "res://assets/icons/traits/divine_multitasker.png"
+    },
+    "tireless": {
+      "id": "tireless",
+      "name": "Tireless",
+      "description": "Never fatigues, works at full efficiency always",
+      "category": "special",
+      "rarity": "rare",
+      "task_bonuses": {
+        "all": 0.1
+      },
+      "combat_stat_bonuses": {},
+      "icon_path": "res://assets/icons/traits/tireless.png"
+    },
+    "lucky": {
+      "id": "lucky",
+      "name": "Lucky",
+      "description": "Increased chance for bonus drops and rare finds",
+      "category": "special",
+      "rarity": "rare",
+      "task_bonuses": {},
+      "combat_stat_bonuses": {
+        "critical_chance": 0.05
+      },
+      "icon_path": "res://assets/icons/traits/lucky.png"
+    },
+    "divine_blessing": {
+      "id": "divine_blessing",
+      "name": "Divine Blessing",
+      "description": "Blessed by the heavens, excels at everything",
+      "category": "special",
+      "rarity": "legendary",
+      "task_bonuses": {
+        "all": 0.25
+      },
+      "combat_stat_bonuses": {
+        "attack": 0.1,
+        "defense": 0.1,
+        "speed": 0.1
+      },
+      "icon_path": "res://assets/icons/traits/divine_blessing.png"
+    }
+  },
+
+  "god_innate_traits": {
+    "zeus": ["commander", "warrior"],
+    "hera": ["diplomat", "guardian"],
+    "poseidon": ["fisher", "warrior"],
+    "hades": ["miner", "strategist"],
+    "athena": ["scholar", "strategist"],
+    "ares": ["warrior", "hunter"],
+    "apollo": ["healer", "scholar"],
+    "artemis": ["hunter", "explorer"],
+    "hephaestus": ["forgemaster", "miner"],
+    "aphrodite": ["diplomat", "enchanter"],
+    "hermes": ["explorer", "multitasker"],
+    "demeter": ["harvester", "healer"],
+    "dionysus": ["alchemist", "harvester"],
+    "hestia": ["guardian", "mentor"],
+    "persephone": ["harvester", "alchemist"],
+
+    "odin": ["scholar", "commander"],
+    "thor": ["warrior", "forgemaster"],
+    "loki": ["assassin", "multitasker"],
+    "freya": ["enchanter", "healer"],
+    "tyr": ["warrior", "guardian"],
+    "heimdall": ["guardian", "explorer"],
+    "baldur": ["healer", "diplomat"],
+
+    "ra": ["commander", "scholar"],
+    "anubis": ["miner", "guardian"],
+    "isis": ["healer", "enchanter"],
+    "osiris": ["harvester", "mentor"],
+    "thoth": ["scholar", "artificer"],
+    "sekhmet": ["warrior", "hunter"],
+    "bastet": ["assassin", "hunter"],
+
+    "amaterasu": ["healer", "commander"],
+    "susanoo": ["warrior", "fisher"],
+    "tsukuyomi": ["assassin", "scholar"],
+    "inari": ["harvester", "diplomat"],
+    "raijin": ["warrior", "forgemaster"],
+    "fujin": ["explorer", "hunter"]
+  }
+}

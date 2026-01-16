@@ -49,10 +49,10 @@ static func create_summon_card(title: String, description: String, cost: String,
 	var title_label = Label.new()
 	title_label.text = title
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title_label.add_theme_font_size_override("font_size", 14)
+	title_label.add_theme_font_size_override("font_size", 16)  # Increased from 14px to 16px
 	title_label.add_theme_color_override("font_color", Color.WHITE)
 	title_label.add_theme_color_override("font_outline_color", Color.BLACK)
-	title_label.add_theme_constant_override("outline_size", 2)
+	title_label.add_theme_constant_override("outline_size", 3)  # Increased from 2 to 3 for bold effect
 	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(title_label)
 

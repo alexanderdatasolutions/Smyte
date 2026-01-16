@@ -2,10 +2,10 @@
 # Main game orchestration - replaces the 1203-line GameManager god class
 extends Node
 
-# Core components
-var game_state: GameState
-var system_registry: SystemRegistry
-var event_bus: EventBus
+# Core components - untyped to avoid parse-time class_name resolution issues
+var game_state  # GameState
+var system_registry  # SystemRegistry
+var event_bus  # EventBus
 
 # Game flow state
 var is_initialized: bool = false
@@ -20,18 +20,20 @@ func _ready():
 
 ## Initialize core systems
 func _setup_core_systems():
-	# Create system registry first
-	system_registry = SystemRegistry.new()
+	# Create system registry first (late binding to avoid parse-time class_name issues)
+	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+	system_registry = registry_script.new()
 	add_child(system_registry)
-	
+
 	# Register all core systems
 	system_registry.register_core_systems()
-	
+
 	# Get EventBus reference
 	event_bus = system_registry.get_system("EventBus")
-	
-	# Create game state
-	game_state = GameState.new()
+
+	# Create game state (late binding)
+	var game_state_script = load("res://scripts/data/GameState.gd")
+	game_state = game_state_script.new()
 
 ## Connect to global events
 func _connect_global_events():
@@ -49,8 +51,8 @@ func _load_game_data():
 	
 	# Load core game data through ConfigurationManager (RULE 5 - proper layering)
 	
-	# Use SystemRegistry to access ConfigurationManager (RULE 5 - proper layering)
-	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager")
+	# Use local system_registry instance (avoid parse-time SystemRegistry class reference)
+	var config_manager = system_registry.get_system("ConfigurationManager")
 	if not config_manager:
 		push_error("GameCoordinator: ConfigurationManager system not found in registry")
 		return
@@ -126,9 +128,11 @@ func _setup_starting_gods():
 	if collection_manager:
 		# Give player a starter god from each element
 		var starter_gods = ["ares", "poseidon", "artemis"]  # Fire, Water, Wind
-		
+
+		# Use late binding to avoid parse-time GodFactory class reference
+		var god_factory_script = load("res://scripts/systems/collection/GodFactory.gd")
 		for god_id in starter_gods:
-			var god = GodFactory.create_from_json(god_id)
+			var god = god_factory_script.create_from_json(god_id)
 			if god:
 				collection_manager.add_god(god)
 
@@ -136,13 +140,16 @@ func _setup_starting_gods():
 func _setup_starting_equipment():
 	var equipment_manager = system_registry.get_system("EquipmentManager")
 	if equipment_manager:
+		# Use late binding to avoid parse-time Equipment class reference
+		var equipment_script = load("res://scripts/data/Equipment.gd")
+
 		# Create basic starter equipment manually for now
 		# Iron Sword (Weapon)
-		var iron_sword = Equipment.new()
+		var iron_sword = equipment_script.new()
 		iron_sword.id = "iron_sword"
 		iron_sword.name = "Iron Sword"
-		iron_sword.type = Equipment.EquipmentType.WEAPON
-		iron_sword.rarity = Equipment.Rarity.COMMON
+		iron_sword.type = equipment_script.EquipmentType.WEAPON
+		iron_sword.rarity = equipment_script.Rarity.COMMON
 		iron_sword.slot = 1
 		iron_sword.main_stat_type = "attack"
 		iron_sword.main_stat_base = 45
@@ -150,13 +157,13 @@ func _setup_starting_equipment():
 		iron_sword.level = 0
 		iron_sword.equipped_by_god_id = ""  # Ensure unequipped state
 		equipment_manager.add_equipment_to_inventory(iron_sword)
-		
+
 		# Steel Armor (Armor)
-		var steel_armor = Equipment.new()
+		var steel_armor = equipment_script.new()
 		steel_armor.id = "steel_armor"
 		steel_armor.name = "Steel Armor"
-		steel_armor.type = Equipment.EquipmentType.ARMOR
-		steel_armor.rarity = Equipment.Rarity.RARE
+		steel_armor.type = equipment_script.EquipmentType.ARMOR
+		steel_armor.rarity = equipment_script.Rarity.RARE
 		steel_armor.slot = 2
 		steel_armor.main_stat_type = "defense"
 		steel_armor.main_stat_base = 78
@@ -164,13 +171,13 @@ func _setup_starting_equipment():
 		steel_armor.level = 0
 		steel_armor.equipped_by_god_id = ""  # Ensure unequipped state
 		equipment_manager.add_equipment_to_inventory(steel_armor)
-		
+
 		# Mystic Helm (Helm)
-		var mystic_helm = Equipment.new()
+		var mystic_helm = equipment_script.new()
 		mystic_helm.id = "mystic_helm"
 		mystic_helm.name = "Mystic Helm"
-		mystic_helm.type = Equipment.EquipmentType.HELM
-		mystic_helm.rarity = Equipment.Rarity.EPIC
+		mystic_helm.type = equipment_script.EquipmentType.HELM
+		mystic_helm.rarity = equipment_script.Rarity.EPIC
 		mystic_helm.slot = 3
 		mystic_helm.main_stat_type = "hp"
 		mystic_helm.main_stat_base = 580

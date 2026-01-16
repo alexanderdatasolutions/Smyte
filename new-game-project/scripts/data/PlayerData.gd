@@ -121,9 +121,10 @@ func get_default_amount_for_resource(resource_id: String) -> int:
 			return 0
 
 func get_resource_manager():
-	"""Get ResourceManager instance from GameManager"""
-	if GameManager and GameManager.has_method("get_resource_manager"):
-		return GameManager.get_resource_manager()
+	"""Get ResourceManager instance from SystemRegistry"""
+	var registry = _get_system_registry()
+	if registry:
+		return registry.get_system("ResourceManager")
 	# Fallback: try to find ResourceManager in scene tree
 	var tree = Engine.get_main_loop() as SceneTree
 	if tree and tree.current_scene:
@@ -132,8 +133,16 @@ func get_resource_manager():
 
 func get_resource_manager_safe():
 	"""Safe getter that doesn't print warnings"""
-	if GameManager and GameManager.has_method("get_resource_manager"):
-		return GameManager.get_resource_manager()
+	var registry = _get_system_registry()
+	if registry:
+		return registry.get_system("ResourceManager")
+	return null
+
+# Helper to get SystemRegistry without parse-time dependency
+func _get_system_registry():
+	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+	if registry_script and registry_script.has_method("get_instance"):
+		return registry_script.get_instance()
 	return null
 
 # ==============================================================================
@@ -167,9 +176,12 @@ func add_resource(resource_id: String, amount: int):
 	else:
 		resources[resource_id] = current_amount + amount
 	
-	# Emit resource update signal if GameManager is available
-	if GameManager and GameManager.has_signal("resources_updated"):
-		GameManager.resources_updated.emit()
+	# Emit resource update signal if EventBus is available
+	var registry = _get_system_registry()
+	if registry:
+		var event_bus = registry.get_system("EventBus")
+		if event_bus and event_bus.has_signal("resources_updated"):
+			event_bus.resources_updated.emit()
 
 func get_max_storage(resource_id: String) -> int:
 	"""Get maximum storage for a resource"""

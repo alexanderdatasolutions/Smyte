@@ -50,8 +50,8 @@ signal collection_updated(collection_type)
 signal territory_captured(territory, capturing_guild)
 signal territory_attacked(territory: Dictionary, attacker: String)
 signal territory_defended(territory: Dictionary, defender: String)
-signal role_assigned(god: God, territory: Dictionary, role: String)
-signal role_unassigned(god: God, territory: Dictionary, role: String)
+signal role_assigned(god, territory: Dictionary, role: String)  # god: God - untyped for autoload compatibility
+signal role_unassigned(god, territory: Dictionary, role: String)  # god: God - untyped for autoload compatibility
 
 # ============================================================================
 # QUEST & ACHIEVEMENT EVENTS
@@ -157,7 +157,7 @@ func emit_resource_change(resource_id: String, new_amount: int, delta: int):
 	resource_changed.emit(resource_id, new_amount, delta)
 
 ## Emit a god level up event with proper logging
-func emit_god_level_up(god: God, new_level: int, old_level: int):
+func emit_god_level_up(god, new_level: int, old_level: int):  # god: God - untyped for autoload compatibility
 	_log_event("god_level_up", {
 		"god_id": god.id,
 		"new_level": new_level,
@@ -166,7 +166,7 @@ func emit_god_level_up(god: God, new_level: int, old_level: int):
 	god_level_up.emit(god, new_level, old_level)
 
 ## Emit battle result with comprehensive data
-func emit_battle_ended(result: BattleResult):
+func emit_battle_ended(result):  # result: BattleResult - untyped for autoload compatibility
 	_log_event("battle_ended", {
 		"victory": result.victory,
 		"battle_type": result.battle_type,

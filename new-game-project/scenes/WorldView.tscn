@@ -3,117 +3,115 @@
 [ext_resource type="Script" uid="uid://ckgvnk55xiu7g" path="res://scripts/ui/screens/WorldView.gd" id="1_1q2k3"]
 
 [sub_resource type="Gradient" id="Gradient_1"]
-offsets = PackedFloat32Array(0, 1)
-colors = PackedColorArray(0.282353, 0.282353, 0.345098, 1, 0.219608, 0.219608, 0.266667, 1)
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.08, 0.06, 0.12, 1, 0.12, 0.1, 0.18, 1, 0.06, 0.04, 0.1, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_1"]
 gradient = SubResource("Gradient_1")
 fill = 1
-fill_from = Vector2(0.5, 0.5)
-fill_to = Vector2(0.5, 0)
+fill_from = Vector2(0.5, 0)
+fill_to = Vector2(0.5, 1)
 
 [node name="WorldView" type="Control"]
 layout_mode = 3
-anchors_preset = 0
-offset_right = 1280.0
-offset_bottom = 720.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_1q2k3")
 
 [node name="Background" type="TextureRect" parent="."]
-layout_mode = 0
-offset_right = 1280.0
-offset_bottom = 720.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 texture = SubResource("GradientTexture2D_1")
 expand_mode = 1
 
-[node name="TopBar" type="NinePatchRect" parent="."]
+[node name="ContentContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = -1
-offset_right = 1284.0
-offset_bottom = 45.0
-grow_horizontal = 2
-
-[node name="TitleLabel" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -200.0
-offset_top = 100.0
-offset_right = 200.0
-offset_bottom = 150.0
-grow_horizontal = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_constants/shadow_outline_size = 4
-theme_override_font_sizes/font_size = 32
-text = "DIVINE NEXUS"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="BuildingContainer" type="Control" parent="."]
-layout_mode = 1
-anchors_preset = 0
-offset_top = 1.0
-offset_right = 1283.0
-offset_bottom = 722.0
-
-[node name="ButtonGrid" type="GridContainer" parent="."]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -285.0
-offset_top = -30.0
-offset_right = 285.0
-offset_bottom = 252.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 60.0
+offset_right = -40.0
+offset_bottom = -40.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/h_separation = 12
-theme_override_constants/v_separation = 16
+alignment = 1
+theme_override_constants/separation = 40
+
+[node name="TitleSection" type="VBoxContainer" parent="ContentContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="ContentContainer/TitleSection"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.85, 0.6, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
+theme_override_colors/font_outline_color = Color(0.6, 0.4, 0.1, 0.5)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 42
+text = "SMYTE"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="ContentContainer/TitleSection"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.65, 0.55, 1)
+theme_override_font_sizes/font_size = 14
+text = "DIVINE NEXUS"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="ContentContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="ButtonGrid" type="GridContainer" parent="ContentContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 20
 columns = 3
 
-[node name="SummonButton" type="Button" parent="ButtonGrid"]
-custom_minimum_size = Vector2(180, 120)
+[node name="SummonButton" type="Button" parent="ContentContainer/ButtonGrid"]
+custom_minimum_size = Vector2(200, 100)
 layout_mode = 2
-text = "SUMMON
-TEMPLE"
-flat = false
+text = "SUMMON"
 
-[node name="CollectionButton" type="Button" parent="ButtonGrid"]
-custom_minimum_size = Vector2(180, 120)
+[node name="CollectionButton" type="Button" parent="ContentContainer/ButtonGrid"]
+custom_minimum_size = Vector2(200, 100)
 layout_mode = 2
-text = "GOD
-COLLECTION"
-flat = false
+text = "COLLECTION"
 
-[node name="TerritoryButton" type="Button" parent="ButtonGrid"]
-custom_minimum_size = Vector2(180, 120)
+[node name="TerritoryButton" type="Button" parent="ContentContainer/ButtonGrid"]
+custom_minimum_size = Vector2(200, 100)
 layout_mode = 2
-text = "TERRITORY
-COMMAND"
-flat = false
+text = "TERRITORY"
 
-[node name="SacrificeButton" type="Button" parent="ButtonGrid"]
-custom_minimum_size = Vector2(180, 120)
+[node name="SacrificeButton" type="Button" parent="ContentContainer/ButtonGrid"]
+custom_minimum_size = Vector2(200, 100)
 layout_mode = 2
-text = "SACRIFICE
-ALTAR"
-flat = false
+text = "SACRIFICE"
 
-[node name="DungeonButton" type="Button" parent="ButtonGrid"]
-custom_minimum_size = Vector2(180, 120)
+[node name="DungeonButton" type="Button" parent="ContentContainer/ButtonGrid"]
+custom_minimum_size = Vector2(200, 100)
 layout_mode = 2
-text = "DUNGEONS
-SANCTUM"
-flat = false
+text = "DUNGEONS"
 
-[node name="EquipmentButton" type="Button" parent="ButtonGrid"]
-custom_minimum_size = Vector2(180, 120)
+[node name="EquipmentButton" type="Button" parent="ContentContainer/ButtonGrid"]
+custom_minimum_size = Vector2(200, 100)
 layout_mode = 2
-text = "EQUIPMENT
-FORGE"
-flat = false
+text = "EQUIPMENT"
+
+[node name="ShopButton" type="Button" parent="ContentContainer/ButtonGrid"]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "SHOP"

@@ -46,10 +46,23 @@ enum TierType { COMMON, RARE, EPIC, LEGENDARY }
 @export var passive_ability: String = ""
 
 # ==============================================================================
+# TRAIT SYSTEM - Palworld-style innate abilities
+# ==============================================================================
+@export var innate_traits: Array[String] = []  # Traits from god_innate_traits (permanent)
+@export var learned_traits: Array[String] = []  # Traits gained through gameplay
+
+# ==============================================================================
 # TERRITORY SYSTEM
 # ==============================================================================
 @export var stationed_territory: String = ""
 @export var territory_role: String = ""  # "defender", "gatherer", "crafter"
+
+# ==============================================================================
+# TASK ASSIGNMENT SYSTEM - Gods can work on territory tasks
+# ==============================================================================
+@export var current_tasks: Array[String] = []  # Task IDs currently assigned (usually 1, more with multitask trait)
+@export var task_start_times: Array[int] = []  # Unix timestamps when each task started
+@export var task_progress: Dictionary = {}  # {"task_id": progress_percentage}
 
 # ==============================================================================
 # AWAKENING SYSTEM - Summoners War style
@@ -59,6 +72,12 @@ enum TierType { COMMON, RARE, EPIC, LEGENDARY }
 @export var awakened_title: String = ""
 @export var ascension_level: int = 0  # 0=unascended, 1=bronze, 2=silver, 3=gold, 4=diamond, 5=transcendent
 @export var skill_levels: Array = [1, 1, 1, 1]  # Array[int] - Skill levels 1-10 for each skill
+
+# ==============================================================================
+# COSMETICS SYSTEM
+# ==============================================================================
+@export var equipped_skin_id: String = ""  # Currently equipped skin ID
+@export var default_portrait_path: String = ""  # Base portrait path
 
 # ==============================================================================
 # BATTLE STATE - Runtime data
@@ -120,6 +139,18 @@ func is_assigned_to_territory() -> bool:
 	# Check if god is assigned to a territory role
 	return stationed_territory != "" and territory_role != ""
 
+func has_skin_equipped() -> bool:
+	return equipped_skin_id != ""
+
+func get_portrait_path() -> String:
+	"""Get the current portrait path, considering equipped skin.
+	Note: This returns the default path. UI code should use SkinManager
+	to resolve skin-specific portraits to avoid cyclic dependencies."""
+	# Pure data method - no system access here to avoid cyclic deps
+	# The UI layer should call SkinManager.get_portrait_path(god_id, default_portrait_path)
+	# if the god has equipped_skin_id set
+	return default_portrait_path
+
 # Static utility method
 static func element_to_string(element_enum) -> String:
 	match element_enum:
@@ -151,7 +182,7 @@ static func tier_to_string(tier_enum) -> String:
 		TierType.LEGENDARY: return "legendary"
 		_: return "unknown"
 
-# Static utility method for string to tier conversion  
+# Static utility method for string to tier conversion
 static func string_to_tier(tier_string: String) -> TierType:
 	match tier_string.to_lower():
 		"common": return TierType.COMMON
@@ -159,3 +190,43 @@ static func string_to_tier(tier_string: String) -> TierType:
 		"epic": return TierType.EPIC
 		"legendary": return TierType.LEGENDARY
 		_: return TierType.COMMON  # Default fallback
+
+# ==============================================================================
+# TRAIT SYSTEM HELPERS - Simple getters only (logic in TraitManager)
+# ==============================================================================
+
+func get_all_traits() -> Array[String]:
+	"""Get combined list of innate and learned traits"""
+	var all_traits: Array[String] = []
+	all_traits.append_array(innate_traits)
+	all_traits.append_array(learned_traits)
+	return all_traits
+
+func has_trait(trait_id: String) -> bool:
+	"""Check if god has a specific trait"""
+	return trait_id in innate_traits or trait_id in learned_traits
+
+func get_trait_count() -> int:
+	"""Get total number of traits"""
+	return innate_traits.size() + learned_traits.size()
+
+# ==============================================================================
+# TASK ASSIGNMENT HELPERS - Simple state checks (logic in TaskAssignmentManager)
+# ==============================================================================
+
+func is_working_on_task() -> bool:
+	"""Check if god is currently assigned to any task"""
+	return current_tasks.size() > 0
+
+func get_current_task_count() -> int:
+	"""Get number of tasks currently assigned"""
+	return current_tasks.size()
+
+func is_assigned_to_task(task_id: String) -> bool:
+	"""Check if god is assigned to a specific task"""
+	return task_id in current_tasks
+
+func can_be_assigned_to_battle() -> bool:
+	"""Check if god can be used in battle (not working on tasks)"""
+	# Per design decision: must manually unassign from tasks
+	return not is_working_on_task()

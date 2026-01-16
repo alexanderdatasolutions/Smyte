@@ -12,14 +12,21 @@ signal test_completed(test_name: String, success: bool, details: String)
 var equipment_manager
 var collection_manager
 
+# Helper to get SystemRegistry without parse-time dependency
+func _get_system_registry():
+	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+	if registry_script and registry_script.has_method("get_instance"):
+		return registry_script.get_instance()
+	return null
+
 func _ready():
 	if not enabled:
 		return
 
 	_debug_print("=== EquipmentTester: Initializing ===")
 
-	# Get managers from SystemRegistry using singleton pattern
-	var system_registry = SystemRegistry.get_instance()
+	# Get managers from SystemRegistry using late binding
+	var system_registry = _get_system_registry()
 	if system_registry:
 		equipment_manager = system_registry.get_system("EquipmentManager")
 		collection_manager = system_registry.get_system("CollectionManager")
@@ -84,9 +91,10 @@ func test_gods_in_collection():
 		var current_equipment = collection_manager.get_god_equipment(god.id)
 		if current_equipment.size() > 0:
 			_debug_print("  Current equipment:")
+			var equipment_class = load("res://scripts/data/Equipment.gd")
 			for i in range(current_equipment.size()):
 				var eq = current_equipment[i]
-				if eq and eq is Equipment:
+				if eq and is_instance_of(eq, equipment_class):
 					_debug_print("    Slot %d: %s" % [i, eq.name])
 				elif eq == null:
 					_debug_print("    Slot %d: Empty" % i)

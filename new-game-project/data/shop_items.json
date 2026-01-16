@@ -1,0 +1,95 @@
+{
+  "crystal_packs": [
+    {
+      "id": "crystals_100",
+      "name": "Crystal Pouch",
+      "description": "A small pouch of divine crystals",
+      "crystals": 100,
+      "bonus": 10,
+      "price_usd": 0.99,
+      "icon": "crystal_small",
+      "featured": false
+    },
+    {
+      "id": "crystals_500",
+      "name": "Crystal Chest",
+      "description": "A sturdy chest filled with crystals",
+      "crystals": 500,
+      "bonus": 100,
+      "price_usd": 4.99,
+      "icon": "crystal_medium",
+      "featured": false
+    },
+    {
+      "id": "crystals_1200",
+      "name": "Crystal Vault",
+      "description": "A magnificent vault overflowing with divine power",
+      "crystals": 1200,
+      "bonus": 300,
+      "price_usd": 9.99,
+      "icon": "crystal_large",
+      "featured": true,
+      "best_value": true
+    },
+    {
+      "id": "crystals_2500",
+      "name": "Crystal Treasury",
+      "description": "Wealth beyond mortal comprehension",
+      "crystals": 2500,
+      "bonus": 750,
+      "price_usd": 19.99,
+      "icon": "crystal_treasure",
+      "featured": false
+    },
+    {
+      "id": "crystals_6500",
+      "name": "Divine Hoard",
+      "description": "The accumulated wealth of the gods themselves",
+      "crystals": 6500,
+      "bonus": 2000,
+      "price_usd": 49.99,
+      "icon": "crystal_hoard",
+      "featured": false
+    },
+    {
+      "id": "crystals_14000",
+      "name": "Olympian Reserve",
+      "description": "Power enough to rival Mount Olympus",
+      "crystals": 14000,
+      "bonus": 5000,
+      "price_usd": 99.99,
+      "icon": "crystal_olympian",
+      "featured": true,
+      "best_value": true
+    }
+  ],
+  "special_offers": [
+    {
+      "id": "starter_pack",
+      "name": "Divine Starter Pack",
+      "description": "Perfect for new champions of the gods",
+      "price_usd": 4.99,
+      "one_time_purchase": true,
+      "rewards": {
+        "divine_crystals": 500,
+        "common_soul": 5,
+        "mana": 50000
+      },
+      "icon": "pack_starter"
+    },
+    {
+      "id": "monthly_pass",
+      "name": "Blessing of the Gods",
+      "description": "Daily crystals for 30 days",
+      "price_usd": 9.99,
+      "duration_days": 30,
+      "immediate_reward": {
+        "divine_crystals": 300
+      },
+      "daily_reward": {
+        "divine_crystals": 100
+      },
+      "icon": "pack_monthly"
+    }
+  ]
+}

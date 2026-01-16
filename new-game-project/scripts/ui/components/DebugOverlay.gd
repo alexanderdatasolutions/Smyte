@@ -7,9 +7,17 @@ class_name DebugOverlay
 # ==============================================================================
 # Following MYTHOS ARCHITECTURE for clean debug tools to test progression system
 
-var progression_manager: PlayerProgressionManager
-var tutorial_manager: TutorialOrchestrator
+# Untyped to avoid parse-time class resolution issues
+var progression_manager  # PlayerProgressionManager
+var tutorial_manager  # TutorialOrchestrator
 var player_level_info_label: Label
+
+# Helper to get SystemRegistry without parse-time dependency
+func _get_system_registry():
+	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+	if registry_script and registry_script.has_method("get_instance"):
+		return registry_script.get_instance()
+	return null
 
 var debug_panel_visible: bool = false
 
@@ -55,7 +63,7 @@ func _update_display():
 	player_level_info_label.text = "Level: %d | XP: %d/%d" % [current_level, current_xp, xp_to_next + current_xp]
 	
 	# Show god count if available
-	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager") if SystemRegistry.get_instance() else null
+	var collection_manager = _get_system_registry().get_system("CollectionManager") if _get_system_registry() else null
 	if collection_manager:
 		var god_count = collection_manager.gods.size()
 		player_level_info_label.text += "\nGods: %d" % god_count
@@ -122,12 +130,12 @@ func _on_start_ftue_pressed():
 
 func _on_add_mana_pressed():
 	"""Add 10,000 mana for testing"""
-	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
+	var resource_manager = _get_system_registry().get_system("ResourceManager") if _get_system_registry() else null
 	if resource_manager:
 		resource_manager.add_resource("mana", 10000)
 
 func _on_add_crystals_pressed():
 	"""Add 100 crystals for testing"""
-	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
+	var resource_manager = _get_system_registry().get_system("ResourceManager") if _get_system_registry() else null
 	if resource_manager:
 		resource_manager.add_resource("divine_crystals", 100)

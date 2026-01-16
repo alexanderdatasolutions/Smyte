@@ -1,0 +1,122 @@
+{
+  "skins": [
+    {
+      "id": "ares_dark_warrior",
+      "god_id": "ares",
+      "name": "Dark Warrior",
+      "description": "Battle-scarred armor forged in the shadow wars",
+      "rarity": "epic",
+      "cost_crystals": 500,
+      "portrait_path": "res://assets/portraits/skins/ares_dark.png",
+      "release_version": "1.0"
+    },
+    {
+      "id": "ares_golden_champion",
+      "god_id": "ares",
+      "name": "Golden Champion",
+      "description": "Gilded armor of the arena victor",
+      "rarity": "legendary",
+      "cost_crystals": 1000,
+      "portrait_path": "res://assets/portraits/skins/ares_golden.png",
+      "release_version": "1.0"
+    },
+    {
+      "id": "poseidon_storm_king",
+      "god_id": "poseidon",
+      "name": "Storm King",
+      "description": "Lord of the raging tempests",
+      "rarity": "legendary",
+      "cost_crystals": 1000,
+      "portrait_path": "res://assets/portraits/skins/poseidon_storm.png",
+      "release_version": "1.0"
+    },
+    {
+      "id": "poseidon_abyssal",
+      "god_id": "poseidon",
+      "name": "Abyssal Lord",
+      "description": "Risen from the darkest depths",
+      "rarity": "epic",
+      "cost_crystals": 500,
+      "portrait_path": "res://assets/portraits/skins/poseidon_abyssal.png",
+      "release_version": "1.0"
+    },
+    {
+      "id": "artemis_moonlight",
+      "god_id": "artemis",
+      "name": "Moonlight Huntress",
+      "description": "Blessed by the silver moon",
+      "rarity": "epic",
+      "cost_crystals": 500,
+      "portrait_path": "res://assets/portraits/skins/artemis_moonlight.png",
+      "release_version": "1.0"
+    },
+    {
+      "id": "artemis_wild_spirit",
+      "god_id": "artemis",
+      "name": "Wild Spirit",
+      "description": "One with the untamed forest",
+      "rarity": "legendary",
+      "cost_crystals": 1000,
+      "portrait_path": "res://assets/portraits/skins/artemis_wild.png",
+      "release_version": "1.0"
+    },
+    {
+      "id": "belenus_inferno",
+      "god_id": "belenus",
+      "name": "Inferno Lord",
+      "description": "Wreathed in eternal flames",
+      "rarity": "epic",
+      "cost_crystals": 500,
+      "portrait_path": "res://assets/portraits/skins/belenus_inferno.png",
+      "release_version": "1.0"
+    },
+    {
+      "id": "fujin_typhoon",
+      "god_id": "fujin",
+      "name": "Typhoon Master",
+      "description": "Commander of the divine winds",
+      "rarity": "epic",
+      "cost_crystals": 500,
+      "portrait_path": "res://assets/portraits/skins/fujin_typhoon.png",
+      "release_version": "1.0"
+    },
+    {
+      "id": "nephthys_shadow_queen",
+      "god_id": "nephthys",
+      "name": "Shadow Queen",
+      "description": "Ruler of the realm between worlds",
+      "rarity": "legendary",
+      "cost_crystals": 1000,
+      "portrait_path": "res://assets/portraits/skins/nephthys_shadow.png",
+      "release_version": "1.0"
+    }
+  ],
+  "rarity_colors": {
+    "common": "#AAAAAA",
+    "rare": "#4488FF",
+    "epic": "#AA44FF",
+    "legendary": "#FFAA00"
+  },
+  "skin_categories": [
+    {
+      "id": "all",
+      "name": "All Skins",
+      "filter": null
+    },
+    {
+      "id": "owned_gods",
+      "name": "My Gods",
+      "filter": "owned"
+    },
+    {
+      "id": "epic",
+      "name": "Epic",
+      "filter": "rarity:epic"
+    },
+    {
+      "id": "legendary",
+      "name": "Legendary",
+      "filter": "rarity:legendary"
+    }
+  ]
+}
