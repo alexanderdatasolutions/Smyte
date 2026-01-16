@@ -1,6 +1,6 @@
 # scripts/systems/resources/LootSystem.gd
 # Loot generation system - handles all loot drops and rewards (200 lines max)
-class_name LootManager extends Node
+class_name LootSystem extends Node
 
 signal loot_generated(loot_results: Dictionary)
 signal loot_awarded(rewards: Dictionary)
