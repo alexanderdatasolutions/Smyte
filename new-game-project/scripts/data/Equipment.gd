@@ -28,6 +28,12 @@ enum Rarity { COMMON, RARE, EPIC, LEGENDARY, MYTHIC }
 @export var sockets: Array = []  # Array[Dictionary] - Socket types and gems
 @export var max_sockets: int = 0
 
+# Equipment assignment - which god has this equipped
+@export var equipped_by_god_id: String = ""
+
+# Destruction flag (set when enhancement fails catastrophically)
+@export var is_destroyed: bool = false
+
 # Equipment origin/lore
 @export var origin_dungeon: String = ""
 @export var lore_text: String = ""
@@ -248,6 +254,72 @@ func can_enhance() -> bool:
 # Alias for EquipmentManager compatibility
 func can_be_enhanced() -> bool:
 	return can_enhance()
+
+# Get maximum enhancement level based on rarity
+func get_max_enhancement_level() -> int:
+	load_equipment_config()
+	var rarities = equipment_config.get("equipment_rarities", {})
+	var rarity_key = rarity_to_string(rarity)
+	return rarities.get(rarity_key, {}).get("enhancement_limit", 15)
+
+# Get enhancement cost for a specific level
+func get_enhancement_cost_for_level(target_level: int) -> Dictionary:
+	load_equipment_config()
+	var enhancement = equipment_config.get("enhancement_system", {})
+	var costs = enhancement.get("costs", {})
+
+	var mana_base = costs.get("mana_base", 500)
+	var mana_mult = costs.get("mana_multiplier_per_level", 1.5)
+	var enhancement_powder = costs.get("enhancement_powder", {})
+	var powder_base = enhancement_powder.get("base", 1)
+	var powder_mult = enhancement_powder.get("multiplier_per_level", 1.2)
+
+	# Cost is based on target_level - 1 (going from 0 to 1 uses level 0 cost)
+	var cost_level = max(0, target_level - 1)
+	var mana_cost = int(mana_base * pow(mana_mult, cost_level))
+	var powder_cost = int(powder_base * pow(powder_mult, cost_level))
+
+	return {
+		"mana": mana_cost,
+		"enhancement_powder": powder_cost
+	}
+
+# Get stat bonuses from enhancement level
+func get_enhancement_stat_bonuses() -> Dictionary:
+	if level <= 0:
+		return {}
+
+	# Enhancement increases main stat by percentage based on level
+	var bonuses = {}
+	if main_stat_type != "":
+		# Each level adds 5% of base stat value
+		var bonus_value = int(main_stat_base * level * 0.05)
+		bonuses[main_stat_type] = bonus_value
+
+	return bonuses
+
+# Add a stat bonus to main stat
+func add_stat_bonus(stat_name: String, bonus_value: int):
+	if stat_name == main_stat_type:
+		main_stat_value += bonus_value
+	else:
+		# Add as substat if different from main stat
+		add_substat(stat_name, bonus_value)
+
+# Add a substat to equipment
+func add_substat(stat_name: String, stat_value: int):
+	# Check if substat already exists
+	for substat in substats:
+		if substat.get("type") == stat_name:
+			substat["value"] = substat.get("value", 0) + stat_value
+			return
+
+	# Add new substat
+	substats.append({
+		"type": stat_name,
+		"value": stat_value,
+		"powerups": 0
+	})
 
 # Get enhancement cost
 func get_enhancement_cost() -> Dictionary:
