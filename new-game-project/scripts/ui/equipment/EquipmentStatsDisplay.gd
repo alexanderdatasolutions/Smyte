@@ -199,7 +199,7 @@ func _get_set_bonus_description(equipment_set_name: String, piece_count: int) ->
 				descriptions.append("4-Piece: +100 Attack")
 			if piece_count >= 6:
 				descriptions.append("6-Piece: +200 Attack")
-		
+
 		"guardian":
 			if piece_count >= 2:
 				descriptions.append("2-Piece: +75 Defense")
@@ -207,15 +207,39 @@ func _get_set_bonus_description(equipment_set_name: String, piece_count: int) ->
 				descriptions.append("4-Piece: +500 HP")
 			if piece_count >= 6:
 				descriptions.append("6-Piece: +150 Defense")
-		
-		"swift":
+
+		"swift", "speed":
 			if piece_count >= 2:
 				descriptions.append("2-Piece: +25 Speed")
 			if piece_count >= 4:
 				descriptions.append("4-Piece: +50 Speed")
 			if piece_count >= 6:
 				descriptions.append("6-Piece: +100 Attack")
-		
+
+		"warrior":
+			if piece_count >= 2:
+				descriptions.append("2-Piece: +40 Attack")
+			if piece_count >= 4:
+				descriptions.append("4-Piece: +80 Attack")
+			if piece_count >= 6:
+				descriptions.append("6-Piece: +40 Defense")
+
+		"sage":
+			if piece_count >= 2:
+				descriptions.append("2-Piece: +400 HP")
+			if piece_count >= 4:
+				descriptions.append("4-Piece: +50 Defense")
+			if piece_count >= 6:
+				descriptions.append("6-Piece: +20 Speed")
+
+		"precision":
+			if piece_count >= 2:
+				descriptions.append("2-Piece: +15 Accuracy")
+			if piece_count >= 4:
+				descriptions.append("4-Piece: +30 Accuracy")
+			if piece_count >= 6:
+				descriptions.append("6-Piece: +50 Attack")
+
 		_:
 			descriptions.append("Unknown set: %s" % equipment_set_name)
 	

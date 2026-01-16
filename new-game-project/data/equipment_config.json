@@ -104,6 +104,38 @@
         "4": {"speed": 50},
         "6": {"attack": 100}
       }
+    },
+    "warrior": {
+      "name": "Warrior",
+      "bonuses": {
+        "2": {"attack": 40},
+        "4": {"attack": 80},
+        "6": {"defense": 40}
+      }
+    },
+    "sage": {
+      "name": "Sage",
+      "bonuses": {
+        "2": {"hp": 400},
+        "4": {"defense": 50},
+        "6": {"speed": 20}
+      }
+    },
+    "speed": {
+      "name": "Speed",
+      "bonuses": {
+        "2": {"speed": 25},
+        "4": {"speed": 50},
+        "6": {"attack": 100}
+      }
+    },
+    "precision": {
+      "name": "Precision",
+      "bonuses": {
+        "2": {"accuracy": 15},
+        "4": {"accuracy": 30},
+        "6": {"attack": 50}
+      }
     }
   },
   "stat_ranges": {
