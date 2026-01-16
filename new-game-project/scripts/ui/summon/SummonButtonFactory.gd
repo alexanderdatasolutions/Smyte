@@ -13,7 +13,7 @@ static func create_summon_card(title: String, description: String, cost: String,
 	# Button visual style
 	var style_normal = StyleBoxFlat.new()
 	style_normal.bg_color = color.darkened(0.6)
-	style_normal.border_color = color
+	style_normal.border_color = color.darkened(0.3)
 	style_normal.border_width_left = 2
 	style_normal.border_width_right = 2
 	style_normal.border_width_top = 2
@@ -25,7 +25,7 @@ static func create_summon_card(title: String, description: String, cost: String,
 
 	var style_hover = style_normal.duplicate()
 	style_hover.bg_color = color.darkened(0.4)
-	style_hover.border_color = color.lightened(0.2)
+	style_hover.border_color = color.darkened(0.1)
 	style_hover.border_width_left = 3
 	style_hover.border_width_right = 3
 	style_hover.border_width_top = 3
