@@ -143,7 +143,7 @@ func _apply_card_size():
 			name_label.add_theme_font_size_override("font_size", 9)
 			level_tier_label.add_theme_font_size_override("font_size", 8)
 			if info_label:
-				info_label.add_theme_font_size_override("font_size", 7)
+				info_label.add_theme_font_size_override("font_size", 10)
 		
 		CardSize.MEDIUM:
 			custom_minimum_size = Vector2(140, 200)
@@ -152,7 +152,7 @@ func _apply_card_size():
 			name_label.add_theme_font_size_override("font_size", 12)
 			level_tier_label.add_theme_font_size_override("font_size", 10)
 			if info_label:
-				info_label.add_theme_font_size_override("font_size", 7)
+				info_label.add_theme_font_size_override("font_size", 11)
 			if experience_bar:
 				experience_bar.custom_minimum_size = Vector2(120, 10)
 		
