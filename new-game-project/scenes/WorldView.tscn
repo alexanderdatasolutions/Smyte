@@ -1,6 +1,16 @@
-[gd_scene load_steps=2 format=3 uid="uid://b6wj4kunigp3v"]
+[gd_scene load_steps=4 format=3 uid="uid://b6wj4kunigp3v"]
 
 [ext_resource type="Script" uid="uid://ckgvnk55xiu7g" path="res://scripts/ui/screens/WorldView.gd" id="1_1q2k3"]
+
+[sub_resource type="Gradient" id="Gradient_1"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(0.282353, 0.282353, 0.345098, 1, 0.219608, 0.219608, 0.266667, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_1"]
+gradient = SubResource("Gradient_1")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
 
 [node name="WorldView" type="Control"]
 layout_mode = 3
@@ -9,10 +19,12 @@ offset_right = 1280.0
 offset_bottom = 720.0
 script = ExtResource("1_1q2k3")
 
-[node name="Background" type="NinePatchRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 0
 offset_right = 1280.0
 offset_bottom = 720.0
+texture = SubResource("GradientTexture2D_1")
+expand_mode = 1
 
 [node name="TopBar" type="NinePatchRect" parent="."]
 layout_mode = 1
@@ -31,6 +43,10 @@ offset_top = 100.0
 offset_right = 200.0
 offset_bottom = 150.0
 grow_horizontal = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_constants/shadow_outline_size = 4
 theme_override_font_sizes/font_size = 32
 text = "DIVINE NEXUS"
 horizontal_alignment = 1
@@ -57,7 +73,7 @@ offset_bottom = 252.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/h_separation = 12
-theme_override_constants/v_separation = 12
+theme_override_constants/v_separation = 16
 columns = 3
 
 [node name="SummonButton" type="Button" parent="ButtonGrid"]

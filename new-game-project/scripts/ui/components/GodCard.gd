@@ -83,6 +83,7 @@ func _setup_card_structure():
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_label.add_theme_color_override("font_color", Color.WHITE)
+	name_label.add_theme_constant_override("outline_size", 1)  # Bold effect via outline
 	vbox.add_child(name_label)
 	
 	# Level and tier
@@ -154,7 +155,7 @@ func _apply_card_size():
 			custom_minimum_size = Vector2(140, 200)
 			_set_margins(7, 7, 7, 7)
 			god_image.custom_minimum_size = Vector2(70, 70)
-			name_label.add_theme_font_size_override("font_size", 12)
+			name_label.add_theme_font_size_override("font_size", 14)
 			level_tier_label.add_theme_font_size_override("font_size", 10)
 			if info_label:
 				info_label.add_theme_font_size_override("font_size", 11)
