@@ -92,6 +92,7 @@ func _style_tab_container():
 	tab_container.add_theme_stylebox_override("tab_unselected", tab_unselected)
 	tab_container.add_theme_stylebox_override("tab_hovered", tab_hover)
 	tab_container.add_theme_font_size_override("font_size", 16)  # Increase tab text to 16px
+	tab_container.add_theme_constant_override("h_separation", 12)  # Add 12px horizontal spacing between tabs
 
 func _on_sacrifice_requested(god: God):
 	"""Handle sacrifice request from sacrifice tab"""
