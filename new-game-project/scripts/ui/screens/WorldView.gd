@@ -96,6 +96,9 @@ func _style_buttons():
 		button.add_theme_stylebox_override("hover", style_hover)
 		button.add_theme_stylebox_override("pressed", style_pressed)
 
+		# Set font size for readability (16px minimum)
+		button.add_theme_font_size_override("font_size", 16)
+
 func _setup_feature_buttons():
 	"""Map feature names to their buttons (MYTHOS ARCHITECTURE)"""
 	feature_buttons = {
