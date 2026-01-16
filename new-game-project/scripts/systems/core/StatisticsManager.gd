@@ -224,12 +224,13 @@ func _check_battle_achievements():
 
 func _check_collection_achievements():
 	"""Check god collection achievements"""
-	if GameManager and GameManager.player_data:
-		var god_count = GameManager.player_data.gods.size()
-		if god_count >= 50:
-			_unlock_achievement("collector")
-		elif god_count >= 100:
+	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager")
+	if collection_manager:
+		var god_count = collection_manager.gods.size()
+		if god_count >= 100:
 			_unlock_achievement("master_collector")
+		elif god_count >= 50:
+			_unlock_achievement("collector")
 
 func _check_progression_achievements():
 	"""Check progression achievements"""
