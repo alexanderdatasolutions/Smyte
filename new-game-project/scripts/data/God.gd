@@ -52,6 +52,13 @@ enum TierType { COMMON, RARE, EPIC, LEGENDARY }
 @export var learned_traits: Array[String] = []  # Traits gained through gameplay
 
 # ==============================================================================
+# ROLE & SPECIALIZATION SYSTEM
+# ==============================================================================
+@export var primary_role: String = ""  # Primary role ID (fighter, gatherer, crafter, scholar, support)
+@export var secondary_role: String = ""  # Optional secondary role ID (50% bonus strength)
+@export var specialization_path: Array[String] = ["", "", ""]  # [tier1_id, tier2_id, tier3_id]
+
+# ==============================================================================
 # TERRITORY SYSTEM
 # ==============================================================================
 @export var stationed_territory: String = ""
@@ -230,3 +237,80 @@ func can_be_assigned_to_battle() -> bool:
 	"""Check if god can be used in battle (not working on tasks)"""
 	# Per design decision: must manually unassign from tasks
 	return not is_working_on_task()
+
+# ==============================================================================
+# ROLE SYSTEM HELPERS - Simple state checks (logic in RoleManager)
+# ==============================================================================
+
+func has_primary_role() -> bool:
+	"""Check if god has a primary role assigned"""
+	return primary_role != ""
+
+func has_secondary_role() -> bool:
+	"""Check if god has a secondary role assigned"""
+	return secondary_role != ""
+
+func get_role_ids() -> Array[String]:
+	"""Get all assigned role IDs"""
+	var role_ids: Array[String] = []
+	if primary_role != "":
+		role_ids.append(primary_role)
+	if secondary_role != "":
+		role_ids.append(secondary_role)
+	return role_ids
+
+# ==============================================================================
+# SPECIALIZATION SYSTEM HELPERS - Simple state checks (logic in SpecializationManager)
+# ==============================================================================
+
+func can_specialize() -> bool:
+	"""Check if god meets basic requirements for specialization"""
+	# Must be level 20+ with a primary role
+	return level >= 20 and primary_role != ""
+
+func has_specialization() -> bool:
+	"""Check if god has any specialization unlocked"""
+	return specialization_path[0] != ""
+
+func get_specialization_tier() -> int:
+	"""Get current specialization tier (0=none, 1-3=tier)"""
+	if specialization_path[2] != "":
+		return 3
+	if specialization_path[1] != "":
+		return 2
+	if specialization_path[0] != "":
+		return 1
+	return 0
+
+func get_current_specialization() -> String:
+	"""Get the highest tier specialization ID"""
+	if specialization_path[2] != "":
+		return specialization_path[2]
+	if specialization_path[1] != "":
+		return specialization_path[1]
+	if specialization_path[0] != "":
+		return specialization_path[0]
+	return ""
+
+func get_tier_specialization(current_tier: int) -> String:
+	"""Get specialization ID at specific tier (1-3)"""
+	if current_tier < 1 or current_tier > 3:
+		return ""
+	return specialization_path[current_tier - 1]
+
+func has_specialization_at_tier(current_tier: int) -> bool:
+	"""Check if god has a specialization at a specific tier"""
+	return get_tier_specialization(current_tier) != ""
+
+func get_available_specializations() -> Array[String]:
+	"""Get available specializations for next tier - delegates to SpecializationManager"""
+	# This is a placeholder - actual logic is in SpecializationManager
+	# UI code should call: SystemRegistry.get_system("SpecializationManager").get_available_specializations_for_god(god)
+	return []
+
+func apply_specialization(spec_id: String, current_tier: int) -> bool:
+	"""Apply a specialization at a specific tier - delegates to SpecializationManager"""
+	# This is a placeholder - actual logic is in SpecializationManager
+	# Game code should call: SystemRegistry.get_system("SpecializationManager").unlock_specialization(god_id, spec_id)
+	# This method is just here for API clarity
+	return false

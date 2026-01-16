@@ -263,6 +263,27 @@ new-game-project/
 3. **SystemRegistry pattern** - no direct singleton access
 4. **Logic in systems** - data classes are dumb containers
 
+### Documentation Rules
+## Documentation Rules
+
+### Purpose
+This document defines the standardized documentation format and rules for the Smyte project, designed to be maintainable in Obsidian with proper linking and database capabilities.
+
+### Documentation Structure
+
+#### File Header Format
+Every file must include:
+- **Purpose**: Brief description of the file's role
+- **Tags**: Categorization tags for Obsidian queries
+- **Related**: Links to related documents using [[WikiLinks]]
+- **Last Updated**: Date of last modification
+
+#### Code Documentation Format
+- **Functions/Methods**: Must include purpose, parameters, return values, and exceptions
+- **Classes**: Must include purpose, properties, and usage examples
+- **Modules**: Must include overview, dependencies, and key exports
+
+
 ### Testing Requirements ⚠️ MANDATORY
 
 **All code changes must include corresponding unit tests.**
