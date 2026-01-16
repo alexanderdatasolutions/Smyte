@@ -279,7 +279,7 @@ func get_god_by_id(god_id: String):
 func get_total_power() -> int:
 	var total = 0
 	for god in gods:
-		total += god.get_power_rating()
+		total += GodCalculator.get_power_rating(god)
 	return total
 
 func get_gods_by_element(element: int) -> Array:
@@ -332,7 +332,6 @@ func update_energy():
 		var new_energy = min(current_energy + energy_to_add, max_energy_val)
 		resources["energy"] = new_energy
 		last_energy_update = current_time
-		print("Energy regenerated: +", energy_to_add, " (", new_energy, "/", max_energy_val, ")")
 
 func can_afford_energy(cost: int) -> bool:
 	"""Check if player has enough energy"""
@@ -345,18 +344,14 @@ func spend_energy(cost: int) -> bool:
 	
 	if has_resource("energy", cost):
 		var current_energy = get_resource("energy")
-		var max_energy_val = get_max_storage("energy")
 		resources["energy"] = current_energy - cost
-		print("Energy spent: -", cost, " (", get_resource("energy"), "/", max_energy_val, ")")
 		return true
 	else:
-		print("Not enough energy! Need: ", cost, ", Have: ", get_resource("energy"))
 		return false
 
 func add_energy(amount: int):
 	"""Add energy (from items, crystal refreshes, etc.)"""
 	add_resource("energy", amount)
-	print("Energy added: +", amount, " (", get_resource("energy"), "/", get_max_storage("energy"), ")")
 
 func refresh_energy_with_crystals() -> bool:
 	"""Refresh energy using premium crystals (30 crystals = 90 energy)"""
@@ -365,10 +360,8 @@ func refresh_energy_with_crystals() -> bool:
 	
 	if spend_resource("premium_crystals", crystal_cost):
 		add_resource("energy", energy_gained)
-		print("Energy refreshed with crystals: +", energy_gained, " energy for ", crystal_cost, " crystals")
 		return true
 	else:
-		print("Not enough crystals for energy refresh! Need: ", crystal_cost, ", Have: ", get_resource("premium_crystals"))
 		return false
 
 func get_energy_status() -> Dictionary:

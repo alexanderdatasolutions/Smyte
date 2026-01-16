@@ -745,7 +745,7 @@ func _on_enter_button_pressed():
 	# Check energy requirements
 	if resource_manager:
 		var energy_cost = _get_energy_cost(selected_dungeon_id, selected_difficulty)
-		if not resource_manager.has_resource("energy", energy_cost):
+		if resource_manager.get_resource("energy") < energy_cost:
 			_show_error_message("Not enough energy (need %d)" % energy_cost)
 			return
 	

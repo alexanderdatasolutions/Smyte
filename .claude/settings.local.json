@@ -19,7 +19,11 @@
       "Bash(powershell -Command \"$client = New-Object System.Net.Sockets.TcpClient\\(''127.0.0.1'', 9999\\); $stream = $client.GetStream\\(\\); $writer = New-Object System.IO.StreamWriter\\($stream\\); $reader = New-Object System.IO.StreamReader\\($stream\\); $writer.WriteLine\\(''{\"\"action\"\":\"\"ping\"\"}''\\); $writer.Flush\\(\\); Start-Sleep -Milliseconds 500; $response = $reader.ReadLine\\(\\); Write-Output $response; $client.Close\\(\\)\")",
       "Bash(powershell:*)",
       "Bash(dir:*)",
-      "Bash(git -C \"c:\\\\Users\\\\alexa\\\\Documents\\\\Coding\\\\Smyte\\\\new-game-project\" diff --name-only HEAD~1)"
+      "Bash(git -C \"c:\\\\Users\\\\alexa\\\\Documents\\\\Coding\\\\Smyte\\\\new-game-project\" diff --name-only HEAD~1)",
+      "mcp__godot__game_wait_ready",
+      "mcp__godot__game_get_screen",
+      "mcp__godot__game_screenshot",
+      "mcp__godot__game_navigate"
     ]
   },
   "enableAllProjectMcpServers": true,

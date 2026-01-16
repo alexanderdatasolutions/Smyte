@@ -360,7 +360,7 @@ func update_god_display():
 	info_vbox.add_child(stats_label)
 	
 	var power_label = Label.new()
-	power_label.text = "Power: %d" % selected_god.get_power_rating()
+	power_label.text = "Power: %d" % GodCalculator.get_power_rating(selected_god)
 	power_label.add_theme_font_size_override("font_size", 12)
 	info_vbox.add_child(power_label)
 

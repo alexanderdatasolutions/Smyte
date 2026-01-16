@@ -4,7 +4,7 @@
       "command": "node",
       "args": ["C:/Users/alexa/godot-mcp/build/index.js"],
       "env": {
-        "GODOT_PATH": "C:/Users/alexa/Downloads/Godot_v4.4-stable_win64.exe/Godot_v4.4-stable_win64.exe"
+        "GODOT_PATH": "C:/Users/alexa/Documents/Godot_v4.5-stable_win64.exe"
       }
     }
   }

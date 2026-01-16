@@ -156,7 +156,8 @@ func _send_response(response: Dictionary) -> void:
 		return
 
 	var json_str = JSON.stringify(response) + "\n"
-	_client.put_utf8_string(json_str)
+	# Use put_data instead of put_utf8_string to avoid length prefix
+	_client.put_data(json_str.to_utf8_buffer())
 	response_sent.emit(response)
 
 
@@ -497,12 +498,21 @@ func _take_screenshot(save_path: String) -> Dictionary:
 # ============================================================================
 
 func _get_system(system_name: String):
-	# Try SystemRegistry first
-	var registry = get_node_or_null("/root/SystemRegistry")
+	# Try SystemRegistry singleton first
+	var registry = SystemRegistry.get_instance()
 	if registry and registry.has_method("get_system"):
-		return registry.get_system(system_name)
+		var system = registry.get_system(system_name)
+		if system:
+			return system
 
-	# Try as autoload
+	# Try GameCoordinator path (where SystemRegistry lives)
+	var game_coordinator = get_node_or_null("/root/GameCoordinator")
+	if game_coordinator and game_coordinator.has_method("get_system"):
+		var system = game_coordinator.get_system(system_name)
+		if system:
+			return system
+
+	# Try as direct autoload
 	var autoload = get_node_or_null("/root/" + system_name)
 	if autoload:
 		return autoload

@@ -268,7 +268,7 @@ func update_target_display():
 	info_vbox.add_child(name_label)
 	
 	var details_label = Label.new()
-	details_label.text = "%s %s - Power: %d" % [God.tier_to_string(target_god.tier), God.element_to_string(target_god.element), target_god.get_power_rating()]
+	details_label.text = "%s %s - Power: %d" % [God.tier_to_string(target_god.tier), God.element_to_string(target_god.element), GodCalculator.get_power_rating(target_god)]
 	details_label.add_theme_font_size_override("font_size", 14)
 	details_label.modulate = Color.LIGHT_GRAY
 	info_vbox.add_child(details_label)

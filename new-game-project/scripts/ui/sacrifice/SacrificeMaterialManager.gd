@@ -270,7 +270,7 @@ func sort_gods(gods: Array):
 		var result = false
 		match current_sort:
 			SortType.POWER:
-				result = a.get_power_rating() < b.get_power_rating()
+				result = GodCalculator.get_power_rating(a) < GodCalculator.get_power_rating(b)
 			SortType.LEVEL:
 				result = a.level < b.level
 			SortType.TIER:

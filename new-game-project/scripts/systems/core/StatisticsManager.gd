@@ -239,7 +239,6 @@ func _check_progression_achievements():
 
 func _unlock_achievement(achievement_id: String):
 	"""Unlock achievement and emit signal"""
-	print("Achievement unlocked: %s" % achievement_id)
 	achievement_unlocked.emit(achievement_id)
 
 # ANALYTICS & INSIGHTS  
@@ -330,7 +329,3 @@ func load_statistics_data(data: Dictionary):
 	
 	# Reset session start time
 	time_stats.session_start_time = Time.get_unix_time_from_system()
-	
-	print("StatisticsManager: Loaded statistics - %d battles, %d gods tracked" % [
-		battle_stats.total_battles, god_performance.size()
-	])

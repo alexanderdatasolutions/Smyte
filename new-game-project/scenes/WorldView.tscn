@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://b6wj4kunigp3v"]
+[gd_scene load_steps=2 format=3 uid="uid://b6wj4kunigp3v"]
 
 [ext_resource type="Script" uid="uid://ckgvnk55xiu7g" path="res://scripts/ui/screens/WorldView.gd" id="1_1q2k3"]
-[ext_resource type="PackedScene" path="res://scenes/DebugOverlay.tscn" id="3_debug_overlay"]
 
 [node name="WorldView" type="Control"]
 layout_mode = 3
@@ -82,14 +81,3 @@ text = "⚔️
 EQUIPMENT
 FORGE"
 flat = true
-
-[node name="DebugOverlay" parent="." instance=ExtResource("3_debug_overlay")]
-layout_mode = 0
-anchors_preset = 0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 332.0
-offset_top = 272.0
-offset_right = 332.0
-offset_bottom = 272.0
-script = null

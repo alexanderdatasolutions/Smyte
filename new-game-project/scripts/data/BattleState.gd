@@ -75,7 +75,6 @@ func advance_to_next_wave(next_wave_enemies: Array) -> bool:
 	
 	current_wave += 1
 	_setup_wave_enemies(next_wave_enemies)
-	print("BattleState: Advanced to wave ", current_wave)
 	return true
 
 ## Get all living units
@@ -204,4 +203,3 @@ func cleanup():
 	player_units.clear()
 	enemy_units.clear()
 	all_units.clear()
-	print("BattleState: Cleanup complete")

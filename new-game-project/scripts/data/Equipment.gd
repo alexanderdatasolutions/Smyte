@@ -76,7 +76,6 @@ static func load_equipment_config():
 	
 	equipment_config = json.get_data()
 	config_loaded = true
-	print("Equipment: Loaded configuration with ", equipment_config.size(), " sections")
 
 # Create equipment from dungeon drop
 static func create_from_dungeon(dungeon_id: String, equipment_type: String, rarity_str: String, item_level: int = 1) -> Equipment:

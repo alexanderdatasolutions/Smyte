@@ -29,8 +29,6 @@ var resource_manager: Node = null  # Reference to ResourceManager for materials 
 	
 func _ready():
 	"""Initialize this ResourceDisplay instance"""
-	print("ResourceDisplay: New instance created")
-	
 	# Add to instances list for global synchronization
 	_instances.append(self)
 	
@@ -61,8 +59,6 @@ func _exit_tree():
 	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
 	if event_bus and event_bus.has_signal("resources_updated") and event_bus.resources_updated.is_connected(_update_all_instances):
 		event_bus.resources_updated.disconnect(_update_all_instances)
-	
-	print("ResourceDisplay: Instance destroyed, %d instances remaining" % _instances.size())
 
 # === INITIALIZATION HELPERS ===
 
@@ -71,12 +67,6 @@ func _initialize_resource_manager():
 	var system_registry = SystemRegistry.get_instance()
 	if system_registry:
 		resource_manager = system_registry.get_system("ResourceManager")
-		if resource_manager:
-			print("ResourceDisplay: Connected to ResourceManager through SystemRegistry")
-		else:
-			print("ResourceDisplay: ResourceManager not found in SystemRegistry")
-	else:
-		print("ResourceDisplay: SystemRegistry not available")
 
 func _setup_signal_connections():
 	"""Connect to system signals through SystemRegistry (first instance only to avoid duplicates)"""
@@ -92,7 +82,7 @@ func _setup_progression_signals():
 	"""Connect to progression system signals for player level updates"""
 	# For now, disable progression signals since we don't have ProgressionManager yet
 	# TODO: Re-enable when ProgressionManager is implemented in SystemRegistry
-	print("ResourceDisplay: Progression signals temporarily disabled")
+	pass
 
 func _setup_materials_button():
 	"""Setup materials button interactions"""
@@ -107,7 +97,6 @@ func _create_player_level_label():
 	# Try to find existing node first
 	if has_node("PlayerLevelLabel"):
 		player_level_label = $PlayerLevelLabel
-		print("ResourceDisplay: Found existing PlayerLevelLabel")
 		return
 	
 	# Create label dynamically and add to the beginning of the container
@@ -119,8 +108,6 @@ func _create_player_level_label():
 	# Add it as the first child (leftmost position)
 	add_child(player_level_label)
 	move_child(player_level_label, 0)
-	
-	print("ResourceDisplay: Created PlayerLevelLabel dynamically")
 
 # === DISPLAY UPDATE METHODS ===
 
@@ -134,12 +121,10 @@ func _update_this_instance():
 	"""Update this specific instance's display with current resource values"""
 	var system_registry = SystemRegistry.get_instance()
 	if not system_registry:
-		print("ResourceDisplay: SystemRegistry not available")
 		return
-	
+
 	var resource_mgr = system_registry.get_system("ResourceManager")
 	if not resource_mgr:
-		print("ResourceDisplay: Cannot update - ResourceManager not available")
 		return
 	
 	# Update each resource display according to prompt architecture
@@ -153,7 +138,6 @@ func _update_this_instance():
 func _update_player_level_display():
 	"""Update player level display (using ResourceManager)"""
 	if not player_level_label:
-		print("ResourceDisplay: PlayerLevelLabel is null - this should not happen!")
 		return
 		
 	var player_level = 1
@@ -229,7 +213,6 @@ func _get_total_materials_count() -> int:
 	"""Calculate total count of all materials in player inventory"""
 	var resource_mgr = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
 	if not resource_mgr:
-		print("ResourceDisplay: Cannot get materials count - ResourceManager not available")
 		return 0
 	
 	var total = 0
@@ -249,8 +232,6 @@ func _show_materials_table():
 	if not resource_manager:
 		push_error("ResourceDisplay: ResourceManager not available for materials table")
 		return
-	
-	print("ResourceDisplay: Opening materials inventory table")
 	
 	# Create popup dialog window
 	var popup = AcceptDialog.new()
@@ -399,5 +380,3 @@ func debug_print_resources():
 	"""Debug helper to print all resource information"""
 	if resource_manager:
 		resource_manager.print_all_resources()
-	else:
-		print("ResourceDisplay: ResourceManager not available for debug")

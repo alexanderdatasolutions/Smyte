@@ -117,7 +117,7 @@ func _validate_battle_team(team: Array) -> Dictionary:
 	
 	# Validate each god
 	for god in team:
-		if not god or not god.has_method("get_power_rating"):
+		if not god or not god is God:
 			return {"success": false, "error": "Invalid god in team"}
 		
 		# Check god health

@@ -90,7 +90,6 @@ func take_damage(damage: int):
 	current_hp = max(0, current_hp - damage)
 	if current_hp <= 0:
 		is_alive = false
-		print("BattleUnit: ", display_name, " has been defeated!")
 
 ## Heal the unit
 func heal(amount: int):
@@ -129,14 +128,12 @@ func add_status_effect(effect: StatusEffect):
 				break
 	
 	status_effects.append(effect)
-	print("BattleUnit: Applied ", effect.effect_id, " to ", display_name)
 
 ## Remove a status effect
 func remove_status_effect(effect_id: String) -> bool:
 	for effect in status_effects:
 		if effect.effect_id == effect_id:
 			status_effects.erase(effect)
-			print("BattleUnit: Removed ", effect_id, " from ", display_name)
 			return true
 	return false
 
