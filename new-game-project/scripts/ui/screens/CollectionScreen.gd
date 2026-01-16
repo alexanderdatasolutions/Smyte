@@ -28,6 +28,9 @@ var resource_manager
 # Sorting helper (extracted to separate class)
 var sorter: CollectionSorter
 
+# Track selected god for visual highlight
+var selected_god: God = null
+
 func _ready():
 	_init_systems()
 
@@ -128,12 +131,19 @@ func refresh_collection():
 		if god != null:
 			var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.COLLECTION_DETAILED)
 			grid_container.add_child(god_card)
-			god_card.setup_god_card(god)
+
+			# Apply SELECTED style if this is the selected god
+			var card_style = GodCard.CardStyle.SELECTED if (selected_god and selected_god.id == god.id) else GodCard.CardStyle.NORMAL
+			god_card.setup_god_card(god, card_style)
 			god_card.god_selected.connect(show_god_details)
 
 func show_god_details(god: God):
 	"""Show god details in right panel using helper class"""
+	# Track selected god and refresh to update visual highlight
+	selected_god = god
 	CollectionDetailsPanel.show_god_details(god, details_content, no_selection_label)
+	# Refresh cards to show selection highlight
+	refresh_collection()
 
 func show_no_selection():
 	"""Show the no selection message"""

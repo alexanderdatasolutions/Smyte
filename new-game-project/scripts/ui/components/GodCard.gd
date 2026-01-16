@@ -274,8 +274,9 @@ func _apply_card_style():
 			style.border_color = _get_tier_border_color(god_data.tier if god_data else 0)
 		
 		CardStyle.SELECTED:
-			style.bg_color = Color(0.4, 0.2, 0.6, 0.8)  # Purple for selected
-			style.border_color = Color(0.8, 0.4, 1.0, 1.0)
+			# Keep tier background color but use yellow border for distinction
+			style.bg_color = _get_subtle_tier_color(god_data.tier if god_data else 0)
+			style.border_color = Color(1.0, 0.8, 0.0, 1.0)  # Yellow/gold for clear selection indicator
 		
 		CardStyle.AWAKENING_READY:
 			style.bg_color = Color(0.2, 0.4, 0.2, 0.8)  # Green for awakenable
@@ -286,15 +287,17 @@ func _apply_card_style():
 			style.border_color = Color(0.2, 0.8, 1.0, 1.0)  # Cyan border
 	
 	# Apply border and corner radius
-	style.border_width_left = 2
-	style.border_width_right = 2
-	style.border_width_top = 2
-	style.border_width_bottom = 2
+	# Use thicker border for selected cards
+	var border_width = 3 if current_style == CardStyle.SELECTED else 2
+	style.border_width_left = border_width
+	style.border_width_right = border_width
+	style.border_width_top = border_width
+	style.border_width_bottom = border_width
 	style.corner_radius_top_left = 8
 	style.corner_radius_top_right = 8
 	style.corner_radius_bottom_left = 8
 	style.corner_radius_bottom_right = 8
-	
+
 	add_theme_stylebox_override("panel", style)
 
 func _on_card_clicked():
