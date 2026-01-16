@@ -1,435 +1,2134 @@
 {
   "specializations": {
-    "berserker": {
-      "id": "berserker",
+    "_comment": "Fighter Specializations - 16 total (4 paths x 4 nodes each)",
+
+    "fighter_berserker": {
+      "id": "fighter_berserker",
       "name": "Berserker",
-      "description": "Unleash devastating attacks at the cost of defense",
-      "type": "combat",
-      "icon_path": "res://assets/icons/specs/berserker.png",
-      "required_level": 20,
-      "required_traits": ["warrior"],
-      "blocked_traits": ["guardian"],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
+      "tier": 1,
+      "role_required": "fighter",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["fighter_berserker_raging", "fighter_berserker_blood"],
+      "description": "Embrace primal fury and overwhelming offense",
+      "icon_path": "res://assets/icons/specs/fighter_berserker.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
       "stat_bonuses": {
-        "attack": 0.25,
-        "critical_damage": 0.20,
-        "defense": -0.10
+        "attack_percent": 0.15,
+        "defense_percent": -0.05,
+        "crit_damage_percent": 0.25
       },
-      "task_bonuses": {
-        "hunt_monsters": 0.15
-      },
-      "skill_xp_bonuses": {
-        "combat": 0.10
-      },
-      "unlocked_ability_ids": ["berserker_rage"],
-      "enhanced_ability_ids": {}
+      "task_bonuses": {},
+      "unlocked_ability_ids": ["rage_strike"]
     },
-    "paladin": {
-      "id": "paladin",
-      "name": "Paladin",
-      "description": "Righteous defender who protects allies",
-      "type": "combat",
-      "icon_path": "res://assets/icons/specs/paladin.png",
-      "required_level": 20,
-      "required_traits": ["guardian"],
-      "blocked_traits": ["assassin"],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
+    "fighter_berserker_raging": {
+      "id": "fighter_berserker_raging",
+      "name": "Raging Warrior",
+      "tier": 2,
+      "role_required": "fighter",
+      "level_required": 30,
+      "parent_spec": "fighter_berserker",
+      "children_specs": ["fighter_berserker_avatar"],
+      "description": "Channel unstoppable rage for maximum damage",
+      "icon_path": "res://assets/icons/specs/fighter_berserker_raging.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
       "stat_bonuses": {
-        "defense": 0.20,
-        "hp": 0.15,
-        "resistance": 0.10
+        "attack_percent": 0.25,
+        "defense_percent": -0.10,
+        "crit_damage_percent": 0.40
+      },
+      "task_bonuses": {},
+      "unlocked_ability_ids": ["unstoppable_rage"]
+    },
+    "fighter_berserker_blood": {
+      "id": "fighter_berserker_blood",
+      "name": "Blood Dancer",
+      "tier": 2,
+      "role_required": "fighter",
+      "level_required": 30,
+      "parent_spec": "fighter_berserker",
+      "children_specs": ["fighter_berserker_avatar"],
+      "description": "Gain power from blood and pain",
+      "icon_path": "res://assets/icons/specs/fighter_berserker_blood.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {
+        "attack_percent": 0.20,
+        "lifesteal_percent": 0.05,
+        "crit_damage_percent": 0.30
+      },
+      "task_bonuses": {},
+      "unlocked_ability_ids": ["blood_fury"]
+    },
+    "fighter_berserker_avatar": {
+      "id": "fighter_berserker_avatar",
+      "name": "Avatar of Fury",
+      "tier": 3,
+      "role_required": "fighter",
+      "level_required": 40,
+      "parent_spec": "fighter_berserker_raging",
+      "children_specs": [],
+      "description": "Become the incarnation of pure rage",
+      "icon_path": "res://assets/icons/specs/fighter_berserker_avatar.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {
+        "attack_percent": 0.40,
+        "cc_immunity": true
+      },
+      "task_bonuses": {},
+      "unlocked_ability_ids": ["divine_wrath"]
+    },
+
+    "fighter_guardian": {
+      "id": "fighter_guardian",
+      "name": "Guardian",
+      "tier": 1,
+      "role_required": "fighter",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["fighter_guardian_shield", "fighter_guardian_warden"],
+      "description": "Become an unbreakable shield for your allies",
+      "icon_path": "res://assets/icons/specs/fighter_guardian.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {
+        "defense_percent": 0.20,
+        "hp_percent": 0.15,
+        "threat_percent": 0.10
       },
       "task_bonuses": {
         "defend": 0.25
       },
-      "skill_xp_bonuses": {
-        "combat": 0.10
-      },
-      "unlocked_ability_ids": ["divine_shield"],
-      "enhanced_ability_ids": {}
+      "unlocked_ability_ids": ["protective_stance"]
     },
-    "shadow_blade": {
-      "id": "shadow_blade",
-      "name": "Shadow Blade",
-      "description": "Master of critical strikes and evasion",
-      "type": "combat",
-      "icon_path": "res://assets/icons/specs/shadow_blade.png",
-      "required_level": 20,
-      "required_traits": ["assassin"],
-      "blocked_traits": ["guardian"],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
+    "fighter_guardian_shield": {
+      "id": "fighter_guardian_shield",
+      "name": "Shield Master",
+      "tier": 2,
+      "role_required": "fighter",
+      "level_required": 30,
+      "parent_spec": "fighter_guardian",
+      "children_specs": ["fighter_guardian_bulwark"],
+      "description": "Master the art of blocking and countering",
+      "icon_path": "res://assets/icons/specs/fighter_guardian_shield.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
       "stat_bonuses": {
-        "critical_chance": 0.15,
-        "critical_damage": 0.30,
-        "speed": 0.10
+        "defense_percent": 0.30,
+        "hp_percent": 0.20,
+        "block_percent": 0.15
       },
       "task_bonuses": {
-        "scout": 0.20,
-        "hunt_monsters": 0.10
+        "defend": 0.35
       },
-      "skill_xp_bonuses": {
-        "combat": 0.15
-      },
-      "unlocked_ability_ids": ["shadow_step"],
-      "enhanced_ability_ids": {}
+      "unlocked_ability_ids": ["aegis_wall"]
     },
-    "arch_mage": {
-      "id": "arch_mage",
-      "name": "Arch Mage",
-      "description": "Master of elemental magic with devastating AoE",
-      "type": "combat",
-      "icon_path": "res://assets/icons/specs/arch_mage.png",
-      "required_level": 20,
-      "required_traits": ["scholar", "enchanter"],
-      "blocked_traits": [],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
+    "fighter_guardian_warden": {
+      "id": "fighter_guardian_warden",
+      "name": "Warden",
+      "tier": 2,
+      "role_required": "fighter",
+      "level_required": 30,
+      "parent_spec": "fighter_guardian",
+      "children_specs": ["fighter_guardian_bulwark"],
+      "description": "Reflect damage and endure endless punishment",
+      "icon_path": "res://assets/icons/specs/fighter_guardian_warden.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
       "stat_bonuses": {
-        "attack": 0.20,
-        "accuracy": 0.15
+        "defense_percent": 0.25,
+        "hp_percent": 0.25,
+        "damage_reflect_percent": 0.10
       },
       "task_bonuses": {
-        "research": 0.20,
-        "enchant_equipment": 0.15
+        "defend": 0.30
       },
-      "skill_xp_bonuses": {
-        "enchanting": 0.15,
-        "research": 0.10
-      },
-      "unlocked_ability_ids": ["arcane_barrage"],
-      "enhanced_ability_ids": {}
+      "unlocked_ability_ids": ["iron_will"]
     },
-    "battle_cleric": {
-      "id": "battle_cleric",
-      "name": "Battle Cleric",
-      "description": "Healer who can hold their own in combat",
-      "type": "support",
-      "icon_path": "res://assets/icons/specs/battle_cleric.png",
-      "required_level": 20,
-      "required_traits": ["healer"],
-      "blocked_traits": [],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
+    "fighter_guardian_bulwark": {
+      "id": "fighter_guardian_bulwark",
+      "name": "Immortal Bulwark",
+      "tier": 3,
+      "role_required": "fighter",
+      "level_required": 40,
+      "parent_spec": "fighter_guardian_shield",
+      "children_specs": [],
+      "description": "Achieve near-immortality in battle",
+      "icon_path": "res://assets/icons/specs/fighter_guardian_bulwark.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
       "stat_bonuses": {
-        "healing_power": 0.25,
-        "defense": 0.10,
-        "hp": 0.10
+        "defense_percent": 0.50,
+        "hp_percent": 0.40,
+        "auto_revive": true
       },
       "task_bonuses": {
-        "brew_potions": 0.20,
-        "create_elixirs": 0.15
+        "defend": 0.50
       },
-      "skill_xp_bonuses": {
-        "alchemy": 0.15
-      },
-      "unlocked_ability_ids": ["mass_heal"],
-      "enhanced_ability_ids": {}
+      "unlocked_ability_ids": ["unbreakable"]
     },
-    "tactician": {
-      "id": "tactician",
-      "name": "Tactician",
-      "description": "Strategic commander who buffs the entire team",
-      "type": "support",
-      "icon_path": "res://assets/icons/specs/tactician.png",
-      "required_level": 20,
-      "required_traits": ["strategist", "commander"],
-      "blocked_traits": [],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
-      "stat_bonuses": {
-        "speed": 0.15,
-        "accuracy": 0.10
-      },
-      "task_bonuses": {
-        "train": 0.30,
-        "defend": 0.20,
-        "plan_battle": 0.25
-      },
-      "skill_xp_bonuses": {
-        "combat": 0.20
-      },
-      "unlocked_ability_ids": ["battle_orders"],
-      "enhanced_ability_ids": {}
-    },
-    "master_smith": {
-      "id": "master_smith",
-      "name": "Master Smith",
-      "description": "Legendary craftsman who forges superior equipment",
-      "type": "production",
-      "icon_path": "res://assets/icons/specs/master_smith.png",
-      "required_level": 20,
-      "required_traits": ["forgemaster"],
-      "blocked_traits": [],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
-      "stat_bonuses": {
-        "defense": 0.10
-      },
-      "task_bonuses": {
-        "forge_equipment": 0.35,
-        "smelt_ore": 0.25,
-        "repair_equipment": 0.30
-      },
-      "skill_xp_bonuses": {
-        "smithing": 0.25
-      },
-      "unlocked_ability_ids": [],
-      "enhanced_ability_ids": {}
-    },
-    "grand_alchemist": {
-      "id": "grand_alchemist",
-      "name": "Grand Alchemist",
-      "description": "Transmutation master who creates powerful elixirs",
-      "type": "production",
-      "icon_path": "res://assets/icons/specs/grand_alchemist.png",
-      "required_level": 20,
-      "required_traits": ["alchemist"],
-      "blocked_traits": [],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
-      "stat_bonuses": {},
-      "task_bonuses": {
-        "brew_potions": 0.30,
-        "create_elixirs": 0.35,
-        "transmute": 0.25,
-        "gather_herbs": 0.15
-      },
-      "skill_xp_bonuses": {
-        "alchemy": 0.25,
-        "herbalism": 0.10
-      },
-      "unlocked_ability_ids": [],
-      "enhanced_ability_ids": {}
-    },
-    "deep_delver": {
-      "id": "deep_delver",
-      "name": "Deep Delver",
-      "description": "Expert miner who extracts the rarest ores",
-      "type": "production",
-      "icon_path": "res://assets/icons/specs/deep_delver.png",
-      "required_level": 20,
-      "required_traits": ["miner"],
-      "blocked_traits": [],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
-      "stat_bonuses": {
-        "defense": 0.05
-      },
-      "task_bonuses": {
-        "mine_ore": 0.25,
-        "mine_gems": 0.30,
-        "deep_mining": 0.40
-      },
-      "skill_xp_bonuses": {
-        "mining": 0.30
-      },
-      "unlocked_ability_ids": [],
-      "enhanced_ability_ids": {}
-    },
-    "nature_warden": {
-      "id": "nature_warden",
-      "name": "Nature Warden",
-      "description": "One with nature, master of all gathering",
-      "type": "production",
-      "icon_path": "res://assets/icons/specs/nature_warden.png",
-      "required_level": 20,
-      "required_traits": ["harvester"],
-      "blocked_traits": [],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
-      "stat_bonuses": {
-        "speed": 0.05
-      },
-      "task_bonuses": {
-        "harvest_plants": 0.30,
-        "gather_herbs": 0.35,
-        "lumber": 0.25
-      },
-      "skill_xp_bonuses": {
-        "farming": 0.20,
-        "herbalism": 0.20,
-        "woodcutting": 0.15
-      },
-      "unlocked_ability_ids": [],
-      "enhanced_ability_ids": {}
-    },
-    "sea_lord": {
-      "id": "sea_lord",
-      "name": "Sea Lord",
-      "description": "Master of the seas with unparalleled aquatic skills",
-      "type": "production",
-      "icon_path": "res://assets/icons/specs/sea_lord.png",
-      "required_level": 20,
-      "required_traits": ["fisher"],
-      "blocked_traits": [],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
-      "stat_bonuses": {
-        "speed": 0.10
-      },
-      "task_bonuses": {
-        "fish": 0.35,
-        "pearl_diving": 0.40,
-        "gather_scales": 0.25
-      },
-      "skill_xp_bonuses": {
-        "fishing": 0.30
-      },
-      "unlocked_ability_ids": [],
-      "enhanced_ability_ids": {}
-    },
-    "beast_master": {
-      "id": "beast_master",
-      "name": "Beast Master",
-      "description": "Hunter supreme who tracks any prey",
-      "type": "hybrid",
-      "icon_path": "res://assets/icons/specs/beast_master.png",
-      "required_level": 20,
-      "required_traits": ["hunter"],
-      "blocked_traits": [],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
-      "stat_bonuses": {
-        "attack": 0.10,
-        "speed": 0.10,
-        "critical_chance": 0.05
-      },
-      "task_bonuses": {
-        "hunt_monsters": 0.35,
-        "track_beasts": 0.30,
-        "gather_pelts": 0.25
-      },
-      "skill_xp_bonuses": {
-        "hunting": 0.25,
-        "combat": 0.10
-      },
-      "unlocked_ability_ids": ["summon_beast"],
-      "enhanced_ability_ids": {}
-    },
-    "arcane_artificer": {
-      "id": "arcane_artificer",
-      "name": "Arcane Artificer",
-      "description": "Creator of legendary magical items",
-      "type": "production",
-      "icon_path": "res://assets/icons/specs/arcane_artificer.png",
-      "required_level": 25,
-      "required_traits": ["artificer"],
-      "blocked_traits": [],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
-      "stat_bonuses": {},
-      "task_bonuses": {
-        "create_artifacts": 0.40,
-        "enchant_equipment": 0.30,
-        "forge_equipment": 0.20
-      },
-      "skill_xp_bonuses": {
-        "artificing": 0.30,
-        "enchanting": 0.20,
-        "smithing": 0.10
-      },
-      "unlocked_ability_ids": [],
-      "enhanced_ability_ids": {}
-    },
-    "lore_keeper": {
-      "id": "lore_keeper",
-      "name": "Lore Keeper",
-      "description": "Guardian of ancient knowledge",
-      "type": "hybrid",
-      "icon_path": "res://assets/icons/specs/lore_keeper.png",
-      "required_level": 20,
-      "required_traits": ["scholar"],
-      "blocked_traits": [],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
-      "stat_bonuses": {
-        "accuracy": 0.10,
-        "resistance": 0.10
-      },
-      "task_bonuses": {
-        "research": 0.35,
-        "study_lore": 0.40,
-        "translate_texts": 0.30
-      },
-      "skill_xp_bonuses": {
-        "research": 0.30
-      },
-      "unlocked_ability_ids": ["ancient_wisdom"],
-      "enhanced_ability_ids": {}
-    },
-    "pathfinder": {
-      "id": "pathfinder",
-      "name": "Pathfinder",
-      "description": "Elite explorer who discovers hidden treasures",
-      "type": "hybrid",
-      "icon_path": "res://assets/icons/specs/pathfinder.png",
-      "required_level": 20,
-      "required_traits": ["explorer"],
-      "blocked_traits": [],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
-      "stat_bonuses": {
-        "speed": 0.15
-      },
-      "task_bonuses": {
-        "scout": 0.30,
-        "explore": 0.40,
-        "find_treasure": 0.35
-      },
-      "skill_xp_bonuses": {
-        "exploration": 0.30
-      },
-      "unlocked_ability_ids": ["treasure_sense"],
-      "enhanced_ability_ids": {}
-    },
-    "trade_prince": {
-      "id": "trade_prince",
-      "name": "Trade Prince",
-      "description": "Master negotiator with unbeatable deals",
-      "type": "support",
-      "icon_path": "res://assets/icons/specs/trade_prince.png",
-      "required_level": 20,
-      "required_traits": ["diplomat"],
-      "blocked_traits": [],
-      "required_pantheon": "",
-      "prerequisite_specialization_id": "",
-      "stat_bonuses": {},
-      "task_bonuses": {
-        "trade": 0.40,
-        "negotiate": 0.35,
-        "manage_territory": 0.25
-      },
-      "skill_xp_bonuses": {
-        "trading": 0.35
-      },
-      "unlocked_ability_ids": [],
-      "enhanced_ability_ids": {}
-    }
-  },
 
-  "specialization_types": {
-    "combat": {
-      "name": "Combat",
-      "description": "Focused on battle prowess",
-      "color": "#F44336"
+    "fighter_tactician": {
+      "id": "fighter_tactician",
+      "name": "Tactician",
+      "tier": 1,
+      "role_required": "fighter",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["fighter_tactician_commander", "fighter_tactician_genius"],
+      "description": "Lead your forces with strategic brilliance",
+      "icon_path": "res://assets/icons/specs/fighter_tactician.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {
+        "team_attack_percent": 0.10,
+        "team_defense_percent": 0.10
+      },
+      "task_bonuses": {
+        "training": 0.20
+      },
+      "unlocked_ability_ids": ["battle_orders"]
     },
-    "production": {
-      "name": "Production",
-      "description": "Focused on gathering and crafting",
-      "color": "#4CAF50"
+    "fighter_tactician_commander": {
+      "id": "fighter_tactician_commander",
+      "name": "Battle Commander",
+      "tier": 2,
+      "role_required": "fighter",
+      "level_required": 30,
+      "parent_spec": "fighter_tactician",
+      "children_specs": ["fighter_tactician_war"],
+      "description": "Command armies with unmatched skill",
+      "icon_path": "res://assets/icons/specs/fighter_tactician_commander.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {
+        "team_attack_percent": 0.15,
+        "team_defense_percent": 0.15
+      },
+      "task_bonuses": {
+        "training": 0.30
+      },
+      "unlocked_ability_ids": ["rally_troops"]
     },
-    "support": {
-      "name": "Support",
-      "description": "Focused on team utility",
-      "color": "#2196F3"
+    "fighter_tactician_genius": {
+      "id": "fighter_tactician_genius",
+      "name": "Strategic Genius",
+      "tier": 2,
+      "role_required": "fighter",
+      "level_required": 30,
+      "parent_spec": "fighter_tactician",
+      "children_specs": ["fighter_tactician_war"],
+      "description": "See the battlefield with perfect clarity",
+      "icon_path": "res://assets/icons/specs/fighter_tactician_genius.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {
+        "team_attack_percent": 0.20,
+        "team_defense_percent": 0.20
+      },
+      "task_bonuses": {
+        "training": 0.25
+      },
+      "unlocked_ability_ids": ["perfect_strategy"]
     },
-    "hybrid": {
-      "name": "Hybrid",
-      "description": "Balanced between roles",
-      "color": "#9C27B0"
+    "fighter_tactician_war": {
+      "id": "fighter_tactician_war",
+      "name": "War Incarnate",
+      "tier": 3,
+      "role_required": "fighter",
+      "level_required": 40,
+      "parent_spec": "fighter_tactician_commander",
+      "children_specs": [],
+      "description": "Become the living embodiment of warfare",
+      "icon_path": "res://assets/icons/specs/fighter_tactician_war.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {
+        "team_attack_percent": 0.30,
+        "team_defense_percent": 0.30
+      },
+      "task_bonuses": {
+        "training": 0.50
+      },
+      "unlocked_ability_ids": ["art_of_war"]
+    },
+
+    "fighter_assassin": {
+      "id": "fighter_assassin",
+      "name": "Assassin",
+      "tier": 1,
+      "role_required": "fighter",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["fighter_assassin_shadow", "fighter_assassin_silent"],
+      "description": "Strike from the shadows with lethal precision",
+      "icon_path": "res://assets/icons/specs/fighter_assassin.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {
+        "crit_chance_percent": 0.20,
+        "speed_percent": 0.30,
+        "first_strike": true
+      },
+      "task_bonuses": {},
+      "unlocked_ability_ids": ["backstab"]
+    },
+    "fighter_assassin_shadow": {
+      "id": "fighter_assassin_shadow",
+      "name": "Shadow Striker",
+      "tier": 2,
+      "role_required": "fighter",
+      "level_required": 30,
+      "parent_spec": "fighter_assassin",
+      "children_specs": ["fighter_assassin_death"],
+      "description": "Move unseen and strike with devastating force",
+      "icon_path": "res://assets/icons/specs/fighter_assassin_shadow.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {
+        "crit_chance_percent": 0.30,
+        "invisibility": true,
+        "armor_penetration_percent": 0.50
+      },
+      "task_bonuses": {},
+      "unlocked_ability_ids": ["shadow_step"]
+    },
+    "fighter_assassin_silent": {
+      "id": "fighter_assassin_silent",
+      "name": "Silent Killer",
+      "tier": 2,
+      "role_required": "fighter",
+      "level_required": 30,
+      "parent_spec": "fighter_assassin",
+      "children_specs": ["fighter_assassin_death"],
+      "description": "Execute foes with ruthless efficiency",
+      "icon_path": "res://assets/icons/specs/fighter_assassin_silent.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {
+        "crit_chance_percent": 0.35,
+        "speed_percent": 0.50,
+        "execute_threshold": 0.30
+      },
+      "task_bonuses": {},
+      "unlocked_ability_ids": ["death_mark"]
+    },
+    "fighter_assassin_death": {
+      "id": "fighter_assassin_death",
+      "name": "Death's Hand",
+      "tier": 3,
+      "role_required": "fighter",
+      "level_required": 40,
+      "parent_spec": "fighter_assassin_shadow",
+      "children_specs": [],
+      "description": "Deliver death with absolute certainty",
+      "icon_path": "res://assets/icons/specs/fighter_assassin_death.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {
+        "crit_chance_percent": 0.50,
+        "guaranteed_crit_full_hp": true
+      },
+      "task_bonuses": {},
+      "unlocked_ability_ids": ["instant_death"]
+    },
+
+    "_comment_gatherer": "Gatherer Specializations - 20 total (4 paths x 5 nodes each)",
+
+    "gatherer_miner": {
+      "id": "gatherer_miner",
+      "name": "Miner",
+      "tier": 1,
+      "role_required": "gatherer",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["gatherer_miner_gem", "gatherer_miner_deep"],
+      "description": "Expert at extracting ore and gems from the earth",
+      "icon_path": "res://assets/icons/specs/gatherer_miner.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "mining": 0.50
+      },
+      "resource_bonuses": {
+        "ore_yield_percent": 0.30,
+        "gem_chance_percent": 0.15
+      },
+      "unlocked_ability_ids": []
+    },
+    "gatherer_miner_gem": {
+      "id": "gatherer_miner_gem",
+      "name": "Gem Cutter",
+      "tier": 2,
+      "role_required": "gatherer",
+      "level_required": 30,
+      "parent_spec": "gatherer_miner",
+      "children_specs": ["gatherer_miner_jeweler"],
+      "description": "Master the art of gem extraction and cutting",
+      "icon_path": "res://assets/icons/specs/gatherer_miner_gem.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "mining": 0.70,
+        "gem_cutting": 0.80
+      },
+      "resource_bonuses": {
+        "gem_yield_percent": 0.50,
+        "rare_gem_chance_percent": 0.20
+      },
+      "unlocked_ability_ids": []
+    },
+    "gatherer_miner_deep": {
+      "id": "gatherer_miner_deep",
+      "name": "Deep Miner",
+      "tier": 2,
+      "role_required": "gatherer",
+      "level_required": 30,
+      "parent_spec": "gatherer_miner",
+      "children_specs": ["gatherer_miner_shaper"],
+      "description": "Delve into the deepest veins of precious ore",
+      "icon_path": "res://assets/icons/specs/gatherer_miner_deep.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "mining": 0.90,
+        "deep_mining": 1.00
+      },
+      "resource_bonuses": {
+        "ore_yield_percent": 0.60
+      },
+      "unlocked_ability_ids": []
+    },
+    "gatherer_miner_jeweler": {
+      "id": "gatherer_miner_jeweler",
+      "name": "Master Jeweler",
+      "tier": 3,
+      "role_required": "gatherer",
+      "level_required": 40,
+      "parent_spec": "gatherer_miner_gem",
+      "children_specs": [],
+      "description": "Create legendary gemstones of incomparable value",
+      "icon_path": "res://assets/icons/specs/gatherer_miner_jeweler.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "gem_cutting": 1.50
+      },
+      "resource_bonuses": {
+        "gem_yield_percent": 0.80,
+        "legendary_gem_chance_percent": 0.10
+      },
+      "unlocked_ability_ids": []
+    },
+    "gatherer_miner_shaper": {
+      "id": "gatherer_miner_shaper",
+      "name": "Earth Shaper",
+      "tier": 3,
+      "role_required": "gatherer",
+      "level_required": 40,
+      "parent_spec": "gatherer_miner_deep",
+      "children_specs": [],
+      "description": "Command the earth itself to reveal its treasures",
+      "icon_path": "res://assets/icons/specs/gatherer_miner_shaper.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "mining": 1.50,
+        "node_creation": 1.00
+      },
+      "resource_bonuses": {
+        "ore_yield_percent": 1.00
+      },
+      "unlocked_ability_ids": []
+    },
+
+    "gatherer_fisher": {
+      "id": "gatherer_fisher",
+      "name": "Fisher",
+      "tier": 1,
+      "role_required": "gatherer",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["gatherer_fisher_pearl", "gatherer_fisher_whale"],
+      "description": "Master of all aquatic resources",
+      "icon_path": "res://assets/icons/specs/gatherer_fisher.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "fishing": 0.50
+      },
+      "resource_bonuses": {
+        "fish_yield_percent": 0.30,
+        "rare_catch_chance_percent": 0.15
+      },
+      "unlocked_ability_ids": []
+    },
+    "gatherer_fisher_pearl": {
+      "id": "gatherer_fisher_pearl",
+      "name": "Pearl Diver",
+      "tier": 2,
+      "role_required": "gatherer",
+      "level_required": 30,
+      "parent_spec": "gatherer_fisher",
+      "children_specs": ["gatherer_fisher_ocean"],
+      "description": "Dive to impossible depths for precious pearls",
+      "icon_path": "res://assets/icons/specs/gatherer_fisher_pearl.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "fishing": 0.70,
+        "pearl_diving": 0.80
+      },
+      "resource_bonuses": {
+        "pearl_yield_percent": 0.50,
+        "underwater_breathing": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "gatherer_fisher_whale": {
+      "id": "gatherer_fisher_whale",
+      "name": "Whale Hunter",
+      "tier": 2,
+      "role_required": "gatherer",
+      "level_required": 30,
+      "parent_spec": "gatherer_fisher",
+      "children_specs": ["gatherer_fisher_sovereign"],
+      "description": "Hunt the greatest beasts of the deep",
+      "icon_path": "res://assets/icons/specs/gatherer_fisher_whale.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "fishing": 0.90,
+        "monster_hunting": 0.50
+      },
+      "resource_bonuses": {
+        "big_fish_yield_percent": 0.60
+      },
+      "unlocked_ability_ids": []
+    },
+    "gatherer_fisher_ocean": {
+      "id": "gatherer_fisher_ocean",
+      "name": "Ocean Master",
+      "tier": 3,
+      "role_required": "gatherer",
+      "level_required": 40,
+      "parent_spec": "gatherer_fisher_pearl",
+      "children_specs": [],
+      "description": "Command all treasures of the ocean",
+      "icon_path": "res://assets/icons/specs/gatherer_fisher_ocean.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "fishing": 1.50,
+        "pearl_diving": 1.50
+      },
+      "resource_bonuses": {
+        "all_aquatic_percent": 0.80
+      },
+      "unlocked_ability_ids": []
+    },
+    "gatherer_fisher_sovereign": {
+      "id": "gatherer_fisher_sovereign",
+      "name": "Sea Sovereign",
+      "tier": 3,
+      "role_required": "gatherer",
+      "level_required": 40,
+      "parent_spec": "gatherer_fisher_whale",
+      "children_specs": [],
+      "description": "Rule the seas and all creatures within",
+      "icon_path": "res://assets/icons/specs/gatherer_fisher_sovereign.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "fishing": 1.50,
+        "summon_sea_creatures": 1.00
+      },
+      "resource_bonuses": {
+        "fish_yield_percent": 1.00
+      },
+      "unlocked_ability_ids": ["summon_aid"]
+    },
+
+    "gatherer_herbalist": {
+      "id": "gatherer_herbalist",
+      "name": "Herbalist",
+      "tier": 1,
+      "role_required": "gatherer",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["gatherer_herbalist_botanist", "gatherer_herbalist_alchemical"],
+      "description": "Gather the finest herbs and plants",
+      "icon_path": "res://assets/icons/specs/gatherer_herbalist.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "harvesting": 0.50
+      },
+      "resource_bonuses": {
+        "herb_yield_percent": 0.30,
+        "rare_herb_chance_percent": 0.15
+      },
+      "unlocked_ability_ids": []
+    },
+    "gatherer_herbalist_botanist": {
+      "id": "gatherer_herbalist_botanist",
+      "name": "Botanist",
+      "tier": 2,
+      "role_required": "gatherer",
+      "level_required": 30,
+      "parent_spec": "gatherer_herbalist",
+      "children_specs": ["gatherer_herbalist_grove"],
+      "description": "Master all knowledge of plant life",
+      "icon_path": "res://assets/icons/specs/gatherer_herbalist_botanist.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "harvesting": 0.80,
+        "plant_lore": 1.00
+      },
+      "resource_bonuses": {
+        "herb_yield_percent": 0.50,
+        "identify_all_plants": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "gatherer_herbalist_alchemical": {
+      "id": "gatherer_herbalist_alchemical",
+      "name": "Alchemical Harvester",
+      "tier": 2,
+      "role_required": "gatherer",
+      "level_required": 30,
+      "parent_spec": "gatherer_herbalist",
+      "children_specs": ["gatherer_herbalist_nature"],
+      "description": "Gather reagents of incomparable potency",
+      "icon_path": "res://assets/icons/specs/gatherer_herbalist_alchemical.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "harvesting": 0.70,
+        "alchemy": 0.30
+      },
+      "resource_bonuses": {
+        "herb_yield_percent": 0.40,
+        "alchemical_reagent_percent": 0.30
+      },
+      "unlocked_ability_ids": []
+    },
+    "gatherer_herbalist_grove": {
+      "id": "gatherer_herbalist_grove",
+      "name": "Grove Keeper",
+      "tier": 3,
+      "role_required": "gatherer",
+      "level_required": 40,
+      "parent_spec": "gatherer_herbalist_botanist",
+      "children_specs": [],
+      "description": "Nurture sacred groves of endless bounty",
+      "icon_path": "res://assets/icons/specs/gatherer_herbalist_grove.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "harvesting": 1.50,
+        "farming": 1.00
+      },
+      "resource_bonuses": {
+        "herb_yield_percent": 0.80,
+        "plant_growth_acceleration": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "gatherer_herbalist_nature": {
+      "id": "gatherer_herbalist_nature",
+      "name": "Nature's Chosen",
+      "tier": 3,
+      "role_required": "gatherer",
+      "level_required": 40,
+      "parent_spec": "gatherer_herbalist_alchemical",
+      "children_specs": [],
+      "description": "Channel the raw power of nature itself",
+      "icon_path": "res://assets/icons/specs/gatherer_herbalist_nature.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "harvesting": 1.20,
+        "alchemy": 0.80
+      },
+      "resource_bonuses": {
+        "alchemical_material_percent": 1.00
+      },
+      "unlocked_ability_ids": []
+    },
+
+    "gatherer_hunter": {
+      "id": "gatherer_hunter",
+      "name": "Hunter",
+      "tier": 1,
+      "role_required": "gatherer",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["gatherer_hunter_tracker", "gatherer_hunter_trapper"],
+      "description": "Track and hunt the most dangerous prey",
+      "icon_path": "res://assets/icons/specs/gatherer_hunter.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "hunting": 0.50
+      },
+      "resource_bonuses": {
+        "monster_parts_percent": 0.30,
+        "rare_drop_chance_percent": 0.15
+      },
+      "unlocked_ability_ids": []
+    },
+    "gatherer_hunter_tracker": {
+      "id": "gatherer_hunter_tracker",
+      "name": "Tracker",
+      "tier": 2,
+      "role_required": "gatherer",
+      "level_required": 30,
+      "parent_spec": "gatherer_hunter",
+      "children_specs": ["gatherer_hunter_beast"],
+      "description": "Track any creature across any terrain",
+      "icon_path": "res://assets/icons/specs/gatherer_hunter_tracker.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "hunting": 0.80,
+        "tracking": 1.00
+      },
+      "resource_bonuses": {
+        "monster_parts_percent": 0.50,
+        "track_any_creature": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "gatherer_hunter_trapper": {
+      "id": "gatherer_hunter_trapper",
+      "name": "Trapper",
+      "tier": 2,
+      "role_required": "gatherer",
+      "level_required": 30,
+      "parent_spec": "gatherer_hunter",
+      "children_specs": ["gatherer_hunter_apex"],
+      "description": "Set ingenious traps for impossible prey",
+      "icon_path": "res://assets/icons/specs/gatherer_hunter_trapper.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "hunting": 0.90,
+        "trap_mastery": 1.00
+      },
+      "resource_bonuses": {
+        "monster_parts_percent": 0.60
+      },
+      "unlocked_ability_ids": []
+    },
+    "gatherer_hunter_beast": {
+      "id": "gatherer_hunter_beast",
+      "name": "Beast Master",
+      "tier": 3,
+      "role_required": "gatherer",
+      "level_required": 40,
+      "parent_spec": "gatherer_hunter_tracker",
+      "children_specs": [],
+      "description": "Tame the wildest beasts to serve you",
+      "icon_path": "res://assets/icons/specs/gatherer_hunter_beast.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "hunting": 1.50,
+        "taming": 1.00
+      },
+      "resource_bonuses": {
+        "monster_parts_percent": 0.80
+      },
+      "unlocked_ability_ids": ["tame_beast"]
+    },
+    "gatherer_hunter_apex": {
+      "id": "gatherer_hunter_apex",
+      "name": "Apex Predator",
+      "tier": 3,
+      "role_required": "gatherer",
+      "level_required": 40,
+      "parent_spec": "gatherer_hunter_trapper",
+      "children_specs": [],
+      "description": "Stand atop the food chain as the ultimate hunter",
+      "icon_path": "res://assets/icons/specs/gatherer_hunter_apex.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "hunting": 2.00,
+        "legendary_beast_hunting": 1.00
+      },
+      "resource_bonuses": {
+        "monster_parts_percent": 1.00
+      },
+      "unlocked_ability_ids": []
+    },
+
+    "_comment_crafter": "Crafter Specializations - 16 total (4 paths x 4 nodes each)",
+
+    "crafter_forgemaster": {
+      "id": "crafter_forgemaster",
+      "name": "Forgemaster",
+      "tier": 1,
+      "role_required": "crafter",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["crafter_forge_weapon", "crafter_forge_armor"],
+      "description": "Master craftsman of legendary equipment",
+      "icon_path": "res://assets/icons/specs/crafter_forgemaster.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "forging": 0.50
+      },
+      "crafting_bonuses": {
+        "equipment_quality_percent": 0.30,
+        "masterwork_chance_percent": 0.10
+      },
+      "unlocked_ability_ids": []
+    },
+    "crafter_forge_weapon": {
+      "id": "crafter_forge_weapon",
+      "name": "Weaponsmith",
+      "tier": 2,
+      "role_required": "crafter",
+      "level_required": 30,
+      "parent_spec": "crafter_forgemaster",
+      "children_specs": ["crafter_forge_divine"],
+      "description": "Forge weapons of unmatched lethality",
+      "icon_path": "res://assets/icons/specs/crafter_forge_weapon.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "weapon_forging": 1.00
+      },
+      "crafting_bonuses": {
+        "weapon_quality_percent": 0.50,
+        "masterwork_chance_percent": 0.20
+      },
+      "unlocked_ability_ids": []
+    },
+    "crafter_forge_armor": {
+      "id": "crafter_forge_armor",
+      "name": "Armorsmith",
+      "tier": 2,
+      "role_required": "crafter",
+      "level_required": 30,
+      "parent_spec": "crafter_forgemaster",
+      "children_specs": ["crafter_forge_divine"],
+      "description": "Craft impenetrable armor and shields",
+      "icon_path": "res://assets/icons/specs/crafter_forge_armor.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "armor_forging": 1.00
+      },
+      "crafting_bonuses": {
+        "armor_quality_percent": 0.50,
+        "masterwork_chance_percent": 0.20
+      },
+      "unlocked_ability_ids": []
+    },
+    "crafter_forge_divine": {
+      "id": "crafter_forge_divine",
+      "name": "Divine Forger",
+      "tier": 3,
+      "role_required": "crafter",
+      "level_required": 40,
+      "parent_spec": "crafter_forge_weapon",
+      "children_specs": [],
+      "description": "Create divine artifacts of godly power",
+      "icon_path": "res://assets/icons/specs/crafter_forge_divine.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "forging": 2.00
+      },
+      "crafting_bonuses": {
+        "equipment_quality_percent": 1.00,
+        "legendary_chance_percent": 0.30,
+        "craft_divine_gear": true
+      },
+      "unlocked_ability_ids": []
+    },
+
+    "crafter_alchemist": {
+      "id": "crafter_alchemist",
+      "name": "Alchemist",
+      "tier": 1,
+      "role_required": "crafter",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["crafter_alchemist_potion", "crafter_alchemist_elixir"],
+      "description": "Brew potions of incredible potency",
+      "icon_path": "res://assets/icons/specs/crafter_alchemist.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "alchemy": 0.50
+      },
+      "crafting_bonuses": {
+        "potion_power_percent": 0.30,
+        "potion_yield_percent": 0.15
+      },
+      "unlocked_ability_ids": []
+    },
+    "crafter_alchemist_potion": {
+      "id": "crafter_alchemist_potion",
+      "name": "Potion Master",
+      "tier": 2,
+      "role_required": "crafter",
+      "level_required": 30,
+      "parent_spec": "crafter_alchemist",
+      "children_specs": ["crafter_alchemist_transmute"],
+      "description": "Create potions of legendary effectiveness",
+      "icon_path": "res://assets/icons/specs/crafter_alchemist_potion.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "potion_crafting": 1.00
+      },
+      "crafting_bonuses": {
+        "potion_power_percent": 0.50,
+        "potion_yield_percent": 0.25
+      },
+      "unlocked_ability_ids": []
+    },
+    "crafter_alchemist_elixir": {
+      "id": "crafter_alchemist_elixir",
+      "name": "Elixir Brewer",
+      "tier": 2,
+      "role_required": "crafter",
+      "level_required": 30,
+      "parent_spec": "crafter_alchemist",
+      "children_specs": ["crafter_alchemist_transmute"],
+      "description": "Brew elixirs with permanent effects",
+      "icon_path": "res://assets/icons/specs/crafter_alchemist_elixir.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "elixir_crafting": 1.20
+      },
+      "crafting_bonuses": {
+        "elixir_power_percent": 0.60,
+        "permanent_effects": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "crafter_alchemist_transmute": {
+      "id": "crafter_alchemist_transmute",
+      "name": "Transmutation Sage",
+      "tier": 3,
+      "role_required": "crafter",
+      "level_required": 40,
+      "parent_spec": "crafter_alchemist_potion",
+      "children_specs": [],
+      "description": "Master the art of transmutation itself",
+      "icon_path": "res://assets/icons/specs/crafter_alchemist_transmute.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "alchemy": 2.00,
+        "material_conversion": 1.00
+      },
+      "crafting_bonuses": {
+        "potion_power_percent": 1.00,
+        "transmute_materials": true
+      },
+      "unlocked_ability_ids": []
+    },
+
+    "crafter_enchanter": {
+      "id": "crafter_enchanter",
+      "name": "Enchanter",
+      "tier": 1,
+      "role_required": "crafter",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["crafter_enchanter_rune", "crafter_enchanter_gem"],
+      "description": "Imbue items with magical properties",
+      "icon_path": "res://assets/icons/specs/crafter_enchanter.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "enchanting": 0.50
+      },
+      "crafting_bonuses": {
+        "enchantment_power_percent": 0.30,
+        "dual_stat_chance_percent": 0.10
+      },
+      "unlocked_ability_ids": []
+    },
+    "crafter_enchanter_rune": {
+      "id": "crafter_enchanter_rune",
+      "name": "Rune Carver",
+      "tier": 2,
+      "role_required": "crafter",
+      "level_required": 30,
+      "parent_spec": "crafter_enchanter",
+      "children_specs": ["crafter_enchanter_arcane"],
+      "description": "Carve runes of incredible power",
+      "icon_path": "res://assets/icons/specs/crafter_enchanter_rune.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "rune_crafting": 1.00
+      },
+      "crafting_bonuses": {
+        "rune_power_percent": 0.50,
+        "inscribe_gear": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "crafter_enchanter_gem": {
+      "id": "crafter_enchanter_gem",
+      "name": "Gem Enchanter",
+      "tier": 2,
+      "role_required": "crafter",
+      "level_required": 30,
+      "parent_spec": "crafter_enchanter",
+      "children_specs": ["crafter_enchanter_arcane"],
+      "description": "Enchant gems with amplified power",
+      "icon_path": "res://assets/icons/specs/crafter_enchanter_gem.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "gem_enchanting": 1.20
+      },
+      "crafting_bonuses": {
+        "gem_power_percent": 0.60,
+        "combine_gems": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "crafter_enchanter_arcane": {
+      "id": "crafter_enchanter_arcane",
+      "name": "Arcane Artificer",
+      "tier": 3,
+      "role_required": "crafter",
+      "level_required": 40,
+      "parent_spec": "crafter_enchanter_rune",
+      "children_specs": [],
+      "description": "Master all forms of magical enhancement",
+      "icon_path": "res://assets/icons/specs/crafter_enchanter_arcane.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "enchanting": 2.00
+      },
+      "crafting_bonuses": {
+        "enchant_power_percent": 1.00,
+        "triple_stat_enchants": true
+      },
+      "unlocked_ability_ids": []
+    },
+
+    "crafter_artificer": {
+      "id": "crafter_artificer",
+      "name": "Artificer",
+      "tier": 1,
+      "role_required": "crafter",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["crafter_artificer_smith", "crafter_artificer_restorer"],
+      "description": "Create legendary artifacts of power",
+      "icon_path": "res://assets/icons/specs/crafter_artificer.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "artifact_creation": 0.50
+      },
+      "crafting_bonuses": {
+        "artifact_quality_percent": 0.30,
+        "unique_chance_percent": 0.10
+      },
+      "unlocked_ability_ids": []
+    },
+    "crafter_artificer_smith": {
+      "id": "crafter_artificer_smith",
+      "name": "Artifact Smith",
+      "tier": 2,
+      "role_required": "crafter",
+      "level_required": 30,
+      "parent_spec": "crafter_artificer",
+      "children_specs": ["crafter_artificer_creator"],
+      "description": "Forge artifacts of unparalleled quality",
+      "icon_path": "res://assets/icons/specs/crafter_artificer_smith.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "artifact_creation": 1.00
+      },
+      "crafting_bonuses": {
+        "artifact_quality_percent": 0.50,
+        "craft_unique_artifacts": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "crafter_artificer_restorer": {
+      "id": "crafter_artificer_restorer",
+      "name": "Relic Restorer",
+      "tier": 2,
+      "role_required": "crafter",
+      "level_required": 30,
+      "parent_spec": "crafter_artificer",
+      "children_specs": ["crafter_artificer_creator"],
+      "description": "Restore ancient relics to their former glory",
+      "icon_path": "res://assets/icons/specs/crafter_artificer_restorer.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "restoration": 1.20
+      },
+      "crafting_bonuses": {
+        "artifact_quality_percent": 0.40,
+        "restore_ancient_artifacts": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "crafter_artificer_creator": {
+      "id": "crafter_artificer_creator",
+      "name": "Creator's Touch",
+      "tier": 3,
+      "role_required": "crafter",
+      "level_required": 40,
+      "parent_spec": "crafter_artificer_smith",
+      "children_specs": [],
+      "description": "Create artifacts rivaling those of the gods",
+      "icon_path": "res://assets/icons/specs/crafter_artificer_creator.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "artifact_creation": 2.50
+      },
+      "crafting_bonuses": {
+        "artifact_quality_percent": 1.00,
+        "create_legendary_artifacts": true
+      },
+      "unlocked_ability_ids": []
+    },
+
+    "_comment_scholar": "Scholar Specializations - 16 total (4 paths x 4 nodes each)",
+
+    "scholar_researcher": {
+      "id": "scholar_researcher",
+      "name": "Researcher",
+      "tier": 1,
+      "role_required": "scholar",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["scholar_researcher_tech", "scholar_researcher_magic"],
+      "description": "Unlock the secrets of lost knowledge",
+      "icon_path": "res://assets/icons/specs/scholar_researcher.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "research": 0.60
+      },
+      "research_bonuses": {
+        "research_speed_percent": 0.40,
+        "tech_unlock_chance_percent": 0.20
+      },
+      "unlocked_ability_ids": []
+    },
+    "scholar_researcher_tech": {
+      "id": "scholar_researcher_tech",
+      "name": "Tech Specialist",
+      "tier": 2,
+      "role_required": "scholar",
+      "level_required": 30,
+      "parent_spec": "scholar_researcher",
+      "children_specs": ["scholar_researcher_sage"],
+      "description": "Master advanced technological research",
+      "icon_path": "res://assets/icons/specs/scholar_researcher_tech.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "tech_research": 1.20
+      },
+      "research_bonuses": {
+        "tech_research_speed_percent": 0.60,
+        "unlock_advanced_tech": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "scholar_researcher_magic": {
+      "id": "scholar_researcher_magic",
+      "name": "Magic Theorist",
+      "tier": 2,
+      "role_required": "scholar",
+      "level_required": 30,
+      "parent_spec": "scholar_researcher",
+      "children_specs": ["scholar_researcher_sage"],
+      "description": "Unravel the mysteries of arcane magic",
+      "icon_path": "res://assets/icons/specs/scholar_researcher_magic.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "magic_research": 1.20
+      },
+      "research_bonuses": {
+        "magic_research_speed_percent": 0.60,
+        "unlock_spells": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "scholar_researcher_sage": {
+      "id": "scholar_researcher_sage",
+      "name": "Omniscient Sage",
+      "tier": 3,
+      "role_required": "scholar",
+      "level_required": 40,
+      "parent_spec": "scholar_researcher_tech",
+      "children_specs": [],
+      "description": "Know all things, from tech to magic",
+      "icon_path": "res://assets/icons/specs/scholar_researcher_sage.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "research": 2.00
+      },
+      "research_bonuses": {
+        "all_research_speed_percent": 1.00,
+        "instant_minor_research": true
+      },
+      "unlocked_ability_ids": []
+    },
+
+    "scholar_explorer": {
+      "id": "scholar_explorer",
+      "name": "Explorer",
+      "tier": 1,
+      "role_required": "scholar",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["scholar_explorer_cartographer", "scholar_explorer_archaeologist"],
+      "description": "Discover hidden territories and treasures",
+      "icon_path": "res://assets/icons/specs/scholar_explorer.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "scouting": 0.60
+      },
+      "exploration_bonuses": {
+        "scouting_range_percent": 0.30,
+        "discovery_chance_percent": 0.20
+      },
+      "unlocked_ability_ids": []
+    },
+    "scholar_explorer_cartographer": {
+      "id": "scholar_explorer_cartographer",
+      "name": "Cartographer",
+      "tier": 2,
+      "role_required": "scholar",
+      "level_required": 30,
+      "parent_spec": "scholar_explorer",
+      "children_specs": ["scholar_explorer_wanderer"],
+      "description": "Map the world with perfect precision",
+      "icon_path": "res://assets/icons/specs/scholar_explorer_cartographer.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "scouting": 1.00,
+        "map_making": 1.00
+      },
+      "exploration_bonuses": {
+        "scouting_range_percent": 0.50,
+        "reveal_hidden_paths": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "scholar_explorer_archaeologist": {
+      "id": "scholar_explorer_archaeologist",
+      "name": "Archaeologist",
+      "tier": 2,
+      "role_required": "scholar",
+      "level_required": 30,
+      "parent_spec": "scholar_explorer",
+      "children_specs": ["scholar_explorer_wanderer"],
+      "description": "Unearth ancient artifacts and ruins",
+      "icon_path": "res://assets/icons/specs/scholar_explorer_archaeologist.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "scouting": 0.80,
+        "artifact_finding": 1.00
+      },
+      "exploration_bonuses": {
+        "scouting_range_percent": 0.40,
+        "artifact_discovery_percent": 0.60
+      },
+      "unlocked_ability_ids": []
+    },
+    "scholar_explorer_wanderer": {
+      "id": "scholar_explorer_wanderer",
+      "name": "World Wanderer",
+      "tier": 3,
+      "role_required": "scholar",
+      "level_required": 40,
+      "parent_spec": "scholar_explorer_cartographer",
+      "children_specs": [],
+      "description": "Travel anywhere instantly through mastery of space",
+      "icon_path": "res://assets/icons/specs/scholar_explorer_wanderer.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "scouting": 2.00,
+        "teleportation": 1.00
+      },
+      "exploration_bonuses": {
+        "scouting_range_percent": 1.00,
+        "fast_travel_unlocked": true
+      },
+      "unlocked_ability_ids": []
+    },
+
+    "scholar_mentor": {
+      "id": "scholar_mentor",
+      "name": "Mentor",
+      "tier": 1,
+      "role_required": "scholar",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["scholar_mentor_combat", "scholar_mentor_skill"],
+      "description": "Train others to reach their full potential",
+      "icon_path": "res://assets/icons/specs/scholar_mentor.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "training": 0.60
+      },
+      "training_bonuses": {
+        "ally_xp_percent": 0.30
+      },
+      "unlocked_ability_ids": []
+    },
+    "scholar_mentor_combat": {
+      "id": "scholar_mentor_combat",
+      "name": "Combat Trainer",
+      "tier": 2,
+      "role_required": "scholar",
+      "level_required": 30,
+      "parent_spec": "scholar_mentor",
+      "children_specs": ["scholar_mentor_master"],
+      "description": "Train warriors to fight with deadly skill",
+      "icon_path": "res://assets/icons/specs/scholar_mentor_combat.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "combat_training": 1.20
+      },
+      "training_bonuses": {
+        "ally_xp_percent": 0.50,
+        "combat_stat_gains_percent": 0.20
+      },
+      "unlocked_ability_ids": []
+    },
+    "scholar_mentor_skill": {
+      "id": "scholar_mentor_skill",
+      "name": "Skill Instructor",
+      "tier": 2,
+      "role_required": "scholar",
+      "level_required": 30,
+      "parent_spec": "scholar_mentor",
+      "children_specs": ["scholar_mentor_master"],
+      "description": "Teach mastery of all skills and crafts",
+      "icon_path": "res://assets/icons/specs/scholar_mentor_skill.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "skill_training": 1.40
+      },
+      "training_bonuses": {
+        "ally_xp_percent": 0.60,
+        "skill_gains_percent": 0.20
+      },
+      "unlocked_ability_ids": []
+    },
+    "scholar_mentor_master": {
+      "id": "scholar_mentor_master",
+      "name": "Grand Master",
+      "tier": 3,
+      "role_required": "scholar",
+      "level_required": 40,
+      "parent_spec": "scholar_mentor_combat",
+      "children_specs": [],
+      "description": "The ultimate teacher, imparting knowledge effortlessly",
+      "icon_path": "res://assets/icons/specs/scholar_mentor_master.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "training": 2.00
+      },
+      "training_bonuses": {
+        "ally_xp_percent": 1.00,
+        "passive_skill_learning": true
+      },
+      "unlocked_ability_ids": []
+    },
+
+    "scholar_strategist": {
+      "id": "scholar_strategist",
+      "name": "Strategist",
+      "tier": 1,
+      "role_required": "scholar",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["scholar_strategist_war", "scholar_strategist_economic"],
+      "description": "Plan perfect strategies for war and economy",
+      "icon_path": "res://assets/icons/specs/scholar_strategist.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "defense_planning": 0.60
+      },
+      "strategy_bonuses": {
+        "territory_defense_percent": 0.20,
+        "predict_attacks": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "scholar_strategist_war": {
+      "id": "scholar_strategist_war",
+      "name": "War Planner",
+      "tier": 2,
+      "role_required": "scholar",
+      "level_required": 30,
+      "parent_spec": "scholar_strategist",
+      "children_specs": ["scholar_strategist_genius"],
+      "description": "Mastermind of military conquest",
+      "icon_path": "res://assets/icons/specs/scholar_strategist_war.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "war_planning": 1.20
+      },
+      "strategy_bonuses": {
+        "territory_defense_percent": 0.40,
+        "optimize_army_placement": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "scholar_strategist_economic": {
+      "id": "scholar_strategist_economic",
+      "name": "Economic Planner",
+      "tier": 2,
+      "role_required": "scholar",
+      "level_required": 30,
+      "parent_spec": "scholar_strategist",
+      "children_specs": ["scholar_strategist_genius"],
+      "description": "Maximize resource production and efficiency",
+      "icon_path": "res://assets/icons/specs/scholar_strategist_economic.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "economic_planning": 1.00
+      },
+      "strategy_bonuses": {
+        "territory_production_percent": 0.30
+      },
+      "unlocked_ability_ids": []
+    },
+    "scholar_strategist_genius": {
+      "id": "scholar_strategist_genius",
+      "name": "Tactical Genius",
+      "tier": 3,
+      "role_required": "scholar",
+      "level_required": 40,
+      "parent_spec": "scholar_strategist_war",
+      "children_specs": [],
+      "description": "Perfect strategy in all aspects of rule",
+      "icon_path": "res://assets/icons/specs/scholar_strategist_genius.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "planning": 2.00
+      },
+      "strategy_bonuses": {
+        "territory_defense_percent": 0.60,
+        "territory_production_percent": 0.50,
+        "perfect_strategy": true
+      },
+      "unlocked_ability_ids": []
+    },
+
+    "_comment_support": "Support Specializations - 16 total (4 paths x 4 nodes each)",
+
+    "support_healer": {
+      "id": "support_healer",
+      "name": "Healer",
+      "tier": 1,
+      "role_required": "support",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["support_healer_life", "support_healer_battle"],
+      "description": "Mend wounds and restore vitality",
+      "icon_path": "res://assets/icons/specs/support_healer.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "healing": 0.60
+      },
+      "healing_bonuses": {
+        "healing_power_percent": 0.40,
+        "aoe_heals": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "support_healer_life": {
+      "id": "support_healer_life",
+      "name": "Life Cleric",
+      "tier": 2,
+      "role_required": "support",
+      "level_required": 30,
+      "parent_spec": "support_healer",
+      "children_specs": ["support_healer_divine"],
+      "description": "Channel pure life energy to restore and cleanse",
+      "icon_path": "res://assets/icons/specs/support_healer_life.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "healing": 1.20,
+        "cleanse": 1.00
+      },
+      "healing_bonuses": {
+        "healing_power_percent": 0.70,
+        "remove_debuffs": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "support_healer_battle": {
+      "id": "support_healer_battle",
+      "name": "Battle Medic",
+      "tier": 2,
+      "role_required": "support",
+      "level_required": 30,
+      "parent_spec": "support_healer",
+      "children_specs": ["support_healer_divine"],
+      "description": "Heal allies while fighting on the front lines",
+      "icon_path": "res://assets/icons/specs/support_healer_battle.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "healing": 1.00,
+        "combat_healing": 1.00
+      },
+      "healing_bonuses": {
+        "healing_power_percent": 0.60,
+        "heal_on_attack": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "support_healer_divine": {
+      "id": "support_healer_divine",
+      "name": "Divine Vessel",
+      "tier": 3,
+      "role_required": "support",
+      "level_required": 40,
+      "parent_spec": "support_healer_life",
+      "children_specs": [],
+      "description": "Channel divine power to resurrect the fallen",
+      "icon_path": "res://assets/icons/specs/support_healer_divine.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "healing": 2.00,
+        "resurrection": 1.00
+      },
+      "healing_bonuses": {
+        "healing_power_percent": 1.20,
+        "resurrect": true
+      },
+      "unlocked_ability_ids": ["revive"]
+    },
+
+    "support_buffer": {
+      "id": "support_buffer",
+      "name": "Buffer",
+      "tier": 1,
+      "role_required": "support",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["support_buffer_blessing", "support_buffer_chanter"],
+      "description": "Empower allies with powerful blessings",
+      "icon_path": "res://assets/icons/specs/support_buffer.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "buffing": 0.60
+      },
+      "buff_bonuses": {
+        "buff_duration_percent": 0.30,
+        "buff_power_percent": 0.20
+      },
+      "unlocked_ability_ids": []
+    },
+    "support_buffer_blessing": {
+      "id": "support_buffer_blessing",
+      "name": "Blessing Priest",
+      "tier": 2,
+      "role_required": "support",
+      "level_required": 30,
+      "parent_spec": "support_buffer",
+      "children_specs": ["support_buffer_herald"],
+      "description": "Grant divine blessings to entire armies",
+      "icon_path": "res://assets/icons/specs/support_buffer_blessing.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "buffing": 1.20,
+        "mass_buffs": 1.00
+      },
+      "buff_bonuses": {
+        "buff_power_percent": 0.50,
+        "mass_blessings": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "support_buffer_chanter": {
+      "id": "support_buffer_chanter",
+      "name": "War Chanter",
+      "tier": 2,
+      "role_required": "support",
+      "level_required": 30,
+      "parent_spec": "support_buffer",
+      "children_specs": ["support_buffer_herald"],
+      "description": "Sing songs of power that persist through battle",
+      "icon_path": "res://assets/icons/specs/support_buffer_chanter.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "combat_buffing": 1.50
+      },
+      "buff_bonuses": {
+        "combat_buff_power_percent": 0.60,
+        "songs_persist": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "support_buffer_herald": {
+      "id": "support_buffer_herald",
+      "name": "Exalted Herald",
+      "tier": 3,
+      "role_required": "support",
+      "level_required": 40,
+      "parent_spec": "support_buffer_blessing",
+      "children_specs": [],
+      "description": "Grant permanent divine boons",
+      "icon_path": "res://assets/icons/specs/support_buffer_herald.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "buffing": 2.00,
+        "permanence": 1.00
+      },
+      "buff_bonuses": {
+        "buff_power_percent": 1.00,
+        "permanent_buffs": true
+      },
+      "unlocked_ability_ids": []
+    },
+
+    "support_protector": {
+      "id": "support_protector",
+      "name": "Protector",
+      "tier": 1,
+      "role_required": "support",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["support_protector_shield", "support_protector_ward"],
+      "description": "Shield allies from harm",
+      "icon_path": "res://assets/icons/specs/support_protector.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "protection": 0.60
+      },
+      "protection_bonuses": {
+        "ally_damage_reduction_percent": 0.25
+      },
+      "unlocked_ability_ids": []
+    },
+    "support_protector_shield": {
+      "id": "support_protector_shield",
+      "name": "Shield Bearer",
+      "tier": 2,
+      "role_required": "support",
+      "level_required": 30,
+      "parent_spec": "support_protector",
+      "children_specs": ["support_protector_aegis"],
+      "description": "Grant magical shields to all allies",
+      "icon_path": "res://assets/icons/specs/support_protector_shield.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "protection": 1.20,
+        "shielding": 1.00
+      },
+      "protection_bonuses": {
+        "ally_damage_reduction_percent": 0.40,
+        "shield_allies": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "support_protector_ward": {
+      "id": "support_protector_ward",
+      "name": "Ward Master",
+      "tier": 2,
+      "role_required": "support",
+      "level_required": 30,
+      "parent_spec": "support_protector",
+      "children_specs": ["support_protector_aegis"],
+      "description": "Create wards that repel magic",
+      "icon_path": "res://assets/icons/specs/support_protector_ward.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "protection": 1.00,
+        "magic_ward": 1.00
+      },
+      "protection_bonuses": {
+        "magic_resistance_percent": 0.50,
+        "dispel_magic": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "support_protector_aegis": {
+      "id": "support_protector_aegis",
+      "name": "Aegis Incarnate",
+      "tier": 3,
+      "role_required": "support",
+      "level_required": 40,
+      "parent_spec": "support_protector_shield",
+      "children_specs": [],
+      "description": "Create zones of absolute invulnerability",
+      "icon_path": "res://assets/icons/specs/support_protector_aegis.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "protection": 2.00,
+        "sanctuary": 1.00
+      },
+      "protection_bonuses": {
+        "ally_damage_reduction_percent": 0.80,
+        "immunity_zones": true
+      },
+      "unlocked_ability_ids": ["sanctuary"]
+    },
+
+    "support_leader": {
+      "id": "support_leader",
+      "name": "Leader",
+      "tier": 1,
+      "role_required": "support",
+      "level_required": 20,
+      "parent_spec": null,
+      "children_specs": ["support_leader_overseer", "support_leader_diplomat"],
+      "description": "Boost the efficiency of all nearby gods",
+      "icon_path": "res://assets/icons/specs/support_leader.png",
+      "costs": {
+        "gold": 10000,
+        "divine_essence": 50
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "leadership": 0.60
+      },
+      "leadership_bonuses": {
+        "ally_efficiency_percent": 0.15
+      },
+      "unlocked_ability_ids": []
+    },
+    "support_leader_overseer": {
+      "id": "support_leader_overseer",
+      "name": "Overseer",
+      "tier": 2,
+      "role_required": "support",
+      "level_required": 30,
+      "parent_spec": "support_leader",
+      "children_specs": ["support_leader_sovereign"],
+      "description": "Maximize productivity through expert management",
+      "icon_path": "res://assets/icons/specs/support_leader_overseer.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "leadership": 1.20,
+        "time_reduction": 1.00
+      },
+      "leadership_bonuses": {
+        "ally_efficiency_percent": 0.25,
+        "reduce_task_time_percent": 0.15
+      },
+      "unlocked_ability_ids": []
+    },
+    "support_leader_diplomat": {
+      "id": "support_leader_diplomat",
+      "name": "Diplomat",
+      "tier": 2,
+      "role_required": "support",
+      "level_required": 30,
+      "parent_spec": "support_leader",
+      "children_specs": ["support_leader_sovereign"],
+      "description": "Negotiate favorable deals and alliances",
+      "icon_path": "res://assets/icons/specs/support_leader_diplomat.png",
+      "costs": {
+        "gold": 50000,
+        "divine_essence": 200,
+        "specialization_tomes": 10
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "leadership": 1.00,
+        "trade_bonus": 0.50
+      },
+      "leadership_bonuses": {
+        "ally_efficiency_percent": 0.20,
+        "better_trade_rates": true
+      },
+      "unlocked_ability_ids": []
+    },
+    "support_leader_sovereign": {
+      "id": "support_leader_sovereign",
+      "name": "Divine Sovereign",
+      "tier": 3,
+      "role_required": "support",
+      "level_required": 40,
+      "parent_spec": "support_leader_overseer",
+      "children_specs": [],
+      "description": "Rule with absolute authority and divine right",
+      "icon_path": "res://assets/icons/specs/support_leader_sovereign.png",
+      "costs": {
+        "gold": 200000,
+        "divine_essence": 1000,
+        "specialization_tomes": 50,
+        "legendary_scroll": 1
+      },
+      "stat_bonuses": {},
+      "task_bonuses": {
+        "leadership": 2.00,
+        "global_aura": 1.00
+      },
+      "leadership_bonuses": {
+        "ally_efficiency_percent": 0.50,
+        "global_buffs": true
+      },
+      "unlocked_ability_ids": []
     }
   }
 }
