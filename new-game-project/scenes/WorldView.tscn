@@ -45,65 +45,59 @@ offset_bottom = 722.0
 
 [node name="ButtonGrid" type="GridContainer" parent="."]
 layout_mode = 1
-anchors_preset = 7
+anchors_preset = 8
 anchor_left = 0.5
-anchor_top = 1.0
+anchor_top = 0.5
 anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -265.0
-offset_top = -230.0
-offset_right = 265.0
-offset_bottom = -20.0
+anchor_bottom = 0.5
+offset_left = -285.0
+offset_top = -30.0
+offset_right = 285.0
+offset_bottom = 252.0
 grow_horizontal = 2
-grow_vertical = 0
-theme_override_constants/h_separation = 10
-theme_override_constants/v_separation = 10
+grow_vertical = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 columns = 3
 
 [node name="SummonButton" type="Button" parent="ButtonGrid"]
-custom_minimum_size = Vector2(160, 100)
+custom_minimum_size = Vector2(180, 120)
 layout_mode = 2
-text = "🏛️
-SUMMON
+text = "SUMMON
 TEMPLE"
 flat = false
 
 [node name="CollectionButton" type="Button" parent="ButtonGrid"]
-custom_minimum_size = Vector2(160, 100)
+custom_minimum_size = Vector2(180, 120)
 layout_mode = 2
-text = "📚
-GOD
+text = "GOD
 COLLECTION"
 flat = false
 
 [node name="TerritoryButton" type="Button" parent="ButtonGrid"]
-custom_minimum_size = Vector2(160, 100)
+custom_minimum_size = Vector2(180, 120)
 layout_mode = 2
-text = "🏰
-TERRITORY
+text = "TERRITORY
 COMMAND"
 flat = false
 
 [node name="SacrificeButton" type="Button" parent="ButtonGrid"]
-custom_minimum_size = Vector2(160, 100)
+custom_minimum_size = Vector2(180, 120)
 layout_mode = 2
-text = "⚡
-SACRIFICE
+text = "SACRIFICE
 ALTAR"
 flat = false
 
 [node name="DungeonButton" type="Button" parent="ButtonGrid"]
-custom_minimum_size = Vector2(160, 100)
+custom_minimum_size = Vector2(180, 120)
 layout_mode = 2
-text = "🏛️
-DUNGEONS
+text = "DUNGEONS
 SANCTUM"
 flat = false
 
 [node name="EquipmentButton" type="Button" parent="ButtonGrid"]
-custom_minimum_size = Vector2(160, 100)
+custom_minimum_size = Vector2(180, 120)
 layout_mode = 2
-text = "⚔️
-EQUIPMENT
+text = "EQUIPMENT
 FORGE"
 flat = false
