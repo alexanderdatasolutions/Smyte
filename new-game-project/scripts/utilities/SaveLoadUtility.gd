@@ -20,7 +20,10 @@ static func serialize_god(god: God) -> Dictionary:
 		"equipment": god.equipment.duplicate(),  # Use correct property name
 		"current_hp": god.current_hp,
 		"max_hp": _calculate_god_max_hp(god),
-		"awakened": god.is_awakened  # Use correct property name
+		"awakened": god.is_awakened,  # Use correct property name
+		"primary_role": god.primary_role,
+		"secondary_role": god.secondary_role,
+		"specialization_path": god.specialization_path.duplicate()
 	}
 
 ## Deserialize Dictionary back to God object
@@ -57,11 +60,27 @@ static func deserialize_god(data: Dictionary) -> God:
 			god.equipment.append(null)
 	
 	god.current_hp = data.get("current_hp", _calculate_god_max_hp(god))
-	
+
 	# Handle awakening if the god supports it
 	if data.has("awakened"):
 		god.is_awakened = data.awakened
-	
+
+	# Handle role and specialization data
+	god.primary_role = data.get("primary_role", "")
+	god.secondary_role = data.get("secondary_role", "")
+
+	# Restore specialization path with proper array size and type
+	var spec_path = data.get("specialization_path", ["", "", ""])
+	if spec_path is Array:
+		# Create properly typed Array[String] with exactly 3 elements
+		var typed_spec_path: Array[String] = ["", "", ""]
+		for i in range(min(3, spec_path.size())):
+			if i < spec_path.size() and spec_path[i] is String:
+				typed_spec_path[i] = spec_path[i]
+		god.specialization_path = typed_spec_path
+	else:
+		god.specialization_path = ["", "", ""]
+
 	return god
 
 ## Serialize Equipment object to Dictionary
