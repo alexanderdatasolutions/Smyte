@@ -57,7 +57,9 @@
       "Bash(\"C:\\\\Users\\\\alexa\\\\Downloads\\\\Godot_v4.5.1-stable_win64.exe\\\\Godot_v4.5.1-stable_win64.exe\")",
       "Bash(\"C:\\\\Users\\\\alexa\\\\Documents\\\\Godot\\\\Godot_v4.5.1-stable_win64.exe\\\\Godot_v4.5.1-stable_win64.exe\" --path . --headless --quit)",
       "Bash(godot:*)",
-      "Bash(\"C:/Program Files/Godot/Godot_v4.5-stable_win64.exe\" --headless --script tests/test_runner.gd)"
+      "Bash(\"C:/Program Files/Godot/Godot_v4.5-stable_win64.exe\" --headless --script tests/test_runner.gd)",
+      "Bash(grep:*)",
+      "Bash(xargs:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

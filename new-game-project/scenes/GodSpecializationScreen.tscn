@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://c5m8n9p0q1r2s3"]
+[gd_scene load_steps=4 format=3 uid="uid://b01wjb1gwp6uy"]
 
 [ext_resource type="Script" path="res://scripts/ui/screens/GodSpecializationScreen.gd" id="1_spec_screen"]
 
