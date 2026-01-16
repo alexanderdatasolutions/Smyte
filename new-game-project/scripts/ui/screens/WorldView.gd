@@ -1,17 +1,20 @@
 # scripts/ui/WorldView.gd - Main world view with floating buildings like Summoners War
 extends Control
 
-@onready var summon_button = $HBoxContainer/SummonButton
-@onready var collection_button = $HBoxContainer/CollectionButton
-@onready var territory_button = $HBoxContainer/TerritoryButton
-@onready var sacrifice_button = $HBoxContainer/SacrificeButton
-@onready var dungeon_button = $HBoxContainer/DungeonButton
-@onready var equipment_button = $HBoxContainer/EquipmentButton
+@onready var summon_button = $ButtonGrid/SummonButton
+@onready var collection_button = $ButtonGrid/CollectionButton
+@onready var territory_button = $ButtonGrid/TerritoryButton
+@onready var sacrifice_button = $ButtonGrid/SacrificeButton
+@onready var dungeon_button = $ButtonGrid/DungeonButton
+@onready var equipment_button = $ButtonGrid/EquipmentButton
 
 # Feature unlock tracking (MYTHOS ARCHITECTURE)
 var feature_buttons: Dictionary = {}
 
 func _ready():
+	# Style all buttons first
+	_style_buttons()
+
 	# Connect building buttons
 	if summon_button:
 		summon_button.pressed.connect(_on_summon_building_pressed)
@@ -25,18 +28,73 @@ func _ready():
 		dungeon_button.pressed.connect(_on_dungeon_building_pressed)
 	if equipment_button:
 		equipment_button.pressed.connect(_on_equipment_building_pressed)
-	
+
 	# Setup feature tracking (MYTHOS ARCHITECTURE)
 	_setup_feature_buttons()
-	
+
 	# Connect to progression system for feature unlocks (RULE 5: Use SystemRegistry)
 	_connect_to_systems()
-	
+
 	# Update button visibility based on current level
 	call_deferred("_update_button_visibility")
-	
+
 	# Check if we need to start the first-time tutorial (MYTHOS ARCHITECTURE)
 	call_deferred("_check_tutorial_trigger")
+
+func _style_buttons():
+	"""Apply visual styling to all navigation buttons"""
+	var buttons = [
+		summon_button, collection_button, territory_button,
+		sacrifice_button, dungeon_button, equipment_button
+	]
+
+	for button in buttons:
+		if not button:
+			continue
+
+		# Create StyleBoxFlat for normal state
+		var style_normal = StyleBoxFlat.new()
+		style_normal.bg_color = Color(0.2, 0.2, 0.25)  # #333340
+		style_normal.border_color = Color(0.4, 0.4, 0.5)  # #666680
+		style_normal.border_width_left = 2
+		style_normal.border_width_right = 2
+		style_normal.border_width_top = 2
+		style_normal.border_width_bottom = 2
+		style_normal.corner_radius_top_left = 4
+		style_normal.corner_radius_top_right = 4
+		style_normal.corner_radius_bottom_left = 4
+		style_normal.corner_radius_bottom_right = 4
+
+		# Create StyleBoxFlat for hover state
+		var style_hover = StyleBoxFlat.new()
+		style_hover.bg_color = Color(0.25, 0.25, 0.3)  # Slightly lighter
+		style_hover.border_color = Color(0.5, 0.5, 0.6)  # Brighter border
+		style_hover.border_width_left = 2
+		style_hover.border_width_right = 2
+		style_hover.border_width_top = 2
+		style_hover.border_width_bottom = 2
+		style_hover.corner_radius_top_left = 4
+		style_hover.corner_radius_top_right = 4
+		style_hover.corner_radius_bottom_left = 4
+		style_hover.corner_radius_bottom_right = 4
+
+		# Create StyleBoxFlat for pressed state
+		var style_pressed = StyleBoxFlat.new()
+		style_pressed.bg_color = Color(0.15, 0.15, 0.2)  # Darker
+		style_pressed.border_color = Color(0.4, 0.4, 0.5)
+		style_pressed.border_width_left = 2
+		style_pressed.border_width_right = 2
+		style_pressed.border_width_top = 2
+		style_pressed.border_width_bottom = 2
+		style_pressed.corner_radius_top_left = 4
+		style_pressed.corner_radius_top_right = 4
+		style_pressed.corner_radius_bottom_left = 4
+		style_pressed.corner_radius_bottom_right = 4
+
+		# Apply styles
+		button.add_theme_stylebox_override("normal", style_normal)
+		button.add_theme_stylebox_override("hover", style_hover)
+		button.add_theme_stylebox_override("pressed", style_pressed)
 
 func _setup_feature_buttons():
 	"""Map feature names to their buttons (MYTHOS ARCHITECTURE)"""
@@ -44,7 +102,7 @@ func _setup_feature_buttons():
 		"territories": territory_button,      # Always available (level 1)
 		"collection": collection_button,      # Always available (level 1)
 		"summon": summon_button,             # Level 2
-		"sacrifice": sacrifice_button,        # Level 3  
+		"sacrifice": sacrifice_button,        # Level 3
 		"territory_management": territory_button,  # Level 4 (enhanced)
 		"equipment": equipment_button,        # Level 8
 		"dungeons": dungeon_button           # Level 10

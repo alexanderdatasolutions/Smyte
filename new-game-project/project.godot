@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Gods RPG MVP"
 run/main_scene="res://scenes/Main.tscn"
-config/features=PackedStringArray("4.4", "Mobile")
+config/features=PackedStringArray("4.5", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -20,6 +20,10 @@ config/icon="res://icon.svg"
 GameCoordinator="*res://scripts/systems/core/GameCoordinator.gd"
 EventBus="*res://scripts/systems/core/EventBus.gd"
 TestHarness="*res://scripts/debug/TestHarness.gd"
+
+[debug]
+
+gdscript/warnings/unused_signal=0
 
 [display]
 
@@ -33,10 +37,6 @@ window/stretch/aspect="expand"
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true
-
-[debug]
-
-gdscript/warnings/unused_signal=0
 
 [rendering]
 

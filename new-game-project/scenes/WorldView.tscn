@@ -66,7 +66,7 @@ layout_mode = 2
 text = "🏛️
 SUMMON
 TEMPLE"
-flat = true
+flat = false
 
 [node name="CollectionButton" type="Button" parent="ButtonGrid"]
 custom_minimum_size = Vector2(160, 100)
@@ -74,7 +74,7 @@ layout_mode = 2
 text = "📚
 GOD
 COLLECTION"
-flat = true
+flat = false
 
 [node name="TerritoryButton" type="Button" parent="ButtonGrid"]
 custom_minimum_size = Vector2(160, 100)
@@ -82,7 +82,7 @@ layout_mode = 2
 text = "🏰
 TERRITORY
 COMMAND"
-flat = true
+flat = false
 
 [node name="SacrificeButton" type="Button" parent="ButtonGrid"]
 custom_minimum_size = Vector2(160, 100)
@@ -90,7 +90,7 @@ layout_mode = 2
 text = "⚡
 SACRIFICE
 ALTAR"
-flat = true
+flat = false
 
 [node name="DungeonButton" type="Button" parent="ButtonGrid"]
 custom_minimum_size = Vector2(160, 100)
@@ -98,7 +98,7 @@ layout_mode = 2
 text = "🏛️
 DUNGEONS
 SANCTUM"
-flat = true
+flat = false
 
 [node name="EquipmentButton" type="Button" parent="ButtonGrid"]
 custom_minimum_size = Vector2(160, 100)
@@ -106,4 +106,4 @@ layout_mode = 2
 text = "⚔️
 EQUIPMENT
 FORGE"
-flat = true
+flat = false
