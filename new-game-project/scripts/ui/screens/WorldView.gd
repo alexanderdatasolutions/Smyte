@@ -54,7 +54,7 @@ func _style_buttons():
 
 		# Create StyleBoxFlat for normal state
 		var style_normal = StyleBoxFlat.new()
-		style_normal.bg_color = Color(0.2, 0.2, 0.25)  # #333340
+		style_normal.bg_color = Color(0.29, 0.29, 0.35)  # #4a4a5a - increased contrast
 		style_normal.border_color = Color(0.4, 0.4, 0.5)  # #666680
 		style_normal.border_width_left = 2
 		style_normal.border_width_right = 2
@@ -67,7 +67,7 @@ func _style_buttons():
 
 		# Create StyleBoxFlat for hover state
 		var style_hover = StyleBoxFlat.new()
-		style_hover.bg_color = Color(0.25, 0.25, 0.3)  # Slightly lighter
+		style_hover.bg_color = Color(0.33, 0.33, 0.4)  # Brighter on hover
 		style_hover.border_color = Color(0.5, 0.5, 0.6)  # Brighter border
 		style_hover.border_width_left = 2
 		style_hover.border_width_right = 2
