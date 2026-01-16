@@ -32,17 +32,17 @@ class_name BattleResult extends Resource
 @export var achievements_unlocked: Array = []  # Array[String]
 
 ## Create a victory result
-static func create_victory(victory_condition: String = "All enemies defeated") -> BattleResult:
+static func create_victory(condition: String = "All enemies defeated") -> BattleResult:
 	var result = BattleResult.new()
 	result.victory = true
-	result.victory_condition = victory_condition
+	result.victory_condition = condition
 	return result
 
 ## Create a defeat result
-static func create_defeat(defeat_reason: String = "All units defeated") -> BattleResult:
+static func create_defeat(reason: String = "All units defeated") -> BattleResult:
 	var result = BattleResult.new()
 	result.victory = false
-	result.defeat_reason = defeat_reason
+	result.defeat_reason = reason
 	return result
 
 ## Add statistics for a specific unit
