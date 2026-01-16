@@ -18,10 +18,9 @@ func _ready():
 	# Hide by default
 	visible = false
 
-	# Get system references through SystemRegistry
-	# TODO: These systems don't exist yet in the new architecture
-	progression_manager = null  # SystemRegistry.get_instance().get_system("ProgressionManager") if SystemRegistry.get_instance() else null
-	tutorial_manager = null     # SystemRegistry.get_instance().get_system("TutorialManager") if SystemRegistry.get_instance() else null
+	# Get system references through SystemRegistry (not implemented yet)
+	progression_manager = null
+	tutorial_manager = null
 
 	# Get UI references
 	player_level_info_label = $DebugPanel/VBoxContainer/ProgressionSection/PlayerLevelInfo
@@ -112,25 +111,10 @@ func _on_max_level_pressed():
 # TUTORIAL DEBUG FUNCTIONS
 # ==============================================================================
 
-func _on_reset_tutorials_pressed():
-	"""Reset all tutorials for testing"""
-	# TODO: Update this to use new architecture
-	pass
-
 func _on_start_ftue_pressed():
 	"""Start First Time User Experience for testing"""
 	if tutorial_manager:
 		tutorial_manager.start_tutorial("first_time_experience")
-
-func _on_test_3_gods_pressed():
-	"""Test granting 3 base gods directly"""
-	# TODO: Update this to use new architecture
-	pass
-
-func _on_show_god_count_pressed():
-	"""Show how many gods the player currently has"""
-	# This function is for debug purposes - no output needed
-	pass
 
 # ==============================================================================
 # RESOURCE DEBUG FUNCTIONS
