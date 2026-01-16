@@ -8,7 +8,7 @@ class_name PlayerProgressionManager
 # Single responsibility: Handle player XP and level progression
 # Uses SystemRegistry pattern for clean architecture
 
-signal player_leveled_up(new_level: int)
+signal player_leveled_up(old_level: int, new_level: int)
 signal experience_gained(amount: int)
 
 # Player Level Configuration
@@ -76,7 +76,7 @@ func _level_up(new_level: int):
 	current_player_level = new_level
 	
 	print("PlayerProgressionManager: Level up! %d -> %d" % [old_level, new_level])
-	player_leveled_up.emit(new_level)
+	player_leveled_up.emit(old_level, new_level)
 	
 	# Check for feature unlocks
 	_check_feature_unlocks(new_level)
