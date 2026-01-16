@@ -220,8 +220,7 @@ func _create_territory_from_config(territory_id: String, config: Dictionary) -> 
 
 ## Check if territory can be attacked
 func _can_attack_territory(territory_id: String) -> bool:
-	# For now, assume all territories can be attacked
-	# TODO: Implement level requirements and prerequisites
+	# Level requirements and prerequisites not implemented - all territories attackable
 	return not is_territory_controlled(territory_id)
 
 ## Check if territory is completed (all stages cleared)
