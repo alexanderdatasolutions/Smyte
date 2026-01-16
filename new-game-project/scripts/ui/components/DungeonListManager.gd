@@ -12,7 +12,6 @@ var current_dungeons: Array = []
 func initialize(list_container: Control):
 	"""Initialize with the dungeon list container"""
 	dungeon_list_container = list_container
-	print("DungeonListManager: Initialized")
 
 func refresh_dungeon_list():
 	"""Refresh the dungeon list display - RULE 5: Use SystemRegistry"""
@@ -130,7 +129,6 @@ func create_dungeon_button(dungeon_info: Dictionary) -> Control:
 
 func _on_dungeon_button_pressed(dungeon_id: String):
 	"""Handle dungeon button press"""
-	print("DungeonListManager: Dungeon selected - %s" % dungeon_id)
 	dungeon_selected.emit(dungeon_id)
 
 func get_element_color(element: String) -> Color:

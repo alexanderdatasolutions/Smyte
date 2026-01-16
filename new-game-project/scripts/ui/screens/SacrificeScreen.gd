@@ -4,7 +4,7 @@ extends Control
 
 signal back_pressed
 
-const GodCardFactory = preload("res://scripts/utilities/GodCardFactory.gd")
+const CardFactory = preload("res://scripts/utilities/GodCardFactory.gd")
 const GodCardScript = preload("res://scripts/ui/components/GodCard.gd")
 
 @onready var back_button = $BackButton
@@ -214,7 +214,7 @@ func refresh_god_list():
 	# Get gods and create cards using factory
 	var gods = collection_manager.get_all_gods()
 	for god in gods:
-		var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.SACRIFICE_SELECTION)
+		var god_card = CardFactory.create_god_card(CardFactory.CardPreset.SACRIFICE_SELECTION)
 		god_list.add_child(god_card)
 		god_card.setup_god_card(god)
 		god_card.god_selected.connect(_on_god_clicked)
@@ -524,7 +524,7 @@ func refresh_awakening_god_list():
 	
 	# Get gods that can be awakened using factory filter
 	var gods = collection_manager.get_all_gods()
-	var awakenable_gods = gods.filter(GodCardFactory.get_awakening_filter())
+	var awakenable_gods = gods.filter(CardFactory.get_awakening_filter())
 	
 	# Sort by tier then level
 	awakenable_gods.sort_custom(func(a, b): 
@@ -535,7 +535,7 @@ func refresh_awakening_god_list():
 	
 	# Create god cards using factory
 	for god in awakenable_gods:
-		var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.AWAKENING_SELECTION)
+		var god_card = CardFactory.create_god_card(CardFactory.CardPreset.AWAKENING_SELECTION)
 		var card_style = GodCardScript.CardStyle.AWAKENING_READY if awakening_system.can_awaken_god(god) else GodCardScript.CardStyle.NORMAL
 		awakening_god_grid.add_child(god_card)
 		god_card.setup_god_card(god, card_style)

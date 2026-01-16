@@ -15,7 +15,6 @@ var role_sections: Dictionary = {}
 func initialize(role_panel: Control):
 	"""Initialize with the role management panel"""
 	role_container = role_panel
-	print("TerritoryRoleManager: Initialized")
 
 func refresh_roles_display(territory: Territory):
 	"""Refresh all role slots display - FOLLOWING RULE 4: UI ONLY"""
@@ -217,18 +216,14 @@ func create_empty_slot_display(container: Control, role_name: String, slot_index
 
 func _on_assign_god_pressed(role_name: String, slot_index: int):
 	"""Handle assign god button press"""
-	print("TerritoryRoleManager: Assign god to %s slot %d" % [role_name, slot_index])
 	role_assignment_changed.emit(role_name, "", slot_index)
 
 func _on_reassign_god_pressed(role_name: String, slot_index: int):
 	"""Handle reassign god button press"""
-	print("TerritoryRoleManager: Reassign god in %s slot %d" % [role_name, slot_index])
 	role_assignment_changed.emit(role_name, "", slot_index)
 
 func _on_remove_god_pressed(role_name: String, slot_index: int):
 	"""Handle remove god button press"""
-	print("TerritoryRoleManager: Remove god from %s slot %d" % [role_name, slot_index])
-	
 	# Remove god assignment through SystemRegistry - RULE 5 compliance
 	var system_registry = SystemRegistry.get_instance()
 	if system_registry:

@@ -13,12 +13,9 @@ var parent_screen: Control
 func initialize(screen_parent: Control):
 	"""Initialize with parent screen"""
 	parent_screen = screen_parent
-	print("DungeonEntryManager: Initialized")
 
 func attempt_dungeon_entry(dungeon_id: String, difficulty: String):
 	"""Attempt to enter dungeon with validation - RULE 5: Use SystemRegistry"""
-	print("DungeonEntryManager: Attempting entry to %s (%s)" % [dungeon_id, difficulty])
-	
 	# Validate entry requirements
 	var validation_result = validate_dungeon_entry(dungeon_id, difficulty)
 	

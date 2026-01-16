@@ -11,7 +11,6 @@ var current_territory: Territory
 func initialize(info_panel: Control):
 	"""Initialize with the territory info panel"""
 	territory_info_panel = info_panel
-	print("TerritoryInfoDisplayManager: Initialized")
 
 func refresh_display(territory: Territory):
 	"""Refresh territory information display - FOLLOWING RULE 4: UI ONLY"""

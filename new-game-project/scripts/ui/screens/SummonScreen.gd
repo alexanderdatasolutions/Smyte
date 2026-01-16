@@ -63,11 +63,7 @@ func _ready():
 		summon_manager.summon_completed.connect(_on_god_summoned)
 		summon_manager.summon_failed.connect(_on_summon_failed)
 		summon_manager.multi_summon_completed.connect(_on_multi_summon_completed)
-		
-		pass
-	else:
-		pass
-	
+
 	# Create summon cards in grid layout
 	create_summon_cards()
 
@@ -847,9 +843,6 @@ func get_tier_text_color(tier: int) -> Color:
 		_:
 			return Color.WHITE
 
-func _on_resources_updated():
-	# UI automatically updates when resources change
-	pass
 
 func _on_summon_failed(reason):
 	show_error_message(reason)

@@ -15,7 +15,6 @@ var available_gods: Array = []
 func initialize():
 	"""Initialize the god selection panel"""
 	create_selection_popup()
-	print("GodSelectionPanel: Initialized")
 
 func create_selection_popup():
 	"""Create the god selection popup window"""
@@ -105,8 +104,6 @@ func load_available_gods():
 		var collection_manager = system_registry.get_system("CollectionManager")
 		if collection_manager:
 			available_gods = collection_manager.get_all_gods()
-		else:
-			print("GodSelectionPanel: CollectionManager not found in SystemRegistry")
 	
 	# Filter out gods already assigned to this territory
 	available_gods = filter_available_gods(available_gods)
@@ -269,8 +266,6 @@ func create_god_selection_item(god_data) -> Control:
 
 func _on_god_selected(god_data):
 	"""Handle god selection"""
-	print("GodSelectionPanel: Selected god %s for %s role slot %d" % [god_data.name, current_role, current_slot_index])
-	
 	# Assign god through SystemRegistry - RULE 5 compliance
 	var system_registry = SystemRegistry.get_instance()
 	if system_registry:
@@ -279,8 +274,6 @@ func _on_god_selected(god_data):
 			# This would need to be implemented in TerritoryManager
 			# territory_manager.assign_god_to_role(territory_id, current_role, current_slot_index, god_data.id)
 			pass
-		else:
-			print("GodSelectionPanel: TerritoryManager not found in SystemRegistry")
 	
 	god_selected.emit(god_data.id, current_role, current_slot_index)
 	selection_popup.hide()
@@ -292,11 +285,10 @@ func _on_cancel_pressed():
 
 func _on_selection_popup_closed():
 	"""Handle popup close event"""
-	print("GodSelectionPanel: Selection popup closed")
+	pass
 
 func _on_element_filter_changed(index: int):
 	"""Handle element filter change"""
-	print("GodSelectionPanel: Filter changed to index %d" % index)
 	# TODO: Implement filtering by element
 	# For now, just refresh the list
 	refresh_god_list()
