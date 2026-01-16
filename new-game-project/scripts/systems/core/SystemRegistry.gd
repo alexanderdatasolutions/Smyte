@@ -235,10 +235,18 @@ func register_core_systems():
 		var shop_manager = preload("res://scripts/systems/shop/ShopManager.gd").new()
 		register_system("ShopManager", shop_manager)
 
-	# Phase 9: Trait and Task systems (depend on collection systems)
+	# Phase 9: Trait, Role, and Specialization systems (depend on collection systems)
 	if FileAccess.file_exists("res://scripts/systems/traits/TraitManager.gd"):
 		var trait_manager = preload("res://scripts/systems/traits/TraitManager.gd").new()
 		register_system("TraitManager", trait_manager)
+
+	if FileAccess.file_exists("res://scripts/systems/roles/RoleManager.gd"):
+		var role_manager = preload("res://scripts/systems/roles/RoleManager.gd").new()
+		register_system("RoleManager", role_manager)
+
+	if FileAccess.file_exists("res://scripts/systems/specialization/SpecializationManager.gd"):
+		var spec_manager = preload("res://scripts/systems/specialization/SpecializationManager.gd").new()
+		register_system("SpecializationManager", spec_manager)
 
 	if FileAccess.file_exists("res://scripts/systems/tasks/TaskAssignmentManager.gd"):
 		var task_manager = preload("res://scripts/systems/tasks/TaskAssignmentManager.gd").new()
@@ -246,7 +254,3 @@ func register_core_systems():
 		# Connect trait manager to task manager
 		if has_system("TraitManager"):
 			task_manager.set_trait_manager(get_system("TraitManager"))
-
-	if FileAccess.file_exists("res://scripts/systems/specialization/SpecializationManager.gd"):
-		var spec_manager = preload("res://scripts/systems/specialization/SpecializationManager.gd").new()
-		register_system("SpecializationManager", spec_manager)

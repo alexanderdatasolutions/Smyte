@@ -173,7 +173,7 @@ func test_pity_resets_all_on_legendary():
 	runner.assert_true(summon_manager.pity_counters.legendary_counter > 0, "should have legendary pity")
 
 	# Get a legendary (tier 4)
-	summon_manager._update_pity_counters(4)
+	summon_manager._update_pity_counters("legendary")
 
 	runner.assert_equal(summon_manager.pity_counters.legendary_counter, 0, "legendary counter should reset")
 	runner.assert_equal(summon_manager.pity_counters.epic_counter, 0, "epic counter should also reset")

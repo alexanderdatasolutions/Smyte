@@ -306,7 +306,7 @@ func test_enhanced_equipment_gives_more_stats():
 	eq.enhancement_level = 6  # +6
 	var enhanced_bonuses = eq.get_enhancement_stat_bonuses()
 
-	// Enhancement should provide additional bonuses
+	# Enhancement should provide additional bonuses
 	runner.assert_true(true, "enhanced equipment provides bonuses")
 
 # ==============================================================================
@@ -343,19 +343,19 @@ func test_equipment_with_zero_stats():
 	eq.substats = {}
 
 	var bonuses = eq.get_stat_bonuses()
-	// Should handle zero stats gracefully
+	# Should handle zero stats gracefully
 	runner.assert_true(true, "should handle zero stats")
 
 func test_many_equipment_operations():
 	var god = create_mock_god()
 	var manager = create_equipment_manager()
 
-	// Rapidly equip/unequip
+	# Rapidly equip/unequip
 	for i in range(20):
 		var eq = create_mock_equipment("Eq_%d" % i, i % 6)
 		manager.equip_equipment_to_god(god, eq, i % 6)
 
-	// Should end with equipment in all slots
+	# Should end with equipment in all slots
 	for i in range(6):
 		runner.assert_not_null(god.equipment[i], "slot %d should have equipment" % i)
 
@@ -368,6 +368,6 @@ func test_save_load_equipment_state():
 
 	manager.equip_equipment_to_god(god, weapon, 0)
 
-	// In actual game, equipment state would be saved/loaded
+	# In actual game, equipment state would be saved/loaded
 	runner.assert_equal(god.equipment[0].enhancement_level, 7, "enhancement should persist")
 	runner.assert_equal(god.equipment[0].name, "Saved Sword", "name should persist")
