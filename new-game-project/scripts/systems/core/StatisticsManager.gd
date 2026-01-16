@@ -295,7 +295,9 @@ func get_playtime_summary() -> Dictionary:
 	"""Get playtime statistics"""
 	_update_session_playtime()
 	
+	@warning_ignore("integer_division")
 	var hours = int(time_stats.total_playtime / 3600)
+	@warning_ignore("integer_division")
 	var minutes = int((time_stats.total_playtime % 3600) / 60)
 	
 	return {

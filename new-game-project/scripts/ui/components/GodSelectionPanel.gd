@@ -311,19 +311,19 @@ func calculate_role_effectiveness(god_data, role_name: String) -> int:
 	match role_name:
 		"Guardian":
 			# Guardians prefer high HP and Defense
-			var hp_score = min(god_data.base_hp / 200, 25)  # Up to 25 points from HP
-			var def_score = min(god_data.base_defense / 40, 15)  # Up to 15 points from Defense
-			base_effectiveness += hp_score + def_score
+			var hp_score = min(god_data.base_hp / 200.0, 25)  # Up to 25 points from HP
+			var def_score = min(god_data.base_defense / 40.0, 15)  # Up to 15 points from Defense
+			base_effectiveness += int(hp_score + def_score)
 		"Producer":
 			# Producers prefer balanced stats
-			var avg_stat = (god_data.base_attack + god_data.base_defense + (god_data.base_hp / 100)) / 3
-			var balance_score = min(avg_stat / 50, 30)
+			var avg_stat = (god_data.base_attack + god_data.base_defense + (god_data.base_hp / 100.0)) / 3.0
+			var balance_score = min(avg_stat / 50.0, 30)
 			base_effectiveness += balance_score
 		"Scout":
 			# Scouts prefer speed and attack
-			var speed_score = min(god_data.base_speed / 10, 20)  # Up to 20 points from Speed
-			var attack_score = min(god_data.base_attack / 60, 15)  # Up to 15 points from Attack
-			base_effectiveness += speed_score + attack_score
+			var speed_score = min(god_data.base_speed / 10.0, 20)  # Up to 20 points from Speed
+			var attack_score = min(god_data.base_attack / 60.0, 15)  # Up to 15 points from Attack
+			base_effectiveness += int(speed_score + attack_score)
 	
 	# Awakening bonus
 	if god_data.is_awakened:

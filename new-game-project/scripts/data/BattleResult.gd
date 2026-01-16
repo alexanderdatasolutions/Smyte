@@ -117,8 +117,10 @@ func get_efficiency_rating() -> String:
 
 ## Get formatted duration string
 func get_duration_string() -> String:
-	var minutes = int(duration) / 60
-	var seconds = int(duration) % 60
+	var total_seconds = int(duration)
+	@warning_ignore("integer_division")
+	var minutes = total_seconds / 60
+	var seconds = total_seconds % 60
 	return "%02d:%02d" % [minutes, seconds]
 
 ## Get reward summary string for UI

@@ -308,7 +308,7 @@ func calculate_god_role_effectiveness(god_data, role_name: String) -> int:
 				base_effectiveness += 10
 		"Producer":
 			# Producers benefit from balanced stats
-			var stat_balance = (god_data.base_attack + god_data.base_defense + god_data.base_hp / 100) / 3
+			var stat_balance = (god_data.base_attack + god_data.base_defense + god_data.base_hp / 100.0) / 3.0
 			if stat_balance > 1000:
 				base_effectiveness += 20
 		"Scout":

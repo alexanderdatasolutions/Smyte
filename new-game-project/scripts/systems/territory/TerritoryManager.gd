@@ -138,6 +138,7 @@ func can_capture_more_territories() -> bool:
 
 func _calculate_max_territories(player_level: int) -> int:
 	# Base: 3 territories, +1 every 5 levels
+	@warning_ignore("integer_division")
 	return 3 + (player_level - 1) / 5
 
 ## For save/load
