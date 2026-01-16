@@ -149,8 +149,7 @@ func _update_player_level_display():
 	if resource_mgr:
 		player_xp = resource_mgr.get_resource("experience")
 		# Simple level calculation: every 1000 XP = 1 level
-		@warning_ignore("integer_division")
-		player_level = max(1, player_xp / 1000 + 1)
+		player_level = max(1, int(player_xp / 1000.0) + 1)
 		xp_to_next = (player_level * 1000) - player_xp
 	
 	# Format as "Level 5 (120/300 XP)"
