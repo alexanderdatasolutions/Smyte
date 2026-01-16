@@ -18,9 +18,15 @@ signal back_pressed
 const TerritoryScreenCoordinatorScript = preload("res://scripts/ui/territory/TerritoryScreenCoordinator.gd")
 var territory_coordinator: TerritoryScreenCoordinator
 
+@onready var back_button: Button = $BackButton
+
 func _ready():
 	# Create the enhanced territory UI coordinator
 	_setup_enhanced_territory_interface()
+
+	# Connect the scene's back button (bottom-left "← Back")
+	if back_button:
+		back_button.pressed.connect(_on_back_pressed)
 
 func _setup_enhanced_territory_interface():
 	"""Setup the full-featured territory interface using the coordinator pattern"""
@@ -34,7 +40,7 @@ func _setup_enhanced_territory_interface():
 	# Add coordinator to scene tree
 	add_child(territory_coordinator)
 
-	# Connect the back signal
+	# Connect the coordinator's back signal
 	territory_coordinator.back_pressed.connect(_on_back_pressed)
 
 func _on_back_pressed():

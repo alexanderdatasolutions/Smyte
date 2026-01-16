@@ -42,8 +42,7 @@ func _populate_god_grid():
 		child.queue_free()
 	
 	var gods = collection_manager.get_all_gods()
-	print("EquipmentGodSelector: Found %d gods to display" % gods.size())
-	
+
 	for god in gods:
 		var god_card = _create_god_card(god)
 		god_grid.add_child(god_card)
@@ -53,7 +52,6 @@ func _populate_god_grid():
 
 func _create_god_card(god: God) -> GodCard:
 	"""Create a GodCard for god selection"""
-	print("EquipmentGodSelector: Creating card for god %s" % god.name)
 	var god_card = preload("res://scripts/ui/components/GodCard.gd").new()
 	
 	# Configure card for equipment screen use
@@ -68,20 +66,17 @@ func _create_god_card(god: God) -> GodCard:
 	var style = GodCard.CardStyle.NORMAL
 	if selected_god and selected_god.id == god.id:
 		style = GodCard.CardStyle.SELECTED
-	
-	print("EquipmentGodSelector: Calling setup_god_card for %s" % god.name)
+
 	# Call setup_god_card which handles structure initialization
 	god_card.setup_god_card(god, style)
 	
 	# Connect selection signal
 	god_card.god_selected.connect(_on_god_card_selected)
-	
-	print("EquipmentGodSelector: Card created for %s" % god.name)
+
 	return god_card
 
 func _on_god_card_selected(god: God):
 	"""Handle god card selection"""
-	print("EquipmentGodSelector: Selected god %s" % god.name)
 	selected_god = god
 	_refresh_card_styles()
 	god_selected.emit(god)
