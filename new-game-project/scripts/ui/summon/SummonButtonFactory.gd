@@ -76,7 +76,7 @@ static func create_summon_card(title: String, description: String, cost: String,
 	var desc_label = Label.new()
 	desc_label.text = description
 	desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc_label.add_theme_font_size_override("font_size", 9)
+	desc_label.add_theme_font_size_override("font_size", 13)  # Increased from 9px to 13px for readability
 	desc_label.add_theme_color_override("font_color", Color.LIGHT_GRAY)
 	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(desc_label)
