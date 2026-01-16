@@ -48,7 +48,7 @@ func setup_sorting_ui(parent_container: VBoxContainer, callback: Callable) -> vo
 	for button_data in button_configs:
 		var sort_button = Button.new()
 		sort_button.text = button_data.text
-		sort_button.custom_minimum_size = Vector2(60, 30)
+		sort_button.custom_minimum_size = Vector2(90, 30)  # Uniform width for all buttons
 		sort_button.pressed.connect(_on_sort_changed.bind(button_data.type))
 		sort_buttons.append(sort_button)
 		sort_container.add_child(sort_button)
