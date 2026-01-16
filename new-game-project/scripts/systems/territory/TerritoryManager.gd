@@ -164,10 +164,14 @@ func get_territories_by_filter(filter_id: String) -> Array:
 	
 	# Handle both array and dictionary formats
 	var territories_list = []
-	if territories_config.has("territories") and territories_config.territories is Array:
-		territories_list = territories_config.territories
+	if territories_config.has("territories"):
+		if territories_config.territories is Array:
+			territories_list = territories_config.territories
+		elif territories_config.territories is Dictionary:
+			# Dictionary format - extract values
+			territories_list = territories_config.territories.values()
 	else:
-		# Fallback for dictionary format
+		# Old fallback format
 		territories_list = territories_config.values()
 	
 	# Convert config data to Territory dictionaries for UI
