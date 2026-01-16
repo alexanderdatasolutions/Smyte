@@ -25,7 +25,7 @@ var inventory_manager: EquipmentInventoryDisplay
 var stats_display: EquipmentStatsDisplay
 
 # UI References from scene - Core Layout
-@onready var back_button = $TopBar/BackButton
+@onready var back_button = $BackButton
 @onready var main_container = $MainContainer
 
 # UI References - Component containers
