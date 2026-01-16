@@ -4,7 +4,7 @@ extends Node
 # Single responsibility: Build enhanced territory cards with magical design
 # Following prompt.prompt.md RULE 2: Single Responsibility
 
-const TerritoryUIStyler = preload("res://scripts/ui/territory/TerritoryUIStyler.gd")
+const UIStyler = preload("res://scripts/ui/territory/TerritoryUIStyler.gd")
 
 static func create_enhanced_territory_card(territory_id: String, territory_data: Dictionary) -> Control:
 	"""Create FULL-FEATURED territory card matching old_territory_role_screen.gd functionality"""
@@ -43,22 +43,22 @@ static func create_enhanced_territory_card(territory_id: String, territory_data:
 	
 	# 1. RESOURCE PRODUCTION SECTION - Detailed production rates
 	var production_content = _create_detailed_resource_production(territory_data)
-	var production_box = TerritoryUIStyler.create_section_box("📊 Resources", production_content, Color(0.2, 0.7, 0.9, 1), 240)
+	var production_box = UIStyler.create_section_box("📊 Resources", production_content, Color(0.2, 0.7, 0.9, 1), 240)
 	content_hbox.add_child(production_box)
 	
 	# 2. GOD ROLE ASSIGNMENTS SECTION - Detailed god assignments
 	var roles_content = _create_detailed_role_assignments(territory_data)
-	var roles_box = TerritoryUIStyler.create_section_box("⚔️ Gods", roles_content, Color(0.8, 0.4, 0.9, 1), 220)
+	var roles_box = UIStyler.create_section_box("⚔️ Gods", roles_content, Color(0.8, 0.4, 0.9, 1), 220)
 	content_hbox.add_child(roles_box)
 	
 	# 3. COMBAT & FARMING SECTION - Stage selection and combat
 	var combat_content = _create_combat_farming_section(territory_data)
-	var combat_box = TerritoryUIStyler.create_section_box("⚔️ Combat", combat_content, Color(0.9, 0.6, 0.2, 1), 200)
+	var combat_box = UIStyler.create_section_box("⚔️ Combat", combat_content, Color(0.9, 0.6, 0.2, 1), 200)
 	content_hbox.add_child(combat_box)
 	
 	# 4. UPGRADES & POWER SECTION - Territory upgrades
 	var upgrade_content = _create_upgrade_power_section(territory_data)
-	var upgrade_box = TerritoryUIStyler.create_section_box("⬆️ Upgrades", upgrade_content, Color(0.2, 0.9, 0.4, 1), 200)
+	var upgrade_box = UIStyler.create_section_box("⬆️ Upgrades", upgrade_content, Color(0.2, 0.9, 0.4, 1), 200)
 	content_hbox.add_child(upgrade_box)
 	
 	return card_panel
@@ -623,14 +623,14 @@ static func _create_territory_header(territory_id: String, territory_data: Dicti
 	
 	# Element badge
 	var element = territory_data.get("element", "neutral")
-	var element_color = TerritoryUIStyler.get_element_color(element)
-	var element_badge = TerritoryUIStyler.create_badge(element.capitalize(), element_color)
+	var element_color = UIStyler.get_element_color(element)
+	var element_badge = UIStyler.create_badge(element.capitalize(), element_color)
 	header.add_child(element_badge)
 	
 	# Tier badge
 	var tier = territory_data.get("tier", 1)
-	var tier_color = TerritoryUIStyler.get_tier_accent_color(tier)
-	var tier_badge = TerritoryUIStyler.create_badge("T%d" % tier, tier_color)
+	var tier_color = UIStyler.get_tier_accent_color(tier)
+	var tier_badge = UIStyler.create_badge("T%d" % tier, tier_color)
 	header.add_child(tier_badge)
 	
 	return header
@@ -650,7 +650,7 @@ static func _create_stage_progress_section(territory_data: Dictionary) -> Contro
 	
 	# Stage progress bar
 	var stage_color = Color(0.3, 0.8, 0.3, 1) if current_stage >= max_stages else Color(0.8, 0.6, 0.2, 1)
-	var progress_bar = TerritoryUIStyler.create_progress_bar_styled(current_stage, max_stages, stage_color)
+	var progress_bar = UIStyler.create_progress_bar_styled(current_stage, max_stages, stage_color)
 	content.add_child(progress_bar)
 	
 	# Status text
@@ -669,7 +669,7 @@ static func _create_stage_progress_section(territory_data: Dictionary) -> Contro
 	status_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	content.add_child(status_text)
 	
-	return TerritoryUIStyler.create_section_box("Progress", content, Color(0.8, 0.6, 0.2, 1), 120)
+	return UIStyler.create_section_box("Progress", content, Color(0.8, 0.6, 0.2, 1), 120)
 
 static func _create_production_section(territory_data: Dictionary) -> Control:
 	"""Create resource production section with rates"""
@@ -704,7 +704,7 @@ static func _create_production_section(territory_data: Dictionary) -> Control:
 		potential_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		content.add_child(potential_label)
 	
-	return TerritoryUIStyler.create_section_box("Production", content, Color(0.2, 0.8, 0.2, 1), 100)
+	return UIStyler.create_section_box("Production", content, Color(0.2, 0.8, 0.2, 1), 100)
 
 static func _create_resource_line(icon: String, amount: int, color: Color) -> HBoxContainer:
 	"""Create resource display line with icon and amount"""
@@ -751,7 +751,7 @@ static func _create_roles_section(territory_data: Dictionary) -> Control:
 		unlock_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		content.add_child(unlock_label)
 	
-	return TerritoryUIStyler.create_section_box("God Roles", content, Color(0.6, 0.2, 0.8, 1), 120)
+	return UIStyler.create_section_box("God Roles", content, Color(0.6, 0.2, 0.8, 1), 120)
 
 static func _create_role_line(role: String, _territory_data: Dictionary) -> HBoxContainer:
 	"""Create role assignment line"""
