@@ -4,13 +4,9 @@
 
 [node name="WorldView" type="Control"]
 layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_right = 8.0
-offset_bottom = 11.0
-grow_horizontal = 2
-grow_vertical = 2
+anchors_preset = 0
+offset_right = 1280.0
+offset_bottom = 720.0
 script = ExtResource("1_1q2k3")
 
 [node name="Background" type="NinePatchRect" parent="."]
@@ -25,6 +21,21 @@ offset_right = 1284.0
 offset_bottom = 45.0
 grow_horizontal = 2
 
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = 100.0
+offset_right = 200.0
+offset_bottom = 150.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 32
+text = "DIVINE NEXUS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="BuildingContainer" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 0
@@ -32,50 +43,65 @@ offset_top = 1.0
 offset_right = 1283.0
 offset_bottom = 722.0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
-layout_mode = 0
-offset_left = 267.0
-offset_top = 516.0
-offset_right = 998.0
-offset_bottom = 688.0
-alignment = 1
+[node name="ButtonGrid" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -265.0
+offset_top = -230.0
+offset_right = 265.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 3
 
-[node name="SummonButton" type="Button" parent="HBoxContainer"]
+[node name="SummonButton" type="Button" parent="ButtonGrid"]
+custom_minimum_size = Vector2(160, 100)
 layout_mode = 2
 text = "🏛️
 SUMMON
 TEMPLE"
 flat = true
 
-[node name="CollectionButton" type="Button" parent="HBoxContainer"]
+[node name="CollectionButton" type="Button" parent="ButtonGrid"]
+custom_minimum_size = Vector2(160, 100)
 layout_mode = 2
 text = "📚
 GOD
 COLLECTION"
 flat = true
 
-[node name="TerritoryButton" type="Button" parent="HBoxContainer"]
+[node name="TerritoryButton" type="Button" parent="ButtonGrid"]
+custom_minimum_size = Vector2(160, 100)
 layout_mode = 2
 text = "🏰
 TERRITORY
 COMMAND"
 flat = true
 
-[node name="SacrificeButton" type="Button" parent="HBoxContainer"]
+[node name="SacrificeButton" type="Button" parent="ButtonGrid"]
+custom_minimum_size = Vector2(160, 100)
 layout_mode = 2
 text = "⚡
 SACRIFICE
 ALTAR"
 flat = true
 
-[node name="DungeonButton" type="Button" parent="HBoxContainer"]
+[node name="DungeonButton" type="Button" parent="ButtonGrid"]
+custom_minimum_size = Vector2(160, 100)
 layout_mode = 2
 text = "🏛️
 DUNGEONS
 SANCTUM"
 flat = true
 
-[node name="EquipmentButton" type="Button" parent="HBoxContainer"]
+[node name="EquipmentButton" type="Button" parent="ButtonGrid"]
+custom_minimum_size = Vector2(160, 100)
 layout_mode = 2
 text = "⚔️
 EQUIPMENT
