@@ -77,8 +77,39 @@ func _setup_initial_state():
 	dungeon_info_panel.visible = false
 	enter_button.disabled = true
 
+	# Style tab container to show active tab indicator
+	_style_tab_container()
+
 	# Update schedule information
 	_update_schedule_display()
+
+func _style_tab_container():
+	"""Add visual indicator for active tab"""
+	if not category_tabs:
+		return
+
+	# Create StyleBoxFlat for selected tab
+	var tab_selected = StyleBoxFlat.new()
+	tab_selected.bg_color = Color(0.3, 0.3, 0.35, 0.8)  # Slightly lighter than background
+	tab_selected.border_color = Color(0.6, 0.8, 1.0)  # Light blue underline
+	tab_selected.set_border_width_all(0)
+	tab_selected.border_width_bottom = 3  # Underline effect
+
+	# Create StyleBoxFlat for unselected tabs
+	var tab_unselected = StyleBoxFlat.new()
+	tab_unselected.bg_color = Color(0.2, 0.2, 0.25, 0.6)  # Darker
+	tab_unselected.set_border_width_all(0)
+
+	# Create StyleBoxFlat for hover state
+	var tab_hover = StyleBoxFlat.new()
+	tab_hover.bg_color = Color(0.25, 0.25, 0.3, 0.7)  # Medium brightness
+	tab_hover.set_border_width_all(0)
+
+	# Apply styles to tab container
+	category_tabs.add_theme_stylebox_override("tab_selected", tab_selected)
+	category_tabs.add_theme_stylebox_override("tab_unselected", tab_unselected)
+	category_tabs.add_theme_stylebox_override("tab_hovered", tab_hover)
+	category_tabs.add_theme_font_size_override("font_size", 16)  # Also increase tab text size
 
 func _update_schedule_display():
 	"""Update the schedule information like Summoners War - only rotating dungeons"""
