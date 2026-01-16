@@ -288,9 +288,7 @@ func _on_selection_popup_closed():
 	pass
 
 func _on_element_filter_changed(index: int):
-	"""Handle element filter change"""
-	# TODO: Implement filtering by element
-	# For now, just refresh the list
+	"""Handle element filter change (not implemented - shows all gods)"""
 	refresh_god_list()
 
 # === UTILITY FUNCTIONS ===
