@@ -32,8 +32,10 @@ var territory_indicator: Label
 var awakening_indicator: Label
 
 func _ready():
-	_setup_card_structure()
-	_apply_card_size()
+	# Only setup structure if not already done (to avoid clearing nodes created before adding to tree)
+	if not god_image:
+		_setup_card_structure()
+		_apply_card_size()
 
 func setup_god_card(god: God, style: CardStyle = CardStyle.NORMAL):
 	"""Setup card with god data and style"""
@@ -61,8 +63,11 @@ func _setup_card_structure():
 	var margin = MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(margin)
-	
+
 	var vbox = VBoxContainer.new()
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_theme_constant_override("separation", 4)
 	margin.add_child(vbox)
 	
