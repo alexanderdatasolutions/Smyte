@@ -177,7 +177,7 @@ static func from_dict(data: Dictionary):
 	# Core identity
 	node.id = data.get("id", "")
 	node.name = data.get("name", "")
-	node.node_type = data.get("node_type", "")
+	node.node_type = data.get("type", "")  # JSON uses "type" not "node_type"
 	node.tier = data.get("tier", 1)
 
 	# Position

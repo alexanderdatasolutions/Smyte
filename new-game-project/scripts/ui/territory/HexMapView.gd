@@ -208,6 +208,7 @@ func get_camera_offset() -> Vector2:
 func render_hex_grid() -> void:
 	"""Render all hex tiles from HexGridManager"""
 	if not hex_grid_manager:
+		push_error("HexMapView: hex_grid_manager is null")
 		return
 
 	# Clear existing tiles

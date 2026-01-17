@@ -106,7 +106,7 @@ func _complete_tutorial():
 	# Save completion state
 	var save_manager = SystemRegistry.get_instance().get_system("SaveManager")
 	if save_manager:
-		save_manager.save_tutorial_progress(completed_tutorials)
+		save_manager.save_game()
 	
 	tutorial_active = false
 	current_tutorial = ""

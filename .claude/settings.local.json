@@ -61,7 +61,9 @@
       "Bash(grep:*)",
       "Bash(xargs:*)",
       "Bash(netstat:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(\"/c/Program Files/Godot/Godot_v4.5-stable_win64.exe\" --headless --path . --script tests/integration/run_integration_tests.gd)",
+      "Bash(\"/c/Program Files/Godot/Godot_v4.5-stable_win64.exe\" --headless tests/integration/IntegrationTestRunner.tscn)"
     ]
   },
   "enableAllProjectMcpServers": true,

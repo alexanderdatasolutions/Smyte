@@ -75,11 +75,29 @@ const RESOURCE_DISPLAY_HEIGHT = 50
 # ==============================================================================
 func _ready() -> void:
 	_init_systems()
+	_force_screen_size()
 	_create_ui_structure()
 	_setup_components()
 	_connect_signals()
 	_style_components()
 	_check_tutorial()
+
+func _force_screen_size() -> void:
+	"""Force the screen to fill the viewport since it's added to a Node2D parent"""
+	var viewport_size = get_viewport().get_visible_rect().size
+	# When Control is child of Node2D, anchors don't work - use absolute positioning
+	position = Vector2.ZERO
+	custom_minimum_size = viewport_size
+	size = viewport_size
+	# Remove anchors, use absolute sizing
+	anchor_left = 0
+	anchor_top = 0
+	anchor_right = 0
+	anchor_bottom = 0
+	offset_left = 0
+	offset_top = 0
+	offset_right = viewport_size.x
+	offset_bottom = viewport_size.y
 
 func _init_systems() -> void:
 	"""Initialize system references via SystemRegistry"""
@@ -181,6 +199,8 @@ func _create_center_container() -> void:
 	center_container.offset_left = 0
 	center_container.offset_right = 0
 	center_container.offset_bottom = 0
+	center_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	center_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	main_container.add_child(center_container)
 
 	# Zoom controls in top-right of map
@@ -254,6 +274,8 @@ func _setup_hex_map_view() -> void:
 	hex_map_view = HexMapViewScript.new()
 	hex_map_view.name = "HexMapView"
 	hex_map_view.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	hex_map_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hex_map_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	# Adjust right edge if info panel is visible
 	hex_map_view.offset_right = 0
 	center_container.add_child(hex_map_view)

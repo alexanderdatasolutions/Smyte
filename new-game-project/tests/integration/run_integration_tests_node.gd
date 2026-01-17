@@ -1,6 +1,6 @@
-# tests/integration/run_integration_tests.gd
+# tests/integration/run_integration_tests_node.gd
 # Integration test runner - Executes all integration test suites
-extends SceneTree
+extends Node
 
 var test_results = {
 	"passed": 0,
@@ -145,6 +145,6 @@ func print_results():
 
 	# Exit with appropriate code
 	if test_results["failed"] > 0:
-		quit(1)
+		get_tree().quit(1)
 	else:
-		quit(0)
+		get_tree().quit(0)

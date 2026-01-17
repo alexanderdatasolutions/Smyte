@@ -141,7 +141,11 @@ func get_save_data() -> Dictionary:
 	}
 
 func load_save_data(save_data: Dictionary):
-	controlled_territories = save_data.get("controlled_territories", [])
+	var saved_territories = save_data.get("controlled_territories", [])
+	controlled_territories.clear()
+	for territory in saved_territories:
+		if territory is String:
+			controlled_territories.append(territory)
 	var saved_territory_data = save_data.get("territory_data", {})
 	
 	# Merge saved data with config data
