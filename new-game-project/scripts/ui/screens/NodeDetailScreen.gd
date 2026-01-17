@@ -226,8 +226,8 @@ func _build_worker_section(parent: Control) -> void:
 	_worker_slot_display.empty_slot_tapped.connect(_on_worker_slot_empty_tapped)
 	_worker_slot_display.filled_slot_tapped.connect(_on_worker_slot_filled_tapped)
 
-func _create_section_container(title: String) -> Control:
-	"""Create a styled section container with title"""
+func _create_section_container(title: String) -> Dictionary:
+	"""Create a styled section container with title. Returns {section, content}"""
 	var section = Panel.new()
 	section.custom_minimum_size = Vector2(0, 180)
 	section.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -266,14 +266,13 @@ func _create_section_container(title: String) -> Control:
 	title_label.add_theme_color_override("font_color", Color(0.9, 0.9, 1.0))
 	vbox.add_child(title_label)
 
-	# Content area (named for easy access)
+	# Content area
 	var content = Control.new()
-	content.name = "Content"
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_child(content)
 
-	return section
+	return {"section": section, "content": content}
 
 func _build_god_selection_overlay() -> void:
 	"""Build the god selection grid overlay"""

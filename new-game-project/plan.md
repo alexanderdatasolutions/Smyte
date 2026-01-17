@@ -101,7 +101,7 @@ Create a mobile-friendly node management interface that clearly shows garrison, 
       "Make scrollable if content exceeds screen",
       "Implement _setup_fullscreen() for Control sizing"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "integration",
@@ -113,7 +113,7 @@ Create a mobile-friendly node management interface that clearly shows garrison, 
       "Handle close signal to return to hex map",
       "Remove or disable old WorkerAssignmentPanel"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "feature",

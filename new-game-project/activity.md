@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 5/10
-**Current Task:** Create NodeDetailScreen with garrison and worker sections
+**Tasks Completed:** 7/10
+**Current Task:** Add god affinity color coding to selection grid
 
 ---
 
@@ -259,3 +259,64 @@ Method takes `garrison_gods` as a parameter rather than looking up gods internal
 - Uses GodCalculator for stat calculations ✅
 - Caller responsible for god lookup via CollectionManager ✅
 - Existing serialization preserved ✅
+
+### 2026-01-17 - Tasks 6 & 7: NodeDetailScreen + Integration ✅
+
+**What Changed:**
+Created NodeDetailScreen with fullscreen overlay and integrated it into HexTerritoryScreen.
+
+**Files Created:**
+- `scripts/ui/screens/NodeDetailScreen.gd` (458 lines)
+
+**Files Modified:**
+- `scripts/ui/screens/HexTerritoryScreen.gd` - Added NodeDetailScreen integration
+- `scripts/systems/territory/TerritoryManager.gd` - Added `update_node_garrison()` and `update_node_workers()` methods
+
+**Implementation Details:**
+
+1. **Fullscreen Overlay**: Dark semi-transparent background (Color(0.1, 0.1, 0.1, 0.95))
+2. **Header Section**: Back button, node name with type icon, tier display
+3. **Garrison Section**: Uses GarrisonDisplay component, shows combat power
+4. **Worker Section**: Uses WorkerSlotDisplay component, shows worker slots based on node tier
+5. **God Selection**: Integrated GodSelectionGrid for assigning garrison/workers
+6. **Scrollable Content**: ScrollContainer for content that exceeds screen height
+
+**NodeDetailScreen Features:**
+- `show_node_details(node: HexNode)` - Main entry point
+- Garrison management with add/remove functionality
+- Worker management with add/remove functionality
+- God selection modal that opens contextually (garrison vs worker)
+- Emits `close_requested` signal when back button pressed
+
+**Integration into HexTerritoryScreen:**
+- NodeDetailScreen opens when clicking "View Details" from TerritoryOverviewScreen
+- Also opens for player-owned nodes when manage workers/garrison is requested
+- Properly hides when close_requested signal is received
+- Workers and garrison changes persist via TerritoryManager
+
+**TerritoryManager Additions:**
+- `update_node_garrison(node_id: String, garrison_ids: Array) -> bool`
+- `update_node_workers(node_id: String, worker_ids: Array) -> bool`
+
+**Verified With Godot MCP:**
+- Ran project: No fatal errors from NodeDetailScreen
+- Navigated to hex territory screen: Screen loads correctly
+- Clicked "View Details" for owned node: NodeDetailScreen opens
+- Worker assignment working: Nephthys assigned to Verdant Grove
+- Screenshot: `screenshots/node-detail-screen.png`
+
+**Screenshot Shows:**
+- Back button in header
+- "Garrison (Defense)" section with "No defenders assigned" message
+- "Workers (Production)" section with Nephthys assigned showing "Gathering" task
+- Purple border on Nephthys card indicating Dark element
+
+**Architecture Compliance:**
+- Under 500 lines (458 lines) ✅
+- Single responsibility (node detail coordinator) ✅
+- Uses SystemRegistry for system access ✅
+- Implements _setup_fullscreen() for Node2D parent compatibility ✅
+- Uses existing components (GarrisonDisplay, WorkerSlotDisplay, GodSelectionGrid) ✅
+- Emits signals for parent screen to handle navigation ✅
+- Does NOT use per-node worker APIs (territory-level only) ✅
+
