@@ -350,3 +350,210 @@ func get_available_tasks(territory_id: String) -> Array:
 	var buildings = get_territory_buildings(territory_id)
 
 	return task_manager.get_available_tasks_for_territory(level, buildings)
+
+# ==============================================================================
+# HEX TERRITORY SYSTEM INTEGRATION
+# ==============================================================================
+
+## Capture a hex node by coordinate
+func capture_node(coord) -> bool:
+	"""Capture a hex node at given coordinate - returns true on success"""
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		push_error("TerritoryManager: HexGridManager not found")
+		return false
+
+	var node = hex_grid_manager.get_node_at(coord)
+	if not node:
+		push_error("TerritoryManager: No node found at coordinate")
+		return false
+
+	# Check requirements
+	var requirement_checker = SystemRegistry.get_instance().get_system("NodeRequirementChecker") if SystemRegistry.get_instance() else null
+	if requirement_checker and not requirement_checker.can_player_capture_node(node):
+		push_warning("TerritoryManager: Cannot capture node - requirements not met")
+		return false
+
+	# Capture the node
+	node.controller = "player"
+	node.is_revealed = true
+
+	# Add to controlled territories for backward compatibility
+	if node.id not in controlled_territories:
+		controlled_territories.append(node.id)
+
+	territory_captured.emit(node.id)
+
+	# Notify event bus
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	if event_bus:
+		event_bus.emit_signal("territory_captured", node.id)
+
+	return true
+
+## Lose control of a hex node
+func lose_node(coord) -> bool:
+	"""Player loses control of node at coordinate"""
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		return false
+
+	var node = hex_grid_manager.get_node_at(coord)
+	if not node:
+		return false
+
+	if not node.is_controlled_by_player():
+		return false
+
+	# Set to neutral or enemy
+	node.controller = "neutral"
+	node.garrison.clear()
+	node.assigned_workers.clear()
+	node.active_tasks.clear()
+
+	# Remove from controlled territories
+	controlled_territories.erase(node.id)
+
+	territory_lost.emit(node.id)
+
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	if event_bus:
+		event_bus.emit_signal("territory_lost", node.id)
+
+	return true
+
+## Get all controlled hex nodes
+func get_controlled_nodes() -> Array:
+	"""Get array of HexNode objects controlled by player"""
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		return []
+
+	return hex_grid_manager.get_player_nodes()
+
+## Calculate defense rating for a node
+func get_node_defense_rating(coord) -> float:
+	"""Calculate total defense rating for node including distance penalty"""
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		return 0.0
+
+	var node = hex_grid_manager.get_node_at(coord)
+	if not node:
+		return 0.0
+
+	# Base defense from garrison
+	var base_defense = _calculate_garrison_power(node)
+
+	# Apply defense level bonus (+10% per level)
+	var defense_bonus = 1.0 + (node.defense_level - 1) * 0.1
+
+	# Apply distance penalty
+	var distance_penalty = calculate_distance_penalty(coord)
+
+	# Apply connected node bonus
+	var connected_bonus = get_connected_bonus(coord)
+
+	return base_defense * defense_bonus * (1.0 - distance_penalty) * (1.0 + connected_bonus)
+
+## Calculate distance penalty for a node
+func calculate_distance_penalty(coord) -> float:
+	"""Calculate defense penalty based on distance from base (5% per hex)"""
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		return 0.0
+
+	var distance = hex_grid_manager.get_distance_from_base(coord)
+	return min(distance * 0.05, 0.95)  # Cap at 95% penalty
+
+## Get connected node bonus for production/defense
+func get_connected_bonus(coord) -> float:
+	"""Calculate bonus from connected controlled nodes"""
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		return 0.0
+
+	var node = hex_grid_manager.get_node_at(coord)
+	if not node or not node.is_controlled_by_player():
+		return 0.0
+
+	# Count adjacent controlled nodes
+	var connected_count = 0
+	var neighbors = hex_grid_manager.get_neighbors(coord)
+	for neighbor_node in neighbors:
+		if neighbor_node.is_controlled_by_player():
+			connected_count += 1
+
+	# Bonus tiers (from CLAUDE.md)
+	if connected_count >= 4:
+		return 0.30  # +30% production, +defense
+	elif connected_count >= 3:
+		return 0.20  # +20% production
+	elif connected_count >= 2:
+		return 0.10  # +10% production
+	else:
+		return 0.0
+
+## Calculate total power of garrison gods
+func _calculate_garrison_power(node) -> float:
+	"""Calculate total combat power of gods in garrison"""
+	if node.garrison.size() == 0:
+		return 0.0
+
+	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager") if SystemRegistry.get_instance() else null
+	if not collection_manager:
+		return 0.0
+
+	var total_power = 0.0
+	for god_id in node.garrison:
+		var god_obj = collection_manager.get_god(god_id)
+		if god_obj:
+			# Use same power calculation as NodeRequirementChecker
+			var hp = god_obj.current_hp
+			var attack = god_obj.attack
+			var defense = god_obj.defense
+			var speed = god_obj.speed
+			var level = god_obj.level
+			var awakening_bonus = 1.0 + (god_obj.awakening_level * 0.1)
+
+			var god_power = (hp + attack * 2 + defense + speed) * (1.0 + level * 0.05) * awakening_bonus
+			total_power += god_power
+
+	return total_power
+
+## Get number of connected controlled nodes
+func get_connected_node_count(coord) -> int:
+	"""Get count of adjacent controlled nodes"""
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		return 0
+
+	var neighbors = hex_grid_manager.get_neighbors(coord)
+	var connected_count = 0
+	for neighbor_node in neighbors:
+		if neighbor_node.is_controlled_by_player():
+			connected_count += 1
+
+	return connected_count
+
+## Check if a hex node is controlled by player
+func is_hex_node_controlled(coord) -> bool:
+	"""Check if player controls node at coordinate"""
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		return false
+
+	var node = hex_grid_manager.get_node_at(coord)
+	if not node:
+		return false
+
+	return node.is_controlled_by_player()
+
+## Get hex node at coordinate
+func get_hex_node(coord):
+	"""Get HexNode object at coordinate (convenience method)"""
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		return null
+
+	return hex_grid_manager.get_node_at(coord)
