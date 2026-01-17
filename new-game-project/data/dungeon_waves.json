@@ -1,0 +1,1063 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "description": "Wave configurations for all dungeons - links dungeon types to enemy compositions",
+    "last_updated": "2026-01-16"
+  },
+
+  "elemental_sanctums": {
+    "fire_sanctum": {
+      "beginner": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "fire", "tier": "basic", "name": "Ember Spirit", "level": 10, "count": 2},
+              {"type": "fire", "tier": "basic", "name": "Flame Warden", "level": 10, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "fire", "tier": "basic", "name": "Fire Guardian", "level": 12, "count": 2},
+              {"type": "fire", "tier": "basic", "name": "Lava Golem", "level": 12, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "fire", "tier": "leader", "name": "Inferno Commander", "level": 15, "count": 1},
+              {"type": "fire", "tier": "basic", "name": "Fire Guardian", "level": 13, "count": 2}
+            ]
+          }
+        ]
+      },
+      "intermediate": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "fire", "tier": "basic", "name": "Fire Guardian", "level": 20, "count": 3}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "fire", "tier": "basic", "name": "Lava Golem", "level": 22, "count": 2},
+              {"type": "fire", "tier": "leader", "name": "Inferno Commander", "level": 23, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "fire", "tier": "elite", "name": "Phoenix Lord", "level": 25, "count": 1}
+            ]
+          }
+        ]
+      },
+      "advanced": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "fire", "tier": "leader", "name": "Inferno Commander", "level": 35, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "fire", "tier": "elite", "name": "Phoenix Lord", "level": 37, "count": 1},
+              {"type": "fire", "tier": "basic", "name": "Lava Golem", "level": 35, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "fire", "tier": "elite", "name": "Phoenix Lord", "level": 40, "count": 2}
+            ]
+          }
+        ]
+      },
+      "expert": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "fire", "tier": "elite", "name": "Phoenix Lord", "level": 50, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "fire", "tier": "elite", "name": "Phoenix Lord", "level": 52, "count": 1},
+              {"type": "fire", "tier": "leader", "name": "Inferno Commander", "level": 52, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "fire", "tier": "boss", "name": "Fire Overlord", "level": 55, "count": 1}
+            ]
+          }
+        ]
+      }
+    },
+
+    "water_sanctum": {
+      "beginner": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "water", "tier": "basic", "name": "Aqua Spirit", "level": 10, "count": 2},
+              {"type": "water", "tier": "basic", "name": "Tidal Warden", "level": 10, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "water", "tier": "basic", "name": "Water Guardian", "level": 12, "count": 3}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "water", "tier": "leader", "name": "Frost Commander", "level": 15, "count": 1},
+              {"type": "water", "tier": "basic", "name": "Aqua Spirit", "level": 13, "count": 2}
+            ]
+          }
+        ]
+      },
+      "intermediate": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "water", "tier": "basic", "name": "Tidal Warden", "level": 20, "count": 3}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "water", "tier": "leader", "name": "Frost Commander", "level": 22, "count": 1},
+              {"type": "water", "tier": "basic", "name": "Water Guardian", "level": 22, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "water", "tier": "elite", "name": "Leviathan Lord", "level": 25, "count": 1}
+            ]
+          }
+        ]
+      },
+      "advanced": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "water", "tier": "leader", "name": "Frost Commander", "level": 35, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "water", "tier": "elite", "name": "Leviathan Lord", "level": 37, "count": 1},
+              {"type": "water", "tier": "leader", "name": "Frost Commander", "level": 35, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "water", "tier": "elite", "name": "Leviathan Lord", "level": 40, "count": 2}
+            ]
+          }
+        ]
+      },
+      "expert": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "water", "tier": "elite", "name": "Leviathan Lord", "level": 50, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "water", "tier": "elite", "name": "Leviathan Lord", "level": 52, "count": 1},
+              {"type": "water", "tier": "leader", "name": "Frost Commander", "level": 52, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "water", "tier": "boss", "name": "Ocean Overlord", "level": 55, "count": 1}
+            ]
+          }
+        ]
+      }
+    },
+
+    "earth_sanctum": {
+      "beginner": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "earth", "tier": "basic", "name": "Stone Warden", "level": 10, "count": 2},
+              {"type": "earth", "tier": "basic", "name": "Terra Spirit", "level": 10, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "earth", "tier": "basic", "name": "Earth Guardian", "level": 12, "count": 3}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "earth", "tier": "leader", "name": "Mountain Commander", "level": 15, "count": 1},
+              {"type": "earth", "tier": "basic", "name": "Stone Warden", "level": 13, "count": 2}
+            ]
+          }
+        ]
+      },
+      "intermediate": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "earth", "tier": "basic", "name": "Earth Guardian", "level": 20, "count": 3}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "earth", "tier": "leader", "name": "Mountain Commander", "level": 22, "count": 1},
+              {"type": "earth", "tier": "basic", "name": "Stone Warden", "level": 22, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "earth", "tier": "elite", "name": "Titan Lord", "level": 25, "count": 1}
+            ]
+          }
+        ]
+      },
+      "advanced": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "earth", "tier": "leader", "name": "Mountain Commander", "level": 35, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "earth", "tier": "elite", "name": "Titan Lord", "level": 37, "count": 1},
+              {"type": "earth", "tier": "leader", "name": "Mountain Commander", "level": 35, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "earth", "tier": "elite", "name": "Titan Lord", "level": 40, "count": 2}
+            ]
+          }
+        ]
+      },
+      "expert": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "earth", "tier": "elite", "name": "Titan Lord", "level": 50, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "earth", "tier": "elite", "name": "Titan Lord", "level": 52, "count": 1},
+              {"type": "earth", "tier": "leader", "name": "Mountain Commander", "level": 52, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "earth", "tier": "boss", "name": "Earth Overlord", "level": 55, "count": 1}
+            ]
+          }
+        ]
+      }
+    },
+
+    "lightning_sanctum": {
+      "beginner": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "lightning", "tier": "basic", "name": "Storm Guardian", "level": 10, "count": 2},
+              {"type": "lightning", "tier": "basic", "name": "Lightning Warden", "level": 10, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "lightning", "tier": "basic", "name": "Storm Guardian", "level": 12, "count": 3}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "lightning", "tier": "leader", "name": "Thunder Commander", "level": 15, "count": 1},
+              {"type": "lightning", "tier": "basic", "name": "Lightning Warden", "level": 13, "count": 2}
+            ]
+          }
+        ]
+      },
+      "intermediate": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "lightning", "tier": "basic", "name": "Storm Guardian", "level": 20, "count": 3}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "lightning", "tier": "leader", "name": "Thunder Commander", "level": 22, "count": 1},
+              {"type": "lightning", "tier": "basic", "name": "Lightning Warden", "level": 22, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "lightning", "tier": "elite", "name": "Storm Lord", "level": 25, "count": 1}
+            ]
+          }
+        ]
+      },
+      "advanced": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "lightning", "tier": "leader", "name": "Thunder Commander", "level": 35, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "lightning", "tier": "elite", "name": "Storm Lord", "level": 37, "count": 1},
+              {"type": "lightning", "tier": "leader", "name": "Thunder Commander", "level": 35, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "lightning", "tier": "elite", "name": "Storm Lord", "level": 40, "count": 2}
+            ]
+          }
+        ]
+      },
+      "expert": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "lightning", "tier": "elite", "name": "Storm Lord", "level": 50, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "lightning", "tier": "elite", "name": "Storm Lord", "level": 52, "count": 1},
+              {"type": "lightning", "tier": "leader", "name": "Thunder Commander", "level": 52, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "lightning", "tier": "boss", "name": "Lightning Overlord", "level": 55, "count": 1}
+            ]
+          }
+        ]
+      }
+    },
+
+    "light_sanctum": {
+      "beginner": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "light", "tier": "basic", "name": "Light Guardian", "level": 10, "count": 2},
+              {"type": "light", "tier": "basic", "name": "Holy Warden", "level": 10, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "light", "tier": "basic", "name": "Radiant Spirit", "level": 12, "count": 3}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "light", "tier": "leader", "name": "Celestial Commander", "level": 15, "count": 1},
+              {"type": "light", "tier": "basic", "name": "Light Guardian", "level": 13, "count": 2}
+            ]
+          }
+        ]
+      },
+      "intermediate": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "light", "tier": "basic", "name": "Light Guardian", "level": 20, "count": 3}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "light", "tier": "leader", "name": "Celestial Commander", "level": 22, "count": 1},
+              {"type": "light", "tier": "basic", "name": "Holy Warden", "level": 22, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "light", "tier": "elite", "name": "Archangel Lord", "level": 25, "count": 1}
+            ]
+          }
+        ]
+      },
+      "advanced": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "light", "tier": "leader", "name": "Celestial Commander", "level": 35, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "light", "tier": "elite", "name": "Archangel Lord", "level": 37, "count": 1},
+              {"type": "light", "tier": "leader", "name": "Celestial Commander", "level": 35, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "light", "tier": "elite", "name": "Archangel Lord", "level": 40, "count": 2}
+            ]
+          }
+        ]
+      },
+      "expert": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "light", "tier": "elite", "name": "Archangel Lord", "level": 50, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "light", "tier": "elite", "name": "Archangel Lord", "level": 52, "count": 1},
+              {"type": "light", "tier": "leader", "name": "Celestial Commander", "level": 52, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "light", "tier": "boss", "name": "Light Overlord", "level": 55, "count": 1}
+            ]
+          }
+        ]
+      }
+    },
+
+    "dark_sanctum": {
+      "beginner": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "dark", "tier": "basic", "name": "Shadow Guardian", "level": 10, "count": 2},
+              {"type": "dark", "tier": "basic", "name": "Void Warden", "level": 10, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "dark", "tier": "basic", "name": "Dark Spirit", "level": 12, "count": 3}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "dark", "tier": "leader", "name": "Abyss Commander", "level": 15, "count": 1},
+              {"type": "dark", "tier": "basic", "name": "Shadow Guardian", "level": 13, "count": 2}
+            ]
+          }
+        ]
+      },
+      "intermediate": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "dark", "tier": "basic", "name": "Shadow Guardian", "level": 20, "count": 3}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "dark", "tier": "leader", "name": "Abyss Commander", "level": 22, "count": 1},
+              {"type": "dark", "tier": "basic", "name": "Void Warden", "level": 22, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "dark", "tier": "elite", "name": "Demon Lord", "level": 25, "count": 1}
+            ]
+          }
+        ]
+      },
+      "advanced": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "dark", "tier": "leader", "name": "Abyss Commander", "level": 35, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "dark", "tier": "elite", "name": "Demon Lord", "level": 37, "count": 1},
+              {"type": "dark", "tier": "leader", "name": "Abyss Commander", "level": 35, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "dark", "tier": "elite", "name": "Demon Lord", "level": 40, "count": 2}
+            ]
+          }
+        ]
+      },
+      "expert": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "dark", "tier": "elite", "name": "Demon Lord", "level": 50, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "dark", "tier": "elite", "name": "Demon Lord", "level": 52, "count": 1},
+              {"type": "dark", "tier": "leader", "name": "Abyss Commander", "level": 52, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "dark", "tier": "boss", "name": "Darkness Overlord", "level": 55, "count": 1}
+            ]
+          }
+        ]
+      }
+    }
+  },
+
+  "equipment_dungeons": {
+    "titans_forge": {
+      "beginner": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "neutral", "tier": "basic", "name": "Forge Golem", "level": 25, "count": 3}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "fire", "tier": "basic", "name": "Lava Golem", "level": 27, "count": 2},
+              {"type": "earth", "tier": "basic", "name": "Stone Warden", "level": 27, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "elite", "name": "Titan Smith", "level": 30, "count": 1}
+            ]
+          }
+        ]
+      },
+      "intermediate": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "neutral", "tier": "leader", "name": "Master Smith", "level": 35, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "fire", "tier": "elite", "name": "Phoenix Lord", "level": 37, "count": 1},
+              {"type": "earth", "tier": "leader", "name": "Mountain Commander", "level": 37, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Hephaestus Avatar", "level": 40, "count": 1}
+            ]
+          }
+        ]
+      },
+      "advanced": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "neutral", "tier": "elite", "name": "Titan Smith", "level": 50, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "fire", "tier": "boss", "name": "Fire Overlord", "level": 52, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Hephaestus True Form", "level": 55, "count": 1}
+            ]
+          }
+        ]
+      }
+    },
+
+    "valhalla_armory": {
+      "beginner": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "neutral", "tier": "basic", "name": "Einherjar Warrior", "level": 25, "count": 3}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "neutral", "tier": "basic", "name": "Valkyrie Guard", "level": 27, "count": 2},
+              {"type": "neutral", "tier": "basic", "name": "Einherjar Warrior", "level": 27, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "elite", "name": "Valkyrie Commander", "level": 30, "count": 1}
+            ]
+          }
+        ]
+      },
+      "intermediate": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "neutral", "tier": "leader", "name": "Berserker Champion", "level": 35, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "neutral", "tier": "elite", "name": "Valkyrie Commander", "level": 37, "count": 1},
+              {"type": "neutral", "tier": "leader", "name": "Berserker Champion", "level": 37, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Thor Avatar", "level": 40, "count": 1}
+            ]
+          }
+        ]
+      },
+      "advanced": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "neutral", "tier": "elite", "name": "Valkyrie Commander", "level": 50, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "lightning", "tier": "boss", "name": "Lightning Overlord", "level": 52, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Odin True Form", "level": 55, "count": 1}
+            ]
+          }
+        ]
+      }
+    },
+
+    "oracle_sanctum": {
+      "beginner": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "light", "tier": "basic", "name": "Oracle Priestess", "level": 25, "count": 3}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "light", "tier": "basic", "name": "Fate Weaver", "level": 27, "count": 2},
+              {"type": "light", "tier": "basic", "name": "Oracle Priestess", "level": 27, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "light", "tier": "elite", "name": "High Oracle", "level": 30, "count": 1}
+            ]
+          }
+        ]
+      },
+      "intermediate": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "light", "tier": "leader", "name": "Prophecy Guardian", "level": 35, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "light", "tier": "elite", "name": "High Oracle", "level": 37, "count": 1},
+              {"type": "light", "tier": "leader", "name": "Prophecy Guardian", "level": 37, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "light", "tier": "boss", "name": "Oracle Queen", "level": 40, "count": 1}
+            ]
+          }
+        ]
+      },
+      "advanced": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "light", "tier": "elite", "name": "High Oracle", "level": 50, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "light", "tier": "boss", "name": "Light Overlord", "level": 52, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "light", "tier": "boss", "name": "Oracle Goddess", "level": 55, "count": 1}
+            ]
+          }
+        ]
+      }
+    }
+  },
+
+  "pantheon_trials": {
+    "greek_trials": {
+      "heroic": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "lightning", "tier": "elite", "name": "Storm Lord", "level": 30, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "fire", "tier": "elite", "name": "Phoenix Lord", "level": 32, "count": 1},
+              {"type": "water", "tier": "elite", "name": "Leviathan Lord", "level": 32, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Zeus Avatar", "level": 35, "count": 1}
+            ]
+          }
+        ]
+      },
+      "legendary": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "fire", "tier": "boss", "name": "Fire Overlord", "level": 50, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "water", "tier": "boss", "name": "Ocean Overlord", "level": 52, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "dark", "tier": "boss", "name": "Darkness Overlord", "level": 54, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 4,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Zeus True Form", "level": 60, "count": 1}
+            ]
+          }
+        ]
+      }
+    },
+
+    "norse_trials": {
+      "heroic": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "neutral", "tier": "elite", "name": "Berserker Champion", "level": 30, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "lightning", "tier": "elite", "name": "Storm Lord", "level": 32, "count": 1},
+              {"type": "earth", "tier": "elite", "name": "Titan Lord", "level": 32, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Thor Avatar", "level": 35, "count": 1}
+            ]
+          }
+        ]
+      },
+      "legendary": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "lightning", "tier": "boss", "name": "Lightning Overlord", "level": 50, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "earth", "tier": "boss", "name": "Earth Overlord", "level": 52, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Fenrir", "level": 54, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 4,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Odin True Form", "level": 60, "count": 1}
+            ]
+          }
+        ]
+      }
+    },
+
+    "egyptian_trials": {
+      "heroic": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "light", "tier": "elite", "name": "Archangel Lord", "level": 30, "count": 1},
+              {"type": "dark", "tier": "elite", "name": "Demon Lord", "level": 30, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "fire", "tier": "elite", "name": "Phoenix Lord", "level": 32, "count": 1},
+              {"type": "earth", "tier": "elite", "name": "Titan Lord", "level": 32, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Ra Avatar", "level": 35, "count": 1}
+            ]
+          }
+        ]
+      },
+      "legendary": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "light", "tier": "boss", "name": "Light Overlord", "level": 50, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "dark", "tier": "boss", "name": "Darkness Overlord", "level": 52, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Anubis True Form", "level": 54, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 4,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Osiris Reborn", "level": 60, "count": 1}
+            ]
+          }
+        ]
+      }
+    }
+  },
+
+  "special_sanctums": {
+    "magic_sanctum": {
+      "beginner": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "neutral", "tier": "basic", "name": "Arcane Elemental", "level": 15, "count": 3}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "neutral", "tier": "basic", "name": "Magic Golem", "level": 17, "count": 2},
+              {"type": "neutral", "tier": "basic", "name": "Arcane Elemental", "level": 17, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "leader", "name": "Archmage Construct", "level": 20, "count": 1}
+            ]
+          }
+        ]
+      },
+      "intermediate": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "neutral", "tier": "leader", "name": "Archmage Construct", "level": 25, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "neutral", "tier": "elite", "name": "Spellweaver Lord", "level": 27, "count": 1},
+              {"type": "neutral", "tier": "leader", "name": "Archmage Construct", "level": 27, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "elite", "name": "Spellweaver Lord", "level": 30, "count": 2}
+            ]
+          }
+        ]
+      },
+      "advanced": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "neutral", "tier": "elite", "name": "Spellweaver Lord", "level": 40, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "light", "tier": "elite", "name": "Archangel Lord", "level": 42, "count": 1},
+              {"type": "dark", "tier": "elite", "name": "Demon Lord", "level": 42, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Grand Magus", "level": 45, "count": 1}
+            ]
+          }
+        ]
+      },
+      "expert": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Grand Magus", "level": 60, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "fire", "tier": "boss", "name": "Fire Overlord", "level": 62, "count": 1},
+              {"type": "water", "tier": "boss", "name": "Ocean Overlord", "level": 62, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Arcane Sovereign", "level": 65, "count": 1}
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
