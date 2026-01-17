@@ -1,15 +1,21 @@
 # scripts/ui/battle_setup/BattleInfoManager.gd
 # Single responsibility: Manage battle information display (enemies, rewards, etc)
 class_name BattleInfoManager
-extends Control
+extends Node
 
-@onready var battle_info_panel = $BattleInfoPanel
-@onready var enemy_preview_container = $BattleInfoPanel/EnemyPreviewContainer
-@onready var rewards_container = $BattleInfoPanel/RewardsContainer
-@onready var title_label = $HeaderContainer/TitleLabel
-@onready var description_label = $HeaderContainer/DescriptionLabel
+var enemy_preview_container: VBoxContainer = null
+var rewards_container: VBoxContainer = null
+var title_label: Label = null
+var description_label: Label = null
 
 var battle_context: Dictionary = {}
+
+func initialize(enemy_container: VBoxContainer, reward_container: VBoxContainer, title_lbl: Label = null, desc_lbl: Label = null):
+	"""Initialize with node references from the scene"""
+	enemy_preview_container = enemy_container
+	rewards_container = reward_container
+	title_label = title_lbl
+	description_label = desc_lbl
 
 func update_for_context(context: Dictionary):
 	battle_context = context
@@ -27,35 +33,55 @@ func _update_display():
 			_display_dungeon_info()
 		"pvp":
 			_display_pvp_info()
+		"hex_capture":
+			_display_hex_capture_info()
 
 func _display_territory_info():
 	var territory = battle_context.get("territory")
 	var stage = battle_context.get("stage", 1)
-	
-	title_label.text = "Territory Battle"
-	description_label.text = "Attack %s - Stage %d" % [territory.name, stage]
-	
+
+	if title_label:
+		title_label.text = "Territory Battle"
+	if description_label:
+		description_label.text = "Attack %s - Stage %d" % [territory.name, stage]
+
 	_show_territory_enemies(territory, stage)
 	_show_territory_rewards(territory, stage)
 
 func _display_dungeon_info():
 	var dungeon_id = battle_context.get("dungeon_id")
 	var difficulty = battle_context.get("difficulty")
-	
-	title_label.text = "Dungeon Battle"
-	description_label.text = "%s - %s" % [dungeon_id.capitalize(), difficulty.capitalize()]
-	
+
+	if title_label:
+		title_label.text = "Dungeon Battle"
+	if description_label:
+		description_label.text = "%s - %s" % [dungeon_id.capitalize(), difficulty.capitalize()]
+
 	_show_dungeon_enemies(dungeon_id, difficulty)
 	_show_dungeon_rewards(dungeon_id, difficulty)
 
 func _display_pvp_info():
 	var opponent = battle_context.get("opponent")
-	
-	title_label.text = "PvP Battle"
-	description_label.text = "vs %s" % opponent.get("name", "Unknown Player")
-	
+
+	if title_label:
+		title_label.text = "PvP Battle"
+	if description_label:
+		description_label.text = "vs %s" % opponent.get("name", "Unknown Player")
+
 	_show_pvp_enemies(opponent)
 	_show_pvp_rewards()
+
+func _display_hex_capture_info():
+	var hex_node = battle_context.get("hex_node")
+
+	if title_label:
+		title_label.text = "Hex Node Capture"
+	if description_label and hex_node:
+		description_label.text = "Capture: %s (Tier %d)" % [hex_node.name, hex_node.tier]
+
+	if hex_node:
+		_show_hex_node_defenders(hex_node)
+		_show_hex_node_rewards(hex_node)
 
 func _show_territory_enemies(territory: Territory, stage: int):
 	_clear_enemy_preview()
@@ -165,10 +191,37 @@ func _create_reward_item(resource_type: String, amount: int) -> Control:
 	
 	return item
 
+func _show_hex_node_defenders(hex_node: HexNode):
+	_clear_enemy_preview()
+
+	# Show base defenders for the hex node
+	for defender_id in hex_node.base_defenders:
+		var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager")
+		var defender = collection_manager.get_god_by_id(defender_id)
+		if defender:
+			var card = _create_enemy_preview_card({
+				"name": defender.name,
+				"level": defender.level
+			})
+			enemy_preview_container.add_child(card)
+
+func _show_hex_node_rewards(hex_node: HexNode):
+	_clear_rewards()
+
+	# Show rewards based on node tier and resource type
+	var base_reward = hex_node.tier * 10
+	var rewards = {
+		hex_node.resource_type: base_reward
+	}
+
+	_display_rewards(rewards)
+
 func _clear_enemy_preview():
-	for child in enemy_preview_container.get_children():
-		child.queue_free()
+	if enemy_preview_container:
+		for child in enemy_preview_container.get_children():
+			child.queue_free()
 
 func _clear_rewards():
-	for child in rewards_container.get_children():
-		child.queue_free()
+	if rewards_container:
+		for child in rewards_container.get_children():
+			child.queue_free()

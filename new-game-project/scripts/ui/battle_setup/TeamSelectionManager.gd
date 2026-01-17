@@ -1,29 +1,35 @@
 # scripts/ui/battle_setup/TeamSelectionManager.gd
 # Single responsibility: Manage team selection UI and functionality
 class_name TeamSelectionManager
-extends Control
+extends Node
 
 signal team_changed(team: Array)
 signal battle_start_requested(team: Array)
 signal setup_cancelled
 
-@onready var team_slots_container = $TeamSlotsContainer
-@onready var available_gods_scroll = $AvailableGodsContainer/ScrollContainer
-@onready var available_gods_grid = $AvailableGodsContainer/ScrollContainer/GodsGrid
-@onready var start_battle_button = $BottomContainer/StartBattleButton
-@onready var cancel_button = $BottomContainer/CancelButton
+var team_slots_container: HBoxContainer = null
+var available_gods_scroll: ScrollContainer = null
+var available_gods_grid: GridContainer = null
+var start_battle_button: Button = null
+var cancel_button: Button = null
 
 var selected_team: Array = []
 var team_slots: Array = []
 var max_team_size: int = 4
 var battle_context: Dictionary = {}
 
-func _ready():
+func initialize(slots_container: HBoxContainer, gods_grid: GridContainer, start_btn: Button, cancel_btn: Button):
+	"""Initialize with node references from the scene"""
+	team_slots_container = slots_container
+	available_gods_grid = gods_grid
+	start_battle_button = start_btn
+	cancel_button = cancel_btn
+
 	if start_battle_button:
 		start_battle_button.pressed.connect(_on_start_battle_pressed)
 	if cancel_button:
 		cancel_button.pressed.connect(_on_cancel_pressed)
-	
+
 	_create_team_slots()
 	_load_available_gods()
 
@@ -39,6 +45,8 @@ func _update_ui_for_context():
 			_setup_for_dungeon()
 		"pvp":
 			_setup_for_pvp()
+		"hex_capture":
+			_setup_for_hex_capture()
 
 func _setup_for_territory():
 	max_team_size = 4  # Territory battles use 4-god teams
@@ -50,6 +58,10 @@ func _setup_for_dungeon():
 
 func _setup_for_pvp():
 	max_team_size = 4  # PvP battles use 4-god teams
+	_refresh_team_slots()
+
+func _setup_for_hex_capture():
+	max_team_size = 4  # Hex capture battles use 4-god teams
 	_refresh_team_slots()
 
 func _create_team_slots():

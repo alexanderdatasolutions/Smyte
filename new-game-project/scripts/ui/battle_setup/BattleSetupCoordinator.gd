@@ -24,11 +24,38 @@ func _setup_managers():
 		call_deferred("_setup_managers")
 		return
 
+	# Get the UI nodes from the parent BattleSetupScreen
+	var screen = get_parent()
+	if not screen:
+		push_error("BattleSetupCoordinator: No parent screen found")
+		return
+
+	# Find the UI nodes
+	var team_slots = screen.get_node_or_null("MainContainer/ContentContainer/TeamSelectionContainer/TeamSlotsContainer")
+	var gods_grid = screen.get_node_or_null("MainContainer/ContentContainer/TeamSelectionContainer/AvailableGodsContainer/ScrollContainer/GodsGrid")
+	var start_btn = screen.get_node_or_null("MainContainer/BottomContainer/StartBattleButton")
+	var cancel_btn = screen.get_node_or_null("MainContainer/BottomContainer/CancelButton")
+
+	if not team_slots or not gods_grid or not start_btn or not cancel_btn:
+		push_error("BattleSetupCoordinator: Required UI nodes not found")
+		return
+
+	# Create and initialize team manager
 	team_manager = TeamSelectionManagerScript.new()
 	add_child(team_manager)
+	team_manager.initialize(team_slots, gods_grid, start_btn, cancel_btn)
 
+	# Get battle info panel nodes
+	var enemy_container = screen.get_node_or_null("MainContainer/ContentContainer/BattleInfoPanel/EnemyPreviewContainer")
+	var rewards_container = screen.get_node_or_null("MainContainer/ContentContainer/BattleInfoPanel/RewardsContainer")
+	var title_label = screen.get_node_or_null("MainContainer/HeaderContainer/TitleLabel")
+	var desc_label = screen.get_node_or_null("MainContainer/HeaderContainer/DescriptionLabel")
+
+	# Create and initialize battle info manager
 	battle_info_manager = BattleInfoManagerScript.new()
 	add_child(battle_info_manager)
+	if enemy_container and rewards_container:
+		battle_info_manager.initialize(enemy_container, rewards_container, title_label, desc_label)
 
 	_connect_signals()
 
