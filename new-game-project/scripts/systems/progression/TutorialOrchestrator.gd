@@ -193,54 +193,62 @@ func skip_tutorial():
 
 func _show_hex_map_intro_dialog():
 	"""Show hex map introduction dialog"""
-	EventBus.show_tutorial_requested.emit({
-		"title": "Welcome to the Hex Territory Map!",
-		"message": "This is your divine empire. Each hex represents a territory you can conquer.\n\n" +
-		"• Green hexes are yours\n" +
-		"• Gray hexes are neutral\n" +
-		"• Red hexes are enemies\n\n" +
-		"Use the zoom controls (+/-) and drag to explore. Click a hex to see details.",
-		"button_text": "Got it!"
-	})
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus")
+	if event_bus:
+		event_bus.show_tutorial_requested.emit({
+			"title": "Welcome to the Hex Territory Map!",
+			"message": "This is your divine empire. Each hex represents a territory you can conquer.\n\n" +
+			"• Green hexes are yours\n" +
+			"• Gray hexes are neutral\n" +
+			"• Red hexes are enemies\n\n" +
+			"Use the zoom controls (+/-) and drag to explore. Click a hex to see details.",
+			"button_text": "Got it!"
+		})
 
 func _show_hex_node_selection_dialog():
 	"""Show hex node selection tutorial"""
-	EventBus.show_tutorial_requested.emit({
-		"title": "Selecting Territories",
-		"message": "Click any hex to view its details:\n\n" +
-		"• Production resources\n" +
-		"• Defense rating\n" +
-		"• Garrison and workers\n" +
-		"• Unlock requirements\n\n" +
-		"Neutral territories can be captured. Enemy territories can be raided!",
-		"button_text": "Continue"
-	})
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus")
+	if event_bus:
+		event_bus.show_tutorial_requested.emit({
+			"title": "Selecting Territories",
+			"message": "Click any hex to view its details:\n\n" +
+			"• Production resources\n" +
+			"• Defense rating\n" +
+			"• Garrison and workers\n" +
+			"• Unlock requirements\n\n" +
+			"Neutral territories can be captured. Enemy territories can be raided!",
+			"button_text": "Continue"
+		})
 
 func _show_hex_node_capture_dialog():
 	"""Show hex node capture tutorial"""
-	EventBus.show_tutorial_requested.emit({
-		"title": "Capturing Territories",
-		"message": "To capture a territory, you need:\n\n" +
-		"• Required player level\n" +
-		"• Required specialization tier\n" +
-		"• Enough combat power\n\n" +
-		"Higher tier nodes (★★★★★) require advanced specializations. " +
-		"Connect territories for production bonuses!",
-		"button_text": "Let's do this!"
-	})
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus")
+	if event_bus:
+		event_bus.show_tutorial_requested.emit({
+			"title": "Capturing Territories",
+			"message": "To capture a territory, you need:\n\n" +
+			"• Required player level\n" +
+			"• Required specialization tier\n" +
+			"• Enough combat power\n\n" +
+			"Higher tier nodes (★★★★★) require advanced specializations. " +
+			"Connect territories for production bonuses!",
+			"button_text": "Let's do this!"
+		})
 
 func _show_spec_unlock_tier2_dialog():
 	"""Show tier 2 specialization unlock tutorial"""
-	EventBus.show_tutorial_requested.emit({
-		"title": "Specialization Unlocked!",
-		"message": "Congratulations! You've unlocked a Tier 2 specialization.\n\n" +
-		"This allows you to:\n" +
-		"• Capture Tier 2 nodes (★★)\n" +
-		"• Get +100% efficiency bonuses\n" +
-		"• Access rare resources\n\n" +
-		"Keep leveling and specializing to unlock Tier 3, 4, and 5 territories!",
-		"button_text": "Awesome!"
-	})
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus")
+	if event_bus:
+		event_bus.show_tutorial_requested.emit({
+			"title": "Specialization Unlocked!",
+			"message": "Congratulations! You've unlocked a Tier 2 specialization.\n\n" +
+			"This allows you to:\n" +
+			"• Capture Tier 2 nodes (★★)\n" +
+			"• Get +100% efficiency bonuses\n" +
+			"• Access rare resources\n\n" +
+			"Keep leveling and specializing to unlock Tier 3, 4, and 5 territories!",
+			"button_text": "Awesome!"
+		})
 
 # ==============================================================================
 # SAVE/LOAD INTEGRATION
