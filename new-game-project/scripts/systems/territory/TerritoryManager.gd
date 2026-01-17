@@ -561,3 +561,59 @@ func get_hex_node(coord):
 		return null
 
 	return hex_grid_manager.get_node_at(coord)
+
+# ==============================================================================
+# NODE GARRISON AND WORKER MANAGEMENT
+# ==============================================================================
+
+## Update garrison gods for a hex node by node ID
+func update_node_garrison(node_id: String, garrison_ids: Array) -> bool:
+	"""Update the garrison of a hex node"""
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		push_error("TerritoryManager: HexGridManager not found")
+		return false
+
+	var node = hex_grid_manager.get_node_by_id(node_id)
+	if not node:
+		push_error("TerritoryManager: Node not found: " + node_id)
+		return false
+
+	if not node.is_controlled_by_player():
+		push_error("TerritoryManager: Cannot modify garrison of uncontrolled node")
+		return false
+
+	# Update the garrison array
+	node.garrison.clear()
+	for god_id in garrison_ids:
+		if god_id is String:
+			node.garrison.append(god_id)
+
+	print("TerritoryManager: Updated garrison for node %s: %s" % [node_id, node.garrison])
+	return true
+
+## Update worker gods for a hex node by node ID
+func update_node_workers(node_id: String, worker_ids: Array) -> bool:
+	"""Update the assigned workers of a hex node"""
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		push_error("TerritoryManager: HexGridManager not found")
+		return false
+
+	var node = hex_grid_manager.get_node_by_id(node_id)
+	if not node:
+		push_error("TerritoryManager: Node not found: " + node_id)
+		return false
+
+	if not node.is_controlled_by_player():
+		push_error("TerritoryManager: Cannot modify workers of uncontrolled node")
+		return false
+
+	# Update the assigned workers array
+	node.assigned_workers.clear()
+	for god_id in worker_ids:
+		if god_id is String:
+			node.assigned_workers.append(god_id)
+
+	print("TerritoryManager: Updated workers for node %s: %s" % [node_id, node.assigned_workers])
+	return true

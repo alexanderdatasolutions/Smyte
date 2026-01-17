@@ -32,6 +32,7 @@ const NodeRequirementsPanelScript = preload("res://scripts/ui/territory/NodeRequ
 const NodeCaptureHandlerScript = preload("res://scripts/ui/territory/NodeCaptureHandler.gd")
 const WorkerAssignmentPanelScript = preload("res://scripts/ui/territory/WorkerAssignmentPanel.gd")
 const GarrisonManagementPanelScript = preload("res://scripts/ui/territory/GarrisonManagementPanel.gd")
+const NodeDetailScreenScript = preload("res://scripts/ui/screens/NodeDetailScreen.gd")
 
 # ==============================================================================
 # UI COMPONENTS
@@ -52,6 +53,7 @@ var node_capture_handler: NodeCaptureHandler = null
 var worker_assignment_panel: WorkerAssignmentPanel = null
 var garrison_management_panel: GarrisonManagementPanel = null
 var territory_overview_screen: TerritoryOverviewScreen = null
+var node_detail_screen: NodeDetailScreen = null
 
 # ==============================================================================
 # PROPERTIES
