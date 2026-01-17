@@ -65,9 +65,19 @@ func setup_for_hex_node_capture(hex_node: HexNode):
 		"type": "hex_capture",
 		"hex_node": hex_node
 	}
-	_update_for_context()
+	# Ensure managers are set up before updating context
+	if not team_manager:
+		call_deferred("_update_for_context")
+	else:
+		_update_for_context()
 
 func _update_for_context():
+	# Double check managers exist
+	if not team_manager or not battle_info_manager:
+		push_warning("BattleSetupCoordinator: Managers not ready, deferring context update")
+		call_deferred("_update_for_context")
+		return
+
 	team_manager.setup_for_context(battle_context)
 	battle_info_manager.update_for_context(battle_context)
 
