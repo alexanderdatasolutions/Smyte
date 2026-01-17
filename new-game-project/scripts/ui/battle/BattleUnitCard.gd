@@ -444,7 +444,10 @@ const MAX_VISIBLE_STATUS_ICONS := 5  # Limit to avoid overflow
 func update_status_effects():
 	"""Update status effect icons display using StatusEffectIcon component"""
 	if not status_container or not battle_unit:
+		print("BattleUnitCard.update_status_effects: Missing container or unit")
 		return
+
+	print("BattleUnitCard.update_status_effects: Updating %s with %d effects" % [battle_unit.display_name, battle_unit.status_effects.size()])
 
 	# Clear existing icons
 	for child in status_container.get_children():
@@ -453,6 +456,7 @@ func update_status_effects():
 	# Add icons for each status effect (up to max visible)
 	var effect_count = 0
 	for effect in battle_unit.status_effects:
+		print("BattleUnitCard.update_status_effects: Adding icon for effect: %s" % effect.name)
 		if effect_count >= MAX_VISIBLE_STATUS_ICONS:
 			# Add overflow indicator
 			var overflow_label = Label.new()
@@ -467,3 +471,5 @@ func update_status_effects():
 		icon.setup(effect)
 		status_container.add_child(icon)
 		effect_count += 1
+
+	print("BattleUnitCard.update_status_effects: Added %d status effect icons to %s" % [effect_count, battle_unit.display_name])

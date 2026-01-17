@@ -118,21 +118,23 @@ func tick_cooldowns():
 func add_status_effect(effect: StatusEffect):
 	# Check if effect already exists and stack/replace as needed
 	for existing_effect in status_effects:
-		if existing_effect.effect_id == effect.effect_id:
-			if effect.stackable:
-				existing_effect.stack_count += 1
+		if existing_effect.id == effect.id:
+			if effect.can_stack:
+				existing_effect.stacks += 1
+				print("BattleUnit.add_status_effect: Stacked %s on %s (now %d stacks)" % [effect.name, display_name, existing_effect.stacks])
 				return
 			else:
 				# Replace with new effect
 				status_effects.erase(existing_effect)
 				break
-	
+
 	status_effects.append(effect)
+	print("BattleUnit.add_status_effect: Added %s to %s (total effects: %d)" % [effect.name, display_name, status_effects.size()])
 
 ## Remove a status effect
 func remove_status_effect(effect_id: String) -> bool:
 	for effect in status_effects:
-		if effect.effect_id == effect_id:
+		if effect.id == effect_id:
 			status_effects.erase(effect)
 			return true
 	return false

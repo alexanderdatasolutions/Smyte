@@ -147,9 +147,11 @@ func _apply_skill_status_effects(skill, caster, target, result: ActionResult):
 	# Process each effect in the skill
 	for effect_data in effects:
 		if not effect_data is Dictionary:
+			print("BattleActionProcessor: Skipping non-dictionary effect")
 			continue
 
 		var effect_type = effect_data.get("type", "")
+		print("BattleActionProcessor: Found effect type: %s" % effect_type)
 
 		# Handle debuff effects
 		if effect_type == "debuff":
@@ -159,6 +161,8 @@ func _apply_skill_status_effects(skill, caster, target, result: ActionResult):
 		elif effect_type == "buff":
 			print("BattleActionProcessor: Applying buff: ", effect_data.get("buff", "unknown"))
 			_apply_buff_effect(effect_data, caster, target, result)
+		else:
+			print("BattleActionProcessor: Skipping effect type: %s (not buff or debuff)" % effect_type)
 
 func _get_ability_data(skill_id: String) -> Dictionary:
 	"""Load ability data from JSON file"""
