@@ -44,7 +44,15 @@ func save_game() -> bool:
 	var battle_coordinator = system_registry.get_system("BattleCoordinator") if system_registry else null
 	if battle_coordinator and battle_coordinator.has_method("get_save_data"):
 		save_data["battle"] = battle_coordinator.get_save_data()
-	
+
+	var hex_grid_manager = system_registry.get_system("HexGridManager") if system_registry else null
+	if hex_grid_manager and hex_grid_manager.has_method("get_save_data"):
+		save_data["hex_grid"] = hex_grid_manager.get_save_data()
+
+	var territory_manager = system_registry.get_system("TerritoryManager") if system_registry else null
+	if territory_manager and territory_manager.has_method("get_save_data"):
+		save_data["territory"] = territory_manager.get_save_data()
+
 	# Write to file
 	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.WRITE)
 	if not file:
@@ -100,6 +108,16 @@ func load_game() -> bool:
 		var collection_manager = system_registry.get_system("CollectionManager") if system_registry else null
 		if collection_manager and collection_manager.has_method("load_save_data"):
 			collection_manager.load_save_data(save_data.collection)
+
+	if save_data.has("hex_grid"):
+		var hex_grid_manager = system_registry.get_system("HexGridManager") if system_registry else null
+		if hex_grid_manager and hex_grid_manager.has_method("load_save_data"):
+			hex_grid_manager.load_save_data(save_data.hex_grid)
+
+	if save_data.has("territory"):
+		var territory_manager = system_registry.get_system("TerritoryManager") if system_registry else null
+		if territory_manager and territory_manager.has_method("load_save_data"):
+			territory_manager.load_save_data(save_data.territory)
 
 	load_completed.emit(true, save_data)
 	return true

@@ -361,9 +361,15 @@ func load_save_data(save_data: Dictionary) -> void:
 			node.is_revealed = saved_state.get("is_revealed", false)
 			node.is_contested = saved_state.get("is_contested", false)
 			node.contested_until = saved_state.get("contested_until", 0)
-			node.garrison = saved_state.get("garrison", [])
-			node.assigned_workers = saved_state.get("assigned_workers", [])
-			node.active_tasks = saved_state.get("active_tasks", [])
+
+			# Update typed arrays using .assign()
+			var garrison_data = saved_state.get("garrison", [])
+			node.garrison.assign(garrison_data)
+			var workers_data = saved_state.get("assigned_workers", [])
+			node.assigned_workers.assign(workers_data)
+			var tasks_data = saved_state.get("active_tasks", [])
+			node.active_tasks.assign(tasks_data)
+
 			node.production_level = saved_state.get("production_level", 1)
 			node.defense_level = saved_state.get("defense_level", 1)
 			node.last_raid_time = saved_state.get("last_raid_time", 0)
