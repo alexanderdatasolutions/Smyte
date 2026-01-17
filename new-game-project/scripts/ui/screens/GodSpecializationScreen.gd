@@ -368,20 +368,22 @@ func _create_spec_details_ui(spec: GodSpecialization):
 	# Force scroll to top immediately
 	details_content.scroll_vertical = 0
 
-	# Create VBox directly in ScrollContainer
+	# Create VBox - ScrollContainer children should NOT use anchors/offsets
 	var vbox = VBoxContainer.new()
-	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.size_flags_horizontal = Control.SIZE_FILL
+	vbox.custom_minimum_size = Vector2(300, 0)  # Set minimum width
 	vbox.add_theme_constant_override("separation", 12)
-	# Add padding via margin overrides
-	vbox.add_theme_constant_override("margin_left", 12)
-	vbox.add_theme_constant_override("margin_right", 12)
-	vbox.add_theme_constant_override("margin_top", 12)
-	vbox.add_theme_constant_override("margin_bottom", 12)
+	vbox.position = Vector2.ZERO  # Ensure it starts at origin relative to parent
 	details_content.add_child(vbox)
+
+	# Add top spacer for padding
+	var top_spacer = Control.new()
+	top_spacer.custom_minimum_size = Vector2(0, 12)
+	vbox.add_child(top_spacer)
 
 	# Title
 	var title_label = Label.new()
-	title_label.text = spec.name
+	title_label.text = "  " + spec.name  # Add left padding with spaces
 	title_label.add_theme_font_size_override("font_size", 20)
 	title_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
 	vbox.add_child(title_label)
@@ -389,7 +391,7 @@ func _create_spec_details_ui(spec: GodSpecialization):
 	# Tier
 	var tier_label = Label.new()
 	var tier_names = ["", "Tier I", "Tier II", "Tier III"]
-	tier_label.text = tier_names[clampi(spec.tier, 1, 3)]
+	tier_label.text = "  " + tier_names[clampi(spec.tier, 1, 3)]  # Add left padding
 	tier_label.add_theme_font_size_override("font_size", 14)
 	tier_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
 	vbox.add_child(tier_label)
@@ -397,7 +399,7 @@ func _create_spec_details_ui(spec: GodSpecialization):
 	# Description
 	if spec.description != "":
 		var desc_label = Label.new()
-		desc_label.text = spec.description
+		desc_label.text = "  " + spec.description  # Add left padding
 		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		desc_label.add_theme_font_size_override("font_size", 12)
 		desc_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.8))
@@ -417,7 +419,7 @@ func _create_spec_details_ui(spec: GodSpecialization):
 func _add_requirements_section(parent: VBoxContainer, spec: GodSpecialization):
 	"""Add requirements section to details"""
 	var req_header = Label.new()
-	req_header.text = "Requirements:"
+	req_header.text = "  Requirements:"  # Add left padding
 	req_header.add_theme_font_size_override("font_size", 14)
 	req_header.add_theme_color_override("font_color", Color(1.0, 0.8, 0.6))
 	parent.add_child(req_header)
@@ -444,7 +446,7 @@ func _add_requirements_section(parent: VBoxContainer, spec: GodSpecialization):
 	# Costs
 	if not spec.costs.is_empty():
 		var cost_header = Label.new()
-		cost_header.text = "Costs:"
+		cost_header.text = "  Costs:"  # Add left padding
 		cost_header.add_theme_font_size_override("font_size", 14)
 		cost_header.add_theme_color_override("font_color", Color(1.0, 1.0, 0.6))
 		parent.add_child(cost_header)
@@ -459,7 +461,7 @@ func _add_requirements_section(parent: VBoxContainer, spec: GodSpecialization):
 func _add_bonuses_section(parent: VBoxContainer, spec: GodSpecialization):
 	"""Add bonuses section to details"""
 	var bonus_header = Label.new()
-	bonus_header.text = "Bonuses:"
+	bonus_header.text = "  Bonuses:"  # Add left padding
 	bonus_header.add_theme_font_size_override("font_size", 14)
 	bonus_header.add_theme_color_override("font_color", Color(0.6, 1.0, 0.6))
 	parent.add_child(bonus_header)
