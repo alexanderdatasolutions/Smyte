@@ -1,6 +1,6 @@
 # Smyte - Master Project Document
 
-**Version**: 2.0 | **Last Updated**: 2026-01-16
+**Version**: 2.1 | **Last Updated**: 2026-01-16 (Dungeon System Complete)
 
 ---
 
@@ -187,10 +187,33 @@ Not a matching simulator - specialists can focus on one thing and trade/raid for
 - **Actions**: Attack, Skill 1 (2cd), Skill 2 (3cd), Ultimate (5cd)
 - **Status Effects**: Buffs (ATK/DEF/SPD Up, Shield, Immunity) | Debuffs (ATK/DEF/SPD Down, Stun, Freeze, Burn, Poison, Bleed)
 
-## Game Modes
-- **Equipment Dungeons**: Drop specific gear types
-- **Awakening Sanctums**: Drop element powders
-- **Boss Dungeons**: Legendary equipment
+## Dungeon System ⭐
+
+**18 Dungeons Total** = 6 Elemental + 1 Magic + 8 Pantheon + 3 Equipment
+
+**Daily Rotation Schedule:**
+- Mon-Sat: Element-specific sanctums (Fire/Water/Earth/Lightning/Light/Dark)
+- Weekends: Pantheon Trials (Greek, Norse, Egyptian, Hindu + rotating)
+- Always: Hall of Magic, Equipment Dungeons
+
+**4 Difficulties**: Beginner (8E) → Intermediate (10E) → Advanced (12E) → Expert (15E)
+
+**Replayability Drivers:**
+1. Substat RNG (0.26% for perfect gear → 385 runs)
+2. Enhancement failures (+15 = 30% success)
+3. 24+ gods to build (144 equipment pieces)
+4. Daily rotation (login habit)
+5. Expert is 3.2x more efficient than Beginner
+
+**Gacha Hooks:**
+- AOE gods clear 2x faster
+- Element advantage = 30% damage
+- Leader skills save 25% time
+- Better skills = 25% more DPS
+
+**See DUNGEON_REPLAYABILITY.md for full mechanics**
+
+## Other Game Modes
 - **PvP Arena**: Live 4v4, weekly rankings
 - **Territory Raids**: Async PvP on nodes, steal resources
 
@@ -224,8 +247,9 @@ new-game-project/
 ├── data/              # JSON configs
 │   ├── gods.json, traits.json, roles.json, specializations.json
 │   ├── tasks.json, resources.json, crafting_recipes.json
-│   ├── hex_nodes.json (79 nodes by Ralph)
-│   └── shop_items.json
+│   ├── hex_nodes.json (79 nodes), dungeon_waves.json (210+ waves)
+│   ├── dungeons.json, enemies.json, loot_tables.json, loot_items.json
+│   └── shop_items.json, god_skins.json
 └── scenes/            # Godot .tscn files
 ```
 
@@ -250,17 +274,21 @@ new-game-project/
 - **84 specializations** across 5 roles
 - **24 traits**, **24 tasks**
 - **79 hex nodes** (Rings 0-5 by Ralph)
+- **18 dungeons with 70+ difficulty configs** (210+ wave compositions)
+- **Complete loot system** (50+ loot templates, 80+ items)
+- **Stat balance guide** (damage formula, scaling curves)
 - **42 unit tests** for crafting (90%+ coverage)
 
 ## 🔄 In Progress
 - Territory screen UI (hex map view)
 - Node capture flow (scout → challenge → claim)
 - Task assignment UI (assign gods to nodes)
+- Dungeon system testing & tuning
 
 ## 📋 Planned
-**Short-term**: Territory UI, node tier gating, task assignment
-**Mid-term**: Async PvP raids, guild territories, trading system
-**Long-term**: Seasonal events, cross-server wars, expanded pantheons
+**Short-term**: Territory UI, node tier gating, dungeon difficulty balance
+**Mid-term**: Async PvP raids, guild territories, trading system, dungeon leaderboards
+**Long-term**: Seasonal events, cross-server wars, expanded pantheons, world bosses
 
 ---
 
@@ -287,6 +315,13 @@ new-game-project/
 
 ---
 
-**See RESOURCE_PHILOSOPHY.md for detailed player archetypes and node efficiency calculations.**
+---
+
+## 📚 Reference Documents
+
+- **RESOURCE_PHILOSOPHY.md** - Player archetypes, node efficiency, AFK strategies
+- **STAT_BALANCE_GUIDE.md** - Complete stat system, damage formula, level scaling (10k+ words)
+- **DUNGEON_REPLAYABILITY.md** - Replayability mechanics, gacha hooks, optimization (8k+ words)
+- **DUNGEON_SYSTEM_COMPLETE.md** - Implementation status, testing checklist, integration guide
 
 *Master Document - For Ralph and Claude reference*

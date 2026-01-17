@@ -190,18 +190,23 @@ static func from_dict(data: Dictionary):
 	node.is_contested = data.get("is_contested", false)
 	node.contested_until = data.get("contested_until", 0)
 
-	# Combat
-	node.garrison = data.get("garrison", [])
+	# Combat - Convert to typed arrays
+	var garrison_data = data.get("garrison", [])
+	node.garrison.assign(garrison_data)
 	node.max_garrison = data.get("max_garrison", 2)
-	node.base_defenders = data.get("base_defenders", [])
+	var defenders_data = data.get("base_defenders", [])
+	node.base_defenders.assign(defenders_data)
 	node.capture_power_required = data.get("capture_power_required", 5000)
 
-	# Production
-	node.assigned_workers = data.get("assigned_workers", [])
+	# Production - Convert to typed arrays
+	var workers_data = data.get("assigned_workers", [])
+	node.assigned_workers.assign(workers_data)
 	node.max_workers = data.get("max_workers", 3)
-	node.active_tasks = data.get("active_tasks", [])
+	var tasks_data = data.get("active_tasks", [])
+	node.active_tasks.assign(tasks_data)
 	node.base_production = data.get("base_production", {})
-	node.available_tasks = data.get("available_tasks", [])
+	var available_tasks_data = data.get("available_tasks", [])
+	node.available_tasks.assign(available_tasks_data)
 
 	# Upgrades
 	node.production_level = data.get("production_level", 1)

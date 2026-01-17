@@ -150,7 +150,7 @@ func _get_resource_display_text(resource_id: String) -> String:
 	if not resource_manager:
 		return resource_id.capitalize() + ": 0"
 
-	var amount = resource_manager.get_resource_amount(resource_id)
+	var amount = resource_manager.get_resource(resource_id)
 	var icon = _get_resource_icon(resource_id)
 	return icon + " " + resource_id.capitalize() + ": " + str(amount)
 

@@ -46,7 +46,7 @@ func equals(other: HexCoord) -> bool:
 		return false
 	return q == other.q and r == other.r
 
-func to_string() -> String:
+func as_string() -> String:
 	"""Convert to string representation"""
 	return "HexCoord(q=%d, r=%d)" % [q, r]
 
@@ -74,7 +74,7 @@ static func from_qr(coord_q: int, coord_r: int):
 
 # === HELPER METHODS ===
 
-func get_ring(radius: int) -> int:
+func get_ring(_radius: int) -> int:
 	"""Get which ring this coordinate is in (distance from origin)"""
 	var script = load("res://scripts/data/HexCoord.gd")
 	var origin = script.new(0, 0)
@@ -92,7 +92,7 @@ func to_cube() -> Dictionary:
 	var y = -x - z
 	return {"x": x, "y": y, "z": z}
 
-static func from_cube(x: int, y: int, z: int):
+static func from_cube(x: int, _y: int, z: int):
 	"""Create HexCoord from cube coordinates"""
 	var script = load("res://scripts/data/HexCoord.gd")
 	return script.new(x, z)

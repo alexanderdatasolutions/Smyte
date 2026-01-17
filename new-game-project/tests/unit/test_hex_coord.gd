@@ -182,14 +182,14 @@ func test_equals_negative_coords():
 
 func test_to_string_format():
 	var coord = create_coord(5, 3)
-	var string_rep = coord.to_string()
+	var string_rep = coord.as_string()
 
 	runner.assert_true(string_rep.contains("5"), "string should contain q value")
 	runner.assert_true(string_rep.contains("3"), "string should contain r value")
 
 func test_to_string_negative():
 	var coord = create_coord(-2, -4)
-	var string_rep = coord.to_string()
+	var string_rep = coord.as_string()
 
 	runner.assert_true(string_rep.contains("-2"), "string should contain negative q")
 	runner.assert_true(string_rep.contains("-4"), "string should contain negative r")
