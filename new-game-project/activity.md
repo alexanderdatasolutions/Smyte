@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 9/10
-**Current Task:** Mobile UX polish and testing
+**Tasks Completed:** 10/10
+**Current Task:** ALL TASKS COMPLETE
 
 ---
 
@@ -424,4 +424,62 @@ Updated WorkerSlotDisplay to show calculated output rates using NodeTaskCalculat
 - Uses SystemRegistry for NodeTaskCalculator access ✅
 - Read-only display, emits signals for parent ✅
 - Graceful fallback when calculator unavailable ✅
+
+### 2026-01-17 - Task 10: Mobile UX polish and testing ✅
+
+**What Changed:**
+Added mobile UX polish including 60px minimum tap targets, smooth fade transitions, loading states, and error handling across all node detail components.
+
+**Files Modified:**
+- `scripts/ui/screens/NodeDetailScreen.gd` - Added fade transitions, increased tap targets (482 lines)
+- `scripts/ui/territory/GodSelectionGrid.gd` - Added loading state, error handling, close button styling (496 lines)
+- `scripts/ui/territory/GarrisonDisplay.gd` - Increased button size, added styling (412 lines)
+
+**Implementation Details:**
+
+1. **60px Minimum Tap Targets**:
+   - NodeDetailScreen back button: 80x60px (was 80x44px)
+   - GodSelectionGrid close button: 60x60px (was 40x40px)
+   - GarrisonDisplay "Set Garrison" button: 160x60px (was 140x44px)
+   - Header panel height increased to 70px for tap target accommodation
+
+2. **Smooth Fade Transitions**:
+   - NodeDetailScreen: 0.2s fade in/out using Tween
+   - GodSelectionGrid: 0.15s fade in/out for overlay
+   - Uses modulate.a property for smooth alpha transition
+   - Proper cleanup on hide (reset modulate, null current node)
+
+3. **Loading States for GodSelectionGrid**:
+   - `_show_loading_state()`: Shows "Loading gods..." while fetching
+   - `_show_empty_state()`: Shows "No gods available" when filter returns empty
+   - `_show_error_state(message)`: Shows error when collection unavailable
+
+4. **Error Handling**:
+   - Null check on CollectionManager before refresh
+   - Null check on get_all_gods() return value
+   - Null check on individual gods in filtered list
+   - Graceful fallback with informative error messages
+
+5. **Button Styling**:
+   - `_style_close_button()`: Red-tinted close button with hover states
+   - `_style_action_button()`: Blue-tinted action button with pressed states
+
+**Verified With Godot MCP:**
+- Ran project: No errors from any modified files
+- Complete flow tested: map → territory overview → view details → set garrison → close → back
+- All transitions working smoothly
+- Screenshots captured:
+  - `screenshots/node-detail-polish-1-hex-map.png`
+  - `screenshots/node-detail-polish-2-territory-overview.png`
+  - `screenshots/node-detail-polish-3-node-detail.png`
+  - `screenshots/node-detail-polish-4-god-selection.png`
+  - `screenshots/node-detail-polish-5-back-to-detail.png`
+  - `screenshots/node-detail-polish-6-back-to-map.png`
+
+**Architecture Compliance:**
+- All files under 500 lines ✅
+- Single responsibility maintained ✅
+- Uses SystemRegistry for system access ✅
+- Read-only display with signal emission ✅
+- Graceful error handling ✅
 

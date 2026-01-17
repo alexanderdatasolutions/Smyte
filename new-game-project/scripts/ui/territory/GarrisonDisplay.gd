@@ -99,11 +99,12 @@ func _setup_ui() -> void:
 	_empty_state_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_garrison_container.add_child(_empty_state_label)
 
-	# Set Garrison button
+	# Set Garrison button - 60px minimum height for tap target
 	_set_garrison_button = Button.new()
 	_set_garrison_button.text = "+ Set Garrison"
-	_set_garrison_button.custom_minimum_size = Vector2(140, 44)  # 60x60 min tap target
+	_set_garrison_button.custom_minimum_size = Vector2(160, 60)  # Meets 60px minimum tap target
 	_set_garrison_button.pressed.connect(_on_set_garrison_pressed)
+	_style_action_button(_set_garrison_button)
 	main_vbox.add_child(_set_garrison_button)
 
 func _create_header() -> Control:
@@ -382,3 +383,30 @@ func _on_garrison_god_tapped(god: God) -> void:
 	"""Handle tap on garrison god card"""
 	print("GarrisonDisplay: Garrison god tapped - %s" % god.name)
 	garrison_god_tapped.emit(god)
+
+func _style_action_button(button: Button) -> void:
+	"""Apply consistent action button styling"""
+	var style_normal = StyleBoxFlat.new()
+	style_normal.bg_color = Color(0.15, 0.2, 0.3, 0.95)
+	style_normal.border_color = Color(0.3, 0.5, 0.7)
+	style_normal.set_border_width_all(2)
+	style_normal.set_corner_radius_all(8)
+	button.add_theme_stylebox_override("normal", style_normal)
+
+	var style_hover = StyleBoxFlat.new()
+	style_hover.bg_color = Color(0.2, 0.3, 0.4, 0.98)
+	style_hover.border_color = Color(0.4, 0.6, 0.8)
+	style_hover.set_border_width_all(2)
+	style_hover.set_corner_radius_all(8)
+	button.add_theme_stylebox_override("hover", style_hover)
+
+	var style_pressed = StyleBoxFlat.new()
+	style_pressed.bg_color = Color(0.25, 0.35, 0.5, 1.0)
+	style_pressed.border_color = Color(0.5, 0.7, 0.9)
+	style_pressed.set_border_width_all(2)
+	style_pressed.set_corner_radius_all(8)
+	button.add_theme_stylebox_override("pressed", style_pressed)
+
+	button.add_theme_color_override("font_color", Color(0.85, 0.9, 0.95))
+	button.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
+	button.add_theme_font_size_override("font_size", 14)

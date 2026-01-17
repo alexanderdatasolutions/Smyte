@@ -150,7 +150,7 @@ Create a mobile-friendly node management interface that clearly shows garrison, 
       "Test complete flow: map → detail → garrison → workers → map",
       "Take screenshots of each major screen state"
     ],
-    "passes": false
+    "passes": true
   }
 ]
 ```

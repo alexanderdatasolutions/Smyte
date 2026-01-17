@@ -1,34 +1,11 @@
-# scripts/ui/screens/NodeDetailScreen.gd
-# Fullscreen node detail overlay for managing garrison and workers
-# RULE 1: Under 500 lines
-# RULE 2: Single responsibility - displays node details with garrison/worker sections
-# RULE 4: Read-only display - delegates data changes to parent via signals
-# RULE 5: SystemRegistry for all system access
+# NodeDetailScreen - Mobile-friendly node management with garrison/worker sections
 class_name NodeDetailScreen
 extends Control
 
-"""
-NodeDetailScreen - Mobile-friendly node management interface
-
-Shows:
-1. Header - Node name, type icon, tier, close button
-2. GarrisonSection - Combat defenders using GarrisonDisplay
-3. WorkerSection - Task workers using WorkerSlotDisplay
-4. GodSelectionGrid - Overlay for selecting gods (garrison or worker)
-
-Following COMMON_ISSUES.md: Uses _setup_fullscreen() for Control under Node2D.
-"""
-
-# ==============================================================================
-# SIGNALS
-# ==============================================================================
 signal close_requested
 signal garrison_changed(node: HexNode, garrison_ids: Array)
 signal workers_changed(node: HexNode, worker_ids: Array)
 
-# ==============================================================================
-# CONSTANTS
-# ==============================================================================
 const NODE_TYPE_ICONS = {
 	"base": "🏛️",
 	"mine": "⛏️",
@@ -40,44 +17,27 @@ const NODE_TYPE_ICONS = {
 	"temple": "⛪",
 	"fortress": "🏰"
 }
+const FADE_DURATION := 0.2
 
-# ==============================================================================
-# UI COMPONENTS
-# ==============================================================================
 var _background: ColorRect
 var _main_container: MarginContainer
 var _content_scroll: ScrollContainer
 var _content_vbox: VBoxContainer
-
-# Header components
 var _header_container: HBoxContainer
 var _back_button: Button
 var _title_label: Label
 var _tier_label: Label
-
-# Section components
 var _garrison_section: Control
 var _garrison_display: GarrisonDisplay
 var _worker_section: Control
 var _worker_slot_display: WorkerSlotDisplay
-
-# God selection overlay
 var _god_selection_grid: GodSelectionGrid
-var _selection_mode: String = ""  # "garrison" or "worker"
+var _selection_mode: String = ""
 var _selection_slot_index: int = -1
-
-# ==============================================================================
-# STATE
-# ==============================================================================
 var _current_node: HexNode = null
-
-# System references
 var territory_manager = null
 var collection_manager = null
 
-# ==============================================================================
-# INITIALIZATION
-# ==============================================================================
 func _ready() -> void:
 	_setup_fullscreen()
 	_init_systems()
@@ -146,9 +106,9 @@ func _build_ui() -> void:
 
 func _build_header(parent: Control) -> void:
 	"""Build header with back button, node info, and tier display"""
-	# Header panel with styled background
+	# Header panel with styled background - increased height for 60px tap targets
 	var header_panel = Panel.new()
-	header_panel.custom_minimum_size = Vector2(0, 60)
+	header_panel.custom_minimum_size = Vector2(0, 70)
 	var header_style = StyleBoxFlat.new()
 	header_style.bg_color = Color(0.1, 0.1, 0.14, 0.95)
 	header_style.corner_radius_top_left = 8
@@ -168,10 +128,10 @@ func _build_header(parent: Control) -> void:
 	_header_container.add_theme_constant_override("separation", 12)
 	header_panel.add_child(_header_container)
 
-	# Back button (close)
+	# Back button (close) - 60x60px minimum tap target
 	_back_button = Button.new()
 	_back_button.text = "← Back"
-	_back_button.custom_minimum_size = Vector2(80, 44)
+	_back_button.custom_minimum_size = Vector2(80, 60)  # Meets 60px minimum tap target
 	_back_button.pressed.connect(_on_close_pressed)
 	_style_button(_back_button)
 	_header_container.add_child(_back_button)
@@ -304,11 +264,8 @@ func _style_button(button: Button) -> void:
 	button.add_theme_color_override("font_color", Color(0.9, 0.9, 0.95))
 	button.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
 
-# ==============================================================================
-# PUBLIC API
-# ==============================================================================
 func show_node(node: HexNode) -> void:
-	"""Show the detail screen for a specific node"""
+	"""Show the detail screen for a specific node with smooth fade-in transition"""
 	if not node:
 		push_error("NodeDetailScreen: Cannot show null node")
 		return
@@ -317,22 +274,30 @@ func show_node(node: HexNode) -> void:
 	_update_header()
 	_update_garrison()
 	_update_workers()
+
+	# Smooth fade-in transition
+	modulate.a = 0.0
 	visible = true
+	var tween = create_tween()
+	tween.tween_property(self, "modulate:a", 1.0, FADE_DURATION).set_ease(Tween.EASE_OUT)
 	print("NodeDetailScreen: Showing details for node '%s' (type: %s, tier: %d)" % [node.name, node.node_type, node.tier])
 
 func hide_screen() -> void:
-	"""Hide the detail screen"""
-	visible = false
+	"""Hide the detail screen with smooth fade-out transition"""
 	_god_selection_grid.visible = false
-	_current_node = null
+
+	# Smooth fade-out transition
+	var tween = create_tween()
+	tween.tween_property(self, "modulate:a", 0.0, FADE_DURATION).set_ease(Tween.EASE_IN)
+	tween.tween_callback(func():
+		visible = false
+		modulate.a = 1.0  # Reset for next show
+		_current_node = null
+	)
 
 func get_current_node() -> HexNode:
-	"""Get the currently displayed node"""
 	return _current_node
 
-# ==============================================================================
-# UI UPDATE METHODS
-# ==============================================================================
 func _update_header() -> void:
 	"""Update header with node information"""
 	if not _current_node:
@@ -367,9 +332,6 @@ func _update_workers() -> void:
 
 	_worker_slot_display.setup_for_node(_current_node)
 
-# ==============================================================================
-# EVENT HANDLERS - Garrison
-# ==============================================================================
 func _on_garrison_set_requested() -> void:
 	"""Handle request to open god selection for garrison"""
 	_selection_mode = "garrison"
@@ -407,9 +369,6 @@ func _on_garrison_god_tapped(god: God) -> void:
 	garrison_changed.emit(_current_node, _current_node.garrison.duplicate())
 	print("NodeDetailScreen: Removed %s from garrison" % god.name)
 
-# ==============================================================================
-# EVENT HANDLERS - Workers
-# ==============================================================================
 func _on_worker_slot_empty_tapped(slot_index: int) -> void:
 	"""Handle tap on empty worker slot"""
 	_selection_mode = "worker"
@@ -447,9 +406,6 @@ func _on_worker_slot_filled_tapped(slot_index: int, god: God) -> void:
 	workers_changed.emit(_current_node, _current_node.assigned_workers.duplicate())
 	print("NodeDetailScreen: Removed %s from workers" % god.name)
 
-# ==============================================================================
-# EVENT HANDLERS - God Selection
-# ==============================================================================
 func _on_god_selected(god: God) -> void:
 	"""Handle god selection from grid"""
 	if not god or not _current_node:

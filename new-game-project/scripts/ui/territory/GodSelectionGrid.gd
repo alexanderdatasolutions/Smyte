@@ -1,86 +1,50 @@
-# scripts/ui/territory/GodSelectionGrid.gd
-# Mobile-friendly god selection grid for territory node management
-# RULE 1: Under 500 lines
-# RULE 2: Single responsibility - displays gods in a tappable grid
-# RULE 4: Read-only display - no data modification
-# RULE 5: SystemRegistry for all system access
+# GodSelectionGrid - Mobile-friendly god selection for territory node management
 class_name GodSelectionGrid
 extends Control
 
 signal god_selected(god: God)
 signal selection_cancelled
 
-# Filter modes for showing gods
-enum FilterMode {
-	ALL,              # Show all gods
-	AVAILABLE,        # Show only unassigned gods
-	ASSIGNED,         # Show only assigned gods
-	GARRISON_READY,   # Show gods suitable for garrison (combat-focused)
-	WORKER_READY      # Show gods suitable for work tasks
-}
+enum FilterMode { ALL, AVAILABLE, ASSIGNED, GARRISON_READY, WORKER_READY }
 
-# Affinity/Element color mapping (matches plan: Fire=Red, Water=Blue, etc.)
 const ELEMENT_COLORS = {
-	God.ElementType.FIRE: Color(0.9, 0.2, 0.1, 1.0),       # Red
-	God.ElementType.WATER: Color(0.2, 0.5, 0.9, 1.0),      # Blue
-	God.ElementType.EARTH: Color(0.6, 0.4, 0.2, 1.0),      # Brown
-	God.ElementType.LIGHTNING: Color(0.6, 0.8, 1.0, 1.0),  # Light Blue (Air)
-	God.ElementType.LIGHT: Color(1.0, 0.85, 0.3, 1.0),     # Gold
-	God.ElementType.DARK: Color(0.5, 0.2, 0.6, 1.0)        # Purple
+	God.ElementType.FIRE: Color(0.9, 0.2, 0.1), God.ElementType.WATER: Color(0.2, 0.5, 0.9),
+	God.ElementType.EARTH: Color(0.6, 0.4, 0.2), God.ElementType.LIGHTNING: Color(0.6, 0.8, 1.0),
+	God.ElementType.LIGHT: Color(1.0, 0.85, 0.3), God.ElementType.DARK: Color(0.5, 0.2, 0.6)
 }
-
-# Element icons for visual indicator (emoji-based for easy display)
 const ELEMENT_ICONS = {
-	God.ElementType.FIRE: "🔥",
-	God.ElementType.WATER: "💧",
-	God.ElementType.EARTH: "🪨",
-	God.ElementType.LIGHTNING: "⚡",
-	God.ElementType.LIGHT: "☀️",
-	God.ElementType.DARK: "🌙"
+	God.ElementType.FIRE: "🔥", God.ElementType.WATER: "💧", God.ElementType.EARTH: "🪨",
+	God.ElementType.LIGHTNING: "⚡", God.ElementType.LIGHT: "☀️", God.ElementType.DARK: "🌙"
 }
-
-# Card sizing (80x100px as specified)
 const CARD_WIDTH = 80
 const CARD_HEIGHT = 100
 const CARD_SPACING = 8
-const GRID_COLUMNS = 5  # 5-6 gods per row (5 default, adjusts to screen)
+const GRID_COLUMNS = 5
+const FADE_DURATION := 0.15
 
-# Core systems
 var collection_manager
 var event_bus
-
-# UI elements
 var _title_bar: HBoxContainer
 var _title_label: Label
 var _close_button: Button
 var _filter_container: HBoxContainer
 var _scroll_container: ScrollContainer
 var _god_grid: GridContainer
-
-# State
 var _current_filter: FilterMode = FilterMode.ALL
-var _excluded_god_ids: Array[String] = []  # Gods to exclude from selection
+var _excluded_god_ids: Array[String] = []
+var _is_loading: bool = false
 
 func _ready() -> void:
 	_init_systems()
 	_setup_ui()
 
 func _init_systems() -> void:
-	"""Initialize required systems - RULE 5: SystemRegistry access"""
 	var registry = SystemRegistry.get_instance()
-	if not registry:
-		push_error("GodSelectionGrid: SystemRegistry not available!")
-		return
-
-	collection_manager = registry.get_system("CollectionManager")
-	event_bus = registry.get_system("EventBus")
-
-	if not collection_manager:
-		push_error("GodSelectionGrid: CollectionManager not found!")
+	if registry:
+		collection_manager = registry.get_system("CollectionManager")
+		event_bus = registry.get_system("EventBus")
 
 func _setup_ui() -> void:
-	"""Setup the UI structure"""
-	# Main dark background panel
 	var bg_style = StyleBoxFlat.new()
 	bg_style.bg_color = Color(0.1, 0.1, 0.12, 0.95)
 	bg_style.corner_radius_top_left = 12
@@ -129,9 +93,10 @@ func _setup_title_bar(parent: Control) -> void:
 	_title_bar.add_child(_title_label)
 
 	_close_button = Button.new()
-	_close_button.text = "X"
-	_close_button.custom_minimum_size = Vector2(40, 40)
+	_close_button.text = "✕"
+	_close_button.custom_minimum_size = Vector2(60, 60)  # Meets 60px minimum tap target
 	_close_button.pressed.connect(_on_close_pressed)
+	_style_close_button(_close_button)
 	_title_bar.add_child(_close_button)
 
 func _setup_filter_buttons(parent: Control) -> void:
@@ -179,17 +144,33 @@ func _setup_god_grid(parent: Control) -> void:
 # =============================================================================
 
 func show_selection(title: String = "Select God", filter: FilterMode = FilterMode.ALL, excluded_ids: Array[String] = []) -> void:
-	"""Show the god selection grid with specified filter and title"""
+	"""Show the god selection grid with specified filter and title, with smooth fade-in"""
 	_title_label.text = title
 	_current_filter = filter
 	_excluded_god_ids = excluded_ids
 	_update_filter_buttons()
-	refresh_display()
+
+	# Show loading state first
+	_show_loading_state()
+
+	# Smooth fade-in
+	modulate.a = 0.0
 	visible = true
+	var tween = create_tween()
+	tween.tween_property(self, "modulate:a", 1.0, FADE_DURATION).set_ease(Tween.EASE_OUT)
+
+	# Refresh display after a brief moment (allows fade to start)
+	await get_tree().create_timer(0.05).timeout
+	refresh_display()
 
 func hide_selection() -> void:
-	"""Hide the god selection grid"""
-	visible = false
+	"""Hide the god selection grid with smooth fade-out"""
+	var tween = create_tween()
+	tween.tween_property(self, "modulate:a", 0.0, FADE_DURATION).set_ease(Tween.EASE_IN)
+	tween.tween_callback(func():
+		visible = false
+		modulate.a = 1.0  # Reset for next show
+	)
 
 func set_filter(filter: FilterMode) -> void:
 	"""Set the current filter mode and refresh"""
@@ -202,24 +183,42 @@ func set_excluded_gods(god_ids: Array[String]) -> void:
 
 func refresh_display() -> void:
 	"""Refresh the god grid with current filter - RULE 4: Read-only"""
+	_is_loading = false
+
+	# Error handling: CollectionManager not available
 	if not collection_manager:
+		_show_error_state("Collection not available")
+		push_error("GodSelectionGrid: CollectionManager not available for refresh")
 		return
 
 	# Clear existing cards
 	for child in _god_grid.get_children():
 		child.queue_free()
 
-	# Get all gods
+	# Get all gods with error handling
 	var all_gods = collection_manager.get_all_gods()
+	if all_gods == null:
+		_show_error_state("Failed to load gods")
+		push_error("GodSelectionGrid: get_all_gods() returned null")
+		return
 
 	# Apply filter and exclusions
 	var filtered_gods = _apply_filter(all_gods)
+
+	# Show empty state if no gods match filter
+	if filtered_gods.is_empty():
+		_show_empty_state()
+		print("GodSelectionGrid: No gods match current filter")
+		return
 
 	# Sort by element for nice visual grouping
 	filtered_gods.sort_custom(_compare_gods_by_element)
 
 	# Create cards for each god
 	for god in filtered_gods:
+		if god == null:
+			push_warning("GodSelectionGrid: Skipping null god in filtered list")
+			continue
 		var card = _create_god_card(god)
 		_god_grid.add_child(card)
 
@@ -429,3 +428,69 @@ func _on_close_pressed() -> void:
 	"""Handle close button press"""
 	selection_cancelled.emit()
 	hide_selection()
+
+func _style_close_button(button: Button) -> void:
+	"""Apply consistent close button styling"""
+	var style_normal = StyleBoxFlat.new()
+	style_normal.bg_color = Color(0.2, 0.15, 0.15, 0.9)
+	style_normal.border_color = Color(0.5, 0.3, 0.3)
+	style_normal.set_border_width_all(1)
+	style_normal.set_corner_radius_all(8)
+	button.add_theme_stylebox_override("normal", style_normal)
+
+	var style_hover = StyleBoxFlat.new()
+	style_hover.bg_color = Color(0.35, 0.2, 0.2, 0.95)
+	style_hover.border_color = Color(0.6, 0.4, 0.4)
+	style_hover.set_border_width_all(1)
+	style_hover.set_corner_radius_all(8)
+	button.add_theme_stylebox_override("hover", style_hover)
+
+	button.add_theme_color_override("font_color", Color(0.9, 0.6, 0.6))
+	button.add_theme_color_override("font_hover_color", Color(1.0, 0.7, 0.7))
+	button.add_theme_font_size_override("font_size", 20)
+
+func _show_loading_state() -> void:
+	"""Show loading indicator while gods are being loaded"""
+	_is_loading = true
+	# Clear existing cards
+	for child in _god_grid.get_children():
+		child.queue_free()
+
+	# Add loading label
+	var loading_label = Label.new()
+	loading_label.name = "LoadingLabel"
+	loading_label.text = "Loading gods..."
+	loading_label.add_theme_font_size_override("font_size", 14)
+	loading_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	loading_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_god_grid.add_child(loading_label)
+
+func _show_empty_state() -> void:
+	"""Show empty state when no gods match filter"""
+	# Clear existing cards
+	for child in _god_grid.get_children():
+		child.queue_free()
+
+	# Add empty state message
+	var empty_label = Label.new()
+	empty_label.name = "EmptyStateLabel"
+	empty_label.text = "No gods available"
+	empty_label.add_theme_font_size_override("font_size", 14)
+	empty_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+	empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_god_grid.add_child(empty_label)
+
+func _show_error_state(error_message: String) -> void:
+	"""Show error state when gods cannot be loaded"""
+	# Clear existing cards
+	for child in _god_grid.get_children():
+		child.queue_free()
+
+	# Add error message
+	var error_label = Label.new()
+	error_label.name = "ErrorLabel"
+	error_label.text = error_message
+	error_label.add_theme_font_size_override("font_size", 12)
+	error_label.add_theme_color_override("font_color", Color(0.9, 0.5, 0.5))
+	error_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_god_grid.add_child(error_label)
