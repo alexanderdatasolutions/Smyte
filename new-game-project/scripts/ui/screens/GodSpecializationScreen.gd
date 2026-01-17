@@ -341,6 +341,11 @@ func _show_spec_details(spec_id: String):
 	# Create details UI
 	_create_spec_details_ui(spec)
 
+	# Reset scroll to top AFTER content is added
+	if details_content:
+		await get_tree().process_frame
+		details_content.scroll_vertical = 0
+
 	# Update unlock button state
 	_update_unlock_button(spec)
 
@@ -360,11 +365,23 @@ func _create_spec_details_ui(spec: GodSpecialization):
 	if not details_content:
 		return
 
+	# Force scroll to top immediately
+	details_content.scroll_vertical = 0
+
+	# Create margin container for padding
+	var margin = MarginContainer.new()
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_bottom", 12)
+	details_content.add_child(margin)
+
 	var vbox = VBoxContainer.new()
-	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	vbox.add_theme_constant_override("separation", 12)
-	vbox.size_flags_vertical = Control.SIZE_FILL  # Ensure it fills the ScrollContainer
-	details_content.add_child(vbox)
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_theme_constant_override("separation", 16)
+	margin.add_child(vbox)
 
 	# Title
 	var title_label = Label.new()
