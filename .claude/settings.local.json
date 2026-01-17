@@ -59,7 +59,9 @@
       "Bash(godot:*)",
       "Bash(\"C:/Program Files/Godot/Godot_v4.5-stable_win64.exe\" --headless --script tests/test_runner.gd)",
       "Bash(grep:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

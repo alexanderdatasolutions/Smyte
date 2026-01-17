@@ -30,6 +30,7 @@ const HexMapViewScript = preload("res://scripts/ui/territory/HexMapView.gd")
 const NodeInfoPanelScript = preload("res://scripts/ui/territory/NodeInfoPanel.gd")
 const NodeRequirementsPanelScript = preload("res://scripts/ui/territory/NodeRequirementsPanel.gd")
 const NodeCaptureHandlerScript = preload("res://scripts/ui/territory/NodeCaptureHandler.gd")
+const WorkerAssignmentPanelScript = preload("res://scripts/ui/territory/WorkerAssignmentPanel.gd")
 
 # ==============================================================================
 # UI COMPONENTS
@@ -47,6 +48,7 @@ var hex_map_view: HexMapView = null
 var node_info_panel: NodeInfoPanel = null
 var node_requirements_panel: NodeRequirementsPanel = null
 var node_capture_handler: NodeCaptureHandler = null
+var worker_assignment_panel: WorkerAssignmentPanel = null
 
 # ==============================================================================
 # PROPERTIES
@@ -241,6 +243,7 @@ func _setup_components() -> void:
 	_setup_node_info_panel()
 	_setup_node_requirements_panel()
 	_setup_node_capture_handler()
+	_setup_worker_assignment_panel()
 
 func _setup_hex_map_view() -> void:
 	"""Create and setup HexMapView component"""
@@ -294,6 +297,21 @@ func _setup_node_capture_handler() -> void:
 		node_capture_handler.capture_succeeded.connect(_on_capture_succeeded)
 		node_capture_handler.capture_failed.connect(_on_capture_failed)
 
+func _setup_worker_assignment_panel() -> void:
+	"""Create and setup WorkerAssignmentPanel component"""
+	worker_assignment_panel = WorkerAssignmentPanelScript.new()
+	worker_assignment_panel.name = "WorkerAssignmentPanel"
+	worker_assignment_panel.anchor_left = 0.5
+	worker_assignment_panel.anchor_top = 0.5
+	worker_assignment_panel.anchor_right = 0.5
+	worker_assignment_panel.anchor_bottom = 0.5
+	worker_assignment_panel.offset_left = -300  # Center 600px wide panel
+	worker_assignment_panel.offset_top = -250   # Center 500px tall panel
+	worker_assignment_panel.offset_right = 300
+	worker_assignment_panel.offset_bottom = 250
+	worker_assignment_panel.visible = false
+	main_container.add_child(worker_assignment_panel)
+
 # ==============================================================================
 # CONNECT SIGNALS
 # ==============================================================================
@@ -318,6 +336,12 @@ func _connect_signals() -> void:
 	# Node requirements panel signals
 	if node_requirements_panel:
 		node_requirements_panel.close_requested.connect(_on_requirements_panel_close)
+
+	# Worker assignment panel signals
+	if worker_assignment_panel:
+		worker_assignment_panel.close_requested.connect(_on_worker_panel_close)
+		worker_assignment_panel.worker_assigned.connect(_on_worker_assigned)
+		worker_assignment_panel.worker_unassigned.connect(_on_worker_unassigned)
 
 # ==============================================================================
 # STYLING
@@ -430,9 +454,9 @@ func _on_capture_requested(hex_node: HexNode) -> void:
 		node_capture_handler.initiate_capture(hex_node)
 
 func _on_manage_workers_requested(hex_node: HexNode) -> void:
-	"""Handle manage workers request"""
-	# TODO: P6-02 will implement worker assignment UI
-	print("Manage workers requested for node: ", hex_node.id)
+	"""Handle manage workers request - P6-02: Worker assignment UI"""
+	if worker_assignment_panel:
+		worker_assignment_panel.show_panel(hex_node)
 
 func _on_manage_garrison_requested(hex_node: HexNode) -> void:
 	"""Handle manage garrison request"""
@@ -446,6 +470,25 @@ func _on_node_info_close() -> void:
 func _on_requirements_panel_close() -> void:
 	"""Handle requirements panel close"""
 	_hide_requirements_panel()
+
+func _on_worker_panel_close() -> void:
+	"""Handle worker assignment panel close"""
+	if worker_assignment_panel:
+		worker_assignment_panel.hide_panel()
+	# Refresh displays
+	refresh()
+
+func _on_worker_assigned(node: HexNode, god_id: String, task_id: String) -> void:
+	"""Handle worker assignment notification"""
+	print("Worker assigned: god=%s task=%s at node=%s" % [god_id, task_id, node.id])
+	# Refresh displays
+	refresh()
+
+func _on_worker_unassigned(node: HexNode, god_id: String) -> void:
+	"""Handle worker unassignment notification"""
+	print("Worker unassigned: god=%s from node=%s" % [god_id, node.id])
+	# Refresh displays
+	refresh()
 
 # ==============================================================================
 # PANEL MANAGEMENT
