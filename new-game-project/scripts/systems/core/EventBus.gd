@@ -54,6 +54,11 @@ signal role_assigned(god, territory: Dictionary, role: String)  # god: God - unt
 signal role_unassigned(god, territory: Dictionary, role: String)  # god: God - untyped for autoload compatibility
 
 # ============================================================================
+# SPECIALIZATION EVENTS
+# ============================================================================
+signal specialization_unlocked(god_id: String, spec_id: String)
+
+# ============================================================================
 # QUEST & ACHIEVEMENT EVENTS
 # ============================================================================
 signal quest_started(quest_id: String)

@@ -54,7 +54,7 @@ var tooltip_label: RichTextLabel = null
 # Center panel: Specialization tree
 @onready var tree_panel = $MainContainer/CenterPanel/TreePanel
 @onready var tree_header_label = $MainContainer/CenterPanel/TreePanel/HeaderVBox/TreeHeaderLabel
-@onready var tree_container = $MainContainer/CenterPanel/TreePanel/TreeScrollContainer
+@onready var tree_container = $MainContainer/CenterPanel/TreePanel/HeaderVBox/TreeScrollContainer
 
 # Right panel: Details and unlock
 @onready var details_panel = $MainContainer/RightPanel/DetailsPanel
@@ -538,12 +538,12 @@ func _on_unlock_pressed():
 # TOOLTIP HOVER
 # ==============================================================================
 
-func _on_spec_node_hovered(spec_id: String, tooltip_text: String):
+func _on_spec_node_hovered(_spec_id: String, hover_tooltip_text: String):
 	"""Handle node hover - show tooltip"""
 	if not tooltip_panel or not tooltip_label:
 		return
 
-	tooltip_label.text = tooltip_text
+	tooltip_label.text = hover_tooltip_text
 	tooltip_panel.visible = true
 
 	# Position tooltip near mouse

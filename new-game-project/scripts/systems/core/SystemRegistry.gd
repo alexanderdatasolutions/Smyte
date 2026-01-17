@@ -158,10 +158,15 @@ func register_core_systems():
 	register_system("CollectionManager", collection_manager)
 	
 	# Phase 3.5: Territory systems (depend on collection and resource systems)
+	# HexGridManager first - provides core hex grid functionality
+	if FileAccess.file_exists("res://scripts/systems/territory/HexGridManager.gd"):
+		var hex_grid_manager = preload("res://scripts/systems/territory/HexGridManager.gd").new()
+		register_system("HexGridManager", hex_grid_manager)
+
 	if FileAccess.file_exists("res://scripts/systems/territory/TerritoryManager.gd"):
 		var territory_manager = preload("res://scripts/systems/territory/TerritoryManager.gd").new()
 		register_system("TerritoryManager", territory_manager)
-	
+
 	if FileAccess.file_exists("res://scripts/systems/territory/TerritoryProductionManager.gd"):
 		var territory_production = preload("res://scripts/systems/territory/TerritoryProductionManager.gd").new()
 		register_system("TerritoryProductionManager", territory_production)

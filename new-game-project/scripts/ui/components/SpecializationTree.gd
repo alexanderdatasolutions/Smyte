@@ -157,7 +157,7 @@ func _calculate_layout(tier_1_nodes: Array, tier_2_nodes: Array, tier_3_nodes: A
 
 func _layout_tier_horizontal(nodes: Array, y_pos: float):
 	"""Layout nodes horizontally"""
-	var total_width = nodes.size() * NODE_HORIZONTAL_SPACING
+	var _total_width = nodes.size() * NODE_HORIZONTAL_SPACING
 	var start_x = 0
 
 	for i in range(nodes.size()):
@@ -342,8 +342,8 @@ func _on_node_hovered(spec_id: String):
 	if _nodes.has(spec_id):
 		var node = _nodes[spec_id]
 		if is_instance_valid(node):
-			var tooltip_text = node.get_tooltip_text()
-			node_hovered.emit(spec_id, tooltip_text)
+			var spec_tooltip = node.get_spec_tooltip_text()
+			node_hovered.emit(spec_id, spec_tooltip)
 
 func _on_node_unhovered():
 	"""Handle node unhover"""

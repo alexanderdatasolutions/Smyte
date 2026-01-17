@@ -7,6 +7,7 @@ Smyte is a **god collector RPG** combining the best elements of:
 - **RuneScape**: Deep skill trees, specializations, long-term progression loops
 - **Civilization**: Hex-based territory map with strategic node capture
 - **Clash of Clans**: Async PvP raids on territories, defend your nodes
+- **IdleOn**: Big RPG side scroller with tons of afk gains.
 
 The core fantasy: **Collect gods from various pantheons, conquer a hex-based world map, assign gods to territories based on their traits and specializations, and build a divine empire.**
 
