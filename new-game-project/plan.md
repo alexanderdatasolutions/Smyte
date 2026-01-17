@@ -126,7 +126,7 @@ Build a complete Summoners War-style battle screen with turn-based combat, polis
       "Use game_screenshot to capture battle screen state",
       "Verify all UI elements are visible and functional"
     ],
-    "passes": false
+    "passes": true
   }
 ]
 ```
