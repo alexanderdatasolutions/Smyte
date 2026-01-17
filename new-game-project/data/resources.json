@@ -86,6 +86,60 @@
       "node_source": "tier1_forest",
       "icon": "herbs",
       "category": "crafting_material"
+    },
+    "fiber": {
+      "id": "fiber",
+      "name": "Fiber",
+      "description": "Basic fiber for crafting cloth armor and accessories",
+      "tier": 1,
+      "node_source": "tier1_forest",
+      "icon": "fiber",
+      "category": "crafting_material"
+    },
+    "pelts": {
+      "id": "pelts",
+      "name": "Pelts",
+      "description": "Animal pelts for crafting leather armor",
+      "tier": 1,
+      "node_source": "tier1_hunting",
+      "icon": "pelts",
+      "category": "crafting_material"
+    },
+    "bones": {
+      "id": "bones",
+      "name": "Bones",
+      "description": "Animal bones for crafting bone weapons and accessories",
+      "tier": 1,
+      "node_source": "tier1_hunting",
+      "icon": "bones",
+      "category": "crafting_material"
+    },
+    "fish": {
+      "id": "fish",
+      "name": "Fish",
+      "description": "Fresh fish for trading or consumption",
+      "tier": 1,
+      "node_source": "tier1_coast",
+      "icon": "fish",
+      "category": "crafting_material"
+    },
+    "salt": {
+      "id": "salt",
+      "name": "Salt",
+      "description": "Sea salt for preservation and trading",
+      "tier": 1,
+      "node_source": "tier1_coast",
+      "icon": "salt",
+      "category": "crafting_material"
+    },
+    "iron_ingots": {
+      "id": "iron_ingots",
+      "name": "Iron Ingots",
+      "description": "Refined iron for advanced crafting",
+      "tier": 1,
+      "node_source": "tier1_forge",
+      "icon": "iron_ingots",
+      "category": "crafting_material"
     }
   },
 
@@ -138,6 +192,26 @@
       "node_source": "tier3_forge",
       "specialization_required": "tier2_crafter",
       "icon": "forging_flame",
+      "category": "crafting_material"
+    },
+    "monster_parts": {
+      "id": "monster_parts",
+      "name": "Monster Parts",
+      "description": "Parts from mythical beasts used in advanced equipment crafting",
+      "tier": 2,
+      "node_source": "tier2_hunting",
+      "specialization_required": "tier1_hunter",
+      "icon": "monster_parts",
+      "category": "crafting_material"
+    },
+    "scales": {
+      "id": "scales",
+      "name": "Beast Scales",
+      "description": "Scales from monsters used in armor crafting",
+      "tier": 2,
+      "node_source": "tier2_hunting",
+      "specialization_required": "tier1_hunter",
+      "icon": "scales",
       "category": "crafting_material"
     }
   },
@@ -302,6 +376,17 @@
       "node_source": "tier5_mine",
       "specialization_required": "tier3_master_jeweler",
       "icon": "ancient_gems",
+      "category": "gemstone"
+    },
+    "pearls": {
+      "id": "pearls",
+      "name": "Pearls",
+      "description": "Water gemstones from coastal nodes (+HP or +DEF)",
+      "element": "water",
+      "tier": 1,
+      "node_source": "tier1_coast",
+      "stat_bonus": "hp",
+      "icon": "pearls",
       "category": "gemstone"
     }
   },

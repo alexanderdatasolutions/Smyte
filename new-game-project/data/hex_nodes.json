@@ -179,6 +179,322 @@
         "specialization_role": ""
       },
       "description": "A sacred temple bathed in eternal light, resonating with divine power."
+    },
+
+    "iron_mine_2": {
+      "id": "iron_mine_2",
+      "name": "Iron Depths",
+      "type": "mine",
+      "tier": 1,
+      "coord": {"q": 2, "r": 0},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "iron_ore": 60,
+        "stone": 40,
+        "copper_ore": 20
+      },
+      "available_tasks": ["mine_iron", "mine_copper"],
+      "max_garrison": 2,
+      "max_workers": 3,
+      "base_defenders": ["iron_golem", "rock_elemental"],
+      "capture_power_required": 3500,
+      "unlock_requirements": {
+        "player_level": 1,
+        "specialization_tier": 0,
+        "specialization_role": ""
+      },
+      "description": "A deep mine rich with iron ore, extending far beneath the earth."
+    },
+
+    "mythril_mine_2": {
+      "id": "mythril_mine_2",
+      "name": "Mythril Vein",
+      "type": "mine",
+      "tier": 2,
+      "coord": {"q": 1, "r": 1},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "mythril_ore": 30,
+        "iron_ore": 40,
+        "gems": 10
+      },
+      "available_tasks": ["mine_mythril", "mine_iron", "mine_gems"],
+      "max_garrison": 3,
+      "max_workers": 4,
+      "base_defenders": ["mythril_guardian", "gem_golem", "earth_elemental"],
+      "capture_power_required": 7000,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "A rare mythril deposit guarded by powerful earth elementals. Requires skilled miners."
+    },
+
+    "ancient_forest_2": {
+      "id": "ancient_forest_2",
+      "name": "Elderwood Forest",
+      "type": "forest",
+      "tier": 2,
+      "coord": {"q": 0, "r": 2},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "rare_herbs": 40,
+        "wood": 60,
+        "enhancement_powder_low": 10
+      },
+      "available_tasks": ["herbalism", "logging", "plant_cultivation"],
+      "max_garrison": 3,
+      "max_workers": 4,
+      "base_defenders": ["ancient_treant", "forest_warden", "nature_spirit"],
+      "capture_power_required": 7500,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "An ancient woodland where rare herbs and magical plants flourish under the protection of elder treants."
+    },
+
+    "shallow_coast_2": {
+      "id": "shallow_coast_2",
+      "name": "Coral Shallows",
+      "type": "coast",
+      "tier": 1,
+      "coord": {"q": -1, "r": 2},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "fish": 60,
+        "pearls": 20,
+        "coral": 25
+      },
+      "available_tasks": ["fishing", "pearl_diving"],
+      "max_garrison": 2,
+      "max_workers": 3,
+      "base_defenders": ["coral_guardian", "reef_shark"],
+      "capture_power_required": 3200,
+      "unlock_requirements": {
+        "player_level": 1,
+        "specialization_tier": 0,
+        "specialization_role": ""
+      },
+      "description": "Shallow waters teeming with fish and vibrant coral reefs rich with pearls."
+    },
+
+    "deep_harbor_2": {
+      "id": "deep_harbor_2",
+      "name": "Deepwater Harbor",
+      "type": "coast",
+      "tier": 2,
+      "coord": {"q": -2, "r": 2},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "rare_fish": 40,
+        "black_pearls": 15,
+        "salt": 50,
+        "sea_crystals": 10
+      },
+      "available_tasks": ["deep_sea_fishing", "pearl_diving", "salt_harvesting"],
+      "max_garrison": 3,
+      "max_workers": 4,
+      "base_defenders": ["kraken_spawn", "tide_caller", "water_titan"],
+      "capture_power_required": 8000,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "A deep harbor where the ocean's treasures lie hidden in treacherous waters guarded by sea titans."
+    },
+
+    "beast_den_2": {
+      "id": "beast_den_2",
+      "name": "Feral Wilds",
+      "type": "hunting_ground",
+      "tier": 1,
+      "coord": {"q": -2, "r": 1},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "pelts": 50,
+        "bones": 40,
+        "fangs": 15
+      },
+      "available_tasks": ["hunting", "tracking"],
+      "max_garrison": 2,
+      "max_workers": 3,
+      "base_defenders": ["sabertooth_tiger", "dire_bear"],
+      "capture_power_required": 3800,
+      "unlock_requirements": {
+        "player_level": 1,
+        "specialization_tier": 0,
+        "specialization_role": ""
+      },
+      "description": "Wild lands where ferocious predators roam. Only the bravest hunters venture here."
+    },
+
+    "monster_lair_2": {
+      "id": "monster_lair_2",
+      "name": "Wyvern's Roost",
+      "type": "hunting_ground",
+      "tier": 2,
+      "coord": {"q": -2, "r": 0},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "monster_parts": 35,
+        "scales": 25,
+        "bones": 30,
+        "rare_pelts": 15
+      },
+      "available_tasks": ["monster_hunting", "tracking", "taming"],
+      "max_garrison": 3,
+      "max_workers": 4,
+      "base_defenders": ["wyvern", "chimera", "manticore"],
+      "capture_power_required": 8500,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "A dangerous lair inhabited by mythical beasts. Monster parts from here are highly prized by crafters."
+    },
+
+    "runestone_circle_2": {
+      "id": "runestone_circle_2",
+      "name": "Runestone Circle",
+      "type": "temple",
+      "tier": 1,
+      "coord": {"q": -1, "r": -1},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "mana_crystals": 45,
+        "runes": 15,
+        "divine_essence": 5
+      },
+      "available_tasks": ["meditation", "blessing"],
+      "max_garrison": 2,
+      "max_workers": 3,
+      "base_defenders": ["rune_guardian", "arcane_spirit"],
+      "capture_power_required": 3400,
+      "unlock_requirements": {
+        "player_level": 1,
+        "specialization_tier": 0,
+        "specialization_role": ""
+      },
+      "description": "Ancient runestones arranged in a mystical circle, humming with arcane power."
+    },
+
+    "sacred_altar_2": {
+      "id": "sacred_altar_2",
+      "name": "Altar of the Ancients",
+      "type": "temple",
+      "tier": 2,
+      "coord": {"q": 0, "r": -2},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "divine_essence": 30,
+        "mana_crystals": 50,
+        "blessed_oil": 10,
+        "awakening_stones": 5
+      },
+      "available_tasks": ["meditation", "blessing", "awakening_ritual"],
+      "max_garrison": 3,
+      "max_workers": 4,
+      "base_defenders": ["divine_sentinel", "holy_guardian", "celestial_knight"],
+      "capture_power_required": 7800,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "A sacred altar where the ancients once performed rituals of awakening. Divine power flows freely here."
+    },
+
+    "steel_forge_2": {
+      "id": "steel_forge_2",
+      "name": "Steelworks",
+      "type": "forge",
+      "tier": 1,
+      "coord": {"q": 1, "r": -2},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "steel_ingots": 35,
+        "iron_ingots": 40,
+        "enhancement_powder_low": 10
+      },
+      "available_tasks": ["smithing", "weapon_crafting"],
+      "max_garrison": 2,
+      "max_workers": 3,
+      "base_defenders": ["steel_golem", "flame_spirit"],
+      "capture_power_required": 3600,
+      "unlock_requirements": {
+        "player_level": 1,
+        "specialization_tier": 0,
+        "specialization_role": ""
+      },
+      "description": "A well-equipped forge specializing in steel production. The sound of hammers rings day and night."
+    },
+
+    "master_forge_2": {
+      "id": "master_forge_2",
+      "name": "Dragon's Forge",
+      "type": "forge",
+      "tier": 2,
+      "coord": {"q": 2, "r": -2},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "forging_flame": 15,
+        "steel_ingots": 50,
+        "enhancement_powder_mid": 20,
+        "socket_crystals": 5
+      },
+      "available_tasks": ["smithing", "weapon_crafting", "armor_crafting", "enchanting"],
+      "max_garrison": 3,
+      "max_workers": 4,
+      "base_defenders": ["dragon_whelp", "magma_elemental", "master_smith_golem"],
+      "capture_power_required": 8200,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "A legendary forge heated by dragonfire. Master craftsmen can create exceptional equipment here."
+    },
+
+    "ancient_library_2": {
+      "id": "ancient_library_2",
+      "name": "Archives of Knowledge",
+      "type": "library",
+      "tier": 1,
+      "coord": {"q": 2, "r": -1},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "research_points": 30,
+        "scrolls": 20,
+        "knowledge_crystals": 5
+      },
+      "available_tasks": ["research", "scroll_crafting"],
+      "max_garrison": 2,
+      "max_workers": 3,
+      "base_defenders": ["knowledge_keeper", "arcane_scholar"],
+      "capture_power_required": 3300,
+      "unlock_requirements": {
+        "player_level": 1,
+        "specialization_tier": 0,
+        "specialization_role": ""
+      },
+      "description": "A library containing valuable knowledge and scrolls. Scholars come here to research and learn."
     }
   }
 }
