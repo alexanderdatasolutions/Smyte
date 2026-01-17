@@ -100,6 +100,25 @@ func get_garrison_count() -> int:
 	"""Get number of gods in garrison"""
 	return garrison.size()
 
+func get_garrison_combat_power(garrison_gods: Array) -> int:
+	"""Get total combat power of garrison gods
+
+	NOTE: Caller must resolve god IDs to God objects and pass them in.
+	This keeps data class free of system dependencies (RULE 3).
+	Uses GodCalculator.get_power_rating() for each god.
+
+	Args:
+		garrison_gods: Array of God resources corresponding to garrison IDs
+
+	Returns:
+		Total combat power (HP + Attack + Defense + Speed for all gods)
+	"""
+	var total = 0
+	for god in garrison_gods:
+		if god and god is God:
+			total += GodCalculator.get_power_rating(god)
+	return total
+
 func get_worker_count() -> int:
 	"""Get number of gods working"""
 	return assigned_workers.size()

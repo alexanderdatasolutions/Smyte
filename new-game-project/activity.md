@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 4/10
-**Current Task:** Add garrison fields to HexNode data model
+**Tasks Completed:** 5/10
+**Current Task:** Create NodeDetailScreen with garrison and worker sections
 
 ---
 
@@ -222,3 +222,40 @@ Created a system to calculate task names and output rates for hex nodes.
 - Uses SystemRegistry for CollectionManager and SpecializationManager access ✅
 - Pure calculation system (validate, calculate, return) ✅
 - Registered in SystemRegistry Phase 3.5 (territory systems) ✅
+
+### 2026-01-17 - Task 5: Add garrison fields to HexNode data model ✅
+
+**What Changed:**
+Added `get_garrison_combat_power()` method to HexNode and unit tests for garrison functionality.
+
+**Files Modified:**
+- `scripts/data/HexNode.gd` - Added `get_garrison_combat_power(garrison_gods: Array)` method
+- `tests/unit/test_hex_node.gd` - Added 3 new unit tests for garrison combat power
+
+**Implementation Details:**
+1. **Garrison Field**: Already existed as `garrison: Array[String] = []` at line 41
+2. **Save/Load**: Already implemented in `to_dict()` and `from_dict()` methods
+3. **New Method**: `get_garrison_combat_power(garrison_gods: Array) -> int`
+   - Takes array of God objects (caller resolves IDs via CollectionManager)
+   - Sums power rating using `GodCalculator.get_power_rating(god)`
+   - Returns total HP + Attack + Defense + Speed for all garrison gods
+   - Handles null entries gracefully
+
+**Design Decision:**
+Method takes `garrison_gods` as a parameter rather than looking up gods internally. This keeps HexNode as a pure data class without system dependencies (RULE 3: No Logic in Data Classes).
+
+**New Unit Tests:**
+- `test_get_garrison_combat_power_empty()` - Verifies 0 power for empty garrison
+- `test_get_garrison_combat_power_with_gods()` - Verifies sum of god stats
+- `test_get_garrison_combat_power_ignores_null()` - Verifies null entries are skipped
+
+**Verified With Godot MCP:**
+- Ran project: No errors from HexNode changes
+- Navigated to hex territory screen: Screen loads correctly
+- Screenshot: `screenshots/node-detail-garrison-fields.png`
+
+**Architecture Compliance:**
+- HexNode remains a data class (RULE 3) ✅
+- Uses GodCalculator for stat calculations ✅
+- Caller responsible for god lookup via CollectionManager ✅
+- Existing serialization preserved ✅

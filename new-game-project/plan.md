@@ -87,7 +87,7 @@ Create a mobile-friendly node management interface that clearly shows garrison, 
       "Add garrison to save/load serialization",
       "Write unit test for garrison save/load"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "screen",

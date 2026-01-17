@@ -96,6 +96,54 @@ func test_has_no_garrison_space_when_full():
 	node.garrison = ["god1", "god2"]
 	runner.assert_false(node.has_garrison_space(), "Should not have garrison space when full")
 
+func test_get_garrison_combat_power_empty():
+	var node = HexNode.new()
+	var empty_gods: Array = []
+	var power = node.get_garrison_combat_power(empty_gods)
+	runner.assert_equal(power, 0, "Empty garrison should have 0 combat power")
+
+func test_get_garrison_combat_power_with_gods():
+	var node = HexNode.new()
+
+	# Create mock gods with known stats
+	var god1 = God.new()
+	god1.id = "test_god_1"
+	god1.base_hp = 100
+	god1.base_attack = 50
+	god1.base_defense = 30
+	god1.base_speed = 20
+	god1.level = 1
+
+	var god2 = God.new()
+	god2.id = "test_god_2"
+	god2.base_hp = 200
+	god2.base_attack = 100
+	god2.base_defense = 60
+	god2.base_speed = 40
+	god2.level = 1
+
+	# At level 1, power = base stats (HP + ATK + DEF + SPD)
+	# god1 = 100 + 50 + 30 + 20 = 200
+	# god2 = 200 + 100 + 60 + 40 = 400
+	# Total = 600
+	var gods: Array = [god1, god2]
+	var power = node.get_garrison_combat_power(gods)
+	runner.assert_equal(power, 600, "Combat power should be sum of god stats")
+
+func test_get_garrison_combat_power_ignores_null():
+	var node = HexNode.new()
+	var god1 = God.new()
+	god1.base_hp = 100
+	god1.base_attack = 50
+	god1.base_defense = 30
+	god1.base_speed = 20
+	god1.level = 1
+
+	# Include null in array - should be ignored
+	var gods: Array = [null, god1, null]
+	var power = node.get_garrison_combat_power(gods)
+	runner.assert_equal(power, 200, "Should ignore null entries and only count valid god")
+
 # ==============================================================================
 # WORKER MANAGEMENT
 # ==============================================================================
