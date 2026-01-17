@@ -363,6 +363,7 @@ func _create_spec_details_ui(spec: GodSpecialization):
 	var vbox = VBoxContainer.new()
 	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	vbox.add_theme_constant_override("separation", 12)
+	vbox.size_flags_vertical = Control.SIZE_FILL  # Ensure it fills the ScrollContainer
 	details_content.add_child(vbox)
 
 	# Title

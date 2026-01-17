@@ -13,7 +13,7 @@ signal node_unhovered()
 # ==============================================================================
 # CONSTANTS
 # ==============================================================================
-const NODE_HORIZONTAL_SPACING = 240  # Space between nodes horizontally (node width 140 + 100px gap)
+const NODE_HORIZONTAL_SPACING = 300  # Space between nodes horizontally (node width 140 + 160px gap)
 const NODE_VERTICAL_SPACING = 180    # Space between tier rows
 const CONNECTION_COLOR = Color(0.5, 0.5, 0.5, 0.8)
 const CONNECTION_WIDTH = 2.0

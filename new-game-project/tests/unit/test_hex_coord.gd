@@ -81,14 +81,14 @@ func test_distance_complex_path():
 	var coord2 = create_coord(4, -1)
 
 	var distance = coord1.distance_to(coord2)
-	runner.assert_equal(distance, 6, "complex path distance should be 6")
+	runner.assert_equal(distance, 3, "complex path distance should be 3")
 
 func test_distance_negative_coordinates():
 	var coord1 = create_coord(-2, -3)
 	var coord2 = create_coord(-5, -1)
 
 	var distance = coord1.distance_to(coord2)
-	runner.assert_equal(distance, 5, "distance with negative coords should work")
+	runner.assert_equal(distance, 3, "distance with negative coords should work")
 
 func test_distance_to_null():
 	var coord = create_coord(5, 5)
