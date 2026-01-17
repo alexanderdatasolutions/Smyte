@@ -15,15 +15,22 @@ var battle_info_manager
 var battle_context: Dictionary = {}
 
 func _ready():
-	_setup_managers()
-	_connect_signals()
+	# Defer setup to ensure we're in the tree
+	call_deferred("_setup_managers")
 
 func _setup_managers():
+	if not is_inside_tree():
+		push_warning("BattleSetupCoordinator: Not in tree, deferring setup")
+		call_deferred("_setup_managers")
+		return
+
 	team_manager = TeamSelectionManagerScript.new()
 	add_child(team_manager)
-	
+
 	battle_info_manager = BattleInfoManagerScript.new()
 	add_child(battle_info_manager)
+
+	_connect_signals()
 
 func _connect_signals():
 	team_manager.team_changed.connect(_on_team_changed)
