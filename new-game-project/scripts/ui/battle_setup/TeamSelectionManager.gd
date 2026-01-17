@@ -109,10 +109,20 @@ func _load_available_gods():
 	# Clear existing gods
 	for child in available_gods_grid.get_children():
 		child.queue_free()
-	
+
 	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager")
-	var available_gods = collection_manager.get_available_gods_for_battle()
-	
+	if not collection_manager:
+		push_error("TeamSelectionManager: CollectionManager not found")
+		return
+
+	var all_gods = collection_manager.get_all_gods()
+
+	# Filter gods that are available for battle (not in garrison or working)
+	var available_gods = []
+	for god in all_gods:
+		if _is_god_available_for_battle(god):
+			available_gods.append(god)
+
 	for god in available_gods:
 		var god_button = _create_god_selection_button(god)
 		available_gods_grid.add_child(god_button)
@@ -191,3 +201,21 @@ func _on_start_battle_pressed():
 
 func _on_cancel_pressed():
 	setup_cancelled.emit()
+
+func _is_god_available_for_battle(god: God) -> bool:
+	"""Check if god is available for battle (not in garrison or working on a node)"""
+	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
+	if not territory_manager:
+		return true
+
+	# Check all controlled nodes to see if god is assigned
+	var controlled_nodes = territory_manager.get_controlled_nodes()
+	for node in controlled_nodes:
+		# Check garrison
+		if node.garrison.has(god.id):
+			return false
+		# Check workers
+		if node.assigned_workers.has(god.id):
+			return false
+
+	return true
