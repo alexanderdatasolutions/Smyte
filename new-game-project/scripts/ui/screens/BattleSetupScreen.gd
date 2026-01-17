@@ -13,7 +13,20 @@ const BattleSetupCoordinatorScript = preload("res://scripts/ui/battle_setup/Batt
 var setup_coordinator
 
 func _ready():
+	_fix_size_for_node2d_parent()
 	_setup_coordinator()
+
+func _fix_size_for_node2d_parent():
+	"""Fix Control sizing when parent is Node2D (Main scene)"""
+	var parent = get_parent()
+	if parent and parent is Node2D:
+		# Get viewport size
+		var viewport = get_viewport()
+		if viewport:
+			var viewport_size = viewport.get_visible_rect().size
+			# Set size to match viewport
+			size = viewport_size
+			position = Vector2.ZERO
 
 func _setup_coordinator():
 	setup_coordinator = BattleSetupCoordinatorScript.new()
