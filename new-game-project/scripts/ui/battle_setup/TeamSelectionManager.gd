@@ -7,6 +7,8 @@ signal team_changed(team: Array)
 signal battle_start_requested(team: Array)
 signal setup_cancelled
 
+const GodCardFactory = preload("res://scripts/utilities/GodCardFactory.gd")
+
 var team_slots_container: HBoxContainer = null
 var available_gods_scroll: ScrollContainer = null
 var available_gods_grid: GridContainer = null
@@ -128,25 +130,24 @@ func _load_available_gods():
 		available_gods_grid.add_child(god_button)
 
 func _create_god_selection_button(god: God) -> Control:
+	# Create a clickable card using GodCardFactory
+	var card_container = Control.new()
+	card_container.custom_minimum_size = Vector2(120, 150)
+
+	# Create the god card with BATTLE_SELECTION preset
+	var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.BATTLE_SELECTION)
+	god_card.set_god(god)
+	card_container.add_child(god_card)
+
+	# Make the card clickable by adding a button overlay
 	var button = Button.new()
-	button.custom_minimum_size = Vector2(100, 120)
+	button.flat = true
+	button.custom_minimum_size = Vector2(120, 150)
+	button.mouse_filter = Control.MOUSE_FILTER_PASS
 	button.pressed.connect(_on_god_selected.bind(god))
-	
-	# Create god display
-	var container = VBoxContainer.new()
-	button.add_child(container)
-	
-	var name_label = Label.new()
-	name_label.text = god.name
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	container.add_child(name_label)
-	
-	var level_label = Label.new()
-	level_label.text = "Lv." + str(god.level)
-	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	container.add_child(level_label)
-	
-	return button
+	card_container.add_child(button)
+
+	return card_container
 
 func _on_god_selected(god: God):
 	# Find first empty slot
@@ -166,22 +167,34 @@ func _clear_slot(slot_index: int):
 	team_changed.emit(selected_team)
 
 func _update_slot_display(slot_index: int):
+	if slot_index < 0 or slot_index >= team_slots.size():
+		return
+
 	var slot = team_slots[slot_index]
-	var god_display = slot.get_node("VBoxContainer/GodDisplay")
-	
+	if not slot:
+		return
+
+	var god_display = slot.get_node_or_null("VBoxContainer/GodDisplay")
+	if not god_display:
+		push_warning("TeamSelectionManager: god_display not found for slot " + str(slot_index))
+		return
+
 	# Clear existing display
 	for child in god_display.get_children():
 		child.queue_free()
-	
+
 	var god = selected_team[slot_index]
 	if god == null:
 		var empty_label = Label.new()
-		empty_label.text = "Empty"
+		empty_label.text = "Empty Slot"
 		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		empty_label.custom_minimum_size = Vector2(0, 100)
 		god_display.add_child(empty_label)
 	else:
-		var ui_factory = SystemRegistry.get_instance().get_system("UICardFactory")
-		var god_card = ui_factory.create_compact_god_card(god)
+		# Use GodCardFactory to create a card
+		var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.COMPACT_LIST)
+		god_card.set_god(god)
 		god_display.add_child(god_card)
 
 func _on_start_battle_pressed():

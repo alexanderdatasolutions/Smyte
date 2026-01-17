@@ -3,6 +3,8 @@
 class_name BattleInfoManager
 extends Node
 
+const GodCardFactory = preload("res://scripts/utilities/GodCardFactory.gd")
+
 var enemy_preview_container: VBoxContainer = null
 var rewards_container: VBoxContainer = null
 var title_label: Label = null
@@ -194,16 +196,18 @@ func _create_reward_item(resource_type: String, amount: int) -> Control:
 func _show_hex_node_defenders(hex_node: HexNode):
 	_clear_enemy_preview()
 
+	if not enemy_preview_container:
+		return
+
 	# Show base defenders for the hex node
 	for defender_id in hex_node.base_defenders:
 		var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager")
 		var defender = collection_manager.get_god_by_id(defender_id)
 		if defender:
-			var card = _create_enemy_preview_card({
-				"name": defender.name,
-				"level": defender.level
-			})
-			enemy_preview_container.add_child(card)
+			# Use GodCardFactory to create proper god cards with portraits
+			var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.COMPACT_LIST)
+			god_card.set_god(defender)
+			enemy_preview_container.add_child(god_card)
 
 func _show_hex_node_rewards(hex_node: HexNode):
 	_clear_rewards()
