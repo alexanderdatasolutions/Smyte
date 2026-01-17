@@ -113,7 +113,54 @@ func _on_team_changed(team: Array):
 
 func _on_battle_start_requested(team: Array):
 	battle_context["selected_team"] = team
+
+	# Emit signal for any listeners
 	battle_setup_complete.emit(battle_context)
+
+	# If no specific context was set (direct navigation), start a test battle
+	if not battle_context.has("type") or battle_context.get("type", "") == "":
+		_start_battle_directly(team)
 
 func _on_setup_cancelled():
 	setup_cancelled.emit()
+
+func _start_battle_directly(team: Array):
+	"""Start a test battle directly when no context is set (for testing)"""
+	# Filter out null entries
+	var valid_team = []
+	for god in team:
+		if god != null:
+			valid_team.append(god)
+
+	if valid_team.is_empty():
+		push_error("BattleSetupCoordinator: No valid gods in team")
+		return
+
+	# Get systems
+	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
+	var battle_coordinator = SystemRegistry.get_instance().get_system("BattleCoordinator")
+
+	if not screen_manager or not battle_coordinator:
+		push_error("BattleSetupCoordinator: Required systems not available")
+		return
+
+	# Build test battle config using BattleConfig
+	var battle_config = BattleConfig.new()
+	battle_config.battle_type = BattleConfig.BattleType.DUNGEON
+	battle_config.attacker_team = valid_team
+	battle_config.dungeon_name = "Test Battle"
+	# Create a test enemy wave with a basic enemy
+	battle_config.enemy_waves = [
+		[
+			{"name": "Test Goblin", "level": 5, "hp": 500, "attack": 100, "defense": 50, "speed": 80},
+			{"name": "Test Orc", "level": 6, "hp": 700, "attack": 120, "defense": 60, "speed": 70}
+		]
+	]
+
+	# Navigate to battle screen and start battle
+	if screen_manager.change_screen("battle"):
+		var battle_screen = screen_manager.get_current_screen()
+		if battle_screen and battle_screen.has_method("start_battle"):
+			battle_screen.start_battle(battle_config)
+		else:
+			battle_coordinator.start_battle(battle_config)

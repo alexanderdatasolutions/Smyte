@@ -81,7 +81,7 @@ func _on_back_pressed():
 	"""Handle back button press - RULE 4: UI signals"""
 	back_pressed.emit()
 
-func start_battle(battle_config: Dictionary):
+func start_battle(battle_config):
 	"""Start a battle with given configuration - RULE 5: SystemRegistry"""
 	# Battle coordinator already stored in _ready
 	if battle_coordinator:

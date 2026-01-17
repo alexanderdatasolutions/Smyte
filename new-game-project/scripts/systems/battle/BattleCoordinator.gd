@@ -82,7 +82,7 @@ func end_battle(result: BattleResult):
 	
 	# Calculate final battle statistics
 	result.duration = battle_state.get_battle_duration()
-	result.battle_type = current_battle_config.battle_type
+	result.battle_type = current_battle_config.get_battle_type_name()
 	
 	# Award rewards if victory
 	if result.victory:
@@ -295,12 +295,28 @@ func _cleanup_battle():
 
 func _on_turn_started(unit: BattleUnit):
 	turn_changed.emit(unit)
-	
-	# Process auto-battle if enabled
-	if auto_battle_enabled:
+
+	# Process enemy turns automatically (AI takes action)
+	if unit.is_enemy():
 		# Add small delay for visual feedback
 		await get_tree().create_timer(0.5).timeout
+		_process_enemy_turn(unit)
+	elif auto_battle_enabled:
+		# Process auto-battle for player units if enabled
+		await get_tree().create_timer(0.5).timeout
 		_process_auto_battle()
+
+func _process_enemy_turn(unit: BattleUnit):
+	"""Process an enemy unit's turn using AI"""
+	if not is_battle_active:
+		return
+
+	# Let AI choose action for enemy
+	var action = BattleAI.choose_action(unit, battle_state)
+	if action:
+		action_processor.execute_action(action, battle_state)
+		# End turn after action
+		turn_manager.advance_turn()
 
 func _on_turn_ended(_unit: BattleUnit):
 	# Check for battle end conditions
@@ -336,18 +352,20 @@ func _on_all_waves_completed():
 func _check_battle_end_conditions() -> bool:
 	"""Check if battle should end and end it if necessary"""
 	# Check if all player units are defeated
-	var player_units_alive = battle_state.get_player_units().any(func(unit): return unit.is_alive())
+	var player_units_alive = battle_state.get_player_units().any(func(unit): return unit.is_alive)
 	if not player_units_alive:
 		end_battle(BattleResult.create_defeat("All player units defeated"))
 		return true
-	
-	# Check if all enemy units are defeated (for PvP battles)
-	if current_battle_config.enemy_waves.is_empty():
-		var enemy_units_alive = battle_state.get_enemy_units().any(func(unit): return unit.is_alive())
-		if not enemy_units_alive:
+
+	# Check if all enemy units are defeated (for PvE battles with waves, check if wave defeated)
+	var enemy_units_alive = battle_state.get_enemy_units().any(func(unit): return unit.is_alive)
+	if not enemy_units_alive:
+		# All enemies in current wave are defeated
+		if current_battle_config.enemy_waves.is_empty() or battle_state.current_wave >= battle_state.max_waves:
+			# No more waves or all waves completed
 			end_battle(BattleResult.create_victory("All enemies defeated"))
 			return true
-	
+
 	return false
 
 func shutdown():

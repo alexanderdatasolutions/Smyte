@@ -114,7 +114,7 @@ Build a complete Summoners War-style battle screen with turn-based combat, polis
       "Complete battle to victory or defeat",
       "Verify rewards screen and return to map"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "testing",

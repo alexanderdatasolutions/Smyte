@@ -29,6 +29,7 @@ const InfoDisplay = preload("res://scripts/ui/dungeon/DungeonInfoDisplay.gd")
 var dungeon_manager: Node
 var resource_manager: Node
 var loot_system: Node
+var screen_manager: Node
 
 # Current state
 var selected_dungeon_id: String = ""
@@ -88,6 +89,10 @@ func _init_systems():
 	loot_system = SystemRegistry.get_instance().get_system("LootSystem")
 	if not loot_system:
 		push_warning("DungeonScreen: LootSystem not found - loot previews will be limited")
+
+	screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
+	if not screen_manager:
+		push_error("DungeonScreen: ScreenManager not found in SystemRegistry")
 
 func _connect_ui_signals():
 	"""Connect UI element signals"""
@@ -319,9 +324,78 @@ func _get_energy_cost(dungeon_id: String, difficulty: String) -> int:
 
 func _open_battle_setup():
 	"""Open battle setup screen for dungeon"""
-	# This would typically switch to a battle setup screen
-	# Could emit signal for parent to handle
-	# battle_setup_requested.emit(selected_dungeon_id, selected_difficulty)
+	if not screen_manager:
+		push_error("DungeonScreen: Cannot open battle setup - ScreenManager not available")
+		return
+
+	# Navigate to battle setup screen
+	if screen_manager.change_screen("battle_setup"):
+		# Get the screen instance and configure it for dungeon battle
+		var battle_setup_screen = screen_manager.get_current_screen()
+		if battle_setup_screen and battle_setup_screen.has_method("setup_for_dungeon_battle"):
+			battle_setup_screen.setup_for_dungeon_battle(selected_dungeon_id, selected_difficulty)
+			# Connect to completion signal if not already connected
+			if not battle_setup_screen.battle_setup_complete.is_connected(_on_battle_setup_complete):
+				battle_setup_screen.battle_setup_complete.connect(_on_battle_setup_complete)
+			if not battle_setup_screen.setup_cancelled.is_connected(_on_battle_setup_cancelled):
+				battle_setup_screen.setup_cancelled.connect(_on_battle_setup_cancelled)
+
+func _on_battle_setup_complete(context: Dictionary):
+	"""Handle battle setup completion - start the dungeon battle"""
+	if not screen_manager:
+		push_error("DungeonScreen: Cannot start battle - ScreenManager not available")
+		return
+
+	# Get battle coordinator to start the battle
+	var battle_coordinator = SystemRegistry.get_instance().get_system("BattleCoordinator")
+	if not battle_coordinator:
+		push_error("DungeonScreen: BattleCoordinator not available")
+		return
+
+	# Build battle configuration for dungeon
+	var selected_team = context.get("selected_team", [])
+	var dungeon_id = context.get("dungeon_id", selected_dungeon_id)
+	var difficulty = context.get("difficulty", selected_difficulty)
+
+	# Filter out null entries from selected team
+	var valid_team = []
+	for god in selected_team:
+		if god != null:
+			valid_team.append(god)
+
+	if valid_team.is_empty():
+		push_error("DungeonScreen: No valid gods in selected team")
+		return
+
+	# Build proper BattleConfig
+	var battle_config = BattleConfig.new()
+	battle_config.battle_type = BattleConfig.BattleType.DUNGEON
+	battle_config.attacker_team = valid_team
+	battle_config.dungeon_name = dungeon_id
+
+	# Get enemy waves from dungeon manager
+	if dungeon_manager:
+		var dungeon_info = dungeon_manager.get_dungeon_info(dungeon_id)
+		var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
+		var waves = difficulty_info.get("enemy_waves", [])
+		if waves.is_empty():
+			# Create default enemy wave if none defined
+			waves = [[{"name": "Dungeon Monster", "level": 5, "hp": 500, "attack": 100, "defense": 50, "speed": 80}]]
+		battle_config.enemy_waves = waves
+
+	# Navigate to battle screen first
+	if screen_manager.change_screen("battle"):
+		# Get battle screen and start battle
+		var battle_screen = screen_manager.get_current_screen()
+		if battle_screen and battle_screen.has_method("start_battle"):
+			battle_screen.start_battle(battle_config)
+		else:
+			# Fallback: start battle directly through coordinator
+			battle_coordinator.start_battle(battle_config)
+
+func _on_battle_setup_cancelled():
+	"""Handle battle setup cancellation - return to dungeon screen"""
+	# Already on dungeon screen, nothing to do
 	pass
 
 func _show_error_message(_message: String):

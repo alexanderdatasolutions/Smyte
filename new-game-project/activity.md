@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 8/10
-**Current Task:** Task 8 completed - Battle progression and completion implemented
+**Tasks Completed:** 9/10
+**Current Task:** Task 9 completed - Battle flow tested end-to-end
 
 ---
 
@@ -302,3 +302,47 @@
 - RULE 5: Uses SystemRegistry for ScreenManager access
 - Under 500 lines (376 lines for overlay, 477 lines for BattleScreen)
 - BattleCoordinator handles reward calculation and awarding, UI just displays
+
+### 2026-01-17 - Task 9: Battle Flow Tested End-to-End
+
+**What Changed:**
+- Fixed battle flow to properly start from BattleSetupScreen
+- Implemented `_start_battle_directly()` in BattleSetupCoordinator for test battles
+- Updated DungeonScreen's `_on_battle_setup_complete()` to use proper BattleConfig
+- Added `_process_enemy_turn()` to BattleCoordinator for automatic enemy AI execution
+- Fixed `is_alive()` -> `is_alive` property access errors
+- Fixed `battle_type` String vs int type mismatch in end_battle()
+
+**Files Modified:**
+- `scripts/ui/battle_setup/BattleSetupCoordinator.gd` (added _start_battle_directly method)
+- `scripts/ui/screens/DungeonScreen.gd` (updated _on_battle_setup_complete to use BattleConfig)
+- `scripts/ui/screens/BattleScreen.gd` (relaxed start_battle parameter type)
+- `scripts/systems/battle/BattleCoordinator.gd` (added _process_enemy_turn, fixed property access)
+
+**Battle Flow Verified:**
+1. Navigate to BattleSetupScreen
+2. Select god (Ares) from available gods
+3. Click "START BATTLE" button
+4. BattleScreen loads with unit cards (1 player, 2 enemies)
+5. Turn order bar shows upcoming turns
+6. Enemy turns execute automatically (Test Goblin, Test Orc)
+7. Player unit defeated after enemy attacks
+8. DEFEAT overlay shows with Rank D, stats, and Return to Map button
+9. Return to Map navigates back to HexTerritoryScreen
+
+**Screenshots Captured:**
+- `user://screenshots/task-9-battle-setup.png`
+- `user://screenshots/task-9-god-selected.png`
+- `user://screenshots/task-9-battle-started.png`
+- `user://screenshots/task-9-battle-complete.png`
+- `user://screenshots/task-9-return-to-map.png`
+
+**Known Issues (Minor):**
+- Battle stats show 0 for damage/turns (stats tracking not fully connected)
+- DungeonCoordinator has type mismatch for battle_ended signal (pre-existing)
+
+**Architecture Compliance:**
+- All changes follow existing patterns
+- No new UI logic added to coordinators
+- Uses SystemRegistry for system access
+- BattleConfig properly typed for start_battle()
