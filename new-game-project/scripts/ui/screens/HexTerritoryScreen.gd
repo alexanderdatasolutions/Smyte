@@ -29,6 +29,7 @@ signal back_pressed
 const HexMapViewScript = preload("res://scripts/ui/territory/HexMapView.gd")
 const NodeInfoPanelScript = preload("res://scripts/ui/territory/NodeInfoPanel.gd")
 const NodeRequirementsPanelScript = preload("res://scripts/ui/territory/NodeRequirementsPanel.gd")
+const NodeCaptureHandlerScript = preload("res://scripts/ui/territory/NodeCaptureHandler.gd")
 
 # ==============================================================================
 # UI COMPONENTS
@@ -45,6 +46,7 @@ var zoom_controls: VBoxContainer = null
 var hex_map_view: HexMapView = null
 var node_info_panel: NodeInfoPanel = null
 var node_requirements_panel: NodeRequirementsPanel = null
+var node_capture_handler: NodeCaptureHandler = null
 
 # ==============================================================================
 # PROPERTIES
@@ -238,6 +240,7 @@ func _setup_components() -> void:
 	_setup_hex_map_view()
 	_setup_node_info_panel()
 	_setup_node_requirements_panel()
+	_setup_node_capture_handler()
 
 func _setup_hex_map_view() -> void:
 	"""Create and setup HexMapView component"""
@@ -279,6 +282,17 @@ func _setup_node_requirements_panel() -> void:
 	node_requirements_panel.offset_bottom = 175
 	node_requirements_panel.visible = false
 	main_container.add_child(node_requirements_panel)
+
+func _setup_node_capture_handler() -> void:
+	"""Create and setup NodeCaptureHandler"""
+	node_capture_handler = NodeCaptureHandlerScript.new()
+	node_capture_handler.name = "NodeCaptureHandler"
+	add_child(node_capture_handler)
+
+	# Connect signals
+	if node_capture_handler:
+		node_capture_handler.capture_succeeded.connect(_on_capture_succeeded)
+		node_capture_handler.capture_failed.connect(_on_capture_failed)
 
 # ==============================================================================
 # CONNECT SIGNALS
@@ -404,16 +418,16 @@ func _on_hex_hovered(hex_node: HexNode) -> void:
 	pass  # Could show tooltip in future
 
 func _on_capture_requested(hex_node: HexNode) -> void:
-	"""Handle capture request from info panel"""
-	# TODO: P6-01 will implement full capture flow
-	# For now, just show requirements if locked
+	"""Handle capture request from info panel - P6-01: Full capture flow"""
+	# Check requirements first
 	var node_checker = SystemRegistry.get_instance().get_system("NodeRequirementChecker")
 	if node_checker and not node_checker.can_player_capture_node(hex_node):
 		_show_requirements_panel(hex_node)
 		return
 
-	# If requirements met, would initiate battle here
-	print("Capture requested for node: ", hex_node.id)
+	# Requirements met - delegate to capture handler
+	if node_capture_handler:
+		node_capture_handler.initiate_capture(hex_node)
 
 func _on_manage_workers_requested(hex_node: HexNode) -> void:
 	"""Handle manage workers request"""
@@ -477,6 +491,17 @@ func _hide_requirements_panel() -> void:
 	"""Hide requirements panel"""
 	if node_requirements_panel:
 		node_requirements_panel.hide_panel()
+
+# ==============================================================================
+# CAPTURE HANDLERS - P6-01
+# ==============================================================================
+func _on_capture_succeeded(hex_node: HexNode) -> void:
+	"""Handle successful node capture from NodeCaptureHandler"""
+	refresh()
+
+func _on_capture_failed(hex_node: HexNode) -> void:
+	"""Handle failed node capture from NodeCaptureHandler"""
+	refresh()
 
 # ==============================================================================
 # REFRESH
