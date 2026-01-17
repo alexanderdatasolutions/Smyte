@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 7/10
-**Current Task:** Task 7 completed - Turn order visualization implemented
+**Tasks Completed:** 8/10
+**Current Task:** Task 8 completed - Battle progression and completion implemented
 
 ---
 
@@ -259,3 +259,46 @@
 - RULE 5: Uses SystemRegistry for BattleCoordinator access
 - Under 500 lines (228 lines for TurnOrderBar, 416 lines for BattleScreen)
 - TurnManager handles turn simulation logic, UI just displays
+
+### 2026-01-17 - Task 8: Battle Progression and Completion Implemented
+
+**What Changed:**
+- Created `BattleResultOverlay.gd` component for displaying victory/defeat screen
+- Overlay shows: result banner (VICTORY/DEFEAT), efficiency rating (S/A/B/C/D), battle stats, rewards earned, loot obtained
+- Added "Return to Map" button that navigates back to hex_territory screen
+- Connected BattleScreen to battle_ended signal to show overlay automatically
+- Rewards already awarded by BattleCoordinator._award_battle_rewards() via ResourceManager
+
+**Files Created:**
+- `scripts/ui/battle/BattleResultOverlay.gd` (376 lines)
+- `scenes/ui/battle/BattleResultOverlay.tscn`
+
+**Files Modified:**
+- `scripts/ui/screens/BattleScreen.gd` (477 lines, added ~60 lines for overlay management)
+
+**Features Implemented:**
+- Full-screen dark overlay with centered content panel
+- Victory displays green text with gold border, Defeat displays red text
+- Efficiency rating with color coding (S=Gold, A=Purple, B=Blue, C=Green, D=Gray)
+- Battle statistics: duration, turns taken, damage dealt/received
+- Perfect victory indicator when no units lost
+- Rewards display with resource names and +amounts in green
+- Loot display with rarity-colored item names
+- Return to Map button navigates to hex_territory via ScreenManager
+- Continue button (hidden by default) for multi-stage battles
+- Fade-in/fade-out animations for overlay
+
+**Verified with Godot MCP:**
+- Ran project with `mcp__godot__run_project`
+- Navigated to BattleScreen and verified BattleResultOverlay in UI tree
+- Overlay correctly hidden (`visible: false`) when no battle ended
+- "Return to Map" button present and functional
+- No compilation errors related to BattleResultOverlay or BattleScreen
+- Screenshots saved to `user://screenshots/task-8-*.png`
+
+**Architecture Compliance:**
+- RULE 2: Single responsibility - BattleResultOverlay only displays BattleResult data
+- RULE 4: No logic in UI - just displays state from BattleResult, navigation via ScreenManager
+- RULE 5: Uses SystemRegistry for ScreenManager access
+- Under 500 lines (376 lines for overlay, 477 lines for BattleScreen)
+- BattleCoordinator handles reward calculation and awarding, UI just displays

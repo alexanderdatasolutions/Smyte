@@ -13,6 +13,7 @@ Following prompt.prompt.md architecture:
 """
 
 const BattleUnitCardScene = preload("res://scenes/ui/battle/BattleUnitCard.tscn")
+const BattleResultOverlayScene = preload("res://scenes/ui/battle/BattleResultOverlay.tscn")
 
 # UI Components (following RULE 2: Single responsibility)
 @onready var back_button = $MainContainer/BottomContainer/ButtonContainer/BackButton
@@ -36,6 +37,9 @@ var player_unit_cards: Dictionary = {}  # BattleUnit -> BattleUnitCard
 var enemy_unit_cards: Dictionary = {}   # BattleUnit -> BattleUnitCard
 var current_active_unit: BattleUnit = null
 
+# Battle result overlay
+var battle_result_overlay = null  # BattleResultOverlay instance
+
 func _ready():
 	# Connect back button (RULE 4: UI signals)
 	if back_button:
@@ -45,6 +49,9 @@ func _ready():
 	if ability_bar:
 		ability_bar.ability_selected.connect(_on_ability_selected)
 		ability_bar.hide()  # Hidden by default until player's turn
+
+	# Create battle result overlay (hidden by default)
+	_create_battle_result_overlay()
 
 	# Get battle coordinator and connect to signals
 	battle_coordinator = SystemRegistry.get_instance().get_system("BattleCoordinator")
@@ -85,9 +92,9 @@ func _on_battle_started(_config):
 	print("BattleScreen: Battle started, populating UI")
 	_populate_battle_ui()
 
-func _on_battle_ended(result):
+func _on_battle_ended(result: BattleResult):
 	"""Handle battle end - RULE 4: UI listens to events"""
-	print("BattleScreen: Battle ended")
+	print("BattleScreen: Battle ended - Victory: ", result.victory)
 	# Clear active unit highlighting
 	_clear_active_highlight()
 	current_active_unit = null
@@ -104,6 +111,9 @@ func _on_battle_ended(result):
 			battle_status_label.text = "VICTORY!"
 		else:
 			battle_status_label.text = "DEFEAT!"
+
+	# Show the battle result overlay with rewards
+	_show_battle_result_overlay(result)
 
 func _on_turn_changed(unit: BattleUnit):
 	"""Handle turn change - highlight active unit's card and show/hide ability bar"""
@@ -413,3 +423,55 @@ func _clear_turn_order_bar():
 	"""Clear the turn order bar"""
 	if turn_order_bar:
 		turn_order_bar.clear()
+
+# =============================================================================
+# BATTLE RESULT OVERLAY MANAGEMENT
+# =============================================================================
+
+func _create_battle_result_overlay():
+	"""Create the battle result overlay (hidden by default)"""
+	battle_result_overlay = BattleResultOverlayScene.instantiate()
+	add_child(battle_result_overlay)
+
+	# Connect signals for navigation
+	battle_result_overlay.return_to_map_pressed.connect(_on_return_to_map_pressed)
+	battle_result_overlay.continue_pressed.connect(_on_continue_pressed)
+
+	print("BattleScreen: Battle result overlay created")
+
+func _show_battle_result_overlay(result: BattleResult):
+	"""Show the battle result overlay with rewards"""
+	if not battle_result_overlay:
+		_create_battle_result_overlay()
+
+	# Show the overlay with the result
+	battle_result_overlay.show_result(result)
+	print("BattleScreen: Showing battle result overlay")
+
+func _hide_battle_result_overlay():
+	"""Hide the battle result overlay"""
+	if battle_result_overlay:
+		battle_result_overlay.hide_result()
+
+func _on_return_to_map_pressed():
+	"""Handle return to map button - navigate back to hex territory"""
+	print("BattleScreen: Return to map pressed")
+
+	# Hide the overlay
+	_hide_battle_result_overlay()
+
+	# Navigate back using ScreenManager
+	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
+	if screen_manager:
+		# Navigate to hex_territory screen (the map)
+		screen_manager.change_screen("hex_territory")
+		print("BattleScreen: Navigated to hex_territory")
+	else:
+		# Fallback to emitting back_pressed signal
+		print("BattleScreen: No ScreenManager, emitting back_pressed")
+		back_pressed.emit()
+
+func _on_continue_pressed():
+	"""Handle continue button - for multi-stage battles or replaying"""
+	print("BattleScreen: Continue pressed")
+	_hide_battle_result_overlay()

@@ -101,7 +101,7 @@ Build a complete Summoners War-style battle screen with turn-based combat, polis
       "Update player resources based on rewards",
       "Add 'Return to Map' button that navigates back"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "testing",
