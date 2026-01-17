@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 11/15
-**Current Task:** Task 11 - GodSelectionPanel
+**Tasks Completed:** 12/15
+**Current Task:** Task 12 - Slot boxes in TerritoryOverviewScreen
 
 ---
 
@@ -557,4 +557,74 @@ Created a mobile-friendly left-sliding panel for god selection with context filt
 - Extends Control with proper anchoring ✅
 - Emits signals for parent to handle selection ✅
 - Self-contained god grid (doesn't embed GodSelectionGrid to allow different styling) ✅
+
+### 2026-01-17 - Task 12: Add garrison and worker slot boxes to TerritoryOverviewScreen ✅
+
+**What Changed:**
+Refactored TerritoryOverviewScreen node cards to show inline garrison and worker slot boxes instead of "View Details" button.
+
+**Files Modified:**
+- `scripts/ui/territory/TerritoryOverviewScreen.gd` (428 lines)
+
+**Implementation Details:**
+
+1. **New Signal**: Added `slot_tapped(node: HexNode, slot_type: String, slot_index: int)` signal
+   - Emitted when any garrison or worker slot is tapped
+   - slot_type is "garrison" or "worker"
+   - slot_index is 0-based position in the slot row
+
+2. **Removed "View Details" Button**: Node cards no longer have manage button
+   - All management now happens through inline slot boxes
+   - NodeDetailScreen still exists but TerritoryOverviewScreen is now self-sufficient
+
+3. **Node Card Layout** (260px height per card):
+   - Header row: Node name, type badge (color-coded), tier stars
+   - Garrison section: "Garrison (Defense)" label + 4 slot boxes
+   - Worker section: "Workers (Production)" label + tier-based slot boxes (1-5)
+   - Tier 0 nodes show "Workers: Not available (Tier 0)" message
+
+4. **Type Badge Colors**:
+   - Mine: Brown, Forest: Green, Coast: Blue, Hunting Ground: Red-brown
+   - Forge: Orange-brown, Library: Purple, Temple: Gold-brown, Fortress: Gray
+
+5. **Slot Box Design** (60x60px minimum tap target):
+   - Empty slots: Gray panel with "+" icon, dashed border style
+   - Filled slots: God portrait with element-colored border, level label
+   - Element colors for portraits match existing ELEMENT_COLORS constant
+
+6. **Helper Functions Added**:
+   - `_create_slot_section()`: Creates labeled slot row (reused for both garrison/worker)
+   - `_create_slot_style()`: Creates StyleBoxFlat for slot panels
+   - `_add_slot_button()`: Adds invisible tappable button overlay
+   - `_create_type_badge()`: Creates colored node type badge
+   - `_create_god_portrait()`: Creates TextureRect with image or element placeholder
+
+**Verified With Godot MCP:**
+- Ran project: No errors from TerritoryOverviewScreen changes
+- Navigated to hex territory screen: Screen loads correctly
+- Clicked "TERRITORY OVERVIEW": Shows node card with slot boxes
+- Clicked garrison slots: Correct signal emitted with node/type/index
+- Screenshot: `screenshots/node-detail-slot-boxes.png`
+
+**Screenshot Shows:**
+- "Divine Sanctum" node card with "Base" type badge and tier star (☆)
+- Garrison section with 4 empty slot boxes showing "+" icons
+- Workers section with "Not available (Tier 0)" message
+
+**Debug Output Confirmed:**
+```
+TerritoryOverviewScreen: Slot tapped - node: divine_sanctum, type: garrison, index: 0
+TerritoryOverviewScreen: Slot tapped - node: divine_sanctum, type: garrison, index: 1
+TerritoryOverviewScreen: Slot tapped - node: divine_sanctum, type: garrison, index: 2
+TerritoryOverviewScreen: Slot tapped - node: divine_sanctum, type: garrison, index: 3
+```
+
+**Architecture Compliance:**
+- Under 500 lines (428 lines) ✅
+- Single responsibility (territory node list with inline management) ✅
+- Uses SystemRegistry for CollectionManager access ✅
+- Uses _setup_fullscreen() for Node2D parent compatibility ✅
+- Emits signals for parent to handle slot interactions ✅
+- Read-only display, no direct data modification ✅
+- 60x60px minimum tap targets for all slots ✅
 

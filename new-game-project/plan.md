@@ -180,7 +180,7 @@ Create a mobile-friendly node management interface that clearly shows garrison, 
       "Each slot emits slot_tapped(node, slot_type, slot_index) when clicked",
       "Make node cards taller/scrollable to fit all content"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "integration",

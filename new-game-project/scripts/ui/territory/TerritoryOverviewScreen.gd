@@ -4,20 +4,36 @@ extends Control
 class_name TerritoryOverviewScreen
 
 """
-Territory Overview - Shows all hex nodes at a glance
-Allows quick viewing of:
-- All owned nodes
-- Node types and tiers
-- Quick jump to detailed management
+Territory Overview - Shows all hex nodes at a glance with inline garrison/worker slots
+Allows quick viewing and management of:
+- All owned nodes with type and tier info
+- Garrison slots (4 per node) with god portraits
+- Worker slots (node.tier count) with god portraits
+- Tap empty slots to assign gods, tap filled slots to unassign
 
 Note: Worker assignments are managed at the territory level, not per-node.
 """
 
 signal back_pressed()
 signal manage_node_requested(node: HexNode)
+signal slot_tapped(node: HexNode, slot_type: String, slot_index: int)  # "garrison" or "worker"
+
+# Constants for slot display
+const SLOT_SIZE = 60  # 60x60px tap target (min requirement)
+const SLOT_SPACING = 6
+const MAX_GARRISON_SLOTS = 4  # Fixed garrison slots per node
+const ELEMENT_COLORS = {
+	God.ElementType.FIRE: Color(0.9, 0.2, 0.1),
+	God.ElementType.WATER: Color(0.2, 0.5, 0.9),
+	God.ElementType.EARTH: Color(0.6, 0.4, 0.2),
+	God.ElementType.LIGHTNING: Color(0.6, 0.8, 1.0),
+	God.ElementType.LIGHT: Color(1.0, 0.85, 0.3),
+	God.ElementType.DARK: Color(0.5, 0.2, 0.6)
+}
 
 # System references
 var territory_manager = null
+var collection_manager = null
 
 # UI Components
 var _scroll_container: ScrollContainer
@@ -49,6 +65,7 @@ func _init_systems():
 	"""Initialize system references"""
 	var registry = SystemRegistry.get_instance()
 	territory_manager = registry.get_system("TerritoryManager")
+	collection_manager = registry.get_system("CollectionManager")
 
 func _build_ui():
 	"""Build the UI structure"""
@@ -203,66 +220,193 @@ func _populate_node_list():
 		_node_list_container.add_child(no_results)
 
 func _create_node_card(node: HexNode) -> Panel:
-	"""Create a card for a single node"""
+	"""Create a card with inline garrison and worker slot boxes"""
 	var card = Panel.new()
-	card.custom_minimum_size = Vector2(0, 60)
-
-	# Style
+	card.custom_minimum_size = Vector2(0, 260)  # header(50)+garrison(90)+workers(90)+padding(30)
 	var style = StyleBoxFlat.new()
 	style.bg_color = Color(0.12, 0.12, 0.15, 0.9)
-	style.border_width_left = 2
-	style.border_width_right = 2
-	style.border_width_top = 2
-	style.border_width_bottom = 2
 	style.border_color = Color(0.3, 0.4, 0.5, 1)
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_left = 4
-	style.corner_radius_bottom_right = 4
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(6)
 	card.add_theme_stylebox_override("panel", style)
 
-	# Content container
-	var hbox = HBoxContainer.new()
-	hbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	hbox.add_theme_constant_override("separation", 16)
-	hbox.offset_left = 12
-	hbox.offset_top = 12
-	hbox.offset_right = -12
-	hbox.offset_bottom = -12
-	card.add_child(hbox)
+	var main_vbox = VBoxContainer.new()
+	main_vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	main_vbox.add_theme_constant_override("separation", 8)
+	main_vbox.offset_left = 12; main_vbox.offset_top = 10
+	main_vbox.offset_right = -12; main_vbox.offset_bottom = -10
+	card.add_child(main_vbox)
 
-	# Left side - Node info
-	var left_vbox = VBoxContainer.new()
-	left_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left_vbox.add_theme_constant_override("separation", 4)
-	hbox.add_child(left_vbox)
+	# Header: name, type badge, tier stars
+	var header = HBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
+	var name_lbl = Label.new()
+	name_lbl.text = node.name
+	name_lbl.add_theme_font_size_override("font_size", 15)
+	name_lbl.add_theme_color_override("font_color", Color(0.95, 0.95, 1))
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(name_lbl)
+	header.add_child(_create_type_badge(node.node_type))
+	var stars_lbl = Label.new()
+	stars_lbl.text = "★".repeat(node.tier) if node.tier > 0 else "☆"
+	stars_lbl.add_theme_font_size_override("font_size", 12)
+	stars_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+	header.add_child(stars_lbl)
+	main_vbox.add_child(header)
 
-	# Node name and type
-	var name_label = Label.new()
-	name_label.text = "%s (%s)" % [node.name, node.node_type.capitalize()]
-	name_label.add_theme_font_size_override("font_size", 16)
-	name_label.add_theme_color_override("font_color", Color(0.9, 0.9, 1, 1))
-	left_vbox.add_child(name_label)
-
-	# Tier info
-	var tier_label = Label.new()
-	tier_label.text = "Tier %d Node" % [node.tier]
-	tier_label.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9, 1))
-	left_vbox.add_child(tier_label)
-
-	# Right side - Actions
-	var right_vbox = VBoxContainer.new()
-	right_vbox.add_theme_constant_override("separation", 8)
-	hbox.add_child(right_vbox)
-
-	# View button
-	var view_btn = Button.new()
-	view_btn.text = "View Details"
-	view_btn.custom_minimum_size = Vector2(120, 32)
-	view_btn.pressed.connect(func(): _on_manage_node_pressed(node))
-	right_vbox.add_child(view_btn)
-
+	# Garrison section
+	main_vbox.add_child(_create_slot_section(node, "Garrison (Defense)", Color(0.8, 0.7, 0.6), "garrison", MAX_GARRISON_SLOTS, node.garrison))
+	# Worker section
+	var max_workers = mini(node.tier, 5)
+	if max_workers > 0:
+		main_vbox.add_child(_create_slot_section(node, "Workers (Production)", Color(0.6, 0.8, 0.7), "worker", max_workers, node.assigned_workers))
+	else:
+		var no_lbl = Label.new()
+		no_lbl.text = "Workers: Not available (Tier 0)"
+		no_lbl.add_theme_font_size_override("font_size", 11)
+		no_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
+		main_vbox.add_child(no_lbl)
 	return card
+
+func _create_type_badge(node_type: String) -> Control:
+	"""Create a small badge showing node type"""
+	var badge = Panel.new()
+	badge.custom_minimum_size = Vector2(70, 22)
+	var colors = {"mine": Color(0.5, 0.35, 0.2), "forest": Color(0.2, 0.45, 0.25),
+		"coast": Color(0.2, 0.4, 0.6), "hunting_ground": Color(0.5, 0.3, 0.3),
+		"forge": Color(0.55, 0.35, 0.2), "library": Color(0.35, 0.3, 0.5),
+		"temple": Color(0.45, 0.4, 0.25), "fortress": Color(0.35, 0.35, 0.4)}
+	var badge_style = StyleBoxFlat.new()
+	badge_style.bg_color = colors.get(node_type, Color(0.3, 0.3, 0.35))
+	badge_style.set_corner_radius_all(4)
+	badge.add_theme_stylebox_override("panel", badge_style)
+	var lbl = Label.new()
+	lbl.text = node_type.capitalize()
+	lbl.add_theme_font_size_override("font_size", 10)
+	lbl.add_theme_color_override("font_color", Color.WHITE)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	badge.add_child(lbl)
+	return badge
+
+func _create_slot_section(node: HexNode, title: String, title_color: Color, slot_type: String, slot_count: int, assigned_ids: Array) -> Control:
+	"""Create a slot section (garrison or worker) with label and slot boxes"""
+	var section = VBoxContainer.new()
+	section.add_theme_constant_override("separation", 4)
+	var lbl = Label.new()
+	lbl.text = title
+	lbl.add_theme_font_size_override("font_size", 11)
+	lbl.add_theme_color_override("font_color", title_color)
+	section.add_child(lbl)
+	var slots_row = HBoxContainer.new()
+	slots_row.add_theme_constant_override("separation", SLOT_SPACING)
+	section.add_child(slots_row)
+	for i in range(slot_count):
+		var slot: Control
+		if i < assigned_ids.size():
+			var god = _get_god_by_id(assigned_ids[i])
+			slot = _create_filled_slot(node, slot_type, i, god)
+		else:
+			slot = _create_empty_slot(node, slot_type, i)
+		slots_row.add_child(slot)
+	return section
+
+func _create_empty_slot(node: HexNode, slot_type: String, slot_index: int) -> Control:
+	"""Create an empty slot with '+' icon (60x60px tap target)"""
+	var slot = Panel.new()
+	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
+	slot.add_theme_stylebox_override("panel", _create_slot_style(Color(0.4, 0.4, 0.45, 0.7), 2))
+	# Plus icon
+	var plus_label = Label.new()
+	plus_label.text = "+"
+	plus_label.add_theme_font_size_override("font_size", 24)
+	plus_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
+	plus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	plus_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	plus_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	slot.add_child(plus_label)
+	# Tappable button
+	_add_slot_button(slot, node, slot_type, slot_index)
+	return slot
+
+func _create_filled_slot(node: HexNode, slot_type: String, slot_index: int, god: God) -> Control:
+	"""Create a filled slot showing god portrait (60x60px)"""
+	var slot = Panel.new()
+	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
+	var border_color = ELEMENT_COLORS.get(god.element, Color.GRAY) if god else Color(0.5, 0.5, 0.5)
+	slot.add_theme_stylebox_override("panel", _create_slot_style(border_color, 3))
+	if god:
+		var portrait = _create_god_portrait(god)
+		portrait.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		portrait.offset_left = 4; portrait.offset_right = -4
+		portrait.offset_top = 4; portrait.offset_bottom = -14
+		slot.add_child(portrait)
+		var level_label = Label.new()
+		level_label.text = "Lv.%d" % god.level
+		level_label.add_theme_font_size_override("font_size", 9)
+		level_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+		level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		level_label.anchor_left = 0; level_label.anchor_right = 1
+		level_label.anchor_top = 1; level_label.anchor_bottom = 1
+		level_label.offset_top = -14; level_label.offset_bottom = -2
+		slot.add_child(level_label)
+	else:
+		var lbl = Label.new()
+		lbl.text = "?"
+		lbl.add_theme_font_size_override("font_size", 20)
+		lbl.add_theme_color_override("font_color", Color(0.6, 0.4, 0.4))
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		slot.add_child(lbl)
+	_add_slot_button(slot, node, slot_type, slot_index)
+	return slot
+
+func _create_slot_style(border_color: Color, border_width: int) -> StyleBoxFlat:
+	"""Create slot panel style"""
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.15, 0.15, 0.18, 0.9)
+	style.border_color = border_color
+	style.set_border_width_all(border_width)
+	style.set_corner_radius_all(6)
+	return style
+
+func _add_slot_button(slot: Panel, node: HexNode, slot_type: String, slot_index: int) -> void:
+	"""Add tappable button overlay to slot"""
+	var button = Button.new()
+	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	button.flat = true
+	button.pressed.connect(_on_slot_tapped.bind(node, slot_type, slot_index))
+	slot.add_child(button)
+
+func _create_god_portrait(god: God) -> TextureRect:
+	"""Create god portrait TextureRect"""
+	var portrait = TextureRect.new()
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var sprite_path = "res://assets/gods/" + god.id + ".png"
+	if ResourceLoader.exists(sprite_path):
+		portrait.texture = load(sprite_path)
+	else:
+		var element_color = ELEMENT_COLORS.get(god.element, Color.GRAY)
+		var image = Image.create(50, 50, false, Image.FORMAT_RGBA8)
+		image.fill(element_color)
+		portrait.texture = ImageTexture.create_from_image(image)
+	return portrait
+
+func _get_god_by_id(god_id: String) -> God:
+	"""Get god by ID from CollectionManager"""
+	if not collection_manager:
+		return null
+	if god_id == "":
+		return null
+	return collection_manager.get_god_by_id(god_id)
+
+func _on_slot_tapped(node: HexNode, slot_type: String, slot_index: int) -> void:
+	"""Handle slot tap - emit signal for parent to handle"""
+	print("TerritoryOverviewScreen: Slot tapped - node: %s, type: %s, index: %d" % [node.id, slot_type, slot_index])
+	slot_tapped.emit(node, slot_type, slot_index)
 
 func _on_type_filter_changed(index: int):
 	"""Handle type filter change"""
