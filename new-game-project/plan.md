@@ -79,7 +79,7 @@ Build a complete Summoners War-style battle screen with turn-based combat, polis
       "Update unit cards after action executes",
       "Show damage numbers or effects briefly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "feature",

@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 5/10
-**Current Task:** Task 5 completed - AbilityBar added to BattleScreen
+**Tasks Completed:** 6/10
+**Current Task:** Task 6 completed - Ability selection connected to battle execution
 
 ---
 
@@ -180,3 +180,42 @@
 - RULE 5: Uses SystemRegistry for BattleCoordinator access
 - Under 500 lines (268 lines)
 - Uses AbilityBar component via scene instance
+
+### 2026-01-17 - Task 6: Ability Selection Connected to Battle Execution
+
+**What Changed:**
+- Updated `_on_ability_selected()` to execute player actions through BattleCoordinator
+- Added `_find_skill_targets()` to auto-select appropriate targets for skills
+- Connected to `action_processor.action_executed` signal for UI updates
+- Added `_on_action_executed()` handler to update unit cards after actions
+- Implemented `_show_damage_number()` for floating damage numbers with animation
+- Removed unused GodCardFactory const to fix warning
+
+**Files Modified:**
+- `scripts/ui/screens/BattleScreen.gd` (382 lines, added ~115 lines)
+
+**Features Implemented:**
+- AbilityBar skill selection creates BattleAction and executes via BattleCoordinator
+- Automatic target selection: lowest HP enemy for single target, all for AoE
+- Ally targeting support for healing/buff skills
+- `_on_action_executed()` updates all unit cards after each action
+- Floating damage numbers with animation:
+  - Gold text with "!" for critical hits (24px)
+  - Gray text for glancing hits (14px)
+  - Red text for normal damage (18px)
+  - Float up and fade out over 1 second
+- AbilityBar hides after successful action execution
+- Cooldowns update after action via `ability_bar.update_cooldowns()`
+
+**Verified with Godot MCP:**
+- Ran project with `mcp__godot__run_project`
+- Navigated to BattleScreen and DungeonScreen
+- No compilation errors related to BattleScreen changes
+- Screenshots saved to `user://screenshots/task-6-*.png`
+
+**Architecture Compliance:**
+- RULE 2: Single responsibility - BattleScreen coordinates UI, delegates execution
+- RULE 4: No logic in UI - uses BattleCoordinator.execute_action() for battle logic
+- RULE 5: Uses SystemRegistry for BattleCoordinator access
+- Under 500 lines (382 lines)
+- Uses BattleAction data class for action creation
