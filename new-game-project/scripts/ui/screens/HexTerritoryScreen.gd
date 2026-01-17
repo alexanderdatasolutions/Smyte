@@ -272,6 +272,7 @@ func _setup_components() -> void:
 	_setup_worker_assignment_panel()
 	_setup_garrison_management_panel()
 	_setup_territory_overview_screen()
+	_setup_node_detail_screen()
 
 func _setup_hex_map_view() -> void:
 	"""Create and setup HexMapView component"""
@@ -369,6 +370,13 @@ func _setup_territory_overview_screen() -> void:
 	territory_overview_screen.visible = false
 	main_container.add_child(territory_overview_screen)
 
+func _setup_node_detail_screen() -> void:
+	"""Create and setup NodeDetailScreen component"""
+	node_detail_screen = NodeDetailScreenScript.new()
+	node_detail_screen.name = "NodeDetailScreen"
+	node_detail_screen.visible = false
+	main_container.add_child(node_detail_screen)
+
 # ==============================================================================
 # CONNECT SIGNALS
 # ==============================================================================
@@ -410,6 +418,12 @@ func _connect_signals() -> void:
 	if territory_overview_screen:
 		territory_overview_screen.back_pressed.connect(_on_territory_overview_back)
 		territory_overview_screen.manage_node_requested.connect(_on_overview_manage_node)
+
+	# Node detail screen signals
+	if node_detail_screen:
+		node_detail_screen.close_requested.connect(_on_node_detail_close)
+		node_detail_screen.garrison_changed.connect(_on_node_detail_garrison_changed)
+		node_detail_screen.workers_changed.connect(_on_node_detail_workers_changed)
 
 # ==============================================================================
 # STYLING
@@ -535,13 +549,17 @@ func _on_capture_requested(hex_node: HexNode) -> void:
 					battle_setup_screen.battle_setup_complete.connect(_on_battle_setup_complete)
 
 func _on_manage_workers_requested(hex_node: HexNode) -> void:
-	"""Handle manage workers request - P6-02: Worker assignment UI"""
-	if worker_assignment_panel:
+	"""Handle manage workers request - use NodeDetailScreen for owned nodes"""
+	if hex_node and hex_node.is_controlled_by_player():
+		_show_node_detail_screen(hex_node)
+	elif worker_assignment_panel:
 		worker_assignment_panel.show_panel(hex_node)
 
 func _on_manage_garrison_requested(hex_node: HexNode) -> void:
-	"""Handle manage garrison request - P6-03: Garrison management UI"""
-	if garrison_management_panel:
+	"""Handle manage garrison request - use NodeDetailScreen for owned nodes"""
+	if hex_node and hex_node.is_controlled_by_player():
+		_show_node_detail_screen(hex_node)
+	elif garrison_management_panel:
 		garrison_management_panel.show_garrison(hex_node)
 
 func _on_node_info_close() -> void:
@@ -621,8 +639,20 @@ func _on_overview_manage_node(node: HexNode) -> void:
 	# Close overview
 	_on_territory_overview_back()
 
-	# Show worker assignment panel for the node
-	_on_manage_workers_requested(node)
+	# Show node detail screen for the node
+	_show_node_detail_screen(node)
+
+func _on_node_detail_close() -> void:
+	"""Handle close from node detail screen"""
+	_hide_node_detail_screen()
+
+func _on_node_detail_garrison_changed(_node: HexNode, _garrison_ids: Array) -> void:
+	"""Handle garrison change notification from node detail screen"""
+	refresh()
+
+func _on_node_detail_workers_changed(_node: HexNode, _worker_ids: Array) -> void:
+	"""Handle workers change notification from node detail screen"""
+	refresh()
 
 # ==============================================================================
 # PANEL MANAGEMENT
@@ -668,6 +698,26 @@ func _hide_requirements_panel() -> void:
 	"""Hide requirements panel"""
 	if node_requirements_panel:
 		node_requirements_panel.hide_panel()
+
+func _show_node_detail_screen(hex_node: HexNode) -> void:
+	"""Show node detail screen for owned node management"""
+	if not node_detail_screen or not hex_node:
+		return
+
+	# Only show detail screen for player-controlled nodes
+	if not hex_node.is_controlled_by_player():
+		return
+
+	# Hide other panels
+	_hide_node_info()
+
+	# Show detail screen
+	node_detail_screen.show_node(hex_node)
+
+func _hide_node_detail_screen() -> void:
+	"""Hide node detail screen"""
+	if node_detail_screen:
+		node_detail_screen.hide_screen()
 
 # ==============================================================================
 # CAPTURE HANDLERS - P6-01

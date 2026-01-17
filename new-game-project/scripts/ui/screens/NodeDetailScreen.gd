@@ -196,17 +196,15 @@ func _build_header(parent: Control) -> void:
 
 func _build_garrison_section(parent: Control) -> void:
 	"""Build the garrison display section"""
-	_garrison_section = _create_section_container("⚔️ Garrison (Defense)")
+	var result = _create_section_container("⚔️ Garrison (Defense)")
+	_garrison_section = result.section
 	parent.add_child(_garrison_section)
 
-	# Get the content area of the section
-	var content_area = _garrison_section.get_node("Content")
-
-	# Add GarrisonDisplay component
+	# Add GarrisonDisplay component to the content area
 	_garrison_display = GarrisonDisplay.new()
 	_garrison_display.custom_minimum_size = Vector2(0, 160)
 	_garrison_display.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	content_area.add_child(_garrison_display)
+	result.content.add_child(_garrison_display)
 
 	# Connect signals
 	_garrison_display.set_garrison_requested.connect(_on_garrison_set_requested)
@@ -214,17 +212,15 @@ func _build_garrison_section(parent: Control) -> void:
 
 func _build_worker_section(parent: Control) -> void:
 	"""Build the worker slots section"""
-	_worker_section = _create_section_container("👷 Workers (Production)")
+	var result = _create_section_container("👷 Workers (Production)")
+	_worker_section = result.section
 	parent.add_child(_worker_section)
 
-	# Get the content area of the section
-	var content_area = _worker_section.get_node("Content")
-
-	# Add WorkerSlotDisplay component
+	# Add WorkerSlotDisplay component to the content area
 	_worker_slot_display = WorkerSlotDisplay.new()
 	_worker_slot_display.custom_minimum_size = Vector2(0, 160)
 	_worker_slot_display.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	content_area.add_child(_worker_slot_display)
+	result.content.add_child(_worker_slot_display)
 
 	# Connect signals
 	_worker_slot_display.empty_slot_tapped.connect(_on_worker_slot_empty_tapped)

@@ -224,12 +224,20 @@ func _apply_debuff_effect(effect_data: Dictionary, caster, target, result: Actio
 			status_effect = StatusEffect.create_curse(caster, duration)
 		"heal_block":
 			status_effect = StatusEffect.create_heal_block(caster, duration)
-		"defense_down", "defense_reduction":
+		"defense_down", "defense_reduction", "decrease_defense":
 			status_effect = StatusEffect.create_defense_reduction(caster, duration)
-		"attack_down", "attack_reduction":
+		"attack_down", "attack_reduction", "decrease_attack":
 			status_effect = StatusEffect.create_attack_reduction(caster, duration)
-		"marked_for_death":
+		"marked_for_death", "brand":
 			status_effect = StatusEffect.create_marked_for_death(caster, duration)
+		"continuous_damage":
+			status_effect = StatusEffect.create_continuous_damage(caster, duration)
+		"glancing":
+			status_effect = StatusEffect.create_blind(caster, duration)  # Glancing = reduced accuracy
+		"block_beneficial_effects":
+			status_effect = StatusEffect.create_debuff_immunity(caster, duration)  # Block buffs
+		"oblivion":
+			status_effect = StatusEffect.create_silence(caster, duration)  # Oblivion = can't use passives
 		_:
 			push_warning("BattleActionProcessor: Unknown debuff type: " + debuff_type)
 			return
@@ -256,27 +264,29 @@ func _apply_buff_effect(effect_data: Dictionary, caster, target, result: ActionR
 	# Create the appropriate status effect using factory methods
 	var status_effect = null
 	match buff_type:
-		"attack_boost", "attack_up":
+		"attack_boost", "attack_up", "increase_attack":
 			status_effect = StatusEffect.create_attack_boost(caster, duration)
-		"defense_boost", "defense_up":
+		"defense_boost", "defense_up", "increase_defense":
 			status_effect = StatusEffect.create_defense_boost(caster, duration)
-		"speed_boost", "speed_up":
+		"speed_boost", "speed_up", "increase_speed":
 			status_effect = StatusEffect.create_speed_boost(caster, duration)
 		"shield":
 			status_effect = StatusEffect.create_shield(caster, duration)
-		"regeneration", "heal_over_time":
+		"regeneration", "heal_over_time", "continuous_recovery":
 			status_effect = StatusEffect.create_regeneration(caster, duration)
-		"debuff_immunity":
+		"debuff_immunity", "immunity":
 			status_effect = StatusEffect.create_debuff_immunity(caster, duration)
-		"damage_immunity":
+		"damage_immunity", "endure":
 			status_effect = StatusEffect.create_damage_immunity(caster, duration)
-		"crit_boost", "critical_boost":
+		"crit_boost", "critical_boost", "increase_critical_rate":
 			status_effect = StatusEffect.create_crit_boost(caster, duration)
-		"accuracy_boost":
+		"increase_critical_damage":
+			status_effect = StatusEffect.create_critical_damage_boost(caster, duration)
+		"accuracy_boost", "increase_accuracy":
 			status_effect = StatusEffect.create_accuracy_boost(caster, duration)
 		"evasion_boost":
 			status_effect = StatusEffect.create_evasion_boost(caster, duration)
-		"counter_attack":
+		"counter_attack", "counterattack":
 			status_effect = StatusEffect.create_counter_attack(caster, duration)
 		"reflect_damage":
 			status_effect = StatusEffect.create_reflect_damage(caster, duration)
