@@ -13,7 +13,7 @@ signal node_unhovered()
 # ==============================================================================
 # CONSTANTS
 # ==============================================================================
-const NODE_HORIZONTAL_SPACING = 200  # Space between nodes horizontally
+const NODE_HORIZONTAL_SPACING = 240  # Space between nodes horizontally (node width 140 + 100px gap)
 const NODE_VERTICAL_SPACING = 180    # Space between tier rows
 const CONNECTION_COLOR = Color(0.5, 0.5, 0.5, 0.8)
 const CONNECTION_WIDTH = 2.0
@@ -249,10 +249,11 @@ func _update_container_size():
 	var max_y = 0.0
 
 	for pos in _node_positions.values():
-		max_x = max(max_x, pos.x + 140)  # Node width
-		max_y = max(max_y, pos.y + 160)  # Node height
+		max_x = max(max_x, pos.x + 160)  # Node width (140) + extra margin (20)
+		max_y = max(max_y, pos.y + 180)  # Node height (160) + extra margin (20)
 
-	custom_minimum_size = Vector2(max_x, max_y)
+	# Add extra padding for scroll comfort
+	custom_minimum_size = Vector2(max_x + 40, max_y + 40)
 
 # ==============================================================================
 # NODE STATE CALCULATION

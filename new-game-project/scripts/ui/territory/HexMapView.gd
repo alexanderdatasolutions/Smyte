@@ -313,6 +313,9 @@ func update_connection_lines() -> void:
 			if neighbor.is_controlled_by_player():
 				_create_connection_line(node.coord, neighbor.coord)
 
+	# Update bonus indicators on tiles
+	_update_connection_bonus_indicators()
+
 func _create_connection_line(coord1: HexCoord, coord2: HexCoord) -> void:
 	"""Create a connection line between two coordinates"""
 	var pos1 = _coord_to_screen_position(coord1) + Vector2(HEX_WIDTH / 2, HEX_HEIGHT / 2)
@@ -327,6 +330,78 @@ func _create_connection_line(coord1: HexCoord, coord2: HexCoord) -> void:
 
 	connection_layer.add_child(line)
 	connection_lines.append(line)
+
+func _update_connection_bonus_indicators() -> void:
+	"""Update visual indicators for connection bonuses on tiles"""
+	if not territory_manager:
+		return
+
+	for tile in hex_tiles.values():
+		if not tile or not tile.node_data:
+			continue
+
+		var hex_node = tile.node_data
+		if not hex_node.is_controlled_by_player():
+			continue
+
+		# Get connected count for this node
+		var connected_count = territory_manager.get_connected_node_count(hex_node.coord)
+
+		# Update tile's connection bonus display
+		_update_tile_connection_indicator(tile, connected_count)
+
+func _update_tile_connection_indicator(tile: HexTile, connected_count: int) -> void:
+	"""Update a single tile's connection bonus indicator"""
+	if not tile or not is_instance_valid(tile):
+		return
+
+	# Remove existing indicator if any
+	var existing = tile.get_node_or_null("ConnectionBonus")
+	if existing:
+		existing.queue_free()
+
+	# No bonus to show
+	if connected_count < 2:
+		return
+
+	# Create bonus indicator
+	var indicator = Label.new()
+	indicator.name = "ConnectionBonus"
+	indicator.text = _get_connection_bonus_text(connected_count)
+	indicator.add_theme_color_override("font_color", _get_connection_bonus_color(connected_count))
+	indicator.position = Vector2(HEX_WIDTH - 30, 5)  # Top-right corner
+	indicator.custom_minimum_size = Vector2(25, 20)
+	indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	indicator.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
+	# Add background for visibility
+	var bg = Panel.new()
+	bg.custom_minimum_size = Vector2(25, 20)
+	bg.modulate = Color(0.1, 0.1, 0.1, 0.7)  # Dark semi-transparent
+	indicator.add_child(bg)
+	bg.z_index = -1
+
+	tile.add_child(indicator)
+
+func _get_connection_bonus_text(connected_count: int) -> String:
+	"""Get display text for connection bonus"""
+	if connected_count >= 4:
+		return "+30%"
+	elif connected_count == 3:
+		return "+20%"
+	elif connected_count == 2:
+		return "+10%"
+	return ""
+
+func _get_connection_bonus_color(connected_count: int) -> Color:
+	"""Get color for connection bonus indicator"""
+	if connected_count >= 4:
+		return Color(1.0, 0.8, 0.0)  # Gold for 4+
+	elif connected_count == 3:
+		return Color(0.5, 1.0, 0.5)  # Light green for 3
+	elif connected_count == 2:
+		return Color(0.7, 0.9, 0.7)  # Pale green for 2
+	return Color.WHITE
 
 # ==============================================================================
 # COORDINATE CONVERSIONS
