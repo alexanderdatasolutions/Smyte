@@ -48,7 +48,7 @@ func register_system(system_name: String, system: Node, initialize_immediately: 
 ## Get a system by name
 func get_system(system_name: String) -> Node:
 	if not _systems.has(system_name):
-		push_error("SystemRegistry: System '" + system_name + "' not found")
+		# Don't error - systems may not be registered yet during initialization
 		return null
 	return _systems[system_name]
 

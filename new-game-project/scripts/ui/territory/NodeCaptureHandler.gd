@@ -159,13 +159,13 @@ func _get_node_defenders(hex_node: HexNode) -> Array:
 	# For neutral nodes, use base_defenders
 	if hex_node.controller == "neutral":
 		for defender_id in hex_node.base_defenders:
-			var defender = collection_manager.get_god(defender_id)
+			var defender = collection_manager.get_god_by_id(defender_id)
 			if defender:
 				defenders.append(defender)
 	# For enemy nodes, use garrison
 	else:
 		for god_id in hex_node.garrison:
-			var defender = collection_manager.get_god(god_id)
+			var defender = collection_manager.get_god_by_id(god_id)
 			if defender:
 				defenders.append(defender)
 

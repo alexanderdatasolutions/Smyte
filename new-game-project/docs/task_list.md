@@ -3,8 +3,8 @@
 ## Tier 1 - Core Loop (Make It Playable)
 *Can't ship without these*
 
-- [x] **Node system fix** - Gray nodes, no content, can't capture. Need: render properly, show info, enable capture *(COMPLETED 2026-01-16)*
-- [] **PvE battle to capture nodes** - Win fight → capture → assign lifeskillers, optional continued grinding for XP/loot *(COMPLETED - NodeCaptureHandler working)*
+- [x] **Node system fix** - Gray nodes, no content, can't capture. Need: render properly, show info, enable capture *(VISUALS COMPLETED 2026-01-16 - hex map renders correctly)*
+- [ ] **PvE battle to capture nodes** - Win fight → capture → assign lifeskillers, optional continued grinding for XP/loot *(NodeCaptureHandler exists but NOT WORKING)*
 - [ ] **Bottom nav bar** - 5-tab mobile nav (Home, Battle, Gods, Summon, Shop)
 - [ ] **Main team assignment** - Set your 4-god combat squad
 - [ ] **Battle screen polish** - Ability icons, Summoners War style, clean UI
@@ -73,14 +73,14 @@
 
 
 # Tasks in no particular order
-- ~~Node system isnt wokring, just loads gray nodes connected to wachother an i can drag it around and scroll adn all that in the top left quadrant of the screen. nothing on the nodes, cant capture.~~ **COMPLETED 2026-01-16**
+- ~~Node system isnt wokring, just loads gray nodes connected to wachother an i can drag it around and scroll adn all that in the top left quadrant of the screen. nothing on the nodes, cant capture.~~ **VISUALS COMPLETED 2026-01-16 - nodes render, but capture/battle not working**
 - no main team assingment set up
 - no bottom bar for navigation set up
 - nothing about the god specializations on the colelciton
 - no social functionalities - friends, battle 
 - set up battle, get it looking solid with abilities icons and such. summoners war-esqe 
 - set up dungeon entering and wave and shit.
-- ~~need to pve battle to capture nodes, allowingyou to capture, and then set lifeskillers on it, and still grind pve mobs with your combat team for exp and more loot if you want.~~ **COMPLETED - NodeCaptureHandler + Territory system**
+- need to pve battle to capture nodes, allowingyou to capture, and then set lifeskillers on it, and still grind pve mobs with your combat team for exp and more loot if you want. **NOT WORKING - needs investigation**
 - set up auto battling
 - set up proper integration tests with everything needed
 - make sure afk functionality is ready
