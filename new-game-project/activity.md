@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 2/10
-**Current Task:** Create WorkerSlotDisplay component
+**Tasks Completed:** 3/10
+**Current Task:** Create NodeTaskCalculator system
 
 ---
 
@@ -123,3 +123,51 @@ Uses `GodCalculator.get_power_rating(god)` which sums HP + Attack + Defense + Sp
 - Read-only display, emits signals for parent to handle data ✅
 - Uses GodCalculator for stat calculations (RULE 3 compliant) ✅
 - Follows existing patterns from GodSelectionGrid ✅
+
+### 2026-01-17 - Task 3: WorkerSlotDisplay Component ✅
+
+**What Changed:**
+Created mobile-friendly worker slot display component for node worker management.
+
+**Files Created:**
+- `scripts/ui/territory/WorkerSlotDisplay.gd` (340 lines)
+
+**Implementation Details:**
+1. **Slot Layout**: Horizontal scrollable container with 100x120px slots, 10px spacing
+2. **Slot Count**: Based on node tier (tier = max slots, capped at 5)
+3. **Empty Slots**: '+' icon (32px font), "Empty Slot" label, dashed border style
+4. **Filled Slots**: Portrait (40x40), god name (truncated), level, task type display
+5. **Element Borders**: Matching color scheme from GodSelectionGrid/GarrisonDisplay
+6. **Minimum Tap Target**: 100x120px slots exceed 60x60px minimum requirement
+
+**Signals:**
+- `empty_slot_tapped(slot_index: int)` - When user taps empty slot
+- `filled_slot_tapped(slot_index: int, god: God)` - When user taps filled slot
+- `assign_worker_requested(slot_index: int)` - Request to open god selection
+
+**Public API:**
+- `setup_for_node(node: HexNode)` - Configure slots for a specific node
+- `set_worker_gods(god_ids: Array[String])` - Set workers by god IDs
+- `get_worker_god_ids()` - Get current worker IDs
+- `get_max_slots()` - Get maximum slot count
+- `get_filled_slot_count()` - Get number of filled slots
+- `has_empty_slots()` - Check for available slots
+- `add_worker_to_slot(god: God)` - Add worker (parent handles persistence)
+- `remove_worker_from_slot(god_id: String)` - Remove worker from display
+- `refresh_display()` - Refresh the display
+
+**Task Display:**
+Shows task type based on node type (Mine→Mining, Forest→Gathering, Coast→Fishing, etc.)
+
+**Verified With Godot MCP:**
+- Ran project: No errors from WorkerSlotDisplay.gd
+- Navigated to hex territory screen: Screen loads correctly
+- Screenshot: `screenshots/node-detail-worker-slot-display.png`
+
+**Architecture Compliance:**
+- Under 500 lines (340 lines) ✅
+- Single responsibility (worker slot display) ✅
+- Uses SystemRegistry for CollectionManager access ✅
+- Read-only display, emits signals for parent to handle data ✅
+- Does NOT use per-node worker APIs (territory-level only) ✅
+- Follows existing patterns from GodSelectionGrid/GarrisonDisplay ✅

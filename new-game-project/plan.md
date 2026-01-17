@@ -61,7 +61,7 @@ Create a mobile-friendly node management interface that clearly shows garrison, 
       "Tapping empty slot opens god selection",
       "Tapping filled slot shows option to unassign"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "system",
