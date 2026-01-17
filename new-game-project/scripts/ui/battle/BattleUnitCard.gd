@@ -175,7 +175,8 @@ func _setup_card_structure():
 	status_container = HBoxContainer.new()
 	status_container.alignment = BoxContainer.ALIGNMENT_CENTER
 	status_container.add_theme_constant_override("separation", 2)
-	status_container.custom_minimum_size = Vector2(0, 20)  # Reserve space for status icons
+	status_container.custom_minimum_size = Vector2(0, 36)  # Increased from 20 to 36 to fit 32px icons
+	status_container.mouse_filter = Control.MOUSE_FILTER_PASS  # Allow mouse events to pass to icon children
 	vbox.add_child(status_container)
 
 	# Make card clickable
