@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 6/10
-**Current Task:** Task 6 completed - Ability selection connected to battle execution
+**Tasks Completed:** 7/10
+**Current Task:** Task 7 completed - Turn order visualization implemented
 
 ---
 
@@ -219,3 +219,43 @@
 - RULE 5: Uses SystemRegistry for BattleCoordinator access
 - Under 500 lines (382 lines)
 - Uses BattleAction data class for action creation
+
+### 2026-01-17 - Task 7: Turn Order Visualization Implemented
+
+**What Changed:**
+- Created `TurnOrderBar.gd` component for displaying upcoming turn order
+- Added `get_turn_order_preview()` method to TurnManager for simulating future turns
+- Integrated TurnOrderBar into BattleScreen header section
+- Turn order updates automatically when turns change
+
+**Files Created:**
+- `scripts/ui/battle/TurnOrderBar.gd` (228 lines)
+- `scenes/ui/battle/TurnOrderBar.tscn`
+
+**Files Modified:**
+- `scripts/systems/battle/TurnManager.gd` (added ~65 lines for turn preview)
+- `scripts/ui/screens/BattleScreen.gd` (416 lines, added ~25 lines for turn order bar)
+- `scenes/BattleScreen.tscn` (added TurnOrderContainer with TurnOrderBar instance)
+
+**Features Implemented:**
+- Turn order bar showing up to 10 upcoming unit portraits
+- Current unit highlighted with gold border and arrow indicator
+- Player units have blue borders, enemy units have red borders
+- Dead units show X overlay
+- Tooltips show unit name (and "Current Turn" for active unit)
+- Simulated turn order based on Summoners War-style ATB system
+- Turn bar clears when battle ends or no battle active
+
+**Verified with Godot MCP:**
+- Ran project with `mcp__godot__run_project`
+- Navigated to BattleScreen and verified TurnOrderBar in UI tree
+- TurnOrderBar visible in HeaderContainer with "TURN ORDER" label
+- No compilation errors related to TurnOrderBar or TurnManager
+- Screenshots saved to `user://screenshots/task-7-*.png`
+
+**Architecture Compliance:**
+- RULE 2: Single responsibility - TurnOrderBar only displays turn order
+- RULE 4: No logic in UI - displays state from TurnManager preview
+- RULE 5: Uses SystemRegistry for BattleCoordinator access
+- Under 500 lines (228 lines for TurnOrderBar, 416 lines for BattleScreen)
+- TurnManager handles turn simulation logic, UI just displays

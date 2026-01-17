@@ -90,7 +90,7 @@ Build a complete Summoners War-style battle screen with turn-based combat, polis
       "Update as turns progress",
       "Highlight current unit's portrait"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "feature",

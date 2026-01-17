@@ -23,6 +23,7 @@ const BattleUnitCardScene = preload("res://scenes/ui/battle/BattleUnitCard.tscn"
 @onready var enemy_team_container = $MainContainer/BattleArenaContainer/EnemyTeamSide/EnemyTeamContainer
 @onready var turn_indicator = $MainContainer/BattleArenaContainer/BattleCenter/TurnIndicator
 @onready var ability_bar = $MainContainer/BottomContainer/AbilityBarContainer/AbilityBar
+@onready var turn_order_bar = $MainContainer/HeaderContainer/TurnOrderContainer/TurnOrderBar
 
 # Signal for screen navigation (RULE 4: UI signals)
 signal back_pressed
@@ -94,6 +95,9 @@ func _on_battle_ended(result):
 	# Hide ability bar when battle ends
 	_hide_ability_bar()
 
+	# Clear turn order bar when battle ends
+	_clear_turn_order_bar()
+
 	# Update UI based on result
 	if battle_status_label:
 		if result.victory:
@@ -126,6 +130,9 @@ func _on_turn_changed(unit: BattleUnit):
 
 		# Show ability bar for player units, hide for enemies
 		_update_ability_bar_for_turn(unit)
+
+		# Update turn order bar
+		_update_turn_order_bar(unit)
 
 func _clear_active_highlight():
 	"""Remove active highlight from all unit cards"""
@@ -222,6 +229,8 @@ func _show_no_battle_state():
 		battle_title_label.text = "BATTLE ARENA"
 	# Hide ability bar when no battle
 	_hide_ability_bar()
+	# Clear turn order bar when no battle
+	_clear_turn_order_bar()
 
 # =============================================================================
 # ABILITY BAR MANAGEMENT
@@ -380,3 +389,27 @@ func _show_damage_number(target: BattleUnit, damage_result):
 	tween.tween_property(damage_label, "position:y", damage_label.position.y - 50, 1.0)
 	tween.tween_property(damage_label, "modulate:a", 0.0, 1.0).set_delay(0.5)
 	tween.chain().tween_callback(damage_label.queue_free)
+
+# =============================================================================
+# TURN ORDER BAR MANAGEMENT
+# =============================================================================
+
+func _update_turn_order_bar(active_unit: BattleUnit):
+	"""Update the turn order bar with predicted turn order"""
+	if not turn_order_bar or not battle_coordinator:
+		return
+
+	if not battle_coordinator.turn_manager:
+		return
+
+	# Get turn order preview from TurnManager
+	var turn_order = battle_coordinator.turn_manager.get_turn_order_preview(10)
+
+	# Update the turn order bar
+	turn_order_bar.update_turn_order(turn_order, active_unit)
+	print("BattleScreen: Updated turn order bar with ", turn_order.size(), " upcoming turns")
+
+func _clear_turn_order_bar():
+	"""Clear the turn order bar"""
+	if turn_order_bar:
+		turn_order_bar.clear()

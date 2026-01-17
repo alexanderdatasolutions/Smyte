@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://d008w7iupyujf"]
+[gd_scene load_steps=4 format=3 uid="uid://d008w7iupyujf"]
 
 [ext_resource type="Script" uid="uid://bi3etbdnacfdv" path="res://scripts/ui/screens/BattleScreen.gd" id="1_battle"]
 [ext_resource type="PackedScene" path="res://scenes/ui/battle/AbilityBar.tscn" id="2_ability_bar"]
+[ext_resource type="PackedScene" path="res://scenes/ui/battle/TurnOrderBar.tscn" id="3_turn_order"]
 
 [node name="BattleScreen" type="Control"]
 layout_mode = 3
@@ -29,9 +30,14 @@ layout_mode = 2
 
 [node name="BattleTitleLabel" type="Label" parent="MainContainer/HeaderContainer"]
 layout_mode = 2
-size_flags_vertical = 3
 text = "Territory: Loading... | Stage: 0/10"
 horizontal_alignment = 1
+
+[node name="TurnOrderContainer" type="CenterContainer" parent="MainContainer/HeaderContainer"]
+layout_mode = 2
+
+[node name="TurnOrderBar" parent="MainContainer/HeaderContainer/TurnOrderContainer" instance=ExtResource("3_turn_order")]
+layout_mode = 2
 
 [node name="BattleArenaContainer" type="HBoxContainer" parent="MainContainer"]
 layout_mode = 2

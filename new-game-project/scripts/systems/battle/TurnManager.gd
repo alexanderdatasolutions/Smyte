@@ -34,6 +34,72 @@ func get_current_unit() -> BattleUnit:
 		return null
 	return turn_queue[0]
 
+## Get predicted turn order for the next N turns (for UI display)
+func get_turn_order_preview(num_turns: int = 8) -> Array:
+	"""Simulate turn progression to predict upcoming turn order"""
+	var preview: Array = []  # Array[BattleUnit]
+
+	# Get living units
+	var living_units = battle_units.filter(func(unit): return unit.is_alive)
+	if living_units.is_empty():
+		return preview
+
+	# Create a copy of turn bar values to simulate without modifying actual state
+	var simulated_bars: Dictionary = {}
+	for unit in living_units:
+		simulated_bars[unit] = unit.current_turn_bar
+
+	# Add units already in queue first
+	for unit in turn_queue:
+		if unit.is_alive:
+			preview.append(unit)
+			if preview.size() >= num_turns:
+				return preview
+
+	# Simulate future turns
+	var safety_counter = 0
+	var max_iterations = 1000
+
+	while preview.size() < num_turns and safety_counter < max_iterations:
+		# Advance all simulated turn bars
+		var ready_units: Array = []
+
+		for unit in living_units:
+			simulated_bars[unit] += unit.speed * 0.07
+			if simulated_bars[unit] >= 100.0:
+				ready_units.append(unit)
+
+		# Sort ready units by speed (faster goes first) then by turn bar (higher goes first)
+		ready_units.sort_custom(func(a, b):
+			if simulated_bars[a] != simulated_bars[b]:
+				return simulated_bars[a] > simulated_bars[b]
+			return a.speed > b.speed
+		)
+
+		# Add ready units to preview
+		for unit in ready_units:
+			if not preview.has(unit) or _count_in_array(preview, unit) < _count_future_turns(simulated_bars[unit]):
+				preview.append(unit)
+				simulated_bars[unit] = 0.0  # Reset after taking turn
+				if preview.size() >= num_turns:
+					return preview
+
+		safety_counter += 1
+
+	return preview
+
+func _count_in_array(arr: Array, item) -> int:
+	"""Count occurrences of item in array"""
+	var count = 0
+	for element in arr:
+		if element == item:
+			count += 1
+	return count
+
+func _count_future_turns(turn_bar_value: float) -> int:
+	"""Helper to allow same unit appearing multiple times if very fast"""
+	return int(turn_bar_value / 100.0) + 1
+
 ## End the battle
 func end_battle():
 	battle_units.clear()
