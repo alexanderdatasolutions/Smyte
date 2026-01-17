@@ -1,395 +1,80 @@
-# Battle Screen Build - Activity Log
+# Node Detail Screen Overhaul - Activity Log
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 10/10
-**Current Task:** All tasks completed - Battle screen implementation complete!
+**Tasks Completed:** 1/10
+**Current Task:** Create GarrisonDisplay component
+
+---
+
+## What This Is
+
+This log tracks the autonomous agent (Ralph) working through the node detail screen overhaul.
+
+Ralph reads:
+- `plan.md` for the task list
+- `PROMPT.md` for instructions
+- `docs/CLAUDE.md` for architecture rules
+- `docs/COMMON_ISSUES.md` for known issues
+
+Ralph will work on ONE task at a time, verify with Godot MCP tools, and append progress here.
 
 ---
 
 ## Session Log
 
-### 2026-01-17 - Initial Setup
-- Created plan.md with 10 tasks for battle screen implementation
-- Set up PROMPT.md for Ralph Wiggum autonomous loop
-- Battle screen currently shows basic unit cards but no combat functionality
-- Next: Create BattleUnitCard component with portraits, HP bars, and status icons
+### 2026-01-17 - Plan Created
+
+**Overview:**
+- Replacing old WorkerAssignmentPanel with new NodeDetailScreen
+- Old panel used per-node worker APIs that don't exist
+- TaskAssignmentManager works at territory level, not per-node
+- New design separates garrison (per-node, for combat) from workers (territory-level)
+
+**Architecture:**
+- Garrison: per-node assignments for combat defense
+- Workers: territory-level assignments (but show which can help this node)
+- Tasks/output: node-specific based on type and tier
+
+**Goal:**
+Mobile-friendly interface with:
+- Clear garrison display showing combat power
+- Worker slot management with task/output visibility
+- Easy tap-based god selection grid organized by affinity
 
 <!-- Ralph will append dated entries below this line -->
 
-### 2026-01-17 - Task 1: BattleUnitCard Component Created
+### 2026-01-17 - Task 1: GodSelectionGrid Component ✅
 
 **What Changed:**
-- Created `BattleUnitCard.gd` component for displaying battle units
-- Component displays: portrait, name, level, HP bar with color coding, ATB/turn bar
-- Supports 4 visual styles: NORMAL, ACTIVE, TARGETED, DEAD
-- Includes status effect container (placeholder for Task 2)
-- Emits `unit_clicked` signal for targeting
+Created mobile-friendly god selection grid component for territory node management.
 
 **Files Created:**
-- `scripts/ui/battle/BattleUnitCard.gd` (398 lines)
-- `scenes/ui/battle/BattleUnitCard.tscn`
+- `scripts/ui/territory/GodSelectionGrid.gd` (320 lines)
 
-**Verified with Godot MCP:**
-- Ran project with `mcp__godot__run_project`
-- No errors related to BattleUnitCard
-- Screenshots saved to `user://screenshots/task-1-*.png`
+**Implementation Details:**
+1. **Grid Layout**: 5 columns, 80x100px cards with 8px spacing
+2. **Card Content**: Portrait (40x40), name (truncated), level label
+3. **Affinity Color Borders**: Element-based colors (Fire=Red, Water=Blue, Earth=Brown, Lightning=LightBlue, Light=Gold, Dark=Purple)
+4. **Filter System**: FilterMode enum with ALL, AVAILABLE, ASSIGNED, GARRISON_READY, WORKER_READY
+5. **Signals**: `god_selected(god: God)`, `selection_cancelled`
+6. **Scrollable**: ScrollContainer wrapping GridContainer
 
-**Architecture Compliance:**
-- RULE 2: Single responsibility - only displays BattleUnit data
-- RULE 4: No logic in UI - just displays state
-- Under 500 lines
-- Uses proper class references (God, BattleUnit, StatusEffect)
+**Features:**
+- Title bar with close button
+- Filter toggle buttons (All/Available/Assigned)
+- Exclusion list for already-selected gods
+- Element-colored placeholders when no portrait image exists
+- Sorts gods by element for visual grouping
 
-### 2026-01-17 - Task 2: Status Effect Icons Added to BattleUnitCard
-
-**What Changed:**
-- Created `StatusEffectIcon.gd` component for individual status effect display
-- Each icon shows: colored background (by effect type), symbol, duration, stack count
-- Tooltips appear on hover showing effect name, description, duration, and stacks
-- BattleUnitCard now uses StatusEffectIcon for status display
-- Refactored to keep both files under 500 lines
-
-**Files Created:**
-- `scripts/ui/battle/StatusEffectIcon.gd` (263 lines)
-
-**Files Modified:**
-- `scripts/ui/battle/BattleUnitCard.gd` (436 lines, refactored from 670)
-
-**Features Implemented:**
-- Status icons with color coding: green (buff), red (debuff), orange (DoT), teal (HoT)
-- Stack count display in corner for stackable effects
-- Duration indicator showing turns remaining
-- Hover tooltips with effect name, description, duration, and stack info
-- Maximum 5 visible icons with overflow indicator (+N)
-
-**Verified with Godot MCP:**
-- Ran project with `mcp__godot__run_project`
-- No errors related to StatusEffectIcon or BattleUnitCard
-- Screenshot saved to `user://screenshots/task-2-dungeon.png`
+**Verified With Godot MCP:**
+- Ran project: No errors from GodSelectionGrid
+- Navigated to hex territory screen: Screen loads correctly
+- Screenshot: `screenshots/node-detail-hex-map-clean.png`
 
 **Architecture Compliance:**
-- RULE 2: Single responsibility - StatusEffectIcon only displays one StatusEffect
-- RULE 4: No logic in UI - just displays state from StatusEffect
-- Both files under 500 lines
-- Uses proper class reference (StatusEffect)
-
-### 2026-01-17 - Task 3: AbilityBar Component Created
-
-**What Changed:**
-- Created `AbilityBar.gd` component for displaying and selecting battle abilities
-- Component displays: 4 skill buttons from active unit with skill names
-- Shows cooldown overlays with turn count when skills are on cooldown
-- Hover tooltips show skill name, description, cooldown, targets, and damage multiplier
-- Emits `ability_selected` signal with skill index when clicked
-
-**Files Created:**
-- `scripts/ui/battle/AbilityBar.gd` (310 lines)
-- `scenes/ui/battle/AbilityBar.tscn`
-
-**Features Implemented:**
-- 4 skill button slots with color-coding by skill position (green, blue, purple, orange)
-- Cooldown overlay with dark semi-transparent panel and turn number
-- Disabled state for skills on cooldown
-- Hover tooltips with BBCode formatting showing:
-  - Skill name and current cooldown status
-  - Skill description
-  - Target type (single, all, allies)
-  - Damage multiplier percentage
-- `ability_hovered` and `ability_unhovered` signals for external tooltip handling
-- Public API: `is_skill_available()`, `get_skill_at_index()`, `highlight_skill()`
-
-**Verified with Godot MCP:**
-- Ran project with `mcp__godot__run_project`
-- No errors related to AbilityBar
-- Screenshots saved to `user://screenshots/task-3-*.png`
-
-**Architecture Compliance:**
-- RULE 2: Single responsibility - only displays skills and emits selection signal
-- RULE 4: No logic in UI - displays state from BattleUnit.skills
-- Under 500 lines (310 lines)
-- Uses proper class references (BattleUnit, Skill)
-
-### 2026-01-17 - Task 4: BattleUnitCard Integrated into BattleScreen
-
-**What Changed:**
-- Updated `BattleScreen.gd` to use BattleUnitCard for both player and enemy teams
-- Replaced old GodCardFactory cards and simple enemy cards with BattleUnitCard
-- Connected to `BattleCoordinator.turn_changed` signal for turn highlighting
-- Added unit card tracking dictionaries (player_unit_cards, enemy_unit_cards)
-- Implemented active unit highlighting with gold border during their turn
-- Added helper functions: `_get_unit_card()`, `_clear_active_highlight()`, `_update_all_unit_cards()`
-
-**Files Modified:**
-- `scripts/ui/screens/BattleScreen.gd` (207 lines, added ~60 lines)
-- `scripts/ui/battle/BattleUnitCard.gd` (added StatusEffectIconScript preload)
-
-**Features Implemented:**
-- BattleUnitCard used for all battle units (player and enemy)
-- Turn change signal connection to highlight active unit
-- Active unit gets gold border (ACTIVE style) during their turn
-- All unit cards update HP/status when turns change
-- Unit click signals connected for future targeting feature (Task 6)
-- Turn indicator text updates with active unit's name
-
-**Verified with Godot MCP:**
-- Ran project with `mcp__godot__run_project`
-- No compilation errors related to BattleScreen or BattleUnitCard
-- Fixed StatusEffectIcon identifier error by adding preload
-- Screenshots saved to `user://screenshots/task-4-*.png`
-
-**Architecture Compliance:**
-- RULE 2: Single responsibility - BattleScreen only coordinates UI components
-- RULE 4: No logic in UI - delegates to BattleCoordinator via signals
-- RULE 5: Uses SystemRegistry for BattleCoordinator access
-- Under 500 lines (207 lines)
-- Uses BattleUnitCard component instead of inline card creation
-
-### 2026-01-17 - Task 5: AbilityBar Added to BattleScreen
-
-**What Changed:**
-- Added AbilityBar component to BattleScreen.tscn in BottomContainer
-- Connected AbilityBar.ability_selected signal to BattleScreen handler
-- Implemented `_update_ability_bar_for_turn()` to show bar for player units only
-- AbilityBar shows when player unit's turn starts, hides for enemy turns
-- AbilityBar hidden when battle ends or no active battle
-
-**Files Modified:**
-- `scenes/BattleScreen.tscn` (added AbilityBarContainer with AbilityBar instance)
-- `scripts/ui/screens/BattleScreen.gd` (268 lines, added ~60 lines for ability bar management)
-
-**Features Implemented:**
-- AbilityBar container centered in BottomContainer above progress bar
-- `ability_bar` reference connected in `_ready()`
-- `_on_ability_selected()` handler logs skill selection and updates action label
-- `_update_ability_bar_for_turn()` shows bar for player units via `setup_unit()`
-- `_hide_ability_bar()` clears and hides bar for enemy turns and battle end
-- AbilityBar hidden by default when no battle is active
-
-**Verified with Godot MCP:**
-- Ran project with `mcp__godot__run_project`
-- Navigated to BattleScreen using `game_navigate`
-- Verified AbilityBar present in UI tree at correct location
-- Confirmed AbilityBar hidden when no battle active (expected behavior)
-- No compilation errors related to BattleScreen or AbilityBar
-- Screenshots saved to `user://screenshots/task-5-*.png`
-
-**Architecture Compliance:**
-- RULE 2: Single responsibility - AbilityBar only displays skills
-- RULE 4: No logic in UI - displays state from active BattleUnit
-- RULE 5: Uses SystemRegistry for BattleCoordinator access
-- Under 500 lines (268 lines)
-- Uses AbilityBar component via scene instance
-
-### 2026-01-17 - Task 6: Ability Selection Connected to Battle Execution
-
-**What Changed:**
-- Updated `_on_ability_selected()` to execute player actions through BattleCoordinator
-- Added `_find_skill_targets()` to auto-select appropriate targets for skills
-- Connected to `action_processor.action_executed` signal for UI updates
-- Added `_on_action_executed()` handler to update unit cards after actions
-- Implemented `_show_damage_number()` for floating damage numbers with animation
-- Removed unused GodCardFactory const to fix warning
-
-**Files Modified:**
-- `scripts/ui/screens/BattleScreen.gd` (382 lines, added ~115 lines)
-
-**Features Implemented:**
-- AbilityBar skill selection creates BattleAction and executes via BattleCoordinator
-- Automatic target selection: lowest HP enemy for single target, all for AoE
-- Ally targeting support for healing/buff skills
-- `_on_action_executed()` updates all unit cards after each action
-- Floating damage numbers with animation:
-  - Gold text with "!" for critical hits (24px)
-  - Gray text for glancing hits (14px)
-  - Red text for normal damage (18px)
-  - Float up and fade out over 1 second
-- AbilityBar hides after successful action execution
-- Cooldowns update after action via `ability_bar.update_cooldowns()`
-
-**Verified with Godot MCP:**
-- Ran project with `mcp__godot__run_project`
-- Navigated to BattleScreen and DungeonScreen
-- No compilation errors related to BattleScreen changes
-- Screenshots saved to `user://screenshots/task-6-*.png`
-
-**Architecture Compliance:**
-- RULE 2: Single responsibility - BattleScreen coordinates UI, delegates execution
-- RULE 4: No logic in UI - uses BattleCoordinator.execute_action() for battle logic
-- RULE 5: Uses SystemRegistry for BattleCoordinator access
-- Under 500 lines (382 lines)
-- Uses BattleAction data class for action creation
-
-### 2026-01-17 - Task 7: Turn Order Visualization Implemented
-
-**What Changed:**
-- Created `TurnOrderBar.gd` component for displaying upcoming turn order
-- Added `get_turn_order_preview()` method to TurnManager for simulating future turns
-- Integrated TurnOrderBar into BattleScreen header section
-- Turn order updates automatically when turns change
-
-**Files Created:**
-- `scripts/ui/battle/TurnOrderBar.gd` (228 lines)
-- `scenes/ui/battle/TurnOrderBar.tscn`
-
-**Files Modified:**
-- `scripts/systems/battle/TurnManager.gd` (added ~65 lines for turn preview)
-- `scripts/ui/screens/BattleScreen.gd` (416 lines, added ~25 lines for turn order bar)
-- `scenes/BattleScreen.tscn` (added TurnOrderContainer with TurnOrderBar instance)
-
-**Features Implemented:**
-- Turn order bar showing up to 10 upcoming unit portraits
-- Current unit highlighted with gold border and arrow indicator
-- Player units have blue borders, enemy units have red borders
-- Dead units show X overlay
-- Tooltips show unit name (and "Current Turn" for active unit)
-- Simulated turn order based on Summoners War-style ATB system
-- Turn bar clears when battle ends or no battle active
-
-**Verified with Godot MCP:**
-- Ran project with `mcp__godot__run_project`
-- Navigated to BattleScreen and verified TurnOrderBar in UI tree
-- TurnOrderBar visible in HeaderContainer with "TURN ORDER" label
-- No compilation errors related to TurnOrderBar or TurnManager
-- Screenshots saved to `user://screenshots/task-7-*.png`
-
-**Architecture Compliance:**
-- RULE 2: Single responsibility - TurnOrderBar only displays turn order
-- RULE 4: No logic in UI - displays state from TurnManager preview
-- RULE 5: Uses SystemRegistry for BattleCoordinator access
-- Under 500 lines (228 lines for TurnOrderBar, 416 lines for BattleScreen)
-- TurnManager handles turn simulation logic, UI just displays
-
-### 2026-01-17 - Task 8: Battle Progression and Completion Implemented
-
-**What Changed:**
-- Created `BattleResultOverlay.gd` component for displaying victory/defeat screen
-- Overlay shows: result banner (VICTORY/DEFEAT), efficiency rating (S/A/B/C/D), battle stats, rewards earned, loot obtained
-- Added "Return to Map" button that navigates back to hex_territory screen
-- Connected BattleScreen to battle_ended signal to show overlay automatically
-- Rewards already awarded by BattleCoordinator._award_battle_rewards() via ResourceManager
-
-**Files Created:**
-- `scripts/ui/battle/BattleResultOverlay.gd` (376 lines)
-- `scenes/ui/battle/BattleResultOverlay.tscn`
-
-**Files Modified:**
-- `scripts/ui/screens/BattleScreen.gd` (477 lines, added ~60 lines for overlay management)
-
-**Features Implemented:**
-- Full-screen dark overlay with centered content panel
-- Victory displays green text with gold border, Defeat displays red text
-- Efficiency rating with color coding (S=Gold, A=Purple, B=Blue, C=Green, D=Gray)
-- Battle statistics: duration, turns taken, damage dealt/received
-- Perfect victory indicator when no units lost
-- Rewards display with resource names and +amounts in green
-- Loot display with rarity-colored item names
-- Return to Map button navigates to hex_territory via ScreenManager
-- Continue button (hidden by default) for multi-stage battles
-- Fade-in/fade-out animations for overlay
-
-**Verified with Godot MCP:**
-- Ran project with `mcp__godot__run_project`
-- Navigated to BattleScreen and verified BattleResultOverlay in UI tree
-- Overlay correctly hidden (`visible: false`) when no battle ended
-- "Return to Map" button present and functional
-- No compilation errors related to BattleResultOverlay or BattleScreen
-- Screenshots saved to `user://screenshots/task-8-*.png`
-
-**Architecture Compliance:**
-- RULE 2: Single responsibility - BattleResultOverlay only displays BattleResult data
-- RULE 4: No logic in UI - just displays state from BattleResult, navigation via ScreenManager
-- RULE 5: Uses SystemRegistry for ScreenManager access
-- Under 500 lines (376 lines for overlay, 477 lines for BattleScreen)
-- BattleCoordinator handles reward calculation and awarding, UI just displays
-
-### 2026-01-17 - Task 9: Battle Flow Tested End-to-End
-
-**What Changed:**
-- Fixed battle flow to properly start from BattleSetupScreen
-- Implemented `_start_battle_directly()` in BattleSetupCoordinator for test battles
-- Updated DungeonScreen's `_on_battle_setup_complete()` to use proper BattleConfig
-- Added `_process_enemy_turn()` to BattleCoordinator for automatic enemy AI execution
-- Fixed `is_alive()` -> `is_alive` property access errors
-- Fixed `battle_type` String vs int type mismatch in end_battle()
-
-**Files Modified:**
-- `scripts/ui/battle_setup/BattleSetupCoordinator.gd` (added _start_battle_directly method)
-- `scripts/ui/screens/DungeonScreen.gd` (updated _on_battle_setup_complete to use BattleConfig)
-- `scripts/ui/screens/BattleScreen.gd` (relaxed start_battle parameter type)
-- `scripts/systems/battle/BattleCoordinator.gd` (added _process_enemy_turn, fixed property access)
-
-**Battle Flow Verified:**
-1. Navigate to BattleSetupScreen
-2. Select god (Ares) from available gods
-3. Click "START BATTLE" button
-4. BattleScreen loads with unit cards (1 player, 2 enemies)
-5. Turn order bar shows upcoming turns
-6. Enemy turns execute automatically (Test Goblin, Test Orc)
-7. Player unit defeated after enemy attacks
-8. DEFEAT overlay shows with Rank D, stats, and Return to Map button
-9. Return to Map navigates back to HexTerritoryScreen
-
-**Screenshots Captured:**
-- `user://screenshots/task-9-battle-setup.png`
-- `user://screenshots/task-9-god-selected.png`
-- `user://screenshots/task-9-battle-started.png`
-- `user://screenshots/task-9-battle-complete.png`
-- `user://screenshots/task-9-return-to-map.png`
-
-**Known Issues (Minor):**
-- Battle stats show 0 for damage/turns (stats tracking not fully connected)
-- DungeonCoordinator has type mismatch for battle_ended signal (pre-existing)
-
-**Architecture Compliance:**
-- All changes follow existing patterns
-- No new UI logic added to coordinators
-- Uses SystemRegistry for system access
-- BattleConfig properly typed for start_battle()
-
-### 2026-01-17 - Task 10: Battle Screen Verified with Godot MCP
-
-**What Changed:**
-- Verified complete battle screen implementation using Godot MCP tools
-- Ran automated testing flow from hex territory through battle completion
-
-**Verification Steps Completed:**
-1. Ran project with `mcp__godot__run_project`
-2. Navigated to hex_territory screen
-3. Navigated to battle_setup screen
-4. Selected god (Ares) and clicked START BATTLE
-5. Used `game_get_ui_tree` to verify BattleScreen structure
-6. Captured screenshots at each stage
-7. Verified battle executed and DEFEAT overlay displayed
-
-**UI Structure Verified:**
-- BattleScreen contains:
-  - HeaderContainer with BattleTitleLabel and TurnOrderBar
-  - BattleArenaContainer with PlayerTeamSide, BattleCenter, EnemyTeamSide
-  - BottomContainer with AbilityBar, BattleProgress, ButtonContainer
-  - BattleResultOverlay for victory/defeat display
-
-**Screenshots Captured:**
-- `user://screenshots/task-10-hex-territory.png`
-- `user://screenshots/task-10-battle-setup.png`
-- `user://screenshots/task-10-god-selected.png`
-- `user://screenshots/task-10-battle-complete.png`
-
-**Debug Output Verified:**
-- BattleScreen: Battle started, populating UI
-- BattleScreen: Creating 1 player unit cards
-- BattleScreen: Creating 2 enemy unit cards
-- BattleScreen: Turn changed to Test Goblin
-- BattleScreen: Action executed - Test Goblin uses Basic Attack on Ares
-- BattleScreen: Turn changed to Test Orc
-- BattleScreen: Battle ended - Victory: false
-- BattleScreen: Showing battle result overlay
-
-**Known Issues (Pre-existing):**
-- DungeonCoordinator has type mismatch for battle_ended signal
-
-**Architecture Compliance:**
-- All MCP verification tools working correctly
-- TestHarness responding on port 9999
-- UI tree structure matches expected design
-- Battle flow executes as designed
+- Under 500 lines ✅
+- Single responsibility (god selection display) ✅
+- Uses SystemRegistry for CollectionManager access ✅
+- Read-only display, no data modification ✅
+- Follows existing patterns from GodCollectionList and GodCard ✅
