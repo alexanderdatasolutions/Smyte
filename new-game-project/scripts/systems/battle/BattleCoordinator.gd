@@ -106,12 +106,18 @@ func set_auto_battle(enabled: bool):
 func execute_action(action) -> bool:
 	if not is_battle_active:
 		return false
-	
+
 	if auto_battle_enabled:
 		push_warning("BattleCoordinator: Cannot execute manual action during auto-battle")
 		return false
-	
-	return action_processor.execute_action(action, battle_state)
+
+	var success = action_processor.execute_action(action, battle_state)
+
+	# Advance turn after successful action (same as auto-battle flow)
+	if success:
+		turn_manager.advance_turn()
+
+	return success
 
 ## Get current battle state (for UI updates)
 func get_battle_state() -> BattleState:
