@@ -198,7 +198,7 @@ func _on_collection_building_pressed():
 	_navigate_to_screen("collection")
 
 func _on_territory_building_pressed():
-	_navigate_to_screen("territory")
+	_navigate_to_screen("hex_territory")
 
 func _on_sacrifice_building_pressed():
 	_navigate_to_screen("sacrifice")
