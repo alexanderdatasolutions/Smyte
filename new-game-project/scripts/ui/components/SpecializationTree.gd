@@ -13,7 +13,7 @@ signal node_unhovered()
 # ==============================================================================
 # CONSTANTS
 # ==============================================================================
-const NODE_HORIZONTAL_SPACING = 160  # Space between nodes horizontally
+const NODE_HORIZONTAL_SPACING = 200  # Space between nodes horizontally
 const NODE_VERTICAL_SPACING = 180    # Space between tier rows
 const CONNECTION_COLOR = Color(0.5, 0.5, 0.5, 0.8)
 const CONNECTION_WIDTH = 2.0
@@ -195,6 +195,10 @@ func _layout_tier_under_parents(nodes: Array, y_pos: float):
 			# Multiple children: spread them out
 			var children_width = (children.size() - 1) * NODE_HORIZONTAL_SPACING
 			var start_x = parent_pos.x - (children_width / 2)
+
+			# Ensure nodes don't go off the left edge (minimum 20px margin)
+			if start_x < 20:
+				start_x = 20
 
 			for i in range(children.size()):
 				var child = children[i]

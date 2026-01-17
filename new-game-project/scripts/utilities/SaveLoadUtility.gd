@@ -66,8 +66,15 @@ static func deserialize_god(data: Dictionary) -> God:
 		god.is_awakened = data.awakened
 
 	# Handle role and specialization data
-	god.primary_role = data.get("primary_role", "")
-	god.secondary_role = data.get("secondary_role", "")
+	# Only override role if save data has non-empty value
+	# Otherwise keep the role initialized by GodFactory from god definition
+	var saved_primary_role = data.get("primary_role", "")
+	if saved_primary_role != "":
+		god.primary_role = saved_primary_role
+
+	var saved_secondary_role = data.get("secondary_role", "")
+	if saved_secondary_role != "":
+		god.secondary_role = saved_secondary_role
 
 	# Restore specialization path with proper array size and type
 	var spec_path = data.get("specialization_path", ["", "", ""])

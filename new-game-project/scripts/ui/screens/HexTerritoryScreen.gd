@@ -31,6 +31,7 @@ const NodeInfoPanelScript = preload("res://scripts/ui/territory/NodeInfoPanel.gd
 const NodeRequirementsPanelScript = preload("res://scripts/ui/territory/NodeRequirementsPanel.gd")
 const NodeCaptureHandlerScript = preload("res://scripts/ui/territory/NodeCaptureHandler.gd")
 const WorkerAssignmentPanelScript = preload("res://scripts/ui/territory/WorkerAssignmentPanel.gd")
+const GarrisonManagementPanelScript = preload("res://scripts/ui/territory/GarrisonManagementPanel.gd")
 
 # ==============================================================================
 # UI COMPONENTS
@@ -49,6 +50,7 @@ var node_info_panel: NodeInfoPanel = null
 var node_requirements_panel: NodeRequirementsPanel = null
 var node_capture_handler: NodeCaptureHandler = null
 var worker_assignment_panel: WorkerAssignmentPanel = null
+var garrison_management_panel: GarrisonManagementPanel = null
 
 # ==============================================================================
 # PROPERTIES
@@ -244,6 +246,7 @@ func _setup_components() -> void:
 	_setup_node_requirements_panel()
 	_setup_node_capture_handler()
 	_setup_worker_assignment_panel()
+	_setup_garrison_management_panel()
 
 func _setup_hex_map_view() -> void:
 	"""Create and setup HexMapView component"""
@@ -312,6 +315,21 @@ func _setup_worker_assignment_panel() -> void:
 	worker_assignment_panel.visible = false
 	main_container.add_child(worker_assignment_panel)
 
+func _setup_garrison_management_panel() -> void:
+	"""Create and setup GarrisonManagementPanel component"""
+	garrison_management_panel = GarrisonManagementPanelScript.new()
+	garrison_management_panel.name = "GarrisonManagementPanel"
+	garrison_management_panel.anchor_left = 0.5
+	garrison_management_panel.anchor_top = 0.5
+	garrison_management_panel.anchor_right = 0.5
+	garrison_management_panel.anchor_bottom = 0.5
+	garrison_management_panel.offset_left = -300  # Center 600px wide panel
+	garrison_management_panel.offset_top = -250   # Center 500px tall panel
+	garrison_management_panel.offset_right = 300
+	garrison_management_panel.offset_bottom = 250
+	garrison_management_panel.visible = false
+	main_container.add_child(garrison_management_panel)
+
 # ==============================================================================
 # CONNECT SIGNALS
 # ==============================================================================
@@ -342,6 +360,12 @@ func _connect_signals() -> void:
 		worker_assignment_panel.close_requested.connect(_on_worker_panel_close)
 		worker_assignment_panel.worker_assigned.connect(_on_worker_assigned)
 		worker_assignment_panel.worker_unassigned.connect(_on_worker_unassigned)
+
+	# Garrison management panel signals
+	if garrison_management_panel:
+		garrison_management_panel.close_requested.connect(_on_garrison_panel_close)
+		garrison_management_panel.garrison_assigned.connect(_on_garrison_assigned)
+		garrison_management_panel.garrison_unassigned.connect(_on_garrison_unassigned)
 
 # ==============================================================================
 # STYLING
@@ -459,9 +483,9 @@ func _on_manage_workers_requested(hex_node: HexNode) -> void:
 		worker_assignment_panel.show_panel(hex_node)
 
 func _on_manage_garrison_requested(hex_node: HexNode) -> void:
-	"""Handle manage garrison request"""
-	# TODO: P6-03 will implement garrison management UI
-	print("Manage garrison requested for node: ", hex_node.id)
+	"""Handle manage garrison request - P6-03: Garrison management UI"""
+	if garrison_management_panel:
+		garrison_management_panel.show_garrison(hex_node)
 
 func _on_node_info_close() -> void:
 	"""Handle node info panel close"""
@@ -487,6 +511,25 @@ func _on_worker_assigned(node: HexNode, god_id: String, task_id: String) -> void
 func _on_worker_unassigned(node: HexNode, god_id: String) -> void:
 	"""Handle worker unassignment notification"""
 	print("Worker unassigned: god=%s from node=%s" % [god_id, node.id])
+	# Refresh displays
+	refresh()
+
+func _on_garrison_panel_close() -> void:
+	"""Handle garrison management panel close"""
+	if garrison_management_panel:
+		garrison_management_panel.hide_panel()
+	# Refresh displays
+	refresh()
+
+func _on_garrison_assigned(node: HexNode, god_id: String) -> void:
+	"""Handle garrison assignment notification"""
+	print("Garrison assigned: god=%s at node=%s" % [god_id, node.id])
+	# Refresh displays
+	refresh()
+
+func _on_garrison_unassigned(node: HexNode, god_id: String) -> void:
+	"""Handle garrison unassignment notification"""
+	print("Garrison unassigned: god=%s from node=%s" % [god_id, node.id])
 	# Refresh displays
 	refresh()
 
