@@ -46,7 +46,7 @@ Build a complete Summoners War-style battle screen with turn-based combat, polis
       "Emit ability_selected signal with skill index",
       "Create matching AbilityBar.tscn scene"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "feature",

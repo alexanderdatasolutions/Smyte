@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 2/10
-**Current Task:** Task 2 completed - Status effect icons added to BattleUnitCard
+**Tasks Completed:** 3/10
+**Current Task:** Task 3 completed - AbilityBar component created for skill selection
 
 ---
 
@@ -73,3 +73,39 @@
 - RULE 4: No logic in UI - just displays state from StatusEffect
 - Both files under 500 lines
 - Uses proper class reference (StatusEffect)
+
+### 2026-01-17 - Task 3: AbilityBar Component Created
+
+**What Changed:**
+- Created `AbilityBar.gd` component for displaying and selecting battle abilities
+- Component displays: 4 skill buttons from active unit with skill names
+- Shows cooldown overlays with turn count when skills are on cooldown
+- Hover tooltips show skill name, description, cooldown, targets, and damage multiplier
+- Emits `ability_selected` signal with skill index when clicked
+
+**Files Created:**
+- `scripts/ui/battle/AbilityBar.gd` (310 lines)
+- `scenes/ui/battle/AbilityBar.tscn`
+
+**Features Implemented:**
+- 4 skill button slots with color-coding by skill position (green, blue, purple, orange)
+- Cooldown overlay with dark semi-transparent panel and turn number
+- Disabled state for skills on cooldown
+- Hover tooltips with BBCode formatting showing:
+  - Skill name and current cooldown status
+  - Skill description
+  - Target type (single, all, allies)
+  - Damage multiplier percentage
+- `ability_hovered` and `ability_unhovered` signals for external tooltip handling
+- Public API: `is_skill_available()`, `get_skill_at_index()`, `highlight_skill()`
+
+**Verified with Godot MCP:**
+- Ran project with `mcp__godot__run_project`
+- No errors related to AbilityBar
+- Screenshots saved to `user://screenshots/task-3-*.png`
+
+**Architecture Compliance:**
+- RULE 2: Single responsibility - only displays skills and emits selection signal
+- RULE 4: No logic in UI - displays state from BattleUnit.skills
+- Under 500 lines (310 lines)
+- Uses proper class references (BattleUnit, Skill)
