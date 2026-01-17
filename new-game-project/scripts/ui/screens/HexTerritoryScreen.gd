@@ -499,9 +499,12 @@ func _on_capture_requested(hex_node: HexNode) -> void:
 
 	# Navigate to battle setup screen
 	if screen_manager:
-		screen_manager.change_screen("battle_setup")
-		# TODO: BattleSetupScreen needs to be configured for hex node capture
-		# and needs to call back to node_capture_handler when team is selected
+		var battle_setup_screen = screen_manager.change_screen("battle_setup")
+		if battle_setup_screen and battle_setup_screen.has_method("setup_for_hex_node_capture"):
+			battle_setup_screen.setup_for_hex_node_capture(hex_node)
+			# Connect to completion signal if not already connected
+			if not battle_setup_screen.battle_setup_complete.is_connected(_on_battle_setup_complete):
+				battle_setup_screen.battle_setup_complete.connect(_on_battle_setup_complete)
 
 func _on_manage_workers_requested(hex_node: HexNode) -> void:
 	"""Handle manage workers request - P6-02: Worker assignment UI"""
@@ -607,6 +610,19 @@ func _hide_requirements_panel() -> void:
 # ==============================================================================
 # CAPTURE HANDLERS - P6-01
 # ==============================================================================
+func _on_battle_setup_complete(context: Dictionary) -> void:
+	"""Handle battle setup completion - start the capture battle with selected team"""
+	if not node_capture_handler or not context.has("selected_team"):
+		return
+
+	# Get the hex node and selected team
+	var hex_node = context.get("hex_node")
+	var selected_team = context.get("selected_team")
+
+	if hex_node and selected_team:
+		# Start the capture battle with the selected team
+		node_capture_handler.initiate_capture_with_team(hex_node, selected_team)
+
 func _on_capture_succeeded(hex_node: HexNode) -> void:
 	"""Handle successful node capture from NodeCaptureHandler"""
 	refresh()

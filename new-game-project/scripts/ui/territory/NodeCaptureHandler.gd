@@ -56,7 +56,7 @@ func _init_systems() -> void:
 # PUBLIC API
 # ==============================================================================
 func initiate_capture(hex_node: HexNode) -> bool:
-	"""Initiate capture battle for the given node"""
+	"""Initiate capture battle for the given node (auto-selects team)"""
 	if not hex_node:
 		return false
 
@@ -90,6 +90,41 @@ func initiate_capture(hex_node: HexNode) -> bool:
 
 	return false
 
+func initiate_capture_with_team(hex_node: HexNode, team: Array) -> bool:
+	"""Initiate capture battle with user-selected team"""
+	if not hex_node:
+		return false
+
+	# Create battle config with custom team
+	var battle_config = _create_capture_battle_config_with_team(hex_node, team)
+	if not battle_config:
+		push_error("NodeCaptureHandler: Failed to create battle config")
+		return false
+
+	# Connect to battle result signal
+	if battle_coordinator:
+		if not battle_coordinator.battle_ended.is_connected(_on_capture_battle_ended):
+			battle_coordinator.battle_ended.connect(_on_capture_battle_ended)
+
+	# Store node being captured
+	current_capture_node = hex_node
+
+	# Emit signal
+	capture_initiated.emit(hex_node)
+
+	# Start the battle with the selected team
+	if battle_coordinator:
+		if not battle_coordinator.start_battle(battle_config):
+			push_error("NodeCaptureHandler: Failed to start battle")
+			return false
+
+	# Navigate to battle screen
+	if screen_manager:
+		screen_manager.change_screen("battle")
+		return true
+
+	return false
+
 # ==============================================================================
 # BATTLE CONFIG CREATION
 # ==============================================================================
@@ -108,6 +143,33 @@ func _create_capture_battle_config(hex_node: HexNode) -> BattleConfig:
 	var config = BattleConfig.new()
 	config.battle_type = BattleConfig.BattleType.TERRITORY
 	config.attacker_team = attacker_gods
+	config.defender_team = defender_gods
+	config.territory_id = hex_node.id
+	config.max_turns = 50
+	config.allow_auto_battle = true
+	config.allow_speed_up = true
+	config.victory_condition = "defeat_all_enemies"
+	config.defeat_condition = "all_gods_defeated"
+
+	# Store config in BattleCoordinator
+	if battle_coordinator:
+		battle_coordinator.current_battle_config = config
+
+	return config
+
+func _create_capture_battle_config_with_team(hex_node: HexNode, team: Array) -> BattleConfig:
+	"""Create battle configuration with user-selected team"""
+	if team.is_empty():
+		push_error("NodeCaptureHandler: No team provided")
+		return null
+
+	# Get node defenders
+	var defender_gods = _get_node_defenders(hex_node)
+
+	# Create battle config with selected team
+	var config = BattleConfig.new()
+	config.battle_type = BattleConfig.BattleType.TERRITORY
+	config.attacker_team = team
 	config.defender_team = defender_gods
 	config.territory_id = hex_node.id
 	config.max_turns = 50

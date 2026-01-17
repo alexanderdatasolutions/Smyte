@@ -31,6 +31,9 @@ func setup_for_dungeon_battle(dungeon_id: String, difficulty: String):
 func setup_for_pvp_battle(opponent_data: Dictionary):
 	setup_coordinator.setup_for_pvp_battle(opponent_data)
 
+func setup_for_hex_node_capture(hex_node: HexNode):
+	setup_coordinator.setup_for_hex_node_capture(hex_node)
+
 func _on_battle_setup_complete(context: Dictionary):
 	battle_setup_complete.emit(context)
 

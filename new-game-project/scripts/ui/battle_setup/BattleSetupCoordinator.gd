@@ -53,6 +53,13 @@ func setup_for_pvp_battle(opponent_data: Dictionary):
 	}
 	_update_for_context()
 
+func setup_for_hex_node_capture(hex_node: HexNode):
+	battle_context = {
+		"type": "hex_capture",
+		"hex_node": hex_node
+	}
+	_update_for_context()
+
 func _update_for_context():
 	team_manager.setup_for_context(battle_context)
 	battle_info_manager.update_for_context(battle_context)
