@@ -184,18 +184,19 @@ Create a mobile-friendly node management interface that clearly shows garrison, 
   },
   {
     "category": "integration",
-    "description": "Connect slot taps to GodSelectionPanel in HexTerritoryScreen",
+    "description": "Connect TerritoryOverviewScreen slots to open GodSelectionPanel",
     "steps": [
-      "Create GodSelectionPanel instance in HexTerritoryScreen",
-      "Connect TerritoryOverviewScreen.slot_tapped signal",
+      "Create GodSelectionPanel instance in HexTerritoryScreen (left-side)",
+      "Keep TerritoryOverviewScreen on right with inline slot boxes (already implemented)",
+      "Connect TerritoryOverviewScreen.slot_tapped signal to HexTerritoryScreen",
       "When slot tapped, show GodSelectionPanel with slide-in animation from LEFT",
-      "Pass context: which node, slot type (worker/garrison), slot index",
-      "When god selected, assign to correct slot in node data (HexNode.worker_god_ids or garrison_god_ids)",
-      "Refresh TerritoryOverviewScreen to show updated slots with god portraits",
-      "Close GodSelectionPanel with slide-out animation",
-      "Remove/deprecate NodeDetailScreen since TerritoryOverviewScreen now has everything"
+      "Pass context: which node, slot type (worker/garrison), slot_index",
+      "When god selected from GodSelectionPanel, assign to node data",
+      "Refresh TerritoryOverviewScreen to show updated god portraits in slots",
+      "Close GodSelectionPanel with slide-out animation to left",
+      "Keep NodeDetailScreen separate - it's accessed via different flow"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "data",

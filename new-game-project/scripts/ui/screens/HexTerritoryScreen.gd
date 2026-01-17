@@ -33,6 +33,7 @@ const NodeCaptureHandlerScript = preload("res://scripts/ui/territory/NodeCapture
 const WorkerAssignmentPanelScript = preload("res://scripts/ui/territory/WorkerAssignmentPanel.gd")
 const GarrisonManagementPanelScript = preload("res://scripts/ui/territory/GarrisonManagementPanel.gd")
 const NodeDetailScreenScript = preload("res://scripts/ui/screens/NodeDetailScreen.gd")
+const GodSelectionPanelScript = preload("res://scripts/ui/territory/GodSelectionPanel.gd")
 
 # ==============================================================================
 # UI COMPONENTS
@@ -54,6 +55,12 @@ var worker_assignment_panel: WorkerAssignmentPanel = null
 var garrison_management_panel: GarrisonManagementPanel = null
 var territory_overview_screen: TerritoryOverviewScreen = null
 var node_detail_screen: NodeDetailScreen = null
+var god_selection_panel: GodSelectionPanel = null
+
+# Slot selection context for god assignment
+var _pending_slot_node: HexNode = null
+var _pending_slot_type: String = ""  # "garrison" or "worker"
+var _pending_slot_index: int = -1
 
 # ==============================================================================
 # PROPERTIES
@@ -273,6 +280,7 @@ func _setup_components() -> void:
 	_setup_garrison_management_panel()
 	_setup_territory_overview_screen()
 	_setup_node_detail_screen()
+	_setup_god_selection_panel()
 
 func _setup_hex_map_view() -> void:
 	"""Create and setup HexMapView component"""
@@ -377,6 +385,13 @@ func _setup_node_detail_screen() -> void:
 	node_detail_screen.visible = false
 	main_container.add_child(node_detail_screen)
 
+func _setup_god_selection_panel() -> void:
+	"""Create and setup GodSelectionPanel component (slides from LEFT)"""
+	god_selection_panel = GodSelectionPanelScript.new()
+	god_selection_panel.name = "GodSelectionPanel"
+	god_selection_panel.visible = false
+	main_container.add_child(god_selection_panel)
+
 # ==============================================================================
 # CONNECT SIGNALS
 # ==============================================================================
@@ -418,12 +433,19 @@ func _connect_signals() -> void:
 	if territory_overview_screen:
 		territory_overview_screen.back_pressed.connect(_on_territory_overview_back)
 		territory_overview_screen.manage_node_requested.connect(_on_overview_manage_node)
+		territory_overview_screen.slot_tapped.connect(_on_overview_slot_tapped)
 
 	# Node detail screen signals
 	if node_detail_screen:
 		node_detail_screen.close_requested.connect(_on_node_detail_close)
 		node_detail_screen.garrison_changed.connect(_on_node_detail_garrison_changed)
 		node_detail_screen.workers_changed.connect(_on_node_detail_workers_changed)
+
+	# God selection panel signals (slides from left)
+	if god_selection_panel:
+		god_selection_panel.god_selected.connect(_on_god_selection_panel_selected)
+		god_selection_panel.selection_cancelled.connect(_on_god_selection_panel_cancelled)
+		god_selection_panel.panel_closed.connect(_on_god_selection_panel_closed)
 
 # ==============================================================================
 # STYLING
@@ -641,6 +663,116 @@ func _on_overview_manage_node(node: HexNode) -> void:
 
 	# Show node detail screen for the node
 	_show_node_detail_screen(node)
+
+func _on_overview_slot_tapped(node: HexNode, slot_type: String, slot_index: int) -> void:
+	"""Handle slot tap from TerritoryOverviewScreen - opens GodSelectionPanel"""
+	if not god_selection_panel or not node:
+		return
+
+	print("HexTerritoryScreen: Slot tapped - node: %s, type: %s, index: %d" % [node.id, slot_type, slot_index])
+
+	# Store context for when god is selected
+	_pending_slot_node = node
+	_pending_slot_type = slot_type
+	_pending_slot_index = slot_index
+
+	# Get currently assigned god IDs to exclude from selection
+	var excluded_ids: Array[String] = []
+	if slot_type == "garrison":
+		for god_id in node.garrison:
+			excluded_ids.append(god_id)
+	else:  # worker
+		for god_id in node.assigned_workers:
+			excluded_ids.append(god_id)
+
+	# Show GodSelectionPanel with appropriate context
+	if slot_type == "garrison":
+		god_selection_panel.show_for_garrison(excluded_ids)
+	else:
+		god_selection_panel.show_for_worker(excluded_ids)
+
+func _on_god_selection_panel_selected(god: God) -> void:
+	"""Handle god selection from GodSelectionPanel - assigns god to pending slot"""
+	if not god or not _pending_slot_node:
+		_clear_pending_slot()
+		return
+
+	print("HexTerritoryScreen: God selected - %s for %s slot %d on %s" % [
+		god.name, _pending_slot_type, _pending_slot_index, _pending_slot_node.id
+	])
+
+	# Assign god to the appropriate slot
+	var success = false
+	if _pending_slot_type == "garrison":
+		success = _assign_god_to_garrison(_pending_slot_node, god.id, _pending_slot_index)
+	else:
+		success = _assign_god_to_worker(_pending_slot_node, god.id, _pending_slot_index)
+
+	if success:
+		# Refresh TerritoryOverviewScreen to show updated slots
+		if territory_overview_screen and territory_overview_screen.visible:
+			territory_overview_screen._refresh_display()
+		refresh()
+
+	_clear_pending_slot()
+
+func _on_god_selection_panel_cancelled() -> void:
+	"""Handle god selection cancelled"""
+	print("HexTerritoryScreen: God selection cancelled")
+	_clear_pending_slot()
+
+func _on_god_selection_panel_closed() -> void:
+	"""Handle god selection panel fully closed"""
+	pass  # Panel handles its own hide animation
+
+func _clear_pending_slot() -> void:
+	"""Clear pending slot context"""
+	_pending_slot_node = null
+	_pending_slot_type = ""
+	_pending_slot_index = -1
+
+func _assign_god_to_garrison(node: HexNode, god_id: String, _slot_index: int) -> bool:
+	"""Assign a god to the node's garrison"""
+	if not territory_manager:
+		push_error("HexTerritoryScreen: TerritoryManager not available")
+		return false
+
+	# Check if there's room in garrison
+	if node.garrison.size() >= 4:  # MAX_GARRISON_SLOTS
+		push_warning("HexTerritoryScreen: Garrison is full")
+		return false
+
+	# Add god to garrison (appends to end)
+	var new_garrison = node.garrison.duplicate()
+	new_garrison.append(god_id)
+
+	# Update via TerritoryManager
+	var success = territory_manager.update_node_garrison(node.id, new_garrison)
+	if success:
+		print("HexTerritoryScreen: Assigned %s to garrison of %s" % [god_id, node.id])
+	return success
+
+func _assign_god_to_worker(node: HexNode, god_id: String, _slot_index: int) -> bool:
+	"""Assign a god as a worker to the node"""
+	if not territory_manager:
+		push_error("HexTerritoryScreen: TerritoryManager not available")
+		return false
+
+	# Check if there's room for workers
+	var max_workers = mini(node.tier, 5)
+	if node.assigned_workers.size() >= max_workers:
+		push_warning("HexTerritoryScreen: Worker slots are full")
+		return false
+
+	# Add god to workers (appends to end)
+	var new_workers = node.assigned_workers.duplicate()
+	new_workers.append(god_id)
+
+	# Update via TerritoryManager
+	var success = territory_manager.update_node_workers(node.id, new_workers)
+	if success:
+		print("HexTerritoryScreen: Assigned %s as worker at %s" % [god_id, node.id])
+	return success
 
 func _on_node_detail_close() -> void:
 	"""Handle close from node detail screen"""
