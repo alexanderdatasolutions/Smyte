@@ -495,6 +495,519 @@
         "specialization_role": ""
       },
       "description": "A library containing valuable knowledge and scrolls. Scholars come here to research and learn."
+    },
+
+    "adamantite_mine_3": {
+      "id": "adamantite_mine_3",
+      "name": "Adamantite Depths",
+      "type": "mine",
+      "tier": 3,
+      "coord": {"q": 3, "r": 0},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "adamantite_ore": 20,
+        "mythril_ore": 40,
+        "magic_crystals": 15,
+        "ancient_gems": 10
+      },
+      "available_tasks": ["deep_mining", "mine_mythril", "gem_cutting"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["adamant_titan", "crystal_golem", "earth_warden", "stone_colossus"],
+      "capture_power_required": 15000,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "A legendary mine containing rare adamantite ore. Only master miners can extract its treasures."
+    },
+
+    "mithril_quarry_3": {
+      "id": "mithril_quarry_3",
+      "name": "Silver Quarry",
+      "type": "mine",
+      "tier": 2,
+      "coord": {"q": 2, "r": 1},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "mythril_ore": 45,
+        "iron_ore": 60,
+        "stone": 40,
+        "gems": 15
+      },
+      "available_tasks": ["mine_mythril", "mine_iron", "mine_gems"],
+      "max_garrison": 3,
+      "max_workers": 4,
+      "base_defenders": ["silver_guardian", "gem_sprite", "rock_titan"],
+      "capture_power_required": 8000,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "A vast quarry rich in mythril and gemstones, shimmering under the moonlight."
+    },
+
+    "enchanted_grove_3": {
+      "id": "enchanted_grove_3",
+      "name": "Enchanted Heartwood",
+      "type": "forest",
+      "tier": 3,
+      "coord": {"q": 1, "r": 2},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "rare_herbs": 70,
+        "magical_wood": 50,
+        "enhancement_powder_mid": 30,
+        "blessed_oil": 15
+      },
+      "available_tasks": ["herbalism", "plant_cultivation", "foraging", "logging"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["ancient_ent", "dryad_queen", "forest_dragon", "nature_guardian"],
+      "capture_power_required": 16000,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "The heart of an ancient enchanted forest where magical plants thrive under the protection of elder spirits."
+    },
+
+    "primeval_woods_3": {
+      "id": "primeval_woods_3",
+      "name": "Primeval Woods",
+      "type": "forest",
+      "tier": 2,
+      "coord": {"q": 1, "r": 3},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "rare_herbs": 50,
+        "wood": 80,
+        "fiber": 40,
+        "enhancement_powder_low": 20
+      },
+      "available_tasks": ["logging", "herbalism", "foraging"],
+      "max_garrison": 3,
+      "max_workers": 4,
+      "base_defenders": ["elder_treant", "woodland_guardian", "moss_elemental"],
+      "capture_power_required": 7800,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "Ancient woods untouched by time, filled with valuable lumber and rare medicinal herbs."
+    },
+
+    "crystal_cavern_3": {
+      "id": "crystal_cavern_3",
+      "name": "Crystal Caverns",
+      "type": "mine",
+      "tier": 3,
+      "coord": {"q": 0, "r": 3},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "magic_crystals": 40,
+        "mythril_ore": 35,
+        "ancient_gems": 25,
+        "crystal_shards": 20
+      },
+      "available_tasks": ["deep_mining", "gem_cutting", "mine_mythril"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["crystal_guardian", "gem_dragon", "prismatic_elemental", "crystal_colossus"],
+      "capture_power_required": 15500,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "Magnificent caverns filled with luminous crystals and rare gemstones. A jeweler's dream."
+    },
+
+    "abyssal_trench_3": {
+      "id": "abyssal_trench_3",
+      "name": "Abyssal Trench",
+      "type": "coast",
+      "tier": 3,
+      "coord": {"q": -1, "r": 3},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "rare_fish": 60,
+        "black_pearls": 30,
+        "sea_crystals": 25,
+        "leviathan_scales": 10
+      },
+      "available_tasks": ["deep_sea_fishing", "pearl_diving", "monster_hunting"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["leviathan", "kraken", "sea_dragon", "abyssal_horror"],
+      "capture_power_required": 17000,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "The darkest depths of the ocean where legendary sea monsters guard priceless treasures."
+    },
+
+    "tropical_lagoon_3": {
+      "id": "tropical_lagoon_3",
+      "name": "Azure Lagoon",
+      "type": "coast",
+      "tier": 2,
+      "coord": {"q": -2, "r": 3},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "fish": 70,
+        "pearls": 30,
+        "coral": 40,
+        "salt": 50
+      },
+      "available_tasks": ["fishing", "pearl_diving", "salt_harvesting"],
+      "max_garrison": 3,
+      "max_workers": 4,
+      "base_defenders": ["coral_dragon", "pearl_guardian", "tide_elemental"],
+      "capture_power_required": 8300,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "A tropical paradise with crystal-clear waters abundant in fish and precious pearls."
+    },
+
+    "dragon_nest_3": {
+      "id": "dragon_nest_3",
+      "name": "Dragon's Lair",
+      "type": "hunting_ground",
+      "tier": 3,
+      "coord": {"q": -3, "r": 3},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "dragon_scales": 25,
+        "monster_parts": 50,
+        "rare_pelts": 30,
+        "dragon_bones": 15
+      },
+      "available_tasks": ["monster_hunting", "tracking", "taming"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["elder_dragon", "dragon_champion", "drake_swarm", "dragon_whelp"],
+      "capture_power_required": 18000,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "A legendary dragon's lair filled with unimaginable treasures and deadly guardians."
+    },
+
+    "savage_highlands_3": {
+      "id": "savage_highlands_3",
+      "name": "Savage Highlands",
+      "type": "hunting_ground",
+      "tier": 2,
+      "coord": {"q": -3, "r": 2},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "pelts": 70,
+        "bones": 60,
+        "meat": 50,
+        "monster_parts": 25
+      },
+      "available_tasks": ["hunting", "tracking", "monster_hunting"],
+      "max_garrison": 3,
+      "max_workers": 4,
+      "base_defenders": ["highland_wyvern", "frost_wolf_alpha", "mountain_giant"],
+      "capture_power_required": 8500,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "Brutal highlands where fierce predators hunt. A test of skill for any hunter."
+    },
+
+    "titan_fortress_3": {
+      "id": "titan_fortress_3",
+      "name": "Titan's Bastion",
+      "type": "fortress",
+      "tier": 3,
+      "coord": {"q": -3, "r": 1},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "defense_bonus": 50,
+        "training_tomes": 20,
+        "war_supplies": 30,
+        "command_banners": 10
+      },
+      "available_tasks": ["garrison_duty", "war_planning", "combat_training", "defense_building"],
+      "max_garrison": 6,
+      "max_workers": 4,
+      "base_defenders": ["war_titan", "fortress_commander", "elite_guardian", "siege_golem", "warlord"],
+      "capture_power_required": 20000,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "An impregnable fortress built by titans. Controlling it grants immense defensive advantages."
+    },
+
+    "war_camp_3": {
+      "id": "war_camp_3",
+      "name": "Warband Encampment",
+      "type": "fortress",
+      "tier": 2,
+      "coord": {"q": -3, "r": 0},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "defense_bonus": 30,
+        "training_tomes": 15,
+        "war_supplies": 20
+      },
+      "available_tasks": ["garrison_duty", "combat_training", "war_planning"],
+      "max_garrison": 4,
+      "max_workers": 3,
+      "base_defenders": ["veteran_commander", "elite_soldiers", "war_chief"],
+      "capture_power_required": 9000,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "A military encampment where warriors train and prepare for battle."
+    },
+
+    "grand_temple_3": {
+      "id": "grand_temple_3",
+      "name": "Celestial Sanctum",
+      "type": "temple",
+      "tier": 3,
+      "coord": {"q": -2, "r": -1},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "divine_essence": 60,
+        "mana_crystals": 80,
+        "blessed_oil": 25,
+        "awakening_stones": 15,
+        "ascension_crystals": 5
+      },
+      "available_tasks": ["meditation", "blessing", "awakening_ritual", "divine_communion"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["archangel", "divine_avatar", "celestial_dragon", "holy_sentinel"],
+      "capture_power_required": 16500,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "A grand temple where the divine presence is strongest. Rituals performed here hold exceptional power."
+    },
+
+    "spirit_shrine_3": {
+      "id": "spirit_shrine_3",
+      "name": "Shrine of Spirits",
+      "type": "temple",
+      "tier": 2,
+      "coord": {"q": -1, "r": -2},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "divine_essence": 40,
+        "mana_crystals": 60,
+        "spirit_essence": 20,
+        "blessed_oil": 10
+      },
+      "available_tasks": ["meditation", "blessing", "divine_communion"],
+      "max_garrison": 3,
+      "max_workers": 4,
+      "base_defenders": ["spirit_guardian", "ancestral_warden", "soul_keeper"],
+      "capture_power_required": 7500,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "A sacred shrine where spirits of the ancestors dwell, offering blessings to the worthy."
+    },
+
+    "volcanic_forge_3": {
+      "id": "volcanic_forge_3",
+      "name": "Inferno Forge",
+      "type": "forge",
+      "tier": 3,
+      "coord": {"q": 0, "r": -3},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "forging_flame": 40,
+        "mythril_ingots": 30,
+        "enhancement_powder_high": 25,
+        "socket_crystals": 20,
+        "divine_ore": 10
+      },
+      "available_tasks": ["smithing", "weapon_crafting", "armor_crafting", "enchanting"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["fire_titan", "lava_dragon", "infernal_smith", "magma_colossus"],
+      "capture_power_required": 17500,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "A forge built within a volcano, capable of creating legendary equipment with the power of molten earth."
+    },
+
+    "master_workshop_3": {
+      "id": "master_workshop_3",
+      "name": "Master's Workshop",
+      "type": "forge",
+      "tier": 2,
+      "coord": {"q": 1, "r": -3},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "forging_flame": 20,
+        "steel_ingots": 70,
+        "enhancement_powder_mid": 30,
+        "socket_crystals": 10
+      },
+      "available_tasks": ["smithing", "weapon_crafting", "armor_crafting"],
+      "max_garrison": 3,
+      "max_workers": 4,
+      "base_defenders": ["master_blacksmith_golem", "forge_elemental", "steel_sentinel"],
+      "capture_power_required": 8000,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "A workshop where master craftsmen perfect their art, producing superior equipment."
+    },
+
+    "great_library_3": {
+      "id": "great_library_3",
+      "name": "Great Library of Ages",
+      "type": "library",
+      "tier": 3,
+      "coord": {"q": 2, "r": -3},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "research_points": 80,
+        "ancient_scrolls": 30,
+        "knowledge_crystals": 25,
+        "forbidden_tomes": 10
+      },
+      "available_tasks": ["research", "scroll_crafting", "training", "skill_learning"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["archmage", "loremaster", "knowledge_titan", "grimoire_guardian"],
+      "capture_power_required": 15500,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "A vast repository of ancient knowledge and forbidden secrets. Scholars seek its wisdom for ages."
+    },
+
+    "scholar_academy_3": {
+      "id": "scholar_academy_3",
+      "name": "Academy of Scholars",
+      "type": "library",
+      "tier": 2,
+      "coord": {"q": 3, "r": -3},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "research_points": 50,
+        "scrolls": 40,
+        "knowledge_crystals": 15,
+        "training_manuals": 10
+      },
+      "available_tasks": ["research", "scroll_crafting", "training"],
+      "max_garrison": 3,
+      "max_workers": 4,
+      "base_defenders": ["arcane_professor", "library_guardian", "knowledge_seeker"],
+      "capture_power_required": 7800,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "An academy where scholars gather to research, teach, and preserve knowledge for future generations."
+    },
+
+    "arcane_observatory_3": {
+      "id": "arcane_observatory_3",
+      "name": "Celestial Observatory",
+      "type": "library",
+      "tier": 2,
+      "coord": {"q": 3, "r": -2},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "research_points": 45,
+        "scrolls": 30,
+        "star_charts": 15,
+        "mana_crystals": 25
+      },
+      "available_tasks": ["research", "scroll_crafting"],
+      "max_garrison": 3,
+      "max_workers": 4,
+      "base_defenders": ["star_watcher", "astral_guardian", "cosmic_spirit"],
+      "capture_power_required": 8200,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "An observatory where scholars study the stars and uncover cosmic secrets through celestial research."
+    },
+
+    "border_outpost_3": {
+      "id": "border_outpost_3",
+      "name": "Frontier Outpost",
+      "type": "fortress",
+      "tier": 2,
+      "coord": {"q": 3, "r": -1},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "defense_bonus": 25,
+        "training_tomes": 10,
+        "war_supplies": 15
+      },
+      "available_tasks": ["garrison_duty", "combat_training"],
+      "max_garrison": 4,
+      "max_workers": 3,
+      "base_defenders": ["border_captain", "scout_commander", "elite_rangers"],
+      "capture_power_required": 7500,
+      "unlock_requirements": {
+        "player_level": 10,
+        "specialization_tier": 1,
+        "specialization_role": ""
+      },
+      "description": "A frontier outpost guarding the borders. Strategic position provides defensive advantages."
     }
   }
 }

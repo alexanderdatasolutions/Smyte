@@ -1,8 +1,9 @@
 {
   "_metadata": {
-    "version": "2.0.0",
-    "description": "Streamlined resource economy - 35 core materials aligned with hex territory tier progression",
-    "last_updated": "2026-01-16"
+    "version": "2.2.0",
+    "description": "Streamlined resource economy - 49 core materials aligned with hex territory tier progression",
+    "last_updated": "2026-01-16",
+    "changelog": "Added 14 resources for hex node compatibility: fiber, pelts, bones, fish, salt, iron_ingots, monster_parts, scales, pearls, divine_essence, mana_crystals, research_points, scrolls, knowledge_crystals"
   },
 
   "currencies": {
@@ -732,6 +733,51 @@
       "node_source": "tier5_temple",
       "specialization_required": "tier3_divine_oracle",
       "icon": "celestial_essence",
+      "category": "special_material"
+    },
+    "divine_essence": {
+      "id": "divine_essence",
+      "name": "Divine Essence",
+      "description": "Sacred divine power from temple nodes - used in awakening and crafting",
+      "tier": 1,
+      "node_source": "tier1_temple",
+      "icon": "divine_essence",
+      "category": "special_material"
+    },
+    "mana_crystals": {
+      "id": "mana_crystals",
+      "name": "Mana Crystals",
+      "description": "Crystallized mana from temple nodes - used in magic item crafting",
+      "tier": 1,
+      "node_source": "tier1_temple",
+      "icon": "mana_crystals",
+      "category": "special_material"
+    },
+    "research_points": {
+      "id": "research_points",
+      "name": "Research Points",
+      "description": "Knowledge currency from library nodes - unlock new recipes and god training",
+      "tier": 1,
+      "node_source": "tier1_library",
+      "icon": "research_points",
+      "category": "special_material"
+    },
+    "scrolls": {
+      "id": "scrolls",
+      "name": "Scrolls",
+      "description": "Skill scrolls from library nodes - teach gods new abilities",
+      "tier": 1,
+      "node_source": "tier1_library",
+      "icon": "scrolls",
+      "category": "special_material"
+    },
+    "knowledge_crystals": {
+      "id": "knowledge_crystals",
+      "name": "Knowledge Crystals",
+      "description": "Crystallized knowledge from library nodes - accelerate god training",
+      "tier": 1,
+      "node_source": "tier1_library",
+      "icon": "knowledge_crystals",
       "category": "special_material"
     }
   },
