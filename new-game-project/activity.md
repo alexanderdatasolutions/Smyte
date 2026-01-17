@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 1/10
-**Current Task:** Create GarrisonDisplay component
+**Tasks Completed:** 2/10
+**Current Task:** Create WorkerSlotDisplay component
 
 ---
 
@@ -78,3 +78,48 @@ Created mobile-friendly god selection grid component for territory node manageme
 - Uses SystemRegistry for CollectionManager access ✅
 - Read-only display, no data modification ✅
 - Follows existing patterns from GodCollectionList and GodCard ✅
+
+### 2026-01-17 - Task 2: GarrisonDisplay Component ✅
+
+**What Changed:**
+Created mobile-friendly garrison display component for showing and managing node defenders.
+
+**Files Created:**
+- `scripts/ui/territory/GarrisonDisplay.gd` (318 lines)
+
+**Implementation Details:**
+1. **Header Section**: Title "Garrison" + Combat Power display (color-coded by power level)
+2. **God Cards**: Horizontal scrollable container with 70x90px compact cards
+3. **Card Content**: Portrait (40x40), level label, combat power value (gold color)
+4. **Element Borders**: Matching color scheme from GodSelectionGrid
+5. **Empty State**: "No defenders assigned" message when garrison is empty
+6. **Set Garrison Button**: 140x44px tap target for adding defenders
+
+**Signals:**
+- `set_garrison_requested` - Emitted when user taps "Set Garrison" button
+- `garrison_god_tapped(god: God)` - Emitted when user taps a garrison god card
+- `remove_god_requested(god: God)` - For unassigning gods from garrison
+
+**Public API:**
+- `set_garrison_gods(god_ids: Array[String])` - Set garrison by god IDs
+- `get_garrison_god_ids()` - Get current garrison IDs
+- `get_total_combat_power()` - Calculate total combat power using GodCalculator
+- `add_god_to_garrison(god: God)` - Add god (parent handles persistence)
+- `remove_god_from_garrison(god_id: String)` - Remove god from display
+- `refresh_display()` - Refresh the display
+
+**Combat Power Calculation:**
+Uses `GodCalculator.get_power_rating(god)` which sums HP + Attack + Defense + Speed for each god.
+
+**Verified With Godot MCP:**
+- Ran project: No errors from GarrisonDisplay.gd
+- Navigated to hex territory screen: Screen loads correctly
+- Screenshot: `screenshots/node-detail-garrison-display.png`
+
+**Architecture Compliance:**
+- Under 500 lines (318 lines) ✅
+- Single responsibility (garrison display) ✅
+- Uses SystemRegistry for CollectionManager access ✅
+- Read-only display, emits signals for parent to handle data ✅
+- Uses GodCalculator for stat calculations (RULE 3 compliant) ✅
+- Follows existing patterns from GodSelectionGrid ✅

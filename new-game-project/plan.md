@@ -48,7 +48,7 @@ Create a mobile-friendly node management interface that clearly shows garrison, 
       "Show 'Empty Garrison' state when none assigned",
       "Each card shows: portrait, level, combat power"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "component",
