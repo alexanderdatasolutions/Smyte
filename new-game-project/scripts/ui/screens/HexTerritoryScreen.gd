@@ -62,6 +62,7 @@ var is_info_panel_visible: bool = false
 var resource_manager = null
 var territory_manager = null
 var collection_manager = null
+var screen_manager = null
 
 # ==============================================================================
 # CONSTANTS
@@ -96,6 +97,7 @@ func _init_systems() -> void:
 		resource_manager = registry.get_system("ResourceManager")
 		territory_manager = registry.get_system("TerritoryManager")
 		collection_manager = registry.get_system("CollectionManager")
+		screen_manager = registry.get_system("ScreenManager")
 
 # ==============================================================================
 # UI STRUCTURE
@@ -490,9 +492,16 @@ func _on_capture_requested(hex_node: HexNode) -> void:
 		_show_requirements_panel(hex_node)
 		return
 
-	# Requirements met - delegate to capture handler
+	# Requirements met - navigate to battle setup for team selection
+	# Store the node being captured for later
 	if node_capture_handler:
-		node_capture_handler.initiate_capture(hex_node)
+		node_capture_handler.current_capture_node = hex_node
+
+	# Navigate to battle setup screen
+	if screen_manager:
+		screen_manager.change_screen("battle_setup")
+		# TODO: BattleSetupScreen needs to be configured for hex node capture
+		# and needs to call back to node_capture_handler when team is selected
 
 func _on_manage_workers_requested(hex_node: HexNode) -> void:
 	"""Handle manage workers request - P6-02: Worker assignment UI"""

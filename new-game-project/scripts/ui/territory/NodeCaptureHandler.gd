@@ -77,6 +77,12 @@ func initiate_capture(hex_node: HexNode) -> bool:
 	# Emit signal
 	capture_initiated.emit(hex_node)
 
+	# Start the battle with the config (auto-selects first 4 available gods)
+	if battle_coordinator:
+		if not battle_coordinator.start_battle(battle_config):
+			push_error("NodeCaptureHandler: Failed to start battle")
+			return false
+
 	# Navigate to battle screen
 	if screen_manager:
 		screen_manager.change_screen("battle")
