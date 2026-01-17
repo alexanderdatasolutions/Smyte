@@ -3,7 +3,7 @@
 # RULE 2: Single responsibility - displays a single StatusEffect
 class_name StatusEffectIcon extends Control
 
-const ICON_SIZE := Vector2(18, 18)
+const ICON_SIZE := Vector2(32, 32)  # Increased from 18x18 for better visibility and hover area
 
 var status_effect: StatusEffect = null
 var tooltip_panel: Panel = null
@@ -102,6 +102,7 @@ func _add_duration_indicator():
 
 func _setup_tooltip():
 	"""Setup tooltip panel that shows on hover"""
+	print("StatusEffectIcon: Setting up tooltip for effect: %s" % status_effect.name)
 	tooltip_panel = Panel.new()
 	tooltip_panel.name = "Tooltip"
 	tooltip_panel.visible = false
@@ -170,10 +171,15 @@ func _setup_tooltip():
 	mouse_exited.connect(_on_mouse_exited)
 
 func _on_mouse_entered():
+	print("StatusEffectIcon: Mouse entered on %s" % status_effect.name)
 	if tooltip_panel:
 		tooltip_panel.visible = true
+		print("StatusEffectIcon: Showing tooltip")
+	else:
+		print("StatusEffectIcon: WARNING - No tooltip panel!")
 
 func _on_mouse_exited():
+	print("StatusEffectIcon: Mouse exited from %s" % status_effect.name)
 	if tooltip_panel:
 		tooltip_panel.visible = false
 

@@ -40,6 +40,7 @@ const SLOT_SPACING = 10
 
 # Core systems
 var collection_manager
+var node_task_calculator  # For calculating output rates
 
 # UI elements
 var _title_label: Label
@@ -52,6 +53,7 @@ var _assigned_workers: Array[God] = []
 var _worker_god_ids: Array[String] = []
 var _node_type: String = ""  # For displaying task names
 var _node_tier: int = 1
+var _current_node: HexNode = null  # Reference for output calculations
 
 func _ready() -> void:
 	_init_systems()
@@ -65,9 +67,12 @@ func _init_systems() -> void:
 		return
 
 	collection_manager = registry.get_system("CollectionManager")
+	node_task_calculator = registry.get_system("NodeTaskCalculator")
 
 	if not collection_manager:
 		push_error("WorkerSlotDisplay: CollectionManager not found!")
+	if not node_task_calculator:
+		push_warning("WorkerSlotDisplay: NodeTaskCalculator not found - output rates unavailable")
 
 func _setup_ui() -> void:
 	"""Setup the UI structure"""
@@ -122,6 +127,7 @@ func setup_for_node(node: HexNode) -> void:
 		push_error("WorkerSlotDisplay: Cannot setup for null node")
 		return
 
+	_current_node = node  # Store reference for output calculations
 	_node_type = node.node_type
 	_node_tier = node.tier
 	# Per plan: tier = max slots (but cap at reasonable max)
@@ -288,7 +294,7 @@ func _create_empty_slot(slot_index: int) -> Control:
 	return slot
 
 func _create_filled_slot(slot_index: int, god: God) -> Control:
-	"""Create a filled worker slot showing god portrait, task name, and output info"""
+	"""Create a filled worker slot showing god portrait, task name, output rate, and affinity bonus"""
 	var slot = Panel.new()
 	slot.custom_minimum_size = Vector2(SLOT_WIDTH, SLOT_HEIGHT)
 	slot.name = "FilledSlot_" + str(slot_index)
@@ -339,13 +345,19 @@ func _create_filled_slot(slot_index: int, god: God) -> Control:
 	var element_indicator = _create_element_indicator(god)
 	vbox.add_child(element_indicator)
 
-	# Task/Output info (based on node type)
-	var task_label = Label.new()
-	task_label.text = _get_task_display_for_node()
-	task_label.add_theme_font_size_override("font_size", 9)
-	task_label.add_theme_color_override("font_color", Color(0.4, 0.8, 0.4))  # Green for active work
-	task_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(task_label)
+	# Output rate display (e.g., "Mining: +12 ore/hr")
+	var output_text = _get_output_display_text(god)
+	var output_label = Label.new()
+	output_label.text = output_text
+	output_label.add_theme_font_size_override("font_size", 8)
+	output_label.add_theme_color_override("font_color", Color(0.4, 0.85, 0.4))  # Green for production
+	output_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(output_label)
+
+	# Affinity bonus indicator (star if active)
+	var affinity_indicator = _create_affinity_bonus_indicator(god)
+	if affinity_indicator:
+		vbox.add_child(affinity_indicator)
 
 	# Tappable button overlay
 	var button = Button.new()
@@ -417,9 +429,19 @@ func _truncate_name(text: String, max_length: int) -> String:
 		return text
 	return text.substr(0, max_length - 2) + ".."
 
-func _get_task_display_for_node() -> String:
-	"""Get the task display text based on node type"""
-	# Show appropriate task name based on node type
+func _get_output_display_text(god: God) -> String:
+	"""Get output rate display text using NodeTaskCalculator.
+	Returns format like 'Mining: +12 ore/hr' or fallback 'Mining' if calculator unavailable.
+	"""
+	# Use NodeTaskCalculator if available for accurate output rates
+	if node_task_calculator and _current_node:
+		return node_task_calculator.get_output_display_text(_current_node, god)
+
+	# Fallback: just show task name if no calculator
+	return _get_task_name_for_node()
+
+func _get_task_name_for_node() -> String:
+	"""Get simple task name based on node type (fallback when calculator unavailable)"""
 	match _node_type:
 		"mine":
 			return "Mining"
@@ -430,15 +452,38 @@ func _get_task_display_for_node() -> String:
 		"hunting_ground":
 			return "Hunting"
 		"forge":
-			return "Forging"
+			return "Smithing"
 		"library":
 			return "Research"
 		"temple":
-			return "Prayer"
+			return "Meditation"
 		"fortress":
-			return "Training"
+			return "Garrison"
 		_:
 			return "Working"
+
+func _create_affinity_bonus_indicator(god: God) -> Control:
+	"""Create affinity bonus indicator (star icon) if god has affinity match with node.
+	Returns null if no affinity bonus, otherwise returns a centered star label.
+	"""
+	if not node_task_calculator or not _current_node:
+		return null
+
+	# Check for affinity match
+	if not node_task_calculator.has_affinity_match(_current_node, god):
+		return null
+
+	# Create star indicator for affinity bonus
+	var container = CenterContainer.new()
+
+	var star_label = Label.new()
+	star_label.text = "⭐ 1.5x"
+	star_label.add_theme_font_size_override("font_size", 8)
+	star_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))  # Gold color
+	star_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	container.add_child(star_label)
+
+	return container
 
 func _on_empty_slot_pressed(slot_index: int) -> void:
 	"""Handle tap on empty slot"""
