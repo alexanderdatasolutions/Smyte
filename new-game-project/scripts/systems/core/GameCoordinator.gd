@@ -44,6 +44,8 @@ func _connect_global_events():
 		event_bus.loading_started.connect(_on_loading_started)
 		event_bus.loading_completed.connect(_on_loading_completed)
 		event_bus.save_requested.connect(_on_save_requested)
+		event_bus.show_tutorial_requested.connect(_on_show_tutorial_requested)
+		event_bus.specialization_unlocked.connect(_on_specialization_unlocked)
 
 ## Load game data from JSON files
 func _load_game_data():
@@ -261,6 +263,46 @@ func _on_loading_started(operation: String):
 
 func _on_loading_completed(operation: String):
 	loading_operations.erase(operation)
+
+func _on_show_tutorial_requested(tutorial_data: Dictionary):
+	"""Show tutorial dialog when requested by TutorialOrchestrator"""
+	# Load and instance the tutorial dialog scene
+	var tutorial_dialog_scene = load("res://scenes/TutorialDialog.tscn")
+	if not tutorial_dialog_scene:
+		push_error("GameCoordinator: TutorialDialog scene not found")
+		return
+
+	var tutorial_dialog = tutorial_dialog_scene.instantiate()
+	if not tutorial_dialog:
+		push_error("GameCoordinator: Failed to instantiate TutorialDialog")
+		return
+
+	# Add to current scene
+	var current_scene = get_tree().current_scene
+	if current_scene:
+		current_scene.add_child(tutorial_dialog)
+		tutorial_dialog.show_tutorial_step(tutorial_data)
+
+		# Connect to dialog completion to advance tutorial
+		var tutorial_orchestrator = system_registry.get_system("TutorialOrchestrator")
+		if tutorial_orchestrator and not tutorial_dialog.dialog_completed.is_connected(tutorial_orchestrator.advance_tutorial):
+			tutorial_dialog.dialog_completed.connect(tutorial_orchestrator.advance_tutorial)
+
+func _on_specialization_unlocked(god_id: String, spec_id: String):
+	"""Trigger tutorial when tier 2+ specialization is unlocked"""
+	var specialization_manager = system_registry.get_system("SpecializationManager")
+	if not specialization_manager:
+		return
+
+	var spec = specialization_manager.get_specialization(spec_id)
+	if not spec:
+		return
+
+	# Check if this is tier 2 or higher
+	if spec.tier >= 2:
+		var tutorial_orchestrator = system_registry.get_system("TutorialOrchestrator")
+		if tutorial_orchestrator and not tutorial_orchestrator.is_tutorial_completed("hex_specialization_unlock"):
+			tutorial_orchestrator.start_tutorial("hex_specialization_unlock")
 
 # ============================================================================
 # HELPER METHODS

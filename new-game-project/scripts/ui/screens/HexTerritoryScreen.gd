@@ -79,6 +79,7 @@ func _ready() -> void:
 	_setup_components()
 	_connect_signals()
 	_style_components()
+	_check_tutorial()
 
 func _init_systems() -> void:
 	"""Initialize system references via SystemRegistry"""
@@ -615,3 +616,23 @@ func _refresh_resource_display() -> void:
 		var label = resource_display.get_node_or_null(resource_id + "_label")
 		if label:
 			label.text = _get_resource_display_text(resource_id)
+
+# ==============================================================================
+# TUTORIAL INTEGRATION
+# ==============================================================================
+func _check_tutorial() -> void:
+	"""Check if tutorial should be shown for first time opening hex map"""
+	var tutorial_orchestrator = SystemRegistry.get_instance().get_system("TutorialOrchestrator")
+	if not tutorial_orchestrator:
+		return
+
+	# Start hex territory intro tutorial on first time opening
+	if not tutorial_orchestrator.is_tutorial_completed("hex_territory_intro"):
+		# Use call_deferred to ensure screen is fully loaded
+		call_deferred("_start_hex_territory_tutorial")
+
+func _start_hex_territory_tutorial() -> void:
+	"""Start the hex territory introduction tutorial"""
+	var tutorial_orchestrator = SystemRegistry.get_instance().get_system("TutorialOrchestrator")
+	if tutorial_orchestrator:
+		tutorial_orchestrator.start_tutorial("hex_territory_intro")

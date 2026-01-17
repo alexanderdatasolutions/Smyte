@@ -26,6 +26,14 @@ var tutorial_steps: Dictionary = {
 		{"type": "summon_tutorial", "feature": "summon"},
 		{"type": "battle_tutorial", "feature": "battle"},
 		{"type": "sacrifice_tutorial", "feature": "sacrifice"}
+	],
+	"hex_territory_intro": [
+		{"type": "hex_map_intro", "feature": "hex_territory"},
+		{"type": "hex_node_selection", "feature": "hex_territory"},
+		{"type": "hex_node_capture", "feature": "hex_territory"}
+	],
+	"hex_specialization_unlock": [
+		{"type": "spec_unlock_tier2", "feature": "hex_territory"}
 	]
 }
 
@@ -71,7 +79,7 @@ func _process_current_step():
 	"""Process the current tutorial step"""
 	var steps = tutorial_steps[current_tutorial]
 	var step_data = steps[current_step]
-	
+
 	match step_data.type:
 		"welcome":
 			_show_welcome_dialog()
@@ -81,6 +89,14 @@ func _process_current_step():
 			_unlock_battle_feature()
 		"sacrifice_tutorial":
 			_unlock_sacrifice_feature()
+		"hex_map_intro":
+			_show_hex_map_intro_dialog()
+		"hex_node_selection":
+			_show_hex_node_selection_dialog()
+		"hex_node_capture":
+			_show_hex_node_capture_dialog()
+		"spec_unlock_tier2":
+			_show_spec_unlock_tier2_dialog()
 
 func _complete_tutorial():
 	"""Complete the current tutorial"""
@@ -170,6 +186,61 @@ func skip_tutorial():
 	"""Skip current tutorial"""
 	if tutorial_active:
 		_complete_tutorial()
+
+# ==============================================================================
+# HEX TERRITORY TUTORIALS
+# ==============================================================================
+
+func _show_hex_map_intro_dialog():
+	"""Show hex map introduction dialog"""
+	EventBus.show_tutorial_requested.emit({
+		"title": "Welcome to the Hex Territory Map!",
+		"message": "This is your divine empire. Each hex represents a territory you can conquer.\n\n" +
+		"• Green hexes are yours\n" +
+		"• Gray hexes are neutral\n" +
+		"• Red hexes are enemies\n\n" +
+		"Use the zoom controls (+/-) and drag to explore. Click a hex to see details.",
+		"button_text": "Got it!"
+	})
+
+func _show_hex_node_selection_dialog():
+	"""Show hex node selection tutorial"""
+	EventBus.show_tutorial_requested.emit({
+		"title": "Selecting Territories",
+		"message": "Click any hex to view its details:\n\n" +
+		"• Production resources\n" +
+		"• Defense rating\n" +
+		"• Garrison and workers\n" +
+		"• Unlock requirements\n\n" +
+		"Neutral territories can be captured. Enemy territories can be raided!",
+		"button_text": "Continue"
+	})
+
+func _show_hex_node_capture_dialog():
+	"""Show hex node capture tutorial"""
+	EventBus.show_tutorial_requested.emit({
+		"title": "Capturing Territories",
+		"message": "To capture a territory, you need:\n\n" +
+		"• Required player level\n" +
+		"• Required specialization tier\n" +
+		"• Enough combat power\n\n" +
+		"Higher tier nodes (★★★★★) require advanced specializations. " +
+		"Connect territories for production bonuses!",
+		"button_text": "Let's do this!"
+	})
+
+func _show_spec_unlock_tier2_dialog():
+	"""Show tier 2 specialization unlock tutorial"""
+	EventBus.show_tutorial_requested.emit({
+		"title": "Specialization Unlocked!",
+		"message": "Congratulations! You've unlocked a Tier 2 specialization.\n\n" +
+		"This allows you to:\n" +
+		"• Capture Tier 2 nodes (★★)\n" +
+		"• Get +100% efficiency bonuses\n" +
+		"• Access rare resources\n\n" +
+		"Keep leveling and specializing to unlock Tier 3, 4, and 5 territories!",
+		"button_text": "Awesome!"
+	})
 
 # ==============================================================================
 # SAVE/LOAD INTEGRATION

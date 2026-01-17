@@ -73,6 +73,7 @@ signal screen_changed(old_screen: String, new_screen: String)
 signal notification_requested(message: String, type: String, duration: float)
 signal popup_requested(popup_type: String, data: Dictionary)
 signal tutorial_step_completed(step_id: String)
+signal show_tutorial_requested(tutorial_data: Dictionary)
 signal loading_started(operation: String)
 signal loading_completed(operation: String)
 

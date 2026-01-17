@@ -48,8 +48,9 @@ var tooltip_label: RichTextLabel = null
 @onready var back_button = $BackButton
 @onready var main_container = $MainContainer
 
-# Left panel: God selection
+# Left panel: God selection and details
 @onready var god_list_container = $MainContainer/LeftPanel/ScrollContainer/GodList
+@onready var spec_details_container = $MainContainer/LeftPanel/SpecDetailsContainer
 
 # Center panel: Specialization tree
 @onready var tree_panel = $MainContainer/CenterPanel/TreePanel
@@ -327,27 +328,15 @@ func _show_spec_details(spec_id: String):
 		_show_no_selection()
 		return
 
-	# Hide no selection label
-	if no_selection_label:
-		no_selection_label.visible = false
-
-	# Clear details content
-	if details_content:
-		for child in details_content.get_children():
+	# Clear details content from left panel
+	if spec_details_container:
+		for child in spec_details_container.get_children():
 			child.queue_free()
 
 	await get_tree().process_frame
 
-	# Create details UI
+	# Create details UI in left panel
 	_create_spec_details_ui(spec)
-
-	# Reset scroll to top AFTER content is added
-	if details_content:
-		await get_tree().process_frame
-		details_content.scroll_vertical = 0
-
-	# Update unlock button state
-	_update_unlock_button(spec)
 
 func _show_no_selection():
 	"""Show no selection message"""
@@ -362,19 +351,17 @@ func _show_no_selection():
 
 func _create_spec_details_ui(spec: GodSpecialization):
 	"""Create detailed UI for specialization"""
-	if not details_content:
+	if not spec_details_container:
 		return
 
 	# Force scroll to top immediately
-	details_content.scroll_vertical = 0
+	spec_details_container.scroll_vertical = 0
 
 	# Create VBox - ScrollContainer children should NOT use anchors/offsets
 	var vbox = VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_FILL
-	vbox.custom_minimum_size = Vector2(300, 0)  # Set minimum width
-	vbox.add_theme_constant_override("separation", 12)
-	vbox.position = Vector2.ZERO  # Ensure it starts at origin relative to parent
-	details_content.add_child(vbox)
+	vbox.add_theme_constant_override("separation", 8)
+	spec_details_container.add_child(vbox)
 
 	# Add top spacer for padding
 	var top_spacer = Control.new()
