@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 3/10
-**Current Task:** Task 3 completed - AbilityBar component created for skill selection
+**Tasks Completed:** 4/10
+**Current Task:** Task 4 completed - BattleUnitCard integrated into BattleScreen
 
 ---
 
@@ -109,3 +109,38 @@
 - RULE 4: No logic in UI - displays state from BattleUnit.skills
 - Under 500 lines (310 lines)
 - Uses proper class references (BattleUnit, Skill)
+
+### 2026-01-17 - Task 4: BattleUnitCard Integrated into BattleScreen
+
+**What Changed:**
+- Updated `BattleScreen.gd` to use BattleUnitCard for both player and enemy teams
+- Replaced old GodCardFactory cards and simple enemy cards with BattleUnitCard
+- Connected to `BattleCoordinator.turn_changed` signal for turn highlighting
+- Added unit card tracking dictionaries (player_unit_cards, enemy_unit_cards)
+- Implemented active unit highlighting with gold border during their turn
+- Added helper functions: `_get_unit_card()`, `_clear_active_highlight()`, `_update_all_unit_cards()`
+
+**Files Modified:**
+- `scripts/ui/screens/BattleScreen.gd` (207 lines, added ~60 lines)
+- `scripts/ui/battle/BattleUnitCard.gd` (added StatusEffectIconScript preload)
+
+**Features Implemented:**
+- BattleUnitCard used for all battle units (player and enemy)
+- Turn change signal connection to highlight active unit
+- Active unit gets gold border (ACTIVE style) during their turn
+- All unit cards update HP/status when turns change
+- Unit click signals connected for future targeting feature (Task 6)
+- Turn indicator text updates with active unit's name
+
+**Verified with Godot MCP:**
+- Ran project with `mcp__godot__run_project`
+- No compilation errors related to BattleScreen or BattleUnitCard
+- Fixed StatusEffectIcon identifier error by adding preload
+- Screenshots saved to `user://screenshots/task-4-*.png`
+
+**Architecture Compliance:**
+- RULE 2: Single responsibility - BattleScreen only coordinates UI components
+- RULE 4: No logic in UI - delegates to BattleCoordinator via signals
+- RULE 5: Uses SystemRegistry for BattleCoordinator access
+- Under 500 lines (207 lines)
+- Uses BattleUnitCard component instead of inline card creation

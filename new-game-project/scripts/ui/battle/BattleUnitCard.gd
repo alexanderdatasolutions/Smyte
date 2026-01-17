@@ -4,6 +4,8 @@
 # RULE 4: No logic in UI - just display state from BattleUnit
 class_name BattleUnitCard extends Panel
 
+const StatusEffectIconScript = preload("res://scripts/ui/battle/StatusEffectIcon.gd")
+
 signal unit_clicked(unit: BattleUnit)
 
 # Card configuration
@@ -430,7 +432,7 @@ func update_status_effects():
 			break
 
 		# Use StatusEffectIcon component
-		var icon = StatusEffectIcon.new()
+		var icon = StatusEffectIconScript.new()
 		icon.setup(effect)
 		status_container.add_child(icon)
 		effect_count += 1

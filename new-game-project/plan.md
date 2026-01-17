@@ -57,7 +57,7 @@ Build a complete Summoners War-style battle screen with turn-based combat, polis
       "Connect to BattleCoordinator.unit_turn_ready signal",
       "Highlight active unit's card during their turn"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "feature",
