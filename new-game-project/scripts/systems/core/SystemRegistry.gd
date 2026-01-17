@@ -176,7 +176,12 @@ func register_core_systems():
 	if FileAccess.file_exists("res://scripts/systems/territory/TerritoryProductionManager.gd"):
 		var territory_production = preload("res://scripts/systems/territory/TerritoryProductionManager.gd").new()
 		register_system("TerritoryProductionManager", territory_production)
-	
+
+	# NodeTaskCalculator - calculates task outputs for hex nodes
+	if FileAccess.file_exists("res://scripts/systems/territory/NodeTaskCalculator.gd"):
+		var node_task_calculator = preload("res://scripts/systems/territory/NodeTaskCalculator.gd").new()
+		register_system("NodeTaskCalculator", node_task_calculator)
+
 	# Phase 4: Battle systems
 	var battle_coordinator = preload("res://scripts/systems/battle/BattleCoordinator.gd").new()
 	register_system("BattleCoordinator", battle_coordinator)

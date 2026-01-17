@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 3/10
-**Current Task:** Create NodeTaskCalculator system
+**Tasks Completed:** 4/10
+**Current Task:** Add garrison fields to HexNode data model
 
 ---
 
@@ -171,3 +171,54 @@ Shows task type based on node type (Mine→Mining, Forest→Gathering, Coast→F
 - Read-only display, emits signals for parent to handle data ✅
 - Does NOT use per-node worker APIs (territory-level only) ✅
 - Follows existing patterns from GodSelectionGrid/GarrisonDisplay ✅
+
+### 2026-01-17 - Task 4: NodeTaskCalculator System ✅
+
+**What Changed:**
+Created a system to calculate task names and output rates for hex nodes.
+
+**Files Created:**
+- `scripts/systems/territory/NodeTaskCalculator.gd` (298 lines)
+
+**Files Modified:**
+- `scripts/systems/core/SystemRegistry.gd` - Added NodeTaskCalculator registration in Phase 3.5
+
+**Implementation Details:**
+1. **get_task_for_node(node: HexNode)**: Returns task name (Mining, Gathering, Fishing, etc.)
+2. **calculate_output_rate(node: HexNode, god: God)**: Calculates resources per hour
+3. **Output Formula**: base_rate × tier_multiplier × god_level_bonus × affinity_bonus × spec_bonus
+4. **Affinity Bonus**: 1.5x when god element matches node affinity (e.g., Earth god at mine)
+5. **Spec Bonus**: 50%/100%/200% based on god's specialization tier
+
+**Constants Defined:**
+- NODE_TASK_MAP: Node type → Task name mapping
+- NODE_RESOURCE_MAP: Node type → Primary resource mapping
+- NODE_SECONDARY_RESOURCES: Secondary outputs for tier 2+ nodes
+- NODE_AFFINITY_MAP: Node type → Element affinity for bonus calculations
+- BASE_OUTPUT_RATES: Base resources per hour by node type
+
+**Public API:**
+- `get_task_for_node(node)` → Task name string
+- `get_task_display_name(node)` → "Mining (Tier 2)" format
+- `calculate_output_rate(node, god)` → Resources per hour
+- `calculate_output_with_details(node, god)` → Breakdown of all bonuses
+- `get_primary_resource(node)` → Resource ID
+- `get_secondary_resources(node)` → Array of secondary resource IDs
+- `get_node_affinity(node)` → Element string
+- `has_affinity_match(node, god)` → Boolean
+- `calculate_total_node_output(node)` → Total from all workers
+- `format_output_rate(rate, resource_id)` → "+12 ore/hr" format
+- `get_output_display_text(node, god)` → "Mining: +12 ore/hr" format
+
+**Verified With Godot MCP:**
+- Ran project: No errors from NodeTaskCalculator.gd
+- Navigated to hex territory screen: Screen loads correctly
+- Screenshot: `screenshots/node-detail-task-calculator.png`
+- System registered successfully in SystemRegistry
+
+**Architecture Compliance:**
+- Under 500 lines (298 lines) ✅
+- Single responsibility (task/output calculations) ✅
+- Uses SystemRegistry for CollectionManager and SpecializationManager access ✅
+- Pure calculation system (validate, calculate, return) ✅
+- Registered in SystemRegistry Phase 3.5 (territory systems) ✅

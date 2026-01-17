@@ -75,7 +75,7 @@ Create a mobile-friendly node management interface that clearly shows garrison, 
       "Affinity bonus: matching affinity = 1.5x output",
       "Register in SystemRegistry Phase 3"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "data",
