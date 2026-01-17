@@ -25,6 +25,9 @@ const BattleResultOverlayScene = preload("res://scenes/ui/battle/BattleResultOve
 @onready var turn_indicator = $MainContainer/BattleArenaContainer/BattleCenter/TurnIndicator
 @onready var ability_bar = $MainContainer/BottomContainer/AbilityBarContainer/AbilityBar
 @onready var turn_order_bar = $MainContainer/HeaderContainer/TurnOrderContainer/TurnOrderBar
+@onready var skill_details_panel = $SkillDetailsOverlay
+@onready var skill_name_label = $SkillDetailsOverlay/MarginContainer/VBoxContainer/SkillNameLabel
+@onready var skill_desc_label = $SkillDetailsOverlay/MarginContainer/VBoxContainer/SkillDescLabel
 
 # Signal for screen navigation (RULE 4: UI signals)
 signal back_pressed
@@ -36,6 +39,10 @@ var battle_coordinator = null
 var player_unit_cards: Dictionary = {}  # BattleUnit -> BattleUnitCard
 var enemy_unit_cards: Dictionary = {}   # BattleUnit -> BattleUnitCard
 var current_active_unit: BattleUnit = null
+
+# Skill selection state (mobile two-tap flow)
+var selected_skill: Skill = null
+var selected_skill_index: int = -1
 
 # Battle result overlay
 var battle_result_overlay = null  # BattleResultOverlay instance
@@ -213,14 +220,17 @@ func _populate_battle_ui():
 
 func _create_battle_unit_card(unit: BattleUnit):
 	"""Create a BattleUnitCard for a battle unit"""
+	print("BattleScreen: Creating unit card for: ", unit.display_name)
 	var unit_card = BattleUnitCardScene.instantiate()
-	unit_card.setup_unit(unit, unit_card.CardStyle.NORMAL)
+	print("BattleScreen: Unit card instantiated, calling setup_unit...")
+	# CardStyle is an enum in the class, not instance - use BattleUnitCard.CardStyle
+	unit_card.setup_unit(unit, BattleUnitCard.CardStyle.NORMAL)
+	print("BattleScreen: Unit card setup complete")
 	return unit_card
 
 func _on_unit_card_clicked(unit: BattleUnit):
 	"""Handle unit card click for targeting - RULE 4: UI signals"""
-	print("BattleScreen: Unit clicked - ", unit.display_name)
-	# TODO: In Task 6, this will be used for ability targeting
+	_on_unit_clicked(unit)
 
 func _clear_container(container: Control):
 	"""Clear all children from a container"""
@@ -267,7 +277,7 @@ func _hide_ability_bar():
 		ability_bar.clear()
 
 func _on_ability_selected(skill_index: int):
-	"""Handle ability selection from AbilityBar - RULE 4: UI signals"""
+	"""Handle ability selection from AbilityBar - Mobile two-tap flow: select skill, then tap target"""
 	if not current_active_unit:
 		print("BattleScreen: No active unit for ability selection")
 		return
@@ -284,33 +294,171 @@ func _on_ability_selected(skill_index: int):
 		return
 
 	var skill = current_active_unit.skills[skill_index]
-	print("BattleScreen: Selected skill: ", skill.name)
+	print("BattleScreen: Skill selected for targeting: ", skill.name)
 
-	# Update action label to show selected skill
+	# Store selected skill
+	selected_skill = skill
+	selected_skill_index = skill_index
+
+	# Update action label to instruct user to tap target
 	if action_label:
-		action_label.text = "%s uses %s!" % [current_active_unit.display_name, skill.name]
+		var target_type = "enemy" if skill.targets_enemies else "ally"
+		action_label.text = "Tap %s to use %s" % [target_type, skill.name]
 
-	# Find targets for the skill
-	var targets = _find_skill_targets(skill)
-	if targets.is_empty():
-		print("BattleScreen: No valid targets for skill")
-		if action_label:
-			action_label.text = "No valid targets!"
+	# Highlight ability button to show it's selected
+	if ability_bar:
+		ability_bar.highlight_skill(skill_index, true)
+
+	# Show skill details panel
+	_show_skill_details(skill)
+
+	# Highlight valid targets
+	_highlight_valid_targets(skill)
+
+func _highlight_valid_targets(skill: Skill):
+	"""Highlight units that can be targeted by the selected skill"""
+	if not battle_coordinator or not battle_coordinator.battle_state:
 		return
 
-	# Create the battle action
-	var action = BattleAction.create_skill_action(current_active_unit, skill, targets)
+	var battle_state = battle_coordinator.battle_state
 
-	# Execute the action through BattleCoordinator
+	# Get valid target pool
+	var valid_targets: Array = []
+	if skill.targets_enemies:
+		valid_targets = battle_state.get_living_enemy_units()
+	else:
+		valid_targets = battle_state.get_living_player_units()
+
+	# Highlight valid targets with TARGETED style
+	for unit in valid_targets:
+		var card = _get_unit_card(unit)
+		if card:
+			card.set_targeted(true)
+
+func _on_unit_clicked(unit: BattleUnit):
+	"""Handle unit card click - execute selected skill on this target"""
+	print("BattleScreen: Unit clicked - ", unit.display_name)
+
+	# If no skill selected, ignore click
+	if not selected_skill:
+		return
+
+	# Check if this is a valid target
+	if not _is_valid_target(unit, selected_skill):
+		print("BattleScreen: Invalid target for skill")
+		if action_label:
+			action_label.text = "Invalid target!"
+		return
+
+	# Execute the skill on this target
+	_execute_skill_on_target(selected_skill, unit)
+
+	# Clear selection
+	selected_skill = null
+	selected_skill_index = -1
+
+	# Hide skill details panel
+	_hide_skill_details()
+
+	# Clear target highlighting
+	_clear_target_highlighting()
+
+func _is_valid_target(unit: BattleUnit, skill: Skill) -> bool:
+	"""Check if unit is a valid target for the skill"""
+	if not unit.is_alive:
+		return false
+
+	# Check if targeting enemies and this is an enemy
+	if skill.targets_enemies and unit.is_enemy():
+		return true
+
+	# Check if targeting allies and this is a player unit
+	if not skill.targets_enemies and not unit.is_enemy():
+		return true
+
+	return false
+
+func _execute_skill_on_target(skill: Skill, target: BattleUnit):
+	"""Execute the selected skill on the target"""
+	if not current_active_unit or not battle_coordinator:
+		return
+
+	print("BattleScreen: Executing %s on %s" % [skill.name, target.display_name])
+
+	# Update action label
+	if action_label:
+		action_label.text = "%s uses %s on %s!" % [current_active_unit.display_name, skill.name, target.display_name]
+
+	# Create target array based on skill
+	var targets: Array = []
+	if skill.target_count >= 99:
+		# AoE skill - get all valid targets
+		var battle_state = battle_coordinator.battle_state
+		if skill.targets_enemies:
+			targets = battle_state.get_living_enemy_units()
+		else:
+			targets = battle_state.get_living_player_units()
+	else:
+		# Single or multi-target - for now just use the clicked target
+		targets = [target]
+
+	# Create and execute action
+	var action = BattleAction.create_skill_action(current_active_unit, skill, targets)
 	var success = battle_coordinator.execute_action(action)
+
 	if success:
 		print("BattleScreen: Action executed successfully")
-		# Hide ability bar after action (will show again on next player turn)
-		_hide_ability_bar()
 	else:
 		print("BattleScreen: Action execution failed")
 		if action_label:
 			action_label.text = "Action failed!"
+
+func _show_skill_details(skill: Skill):
+	"""Show the skill details panel with skill information"""
+	if not skill_details_panel or not skill_name_label or not skill_desc_label:
+		return
+
+	# Set skill name
+	skill_name_label.text = skill.name
+
+	# Build skill description with damage/effects info
+	var description = skill.description if skill.description else "No description available"
+
+	# Add damage multiplier info
+	if skill.damage_multiplier > 0:
+		description += "\n• Damage: %d%% ATK" % int(skill.damage_multiplier * 100)
+
+	# Add target info
+	if skill.target_count >= 99:
+		description += "\n• Target: All %s" % ("enemies" if skill.targets_enemies else "allies")
+	elif skill.target_count > 1:
+		description += "\n• Target: %d %s" % [skill.target_count, "enemies" if skill.targets_enemies else "allies"]
+	else:
+		description += "\n• Target: Single %s" % ("enemy" if skill.targets_enemies else "ally")
+
+	# Add cooldown
+	if skill.cooldown > 0:
+		description += "\n• Cooldown: %d turns" % skill.cooldown
+
+	skill_desc_label.text = description
+
+	# Show the panel
+	skill_details_panel.visible = true
+	skill_details_panel.z_index = 100  # Force to top
+
+func _hide_skill_details():
+	"""Hide the skill details panel"""
+	if skill_details_panel:
+		skill_details_panel.visible = false
+
+func _clear_target_highlighting():
+	"""Remove TARGETED styling from all units"""
+	for card in player_unit_cards.values():
+		if card and is_instance_valid(card):
+			card.set_targeted(false)
+	for card in enemy_unit_cards.values():
+		if card and is_instance_valid(card):
+			card.set_targeted(false)
 
 func _find_skill_targets(skill: Skill) -> Array:
 	"""Find appropriate targets for a skill based on its targeting type"""

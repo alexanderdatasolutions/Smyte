@@ -34,9 +34,14 @@ static func create_from_json(god_id: String) -> God:
 	god.base_accuracy = base_stats.get("accuracy", god_data.get("base_accuracy", 0))
 	god.resource_generation = god_data.get("resource_generation", 10)
 	
-	# Abilities
+	# Abilities - support both new and legacy formats
 	god.active_abilities = god_data.get("active_abilities", [])
 	god.passive_abilities = god_data.get("passive_abilities", [])
+
+	# Legacy abilities array - populate from ability_ids for backward compatibility
+	var ability_ids = god_data.get("ability_ids", [])
+	if not ability_ids.is_empty():
+		god.abilities = ability_ids  # BattleUnit still uses this field
 	
 	# Awakening data
 	god.awakened_name = god_data.get("awakened_name", god.name)

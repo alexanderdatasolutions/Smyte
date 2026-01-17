@@ -34,15 +34,21 @@ func _ready():
 
 func setup_unit(unit: BattleUnit, style: CardStyle = CardStyle.NORMAL):
 	"""Setup card with BattleUnit data"""
+	print("BattleUnitCard.setup_unit: Starting setup for ", unit.display_name if unit else "NULL")
 	battle_unit = unit
 	current_style = style
 
 	# Ensure structure exists
 	if not portrait_rect:
+		print("BattleUnitCard.setup_unit: Setting up card structure...")
 		_setup_card_structure()
+		print("BattleUnitCard.setup_unit: Card structure complete")
 
+	print("BattleUnitCard.setup_unit: Populating unit data...")
 	_populate_unit_data()
+	print("BattleUnitCard.setup_unit: Applying card style...")
 	_apply_card_style()
+	print("BattleUnitCard.setup_unit: Setup complete for ", unit.display_name)
 
 func update_unit():
 	"""Update card with current BattleUnit state (call after HP/status changes)"""
@@ -79,7 +85,7 @@ func _setup_card_structure():
 		child.queue_free()
 
 	# Set card size - compact horizontal layout
-	custom_minimum_size = Vector2(220, 75)
+	custom_minimum_size = Vector2(200, 115)
 
 	# Main margin container
 	var margin = MarginContainer.new()
@@ -228,15 +234,19 @@ func _style_turn_bar():
 func _populate_unit_data():
 	"""Fill card with battle unit data"""
 	if not battle_unit:
+		print("BattleUnitCard._populate_unit_data: No battle_unit!")
 		return
 
+	print("BattleUnitCard._populate_unit_data: Loading portrait...")
 	# Load portrait
 	_load_portrait()
 
+	print("BattleUnitCard._populate_unit_data: Setting name...")
 	# Set name
 	if name_label:
 		name_label.text = battle_unit.display_name
 
+	print("BattleUnitCard._populate_unit_data: Setting level...")
 	# Set level (from source_god if available)
 	if level_label:
 		var level = 1
@@ -244,18 +254,23 @@ func _populate_unit_data():
 			level = battle_unit.source_god.level
 		level_label.text = "Lv.%d" % level
 
+	print("BattleUnitCard._populate_unit_data: Updating HP display...")
 	# Update HP display
 	_update_hp_display()
 
+	print("BattleUnitCard._populate_unit_data: Updating turn bar...")
 	# Update turn bar
 	_update_turn_bar()
 
+	print("BattleUnitCard._populate_unit_data: Updating status effects...")
 	# Update status effects
 	update_status_effects()
+	print("BattleUnitCard._populate_unit_data: Complete")
 
 func _load_portrait():
 	"""Load the unit portrait from source_god or fallback"""
 	if not portrait_rect:
+		print("BattleUnitCard._load_portrait: No portrait_rect!")
 		return
 
 	var texture_loaded = false
@@ -263,21 +278,31 @@ func _load_portrait():
 	# Try to load from source_god
 	if battle_unit.source_god:
 		var sprite_path = "res://assets/gods/" + battle_unit.source_god.id + ".png"
+		print("BattleUnitCard._load_portrait: Trying to load god sprite: ", sprite_path)
 		if ResourceLoader.exists(sprite_path):
 			portrait_rect.texture = load(sprite_path)
 			texture_loaded = true
+			print("BattleUnitCard._load_portrait: God sprite loaded successfully")
+		else:
+			print("BattleUnitCard._load_portrait: God sprite not found at path")
 
 	# Try to load from source_enemy
 	if not texture_loaded and not battle_unit.source_enemy.is_empty():
 		var enemy_sprite = battle_unit.source_enemy.get("sprite", "")
+		print("BattleUnitCard._load_portrait: Trying to load enemy sprite: ", enemy_sprite)
 		if enemy_sprite != "" and ResourceLoader.exists(enemy_sprite):
 			portrait_rect.texture = load(enemy_sprite)
 			texture_loaded = true
+			print("BattleUnitCard._load_portrait: Enemy sprite loaded successfully")
+		else:
+			print("BattleUnitCard._load_portrait: Enemy sprite not found or empty")
 
 	# Create placeholder if no texture loaded
 	if not texture_loaded:
+		print("BattleUnitCard._load_portrait: Creating placeholder texture...")
 		var placeholder = _create_placeholder_texture()
 		portrait_rect.texture = placeholder
+		print("BattleUnitCard._load_portrait: Placeholder created")
 
 func _create_placeholder_texture() -> ImageTexture:
 	"""Create a colorful placeholder texture based on unit type"""

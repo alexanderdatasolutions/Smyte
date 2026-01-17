@@ -20,7 +20,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/lightning_strike.png"
     },
     "olympian_thunder": {
       "id": "olympian_thunder",
@@ -45,7 +46,8 @@
           "per_hit": true
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/olympian_thunder.png"
     },
     "tidal_wave": {
       "id": "tidal_wave",
@@ -66,7 +68,8 @@
           "chance": 50
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/tidal_wave.png"
     },
     "ocean_fury": {
       "id": "ocean_fury",
@@ -89,7 +92,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/ocean_fury.png"
     },
     "soul_reaper": {
       "id": "soul_reaper",
@@ -110,7 +114,8 @@
           "value": 30
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/soul_reaper.png"
     },
     "underworld_chains": {
       "id": "underworld_chains",
@@ -137,7 +142,8 @@
           "chance": 100
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/underworld_chains.png"
     },
     "spear_strike": {
       "id": "spear_strike",
@@ -154,7 +160,8 @@
           "bonus_per_buff": 20
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/spear_strike.png"
     },
     "aegis_protection": {
       "id": "aegis_protection",
@@ -170,7 +177,8 @@
           "duration": 3
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/aegis_protection.png"
     },
     "solar_arrow": {
       "id": "solar_arrow",
@@ -193,7 +201,8 @@
           "stacks": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/solar_arrow.png"
     },
     "healing_light": {
       "id": "healing_light",
@@ -213,7 +222,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/healing_light.png"
     },
     "hunter_shot": {
       "id": "hunter_shot",
@@ -236,7 +246,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/hunter_shot.png"
     },
     "arrow_volley": {
       "id": "arrow_volley",
@@ -260,7 +271,8 @@
           "per_hit": true
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/arrow_volley.png"
     },
     "brutal_strike": {
       "id": "brutal_strike",
@@ -280,7 +292,8 @@
           "chance": 30
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/brutal_strike.png"
     },
     "war_cry": {
       "id": "war_cry",
@@ -300,7 +313,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/war_cry.png"
     },
     "swift_strike": {
       "id": "swift_strike",
@@ -323,7 +337,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/swift_strike.png"
     },
     "messenger_blessing": {
       "id": "messenger_blessing",
@@ -342,7 +357,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/messenger_blessing.png"
     },
     "gungnir_thrust": {
       "id": "gungnir_thrust",
@@ -360,7 +376,8 @@
           "ignore_defense": true
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/gungnir_thrust.png"
     },
     "ravens_wisdom": {
       "id": "ravens_wisdom",
@@ -382,7 +399,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/ravens_wisdom.png"
     },
     "hammer_strike": {
       "id": "hammer_strike",
@@ -404,7 +422,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/hammer_strike.png"
     },
     "thunder_crash": {
       "id": "thunder_crash",
@@ -426,7 +445,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/thunder_crash.png"
     },
     "charm_strike": {
       "id": "charm_strike",
@@ -448,7 +468,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/charm_strike.png"
     },
     "battle_blessing": {
       "id": "battle_blessing",
@@ -466,7 +487,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 5
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/battle_blessing.png"
     },
     "trick_attack": {
       "id": "trick_attack",
@@ -487,7 +509,8 @@
           "count": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/trick_attack.png"
     },
     "chaos_field": {
       "id": "chaos_field",
@@ -514,7 +537,8 @@
           ]
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/chaos_field.png"
     },
     "radiant_strike": {
       "id": "radiant_strike",
@@ -535,7 +559,8 @@
           "target": "lowest_hp_ally"
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/radiant_strike.png"
     },
     "light_sanctuary": {
       "id": "light_sanctuary",
@@ -556,7 +581,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/light_sanctuary.png"
     },
     "justice_blade": {
       "id": "justice_blade",
@@ -584,7 +610,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/justice_blade.png"
     },
     "valor_charge": {
       "id": "valor_charge",
@@ -605,7 +632,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/valor_charge.png"
     },
     "vigilant_strike": {
       "id": "vigilant_strike",
@@ -627,7 +655,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/vigilant_strike.png"
     },
     "rainbow_sight": {
       "id": "rainbow_sight",
@@ -646,7 +675,8 @@
           "value": 20
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/rainbow_sight.png"
     },
     "frost_touch": {
       "id": "frost_touch",
@@ -668,7 +698,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/frost_touch.png"
     },
     "foresight": {
       "id": "foresight",
@@ -683,7 +714,8 @@
           "scaling": "target_max_hp"
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/foresight.png"
     },
     "sun_ray": {
       "id": "sun_ray",
@@ -700,7 +732,8 @@
           "bonus_vs_inability": 50
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/sun_ray.png"
     },
     "solar_blessing": {
       "id": "solar_blessing",
@@ -728,7 +761,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/solar_blessing.png"
     },
     "soul_judge": {
       "id": "soul_judge",
@@ -754,7 +788,8 @@
           "value": 20
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/soul_judge.png"
     },
     "death_sentence": {
       "id": "death_sentence",
@@ -776,7 +811,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/death_sentence.png"
     },
     "mystic_wave": {
       "id": "mystic_wave",
@@ -797,7 +833,8 @@
           "scaling": "target_max_hp"
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/mystic_wave.png"
     },
     "divine_protection": {
       "id": "divine_protection",
@@ -817,7 +854,8 @@
           "duration": 3
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/divine_protection.png"
     },
     "knowledge_strike": {
       "id": "knowledge_strike",
@@ -838,7 +876,8 @@
           "count": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/knowledge_strike.png"
     },
     "wisdom_share": {
       "id": "wisdom_share",
@@ -857,7 +896,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/wisdom_share.png"
     },
     "divine_punishment": {
       "id": "divine_punishment",
@@ -882,7 +922,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/divine_punishment.png"
     },
     "queen_authority": {
       "id": "queen_authority",
@@ -915,7 +956,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/queen_authority.png"
     },
     "sacred_flame": {
       "id": "sacred_flame",
@@ -936,7 +978,8 @@
           "scaling": "target_max_hp"
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/sacred_flame.png"
     },
     "hearth_blessing": {
       "id": "hearth_blessing",
@@ -957,7 +1000,8 @@
           "stacks": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/hearth_blessing.png"
     },
     "nature_strike": {
       "id": "nature_strike",
@@ -978,7 +1022,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/nature_strike.png"
     },
     "harvest_blessing": {
       "id": "harvest_blessing",
@@ -1002,7 +1047,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/harvest_blessing.png"
     },
     "intoxicate": {
       "id": "intoxicate",
@@ -1024,7 +1070,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/intoxicate.png"
     },
     "madness_field": {
       "id": "madness_field",
@@ -1046,7 +1093,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/madness_field.png"
     },
     "forge_hammer": {
       "id": "forge_hammer",
@@ -1068,7 +1116,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/forge_hammer.png"
     },
     "molten_forge": {
       "id": "molten_forge",
@@ -1089,7 +1138,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/molten_forge.png"
     },
     "charm_touch": {
       "id": "charm_touch",
@@ -1111,7 +1161,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/charm_touch.png"
     },
     "beauty_blessing": {
       "id": "beauty_blessing",
@@ -1135,7 +1186,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/beauty_blessing.png"
     },
     "underworld_grasp": {
       "id": "underworld_grasp",
@@ -1156,7 +1208,8 @@
           "chance": 30
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/underworld_grasp.png"
     },
     "season_change": {
       "id": "season_change",
@@ -1176,7 +1229,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/season_change.png"
     },
     "celestial_strike": {
       "id": "celestial_strike",
@@ -1194,7 +1248,8 @@
           "crushing_hit": true
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/celestial_strike.png"
     },
     "heavenly_decree": {
       "id": "heavenly_decree",
@@ -1220,7 +1275,8 @@
           "value": 25
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/heavenly_decree.png"
     },
     "dragon_claw": {
       "id": "dragon_claw",
@@ -1245,7 +1301,8 @@
           "per_hit": true
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/dragon_claw.png"
     },
     "tidal_dragon": {
       "id": "tidal_dragon",
@@ -1267,7 +1324,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/tidal_dragon.png"
     },
     "staff_strike": {
       "id": "staff_strike",
@@ -1287,7 +1345,8 @@
           "chance": 30
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/staff_strike.png"
     },
     "clone_attack": {
       "id": "clone_attack",
@@ -1310,7 +1369,8 @@
           "per_hit": true
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/clone_attack.png"
     },
     "moon_strike": {
       "id": "moon_strike",
@@ -1332,7 +1392,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/moon_strike.png"
     },
     "lunar_blessing": {
       "id": "lunar_blessing",
@@ -1353,7 +1414,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/lunar_blessing.png"
     },
     "fire_spear": {
       "id": "fire_spear",
@@ -1376,7 +1438,8 @@
           "stacks": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/fire_spear.png"
     },
     "lotus_rebirth": {
       "id": "lotus_rebirth",
@@ -1402,7 +1465,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 5
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/lotus_rebirth.png"
     },
     "mercy_touch": {
       "id": "mercy_touch",
@@ -1422,7 +1486,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/mercy_touch.png"
     },
     "thousand_hands": {
       "id": "thousand_hands",
@@ -1446,7 +1511,8 @@
           "stacks": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/thousand_hands.png"
     },
     "thunder_drum": {
       "id": "thunder_drum",
@@ -1468,7 +1534,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/thunder_drum.png"
     },
     "lightning_justice": {
       "id": "lightning_justice",
@@ -1485,7 +1552,8 @@
           "bonus_per_debuff": 20
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/lightning_justice.png"
     },
     "dragon_blade": {
       "id": "dragon_blade",
@@ -1507,7 +1575,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/dragon_blade.png"
     },
     "brotherhood_oath": {
       "id": "brotherhood_oath",
@@ -1527,7 +1596,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/brotherhood_oath.png"
     },
     "thunder_axe": {
       "id": "thunder_axe",
@@ -1544,7 +1614,8 @@
           "guaranteed_crit": true
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/thunder_axe.png"
     },
     "storm_call": {
       "id": "storm_call",
@@ -1566,7 +1637,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/storm_call.png"
     },
     "forge_strike": {
       "id": "forge_strike",
@@ -1587,7 +1659,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/forge_strike.png"
     },
     "celestial_forge": {
       "id": "celestial_forge",
@@ -1611,7 +1684,8 @@
           "value": 25
         }
       ],
-      "cooldown": 5
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/celestial_forge.png"
     },
     "earth_blessing": {
       "id": "earth_blessing",
@@ -1631,7 +1705,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/earth_blessing.png"
     },
     "mother_protection": {
       "id": "mother_protection",
@@ -1652,7 +1727,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/mother_protection.png"
     },
     "serpent_strike": {
       "id": "serpent_strike",
@@ -1672,7 +1748,8 @@
           "value": 30
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/serpent_strike.png"
     },
     "underworld_wisdom": {
       "id": "underworld_wisdom",
@@ -1699,7 +1776,8 @@
           ]
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/underworld_wisdom.png"
     },
     "love_touch": {
       "id": "love_touch",
@@ -1718,7 +1796,8 @@
           "count": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/love_touch.png"
     },
     "harmony_field": {
       "id": "harmony_field",
@@ -1737,7 +1816,8 @@
           "scaling": "target_max_hp"
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/harmony_field.png"
     },
     "protective_strike": {
       "id": "protective_strike",
@@ -1760,7 +1840,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/protective_strike.png"
     },
     "household_blessing": {
       "id": "household_blessing",
@@ -1781,7 +1862,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/household_blessing.png"
     },
     "serpent_bite": {
       "id": "serpent_bite",
@@ -1804,7 +1886,8 @@
           "stacks": 3
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/serpent_bite.png"
     },
     "world_coil": {
       "id": "world_coil",
@@ -1832,7 +1915,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/world_coil.png"
     },
     "wolf_bite": {
       "id": "wolf_bite",
@@ -1860,7 +1944,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/wolf_bite.png"
     },
     "ragnarok_howl": {
       "id": "ragnarok_howl",
@@ -1878,7 +1963,8 @@
           "bonus_per_self_debuff": 30
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/ragnarok_howl.png"
     },
     "silent_strike": {
       "id": "silent_strike",
@@ -1900,7 +1986,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/silent_strike.png"
     },
     "vengeance_boot": {
       "id": "vengeance_boot",
@@ -1923,7 +2010,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/vengeance_boot.png"
     },
     "word_strike": {
       "id": "word_strike",
@@ -1939,7 +2027,8 @@
           "scaling": "SPD"
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/word_strike.png"
     },
     "inspiring_poem": {
       "id": "inspiring_poem",
@@ -1958,7 +2047,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/inspiring_poem.png"
     },
     "death_touch": {
       "id": "death_touch",
@@ -1984,7 +2074,8 @@
           "value": 30
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/death_touch.png"
     },
     "judgment_of_dead": {
       "id": "judgment_of_dead",
@@ -2007,7 +2098,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/judgment_of_dead.png"
     },
     "falcon_strike": {
       "id": "falcon_strike",
@@ -2031,7 +2123,8 @@
           "per_hit": true
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/falcon_strike.png"
     },
     "eye_of_horus": {
       "id": "eye_of_horus",
@@ -2055,7 +2148,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 5
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/eye_of_horus.png"
     },
     "cat_scratch": {
       "id": "cat_scratch",
@@ -2080,7 +2174,8 @@
           "per_hit": true
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/cat_scratch.png"
     },
     "feline_agility": {
       "id": "feline_agility",
@@ -2099,7 +2194,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/feline_agility.png"
     },
     "crocodile_bite": {
       "id": "crocodile_bite",
@@ -2121,7 +2217,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/crocodile_bite.png"
     },
     "death_roll": {
       "id": "death_roll",
@@ -2143,7 +2240,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/death_roll.png"
     },
     "chaos_strike": {
       "id": "chaos_strike",
@@ -2171,7 +2269,8 @@
           ]
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/chaos_strike.png"
     },
     "desert_storm": {
       "id": "desert_storm",
@@ -2194,7 +2293,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/desert_storm.png"
     },
     "creator_strike": {
       "id": "creator_strike",
@@ -2215,7 +2315,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/creator_strike.png"
     },
     "divine_construction": {
       "id": "divine_construction",
@@ -2236,7 +2337,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/divine_construction.png"
     },
     "lioness_strike": {
       "id": "lioness_strike",
@@ -2259,7 +2361,8 @@
           "stacks": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/lioness_strike.png"
     },
     "solar_fury": {
       "id": "solar_fury",
@@ -2282,7 +2385,8 @@
           "stacks": 1
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/solar_fury.png"
     },
     "shadow_strike": {
       "id": "shadow_strike",
@@ -2303,7 +2407,8 @@
           "chance": 50
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/shadow_strike.png"
     },
     "mourning_veil": {
       "id": "mourning_veil",
@@ -2322,7 +2427,8 @@
           "count": 1
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/mourning_veil.png"
     },
     "creation_touch": {
       "id": "creation_touch",
@@ -2348,7 +2454,8 @@
           ]
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/creation_touch.png"
     },
     "cosmic_knowledge": {
       "id": "cosmic_knowledge",
@@ -2370,7 +2477,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 5
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/cosmic_knowledge.png"
     },
     "discus_throw": {
       "id": "discus_throw",
@@ -2394,7 +2502,8 @@
           "per_hit": true
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/discus_throw.png"
     },
     "preservation_shield": {
       "id": "preservation_shield",
@@ -2415,7 +2524,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 5
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/preservation_shield.png"
     },
     "trident_strike": {
       "id": "trident_strike",
@@ -2434,7 +2544,8 @@
           "crit_ignore_def": 50
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/trident_strike.png"
     },
     "cosmic_dance": {
       "id": "cosmic_dance",
@@ -2459,7 +2570,8 @@
           "stacks": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/cosmic_dance.png"
     },
     "tusk_strike": {
       "id": "tusk_strike",
@@ -2481,7 +2593,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/tusk_strike.png"
     },
     "obstacle_removal": {
       "id": "obstacle_removal",
@@ -2503,7 +2616,8 @@
           "value": 20
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/obstacle_removal.png"
     },
     "monkey_strike": {
       "id": "monkey_strike",
@@ -2526,7 +2640,8 @@
           "per_hit": true
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/monkey_strike.png"
     },
     "mountain_leap": {
       "id": "mountain_leap",
@@ -2551,7 +2666,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/mountain_leap.png"
     },
     "multi_weapon": {
       "id": "multi_weapon",
@@ -2581,7 +2697,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/multi_weapon.png"
     },
     "demon_slayer": {
       "id": "demon_slayer",
@@ -2599,7 +2716,8 @@
           "ignore_defense": true
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/demon_slayer.png"
     },
     "lotus_blessing": {
       "id": "lotus_blessing",
@@ -2619,7 +2737,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/lotus_blessing.png"
     },
     "prosperity_wave": {
       "id": "prosperity_wave",
@@ -2644,7 +2763,8 @@
           ]
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/prosperity_wave.png"
     },
     "wisdom_strike": {
       "id": "wisdom_strike",
@@ -2668,7 +2788,8 @@
           "value": 25
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/wisdom_strike.png"
     },
     "knowledge_flow": {
       "id": "knowledge_flow",
@@ -2687,7 +2808,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/knowledge_flow.png"
     },
     "vajra_bolt": {
       "id": "vajra_bolt",
@@ -2704,7 +2826,8 @@
           "guaranteed_crit": true
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/vajra_bolt.png"
     },
     "storm_command": {
       "id": "storm_command",
@@ -2726,7 +2849,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/storm_command.png"
     },
     "time_strike": {
       "id": "time_strike",
@@ -2746,7 +2870,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/time_strike.png"
     },
     "destruction_dance": {
       "id": "destruction_dance",
@@ -2770,7 +2895,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/destruction_dance.png"
     },
     "solar_ray": {
       "id": "solar_ray",
@@ -2793,7 +2919,8 @@
           "stacks": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/solar_ray.png"
     },
     "dawn_blessing": {
       "id": "dawn_blessing",
@@ -2813,7 +2940,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/dawn_blessing.png"
     },
     "tidal_pull": {
       "id": "tidal_pull",
@@ -2833,7 +2961,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/tidal_pull.png"
     },
     "club_strike": {
       "id": "club_strike",
@@ -2855,7 +2984,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/club_strike.png"
     },
     "cauldron_plenty": {
       "id": "cauldron_plenty",
@@ -2875,7 +3005,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 6
+      "cooldown": 6,
+      "icon_path": "res://assets/abilities/cauldron_plenty.png"
     },
     "triple_blessing": {
       "id": "triple_blessing",
@@ -2902,7 +3033,8 @@
           ]
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/triple_blessing.png"
     },
     "skill_strike": {
       "id": "skill_strike",
@@ -2930,7 +3062,8 @@
           "chance": 75
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/skill_strike.png"
     },
     "harvest_festival": {
       "id": "harvest_festival",
@@ -2950,7 +3083,8 @@
           "value": 35
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/harvest_festival.png"
     },
     "crow_strike": {
       "id": "crow_strike",
@@ -2978,7 +3112,8 @@
           ]
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/crow_strike.png"
     },
     "doom_prophecy": {
       "id": "doom_prophecy",
@@ -2999,7 +3134,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/doom_prophecy.png"
     },
     "antler_charge": {
       "id": "antler_charge",
@@ -3021,7 +3157,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/antler_charge.png"
     },
     "wild_hunt": {
       "id": "wild_hunt",
@@ -3042,7 +3179,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/wild_hunt.png"
     },
     "otherworld_song": {
       "id": "otherworld_song",
@@ -3061,7 +3199,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/otherworld_song.png"
     },
     "sea_strike": {
       "id": "sea_strike",
@@ -3083,7 +3222,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/sea_strike.png"
     },
     "mist_veil": {
       "id": "mist_veil",
@@ -3098,7 +3238,8 @@
           "scaling": "target_max_hp"
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/mist_veil.png"
     },
     "solar_strike": {
       "id": "solar_strike",
@@ -3121,7 +3262,8 @@
           "stacks": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/solar_strike.png"
     },
     "beltane_fire": {
       "id": "beltane_fire",
@@ -3142,7 +3284,8 @@
           "scaling": "target_max_hp"
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/beltane_fire.png"
     },
     "healing_touch": {
       "id": "healing_touch",
@@ -3160,7 +3303,8 @@
           "type": "cleanse_all"
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/healing_touch.png"
     },
     "healing_well": {
       "id": "healing_well",
@@ -3180,7 +3324,8 @@
           "duration": 3
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/healing_well.png"
     },
     "silver_strike": {
       "id": "silver_strike",
@@ -3197,7 +3342,8 @@
           "bonus_vs_buffed": 50
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/silver_strike.png"
     },
     "royal_command": {
       "id": "royal_command",
@@ -3217,7 +3363,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/royal_command.png"
     },
     "sun_burst": {
       "id": "sun_burst",
@@ -3237,7 +3384,8 @@
           "count": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/sun_burst.png"
     },
     "divine_radiance": {
       "id": "divine_radiance",
@@ -3257,7 +3405,8 @@
           "duration": 3
         }
       ],
-      "cooldown": 5
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/divine_radiance.png"
     },
     "storm_blade": {
       "id": "storm_blade",
@@ -3275,7 +3424,8 @@
           "hits": 3
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/storm_blade.png"
     },
     "tempest_rage": {
       "id": "tempest_rage",
@@ -3301,7 +3451,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/tempest_rage.png"
     },
     "lunar_strike": {
       "id": "lunar_strike",
@@ -3323,7 +3474,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/lunar_strike.png"
     },
     "night_veil": {
       "id": "night_veil",
@@ -3345,7 +3497,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/night_veil.png"
     },
     "fox_bite": {
       "id": "fox_bite",
@@ -3365,7 +3518,8 @@
           "value": 20
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/fox_bite.png"
     },
     "rice_blessing": {
       "id": "rice_blessing",
@@ -3390,7 +3544,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/rice_blessing.png"
     },
     "thunder_drums": {
       "id": "thunder_drums",
@@ -3410,7 +3565,8 @@
           "value": 20
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/thunder_drums.png"
     },
     "storm_calling": {
       "id": "storm_calling",
@@ -3432,7 +3588,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/storm_calling.png"
     },
     "wind_bag": {
       "id": "wind_bag",
@@ -3452,7 +3609,8 @@
           "value": 25
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/wind_bag.png"
     },
     "tornado_creation": {
       "id": "tornado_creation",
@@ -3474,7 +3632,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/tornado_creation.png"
     },
     "flowing_music": {
       "id": "flowing_music",
@@ -3493,7 +3652,8 @@
           "value": 15
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/flowing_music.png"
     },
     "knowledge_stream": {
       "id": "knowledge_stream",
@@ -3513,7 +3673,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/knowledge_stream.png"
     },
     "divine_archery": {
       "id": "divine_archery",
@@ -3536,7 +3697,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/divine_archery.png"
     },
     "battle_strategy": {
       "id": "battle_strategy",
@@ -3556,7 +3718,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/battle_strategy.png"
     },
     "protection_ward": {
       "id": "protection_ward",
@@ -3575,7 +3738,8 @@
           "type": "cleanse_all"
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/protection_ward.png"
     },
     "compassionate_aid": {
       "id": "compassionate_aid",
@@ -3595,7 +3759,8 @@
           "duration": 1
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/compassionate_aid.png"
     },
     "sword_training": {
       "id": "sword_training",
@@ -3614,7 +3779,8 @@
           "crit_rate_bonus": 30
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/sword_training.png"
     },
     "wind_flight": {
       "id": "wind_flight",
@@ -3635,7 +3801,8 @@
           "duration": 3
         }
       ],
-      "cooldown": 3
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/wind_flight.png"
     },
     "dragon_slayer": {
       "id": "dragon_slayer",
@@ -3653,7 +3820,8 @@
           "always_crit": true
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/dragon_slayer.png"
     },
     "cosmic_order": {
       "id": "cosmic_order",
@@ -3679,7 +3847,8 @@
           ]
         }
       ],
-      "cooldown": 5
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/cosmic_order.png"
     },
     "primordial_chaos": {
       "id": "primordial_chaos",
@@ -3700,7 +3869,8 @@
           "permanent": true
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/primordial_chaos.png"
     },
     "spawn_monsters": {
       "id": "spawn_monsters",
@@ -3718,7 +3888,8 @@
           "hits": 5
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/spawn_monsters.png"
     },
     "divine_wind": {
       "id": "divine_wind",
@@ -3739,7 +3910,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/divine_wind.png"
     },
     "storm_bringer": {
       "id": "storm_bringer",
@@ -3765,7 +3937,8 @@
           "value": 30
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/storm_bringer.png"
     },
     "death_gaze": {
       "id": "death_gaze",
@@ -3792,7 +3965,8 @@
           "stacks": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/death_gaze.png"
     },
     "underworld_dominion": {
       "id": "underworld_dominion",
@@ -3820,7 +3994,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/underworld_dominion.png"
     },
     "solar_justice": {
       "id": "solar_justice",
@@ -3839,7 +4014,8 @@
           "type": "strip_all"
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/solar_justice.png"
     },
     "law_codex": {
       "id": "law_codex",
@@ -3859,7 +4035,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/law_codex.png"
     },
     "love_and_war": {
       "id": "love_and_war",
@@ -3879,7 +4056,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/love_and_war.png"
     },
     "descent_return": {
       "id": "descent_return",
@@ -3898,7 +4076,8 @@
           "duration": 3
         }
       ],
-      "cooldown": 6
+      "cooldown": 6,
+      "icon_path": "res://assets/abilities/descent_return.png"
     },
     "plague_bringer": {
       "id": "plague_bringer",
@@ -3920,7 +4099,8 @@
           "duration": 3
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/plague_bringer.png"
     },
     "war_frenzy": {
       "id": "war_frenzy",
@@ -3940,7 +4120,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/war_frenzy.png"
     },
     "grain_blessing": {
       "id": "grain_blessing",
@@ -3960,7 +4141,8 @@
           "duration": 3
         }
       ],
-      "cooldown": 0
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/grain_blessing.png"
     },
     "earth_nurture": {
       "id": "earth_nurture",
@@ -3981,7 +4163,8 @@
           "duration": 2
         }
       ],
-      "cooldown": 4
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/earth_nurture.png"
     }
   }
 }

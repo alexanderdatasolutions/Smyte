@@ -51,6 +51,7 @@ var node_requirements_panel: NodeRequirementsPanel = null
 var node_capture_handler: NodeCaptureHandler = null
 var worker_assignment_panel: WorkerAssignmentPanel = null
 var garrison_management_panel: GarrisonManagementPanel = null
+var territory_overview_screen: TerritoryOverviewScreen = null
 
 # ==============================================================================
 # PROPERTIES
@@ -137,6 +138,14 @@ func _create_top_bar() -> void:
 	back_button.text = "← BACK"
 	back_button.custom_minimum_size = Vector2(120, 40)
 	top_bar.add_child(back_button)
+
+	# Territory Overview button
+	var overview_button = Button.new()
+	overview_button.name = "OverviewButton"
+	overview_button.text = "TERRITORY OVERVIEW"
+	overview_button.custom_minimum_size = Vector2(180, 40)
+	overview_button.pressed.connect(_on_territory_overview_pressed)
+	top_bar.add_child(overview_button)
 
 	# Spacer
 	var spacer = Control.new()
@@ -260,6 +269,7 @@ func _setup_components() -> void:
 	_setup_node_capture_handler()
 	_setup_worker_assignment_panel()
 	_setup_garrison_management_panel()
+	_setup_territory_overview_screen()
 
 func _setup_hex_map_view() -> void:
 	"""Create and setup HexMapView component"""
@@ -349,6 +359,14 @@ func _setup_garrison_management_panel() -> void:
 	garrison_management_panel.visible = false
 	main_container.add_child(garrison_management_panel)
 
+func _setup_territory_overview_screen() -> void:
+	"""Create and setup TerritoryOverviewScreen component"""
+	var TerritoryOverviewScreenScript = load("res://scripts/ui/territory/TerritoryOverviewScreen.gd")
+	territory_overview_screen = TerritoryOverviewScreenScript.new()
+	territory_overview_screen.name = "TerritoryOverviewScreen"
+	territory_overview_screen.visible = false
+	main_container.add_child(territory_overview_screen)
+
 # ==============================================================================
 # CONNECT SIGNALS
 # ==============================================================================
@@ -385,6 +403,11 @@ func _connect_signals() -> void:
 		garrison_management_panel.close_requested.connect(_on_garrison_panel_close)
 		garrison_management_panel.garrison_assigned.connect(_on_garrison_assigned)
 		garrison_management_panel.garrison_unassigned.connect(_on_garrison_unassigned)
+
+	# Territory overview screen signals
+	if territory_overview_screen:
+		territory_overview_screen.back_pressed.connect(_on_territory_overview_back)
+		territory_overview_screen.manage_node_requested.connect(_on_overview_manage_node)
 
 # ==============================================================================
 # STYLING
@@ -564,6 +587,40 @@ func _on_garrison_unassigned(node: HexNode, god_id: String) -> void:
 	print("Garrison unassigned: god=%s from node=%s" % [god_id, node.id])
 	# Refresh displays
 	refresh()
+
+func _on_territory_overview_pressed() -> void:
+	"""Handle territory overview button press"""
+	if territory_overview_screen:
+		# Hide hex map and other panels
+		if hex_map_view:
+			hex_map_view.visible = false
+		if bottom_panel_container:
+			bottom_panel_container.visible = false
+		if zoom_controls:
+			zoom_controls.visible = false
+
+		# Show overview screen
+		territory_overview_screen.visible = true
+		territory_overview_screen._refresh_display()
+
+func _on_territory_overview_back() -> void:
+	"""Handle back from territory overview"""
+	if territory_overview_screen:
+		territory_overview_screen.visible = false
+
+	# Restore hex map and controls
+	if hex_map_view:
+		hex_map_view.visible = true
+	if zoom_controls:
+		zoom_controls.visible = true
+
+func _on_overview_manage_node(node: HexNode) -> void:
+	"""Handle manage node request from overview screen"""
+	# Close overview
+	_on_territory_overview_back()
+
+	# Show worker assignment panel for the node
+	_on_manage_workers_requested(node)
 
 # ==============================================================================
 # PANEL MANAGEMENT

@@ -4,7 +4,7 @@
 # RULE 4: No logic in UI - just displays state from TurnManager
 class_name TurnOrderBar extends PanelContainer
 
-const MAX_PORTRAIT_COUNT := 10  # Maximum portraits to show
+const MAX_PORTRAIT_COUNT := 5  # Maximum portraits to show
 const PORTRAIT_SIZE := Vector2(40, 40)  # Size of each portrait
 const PORTRAIT_SPACING := 4  # Space between portraits
 
@@ -24,7 +24,7 @@ func _ready():
 func _setup_ui_structure():
 	"""Create the turn order bar UI structure"""
 	# Set minimum size
-	custom_minimum_size = Vector2(500, 60)
+	custom_minimum_size = Vector2(250, 50)
 
 	# Main vertical container
 	var vbox = VBoxContainer.new()

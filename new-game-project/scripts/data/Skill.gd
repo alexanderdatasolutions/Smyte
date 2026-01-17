@@ -5,6 +5,7 @@ class_name Skill extends Resource
 @export var skill_id: String
 @export var name: String
 @export var description: String
+@export var icon_path: String = ""  # Path to PNG icon
 @export var cooldown: int = 0
 @export var damage_multiplier: float = 1.0
 @export var target_count: int = 1
@@ -46,6 +47,7 @@ static func load_from_id(id: String) -> Skill:
 		var data = ability_dict[id]
 		skill.name = data.get("name", id.capitalize())
 		skill.description = data.get("description", "A skill")
+		skill.icon_path = data.get("icon_path", "")
 		skill.cooldown = data.get("cooldown", 0)
 		skill.damage_multiplier = data.get("damage_multiplier", 1.0)
 		skill.targets_enemies = _parse_targets_enemies(data.get("targets", "single"))

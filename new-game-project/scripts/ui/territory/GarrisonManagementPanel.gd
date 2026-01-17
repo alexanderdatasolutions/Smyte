@@ -395,12 +395,15 @@ func _calculate_god_power(god_data: God) -> float:
 	if not god_data:
 		return 0.0
 
-	# Same formula as NodeRequirementChecker
+	# Use GodCalculator for consistent power calculation
+	var calculator = SystemRegistry.get_instance().get_system("GodCalculator")
+	if calculator and calculator.has_method("get_power_rating"):
+		return calculator.get_power_rating(god_data)
+
+	# Fallback if calculator not available
 	var base_power = god_data.base_hp + god_data.base_attack * 2.0 + god_data.base_defense * 1.5
 	var level_multiplier = 1.0 + (god_data.level - 1) * 0.1
-	var awakening_bonus = 1.0 + (god_data.awakening_level * 0.2)
-
-	return base_power * level_multiplier * awakening_bonus
+	return base_power * level_multiplier
 
 # ==============================================================================
 # BUTTON HANDLERS

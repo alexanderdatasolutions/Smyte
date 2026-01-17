@@ -67,9 +67,9 @@ func start_battle(config) -> bool:
 	is_battle_active = true
 	battle_started.emit(config)
 
-	# Begin battle flow
-	_begin_battle_flow()
-	
+	# Begin battle flow (defer to next frame to let UI initialize)
+	_begin_battle_flow.call_deferred()
+
 	return true
 
 ## End the current battle with the given result
@@ -162,15 +162,20 @@ func _initialize_battle_systems():
 
 func _begin_battle_flow():
 	"""Start the main battle loop"""
+	print("BattleCoordinator: Beginning battle flow...")
 	# Start first wave if applicable
 	if not current_battle_config.enemy_waves.is_empty():
+		print("BattleCoordinator: Starting wave 1...")
 		wave_manager.start_wave(1)
-	
+
 	# Begin turn cycle
+	print("BattleCoordinator: Starting turn manager...")
 	turn_manager.start_battle()
-	
+	print("BattleCoordinator: Turn manager started")
+
 	# Start auto-battle if enabled
 	if auto_battle_enabled:
+		print("BattleCoordinator: Auto-battle enabled, processing...")
 		_process_auto_battle()
 
 func _process_auto_battle():
@@ -276,10 +281,10 @@ func _award_battle_rewards(rewards: Dictionary):
 	for resource in rewards:
 		var amount = rewards[resource]
 		resource_manager.add_resource(resource, amount)
-		
+
 		var event_bus = _get_event_bus()
 		if event_bus:
-			event_bus.notification_created.emit("Gained " + str(amount) + " " + resource, "reward", 2.0)
+			event_bus.notification_requested.emit("Gained " + str(amount) + " " + resource, "reward", 2.0)
 
 func _cleanup_battle():
 	"""Clean up battle state and systems"""
@@ -300,17 +305,24 @@ func _cleanup_battle():
 # ============================================================================
 
 func _on_turn_started(unit: BattleUnit):
+	print("BattleCoordinator._on_turn_started: Turn started for ", unit.display_name if unit else "NULL")
+	print("BattleCoordinator._on_turn_started: Emitting turn_changed signal...")
 	turn_changed.emit(unit)
+	print("BattleCoordinator._on_turn_started: Signal emitted")
 
 	# Process enemy turns automatically (AI takes action)
 	if unit.is_enemy():
+		print("BattleCoordinator._on_turn_started: Enemy turn, processing AI...")
 		# Add small delay for visual feedback
 		await get_tree().create_timer(0.5).timeout
 		_process_enemy_turn(unit)
 	elif auto_battle_enabled:
+		print("BattleCoordinator._on_turn_started: Auto-battle enabled, processing...")
 		# Process auto-battle for player units if enabled
 		await get_tree().create_timer(0.5).timeout
 		_process_auto_battle()
+	else:
+		print("BattleCoordinator._on_turn_started: Player turn, waiting for input")
 
 func _process_enemy_turn(unit: BattleUnit):
 	"""Process an enemy unit's turn using AI"""

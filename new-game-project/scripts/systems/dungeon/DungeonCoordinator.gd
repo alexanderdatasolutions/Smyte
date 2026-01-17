@@ -126,11 +126,11 @@ func _validate_battle_team(team: Array) -> Dictionary:
 	
 	return {"success": true}
 
-func _on_battle_completed(result: Dictionary):
+func _on_battle_completed(result: BattleResult):
 	"""Handle battle completion from BattleCoordinator"""
 	if not battle_in_progress or current_dungeon_battle.is_empty():
 		return
-	
+
 	var _dungeon_id = current_dungeon_battle.dungeon_id
 	var _difficulty = current_dungeon_battle.difficulty
 
@@ -138,10 +138,10 @@ func _on_battle_completed(result: Dictionary):
 		_handle_dungeon_victory(result)
 	else:
 		_handle_dungeon_defeat(result)
-	
+
 	_reset_battle_state()
 
-func _handle_dungeon_victory(_battle_result: Dictionary):
+func _handle_dungeon_victory(_battle_result: BattleResult):
 	"""Process dungeon victory rewards and progression"""
 	var dungeon_id = current_dungeon_battle.dungeon_id
 	var difficulty = current_dungeon_battle.difficulty
@@ -178,7 +178,7 @@ func _handle_dungeon_victory(_battle_result: Dictionary):
 	
 	dungeon_battle_completed.emit(result_data)
 
-func _handle_dungeon_defeat(_battle_result: Dictionary):
+func _handle_dungeon_defeat(_battle_result: BattleResult):
 	"""Process dungeon defeat"""
 	var dungeon_id = current_dungeon_battle.dungeon_id
 	var difficulty = current_dungeon_battle.difficulty

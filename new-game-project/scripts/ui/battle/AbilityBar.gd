@@ -5,28 +5,22 @@
 class_name AbilityBar extends PanelContainer
 
 signal ability_selected(skill_index: int)
-signal ability_hovered(skill_index: int, skill: Skill)
-signal ability_unhovered()
 
 # Configuration
 const MAX_SKILLS := 4
-const BUTTON_SIZE := Vector2(120, 80)
-const ICON_SIZE := Vector2(48, 48)
+const BUTTON_SIZE := Vector2(100, 70)
+const ICON_SIZE := Vector2(40, 40)
 
 # Internal state
 var current_unit: BattleUnit = null
 var skill_buttons: Array[Button] = []
 var cooldown_overlays: Array[Panel] = []
-var tooltip_panel: PanelContainer = null
-var hovered_skill_index: int = -1
 
 # UI elements
 var buttons_container: HBoxContainer
-var tooltip_label: RichTextLabel
 
 func _ready():
 	_setup_bar_structure()
-	_setup_tooltip()
 	hide()  # Hidden by default, shown when unit's turn is active
 
 func setup_unit(unit: BattleUnit):
@@ -44,7 +38,6 @@ func clear():
 	"""Clear the ability bar and hide it"""
 	current_unit = null
 	hide()
-	_hide_tooltip()
 
 func update_cooldowns():
 	"""Update cooldown overlays based on current unit state"""
@@ -100,9 +93,36 @@ func _create_skill_button_slot(index: int) -> Control:
 	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	button.text = "Skill %d" % (index + 1)
 	button.pressed.connect(_on_skill_button_pressed.bind(index))
-	button.mouse_entered.connect(_on_skill_button_hover.bind(index))
-	button.mouse_exited.connect(_on_skill_button_unhover.bind(index))
 	_style_skill_button(button, index)
+
+	# Add icon (TextureRect for PNG or Label for emoji) at top of button
+	var icon_container = TextureRect.new()
+	icon_container.name = "IconTexture"
+	icon_container.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	icon_container.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon_container.custom_minimum_size = Vector2(40, 40)
+	icon_container.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	icon_container.offset_top = 5
+	icon_container.offset_left = -20
+	icon_container.offset_right = 20
+	icon_container.offset_bottom = 45
+	icon_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(icon_container)
+
+	# Fallback emoji label (used if no texture)
+	var icon_label = Label.new()
+	icon_label.name = "IconLabel"
+	icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	icon_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	icon_label.offset_top = 5
+	icon_label.offset_bottom = 35
+	icon_label.add_theme_font_size_override("font_size", 24)
+	icon_label.text = "⚔️"  # Default icon
+	icon_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon_label.visible = false  # Hidden by default, shown only if no texture
+	button.add_child(icon_label)
+
 	wrapper.add_child(button)
 	skill_buttons.append(button)
 
@@ -182,41 +202,6 @@ func _style_skill_button(button: Button, index: int):
 	button.add_theme_font_size_override("font_size", 11)
 	button.add_theme_color_override("font_color", Color.WHITE)
 
-func _setup_tooltip():
-	"""Create the tooltip panel for skill descriptions"""
-	tooltip_panel = PanelContainer.new()
-	tooltip_panel.custom_minimum_size = Vector2(250, 80)
-	tooltip_panel.hide()
-	tooltip_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	var tooltip_style = StyleBoxFlat.new()
-	tooltip_style.bg_color = Color(0.05, 0.05, 0.1, 0.95)
-	tooltip_style.border_color = Color(0.4, 0.4, 0.5, 1.0)
-	tooltip_style.border_width_left = 1
-	tooltip_style.border_width_right = 1
-	tooltip_style.border_width_top = 1
-	tooltip_style.border_width_bottom = 1
-	tooltip_style.corner_radius_top_left = 4
-	tooltip_style.corner_radius_top_right = 4
-	tooltip_style.corner_radius_bottom_left = 4
-	tooltip_style.corner_radius_bottom_right = 4
-	tooltip_panel.add_theme_stylebox_override("panel", tooltip_style)
-
-	var tooltip_margin = MarginContainer.new()
-	tooltip_margin.add_theme_constant_override("margin_left", 8)
-	tooltip_margin.add_theme_constant_override("margin_right", 8)
-	tooltip_margin.add_theme_constant_override("margin_top", 6)
-	tooltip_margin.add_theme_constant_override("margin_bottom", 6)
-	tooltip_panel.add_child(tooltip_margin)
-
-	tooltip_label = RichTextLabel.new()
-	tooltip_label.bbcode_enabled = true
-	tooltip_label.fit_content = true
-	tooltip_label.scroll_active = false
-	tooltip_label.custom_minimum_size = Vector2(230, 0)
-	tooltip_margin.add_child(tooltip_label)
-
-	add_child(tooltip_panel)
 
 func _populate_skills():
 	"""Populate skill buttons with unit's skills"""
@@ -238,6 +223,44 @@ func _populate_skills():
 
 func _update_button_for_skill(button: Button, skill: Skill, index: int):
 	"""Update a button to display a skill"""
+	var icon_texture = button.get_node_or_null("IconTexture")
+	var icon_label = button.get_node_or_null("IconLabel")
+
+	# Try to load PNG texture first
+	var texture_loaded = false
+	if icon_texture and "icon_path" in skill and skill.icon_path:
+		# Check if file exists before attempting to load
+		if ResourceLoader.exists(skill.icon_path):
+			var texture = load(skill.icon_path)
+			if texture:
+				icon_texture.texture = texture
+				icon_texture.visible = true
+				if icon_label:
+					icon_label.visible = false
+				texture_loaded = true
+
+	# Fallback to emoji icon if no texture
+	if not texture_loaded:
+		if icon_texture:
+			icon_texture.visible = false
+		if icon_label:
+			icon_label.visible = true
+			# Check if skill has icon property (emoji)
+			if "icon" in skill and skill.icon:
+				icon_label.text = skill.icon
+			else:
+				# Default icons based on skill type
+				var default_icon = "⚔️"
+				if "damage" in skill.name.to_lower():
+					default_icon = "⚔️"
+				elif "heal" in skill.name.to_lower():
+					default_icon = "❤️"
+				elif "shield" in skill.name.to_lower() or "defend" in skill.name.to_lower():
+					default_icon = "🛡️"
+				elif "buff" in skill.name.to_lower():
+					default_icon = "✨"
+				icon_label.text = default_icon
+
 	# Build button text with skill name and cooldown info
 	var text = skill.name
 	if skill.cooldown > 0:
@@ -283,73 +306,6 @@ func _on_skill_button_pressed(index: int):
 		# Could play a "not available" sound/effect here
 		pass
 
-func _on_skill_button_hover(index: int):
-	"""Show tooltip when hovering over skill button"""
-	if not current_unit or index >= current_unit.skills.size():
-		return
-
-	hovered_skill_index = index
-	var skill = current_unit.skills[index]
-
-	_show_tooltip(skill, index)
-	ability_hovered.emit(index, skill)
-
-func _on_skill_button_unhover(index: int):
-	"""Hide tooltip when mouse leaves button"""
-	hovered_skill_index = -1
-	_hide_tooltip()
-	ability_unhovered.emit()
-
-func _show_tooltip(skill: Skill, index: int):
-	"""Display the tooltip with skill information"""
-	if not tooltip_panel or not tooltip_label:
-		return
-
-	var cooldown_text = ""
-	if skill.cooldown > 0:
-		var current_cd = 0
-		if index < current_unit.skill_cooldowns.size():
-			current_cd = current_unit.skill_cooldowns[index]
-		if current_cd > 0:
-			cooldown_text = " [color=red](CD: %d turns)[/color]" % current_cd
-		else:
-			cooldown_text = " [color=gray](CD: %d)[/color]" % skill.cooldown
-
-	var target_text = ""
-	if skill.target_count >= 99:
-		target_text = "Targets: All"
-	elif skill.target_count > 1:
-		target_text = "Targets: %d" % skill.target_count
-	else:
-		target_text = "Targets: Single"
-
-	if not skill.targets_enemies:
-		target_text += " (Allies)"
-
-	var damage_text = ""
-	if skill.damage_multiplier > 0:
-		damage_text = "Damage: %d%%" % int(skill.damage_multiplier * 100)
-
-	# Build tooltip BBCode
-	var bbcode = "[b][color=white]%s[/color][/b]%s\n" % [skill.name, cooldown_text]
-	bbcode += "[color=gray]%s[/color]\n" % skill.description
-	bbcode += "[color=cyan]%s[/color]" % target_text
-	if damage_text != "":
-		bbcode += " | [color=orange]%s[/color]" % damage_text
-
-	tooltip_label.text = bbcode
-
-	# Position tooltip above the ability bar
-	tooltip_panel.show()
-	tooltip_panel.position = Vector2(
-		(custom_minimum_size.x - tooltip_panel.size.x) / 2,
-		-tooltip_panel.size.y - 8
-	)
-
-func _hide_tooltip():
-	"""Hide the tooltip panel"""
-	if tooltip_panel:
-		tooltip_panel.hide()
 
 # =============================================================================
 # PUBLIC API

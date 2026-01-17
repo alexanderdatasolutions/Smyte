@@ -3,5 +3,5 @@
 [ext_resource type="Script" path="res://scripts/ui/battle/BattleUnitCard.gd" id="1_script"]
 
 [node name="BattleUnitCard" type="Panel"]
-custom_minimum_size = Vector2(220, 75)
+custom_minimum_size = Vector2(200, 115)
 script = ExtResource("1_script")

@@ -89,16 +89,16 @@ func _get_dungeon_waves(dungeon_id: String, stage: int) -> int:
 ## Create fallback enemies for testing
 func _create_fallback_enemies() -> Array:
 	var enemies = []
-	
-	# Create basic enemy BattleUnits
+
+	# Create basic enemy BattleUnits (balanced to match god stats)
 	for i in range(3):
 		var enemy = BattleUnit.new()
 		enemy.id = "test_enemy_" + str(i)
-		enemy.max_hp = 1000
-		enemy.current_hp = 1000
-		enemy.attack = 150
-		enemy.defense = 100
-		enemy.speed = 100 + i * 10
+		enemy.max_hp = 150  # Reduced from 1000
+		enemy.current_hp = 150
+		enemy.attack = 65  # Reduced from 150
+		enemy.defense = 70  # Reduced from 100
+		enemy.speed = 55 + i * 5  # Reduced from 100+
 		enemies.append(enemy)
-	
+
 	return enemies

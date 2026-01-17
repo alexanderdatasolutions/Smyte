@@ -251,16 +251,23 @@ func _get_node_defenders(hex_node: HexNode) -> Array:
 
 func _create_default_defender(hex_node: HexNode) -> Dictionary:
 	"""Create a default defender based on node tier"""
+	var hp = 120 + (hex_node.tier * 30)  # Tier 1: 150, Tier 2: 180, Tier 3: 210
+	var atk = 60 + (hex_node.tier * 10)  # Tier 1: 70, Tier 2: 80, Tier 3: 90
+	var def = 70 + (hex_node.tier * 10)  # Tier 1: 80, Tier 2: 90, Tier 3: 100
+	var spd = 50 + (hex_node.tier * 5)  # Tier 1: 55, Tier 2: 60, Tier 3: 65
+
+	print("NodeCaptureHandler: Creating Territory Guardian (Tier %d): HP=%d, ATK=%d, DEF=%d, SPD=%d" % [hex_node.tier, hp, atk, def, spd])
+
 	var defender = {
 		"id": "default_defender_" + hex_node.id,
 		"name": "Territory Guardian",
 		"level": hex_node.tier * 5,
 		"pantheon": "neutral",
 		"element": "neutral",
-		"base_hp": 1000 + (hex_node.tier * 500),
-		"base_attack": 100 + (hex_node.tier * 50),
-		"base_defense": 100 + (hex_node.tier * 40),
-		"base_speed": 50 + (hex_node.tier * 10),
+		"hp": hp,  # Changed from base_hp to hp to match BattleUnit.from_enemy()
+		"attack": atk,  # Changed from base_attack to attack
+		"defense": def,  # Changed from base_defense to defense
+		"speed": spd,  # Changed from base_speed to speed
 		"skills": []
 	}
 	return defender
