@@ -203,18 +203,18 @@ func get_display_info() -> Dictionary:
 func _load_god_skills(god: God):
 	"""Load skills from a God object"""
 	skills.clear()
-	
+
 	# Load from god's skill IDs (assuming skill data exists)
-	if god.has("abilities") and god.abilities is Array:
+	if god.abilities != null and god.abilities is Array and not god.abilities.is_empty():
 		for ability_id in god.abilities:
 			var skill = Skill.load_from_id(ability_id)
 			if skill:
 				skills.append(skill)
-	
+
 	# Ensure we have at least a basic attack
 	if skills.is_empty():
 		skills.append(Skill.create_basic_attack())
-	
+
 	# Initialize cooldowns array
 	skill_cooldowns.resize(skills.size())
 	for i in range(skill_cooldowns.size()):

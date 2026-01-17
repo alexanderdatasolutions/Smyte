@@ -372,7 +372,7 @@ func _is_god_in_any_garrison(god_id: String) -> bool:
 
 	var all_nodes = hex_grid_manager.get_all_nodes()
 	for node in all_nodes:
-		if node.garrison.has(god_id):
+		if node.garrison.find(god_id) != -1:
 			return true
 
 	return false
@@ -385,7 +385,7 @@ func _is_god_working_anywhere(god_id: String) -> bool:
 
 	var all_nodes = hex_grid_manager.get_all_nodes()
 	for node in all_nodes:
-		if node.assigned_workers.has(god_id):
+		if node.assigned_workers.find(god_id) != -1:
 			return true
 
 	return false

@@ -42,11 +42,20 @@ func setup_from_config(config: BattleConfig):
 	# Create enemy units based on battle type
 	enemy_units.clear()
 	if not config.defender_team.is_empty():
-		# PvP battle - create units from defender gods
-		for god in config.defender_team:
-			if god:
-				var unit = BattleUnit.from_god(god)
-				unit.is_player_unit = false  # Override for enemy team
+		# Defender team can contain God objects or Dictionary enemy data
+		for defender in config.defender_team:
+			if defender:
+				var unit
+				# Check if it's a God object or Dictionary enemy data
+				if defender is God:
+					unit = BattleUnit.from_god(defender)
+					unit.is_player_unit = false  # Override for enemy team
+				elif defender is Dictionary:
+					unit = BattleUnit.from_enemy(defender)
+				else:
+					push_warning("BattleState: Unknown defender type: ", typeof(defender))
+					continue
+
 				enemy_units.append(unit)
 				all_units.append(unit)
 	else:

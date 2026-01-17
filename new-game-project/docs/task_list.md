@@ -103,4 +103,5 @@
 - market? way to sell materials to other players? way to sell MTX? idk i dont want a ton of pay 2 win but i want a way to sell off duplicate GIGA drops.
 - add a bunch of giga chase items for people. 10 hours, 100 hours, 10000, ya know.
 - add ways to flex, either chase MTX like above or titles or something. people love to FLEX.
+- add team synergies - all egypt, or half and half or brothers or family ties or something for all different types of things, combat and gathering and crafting.
 

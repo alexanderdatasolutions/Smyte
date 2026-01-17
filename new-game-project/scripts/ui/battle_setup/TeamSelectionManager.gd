@@ -67,13 +67,21 @@ func _setup_for_hex_capture():
 	_refresh_team_slots()
 
 func _create_team_slots():
+	# Clear the container first
+	if team_slots_container:
+		for child in team_slots_container.get_children():
+			child.queue_free()
+
 	team_slots.clear()
-	
+	selected_team.clear()
+
 	for i in range(max_team_size):
 		var slot = _create_team_slot(i)
 		team_slots_container.add_child(slot)
 		team_slots.append(slot)
 		selected_team.append(null)
+
+	print("TeamSelectionManager: Created ", team_slots.size(), " team slots")
 
 func _refresh_team_slots():
 	# Clear existing slots
@@ -89,22 +97,25 @@ func _create_team_slot(index: int) -> Control:
 	var slot = Panel.new()
 	slot.name = "TeamSlot_" + str(index)
 	slot.custom_minimum_size = Vector2(120, 150)
-	
+
 	var container = VBoxContainer.new()
+	container.name = "VBoxContainer"  # Give it a name for easier debugging
 	slot.add_child(container)
-	
+
 	# God display area
 	var god_display = Control.new()
 	god_display.name = "GodDisplay"
 	god_display.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	container.add_child(god_display)
-	
+
 	# Clear button
 	var clear_button = Button.new()
 	clear_button.text = "Clear"
 	clear_button.pressed.connect(_clear_slot.bind(index))
 	container.add_child(clear_button)
-	
+
+	print("TeamSelectionManager: Created slot ", index, " with structure: ", slot.name, "/", container.name, "/", god_display.name)
+
 	return slot
 
 func _load_available_gods():
@@ -130,53 +141,68 @@ func _load_available_gods():
 		available_gods_grid.add_child(god_button)
 
 func _create_god_selection_button(god: God) -> Control:
-	# Create a clickable card using GodCardFactory
-	var card_container = Control.new()
-	card_container.custom_minimum_size = Vector2(120, 150)
+	# Create a button that contains the god card
+	var button = Button.new()
+	button.custom_minimum_size = Vector2(120, 150)
+	button.flat = false  # Make it visible to test if it's there
+	button.text = ""  # No text, just visual
+	button.pressed.connect(_on_god_selected.bind(god))
 
-	# Create the god card with BATTLE_SELECTION preset
+	# Add the god card as the button's visual content
 	var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.BATTLE_SELECTION)
 	god_card.setup_god_card(god)
-	card_container.add_child(god_card)
+	god_card.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Let clicks pass to button
 
-	# Make the card clickable by adding a button overlay
-	var button = Button.new()
-	button.flat = true
-	button.custom_minimum_size = Vector2(120, 150)
-	button.mouse_filter = Control.MOUSE_FILTER_PASS
-	button.pressed.connect(_on_god_selected.bind(god))
-	card_container.add_child(button)
+	# Also disable all children of the god card to ensure they don't capture clicks
+	_disable_mouse_on_children(god_card)
 
-	return card_container
+	button.add_child(god_card)
+
+	return button
+
+func _disable_mouse_on_children(node: Node):
+	"""Recursively disable mouse filtering on all children"""
+	for child in node.get_children():
+		if child is Control:
+			child.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_disable_mouse_on_children(child)
 
 func _on_god_selected(god: God):
+	print("TeamSelectionManager: God selected - ", god.name)
 	# Find first empty slot
 	for i in range(selected_team.size()):
 		if selected_team[i] == null:
+			print("TeamSelectionManager: Assigning to slot ", i)
 			_assign_god_to_slot(god, i)
 			break
 
 func _assign_god_to_slot(god: God, slot_index: int):
 	selected_team[slot_index] = god
 	_update_slot_display(slot_index)
+	_load_available_gods()  # Refresh to remove selected god from available list
 	team_changed.emit(selected_team)
 
 func _clear_slot(slot_index: int):
 	selected_team[slot_index] = null
 	_update_slot_display(slot_index)
+	_load_available_gods()  # Refresh to add god back to available list
 	team_changed.emit(selected_team)
 
 func _update_slot_display(slot_index: int):
+	print("TeamSelectionManager: Updating slot display for slot ", slot_index)
 	if slot_index < 0 or slot_index >= team_slots.size():
+		print("TeamSelectionManager: Invalid slot index")
 		return
 
 	var slot = team_slots[slot_index]
 	if not slot:
+		print("TeamSelectionManager: Slot is null")
 		return
 
 	var god_display = slot.get_node_or_null("VBoxContainer/GodDisplay")
 	if not god_display:
 		push_warning("TeamSelectionManager: god_display not found for slot " + str(slot_index))
+		print("TeamSelectionManager: Available children in slot: ", slot.get_children())
 		return
 
 	# Clear existing display
@@ -184,6 +210,7 @@ func _update_slot_display(slot_index: int):
 		child.queue_free()
 
 	var god = selected_team[slot_index]
+	print("TeamSelectionManager: God for slot ", slot_index, " is ", god.name if god else "null")
 	if god == null:
 		var empty_label = Label.new()
 		empty_label.text = "Empty Slot"
@@ -191,11 +218,13 @@ func _update_slot_display(slot_index: int):
 		empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		empty_label.custom_minimum_size = Vector2(0, 100)
 		god_display.add_child(empty_label)
+		print("TeamSelectionManager: Added empty label to slot ", slot_index)
 	else:
 		# Use GodCardFactory to create a card
 		var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.COMPACT_LIST)
 		god_card.setup_god_card(god)
 		god_display.add_child(god_card)
+		print("TeamSelectionManager: Added god card for ", god.name, " to slot ", slot_index)
 
 func _on_start_battle_pressed():
 	# Validate team has at least one god
@@ -217,6 +246,11 @@ func _on_cancel_pressed():
 
 func _is_god_available_for_battle(god: God) -> bool:
 	"""Check if god is available for battle (not in garrison or working on a node)"""
+	# Check if already selected in this team
+	for selected_god in selected_team:
+		if selected_god != null and selected_god.id == god.id:
+			return false
+
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
 	if not territory_manager:
 		return true
@@ -224,11 +258,11 @@ func _is_god_available_for_battle(god: God) -> bool:
 	# Check all controlled nodes to see if god is assigned
 	var controlled_nodes = territory_manager.get_controlled_nodes()
 	for node in controlled_nodes:
-		# Check garrison
-		if node.garrison.has(god.id):
+		# Check garrison - use find() instead of has() for typed arrays
+		if node.garrison.find(god.id) != -1:
 			return false
 		# Check workers
-		if node.assigned_workers.has(god.id):
+		if node.assigned_workers.find(god.id) != -1:
 			return false
 
 	return true

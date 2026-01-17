@@ -159,8 +159,14 @@ func _create_capture_battle_config(hex_node: HexNode) -> BattleConfig:
 
 func _create_capture_battle_config_with_team(hex_node: HexNode, team: Array) -> BattleConfig:
 	"""Create battle configuration with user-selected team"""
-	if team.is_empty():
-		push_error("NodeCaptureHandler: No team provided")
+	# Filter out null values from team
+	var filtered_team = []
+	for god in team:
+		if god != null:
+			filtered_team.append(god)
+
+	if filtered_team.is_empty():
+		push_error("NodeCaptureHandler: No valid gods in team")
 		return null
 
 	# Get node defenders
@@ -169,7 +175,7 @@ func _create_capture_battle_config_with_team(hex_node: HexNode, team: Array) -> 
 	# Create battle config with selected team
 	var config = BattleConfig.new()
 	config.battle_type = BattleConfig.BattleType.TERRITORY
-	config.attacker_team = team
+	config.attacker_team = filtered_team
 	config.defender_team = defender_gods
 	config.territory_id = hex_node.id
 	config.max_turns = 50
@@ -210,9 +216,9 @@ func _is_god_available_for_battle(god_id: String) -> bool:
 
 	var controlled = territory_manager.get_controlled_nodes()
 	for node in controlled:
-		if node.garrison.has(god_id):
+		if node.garrison.find(god_id) != -1:
 			return false
-		if node.assigned_workers.has(god_id):
+		if node.assigned_workers.find(god_id) != -1:
 			return false
 
 	return true
