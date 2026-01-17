@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 10/10
-**Current Task:** ALL TASKS COMPLETE
+**Tasks Completed:** 11/15
+**Current Task:** Task 11 - GodSelectionPanel
 
 ---
 
@@ -482,4 +482,79 @@ Added mobile UX polish including 60px minimum tap targets, smooth fade transitio
 - Uses SystemRegistry for system access ✅
 - Read-only display with signal emission ✅
 - Graceful error handling ✅
+
+### 2026-01-17 - Task 11: GodSelectionPanel - Left-Sliding Overlay ✅
+
+**What Changed:**
+Created a mobile-friendly left-sliding panel for god selection with context filters (Worker/Garrison) and element affinity filters.
+
+**Files Created:**
+- `scripts/ui/territory/GodSelectionPanel.gd` (497 lines)
+
+**Implementation Details:**
+
+1. **Left-Sliding Panel Animation**:
+   - Panel slides in from LEFT (opposite of TerritoryOverviewScreen which slides from RIGHT)
+   - 400px panel width
+   - 0.25s slide animation using Tween with EASE_OUT/EASE_IN + TRANS_CUBIC
+   - Semi-transparent overlay background (clicks outside panel close it)
+
+2. **SelectionContext Enum**:
+   - ALL: Show all available gods
+   - WORKER: Filter for available gods suitable for work
+   - GARRISON: Filter for combat-capable gods (level 5+ or high attack)
+
+3. **Context Filter Bar**:
+   - Three toggle buttons: All / Worker / Garrison
+   - Updates grid display when selection changes
+   - Styled with active/inactive states
+
+4. **Element Affinity Filters**:
+   - "All" button + 6 element-specific buttons
+   - Fire, Water, Earth, Lightning, Light, Dark
+   - Each button styled with element color when active
+   - Filters gods by element type
+
+5. **God Card Grid**:
+   - 4 columns (narrower panel than GodSelectionGrid)
+   - 80x100px cards with element-colored borders
+   - Portrait, truncated name, level display
+   - Element-colored placeholders for missing portraits
+
+6. **Public API**:
+   - `show_for_garrison(excluded_ids)` - Open with garrison context
+   - `show_for_worker(excluded_ids)` - Open with worker context
+   - `show_all(excluded_ids, title)` - Open with all gods
+   - `hide_panel()` - Close with slide-out animation
+   - `is_panel_visible()` - Check visibility state
+
+7. **Signals**:
+   - `god_selected(god: God)` - Emitted when god card tapped
+   - `selection_cancelled` - Emitted when closed without selection
+   - `panel_closed` - Emitted after slide-out animation completes
+
+8. **Close Functionality**:
+   - Close button (60x60px, red-tinted styling)
+   - Tap outside panel on overlay
+   - Escape key / back gesture support
+
+**Verified With Godot MCP:**
+- Ran project: No errors from GodSelectionPanel.gd
+- Navigated to hex territory screen: Screen loads correctly
+- Opened Territory Overview: Works correctly
+- Opened Node Detail: NodeDetailScreen displays
+- No runtime errors in debug output
+- Screenshots captured:
+  - `screenshots/node-detail-god-selection-panel-1-hex-map.png`
+  - `screenshots/node-detail-god-selection-panel-2-territory-overview.png`
+  - `screenshots/node-detail-god-selection-panel-3-node-detail.png`
+
+**Architecture Compliance:**
+- Under 500 lines (497 lines) ✅
+- Single responsibility (left-sliding god selection panel) ✅
+- Uses SystemRegistry for CollectionManager access ✅
+- Uses _setup_fullscreen() for Node2D parent compatibility ✅
+- Extends Control with proper anchoring ✅
+- Emits signals for parent to handle selection ✅
+- Self-contained god grid (doesn't embed GodSelectionGrid to allow different styling) ✅
 

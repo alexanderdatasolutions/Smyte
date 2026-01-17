@@ -151,6 +151,76 @@ Create a mobile-friendly node management interface that clearly shows garrison, 
       "Take screenshots of each major screen state"
     ],
     "passes": true
+  },
+  {
+    "category": "component",
+    "description": "Create GodSelectionPanel - left-sliding overlay for god selection",
+    "steps": [
+      "Create scripts/ui/territory/GodSelectionPanel.gd",
+      "Extend Control, use _setup_fullscreen() like TerritoryOverviewScreen",
+      "Position panel to slide in from LEFT (TerritoryOverviewScreen is RIGHT)",
+      "Include GodSelectionGrid component for god display",
+      "Add filters: All/Worker/Garrison, Affinity filters",
+      "Add close button and back gesture support",
+      "Emit god_selected(god: God) signal on selection",
+      "Add slide-in/slide-out animation (Tween)"
+    ],
+    "passes": true
+  },
+  {
+    "category": "refactor",
+    "description": "Add garrison and worker slot boxes directly to TerritoryOverviewScreen node cards",
+    "steps": [
+      "Remove 'View Details' button from node cards (NodeDetailScreen is obsolete)",
+      "Add Garrison section to each node card with visual slot boxes",
+      "Add Worker section to each node card with visual slot boxes",
+      "Empty slots: show gray Panel with '+' icon (60x60px tap target)",
+      "Filled slots: show god portrait thumbnail Panel (60x60px)",
+      "Slot count: garrison = 4 slots, workers = node.tier slots",
+      "Each slot emits slot_tapped(node, slot_type, slot_index) when clicked",
+      "Make node cards taller/scrollable to fit all content"
+    ],
+    "passes": false
+  },
+  {
+    "category": "integration",
+    "description": "Connect slot taps to GodSelectionPanel in HexTerritoryScreen",
+    "steps": [
+      "Create GodSelectionPanel instance in HexTerritoryScreen",
+      "Connect TerritoryOverviewScreen.slot_tapped signal",
+      "When slot tapped, show GodSelectionPanel with slide-in animation from LEFT",
+      "Pass context: which node, slot type (worker/garrison), slot index",
+      "When god selected, assign to correct slot in node data (HexNode.worker_god_ids or garrison_god_ids)",
+      "Refresh TerritoryOverviewScreen to show updated slots with god portraits",
+      "Close GodSelectionPanel with slide-out animation",
+      "Remove/deprecate NodeDetailScreen since TerritoryOverviewScreen now has everything"
+    ],
+    "passes": false
+  },
+  {
+    "category": "data",
+    "description": "Fix worker and garrison persistence in HexNode",
+    "steps": [
+      "Verify garrison_god_ids is in HexNode save/load (should already exist)",
+      "Add worker_god_ids: Array[String] to HexNode.gd",
+      "Update HexNode.to_dict() to include worker_god_ids",
+      "Update HexNode constructor to load worker_god_ids from dict",
+      "Update TerritoryManager save/load to persist node assignments",
+      "Write unit test to verify worker/garrison save/load"
+    ],
+    "passes": false
+  },
+  {
+    "category": "feature",
+    "description": "Optional: Show enemy garrison before node capture",
+    "steps": [
+      "Add enemy_garrison_god_ids: Array[String] to HexNode.gd",
+      "When node is enemy-controlled, show locked garrison slots",
+      "Display enemy garrison as red-bordered god portraits (no remove option)",
+      "On capture, clear enemy_garrison_god_ids",
+      "This gives player intel on node difficulty before attacking"
+    ],
+    "passes": false
   }
 ]
 ```
