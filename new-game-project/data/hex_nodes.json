@@ -1,3 +1,184 @@
 {
-  "nodes": {}
+  "nodes": {
+    "divine_sanctum": {
+      "id": "divine_sanctum",
+      "name": "Divine Sanctum",
+      "type": "base",
+      "tier": 0,
+      "coord": {"q": 0, "r": 0},
+      "controller": "player",
+      "is_revealed": true,
+      "base_production": {
+        "mana": 50,
+        "gold": 25
+      },
+      "available_tasks": [],
+      "max_garrison": 0,
+      "max_workers": 0,
+      "base_defenders": [],
+      "capture_power_required": 0,
+      "unlock_requirements": {
+        "player_level": 1,
+        "specialization_tier": 0,
+        "specialization_role": ""
+      },
+      "description": "Your divine seat of power. The heart of your territory, forever under your control."
+    },
+
+    "mine_copper_1": {
+      "id": "mine_copper_1",
+      "name": "Copper Vein",
+      "type": "mine",
+      "tier": 1,
+      "coord": {"q": 1, "r": 0},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "copper_ore": 50,
+        "stone": 30,
+        "iron_ore": 10
+      },
+      "available_tasks": ["mine_copper", "mine_iron"],
+      "max_garrison": 2,
+      "max_workers": 3,
+      "base_defenders": ["rock_golem"],
+      "capture_power_required": 3000,
+      "unlock_requirements": {
+        "player_level": 1,
+        "specialization_tier": 0,
+        "specialization_role": ""
+      },
+      "description": "A rich copper deposit guarded by stone elementals. Perfect for beginning miners."
+    },
+
+    "forest_grove_1": {
+      "id": "forest_grove_1",
+      "name": "Verdant Grove",
+      "type": "forest",
+      "tier": 1,
+      "coord": {"q": 0, "r": 1},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "wood": 60,
+        "herbs": 30,
+        "fiber": 20
+      },
+      "available_tasks": ["logging", "herbalism", "foraging"],
+      "max_garrison": 2,
+      "max_workers": 3,
+      "base_defenders": ["forest_sprite", "treant"],
+      "capture_power_required": 3000,
+      "unlock_requirements": {
+        "player_level": 1,
+        "specialization_tier": 0,
+        "specialization_role": ""
+      },
+      "description": "An ancient forest teeming with magical plants and protective spirits."
+    },
+
+    "coast_bay_1": {
+      "id": "coast_bay_1",
+      "name": "Pearl Bay",
+      "type": "coast",
+      "tier": 1,
+      "coord": {"q": -1, "r": 1},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "fish": 50,
+        "pearls": 15,
+        "salt": 35
+      },
+      "available_tasks": ["fishing", "pearl_diving", "salt_harvesting"],
+      "max_garrison": 2,
+      "max_workers": 3,
+      "base_defenders": ["sea_serpent", "water_elemental"],
+      "capture_power_required": 3000,
+      "unlock_requirements": {
+        "player_level": 1,
+        "specialization_tier": 0,
+        "specialization_role": ""
+      },
+      "description": "A pristine coastal bay where pearls form in the crystal-clear waters."
+    },
+
+    "hunting_plains_1": {
+      "id": "hunting_plains_1",
+      "name": "Wild Plains",
+      "type": "hunting_ground",
+      "tier": 1,
+      "coord": {"q": -1, "r": 0},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "pelts": 40,
+        "bones": 30,
+        "meat": 35
+      },
+      "available_tasks": ["hunting", "tracking", "taming"],
+      "max_garrison": 2,
+      "max_workers": 3,
+      "base_defenders": ["dire_wolf", "alpha_bear"],
+      "capture_power_required": 3500,
+      "unlock_requirements": {
+        "player_level": 1,
+        "specialization_tier": 0,
+        "specialization_role": ""
+      },
+      "description": "Vast plains roamed by mighty beasts. A hunter's paradise and a test of skill."
+    },
+
+    "ancient_forge_1": {
+      "id": "ancient_forge_1",
+      "name": "Ember Forge",
+      "type": "forge",
+      "tier": 1,
+      "coord": {"q": 0, "r": -1},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "iron_ingots": 30,
+        "steel_ingots": 10,
+        "enhancement_powder_low": 5
+      },
+      "available_tasks": ["smithing", "armor_crafting", "weapon_crafting"],
+      "max_garrison": 2,
+      "max_workers": 3,
+      "base_defenders": ["fire_elemental", "forge_guardian"],
+      "capture_power_required": 3500,
+      "unlock_requirements": {
+        "player_level": 1,
+        "specialization_tier": 0,
+        "specialization_role": ""
+      },
+      "description": "An ancient forge where flames never die. The perfect place to craft weapons and armor."
+    },
+
+    "shrine_light_1": {
+      "id": "shrine_light_1",
+      "name": "Dawn Shrine",
+      "type": "temple",
+      "tier": 1,
+      "coord": {"q": 1, "r": -1},
+      "controller": "neutral",
+      "is_revealed": true,
+      "base_production": {
+        "mana_crystals": 40,
+        "divine_essence": 10,
+        "blessed_water": 20
+      },
+      "available_tasks": ["meditation", "blessing", "divine_communion"],
+      "max_garrison": 2,
+      "max_workers": 3,
+      "base_defenders": ["light_guardian", "celestial_watcher"],
+      "capture_power_required": 3200,
+      "unlock_requirements": {
+        "player_level": 1,
+        "specialization_tier": 0,
+        "specialization_role": ""
+      },
+      "description": "A sacred temple bathed in eternal light, resonating with divine power."
+    }
+  }
 }
