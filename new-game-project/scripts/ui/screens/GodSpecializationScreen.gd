@@ -368,20 +368,16 @@ func _create_spec_details_ui(spec: GodSpecialization):
 	# Force scroll to top immediately
 	details_content.scroll_vertical = 0
 
-	# Create margin container for padding
-	var margin = MarginContainer.new()
-	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_bottom", 12)
-	details_content.add_child(margin)
-
+	# Create VBox directly in ScrollContainer
 	var vbox = VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 16)
-	margin.add_child(vbox)
+	vbox.add_theme_constant_override("separation", 12)
+	# Add padding via margin overrides
+	vbox.add_theme_constant_override("margin_left", 12)
+	vbox.add_theme_constant_override("margin_right", 12)
+	vbox.add_theme_constant_override("margin_top", 12)
+	vbox.add_theme_constant_override("margin_bottom", 12)
+	details_content.add_child(vbox)
 
 	# Title
 	var title_label = Label.new()

@@ -36,10 +36,10 @@ func _create_mock_god(god_id: String, level: int, role: String, hp: int = 1000, 
 	god.name = god_id.capitalize()
 	god.level = level
 	god.primary_role = role
-	god.hp = hp
-	god.attack = attack
-	god.defense = defense
-	god.speed = speed
+	god.base_hp = hp
+	god.base_attack = attack
+	god.base_defense = defense
+	god.base_speed = speed
 	god.awakening_level = 0
 
 	return god
@@ -148,7 +148,7 @@ func test_god_power_calculation_basic():
 	"""Test basic god power calculation"""
 	var god = _create_mock_god("test_god", 1, "fighter", 1000, 100, 100, 100)
 	runner.assert_equal(god.level, 1, "God level should be 1")
-	runner.assert_equal(god.attack, 100, "God attack should be 100")
+	runner.assert_equal(god.base_attack, 100, "God base attack should be 100")
 
 func test_god_power_scales_with_level():
 	"""Test that god power increases with level"""
@@ -162,7 +162,7 @@ func test_god_power_scales_with_stats():
 	var weak_god = _create_mock_god("weak", 10, "fighter", 500, 50, 50, 50)
 	var strong_god = _create_mock_god("strong", 10, "fighter", 2000, 200, 200, 200)
 
-	runner.assert_true(strong_god.attack > weak_god.attack, "Strong god should have higher attack")
+	runner.assert_true(strong_god.base_attack > weak_god.base_attack, "Strong god should have higher base attack")
 
 # ==============================================================================
 # MISSING REQUIREMENTS TESTS
