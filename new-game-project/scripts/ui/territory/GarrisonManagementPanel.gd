@@ -264,7 +264,7 @@ func _create_garrison_god_row(garrison_god: God) -> HBoxContainer:
 	# God info
 	var info_label = Label.new()
 	var power = _calculate_god_power(garrison_god)
-	info_label.text = "%s (Lv%d) - Power: %.0f" % [garrison_god.god_name, garrison_god.level, power]
+	info_label.text = "%s (Lv%d) - Power: %.0f" % [garrison_god.name, garrison_god.level, power]
 	info_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(info_label)
 
@@ -320,7 +320,7 @@ func _create_available_god_row(available_god: God) -> HBoxContainer:
 	# God info
 	var info_label = Label.new()
 	var power = _calculate_god_power(available_god)
-	info_label.text = "%s (Lv%d) - Power: %.0f" % [available_god.god_name, available_god.level, power]
+	info_label.text = "%s (Lv%d) - Power: %.0f" % [available_god.name, available_god.level, power]
 	info_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(info_label)
 
