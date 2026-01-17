@@ -45,6 +45,7 @@ func update_unit():
 		_update_hp_display()
 		_update_turn_bar()
 		_update_alive_state()
+		update_status_effects()
 
 func set_active(is_active: bool):
 	"""Set whether this unit is the active turn unit"""
@@ -160,6 +161,7 @@ func _setup_card_structure():
 	status_container = HBoxContainer.new()
 	status_container.alignment = BoxContainer.ALIGNMENT_CENTER
 	status_container.add_theme_constant_override("separation", 2)
+	status_container.custom_minimum_size = Vector2(0, 20)  # Reserve space for status icons
 	vbox.add_child(status_container)
 
 	# Make card clickable
@@ -239,6 +241,9 @@ func _populate_unit_data():
 
 	# Update turn bar
 	_update_turn_bar()
+
+	# Update status effects
+	update_status_effects()
 
 func _load_portrait():
 	"""Load the unit portrait from source_god or fallback"""
@@ -398,11 +403,13 @@ func _on_card_clicked():
 		unit_clicked.emit(battle_unit)
 
 # =============================================================================
-# PUBLIC API for status effects (Task 2 will implement this fully)
+# PUBLIC API for status effects
 # =============================================================================
 
+const MAX_VISIBLE_STATUS_ICONS := 5  # Limit to avoid overflow
+
 func update_status_effects():
-	"""Update status effect icons display"""
+	"""Update status effect icons display using StatusEffectIcon component"""
 	if not status_container or not battle_unit:
 		return
 
@@ -410,27 +417,20 @@ func update_status_effects():
 	for child in status_container.get_children():
 		child.queue_free()
 
-	# Add icons for each status effect (placeholder for now)
+	# Add icons for each status effect (up to max visible)
+	var effect_count = 0
 	for effect in battle_unit.status_effects:
-		var icon = _create_status_icon(effect)
-		if icon:
-			status_container.add_child(icon)
+		if effect_count >= MAX_VISIBLE_STATUS_ICONS:
+			# Add overflow indicator
+			var overflow_label = Label.new()
+			overflow_label.text = "+%d" % (battle_unit.status_effects.size() - MAX_VISIBLE_STATUS_ICONS)
+			overflow_label.add_theme_font_size_override("font_size", 8)
+			overflow_label.modulate = Color.LIGHT_GRAY
+			status_container.add_child(overflow_label)
+			break
 
-func _create_status_icon(effect: StatusEffect) -> Control:
-	"""Create a status effect icon (placeholder implementation)"""
-	var icon_label = Label.new()
-	icon_label.add_theme_font_size_override("font_size", 10)
-
-	# Simple text representation for now (Task 2 will add proper icons)
-	match effect.effect_type:
-		StatusEffect.EffectType.BUFF:
-			icon_label.text = "+"
-			icon_label.modulate = Color.GREEN
-		StatusEffect.EffectType.DEBUFF:
-			icon_label.text = "-"
-			icon_label.modulate = Color.RED
-		_:
-			icon_label.text = "?"
-			icon_label.modulate = Color.WHITE
-
-	return icon_label
+		# Use StatusEffectIcon component
+		var icon = StatusEffectIcon.new()
+		icon.setup(effect)
+		status_container.add_child(icon)
+		effect_count += 1

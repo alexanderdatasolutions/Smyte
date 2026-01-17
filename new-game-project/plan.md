@@ -33,7 +33,7 @@ Build a complete Summoners War-style battle screen with turn-based combat, polis
       "Display stacks for stackable effects",
       "Add tooltips showing effect details on hover"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "feature",
