@@ -296,6 +296,10 @@ func _setup_node_capture_handler() -> void:
 	node_capture_handler.name = "NodeCaptureHandler"
 	add_child(node_capture_handler)
 
+	# Pass hex map view reference for animations
+	if node_capture_handler and hex_map_view:
+		node_capture_handler.hex_map_view = hex_map_view
+
 	# Connect signals
 	if node_capture_handler:
 		node_capture_handler.capture_succeeded.connect(_on_capture_succeeded)

@@ -27,6 +27,7 @@ signal capture_failed(hex_node: HexNode)
 # PROPERTIES
 # ==============================================================================
 var current_capture_node: HexNode = null
+var hex_map_view = null  # Reference to HexMapView for animations
 
 # System references
 var territory_manager = null
@@ -225,6 +226,10 @@ func _handle_capture_victory(hex_node: HexNode) -> void:
 
 	# Capture the node in TerritoryManager
 	territory_manager.capture_node(hex_node.coord)
+
+	# Play capture animation
+	if hex_map_view:
+		hex_map_view.play_capture_animation(hex_node)
 
 	# Emit success signal
 	capture_succeeded.emit(hex_node)

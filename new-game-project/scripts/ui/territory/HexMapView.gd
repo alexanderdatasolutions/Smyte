@@ -48,6 +48,10 @@ const MIN_ZOOM: float = 0.5
 const MAX_ZOOM: float = 2.0
 const ZOOM_STEP: float = 0.1
 
+# Animation properties
+var camera_tween: Tween = null
+const CAMERA_TRANSITION_DURATION: float = 0.5
+
 # Pan settings
 var is_panning: bool = false
 var pan_start_position: Vector2 = Vector2.ZERO
@@ -138,16 +142,21 @@ func center_on_base() -> void:
 	var base_coord = hex_grid_manager.get_base_coord()
 	center_on_coord(base_coord)
 
-func center_on_coord(coord: HexCoord) -> void:
-	"""Center camera on a specific coordinate"""
+func center_on_coord(coord: HexCoord, animated: bool = true) -> void:
+	"""Center camera on a specific coordinate with smooth animation"""
 	if not coord:
 		return
 
 	var screen_pos = _coord_to_screen_position(coord)
 	var viewport_center = size / 2.0
-	camera_offset = viewport_center - screen_pos * zoom_level
-	_apply_camera_transform()
-	view_changed.emit()
+	var target_offset = viewport_center - screen_pos * zoom_level
+
+	if animated:
+		_animate_camera_to(target_offset)
+	else:
+		camera_offset = target_offset
+		_apply_camera_transform()
+		view_changed.emit()
 
 func select_node(hex_node: HexNode) -> void:
 	"""Select a hex node"""
@@ -174,11 +183,16 @@ func zoom_out() -> void:
 	"""Zoom out the map"""
 	set_zoom(zoom_level - ZOOM_STEP)
 
-func set_zoom(new_zoom: float) -> void:
-	"""Set zoom level"""
-	zoom_level = clampf(new_zoom, MIN_ZOOM, MAX_ZOOM)
-	_apply_camera_transform()
-	view_changed.emit()
+func set_zoom(new_zoom: float, animated: bool = true) -> void:
+	"""Set zoom level with smooth animation"""
+	var target_zoom = clampf(new_zoom, MIN_ZOOM, MAX_ZOOM)
+
+	if animated:
+		_animate_zoom_to(target_zoom)
+	else:
+		zoom_level = target_zoom
+		_apply_camera_transform()
+		view_changed.emit()
 
 func get_zoom() -> float:
 	"""Get current zoom level"""
@@ -317,7 +331,7 @@ func update_connection_lines() -> void:
 	_update_connection_bonus_indicators()
 
 func _create_connection_line(coord1: HexCoord, coord2: HexCoord) -> void:
-	"""Create a connection line between two coordinates"""
+	"""Create a connection line between two coordinates with animated glow"""
 	var pos1 = _coord_to_screen_position(coord1) + Vector2(HEX_WIDTH / 2, HEX_HEIGHT / 2)
 	var pos2 = _coord_to_screen_position(coord2) + Vector2(HEX_WIDTH / 2, HEX_HEIGHT / 2)
 
@@ -330,6 +344,9 @@ func _create_connection_line(coord1: HexCoord, coord2: HexCoord) -> void:
 
 	connection_layer.add_child(line)
 	connection_lines.append(line)
+
+	# Add pulsing glow animation
+	_animate_connection_line_glow(line)
 
 func _update_connection_bonus_indicators() -> void:
 	"""Update visual indicators for connection bonuses on tiles"""
@@ -486,3 +503,82 @@ func _on_hex_hovered(tile: HexTile) -> void:
 func _on_hex_unhovered(tile: HexTile) -> void:
 	"""Handle hex tile unhover"""
 	pass  # Could show tooltip hide here
+
+# ==============================================================================
+# ANIMATION METHODS
+# ==============================================================================
+func _animate_camera_to(target_offset: Vector2) -> void:
+	"""Smoothly animate camera to target offset"""
+	if camera_tween and camera_tween.is_running():
+		camera_tween.kill()
+
+	camera_tween = create_tween()
+	camera_tween.set_ease(Tween.EASE_IN_OUT)
+	camera_tween.set_trans(Tween.TRANS_CUBIC)
+
+	camera_tween.tween_property(self, "camera_offset", target_offset, CAMERA_TRANSITION_DURATION)
+	camera_tween.tween_callback(_apply_camera_transform)
+	camera_tween.tween_callback(view_changed.emit)
+
+func _animate_zoom_to(target_zoom: float) -> void:
+	"""Smoothly animate zoom to target level"""
+	if camera_tween and camera_tween.is_running():
+		camera_tween.kill()
+
+	camera_tween = create_tween()
+	camera_tween.set_ease(Tween.EASE_IN_OUT)
+	camera_tween.set_trans(Tween.TRANS_CUBIC)
+
+	camera_tween.tween_property(self, "zoom_level", target_zoom, CAMERA_TRANSITION_DURATION * 0.3)
+	camera_tween.tween_callback(_apply_camera_transform)
+	camera_tween.tween_callback(view_changed.emit)
+
+func play_capture_animation(hex_node: HexNode) -> void:
+	"""Play visual animation when node is captured"""
+	if not hex_node or not hex_node.coord:
+		return
+
+	var key = _coord_to_key(hex_node.coord)
+	if not hex_tiles.has(key):
+		return
+
+	var tile = hex_tiles[key]
+	_animate_tile_capture(tile)
+
+func _animate_tile_capture(tile: HexTile) -> void:
+	"""Animate a tile being captured with pulsing effect"""
+	if not tile or not is_instance_valid(tile):
+		return
+
+	# Create pulsing animation
+	var capture_tween = create_tween()
+	capture_tween.set_loops(3)
+	capture_tween.set_ease(Tween.EASE_IN_OUT)
+	capture_tween.set_trans(Tween.TRANS_SINE)
+
+	# Pulse scale
+	capture_tween.tween_property(tile, "scale", Vector2(1.2, 1.2), 0.3)
+	capture_tween.tween_property(tile, "scale", Vector2(1.0, 1.0), 0.3)
+
+	# Flash modulation
+	capture_tween.parallel().tween_property(tile, "modulate", Color(1.5, 1.5, 1.5), 0.3)
+	capture_tween.tween_property(tile, "modulate", Color(1.0, 1.0, 1.0), 0.3)
+
+func _animate_connection_line_glow(line: Line2D) -> void:
+	"""Animate connection line with pulsing glow effect"""
+	if not line or not is_instance_valid(line):
+		return
+
+	# Create infinite pulsing animation
+	var line_tween = create_tween()
+	line_tween.set_loops(0)  # Infinite loop
+	line_tween.set_ease(Tween.EASE_IN_OUT)
+	line_tween.set_trans(Tween.TRANS_SINE)
+
+	# Pulse opacity
+	line_tween.tween_property(line, "default_color", Color(0.3, 0.7, 0.3, 0.7), 1.5)
+	line_tween.tween_property(line, "default_color", Color(0.3, 0.7, 0.3, 0.3), 1.5)
+
+	# Pulse width
+	line_tween.parallel().tween_property(line, "width", 4.0, 1.5)
+	line_tween.tween_property(line, "width", 3.0, 1.5)

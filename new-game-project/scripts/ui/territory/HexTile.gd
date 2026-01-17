@@ -36,6 +36,10 @@ var _icon_texture: TextureRect = null
 var _tier_label: Label = null
 var _garrison_indicator: Panel = null
 var _state_overlay: Panel = null
+var _tier_glow: Panel = null
+
+# Animation
+var _glow_tween: Tween = null
 
 # ==============================================================================
 # CONSTANTS
@@ -127,6 +131,14 @@ func _build_visual_components() -> void:
 	_state_overlay.visible = false
 	add_child(_state_overlay)
 
+	# Tier glow (for higher tier nodes)
+	_tier_glow = Panel.new()
+	_tier_glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_tier_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tier_glow.visible = false
+	_tier_glow.z_index = -1  # Behind background
+	add_child(_tier_glow)
+
 # ==============================================================================
 # PUBLIC METHODS
 # ==============================================================================
@@ -158,6 +170,7 @@ func _update_visuals() -> void:
 	_update_icon()
 	_update_tier_stars()
 	_update_garrison_indicator()
+	_update_tier_glow()
 
 func _update_background() -> void:
 	"""Update background color based on node state"""
@@ -333,3 +346,53 @@ func get_node_state_description() -> String:
 		return "Enemy"
 	else:
 		return "Neutral"
+
+func _update_tier_glow() -> void:
+	"""Update tier glow effect for higher tier nodes"""
+	if not _tier_glow or not node_data:
+		return
+
+	# Only show glow for tier 3+ nodes
+	if node_data.tier >= 3:
+		_tier_glow.visible = true
+
+		var style = StyleBoxFlat.new()
+		var tier_color = TIER_COLORS.get(node_data.tier, Color.WHITE)
+
+		# Create glowing border effect
+		style.bg_color = Color(tier_color.r, tier_color.g, tier_color.b, 0.0)  # Transparent center
+		style.border_color = tier_color
+		style.border_width_left = 4
+		style.border_width_right = 4
+		style.border_width_top = 4
+		style.border_width_bottom = 4
+		style.corner_radius_top_left = 12
+		style.corner_radius_top_right = 12
+		style.corner_radius_bottom_left = 12
+		style.corner_radius_bottom_right = 12
+
+		_tier_glow.add_theme_stylebox_override("panel", style)
+
+		# Start pulsing animation
+		_animate_tier_glow(tier_color)
+	else:
+		_tier_glow.visible = false
+		if _glow_tween and _glow_tween.is_running():
+			_glow_tween.kill()
+
+func _animate_tier_glow(tier_color: Color) -> void:
+	"""Animate tier glow with pulsing effect"""
+	if _glow_tween and _glow_tween.is_running():
+		_glow_tween.kill()
+
+	_glow_tween = create_tween()
+	_glow_tween.set_loops(0)  # Infinite loop
+	_glow_tween.set_ease(Tween.EASE_IN_OUT)
+	_glow_tween.set_trans(Tween.TRANS_SINE)
+
+	# Pulse modulate color (brightness)
+	var bright_color = Color(tier_color.r * 1.5, tier_color.g * 1.5, tier_color.b * 1.5, 0.8)
+	var dim_color = Color(tier_color.r * 0.8, tier_color.g * 0.8, tier_color.b * 0.8, 0.3)
+
+	_glow_tween.tween_property(_tier_glow, "modulate", bright_color, 2.0)
+	_glow_tween.tween_property(_tier_glow, "modulate", dim_color, 2.0)
