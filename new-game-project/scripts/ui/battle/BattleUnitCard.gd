@@ -26,8 +26,11 @@ var turn_label: Label
 var status_container: HBoxContainer
 
 func _ready():
-	_setup_card_structure()
-	_apply_card_style()
+	# Only setup structure if it doesn't already exist
+	# (setup_unit() might have been called before _ready())
+	if not portrait_rect:
+		_setup_card_structure()
+		_apply_card_style()
 
 func setup_unit(unit: BattleUnit, style: CardStyle = CardStyle.NORMAL):
 	"""Setup card with BattleUnit data"""
@@ -75,44 +78,47 @@ func _setup_card_structure():
 	for child in get_children():
 		child.queue_free()
 
-	# Set card size
-	custom_minimum_size = Vector2(120, 160)
+	# Set card size - compact horizontal layout
+	custom_minimum_size = Vector2(220, 75)
 
 	# Main margin container
 	var margin = MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 6)
-	margin.add_theme_constant_override("margin_right", 6)
-	margin.add_theme_constant_override("margin_top", 6)
-	margin.add_theme_constant_override("margin_bottom", 6)
+	margin.add_theme_constant_override("margin_left", 4)
+	margin.add_theme_constant_override("margin_right", 4)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_bottom", 4)
 	add_child(margin)
 
-	# Main vertical layout
-	var vbox = VBoxContainer.new()
-	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	vbox.add_theme_constant_override("separation", 4)
-	margin.add_child(vbox)
+	# Main HORIZONTAL layout (portrait left, stats right)
+	var hbox = HBoxContainer.new()
+	hbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	hbox.add_theme_constant_override("separation", 6)
+	margin.add_child(hbox)
 
-	# Portrait
+	# Portrait on the left
 	portrait_rect = TextureRect.new()
-	portrait_rect.custom_minimum_size = Vector2(60, 60)
-	portrait_rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	portrait_rect.custom_minimum_size = Vector2(64, 64)
 	portrait_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	portrait_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	vbox.add_child(portrait_rect)
+	hbox.add_child(portrait_rect)
+
+	# Stats VBox on the right
+	var vbox = VBoxContainer.new()
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_theme_constant_override("separation", 2)
+	hbox.add_child(vbox)
 
 	# Name label
 	name_label = Label.new()
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 11)
+	name_label.add_theme_font_size_override("font_size", 12)
 	name_label.add_theme_color_override("font_color", Color.WHITE)
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(name_label)
 
 	# Level label
 	level_label = Label.new()
-	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	level_label.add_theme_font_size_override("font_size", 9)
+	level_label.add_theme_font_size_override("font_size", 10)
 	level_label.modulate = Color.LIGHT_GRAY
 	vbox.add_child(level_label)
 
@@ -123,14 +129,14 @@ func _setup_card_structure():
 
 	# HP label
 	hp_label = Label.new()
-	hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hp_label.add_theme_font_size_override("font_size", 8)
+	hp_label.add_theme_font_size_override("font_size", 9)
 	hp_label.modulate = Color.LIGHT_GREEN
 	hp_container.add_child(hp_label)
 
 	# HP bar
 	hp_bar = ProgressBar.new()
-	hp_bar.custom_minimum_size = Vector2(100, 8)
+	hp_bar.custom_minimum_size = Vector2(0, 8)
+	hp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hp_bar.min_value = 0.0
 	hp_bar.max_value = 100.0
 	hp_bar.show_percentage = false
@@ -144,15 +150,15 @@ func _setup_card_structure():
 
 	# Turn label
 	turn_label = Label.new()
-	turn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	turn_label.add_theme_font_size_override("font_size", 7)
+	turn_label.add_theme_font_size_override("font_size", 8)
 	turn_label.modulate = Color.CYAN
 	turn_label.text = "ATB"
 	turn_container.add_child(turn_label)
 
 	# Turn bar (ATB-style)
 	turn_bar = ProgressBar.new()
-	turn_bar.custom_minimum_size = Vector2(100, 5)
+	turn_bar.custom_minimum_size = Vector2(0, 6)
+	turn_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	turn_bar.min_value = 0.0
 	turn_bar.max_value = 100.0
 	turn_bar.show_percentage = false

@@ -68,7 +68,11 @@
       "Bash(git commit:*)",
       "Bash(ping:*)",
       "Bash(git rm:*)",
-      "Bash(cmd //c \"del /F /Q nul\")"
+      "Bash(cmd //c \"del /F /Q nul\")",
+      "Bash(wc:*)",
+      "Bash(\"C:\\\\Program Files\\\\Godot_v4.5-stable_win64.exe\\\\Godot_v4.5-stable_win64.exe\" --headless --path .)",
+      "Bash(Select-String -Pattern \"BattleUnitCard\")",
+      "Bash(Select-Object -First 20)"
     ]
   },
   "enableAllProjectMcpServers": true,
