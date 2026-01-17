@@ -284,7 +284,7 @@ func _can_unlock_specialization(spec: GodSpecialization) -> bool:
 		return false
 
 	# Use SpecializationManager's eligibility check
-	return specialization_manager.can_god_unlock_specialization(god_data.id, spec.id)
+	return specialization_manager.can_god_unlock_specialization(god_data, spec.id)
 
 # ==============================================================================
 # SELECTION MANAGEMENT

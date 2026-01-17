@@ -39,7 +39,8 @@ func _register_screen_scenes():
 		"dungeon": "res://scenes/DungeonScreen.tscn",
 		"equipment": "res://scenes/EquipmentScreen.tscn",
 		"battle": "res://scenes/BattleScreen.tscn",
-		"shop": "res://scenes/ShopScreen.tscn"
+		"shop": "res://scenes/ShopScreen.tscn",
+		"specialization": "res://scenes/GodSpecializationScreen.tscn"
 	}
 
 func _normalize_screen_name(screen_name: String) -> String:
@@ -57,7 +58,9 @@ func _normalize_screen_name(screen_name: String) -> String:
 		"dungeonscreen": "dungeon",
 		"equipmentscreen": "equipment",
 		"battlescreen": "battle",
-		"shopscreen": "shop"
+		"shopscreen": "shop",
+		"specializationscreen": "specialization",
+		"godspecializationscreen": "specialization"
 	}
 
 	if aliases.has(normalized):

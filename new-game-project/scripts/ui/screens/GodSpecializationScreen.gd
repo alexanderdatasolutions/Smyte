@@ -260,7 +260,7 @@ func _refresh_god_list():
 
 	# Create god cards
 	for god in all_gods:
-		var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.COLLECTION_SIMPLE)
+		var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.COMPACT_LIST)
 		god_list_container.add_child(god_card)
 
 		# Highlight selected god
@@ -509,7 +509,7 @@ func _update_unlock_button(spec: GodSpecialization):
 		return
 
 	# Check if can unlock
-	var can_unlock = specialization_manager.can_god_unlock_specialization(selected_god.id, spec.id)
+	var can_unlock = specialization_manager.can_god_unlock_specialization(selected_god, spec.id)
 
 	unlock_button.text = "Unlock Specialization"
 	unlock_button.disabled = not can_unlock
@@ -521,7 +521,7 @@ func _on_unlock_pressed():
 		return
 
 	# Attempt unlock
-	var success = specialization_manager.unlock_specialization(selected_god.id, selected_spec_id)
+	var success = specialization_manager.unlock_specialization(selected_god, selected_spec_id)
 
 	if success:
 		# Refresh all UI

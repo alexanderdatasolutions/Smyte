@@ -15,6 +15,7 @@ func _get_system_registry():
 @onready var dungeon_button = $ContentContainer/ButtonGrid/DungeonButton
 @onready var equipment_button = $ContentContainer/ButtonGrid/EquipmentButton
 @onready var shop_button = $ContentContainer/ButtonGrid/ShopButton
+@onready var specialization_button = $ContentContainer/ButtonGrid/SpecializationButton
 
 # Feature unlock tracking (MYTHOS ARCHITECTURE)
 var feature_buttons: Dictionary = {}
@@ -48,6 +49,8 @@ func _ready():
 		equipment_button.pressed.connect(_on_equipment_building_pressed)
 	if shop_button:
 		shop_button.pressed.connect(_on_shop_building_pressed)
+	if specialization_button:
+		specialization_button.pressed.connect(_on_specialization_building_pressed)
 
 	# Setup feature tracking (MYTHOS ARCHITECTURE)
 	_setup_feature_buttons()
@@ -70,7 +73,8 @@ func _style_buttons():
 		{"button": sacrifice_button, "color": Color(0.5, 0.2, 0.25)},  # Dark red
 		{"button": dungeon_button, "color": Color(0.3, 0.4, 0.35)},    # Forest green
 		{"button": equipment_button, "color": Color(0.45, 0.4, 0.5)},  # Purple/steel
-		{"button": shop_button, "color": Color(0.3, 0.6, 0.7)}         # Crystal blue - shop
+		{"button": shop_button, "color": Color(0.3, 0.6, 0.7)},        # Crystal blue - shop
+		{"button": specialization_button, "color": Color(0.5, 0.3, 0.6)}  # Purple - specialization
 	]
 
 	for data in buttons_data:
@@ -135,7 +139,8 @@ func _setup_feature_buttons():
 		"territory_management": territory_button,  # Level 4 (enhanced)
 		"equipment": equipment_button,        # Level 8
 		"dungeons": dungeon_button,          # Level 10
-		"shop": shop_button                  # Always available
+		"shop": shop_button,                 # Always available
+		"specialization": specialization_button  # Level 20 (god level)
 	}
 
 func _connect_to_systems():
@@ -206,6 +211,9 @@ func _on_equipment_building_pressed():
 
 func _on_shop_building_pressed():
 	_navigate_to_screen("shop")
+
+func _on_specialization_building_pressed():
+	_navigate_to_screen("specialization")
 
 # ==============================================================================
 # TUTORIAL SYSTEM INTEGRATION (MYTHOS ARCHITECTURE)

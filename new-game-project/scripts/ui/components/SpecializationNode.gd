@@ -327,7 +327,7 @@ func _format_costs(costs_dict: Dictionary) -> String:
 	else:
 		return "Free"
 
-func get_tooltip_text() -> String:
+func get_spec_tooltip_text() -> String:
 	"""Generate tooltip text for this node"""
 	if not specialization:
 		return ""
