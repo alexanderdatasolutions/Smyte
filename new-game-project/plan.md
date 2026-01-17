@@ -68,7 +68,7 @@ Build a complete Summoners War-style battle screen with turn-based combat, polis
       "Populate with active unit's skills",
       "Hide when turn is not active"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "feature",

@@ -23,6 +23,7 @@ const BattleUnitCardScene = preload("res://scenes/ui/battle/BattleUnitCard.tscn"
 @onready var player_team_container = $MainContainer/BattleArenaContainer/PlayerTeamSide/PlayerTeamContainer
 @onready var enemy_team_container = $MainContainer/BattleArenaContainer/EnemyTeamSide/EnemyTeamContainer
 @onready var turn_indicator = $MainContainer/BattleArenaContainer/BattleCenter/TurnIndicator
+@onready var ability_bar = $MainContainer/BottomContainer/AbilityBarContainer/AbilityBar
 
 # Signal for screen navigation (RULE 4: UI signals)
 signal back_pressed
@@ -39,6 +40,11 @@ func _ready():
 	# Connect back button (RULE 4: UI signals)
 	if back_button:
 		back_button.pressed.connect(_on_back_pressed)
+
+	# Connect ability bar signal (RULE 4: UI signals)
+	if ability_bar:
+		ability_bar.ability_selected.connect(_on_ability_selected)
+		ability_bar.hide()  # Hidden by default until player's turn
 
 	# Get battle coordinator and connect to signals
 	battle_coordinator = SystemRegistry.get_instance().get_system("BattleCoordinator")
@@ -81,6 +87,9 @@ func _on_battle_ended(result):
 	_clear_active_highlight()
 	current_active_unit = null
 
+	# Hide ability bar when battle ends
+	_hide_ability_bar()
+
 	# Update UI based on result
 	if battle_status_label:
 		if result.victory:
@@ -89,7 +98,7 @@ func _on_battle_ended(result):
 			battle_status_label.text = "DEFEAT!"
 
 func _on_turn_changed(unit: BattleUnit):
-	"""Handle turn change - highlight active unit's card"""
+	"""Handle turn change - highlight active unit's card and show/hide ability bar"""
 	print("BattleScreen: Turn changed to ", unit.display_name if unit else "null")
 
 	# Clear previous highlight
@@ -111,6 +120,9 @@ func _on_turn_changed(unit: BattleUnit):
 		# Update all unit cards (for HP/status changes)
 		_update_all_unit_cards()
 
+		# Show ability bar for player units, hide for enemies
+		_update_ability_bar_for_turn(unit)
+
 func _clear_active_highlight():
 	"""Remove active highlight from all unit cards"""
 	for unit_card in player_unit_cards.values():
@@ -120,7 +132,7 @@ func _clear_active_highlight():
 		if unit_card and is_instance_valid(unit_card):
 			unit_card.set_active(false)
 
-func _get_unit_card(unit: BattleUnit) -> BattleUnitCard:
+func _get_unit_card(unit: BattleUnit):
 	"""Get the BattleUnitCard for a given unit"""
 	if player_unit_cards.has(unit):
 		return player_unit_cards[unit]
@@ -178,10 +190,10 @@ func _populate_battle_ui():
 	if action_label:
 		action_label.text = "Fight!"
 
-func _create_battle_unit_card(unit: BattleUnit) -> BattleUnitCard:
+func _create_battle_unit_card(unit: BattleUnit):
 	"""Create a BattleUnitCard for a battle unit"""
-	var unit_card = BattleUnitCardScene.instantiate() as BattleUnitCard
-	unit_card.setup_unit(unit, BattleUnitCard.CardStyle.NORMAL)
+	var unit_card = BattleUnitCardScene.instantiate()
+	unit_card.setup_unit(unit, unit_card.CardStyle.NORMAL)
 	return unit_card
 
 func _on_unit_card_clicked(unit: BattleUnit):
@@ -204,3 +216,52 @@ func _show_no_battle_state():
 		action_label.text = "Ready to fight!"
 	if battle_title_label:
 		battle_title_label.text = "BATTLE ARENA"
+	# Hide ability bar when no battle
+	_hide_ability_bar()
+
+# =============================================================================
+# ABILITY BAR MANAGEMENT
+# =============================================================================
+
+func _update_ability_bar_for_turn(unit: BattleUnit):
+	"""Show ability bar for player units, hide for enemy units"""
+	if not ability_bar:
+		return
+
+	# Check if this is a player unit (not an enemy)
+	if unit and not unit.is_enemy():
+		# Player unit's turn - show and populate ability bar
+		ability_bar.setup_unit(unit)
+		print("BattleScreen: Showing ability bar for player unit: ", unit.display_name)
+	else:
+		# Enemy unit's turn - hide ability bar
+		_hide_ability_bar()
+		print("BattleScreen: Hiding ability bar (enemy turn)")
+
+func _hide_ability_bar():
+	"""Hide and clear the ability bar"""
+	if ability_bar:
+		ability_bar.clear()
+
+func _on_ability_selected(skill_index: int):
+	"""Handle ability selection from AbilityBar - RULE 4: UI signals"""
+	if not current_active_unit:
+		print("BattleScreen: No active unit for ability selection")
+		return
+
+	print("BattleScreen: Ability selected - index: ", skill_index, " by ", current_active_unit.display_name)
+
+	# Get the skill from the active unit
+	if skill_index >= current_active_unit.skills.size():
+		print("BattleScreen: Invalid skill index: ", skill_index)
+		return
+
+	var skill = current_active_unit.skills[skill_index]
+	print("BattleScreen: Selected skill: ", skill.name)
+
+	# Update action label to show selected skill
+	if action_label:
+		action_label.text = "%s uses %s!" % [current_active_unit.display_name, skill.name]
+
+	# Note: Task 6 will connect this to BattleCoordinator.execute_player_action
+	# For now, just log the selection and let auto-battle handle execution

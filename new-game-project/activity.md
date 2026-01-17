@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 4/10
-**Current Task:** Task 4 completed - BattleUnitCard integrated into BattleScreen
+**Tasks Completed:** 5/10
+**Current Task:** Task 5 completed - AbilityBar added to BattleScreen
 
 ---
 
@@ -144,3 +144,39 @@
 - RULE 5: Uses SystemRegistry for BattleCoordinator access
 - Under 500 lines (207 lines)
 - Uses BattleUnitCard component instead of inline card creation
+
+### 2026-01-17 - Task 5: AbilityBar Added to BattleScreen
+
+**What Changed:**
+- Added AbilityBar component to BattleScreen.tscn in BottomContainer
+- Connected AbilityBar.ability_selected signal to BattleScreen handler
+- Implemented `_update_ability_bar_for_turn()` to show bar for player units only
+- AbilityBar shows when player unit's turn starts, hides for enemy turns
+- AbilityBar hidden when battle ends or no active battle
+
+**Files Modified:**
+- `scenes/BattleScreen.tscn` (added AbilityBarContainer with AbilityBar instance)
+- `scripts/ui/screens/BattleScreen.gd` (268 lines, added ~60 lines for ability bar management)
+
+**Features Implemented:**
+- AbilityBar container centered in BottomContainer above progress bar
+- `ability_bar` reference connected in `_ready()`
+- `_on_ability_selected()` handler logs skill selection and updates action label
+- `_update_ability_bar_for_turn()` shows bar for player units via `setup_unit()`
+- `_hide_ability_bar()` clears and hides bar for enemy turns and battle end
+- AbilityBar hidden by default when no battle is active
+
+**Verified with Godot MCP:**
+- Ran project with `mcp__godot__run_project`
+- Navigated to BattleScreen using `game_navigate`
+- Verified AbilityBar present in UI tree at correct location
+- Confirmed AbilityBar hidden when no battle active (expected behavior)
+- No compilation errors related to BattleScreen or AbilityBar
+- Screenshots saved to `user://screenshots/task-5-*.png`
+
+**Architecture Compliance:**
+- RULE 2: Single responsibility - AbilityBar only displays skills
+- RULE 4: No logic in UI - displays state from active BattleUnit
+- RULE 5: Uses SystemRegistry for BattleCoordinator access
+- Under 500 lines (268 lines)
+- Uses AbilityBar component via scene instance
