@@ -32,8 +32,24 @@
       "Bash(timeout 10:*)",
       "mcp__godot__game_click",
       "Bash(chmod:*)",
-      "Bash(timeout:*)"
-    ]
+      "Bash(timeout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(git init:*)",
+      "Bash(git remote:*)"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [

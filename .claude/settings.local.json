@@ -63,7 +63,12 @@
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(\"/c/Program Files/Godot/Godot_v4.5-stable_win64.exe\" --headless --path . --script tests/integration/run_integration_tests.gd)",
-      "Bash(\"/c/Program Files/Godot/Godot_v4.5-stable_win64.exe\" --headless tests/integration/IntegrationTestRunner.tscn)"
+      "Bash(\"/c/Program Files/Godot/Godot_v4.5-stable_win64.exe\" --headless tests/integration/IntegrationTestRunner.tscn)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(ping:*)",
+      "Bash(git rm:*)",
+      "Bash(cmd //c \"del /F /Q nul\")"
     ]
   },
   "enableAllProjectMcpServers": true,
