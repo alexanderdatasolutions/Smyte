@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 13/15
-**Current Task:** Task 13 - Connect TerritoryOverviewScreen slots to GodSelectionPanel
+**Tasks Completed:** 14/15
+**Current Task:** Task 14 - Fix worker and garrison persistence in HexNode
 
 ---
 
@@ -708,4 +708,60 @@ HexTerritoryScreen is now 923 lines (was 791), which exceeds the 500-line limit.
 - Assignment goes through TerritoryManager (no direct data modification) ✅
 - Excludes already-assigned gods from selection ✅
 - Refreshes display after assignment ✅
+
+### 2026-01-17 - Task 14: Fix worker and garrison persistence in HexNode ✅
+
+**What Changed:**
+Verified that worker and garrison persistence is already fully implemented. No code changes required.
+
+**Verification Results:**
+
+1. **HexNode.gd - garrison field** (line 41):
+   - `@export var garrison: Array[String] = []` already exists
+   - `to_dict()` includes garrison at line 175
+   - `from_dict()` loads garrison at lines 213-214
+
+2. **HexNode.gd - assigned_workers field** (line 49):
+   - `@export var assigned_workers: Array[String] = []` already exists
+   - `to_dict()` includes assigned_workers at line 179
+   - `from_dict()` loads assigned_workers at lines 221-222
+
+3. **HexGridManager.gd - Save/Load** (lines 336-378):
+   - `get_save_data()` calls `node.to_dict()` for all nodes
+   - `load_save_data()` properly loads:
+     - `garrison` at line 366-367: `node.garrison.assign(saved_state.get("garrison", []))`
+     - `assigned_workers` at line 368-369: `node.assigned_workers.assign(saved_state.get("assigned_workers", []))`
+
+4. **TerritoryManager.gd - Update Methods** (lines 570-619):
+   - `update_node_garrison(node_id, garrison_ids)` modifies HexNode.garrison
+   - `update_node_workers(node_id, worker_ids)` modifies HexNode.assigned_workers
+   - Both use HexGridManager.get_node_by_id() to access nodes
+
+5. **Unit Tests Already Exist:**
+   - `tests/unit/test_hex_node.gd` - Lines 282-445 test serialization including garrison/workers roundtrip
+   - `tests/unit/test_hex_save_load.gd` - Lines 121-400 test HexGridManager save/load including:
+     - `test_hex_grid_save_data_includes_garrison()` (lines 121-130)
+     - `test_hex_grid_save_data_includes_workers()` (lines 132-141)
+     - `test_hex_grid_load_save_data_updates_garrison()` (lines 193-218)
+     - `test_hex_grid_load_save_data_updates_workers()` (lines 220-244)
+     - `test_full_save_and_load_cycle()` (lines 363-400)
+
+**Verified With Godot MCP:**
+- Ran project: No errors
+- Navigated to hex territory screen
+- Opened Territory Overview
+- Assigned Ares to garrison slot
+- Debug output confirms: `TerritoryManager: Updated garrison for node divine_sanctum: ["ares"]`
+- Screenshots captured:
+  - `screenshots/node-detail-persistence-1-overview.png`
+  - `screenshots/node-detail-persistence-2-god-selection.png`
+  - `screenshots/node-detail-persistence-3-god-assigned.png`
+
+**Architecture Compliance:**
+- HexNode is a pure data class (RULE 3) ✅
+- Uses typed arrays (Array[String]) for garrison and workers ✅
+- Serialization uses .assign() for proper typed array handling ✅
+- HexGridManager handles save/load (keeps data class simple) ✅
+- TerritoryManager routes updates through HexGridManager ✅
+- Comprehensive unit tests already in place ✅
 

@@ -209,7 +209,7 @@ Create a mobile-friendly node management interface that clearly shows garrison, 
       "Update TerritoryManager save/load to persist node assignments",
       "Write unit test to verify worker/garrison save/load"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "feature",
