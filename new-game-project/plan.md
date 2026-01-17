@@ -22,7 +22,7 @@ Build a complete Summoners War-style battle screen with turn-based combat, polis
       "Add turn order indicator",
       "Create matching BattleUnitCard.tscn scene"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "feature",
