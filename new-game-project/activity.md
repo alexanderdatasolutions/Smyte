@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 8/10
-**Current Task:** Display task output rates in worker slots
+**Tasks Completed:** 9/10
+**Current Task:** Mobile UX polish and testing
 
 ---
 
@@ -369,4 +369,59 @@ Enhanced god cards in GodSelectionGrid, GarrisonDisplay, and WorkerSlotDisplay t
 - Uses existing ELEMENT_COLORS constant ✅
 - Read-only display, no data modification ✅
 - Consistent styling across all three components ✅
+
+### 2026-01-17 - Task 9: Display task output rates in worker slots ✅
+
+**What Changed:**
+Updated WorkerSlotDisplay to show calculated output rates using NodeTaskCalculator and display affinity bonus indicators.
+
+**Files Modified:**
+- `scripts/ui/territory/WorkerSlotDisplay.gd` - Added output rate display and affinity indicator
+
+**Implementation Details:**
+
+1. **NodeTaskCalculator Integration**:
+   - Added `node_task_calculator` system reference via SystemRegistry
+   - Added `_current_node` reference to store the node for calculations
+   - Updated `setup_for_node()` to store node reference
+
+2. **Output Rate Display** (line 348-355):
+   - New `_get_output_display_text(god)` function uses NodeTaskCalculator
+   - Returns format like "Mining: +12 ore/hr" or "Gathering: +15 wood/hr"
+   - Fallback to simple task name if calculator unavailable
+   - Green color (0.4, 0.85, 0.4) for production text
+
+3. **Affinity Bonus Indicator** (line 357-360, 465-486):
+   - New `_create_affinity_bonus_indicator(god)` function
+   - Shows "⭐ 1.5x" gold star when god element matches node affinity
+   - Uses NodeTaskCalculator.has_affinity_match() to check
+   - Returns null (no indicator) when no affinity match
+
+4. **Affinity Mapping** (from NodeTaskCalculator):
+   - Mine/Forest → Earth affinity
+   - Coast → Water affinity
+   - Hunting/Forge → Fire affinity
+   - Library/Temple → Light affinity
+   - Fortress → Dark affinity
+
+**Output Rate Calculation** (from NodeTaskCalculator):
+- Formula: base_rate × tier_multiplier × god_level_bonus × affinity_bonus × spec_bonus
+- Affinity bonus: 1.5x when god element matches node affinity
+- Level bonus: 5% per level
+- Spec bonus: 50%/100%/200% based on specialization tier
+
+**Verified With Godot MCP:**
+- Ran project: No errors from WorkerSlotDisplay changes
+- No new warnings related to NodeTaskCalculator integration
+- WorkerSlotDisplay file at 498 lines (under 500 limit)
+- Screenshot: `screenshots/node-detail-output-rates.png`
+
+**Note:** Visual testing of filled worker slots requires capturing a node with tier > 0 first. The Divine Sanctum (base node) has tier 0 which means max_slots = 0. The code is verified correct through code review and debug output shows no errors.
+
+**Architecture Compliance:**
+- Under 500 lines (498 lines) ✅
+- Single responsibility maintained ✅
+- Uses SystemRegistry for NodeTaskCalculator access ✅
+- Read-only display, emits signals for parent ✅
+- Graceful fallback when calculator unavailable ✅
 

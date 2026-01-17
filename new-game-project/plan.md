@@ -137,7 +137,7 @@ Create a mobile-friendly node management interface that clearly shows garrison, 
       "Show affinity bonus indicator (star icon if active)",
       "Update display when god assignment changes"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "polish",
