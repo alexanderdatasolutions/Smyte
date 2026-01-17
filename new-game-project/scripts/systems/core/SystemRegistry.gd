@@ -163,6 +163,12 @@ func register_core_systems():
 		var hex_grid_manager = preload("res://scripts/systems/territory/HexGridManager.gd").new()
 		register_system("HexGridManager", hex_grid_manager)
 
+	# NodeRequirementChecker - NOTE: depends on SpecializationManager and PlayerProgressionManager
+	# which are registered later in Phase 9 and Phase 5. Will resolve dependencies in _ready()
+	if FileAccess.file_exists("res://scripts/systems/territory/NodeRequirementChecker.gd"):
+		var node_requirement_checker = preload("res://scripts/systems/territory/NodeRequirementChecker.gd").new()
+		register_system("NodeRequirementChecker", node_requirement_checker)
+
 	if FileAccess.file_exists("res://scripts/systems/territory/TerritoryManager.gd"):
 		var territory_manager = preload("res://scripts/systems/territory/TerritoryManager.gd").new()
 		register_system("TerritoryManager", territory_manager)
