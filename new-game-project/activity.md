@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 7/10
-**Current Task:** Add god affinity color coding to selection grid
+**Tasks Completed:** 8/10
+**Current Task:** Display task output rates in worker slots
 
 ---
 
@@ -319,4 +319,54 @@ Created NodeDetailScreen with fullscreen overlay and integrated it into HexTerri
 - Uses existing components (GarrisonDisplay, WorkerSlotDisplay, GodSelectionGrid) ✅
 - Emits signals for parent screen to handle navigation ✅
 - Does NOT use per-node worker APIs (territory-level only) ✅
+
+### 2026-01-17 - Task 8: Add god affinity color coding to selection grid ✅
+
+**What Changed:**
+Enhanced god cards in GodSelectionGrid, GarrisonDisplay, and WorkerSlotDisplay to show element affinity visually with colored borders and element icon badges.
+
+**Files Modified:**
+- `scripts/ui/territory/GodSelectionGrid.gd` - Added ELEMENT_ICONS, enhanced borders (4px), added element indicator badges
+- `scripts/ui/territory/GarrisonDisplay.gd` - Added ELEMENT_ICONS, enhanced borders (3px), added element indicator badges
+- `scripts/ui/territory/WorkerSlotDisplay.gd` - Added ELEMENT_ICONS, enhanced borders (3px), added element indicator badges
+
+**Implementation Details:**
+
+1. **ELEMENT_ICONS Constant**: Added emoji-based icons for each element:
+   - Fire: 🔥, Water: 💧, Earth: 🪨, Lightning: ⚡, Light: ☀️, Dark: 🌙
+
+2. **Enhanced Border Visibility**: Increased border width from 2-3px to 3-4px for better visibility
+
+3. **Element Indicator Badge**: New `_create_element_indicator(god)` function creates a small colored badge with element icon:
+   - Badge has element-colored background (slightly darkened)
+   - Displays element emoji icon centered
+   - Positioned below god name/portrait for easy identification
+   - Badge size: 20-24px wide, 14-16px tall with rounded corners
+
+4. **Color Mapping** (unchanged from existing):
+   - Fire = Red (0.9, 0.2, 0.1)
+   - Water = Blue (0.2, 0.5, 0.9)
+   - Earth = Brown (0.6, 0.4, 0.2)
+   - Lightning/Air = Light Blue (0.6, 0.8, 1.0)
+   - Light = Gold (1.0, 0.85, 0.3)
+   - Dark = Purple (0.5, 0.2, 0.6)
+
+**Visual Indicators Now Visible Without Text:**
+- Colored borders around each god card
+- Element emoji badge below the portrait/name
+- Color-coded portrait placeholders when no image exists
+
+**Verified With Godot MCP:**
+- Ran project: No errors from any modified files
+- Navigated to hex territory screen: Screen loads correctly
+- Clicked "View Details": NodeDetailScreen opens
+- Clicked "+ Set Garrison": GodSelectionGrid opens with 6 gods displayed
+- Screenshot: `screenshots/node-detail-affinity-colors.png`
+
+**Architecture Compliance:**
+- All files remain under 500 lines ✅
+- Single responsibility maintained ✅
+- Uses existing ELEMENT_COLORS constant ✅
+- Read-only display, no data modification ✅
+- Consistent styling across all three components ✅
 

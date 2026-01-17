@@ -125,7 +125,7 @@ Create a mobile-friendly node management interface that clearly shows garrison, 
       "Display affinity icon or color indicator",
       "Ensure colors are visible without text labels"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "feature",

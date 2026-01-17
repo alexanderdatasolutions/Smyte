@@ -21,6 +21,16 @@ const ELEMENT_COLORS = {
 	God.ElementType.DARK: Color(0.5, 0.2, 0.6, 1.0)        # Purple
 }
 
+# Element icons for visual indicator (matches GodSelectionGrid)
+const ELEMENT_ICONS = {
+	God.ElementType.FIRE: "🔥",
+	God.ElementType.WATER: "💧",
+	God.ElementType.EARTH: "🪨",
+	God.ElementType.LIGHTNING: "⚡",
+	God.ElementType.LIGHT: "☀️",
+	God.ElementType.DARK: "🌙"
+}
+
 # Card sizing for garrison display (compact, horizontal layout)
 const CARD_WIDTH = 70
 const CARD_HEIGHT = 90
@@ -231,19 +241,19 @@ func _create_garrison_card(god: God) -> Control:
 	card.custom_minimum_size = Vector2(CARD_WIDTH, CARD_HEIGHT)
 	card.name = "GarrisonCard_" + god.id
 
-	# Style with element color border
+	# Style with element color border - enhanced visibility
 	var element_color = ELEMENT_COLORS.get(god.element, Color.GRAY)
 	var style = StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.15, 0.18, 0.9)
 	style.border_color = element_color
-	style.border_width_left = 2
-	style.border_width_right = 2
-	style.border_width_top = 2
-	style.border_width_bottom = 2
-	style.corner_radius_top_left = 6
-	style.corner_radius_top_right = 6
-	style.corner_radius_bottom_left = 6
-	style.corner_radius_bottom_right = 6
+	style.border_width_left = 3
+	style.border_width_right = 3
+	style.border_width_top = 3
+	style.border_width_bottom = 3
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
 	card.add_theme_stylebox_override("panel", style)
 
 	# Main layout
@@ -256,7 +266,7 @@ func _create_garrison_card(god: God) -> Control:
 	card.add_child(margin)
 
 	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 2)
+	vbox.add_theme_constant_override("separation", 1)
 	margin.add_child(vbox)
 
 	# Portrait (40x40)
@@ -265,13 +275,9 @@ func _create_garrison_card(god: God) -> Control:
 	portrait_container.add_child(portrait)
 	vbox.add_child(portrait_container)
 
-	# Level label
-	var level_label = Label.new()
-	level_label.text = "Lv.%d" % god.level
-	level_label.add_theme_font_size_override("font_size", 9)
-	level_label.add_theme_color_override("font_color", Color.WHITE)
-	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(level_label)
+	# Element indicator badge
+	var element_indicator = _create_element_indicator(god)
+	vbox.add_child(element_indicator)
 
 	# Combat power
 	var power_label = Label.new()
@@ -289,6 +295,35 @@ func _create_garrison_card(god: God) -> Control:
 	card.add_child(button)
 
 	return card
+
+func _create_element_indicator(god: God) -> Control:
+	"""Create element indicator with icon and colored background badge"""
+	var container = CenterContainer.new()
+
+	# Badge panel with element color
+	var element_color = ELEMENT_COLORS.get(god.element, Color.GRAY)
+	var badge = Panel.new()
+	badge.custom_minimum_size = Vector2(20, 14)
+
+	var badge_style = StyleBoxFlat.new()
+	badge_style.bg_color = element_color.darkened(0.2)
+	badge_style.corner_radius_top_left = 3
+	badge_style.corner_radius_top_right = 3
+	badge_style.corner_radius_bottom_left = 3
+	badge_style.corner_radius_bottom_right = 3
+	badge.add_theme_stylebox_override("panel", badge_style)
+
+	# Element icon label
+	var icon_label = Label.new()
+	icon_label.text = ELEMENT_ICONS.get(god.element, "?")
+	icon_label.add_theme_font_size_override("font_size", 9)
+	icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	icon_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	badge.add_child(icon_label)
+
+	container.add_child(badge)
+	return container
 
 func _create_portrait(god: God) -> Control:
 	"""Create god portrait with element-colored placeholder if no image"""
