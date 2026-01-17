@@ -909,6 +909,135 @@ Tier 3 Legendary Smith:
 
 ---
 
+## Resource Economy Philosophy
+
+### Core Design Principle: Purpose-Driven Resources
+**"Every resource must have clear purpose. Make it feel cool to go for what you need."**
+
+This isn't a matching simulator - it's a strategic empire builder where players can specialize in what they enjoy and still progress.
+
+### Supported Playstyles
+
+#### 🎣 The Fisher King (Pure Gatherer)
+- **Fantasy:** "I just want to fish and chill"
+- **Path:** Specialize coast/fishing nodes → Ocean Master (Tier 3)
+- **Rewards:** 2-3x fish/pearls production, passive income from selling to crafters
+- **Cool Factor:** Guild-wide +15% coast production aura, literal mountains of AFK resources
+
+#### ⚔️ Arena Gladiator (Pure PvP)
+- **Fantasy:** "I only care about combat and rankings"
+- **Path:** Raid enemy territories → Steal resources → Buy crafted gear from market
+- **Rewards:** Skip territory management, get resources through PvP theft
+- **Cool Factor:** 10% theft from raids, 24/7 raiding availability
+
+#### 🔨 Master Crafter (Pure Production)
+- **Fantasy:** "I want to be THE blacksmith everyone needs"
+- **Path:** Specialize forge nodes → Legendary Smith (Tier 3)
+- **Rewards:** -30% material costs, +2 guaranteed substats, passive enhancement powder
+- **Cool Factor:** Market monopoly on legendary gear, guild dependency
+
+#### 📚 The Scholar (Research/Support)
+- **Fantasy:** "Knowledge is power, I'll unlock everything first"
+- **Path:** Specialize library nodes → unlock recipes/training
+- **Rewards:** Early access to recipes, train gods faster, sell knowledge
+- **Cool Factor:** Guild research bonuses, unlock content others can't access
+
+#### 💤 AFK Emperor (Full Idle)
+- **Fantasy:** "I want to login once a day and collect everything"
+- **Path:** Strategic node placement → Connected bonuses → Max workers
+- **Rewards:** +30% production from connected nodes, optimized overnight gains
+- **Cool Factor:** 10 nodes producing 24/7, wake up to full inventory
+
+#### 🏴‍☠️ Territory Raider (Conquest Focus)
+- **Fantasy:** "I want to control the most valuable nodes"
+- **Path:** Rush high-tier nodes → Build supply chains → Defend aggressively
+- **Rewards:** Legendary resources from Tier 4-5 nodes, strategic dominance
+- **Cool Factor:** Control mythic resource spawn points, gate endgame materials
+
+### Node Type Purposes (Why Players Want Each)
+
+**Mine Nodes** - Raw material foundation
+- Early: Iron/copper for basic gear (everyone needs)
+- Mid: Mythril/magic crystals for rare gear (crafters need)
+- Late: Divine ore/perfect gems for mythic gear (endgame requirement)
+
+**Forest Nodes** - Enhancement material source
+- Early: Wood for crafting (everyone needs)
+- Mid: Enhancement powder (equipment progression)
+- Late: Blessed oil for substat rerolls (endgame perfection)
+
+**Coast Nodes** - Gemstone/passive income
+- Early: Fish for selling (passive gold income)
+- Mid: Pearls for socketing (equipment power spike)
+- Late: Black pearls for legendary sockets (rare luxury)
+
+**Hunting Nodes** - Crafting variety materials
+- Early: Pelts/bones for leather/bone armor (diversify builds)
+- Mid: Monster parts for advanced recipes (niche builds)
+- Late: Rare pelts for legendary leather sets (specialized crafters)
+
+**Forge Nodes** - Equipment production hub
+- Early: Steel ingots for gear (everyone needs)
+- Mid: Forging flames for epic gear (major power spike)
+- Late: Divine ore for mythic weapons (endgame BiS)
+
+**Temple Nodes** - Summoning/awakening
+- Early: Mana crystals for summoning (god collection)
+- Mid: Soul shards for targeted summons (fill roster gaps)
+- Late: Divine essence for awakening (god power-ups)
+
+**Library Nodes** - Recipe unlocks/training
+- Early: Research points unlock recipes (progression gates)
+- Mid: Scrolls for god training (faster leveling)
+- Late: Knowledge crystals for legendary recipes (endgame access)
+
+### Trading Economy
+Players don't need to do everything - specialists can focus and trade:
+
+**Fisher King Trades:**
+- Sells: Fish, pearls, salt (excess from 3x production)
+- Buys: Crafted gear, enhancement materials
+
+**Master Crafter Trades:**
+- Sells: Equipment with perfect substats (monopoly pricing)
+- Buys: Raw materials from miners/gatherers
+
+**Territory Raider Trades:**
+- Sells: Rare materials from Tier 5 nodes
+- Buys: Enhancement services, god training
+
+### AFK Optimization Strategy
+Strategic placement > button-mashing:
+
+1. **Connected Node Chains** - Build 4+ connected nodes for +30% production
+2. **Worker Specialization** - Assign gods with matching specs for +200% efficiency
+3. **Upgrade Priority** - Max production on nodes that generate your bottleneck resource
+4. **Distance Management** - Keep high-value nodes close to base (95% defense vs 50%)
+5. **Garrison Strategy** - Defend key nodes, let low-value nodes be contested
+
+**Result:** Login once/day, collect 24 hours of optimized production, progress faster than active players who don't strategize.
+
+### Resource Coherence Rules
+
+1. **Every resource has ≥2 uses** - No dead-end materials
+2. **Higher tiers require lower tiers** - Steel needs iron, mythril needs steel
+3. **Specialization creates mastery** - Not +10%, but +200% with unique abilities
+4. **No forced matching** - Trade/raid to get what you need
+5. **AFK-friendly** - Strategic setup > constant clicking
+
+### Current Implementation Status
+- ✅ 49 core resources across all tiers and categories
+- ✅ 10 MVP crafting recipes with tier progression
+- ✅ Hex node production aligned with resources.json
+- ✅ Specialization bonuses integrated (24 traits, 84 specs)
+- ✅ Trading economy foundation (ResourceManager handles transactions)
+- ✅ Connected node bonuses (TerritoryProductionManager)
+- ✅ 90%+ test coverage (42 unit tests)
+
+**See RESOURCE_PHILOSOPHY.md for detailed player archetype breakdowns and node efficiency calculations.**
+
+---
+
 ## Design Decisions
 
 ### Hex Grid Size

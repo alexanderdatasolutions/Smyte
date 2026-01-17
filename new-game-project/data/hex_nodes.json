@@ -1008,6 +1008,1148 @@
         "specialization_role": ""
       },
       "description": "A frontier outpost guarding the borders. Strategic position provides defensive advantages."
+    },
+
+    "divine_ore_mine_4": {
+      "id": "divine_ore_mine_4",
+      "name": "Divine Ore Excavation",
+      "type": "mine",
+      "tier": 4,
+      "coord": {"q": 4, "r": 0},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "divine_ore": 15,
+        "adamantite_ore": 35,
+        "mythril_ore": 50,
+        "ancient_gems": 20,
+        "perfect_crystals": 10
+      },
+      "available_tasks": ["deep_mining", "mine_mythril", "gem_cutting"],
+      "max_garrison": 5,
+      "max_workers": 5,
+      "base_defenders": ["divine_colossus", "ore_titan", "crystal_wyrm", "adamant_guardian", "earth_primordial"],
+      "capture_power_required": 30000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "gatherer"
+      },
+      "description": "A legendary excavation site where divine ore is found. Only the most skilled gatherer specialists can work here."
+    },
+
+    "enchanted_crystal_mine_4": {
+      "id": "enchanted_crystal_mine_4",
+      "name": "Enchanted Crystal Mines",
+      "type": "mine",
+      "tier": 3,
+      "coord": {"q": 3, "r": 1},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "magic_crystals": 60,
+        "mythril_ore": 50,
+        "ancient_gems": 30,
+        "crystal_shards": 25
+      },
+      "available_tasks": ["deep_mining", "gem_cutting", "mine_mythril"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["crystal_dragon", "gem_elemental", "prismatic_golem", "crystal_knight"],
+      "capture_power_required": 16000,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "Mines filled with enchanted crystals that pulse with magical energy."
+    },
+
+    "moonlit_forest_4": {
+      "id": "moonlit_forest_4",
+      "name": "Moonlit Glade",
+      "type": "forest",
+      "tier": 4,
+      "coord": {"q": 2, "r": 2},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "rare_herbs": 100,
+        "magical_wood": 80,
+        "enhancement_powder_high": 40,
+        "blessed_oil": 25,
+        "moonlight_essence": 15
+      },
+      "available_tasks": ["herbalism", "plant_cultivation", "foraging", "logging"],
+      "max_garrison": 5,
+      "max_workers": 5,
+      "base_defenders": ["moon_guardian", "lunar_dryad", "moonlight_treant", "celestial_wolf", "night_dragon"],
+      "capture_power_required": 32000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "gatherer"
+      },
+      "description": "A mystical forest bathed in eternal moonlight where the rarest herbs grow."
+    },
+
+    "mystic_woodland_4": {
+      "id": "mystic_woodland_4",
+      "name": "Mystic Timberlands",
+      "type": "forest",
+      "tier": 3,
+      "coord": {"q": 1, "r": 4},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "rare_herbs": 80,
+        "magical_wood": 60,
+        "enhancement_powder_mid": 40,
+        "blessed_oil": 20
+      },
+      "available_tasks": ["herbalism", "logging", "plant_cultivation"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["ancient_protector", "woodland_dragon", "mystic_treant", "forest_guardian"],
+      "capture_power_required": 17000,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "Timberlands imbued with ancient magic, home to the rarest woods and herbs."
+    },
+
+    "leviathan_depths_4": {
+      "id": "leviathan_depths_4",
+      "name": "Leviathan's Domain",
+      "type": "coast",
+      "tier": 4,
+      "coord": {"q": 0, "r": 4},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "rare_fish": 90,
+        "black_pearls": 50,
+        "sea_crystals": 40,
+        "leviathan_scales": 20,
+        "ocean_hearts": 10
+      },
+      "available_tasks": ["deep_sea_fishing", "pearl_diving", "monster_hunting"],
+      "max_garrison": 5,
+      "max_workers": 5,
+      "base_defenders": ["ancient_leviathan", "sea_titan", "abyssal_kraken", "ocean_dragon", "tide_emperor"],
+      "capture_power_required": 35000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "gatherer"
+      },
+      "description": "The deepest ocean trenches where leviathans rule. Only master fishers dare venture here."
+    },
+
+    "coral_kingdom_4": {
+      "id": "coral_kingdom_4",
+      "name": "Coral Kingdom",
+      "type": "coast",
+      "tier": 3,
+      "coord": {"q": -1, "r": 4},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "rare_fish": 70,
+        "black_pearls": 35,
+        "coral": 60,
+        "sea_crystals": 30
+      },
+      "available_tasks": ["deep_sea_fishing", "pearl_diving", "salt_harvesting"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["coral_emperor", "reef_dragon", "pearl_titan", "sea_guardian"],
+      "capture_power_required": 17500,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "A vast underwater kingdom built entirely of living coral and precious pearls."
+    },
+
+    "primordial_hunting_grounds_4": {
+      "id": "primordial_hunting_grounds_4",
+      "name": "Primordial Hunting Grounds",
+      "type": "hunting_ground",
+      "tier": 4,
+      "coord": {"q": -2, "r": 4},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "dragon_scales": 40,
+        "monster_parts": 80,
+        "rare_pelts": 50,
+        "dragon_bones": 25,
+        "titan_essence": 10
+      },
+      "available_tasks": ["monster_hunting", "tracking", "taming"],
+      "max_garrison": 5,
+      "max_workers": 5,
+      "base_defenders": ["primordial_beast", "ancient_wyrm", "titan_hunter", "legendary_drake", "apex_predator"],
+      "capture_power_required": 33000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "gatherer"
+      },
+      "description": "Ancient hunting grounds where primordial beasts roam. The ultimate test for monster hunters."
+    },
+
+    "beast_sanctuary_4": {
+      "id": "beast_sanctuary_4",
+      "name": "Sacred Beast Sanctuary",
+      "type": "hunting_ground",
+      "tier": 3,
+      "coord": {"q": -3, "r": 4},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "monster_parts": 60,
+        "rare_pelts": 40,
+        "scales": 35,
+        "dragon_bones": 20
+      },
+      "available_tasks": ["monster_hunting", "tracking", "taming"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["sacred_beast", "sanctuary_warden", "mythic_chimera", "phoenix"],
+      "capture_power_required": 18000,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "A sacred sanctuary where legendary beasts are protected by ancient wardens."
+    },
+
+    "imperial_citadel_4": {
+      "id": "imperial_citadel_4",
+      "name": "Imperial Citadel",
+      "type": "fortress",
+      "tier": 4,
+      "coord": {"q": -4, "r": 4},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "defense_bonus": 80,
+        "training_tomes": 35,
+        "war_supplies": 50,
+        "command_banners": 20,
+        "strategic_plans": 10
+      },
+      "available_tasks": ["garrison_duty", "war_planning", "combat_training", "defense_building"],
+      "max_garrison": 8,
+      "max_workers": 4,
+      "base_defenders": ["emperor_guardian", "legion_commander", "elite_praetorian", "war_machine", "fortress_dragon", "imperial_champion"],
+      "capture_power_required": 38000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "fighter"
+      },
+      "description": "The ultimate fortress - an imperial citadel commanding immense military power."
+    },
+
+    "military_stronghold_4": {
+      "id": "military_stronghold_4",
+      "name": "Iron Stronghold",
+      "type": "fortress",
+      "tier": 3,
+      "coord": {"q": -4, "r": 3},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "defense_bonus": 60,
+        "training_tomes": 25,
+        "war_supplies": 40,
+        "command_banners": 15
+      },
+      "available_tasks": ["garrison_duty", "combat_training", "war_planning", "defense_building"],
+      "max_garrison": 6,
+      "max_workers": 4,
+      "base_defenders": ["stronghold_captain", "iron_legion", "siege_master", "war_elemental", "fortress_titan"],
+      "capture_power_required": 19000,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "A heavily fortified stronghold built from iron and stone, nearly impregnable."
+    },
+
+    "supreme_temple_4": {
+      "id": "supreme_temple_4",
+      "name": "Supreme Temple of Ascension",
+      "type": "temple",
+      "tier": 4,
+      "coord": {"q": -4, "r": 2},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "divine_essence": 90,
+        "mana_crystals": 120,
+        "blessed_oil": 40,
+        "awakening_stones": 25,
+        "ascension_crystals": 15,
+        "godly_fragments": 5
+      },
+      "available_tasks": ["meditation", "blessing", "awakening_ritual", "divine_communion"],
+      "max_garrison": 5,
+      "max_workers": 5,
+      "base_defenders": ["supreme_archangel", "divine_emperor", "celestial_titan", "holy_dragon", "god_avatar"],
+      "capture_power_required": 36000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "support"
+      },
+      "description": "The supreme temple where gods themselves are said to ascend. Divine power flows like rivers here."
+    },
+
+    "oracle_shrine_4": {
+      "id": "oracle_shrine_4",
+      "name": "Oracle's Sanctum",
+      "type": "temple",
+      "tier": 3,
+      "coord": {"q": -4, "r": 1},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "divine_essence": 70,
+        "mana_crystals": 90,
+        "blessed_oil": 30,
+        "awakening_stones": 20,
+        "ascension_crystals": 10
+      },
+      "available_tasks": ["meditation", "blessing", "awakening_ritual", "divine_communion"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["oracle_guardian", "divine_seer", "celestial_prophet", "holy_watcher"],
+      "capture_power_required": 18500,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "A sacred sanctum where oracles commune with the divine and foresee the future."
+    },
+
+    "legendary_forge_4": {
+      "id": "legendary_forge_4",
+      "name": "Forge of Legends",
+      "type": "forge",
+      "tier": 4,
+      "coord": {"q": -4, "r": 0},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "forging_flame": 60,
+        "mythril_ingots": 50,
+        "enhancement_powder_high": 45,
+        "socket_crystals": 35,
+        "divine_ore": 20,
+        "celestial_alloy": 10
+      },
+      "available_tasks": ["smithing", "weapon_crafting", "armor_crafting", "enchanting"],
+      "max_garrison": 5,
+      "max_workers": 5,
+      "base_defenders": ["legendary_smith_titan", "forge_dragon_lord", "infernal_master", "divine_blacksmith", "celestial_artisan"],
+      "capture_power_required": 34000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "crafter"
+      },
+      "description": "The legendary forge where mythic equipment is born. Only master crafters can harness its power."
+    },
+
+    "titan_forge_4": {
+      "id": "titan_forge_4",
+      "name": "Titan's Anvil",
+      "type": "forge",
+      "tier": 3,
+      "coord": {"q": -3, "r": -1},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "forging_flame": 45,
+        "mythril_ingots": 40,
+        "enhancement_powder_high": 35,
+        "socket_crystals": 25,
+        "divine_ore": 15
+      },
+      "available_tasks": ["smithing", "weapon_crafting", "armor_crafting", "enchanting"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["titan_blacksmith", "forge_colossus", "lava_titan", "steel_dragon"],
+      "capture_power_required": 19500,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "A massive forge built by titans, capable of creating equipment of exceptional power."
+    },
+
+    "grand_academy_4": {
+      "id": "grand_academy_4",
+      "name": "Grand Academy of Arcana",
+      "type": "library",
+      "tier": 4,
+      "coord": {"q": -2, "r": -2},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "research_points": 120,
+        "ancient_scrolls": 50,
+        "knowledge_crystals": 40,
+        "forbidden_tomes": 20,
+        "arcane_codex": 10
+      },
+      "available_tasks": ["research", "scroll_crafting", "training", "skill_learning"],
+      "max_garrison": 5,
+      "max_workers": 5,
+      "base_defenders": ["supreme_archmage", "grand_lorekeeper", "knowledge_dragon", "arcane_titan", "wisdom_guardian"],
+      "capture_power_required": 31000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "scholar"
+      },
+      "description": "The grand academy where the greatest scholars unlock the deepest secrets of magic and knowledge."
+    },
+
+    "ancient_archives_4": {
+      "id": "ancient_archives_4",
+      "name": "Ancient Archives",
+      "type": "library",
+      "tier": 3,
+      "coord": {"q": -1, "r": -3},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "research_points": 90,
+        "ancient_scrolls": 40,
+        "knowledge_crystals": 30,
+        "forbidden_tomes": 15
+      },
+      "available_tasks": ["research", "scroll_crafting", "training", "skill_learning"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["archive_guardian", "elder_scholar", "knowledge_elemental", "ancient_grimoire"],
+      "capture_power_required": 18000,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "Archives containing knowledge from forgotten ages, guarded by powerful sentinels."
+    },
+
+    "obsidian_mine_4": {
+      "id": "obsidian_mine_4",
+      "name": "Obsidian Depths",
+      "type": "mine",
+      "tier": 3,
+      "coord": {"q": 0, "r": -4},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "adamantite_ore": 40,
+        "mythril_ore": 55,
+        "obsidian": 30,
+        "ancient_gems": 25
+      },
+      "available_tasks": ["deep_mining", "mine_mythril", "gem_cutting"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["obsidian_golem", "shadow_titan", "dark_crystal_dragon", "void_elemental"],
+      "capture_power_required": 17000,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "Dark mines filled with obsidian and rare ores, shrouded in shadow and mystery."
+    },
+
+    "wildfire_forest_4": {
+      "id": "wildfire_forest_4",
+      "name": "Wildfire Glade",
+      "type": "forest",
+      "tier": 3,
+      "coord": {"q": 1, "r": -4},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "rare_herbs": 85,
+        "magical_wood": 70,
+        "enhancement_powder_mid": 45,
+        "blessed_oil": 25
+      },
+      "available_tasks": ["herbalism", "logging", "plant_cultivation", "foraging"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["flame_treant", "phoenix_guardian", "fire_dryad", "inferno_elemental"],
+      "capture_power_required": 18500,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "A forest ablaze with eternal fire, where fire-resistant plants produce unique materials."
+    },
+
+    "tidal_depths_4": {
+      "id": "tidal_depths_4",
+      "name": "Tidal Abyss",
+      "type": "coast",
+      "tier": 3,
+      "coord": {"q": 2, "r": -4},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "rare_fish": 75,
+        "black_pearls": 40,
+        "sea_crystals": 35,
+        "leviathan_scales": 15
+      },
+      "available_tasks": ["deep_sea_fishing", "pearl_diving", "monster_hunting"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["tidal_leviathan", "abyss_kraken", "deep_sea_dragon", "ocean_titan"],
+      "capture_power_required": 19000,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "The deepest tidal zones where massive sea creatures and rare pearls abound."
+    },
+
+    "beast_king_domain_4": {
+      "id": "beast_king_domain_4",
+      "name": "Beast King's Domain",
+      "type": "hunting_ground",
+      "tier": 3,
+      "coord": {"q": 3, "r": -4},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "monster_parts": 70,
+        "dragon_scales": 30,
+        "rare_pelts": 45,
+        "dragon_bones": 25
+      },
+      "available_tasks": ["monster_hunting", "tracking", "taming"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["beast_king", "alpha_wyvern", "legendary_chimera", "primal_hunter"],
+      "capture_power_required": 20000,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "Domain ruled by the Beast King, where only the strongest creatures survive."
+    },
+
+    "war_citadel_4": {
+      "id": "war_citadel_4",
+      "name": "Citadel of War",
+      "type": "fortress",
+      "tier": 3,
+      "coord": {"q": 4, "r": -4},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "defense_bonus": 65,
+        "training_tomes": 30,
+        "war_supplies": 45,
+        "command_banners": 18
+      },
+      "available_tasks": ["garrison_duty", "war_planning", "combat_training", "defense_building"],
+      "max_garrison": 6,
+      "max_workers": 4,
+      "base_defenders": ["war_lord", "citadel_guardian", "elite_legion", "siege_titan", "battle_dragon"],
+      "capture_power_required": 21000,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "A mighty citadel built for war, housing elite legions and powerful siege weapons."
+    },
+
+    "divine_sanctum_4": {
+      "id": "divine_sanctum_4",
+      "name": "Divine Sanctum of Light",
+      "type": "temple",
+      "tier": 3,
+      "coord": {"q": 4, "r": -3},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "divine_essence": 75,
+        "mana_crystals": 100,
+        "blessed_oil": 35,
+        "awakening_stones": 22,
+        "ascension_crystals": 12
+      },
+      "available_tasks": ["meditation", "blessing", "awakening_ritual", "divine_communion"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["light_seraph", "divine_guardian", "celestial_paladin", "holy_dragon"],
+      "capture_power_required": 20000,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "A sanctum radiating divine light, where awakening rituals reach their peak potential."
+    },
+
+    "worldforge_4": {
+      "id": "worldforge_4",
+      "name": "World Forge",
+      "type": "forge",
+      "tier": 3,
+      "coord": {"q": 4, "r": -2},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "forging_flame": 50,
+        "mythril_ingots": 45,
+        "enhancement_powder_high": 40,
+        "socket_crystals": 30,
+        "divine_ore": 18
+      },
+      "available_tasks": ["smithing", "weapon_crafting", "armor_crafting", "enchanting"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["world_smith", "cosmic_forge_guardian", "stellar_elemental", "creation_titan"],
+      "capture_power_required": 21500,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "A forge said to have been used to craft worlds. Its flames burn with cosmic power."
+    },
+
+    "hall_of_eternity_4": {
+      "id": "hall_of_eternity_4",
+      "name": "Hall of Eternity",
+      "type": "library",
+      "tier": 3,
+      "coord": {"q": 4, "r": -1},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "research_points": 95,
+        "ancient_scrolls": 45,
+        "knowledge_crystals": 35,
+        "forbidden_tomes": 18
+      },
+      "available_tasks": ["research", "scroll_crafting", "training", "skill_learning"],
+      "max_garrison": 4,
+      "max_workers": 5,
+      "base_defenders": ["eternal_scholar", "time_keeper", "infinity_guardian", "chrono_dragon"],
+      "capture_power_required": 19500,
+      "unlock_requirements": {
+        "player_level": 20,
+        "specialization_tier": 2,
+        "specialization_role": ""
+      },
+      "description": "A hall where time stands still, preserving knowledge from across all of eternity."
+    },
+
+    "celestial_ore_mine_5": {
+      "id": "celestial_ore_mine_5",
+      "name": "Celestial Ore Pinnacle",
+      "type": "mine",
+      "tier": 5,
+      "coord": {"q": 5, "r": 0},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "celestial_ore": 20,
+        "divine_ore": 30,
+        "adamantite_ore": 50,
+        "perfect_crystals": 25,
+        "starlight_gems": 15
+      },
+      "available_tasks": ["deep_mining", "gem_cutting"],
+      "max_garrison": 6,
+      "max_workers": 6,
+      "base_defenders": ["celestial_titan", "star_forged_colossus", "cosmic_wyrm", "divine_ore_guardian", "astral_dragon", "primordial_earth"],
+      "capture_power_required": 50000,
+      "unlock_requirements": {
+        "player_level": 40,
+        "specialization_tier": 3,
+        "specialization_role": ""
+      },
+      "description": "The legendary pinnacle where celestial ore falls from the heavens. Only master specialists can mine it."
+    },
+
+    "world_tree_grove_5": {
+      "id": "world_tree_grove_5",
+      "name": "World Tree Grove",
+      "type": "forest",
+      "tier": 5,
+      "coord": {"q": 4, "r": 1},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "world_tree_wood": 30,
+        "rare_herbs": 120,
+        "enhancement_powder_high": 60,
+        "blessed_oil": 40,
+        "life_essence": 20
+      },
+      "available_tasks": ["herbalism", "plant_cultivation", "logging"],
+      "max_garrison": 6,
+      "max_workers": 6,
+      "base_defenders": ["world_tree_guardian", "primordial_treant", "life_dragon", "forest_titan", "ancient_dryad_queen", "nature_god"],
+      "capture_power_required": 52000,
+      "unlock_requirements": {
+        "player_level": 40,
+        "specialization_tier": 3,
+        "specialization_role": ""
+      },
+      "description": "The sacred grove of the World Tree, source of all life and nature's greatest treasures."
+    },
+
+    "infinite_ocean_5": {
+      "id": "infinite_ocean_5",
+      "name": "Edge of the Infinite Ocean",
+      "type": "coast",
+      "tier": 5,
+      "coord": {"q": 3, "r": 2},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "legendary_fish": 50,
+        "divine_pearls": 30,
+        "sea_crystals": 60,
+        "leviathan_scales": 35,
+        "primordial_waters": 15
+      },
+      "available_tasks": ["deep_sea_fishing", "pearl_diving", "monster_hunting"],
+      "max_garrison": 6,
+      "max_workers": 6,
+      "base_defenders": ["primordial_leviathan", "ocean_god", "infinite_kraken", "tidal_titan", "sea_emperor_dragon", "abyss_overlord"],
+      "capture_power_required": 55000,
+      "unlock_requirements": {
+        "player_level": 40,
+        "specialization_tier": 3,
+        "specialization_role": ""
+      },
+      "description": "The edge of the world where the infinite ocean meets eternity. Legendary sea creatures guard priceless treasures."
+    },
+
+    "apex_hunting_realm_5": {
+      "id": "apex_hunting_realm_5",
+      "name": "Apex Predator Realm",
+      "type": "hunting_ground",
+      "tier": 5,
+      "coord": {"q": 2, "r": 3},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "primordial_scales": 25,
+        "titan_essence": 20,
+        "monster_parts": 100,
+        "legendary_pelts": 40,
+        "beast_god_fragments": 10
+      },
+      "available_tasks": ["monster_hunting", "tracking", "taming"],
+      "max_garrison": 6,
+      "max_workers": 6,
+      "base_defenders": ["apex_titan_beast", "primordial_dragon", "beast_god_avatar", "legendary_chimera_lord", "primal_wyrm", "ultimate_predator"],
+      "capture_power_required": 53000,
+      "unlock_requirements": {
+        "player_level": 40,
+        "specialization_tier": 3,
+        "specialization_role": ""
+      },
+      "description": "The hunting realm where only apex predators survive. The ultimate test for legendary hunters."
+    },
+
+    "eternal_fortress_5": {
+      "id": "eternal_fortress_5",
+      "name": "Eternal Fortress",
+      "type": "fortress",
+      "tier": 5,
+      "coord": {"q": 1, "r": 5},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "defense_bonus": 120,
+        "training_tomes": 50,
+        "war_supplies": 80,
+        "command_banners": 35,
+        "legendary_tactics": 15
+      },
+      "available_tasks": ["garrison_duty", "war_planning", "combat_training", "defense_building"],
+      "max_garrison": 10,
+      "max_workers": 5,
+      "base_defenders": ["eternal_warlord", "fortress_god", "immortal_legion", "war_titan_supreme", "siege_dragon_lord", "ultimate_guardian", "eternal_champion"],
+      "capture_power_required": 60000,
+      "unlock_requirements": {
+        "player_level": 40,
+        "specialization_tier": 3,
+        "specialization_role": ""
+      },
+      "description": "The eternal fortress that has never fallen. Controlling it grants supreme military power."
+    },
+
+    "godforge_5": {
+      "id": "godforge_5",
+      "name": "The Godforge",
+      "type": "forge",
+      "tier": 5,
+      "coord": {"q": 0, "r": 5},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "celestial_alloy": 25,
+        "forging_flame": 90,
+        "enhancement_powder_high": 70,
+        "socket_crystals": 60,
+        "divine_ore": 40,
+        "creation_essence": 15
+      },
+      "available_tasks": ["smithing", "weapon_crafting", "armor_crafting", "enchanting"],
+      "max_garrison": 6,
+      "max_workers": 6,
+      "base_defenders": ["forge_god", "creation_titan_supreme", "divine_smith_dragon", "eternal_flame_lord", "celestial_artisan_master", "mythic_blacksmith"],
+      "capture_power_required": 58000,
+      "unlock_requirements": {
+        "player_level": 40,
+        "specialization_tier": 3,
+        "specialization_role": ""
+      },
+      "description": "The legendary Godforge where divine artifacts are created. Only the gods themselves know its secrets."
+    },
+
+    "omniscient_library_5": {
+      "id": "omniscient_library_5",
+      "name": "Library of Omniscience",
+      "type": "library",
+      "tier": 5,
+      "coord": {"q": -1, "r": 5},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "omniscient_knowledge": 30,
+        "research_points": 150,
+        "ancient_scrolls": 80,
+        "forbidden_tomes": 40,
+        "reality_codex": 15
+      },
+      "available_tasks": ["research", "scroll_crafting", "training", "skill_learning"],
+      "max_garrison": 6,
+      "max_workers": 6,
+      "base_defenders": ["knowledge_god", "omniscient_guardian", "cosmic_loremaster", "wisdom_dragon_emperor", "reality_scholar", "infinite_sage"],
+      "capture_power_required": 54000,
+      "unlock_requirements": {
+        "player_level": 40,
+        "specialization_tier": 3,
+        "specialization_role": ""
+      },
+      "description": "The ultimate library containing all knowledge past, present, and future. Its secrets are beyond mortal comprehension."
+    },
+
+    "divine_throne_temple_5": {
+      "id": "divine_throne_temple_5",
+      "name": "Temple of the Divine Throne",
+      "type": "temple",
+      "tier": 5,
+      "coord": {"q": -2, "r": 5},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "god_tears": 20,
+        "divine_essence": 120,
+        "mana_crystals": 150,
+        "awakening_stones": 50,
+        "ascension_crystals": 30,
+        "transcendence_orbs": 10
+      },
+      "available_tasks": ["meditation", "blessing", "awakening_ritual", "divine_communion"],
+      "max_garrison": 6,
+      "max_workers": 6,
+      "base_defenders": ["throne_guardian_god", "supreme_seraph", "divine_emperor_avatar", "celestial_king", "holy_titan_supreme", "god_of_gods"],
+      "capture_power_required": 57000,
+      "unlock_requirements": {
+        "player_level": 40,
+        "specialization_tier": 3,
+        "specialization_role": ""
+      },
+      "description": "The throne where gods sit. Controlling it grants divine authority beyond mortal imagination."
+    },
+
+    "olympus_outpost_5": {
+      "id": "olympus_outpost_5",
+      "name": "Olympus Outpost",
+      "type": "fortress",
+      "tier": 4,
+      "coord": {"q": -3, "r": 5},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "defense_bonus": 90,
+        "training_tomes": 40,
+        "war_supplies": 60,
+        "command_banners": 25,
+        "strategic_plans": 15
+      },
+      "available_tasks": ["garrison_duty", "war_planning", "combat_training", "defense_building"],
+      "max_garrison": 8,
+      "max_workers": 4,
+      "base_defenders": ["olympian_champion", "zeus_lightning_guard", "ares_war_avatar", "athena_strategist", "hephaestus_titan", "divine_legion"],
+      "capture_power_required": 40000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "fighter"
+      },
+      "description": "An outpost of Mount Olympus itself. The gods watch over this stronghold."
+    },
+
+    "valhalla_gateway_5": {
+      "id": "valhalla_gateway_5",
+      "name": "Gateway to Valhalla",
+      "type": "fortress",
+      "tier": 4,
+      "coord": {"q": -4, "r": 5},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "defense_bonus": 85,
+        "training_tomes": 38,
+        "war_supplies": 55,
+        "command_banners": 22,
+        "strategic_plans": 12
+      },
+      "available_tasks": ["garrison_duty", "war_planning", "combat_training", "defense_building"],
+      "max_garrison": 8,
+      "max_workers": 4,
+      "base_defenders": ["einherjar_warrior", "valkyrie_commander", "odin_watcher", "thor_champion", "berserker_god", "norse_legend"],
+      "capture_power_required": 42000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "fighter"
+      },
+      "description": "The gateway to Valhalla where the greatest warriors are chosen. Glory awaits those who control it."
+    },
+
+    "asgard_forge_5": {
+      "id": "asgard_forge_5",
+      "name": "Forge of Asgard",
+      "type": "forge",
+      "tier": 4,
+      "coord": {"q": -5, "r": 5},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "forging_flame": 70,
+        "mythril_ingots": 60,
+        "enhancement_powder_high": 50,
+        "socket_crystals": 45,
+        "divine_ore": 25,
+        "celestial_alloy": 15
+      },
+      "available_tasks": ["smithing", "weapon_crafting", "armor_crafting", "enchanting"],
+      "max_garrison": 5,
+      "max_workers": 5,
+      "base_defenders": ["dwarven_smith_god", "forge_giant", "mjolnir_guardian", "eitri_avatar", "asgardian_master"],
+      "capture_power_required": 39000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "crafter"
+      },
+      "description": "The legendary forge of Asgard where Mjolnir itself was crafted. Divine weapons are born here."
+    },
+
+    "atlantis_depths_5": {
+      "id": "atlantis_depths_5",
+      "name": "Lost Depths of Atlantis",
+      "type": "coast",
+      "tier": 4,
+      "coord": {"q": -5, "r": 4},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "rare_fish": 100,
+        "black_pearls": 60,
+        "sea_crystals": 50,
+        "leviathan_scales": 30,
+        "ocean_hearts": 15
+      },
+      "available_tasks": ["deep_sea_fishing", "pearl_diving", "monster_hunting"],
+      "max_garrison": 5,
+      "max_workers": 5,
+      "base_defenders": ["atlantean_king", "poseidon_avatar", "sea_god_guardian", "trident_titan", "oceanic_dragon"],
+      "capture_power_required": 37000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "gatherer"
+      },
+      "description": "The lost depths of Atlantis, sunken kingdom of legend. Untold treasures lie beneath the waves."
+    },
+
+    "yggdrasil_roots_5": {
+      "id": "yggdrasil_roots_5",
+      "name": "Roots of Yggdrasil",
+      "type": "forest",
+      "tier": 4,
+      "coord": {"q": -5, "r": 3},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "rare_herbs": 110,
+        "magical_wood": 90,
+        "enhancement_powder_high": 50,
+        "blessed_oil": 35,
+        "moonlight_essence": 20
+      },
+      "available_tasks": ["herbalism", "plant_cultivation", "logging", "foraging"],
+      "max_garrison": 5,
+      "max_workers": 5,
+      "base_defenders": ["yggdrasil_guardian", "nidhogg_wyrm", "ratatosk_avatar", "world_tree_protector", "nature_jotun"],
+      "capture_power_required": 36000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "gatherer"
+      },
+      "description": "The sacred roots of Yggdrasil, the world tree of Norse legend. Nature's power flows strongest here."
+    },
+
+    "mount_olympus_mine_5": {
+      "id": "mount_olympus_mine_5",
+      "name": "Olympus Quarry",
+      "type": "mine",
+      "tier": 4,
+      "coord": {"q": -5, "r": 2},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "divine_ore": 25,
+        "adamantite_ore": 60,
+        "mythril_ore": 70,
+        "ancient_gems": 30,
+        "perfect_crystals": 20
+      },
+      "available_tasks": ["deep_mining", "mine_mythril", "gem_cutting"],
+      "max_garrison": 5,
+      "max_workers": 5,
+      "base_defenders": ["cyclops_titan", "hephaestus_forge_guardian", "olympian_ore_warden", "divine_earth_elemental", "zeus_blessed_golem"],
+      "capture_power_required": 38000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "gatherer"
+      },
+      "description": "The legendary quarry of Mount Olympus where gods mined materials for their divine weapons."
+    },
+
+    "akashic_records_5": {
+      "id": "akashic_records_5",
+      "name": "Akashic Records",
+      "type": "library",
+      "tier": 4,
+      "coord": {"q": -5, "r": 1},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "research_points": 130,
+        "ancient_scrolls": 60,
+        "knowledge_crystals": 50,
+        "forbidden_tomes": 30,
+        "arcane_codex": 15
+      },
+      "available_tasks": ["research", "scroll_crafting", "training", "skill_learning"],
+      "max_garrison": 5,
+      "max_workers": 5,
+      "base_defenders": ["record_keeper_god", "akashic_guardian", "cosmic_chronicler", "eternal_scholar_titan", "wisdom_seraph"],
+      "capture_power_required": 35000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "scholar"
+      },
+      "description": "The Akashic Records - the cosmic library containing the history of all souls and all knowledge."
+    },
+
+    "nirvana_temple_5": {
+      "id": "nirvana_temple_5",
+      "name": "Temple of Nirvana",
+      "type": "temple",
+      "tier": 4,
+      "coord": {"q": -5, "r": 0},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "divine_essence": 100,
+        "mana_crystals": 130,
+        "blessed_oil": 50,
+        "awakening_stones": 35,
+        "ascension_crystals": 20,
+        "godly_fragments": 8
+      },
+      "available_tasks": ["meditation", "blessing", "awakening_ritual", "divine_communion"],
+      "max_garrison": 5,
+      "max_workers": 5,
+      "base_defenders": ["buddha_avatar", "enlightened_guardian", "dharma_protector", "nirvana_dragon", "bodhisattva_champion"],
+      "capture_power_required": 40000,
+      "unlock_requirements": {
+        "player_level": 30,
+        "specialization_tier": 2,
+        "specialization_role": "support"
+      },
+      "description": "The sacred temple of Nirvana where enlightenment and divine ascension are achieved."
+    },
+
+    "realm_gate_5": {
+      "id": "realm_gate_5",
+      "name": "Interdimensional Realm Gate",
+      "type": "library",
+      "tier": 5,
+      "coord": {"q": -4, "r": -1},
+      "controller": "neutral",
+      "is_revealed": false,
+      "base_production": {
+        "dimensional_essence": 25,
+        "research_points": 160,
+        "ancient_scrolls": 90,
+        "forbidden_tomes": 50,
+        "reality_shards": 20
+      },
+      "available_tasks": ["research", "scroll_crafting", "training", "skill_learning"],
+      "max_garrison": 6,
+      "max_workers": 6,
+      "base_defenders": ["realm_guardian_god", "dimensional_titan", "void_scholar", "reality_warden", "cosmic_gatekeeper", "interdimensional_dragon"],
+      "capture_power_required": 56000,
+      "unlock_requirements": {
+        "player_level": 40,
+        "specialization_tier": 3,
+        "specialization_role": ""
+      },
+      "description": "A gate connecting all dimensions and realities. Knowledge from infinite worlds flows through here."
     }
   }
 }
