@@ -39,9 +39,9 @@ var selected_node: HexNode = null
 # Hex layout constants
 const HEX_WIDTH: float = 80.0  # Hex tile width
 const HEX_HEIGHT: float = 92.0  # Hex tile height
-const HEX_HORIZONTAL_SPACING: float = 75.0  # Horizontal distance between hex centers
-const HEX_VERTICAL_SPACING: float = 69.0  # Vertical distance between hex centers
-const HEX_VERTICAL_OFFSET: float = 34.5  # Vertical offset for odd columns
+const HEX_HORIZONTAL_SPACING: float = 90.0  # Horizontal distance between hex centers (increased to prevent overlap)
+const HEX_VERTICAL_SPACING: float = 80.0  # Vertical distance between hex centers (increased to prevent overlap)
+const HEX_VERTICAL_OFFSET: float = 40.0  # Vertical offset for odd columns
 
 # Zoom limits
 const MIN_ZOOM: float = 0.5
@@ -69,7 +69,7 @@ var scroll_container: ScrollContainer = null
 # ==============================================================================
 # PRELOADS
 # ==============================================================================
-const HexTileScript = preload("res://scripts/ui/territory/HexTile.gd")
+const HexTileScene = preload("res://scenes/HexTile.tscn")
 
 # ==============================================================================
 # INITIALIZATION
@@ -249,26 +249,26 @@ func _create_hex_tile(hex_node: HexNode) -> void:
 	# Calculate screen position
 	var screen_pos = _coord_to_screen_position(hex_node.coord)
 
-	# Create tile
-	var tile = HexTileScript.new()
+	# Create tile from scene
+	var tile = HexTileScene.instantiate()
 	tile.name = "Hex_%s" % hex_node.id
 	tile.position = screen_pos
+
+	# Add to grid FIRST so _ready() runs
+	grid_container.add_child(tile)
 
 	# Check if node is locked
 	var is_locked = false
 	if node_requirement_checker and not hex_node.is_controlled_by_player():
 		is_locked = not node_requirement_checker.can_player_capture_node(hex_node)
 
-	# Set node data
+	# Set node data AFTER adding to tree
 	tile.set_node(hex_node, is_locked)
 
 	# Connect signals
 	tile.hex_clicked.connect(_on_hex_clicked)
 	tile.hex_hovered.connect(_on_hex_hovered)
 	tile.hex_unhovered.connect(_on_hex_unhovered)
-
-	# Add to grid
-	grid_container.add_child(tile)
 
 	# Cache tile
 	var key = _coord_to_key(hex_node.coord)
