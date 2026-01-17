@@ -136,7 +136,7 @@ func _create_god_selection_button(god: God) -> Control:
 
 	# Create the god card with BATTLE_SELECTION preset
 	var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.BATTLE_SELECTION)
-	god_card.set_god(god)
+	god_card.setup_god_card(god)
 	card_container.add_child(god_card)
 
 	# Make the card clickable by adding a button overlay
@@ -194,7 +194,7 @@ func _update_slot_display(slot_index: int):
 	else:
 		# Use GodCardFactory to create a card
 		var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.COMPACT_LIST)
-		god_card.set_god(god)
+		god_card.setup_god_card(god)
 		god_display.add_child(god_card)
 
 func _on_start_battle_pressed():

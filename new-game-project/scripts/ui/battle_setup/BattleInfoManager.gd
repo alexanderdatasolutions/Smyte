@@ -206,7 +206,7 @@ func _show_hex_node_defenders(hex_node: HexNode):
 		if defender:
 			# Use GodCardFactory to create proper god cards with portraits
 			var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.COMPACT_LIST)
-			god_card.set_god(defender)
+			god_card.setup_god_card(defender)
 			enemy_preview_container.add_child(god_card)
 
 func _show_hex_node_rewards(hex_node: HexNode):
