@@ -499,12 +499,15 @@ func _on_capture_requested(hex_node: HexNode) -> void:
 
 	# Navigate to battle setup screen
 	if screen_manager:
-		var battle_setup_screen = screen_manager.change_screen("battle_setup")
-		if battle_setup_screen and battle_setup_screen.has_method("setup_for_hex_node_capture"):
-			battle_setup_screen.setup_for_hex_node_capture(hex_node)
-			# Connect to completion signal if not already connected
-			if not battle_setup_screen.battle_setup_complete.is_connected(_on_battle_setup_complete):
-				battle_setup_screen.battle_setup_complete.connect(_on_battle_setup_complete)
+		# Change to the screen
+		if screen_manager.change_screen("battle_setup"):
+			# Get the screen instance and configure it
+			var battle_setup_screen = screen_manager.get_current_screen()
+			if battle_setup_screen and battle_setup_screen.has_method("setup_for_hex_node_capture"):
+				battle_setup_screen.setup_for_hex_node_capture(hex_node)
+				# Connect to completion signal if not already connected
+				if not battle_setup_screen.battle_setup_complete.is_connected(_on_battle_setup_complete):
+					battle_setup_screen.battle_setup_complete.connect(_on_battle_setup_complete)
 
 func _on_manage_workers_requested(hex_node: HexNode) -> void:
 	"""Handle manage workers request - P6-02: Worker assignment UI"""

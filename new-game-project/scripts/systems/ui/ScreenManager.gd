@@ -40,6 +40,7 @@ func _register_screen_scenes():
 		"dungeon": "res://scenes/DungeonScreen.tscn",
 		"equipment": "res://scenes/EquipmentScreen.tscn",
 		"battle": "res://scenes/BattleScreen.tscn",
+		"battle_setup": "res://scenes/BattleSetupScreen.tscn",
 		"shop": "res://scenes/ShopScreen.tscn",
 		"specialization": "res://scenes/GodSpecializationScreen.tscn"
 	}
@@ -60,6 +61,7 @@ func _normalize_screen_name(screen_name: String) -> String:
 		"dungeonscreen": "dungeon",
 		"equipmentscreen": "equipment",
 		"battlescreen": "battle",
+		"battlesetupscreen": "battle_setup",
 		"shopscreen": "shop",
 		"specializationscreen": "specialization",
 		"godspecializationscreen": "specialization"
@@ -110,6 +112,18 @@ func go_back() -> bool:
 		return false
 
 	return change_screen(previous_screen)
+
+func get_current_screen() -> Control:
+	"""Get the currently active screen instance"""
+	return current_screen
+
+func get_screen(screen_name: String) -> Control:
+	"""Get a screen instance by name (loads if not cached)"""
+	var normalized_name = _normalize_screen_name(screen_name)
+	if not screen_scenes.has(normalized_name):
+		push_error("ScreenManager: Screen not found: %s" % screen_name)
+		return null
+	return _get_or_load_screen(normalized_name)
 
 func _get_or_load_screen(screen_name: String) -> Control:
 	"""Get cached screen or load it - RULE 2: Single responsibility"""
