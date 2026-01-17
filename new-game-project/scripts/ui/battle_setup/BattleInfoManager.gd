@@ -208,11 +208,18 @@ func _show_hex_node_defenders(hex_node: HexNode):
 func _show_hex_node_rewards(hex_node: HexNode):
 	_clear_rewards()
 
-	# Show rewards based on node tier and resource type
-	var base_reward = hex_node.tier * 10
-	var rewards = {
-		hex_node.resource_type: base_reward
-	}
+	# Show rewards based on node's base production
+	var rewards = {}
+
+	# If node has base production, show those resources
+	if hex_node.base_production and not hex_node.base_production.is_empty():
+		for resource_id in hex_node.base_production:
+			var amount = hex_node.base_production[resource_id]
+			rewards[resource_id] = amount
+	else:
+		# Default rewards based on tier if no production defined
+		rewards["gold"] = hex_node.tier * 10
+		rewards["xp"] = hex_node.tier * 50
 
 	_display_rewards(rewards)
 
