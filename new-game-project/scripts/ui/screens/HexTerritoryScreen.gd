@@ -434,6 +434,7 @@ func _connect_signals() -> void:
 		territory_overview_screen.back_pressed.connect(_on_territory_overview_back)
 		territory_overview_screen.manage_node_requested.connect(_on_overview_manage_node)
 		territory_overview_screen.slot_tapped.connect(_on_overview_slot_tapped)
+		territory_overview_screen.filled_slot_tapped.connect(_on_overview_filled_slot_tapped)
 
 	# Node detail screen signals
 	if node_detail_screen:
@@ -690,6 +691,96 @@ func _on_overview_slot_tapped(node: HexNode, slot_type: String, slot_index: int)
 		god_selection_panel.show_for_garrison(excluded_ids)
 	else:
 		god_selection_panel.show_for_worker(excluded_ids)
+
+func _on_overview_filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
+	"""Handle filled slot tap - show confirmation popup to remove god"""
+	if not node or not god:
+		return
+
+	print("HexTerritoryScreen: Filled slot tapped - node: %s, type: %s, god: %s" % [node.id, slot_type, god.name])
+
+	# Show confirmation popup
+	_show_remove_god_confirmation(node, slot_type, slot_index, god)
+
+func _show_remove_god_confirmation(node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
+	"""Show confirmation popup for removing a god from a slot"""
+	var role_text = "garrison" if slot_type == "garrison" else "worker slot"
+	var dialog = ConfirmationDialog.new()
+	dialog.title = "Remove God"
+	dialog.dialog_text = "Remove %s from %s?\n\nNode: %s" % [god.name, role_text, node.name]
+	dialog.ok_button_text = "Remove"
+	dialog.cancel_button_text = "Cancel"
+
+	# Style the dialog
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.12, 0.1, 0.15, 0.98)
+	panel_style.border_color = Color(0.8, 0.4, 0.3)
+	panel_style.set_border_width_all(2)
+	panel_style.set_corner_radius_all(8)
+	dialog.add_theme_stylebox_override("panel", panel_style)
+
+	# Add to main container
+	main_container.add_child(dialog)
+
+	# Center and show
+	dialog.popup_centered(Vector2(320, 180))
+
+	# Connect signals
+	dialog.confirmed.connect(_on_remove_god_confirmed.bind(node, slot_type, slot_index, god.id))
+	dialog.confirmed.connect(func(): dialog.queue_free())
+	dialog.canceled.connect(func(): dialog.queue_free())
+
+func _on_remove_god_confirmed(node: HexNode, slot_type: String, _slot_index: int, god_id: String) -> void:
+	"""Handle confirmed god removal from slot"""
+	print("HexTerritoryScreen: Removing %s from %s of %s" % [god_id, slot_type, node.id])
+
+	var success = false
+	if slot_type == "garrison":
+		success = _remove_god_from_garrison(node, god_id)
+	else:
+		success = _remove_god_from_workers(node, god_id)
+
+	if success:
+		# Refresh TerritoryOverviewScreen to show updated slots
+		if territory_overview_screen and territory_overview_screen.visible:
+			territory_overview_screen._refresh_display()
+		refresh()
+
+func _remove_god_from_garrison(node: HexNode, god_id: String) -> bool:
+	"""Remove a god from the node's garrison"""
+	if not territory_manager:
+		push_error("HexTerritoryScreen: TerritoryManager not available")
+		return false
+
+	# Remove god from garrison
+	var new_garrison: Array = []
+	for id in node.garrison:
+		if id != god_id:
+			new_garrison.append(id)
+
+	# Update via TerritoryManager
+	var success = territory_manager.update_node_garrison(node.id, new_garrison)
+	if success:
+		print("HexTerritoryScreen: Removed %s from garrison of %s" % [god_id, node.id])
+	return success
+
+func _remove_god_from_workers(node: HexNode, god_id: String) -> bool:
+	"""Remove a god from the node's workers"""
+	if not territory_manager:
+		push_error("HexTerritoryScreen: TerritoryManager not available")
+		return false
+
+	# Remove god from workers
+	var new_workers: Array = []
+	for id in node.assigned_workers:
+		if id != god_id:
+			new_workers.append(id)
+
+	# Update via TerritoryManager
+	var success = territory_manager.update_node_workers(node.id, new_workers)
+	if success:
+		print("HexTerritoryScreen: Removed %s from workers of %s" % [god_id, node.id])
+	return success
 
 func _on_god_selection_panel_selected(god: God) -> void:
 	"""Handle god selection from GodSelectionPanel - assigns god to pending slot"""

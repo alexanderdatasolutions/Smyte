@@ -17,6 +17,7 @@ Note: Worker assignments are managed at the territory level, not per-node.
 signal back_pressed()
 signal manage_node_requested(node: HexNode)
 signal slot_tapped(node: HexNode, slot_type: String, slot_index: int)  # "garrison" or "worker"
+signal filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God)  # For removal
 
 # Constants for slot display
 const SLOT_SIZE = 60  # 60x60px tap target (min requirement)
@@ -360,7 +361,8 @@ func _create_filled_slot(node: HexNode, slot_type: String, slot_index: int, god:
 		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		slot.add_child(lbl)
-	_add_slot_button(slot, node, slot_type, slot_index)
+	# Use filled slot handler for filled slots
+	_add_filled_slot_button(slot, node, slot_type, slot_index, god)
 	return slot
 
 func _create_slot_style(border_color: Color, border_width: int) -> StyleBoxFlat:
@@ -373,11 +375,19 @@ func _create_slot_style(border_color: Color, border_width: int) -> StyleBoxFlat:
 	return style
 
 func _add_slot_button(slot: Panel, node: HexNode, slot_type: String, slot_index: int) -> void:
-	"""Add tappable button overlay to slot"""
+	"""Add tappable button overlay to empty slot"""
 	var button = Button.new()
 	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	button.flat = true
 	button.pressed.connect(_on_slot_tapped.bind(node, slot_type, slot_index))
+	slot.add_child(button)
+
+func _add_filled_slot_button(slot: Panel, node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
+	"""Add tappable button overlay to filled slot (emits different signal)"""
+	var button = Button.new()
+	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	button.flat = true
+	button.pressed.connect(_on_filled_slot_tapped.bind(node, slot_type, slot_index, god))
 	slot.add_child(button)
 
 func _create_god_portrait(god: God) -> TextureRect:
@@ -404,9 +414,14 @@ func _get_god_by_id(god_id: String) -> God:
 	return collection_manager.get_god_by_id(god_id)
 
 func _on_slot_tapped(node: HexNode, slot_type: String, slot_index: int) -> void:
-	"""Handle slot tap - emit signal for parent to handle"""
-	print("TerritoryOverviewScreen: Slot tapped - node: %s, type: %s, index: %d" % [node.id, slot_type, slot_index])
+	"""Handle empty slot tap - emit signal for parent to open god selection"""
+	print("TerritoryOverviewScreen: Empty slot tapped - node: %s, type: %s, index: %d" % [node.id, slot_type, slot_index])
 	slot_tapped.emit(node, slot_type, slot_index)
+
+func _on_filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
+	"""Handle filled slot tap - emit signal for parent to show remove confirmation"""
+	print("TerritoryOverviewScreen: Filled slot tapped - node: %s, type: %s, index: %d, god: %s" % [node.id, slot_type, slot_index, god.name if god else "null"])
+	filled_slot_tapped.emit(node, slot_type, slot_index, god)
 
 func _on_type_filter_changed(index: int):
 	"""Handle type filter change"""

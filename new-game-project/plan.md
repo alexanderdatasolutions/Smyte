@@ -1,22 +1,23 @@
-# Node Detail Screen Overhaul - Implementation Plan
+# God Selection Panel Integration - Implementation Plan
 
 ## Overview
-Create a mobile-friendly node management interface that clearly shows garrison, workers, tasks, and god selection.
+Create a left-sliding god selection panel that opens when you tap worker/garrison slots in the territory overview screen.
 
 **Reference:** docs/CLAUDE.md, docs/COMMON_ISSUES.md
 
-### Current Issues
-- WorkerAssignmentPanel uses per-node worker data that doesn't exist
-- TaskAssignmentManager works at TERRITORY level, not per-node
-- No visibility into garrison combat power
-- No clear indication of worker slots and their current tasks
-- God selection is cumbersome for mobile
+## Current State
+- ✅ TerritoryOverviewScreen has visual slot boxes (garrison + worker)
+- ✅ GodSelectionGrid component exists for showing god portraits
+- ✅ NodeDetailScreen exists separately
+- ❌ No connection between slot taps and god selection
+- ❌ No left-sliding panel for god selection
 
-### New Approach
-**NodeDetailScreen** will show:
-1. **Garrison Section** - Assigned combat gods and total combat power
-2. **Worker Section** - Open slots, assigned workers, current tasks, output rates
-3. **Mobile God Selection** - Grid of god portraits organized by affinity color
+## Goal
+**Simple UX Flow:**
+1. Tap hex tile → TerritoryOverviewScreen slides in from RIGHT (already works)
+2. Tap empty slot (+) → GodSelectionPanel slides in from LEFT
+3. Select god → Panel closes, slot updates with portrait
+4. Tap filled slot → Option to remove god OR open GodSelectionPanel to replace
 
 ---
 
@@ -26,200 +27,83 @@ Create a mobile-friendly node management interface that clearly shows garrison, 
 [
   {
     "category": "component",
-    "description": "Create GodSelectionGrid component for mobile-friendly god selection",
+    "description": "Create GodSelectionPanel as left-sliding overlay",
     "steps": [
-      "Create scripts/ui/territory/GodSelectionGrid.gd",
-      "Build grid layout (5-6 gods per row, 80x100px cards)",
-      "Show portrait, name, level, affinity color border",
-      "Add filter for available/assigned gods",
-      "Emit god_selected(god: God) signal on tap",
-      "Make scrollable for many gods"
+      "Create scripts/ui/territory/GodSelectionPanel.gd",
+      "Extend Control with _setup_fullscreen() for sizing",
+      "Position at LEFT of screen (x offset starts at -viewport_width)",
+      "Add dark semi-transparent background",
+      "Add header: title 'Select God' + close button (60x60px)",
+      "Include GodSelectionGrid component in scrollable area",
+      "Add bottom bar with 'Cancel' button",
+      "Emit god_selected(god: God) and cancelled() signals",
+      "NOTE: Panel can take up MORE screen width if needed - make it big!"
     ],
     "passes": true
   },
   {
-    "category": "component",
-    "description": "Create GarrisonDisplay component showing combat power",
+    "category": "animation",
+    "description": "Add slide-in/slide-out animations to GodSelectionPanel",
     "steps": [
-      "Create scripts/ui/territory/GarrisonDisplay.gd",
-      "Display garrison gods horizontally (small cards)",
-      "Show total combat power (sum of god combat stats)",
-      "Add 'Set Garrison' button to open god selection",
-      "Show 'Empty Garrison' state when none assigned",
-      "Each card shows: portrait, level, combat power"
-    ],
-    "passes": true
-  },
-  {
-    "category": "component",
-    "description": "Create WorkerSlotDisplay component for worker management",
-    "steps": [
-      "Create scripts/ui/territory/WorkerSlotDisplay.gd",
-      "Show slots based on node tier (tier = max slots)",
-      "Empty slots: show '+' icon (60x60px tap target)",
-      "Filled slots: show god portrait, task name, output rate",
-      "Tapping empty slot opens god selection",
-      "Tapping filled slot shows option to unassign"
-    ],
-    "passes": true
-  },
-  {
-    "category": "system",
-    "description": "Create NodeTaskCalculator system for output calculations",
-    "steps": [
-      "Create scripts/systems/territory/NodeTaskCalculator.gd",
-      "Implement get_task_for_node(node: HexNode) -> task name",
-      "Implement calculate_output_rate(node: HexNode, god: God) -> rate/hour",
-      "Mine nodes: ore per hour, Forest: wood, Coast: fish",
-      "Output scales: node tier × worker god level × affinity bonus",
-      "Affinity bonus: matching affinity = 1.5x output",
-      "Register in SystemRegistry Phase 3"
-    ],
-    "passes": true
-  },
-  {
-    "category": "data",
-    "description": "Add garrison fields to HexNode data model",
-    "steps": [
-      "Add garrison_god_ids: Array[String] = [] to HexNode.gd",
-      "Implement get_garrison_combat_power() -> int method",
-      "Sum combat power of assigned garrison gods",
-      "Add garrison to save/load serialization",
-      "Write unit test for garrison save/load"
-    ],
-    "passes": true
-  },
-  {
-    "category": "screen",
-    "description": "Create NodeDetailScreen with garrison and worker sections",
-    "steps": [
-      "Create scripts/ui/screens/NodeDetailScreen.gd",
-      "Build fullscreen overlay with dark background",
-      "Header: node name, type icon, tier, close button",
-      "Add GarrisonSection (uses GarrisonDisplay)",
-      "Add WorkerSection (uses WorkerSlotDisplay)",
-      "Make scrollable if content exceeds screen",
-      "Implement _setup_fullscreen() for Control sizing"
+      "Create show_panel() method with Tween animation",
+      "Slide from x = -viewport_width to x = 0 (0.3s ease out)",
+      "Create hide_panel() method with Tween animation",
+      "Slide from x = 0 to x = -viewport_width (0.2s ease in)",
+      "Set visible = false after slide-out completes",
+      "Add modulate fade for smooth appearance"
     ],
     "passes": true
   },
   {
     "category": "integration",
-    "description": "Integrate NodeDetailScreen into HexTerritoryScreen",
+    "description": "Wire GodSelectionPanel to TerritoryOverviewScreen slot taps",
     "steps": [
-      "Create NodeDetailScreen instance in HexTerritoryScreen",
-      "Connect hex tile click to open NodeDetailScreen (replace old panel)",
-      "Pass selected HexNode to detail screen",
-      "Handle close signal to return to hex map",
-      "Remove or disable old WorkerAssignmentPanel"
+      "Find HexTerritoryScreen.gd (the parent that contains TerritoryOverviewScreen)",
+      "Create GodSelectionPanel instance in HexTerritoryScreen",
+      "Connect TerritoryOverviewScreen.slot_tapped signal",
+      "On slot_tapped: call GodSelectionPanel.show_panel(node, slot_type, slot_index)",
+      "Pass excluded god IDs (gods already in garrison/workers)",
+      "On god_selected: update node.garrison or node.assigned_workers array",
+      "Call TerritoryOverviewScreen._refresh_display() to update slot visuals",
+      "On cancelled: just hide panel"
     ],
     "passes": true
   },
   {
     "category": "feature",
-    "description": "Add god affinity color coding to selection grid",
+    "description": "Add remove god functionality for filled slots",
     "steps": [
-      "Update GodSelectionGrid to show colored borders",
-      "Color mapping: Fire=Red, Water=Blue, Earth=Brown, Air=LightBlue, Light=Gold, Dark=Purple",
-      "Use God.affinity field for color lookup",
-      "Display affinity icon or color indicator",
-      "Ensure colors are visible without text labels"
+      "When filled slot is tapped, show confirmation 'Remove [God Name]?' popup",
+      "Create simple popup with 'Remove' and 'Cancel' buttons",
+      "On Remove: remove god_id from node.garrison or node.assigned_workers",
+      "Refresh TerritoryOverviewScreen display",
+      "Alternative: filled slot tap could also open GodSelectionPanel to replace"
     ],
     "passes": true
   },
   {
-    "category": "feature",
-    "description": "Display task output rates in worker slots",
+    "category": "data",
+    "description": "Fix garrison and worker persistence in HexNode save/load",
     "steps": [
-      "Update WorkerSlotDisplay to show output per hour",
-      "Display format: 'Mining: +12 ore/hr' or 'Empty Slot'",
-      "Use NodeTaskCalculator to compute rates",
-      "Show affinity bonus indicator (star icon if active)",
-      "Update display when god assignment changes"
+      "Check HexNode.gd - verify garrison field exists",
+      "Check HexNode.gd - verify assigned_workers field exists",
+      "Check HexNode.to_dict() includes both arrays",
+      "Check HexNode constructor loads both from dict",
+      "Test: assign gods to node, save game, reload, verify they persist",
+      "If missing, add to save/load serialization"
     ],
     "passes": true
   },
   {
     "category": "polish",
-    "description": "Mobile UX polish and testing",
+    "description": "Mobile UX improvements and testing",
     "steps": [
-      "Ensure all tap targets are 60x60px minimum",
-      "Add smooth transitions (fade in/out for detail screen)",
-      "Add loading states for god selection grid",
-      "Add error handling for missing gods/data",
-      "Test complete flow: map → detail → garrison → workers → map",
-      "Take screenshots of each major screen state"
-    ],
-    "passes": true
-  },
-  {
-    "category": "component",
-    "description": "Create GodSelectionPanel - left-sliding overlay for god selection",
-    "steps": [
-      "Create scripts/ui/territory/GodSelectionPanel.gd",
-      "Extend Control, use _setup_fullscreen() like TerritoryOverviewScreen",
-      "Position panel to slide in from LEFT (TerritoryOverviewScreen is RIGHT)",
-      "Include GodSelectionGrid component for god display",
-      "Add filters: All/Worker/Garrison, Affinity filters",
-      "Add close button and back gesture support",
-      "Emit god_selected(god: God) signal on selection",
-      "Add slide-in/slide-out animation (Tween)"
-    ],
-    "passes": true
-  },
-  {
-    "category": "refactor",
-    "description": "Add garrison and worker slot boxes directly to TerritoryOverviewScreen node cards",
-    "steps": [
-      "Remove 'View Details' button from node cards (NodeDetailScreen is obsolete)",
-      "Add Garrison section to each node card with visual slot boxes",
-      "Add Worker section to each node card with visual slot boxes",
-      "Empty slots: show gray Panel with '+' icon (60x60px tap target)",
-      "Filled slots: show god portrait thumbnail Panel (60x60px)",
-      "Slot count: garrison = 4 slots, workers = node.tier slots",
-      "Each slot emits slot_tapped(node, slot_type, slot_index) when clicked",
-      "Make node cards taller/scrollable to fit all content"
-    ],
-    "passes": true
-  },
-  {
-    "category": "integration",
-    "description": "Connect TerritoryOverviewScreen slots to open GodSelectionPanel",
-    "steps": [
-      "Create GodSelectionPanel instance in HexTerritoryScreen (left-side)",
-      "Keep TerritoryOverviewScreen on right with inline slot boxes (already implemented)",
-      "Connect TerritoryOverviewScreen.slot_tapped signal to HexTerritoryScreen",
-      "When slot tapped, show GodSelectionPanel with slide-in animation from LEFT",
-      "Pass context: which node, slot type (worker/garrison), slot_index",
-      "When god selected from GodSelectionPanel, assign to node data",
-      "Refresh TerritoryOverviewScreen to show updated god portraits in slots",
-      "Close GodSelectionPanel with slide-out animation to left",
-      "Keep NodeDetailScreen separate - it's accessed via different flow"
-    ],
-    "passes": true
-  },
-  {
-    "category": "data",
-    "description": "Fix worker and garrison persistence in HexNode",
-    "steps": [
-      "Verify garrison_god_ids is in HexNode save/load (should already exist)",
-      "Add worker_god_ids: Array[String] to HexNode.gd",
-      "Update HexNode.to_dict() to include worker_god_ids",
-      "Update HexNode constructor to load worker_god_ids from dict",
-      "Update TerritoryManager save/load to persist node assignments",
-      "Write unit test to verify worker/garrison save/load"
-    ],
-    "passes": true
-  },
-  {
-    "category": "feature",
-    "description": "Optional: Show enemy garrison before node capture",
-    "steps": [
-      "Add enemy_garrison_god_ids: Array[String] to HexNode.gd",
-      "When node is enemy-controlled, show locked garrison slots",
-      "Display enemy garrison as red-bordered god portraits (no remove option)",
-      "On capture, clear enemy_garrison_god_ids",
-      "This gives player intel on node difficulty before attacking"
+      "Ensure GodSelectionPanel close button is 60x60px minimum",
+      "Test on mobile: tap slot → panel slides in smoothly",
+      "Test: select god → panel closes, slot shows portrait",
+      "Test: tap filled slot → can remove god",
+      "Test: god portraits load correctly with element colors",
+      "Add loading state while CollectionManager fetches gods"
     ],
     "passes": false
   }
@@ -230,36 +114,64 @@ Create a mobile-friendly node management interface that clearly shows garrison, 
 
 ## Agent Instructions
 
-1. Read `activity.md` first to understand current state
+1. Read `activity.md` to see current state
 2. Find next task with `"passes": false`
-3. Complete all steps for that task
-4. Use Godot MCP tools to verify changes:
-   - mcp__godot__run_project to run the game
-   - mcp__godot__game_navigate to hex territory screen
-   - mcp__godot__game_screenshot to capture screenshots/node-detail-[task].png
-   - mcp__godot__game_get_ui_tree to inspect UI structure
-   - mcp__godot__get_debug_output to check for errors
-5. Update task to `"passes": true`
-6. Log completion in `activity.md`
-7. Make one git commit for that task
+3. Complete all steps in that task
+4. Test using Godot MCP tools:
+   - `mcp__godot__run_project` to launch game
+   - `mcp__godot__game_navigate` to get to hex territory screen
+   - `mcp__godot__game_click` to test tapping slots
+   - `mcp__godot__game_screenshot` to capture state
+   - `mcp__godot__get_debug_output` to check for errors
+5. Mark task `"passes": true`
+6. Log in `activity.md`
+7. Make git commit
 8. Repeat until all tasks pass
 
-**Important:**
+**Critical Rules:**
 - Only modify the `passes` field in tasks
-- Do not remove or rewrite tasks
-- Follow CLAUDE.md architecture rules strictly
-- Use GodCardFactory for god portraits
+- Do NOT remove or rewrite task content
+- Follow CLAUDE.md architecture strictly
 - Use SystemRegistry for all system access
-- Keep UI components under 500 lines
-- Ensure all Control nodes have _setup_fullscreen() (see COMMON_ISSUES.md)
-- Do NOT use per-node worker APIs (TaskAssignmentManager is territory-level)
+- Keep files under 500 lines
+- All Control nodes need `_setup_fullscreen()` if child of Node2D
+- TerritoryOverviewScreen already has slot_tapped signal - just connect to it
 
-**Architecture Notes:**
-- Garrison is per-node (for combat defense)
-- Workers are territory-level (but show which can help this node)
-- Tasks/output are node-specific based on type and tier
+**File Locations:**
+- TerritoryOverviewScreen: `scripts/ui/territory/TerritoryOverviewScreen.gd`
+- GodSelectionGrid: `scripts/ui/territory/GodSelectionGrid.gd` (already exists)
+- HexTerritoryScreen: Find with grep - it's the parent screen
+- HexNode data: `scripts/data/HexNode.gd`
+
+---
+
+## Architecture Notes
+
+**TerritoryOverviewScreen** (RIGHT panel):
+- Shows all owned nodes
+- Each node card has garrison slots (4) + worker slots (tier-based)
+- Emits `slot_tapped(node, slot_type, slot_index)` signal
+
+**GodSelectionPanel** (LEFT panel):
+- Slides in when slot tapped
+- Shows GodSelectionGrid with available gods
+- Filters out gods already assigned
+- Emits `god_selected(god)` or `cancelled()`
+
+**HexTerritoryScreen** (orchestrator):
+- Contains both panels
+- Listens to slot_tapped
+- Updates node data when god selected
+- Refreshes TerritoryOverviewScreen display
+
+**Data Flow:**
+1. User taps slot → TerritoryOverviewScreen emits slot_tapped
+2. HexTerritoryScreen shows GodSelectionPanel
+3. User selects god → GodSelectionPanel emits god_selected
+4. HexTerritoryScreen updates node.garrison or node.assigned_workers
+5. HexTerritoryScreen calls TerritoryOverviewScreen._refresh_display()
 
 ---
 
 ## Completion Criteria
-All tasks marked with `"passes": true`, then output `<promise>COMPLETE</promise>`
+All tasks marked `"passes": true`, then output `<promise>COMPLETE</promise>`

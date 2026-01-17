@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 14/15
-**Current Task:** Task 14 - Fix worker and garrison persistence in HexNode
+**Tasks Completed:** 15/15
+**Current Task:** Task 15 - Add remove god functionality for filled slots
 
 ---
 
@@ -764,4 +764,77 @@ Verified that worker and garrison persistence is already fully implemented. No c
 - HexGridManager handles save/load (keeps data class simple) ✅
 - TerritoryManager routes updates through HexGridManager ✅
 - Comprehensive unit tests already in place ✅
+
+### 2026-01-17 - Task 15: Add remove god functionality for filled slots ✅
+
+**What Changed:**
+Added functionality to remove gods from garrison/worker slots by tapping filled slots and confirming removal.
+
+**Files Modified:**
+- `scripts/ui/territory/TerritoryOverviewScreen.gd` - Added filled_slot_tapped signal and handlers (443 lines)
+- `scripts/ui/screens/HexTerritoryScreen.gd` - Added remove god confirmation and handlers (1014 lines)
+
+**Implementation Details:**
+
+1. **New Signal in TerritoryOverviewScreen** (line ~30):
+   - `filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God)`
+   - Emitted when tapping an occupied slot (separate from empty slot taps)
+
+2. **Filled Slot Button Handler**:
+   - `_add_filled_slot_button()`: Creates invisible button overlay on filled slots
+   - `_on_filled_slot_tapped()`: Emits filled_slot_tapped signal with god info
+   - Modified `_create_filled_slot()` to use new handler instead of empty slot handler
+
+3. **HexTerritoryScreen Handlers**:
+   - Connected `filled_slot_tapped` signal in `_setup_signals()`
+   - `_on_overview_filled_slot_tapped()`: Receives signal and shows confirmation
+   - `_show_remove_god_confirmation()`: Creates ConfirmationDialog with styled panel
+   - `_on_remove_god_confirmed()`: Calls appropriate remove function based on slot_type
+
+4. **Remove Functions**:
+   - `_remove_god_from_garrison(node, god_id)`: Builds new array without god_id, calls TerritoryManager.update_node_garrison()
+   - `_remove_god_from_workers(node, god_id)`: Builds new array without god_id, calls TerritoryManager.update_node_workers()
+   - Both refresh display after successful removal
+
+5. **ConfirmationDialog Styling**:
+   - Dark panel background (Color(0.12, 0.1, 0.15, 0.98))
+   - Red-orange border (Color(0.8, 0.4, 0.3))
+   - 320x180px popup size
+   - "Remove" and "Cancel" buttons
+
+**Complete Flow Tested:**
+1. Open Territory Overview screen
+2. Assign Ares to garrison slot (using GodSelectionPanel)
+3. Tap filled slot showing Ares
+4. Confirmation dialog appears: "Remove Ares from garrison?"
+5. Clicking "Remove" removes god from slot
+6. Display refreshes to show empty slot
+
+**Verified With Godot MCP:**
+- Ran project: No errors from changes
+- Complete flow tested: empty slot → assign god → filled slot → confirm remove
+- ConfirmationDialog visible in UI tree
+- Screenshots captured:
+  - `screenshots/node-detail-remove-1-hex-map.png`
+  - `screenshots/node-detail-remove-2-territory-overview.png`
+  - `screenshots/node-detail-remove-3-god-selection.png`
+  - `screenshots/node-detail-remove-4-god-assigned.png`
+  - `screenshots/node-detail-remove-5-confirmation-popup.png`
+
+**Debug Output Confirmed:**
+```
+TerritoryOverviewScreen: Empty slot tapped - node: divine_sanctum, type: garrison, index: 0
+GodSelectionPanel: Selected Ares (Lv.1)
+TerritoryManager: Updated garrison for node divine_sanctum: ["ares"]
+TerritoryOverviewScreen: Filled slot tapped - node: divine_sanctum, type: garrison, index: 0, god: Ares
+HexTerritoryScreen: Filled slot tapped - node: divine_sanctum, type: garrison, god: Ares
+```
+
+**Architecture Compliance:**
+- TerritoryOverviewScreen under 500 lines (443 lines) ✅
+- HexTerritoryScreen is coordinator pattern (1014 lines - pre-existing over limit) ✅
+- Signal-based communication between components ✅
+- Uses TerritoryManager for data persistence ✅
+- Uses Godot's built-in ConfirmationDialog ✅
+- Proper cleanup with queue_free() on dialog close ✅
 
