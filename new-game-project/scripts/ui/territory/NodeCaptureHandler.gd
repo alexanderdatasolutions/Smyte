@@ -124,13 +124,12 @@ func _get_player_battle_team() -> Array:
 	var all_gods = collection_manager.get_all_gods()
 	var battle_team = []
 
-	for god_data in all_gods:
+	for god in all_gods:
 		# Filter out gods in garrison or working
-		var god_id = god_data.get("id", "")
-		if not _is_god_available_for_battle(god_id):
+		if not _is_god_available_for_battle(god.id):
 			continue
 
-		battle_team.append(god_data)
+		battle_team.append(god)
 		if battle_team.size() >= 4:
 			break
 

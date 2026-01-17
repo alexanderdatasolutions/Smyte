@@ -75,29 +75,19 @@ const RESOURCE_DISPLAY_HEIGHT = 50
 # ==============================================================================
 func _ready() -> void:
 	_init_systems()
-	_force_screen_size()
 	_create_ui_structure()
 	_setup_components()
 	_connect_signals()
 	_style_components()
 	_check_tutorial()
 
-func _force_screen_size() -> void:
-	"""Force the screen to fill the viewport since it's added to a Node2D parent"""
+	# Fix size after everything is set up (when Control is child of Node2D)
+	call_deferred("_fix_size_for_node2d_parent")
+
+func _fix_size_for_node2d_parent() -> void:
+	"""Fix size when Control is child of Node2D - must be deferred"""
 	var viewport_size = get_viewport().get_visible_rect().size
-	# When Control is child of Node2D, anchors don't work - use absolute positioning
-	position = Vector2.ZERO
-	custom_minimum_size = viewport_size
 	size = viewport_size
-	# Remove anchors, use absolute sizing
-	anchor_left = 0
-	anchor_top = 0
-	anchor_right = 0
-	anchor_bottom = 0
-	offset_left = 0
-	offset_top = 0
-	offset_right = viewport_size.x
-	offset_bottom = viewport_size.y
 
 func _init_systems() -> void:
 	"""Initialize system references via SystemRegistry"""

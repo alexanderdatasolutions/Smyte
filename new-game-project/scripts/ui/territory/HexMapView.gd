@@ -102,6 +102,16 @@ func _setup_ui() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	clip_contents = true
 
+	# Add a lighter background panel for contrast
+	var bg_panel = Panel.new()
+	bg_panel.name = "MapBackground"
+	bg_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var bg_style = StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.15, 0.15, 0.2, 0.5)  # Semi-transparent lighter background
+	bg_panel.add_theme_stylebox_override("panel", bg_style)
+	add_child(bg_panel)
+
 	# Create scroll container
 	scroll_container = ScrollContainer.new()
 	scroll_container.name = "ScrollContainer"
@@ -149,7 +159,8 @@ func center_on_coord(coord: HexCoord, animated: bool = true) -> void:
 
 	var screen_pos = _coord_to_screen_position(coord)
 	var viewport_center = size / 2.0
-	var target_offset = viewport_center - screen_pos * zoom_level
+	# Fixed: Don't multiply screen_pos by zoom since it's already in grid space
+	var target_offset = viewport_center - screen_pos
 
 	if animated:
 		_animate_camera_to(target_offset)

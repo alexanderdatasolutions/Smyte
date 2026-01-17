@@ -37,6 +37,7 @@ var _tier_label: Label = null
 var _garrison_indicator: Panel = null
 var _state_overlay: Panel = null
 var _tier_glow: Panel = null
+var _lock_indicator: Label = null
 
 # Animation
 var _glow_tween: Tween = null
@@ -47,12 +48,12 @@ var _glow_tween: Tween = null
 const HEX_SIZE = Vector2(80, 92)  # Width x Height for hex tile
 const ICON_SIZE = Vector2(40, 40)
 
-# State colors
-const COLOR_NEUTRAL = Color(0.3, 0.3, 0.35, 0.9)  # Gray
-const COLOR_CONTROLLED = Color(0.2, 0.5, 0.3, 0.9)  # Green
-const COLOR_ENEMY = Color(0.5, 0.2, 0.2, 0.9)  # Red
-const COLOR_CONTESTED = Color(0.6, 0.5, 0.2, 0.9)  # Yellow
-const COLOR_LOCKED = Color(0.15, 0.15, 0.15, 0.7)  # Dark gray
+# State colors - VERY BRIGHT for visibility
+const COLOR_NEUTRAL = Color(0.75, 0.75, 0.8, 1.0)  # Bright gray (capturable)
+const COLOR_CONTROLLED = Color(0.3, 0.85, 0.4, 1.0)  # Bright player green (owned)
+const COLOR_ENEMY = Color(0.9, 0.35, 0.35, 1.0)  # Bright enemy red
+const COLOR_CONTESTED = Color(0.95, 0.8, 0.3, 1.0)  # Bright contested gold
+const COLOR_LOCKED = Color(0.35, 0.25, 0.35, 0.95)  # Locked purple (cannot capture)
 
 # Tier colors (for borders and stars)
 const TIER_COLORS = {
@@ -65,13 +66,14 @@ const TIER_COLORS = {
 
 # Node type icons (emoji for MVP, can replace with assets later)
 const NODE_TYPE_ICONS = {
+	"base": "🏛️",
 	"mine": "⛏️",
 	"forest": "🌲",
 	"coast": "🌊",
 	"hunting_ground": "🦌",
 	"forge": "🔨",
 	"library": "📚",
-	"temple": "🏛️",
+	"temple": "⛪",
 	"fortress": "🏰"
 }
 
@@ -139,6 +141,18 @@ func _build_visual_components() -> void:
 	_tier_glow.z_index = -1  # Behind background
 	add_child(_tier_glow)
 
+	# Lock indicator (shown on locked nodes)
+	_lock_indicator = Label.new()
+	_lock_indicator.text = "🔒"
+	_lock_indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_lock_indicator.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	_lock_indicator.add_theme_font_size_override("font_size", 20)
+	_lock_indicator.position = Vector2(HEX_SIZE.x - 24, 2)
+	_lock_indicator.custom_minimum_size = Vector2(20, 20)
+	_lock_indicator.visible = false
+	_lock_indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_lock_indicator)
+
 # ==============================================================================
 # PUBLIC METHODS
 # ==============================================================================
@@ -171,6 +185,7 @@ func _update_visuals() -> void:
 	_update_tier_stars()
 	_update_garrison_indicator()
 	_update_tier_glow()
+	_update_lock_indicator()
 
 func _update_background() -> void:
 	"""Update background color based on node state"""
@@ -197,13 +212,19 @@ func _update_background() -> void:
 	style.corner_radius_bottom_left = 8
 	style.corner_radius_bottom_right = 8
 
-	# Border color based on tier
-	var tier_color = TIER_COLORS.get(node_data.tier, Color.WHITE)
-	style.border_width_left = 2
-	style.border_width_right = 2
-	style.border_width_top = 2
-	style.border_width_bottom = 2
-	style.border_color = tier_color
+	# Border - RED for locked nodes, tier color for others
+	style.border_width_left = 4
+	style.border_width_right = 4
+	style.border_width_top = 4
+	style.border_width_bottom = 4
+
+	if is_locked:
+		# RED border = cannot capture
+		style.border_color = Color(0.9, 0.2, 0.2, 1.0)
+	else:
+		# Tier-based border color for capturable/owned nodes
+		var tier_color = TIER_COLORS.get(node_data.tier, Color.WHITE)
+		style.border_color = tier_color.lightened(0.2)
 
 	# Apply style
 	if _background_panel:
@@ -379,6 +400,14 @@ func _update_tier_glow() -> void:
 		_tier_glow.visible = false
 		if _glow_tween and _glow_tween.is_running():
 			_glow_tween.kill()
+
+func _update_lock_indicator() -> void:
+	"""Update lock indicator visibility based on locked state"""
+	if not _lock_indicator:
+		return
+
+	# Show lock icon on locked nodes
+	_lock_indicator.visible = is_locked
 
 func _animate_tier_glow(tier_color: Color) -> void:
 	"""Animate tier glow with pulsing effect"""
