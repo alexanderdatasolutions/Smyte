@@ -12,6 +12,7 @@ var equipment_config: Dictionary = {}
 var resources_config: Dictionary = {}
 var battle_config: Dictionary = {}
 var loot_config: Dictionary = {}
+var crafting_recipes_config: Dictionary = {}
 
 var is_loaded: bool = false
 
@@ -29,6 +30,7 @@ func load_all_configurations():
 	_load_resources_config()
 	_load_battle_config()
 	_load_loot_config()
+	_load_crafting_recipes_config()
 
 	is_loaded = true
 	all_configurations_loaded.emit()
@@ -66,14 +68,20 @@ func _load_battle_config():
 ## Load loot configuration
 func _load_loot_config():
 	loot_config = _load_json_file("res://data/loot_tables.json")
-	
+
 	# Also load loot_items.json and merge it into loot_config
 	var loot_items_data = _load_json_file("res://data/loot_items.json")
 	if not loot_items_data.is_empty():
 		loot_config["loot_items"] = loot_items_data.get("loot_items", {})
-	
+
 	if not loot_config.is_empty():
 		configuration_loaded.emit("loot")
+
+## Load crafting recipes configuration
+func _load_crafting_recipes_config():
+	crafting_recipes_config = _load_json_file("res://data/crafting_recipes.json")
+	if not crafting_recipes_config.is_empty():
+		configuration_loaded.emit("crafting_recipes")
 
 ## Generic JSON file loader
 func _load_json_file(file_path: String) -> Dictionary:
@@ -142,6 +150,10 @@ func get_battle_config() -> Dictionary:
 func get_loot_config() -> Dictionary:
 	return loot_config
 
+## Get crafting recipes configuration
+func get_crafting_recipes_config() -> Dictionary:
+	return crafting_recipes_config
+
 func get_territory_roles_config() -> Dictionary:
 	# Load territory roles if not already loaded
 	var territory_roles_path = "res://data/territory_roles.json"
@@ -160,5 +172,6 @@ func reload_configurations():
 	resources_config.clear()
 	battle_config.clear()
 	loot_config.clear()
-	
+	crafting_recipes_config.clear()
+
 	load_all_configurations()

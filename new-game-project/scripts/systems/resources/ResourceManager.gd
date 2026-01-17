@@ -185,6 +185,11 @@ func get_save_data() -> Dictionary:
 ## Initialize resources for new game
 func initialize_new_game():
 	player_resources.clear()
+	# Set starting resources for new players
+	player_resources["gold"] = 10000
+	player_resources["mana"] = 0
+	player_resources["divine_crystals"] = 0
+	player_resources["energy"] = 100
 
 ## Debug: Print all resources
 func debug_print_resources():

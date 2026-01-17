@@ -20,6 +20,7 @@ signal recipe_unlocked(recipe_id: String)
 var equipment_config: Dictionary = {}
 var resource_config: Dictionary = {}
 var resources_data: Dictionary = {}
+var crafting_recipes_config: Dictionary = {}
 
 func _ready():
 	"""Initialize equipment crafting manager"""
@@ -35,8 +36,9 @@ func load_crafting_config():
 			equipment_config = config_manager.get_equipment_config()
 			resource_config = config_manager.get_resources_config()
 			resources_data = config_manager.get_resources_config()  # Same as resource_config
+			crafting_recipes_config = config_manager.get_crafting_recipes_config()
 			return
-	
+
 	# Fallback to direct loading
 	_load_configs_directly()
 
@@ -69,17 +71,26 @@ func _load_configs_directly():
 		if json.parse(json_string) == OK:
 			resources_data = json.get_data()
 
+	# Load crafting recipes
+	var recipes_file = FileAccess.open("res://data/crafting_recipes.json", FileAccess.READ)
+	if recipes_file:
+		var json_string = recipes_file.get_as_text()
+		recipes_file.close()
+		var json = JSON.new()
+		if json.parse(json_string) == OK:
+			crafting_recipes_config = json.get_data()
+
 # === CRAFTING VALIDATION ===
 
 func can_craft_equipment(recipe_id: String, territory_id: String = "") -> Dictionary:
 	"""Check if player can craft equipment with given recipe - RULE 2: Single responsibility"""
-	if not equipment_config.has("crafting_recipes"):
+	if not crafting_recipes_config.has("recipes"):
 		return {"can_craft": false, "reason": "No crafting recipes available"}
-	
-	var recipes = equipment_config.crafting_recipes
+
+	var recipes = crafting_recipes_config.recipes
 	if not recipes.has(recipe_id):
 		return {"can_craft": false, "reason": "Recipe not found"}
-	
+
 	var recipe = recipes[recipe_id]
 	
 	# Check territory requirements
@@ -278,58 +289,58 @@ func _apply_crafting_god_bonus(god_id: String):
 func get_available_recipes(territory_id: String = "") -> Array:
 	"""Get available crafting recipes for current territory - RULE 2: Single responsibility"""
 	var available: Array = []  # Array[String]
-	
-	if not equipment_config.has("crafting_recipes"):
+
+	if not crafting_recipes_config.has("recipes"):
 		return available
-	
-	for recipe_id in equipment_config.crafting_recipes:
+
+	for recipe_id in crafting_recipes_config.recipes:
 		var craft_check = can_craft_equipment(recipe_id, territory_id)
 		if craft_check.can_craft:
 			available.append(recipe_id)
-	
+
 	return available
 
 func get_all_recipes() -> Array:
 	"""Get all crafting recipes regardless of availability"""
-	if not equipment_config.has("crafting_recipes"):
+	if not crafting_recipes_config.has("recipes"):
 		return []
-	
-	return equipment_config.crafting_recipes.keys()
+
+	return crafting_recipes_config.recipes.keys()
 
 func get_recipe_details(recipe_id: String) -> Dictionary:
 	"""Get detailed information about a recipe"""
-	if not equipment_config.has("crafting_recipes"):
+	if not crafting_recipes_config.has("recipes"):
 		return {}
-	
-	var recipes = equipment_config.crafting_recipes
+
+	var recipes = crafting_recipes_config.recipes
 	if not recipes.has(recipe_id):
 		return {}
-	
+
 	return recipes[recipe_id].duplicate()
 
 func get_recipes_for_equipment_type(equipment_type: String) -> Array:
 	"""Get all recipes that create specific equipment type"""
 	var filtered: Array = []
-	
-	if not equipment_config.has("crafting_recipes"):
+
+	if not crafting_recipes_config.has("recipes"):
 		return filtered
-	
-	for recipe_id in equipment_config.crafting_recipes:
-		var recipe = equipment_config.crafting_recipes[recipe_id]
+
+	for recipe_id in crafting_recipes_config.recipes:
+		var recipe = crafting_recipes_config.recipes[recipe_id]
 		if recipe.get("equipment_type", "") == equipment_type:
 			filtered.append(recipe_id)
-	
+
 	return filtered
 
 func get_recipes_for_rarity(rarity: String) -> Array:
 	"""Get all recipes that create specific rarity"""
 	var filtered: Array = []
-	
-	if not equipment_config.has("crafting_recipes"):
+
+	if not crafting_recipes_config.has("recipes"):
 		return filtered
-	
-	for recipe_id in equipment_config.crafting_recipes:
-		var recipe = equipment_config.crafting_recipes[recipe_id]
+
+	for recipe_id in crafting_recipes_config.recipes:
+		var recipe = crafting_recipes_config.recipes[recipe_id]
 		if recipe.get("rarity", "") == rarity:
 			filtered.append(recipe_id)
 	

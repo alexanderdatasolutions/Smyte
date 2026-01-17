@@ -188,18 +188,177 @@ func get_total_hourly_production() -> Dictionary:
 	"""Get total production across all territories"""
 	var total_production = {}
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
-	
+
 	if not territory_manager:
 		return total_production
-	
+
 	var controlled = territory_manager.get_controlled_territories()
 	for territory_id in controlled:
 		var territory = _get_territory_data(territory_id)
 		if territory:
 			var production = calculate_territory_production(territory)
 			var resources = _distribute_resources_by_type(territory, production)
-			
+
 			for resource_type in resources:
 				total_production[resource_type] = total_production.get(resource_type, 0) + resources[resource_type]
-	
+
+	return total_production
+
+# ==============================================================================
+# HEX NODE PRODUCTION SYSTEM (Phase 2: Hex Territory Integration)
+# ==============================================================================
+
+func calculate_node_production(node: HexNode) -> Dictionary:
+	"""Calculate total resource production for a hex node
+	Production formula: base * (1 + upgrade_bonus) * (1 + connected_bonus) * (1 + worker_efficiency)
+	Returns: Dictionary of {"resource_id": amount_per_hour}
+	"""
+	if not node or not node.is_controlled_by_player():
+		return {}
+
+	var production = {}
+
+	# Start with base production from node
+	for resource_id in node.base_production:
+		var base_amount = node.base_production[resource_id]
+
+		# Apply upgrade bonus (10% per production level above 1)
+		var upgrade_bonus = (node.production_level - 1) * 0.10
+		var amount = base_amount * (1.0 + upgrade_bonus)
+
+		# Apply connected node bonus
+		var connected_bonus = apply_connected_bonus(node)
+		amount *= (1.0 + connected_bonus)
+
+		# Apply worker efficiency bonuses from assigned gods
+		var worker_bonus = _calculate_worker_efficiency(node)
+		amount *= (1.0 + worker_bonus)
+
+		production[resource_id] = int(amount)
+
+	return production
+
+func apply_connected_bonus(node: HexNode) -> float:
+	"""Calculate production bonus from adjacent controlled nodes
+	Bonuses (from CLAUDE.md):
+	- 2 connected: +10% production
+	- 3 connected: +20% production
+	- 4+ connected: +30% production
+	"""
+	if not node:
+		return 0.0
+
+	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
+	if not territory_manager or not territory_manager.has_method("get_connected_node_count"):
+		return 0.0
+
+	var connected_count = territory_manager.get_connected_node_count(node.coord)
+
+	if connected_count >= 4:
+		return 0.30  # 30% bonus for 4+ connected
+	elif connected_count == 3:
+		return 0.20  # 20% bonus for 3 connected
+	elif connected_count == 2:
+		return 0.10  # 10% bonus for 2 connected
+	else:
+		return 0.0  # No bonus
+
+func apply_spec_bonus(node: HexNode, god: God) -> float:
+	"""Calculate specialization bonus for god working at this node type
+	Returns: Multiplier based on god's specialization and node type
+	"""
+	if not node or not god:
+		return 0.0
+
+	var spec_manager = SystemRegistry.get_instance().get_system("SpecializationManager")
+	if not spec_manager:
+		return 0.0
+
+	# Get all task bonuses for this god
+	var task_bonuses = spec_manager.get_total_task_bonuses_for_god(god)
+
+	# Check for bonuses related to node type
+	var total_bonus = 0.0
+
+	# Map node types to task categories
+	var node_task_mapping = {
+		"mine": ["mining", "mine_ore", "mine_gems", "deep_mining", "gem_cutting"],
+		"forest": ["logging", "herbalism", "foraging", "plant_cultivation"],
+		"coast": ["fishing", "pearl_diving", "salt_harvesting"],
+		"hunting_ground": ["hunting", "tracking", "monster_hunting", "taming"],
+		"forge": ["smithing", "armor_crafting", "weapon_crafting", "enchanting"],
+		"library": ["research", "scroll_crafting", "training", "skill_learning"],
+		"temple": ["meditation", "blessing", "awakening_ritual", "divine_communion"],
+		"fortress": ["garrison_duty", "war_planning", "combat_training", "defense_building"]
+	}
+
+	# Get tasks for this node type
+	var relevant_tasks = node_task_mapping.get(node.node_type, [])
+
+	# Find highest bonus from any relevant task
+	for task_id in relevant_tasks:
+		var bonus = task_bonuses.get(task_id, 0.0)
+		if bonus > total_bonus:
+			total_bonus = bonus
+
+	return total_bonus
+
+func _calculate_worker_efficiency(node: HexNode) -> float:
+	"""Calculate total efficiency bonus from workers at this node
+	Combines: spec bonuses, trait bonuses, level bonuses
+	"""
+	if not node or node.assigned_workers.is_empty():
+		return 0.0
+
+	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager")
+	var spec_manager = SystemRegistry.get_instance().get_system("SpecializationManager")
+
+	if not collection_manager:
+		return 0.0
+
+	var total_bonus = 0.0
+
+	for god_id in node.assigned_workers:
+		var god = collection_manager.get_god_by_id(god_id)
+		if not god:
+			continue
+
+		# Base bonus: 10% per worker
+		var worker_bonus = 0.10
+
+		# Specialization bonus (can be 50-200% from CLAUDE.md)
+		if spec_manager:
+			var spec_bonus = apply_spec_bonus(node, god)
+			worker_bonus += spec_bonus
+
+		# Level bonus: 1% per god level
+		worker_bonus += (god.level * 0.01)
+
+		total_bonus += worker_bonus
+
+	return total_bonus
+
+func get_node_hourly_production(node: HexNode) -> Dictionary:
+	"""Get hourly production rate for a specific hex node
+	This is a convenience method that wraps calculate_node_production
+	"""
+	return calculate_node_production(node)
+
+func get_all_hex_nodes_production() -> Dictionary:
+	"""Get total production across all controlled hex nodes
+	Returns: Dictionary of {"resource_id": total_amount_per_hour}
+	"""
+	var total_production = {}
+	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
+
+	if not territory_manager or not territory_manager.has_method("get_controlled_nodes"):
+		return total_production
+
+	var controlled_nodes = territory_manager.get_controlled_nodes()
+	for node in controlled_nodes:
+		var node_production = calculate_node_production(node)
+
+		for resource_id in node_production:
+			total_production[resource_id] = total_production.get(resource_id, 0) + node_production[resource_id]
+
 	return total_production

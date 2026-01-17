@@ -1,0 +1,263 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "description": "Equipment crafting recipes - 10 MVP recipes aligned with tier progression",
+    "last_updated": "2026-01-16"
+  },
+
+  "recipes": {
+    "basic_iron_sword": {
+      "id": "basic_iron_sword",
+      "name": "Basic Iron Sword",
+      "description": "A simple but reliable iron sword for starting warriors",
+      "equipment_type": "weapon",
+      "equipment_slot": 0,
+      "rarity": "common",
+      "level": 1,
+      "materials": {
+        "iron_ore": 20,
+        "wood": 10,
+        "mana": 500
+      },
+      "territory_required": false,
+      "base_stats": {
+        "attack": 30
+      },
+      "possible_substats": ["hp", "defense", "crit_rate"],
+      "icon": "basic_iron_sword"
+    },
+
+    "basic_iron_armor": {
+      "id": "basic_iron_armor",
+      "name": "Basic Iron Armor",
+      "description": "Sturdy iron armor that provides solid protection",
+      "equipment_type": "armor",
+      "equipment_slot": 1,
+      "rarity": "common",
+      "level": 1,
+      "materials": {
+        "iron_ore": 25,
+        "stone": 15,
+        "mana": 500
+      },
+      "territory_required": false,
+      "base_stats": {
+        "defense": 25,
+        "hp": 200
+      },
+      "possible_substats": ["attack", "speed"],
+      "icon": "basic_iron_armor"
+    },
+
+    "copper_amulet": {
+      "id": "copper_amulet",
+      "name": "Copper Amulet",
+      "description": "A simple copper amulet blessed with protective magic",
+      "equipment_type": "accessory",
+      "equipment_slot": 4,
+      "rarity": "common",
+      "level": 1,
+      "materials": {
+        "copper_ore": 15,
+        "herbs": 10,
+        "mana": 400
+      },
+      "territory_required": false,
+      "base_stats": {
+        "hp": 150,
+        "defense": 10
+      },
+      "possible_substats": ["attack", "speed"],
+      "icon": "copper_amulet"
+    },
+
+    "steel_greatsword": {
+      "id": "steel_greatsword",
+      "name": "Steel Greatsword",
+      "description": "A powerful two-handed sword forged from refined steel",
+      "equipment_type": "weapon",
+      "equipment_slot": 0,
+      "rarity": "rare",
+      "level": 20,
+      "materials": {
+        "steel_ingots": 15,
+        "rare_herbs": 5,
+        "forging_flame": 1,
+        "mana": 5000
+      },
+      "territory_required": true,
+      "territory_tier_requirement": 2,
+      "specialization_requirement": "crafter_tier1",
+      "base_stats": {
+        "attack": 120
+      },
+      "possible_substats": ["crit_rate", "crit_damage", "hp"],
+      "icon": "steel_greatsword"
+    },
+
+    "steel_plate_armor": {
+      "id": "steel_plate_armor",
+      "name": "Steel Plate Armor",
+      "description": "Heavy plate armor providing excellent protection",
+      "equipment_type": "armor",
+      "equipment_slot": 1,
+      "rarity": "rare",
+      "level": 20,
+      "materials": {
+        "steel_ingots": 20,
+        "mythril_ore": 5,
+        "mana": 5000
+      },
+      "territory_required": true,
+      "territory_tier_requirement": 2,
+      "specialization_requirement": "crafter_tier1",
+      "base_stats": {
+        "defense": 100,
+        "hp": 800
+      },
+      "possible_substats": ["attack", "speed", "resistance"],
+      "icon": "steel_plate_armor"
+    },
+
+    "mystic_ring": {
+      "id": "mystic_ring",
+      "name": "Mystic Ring",
+      "description": "A ring infused with mystical energy",
+      "equipment_type": "accessory",
+      "equipment_slot": 5,
+      "rarity": "rare",
+      "level": 20,
+      "materials": {
+        "magic_crystals": 10,
+        "rare_herbs": 8,
+        "ruby": 2,
+        "mana": 4500
+      },
+      "territory_required": true,
+      "territory_tier_requirement": 2,
+      "base_stats": {
+        "attack": 40,
+        "hp": 400
+      },
+      "possible_substats": ["crit_rate", "accuracy", "speed"],
+      "icon": "mystic_ring"
+    },
+
+    "fortified_boots": {
+      "id": "fortified_boots",
+      "name": "Fortified Boots",
+      "description": "Reinforced boots that increase mobility without sacrificing protection",
+      "equipment_type": "boots",
+      "equipment_slot": 3,
+      "rarity": "rare",
+      "level": 20,
+      "materials": {
+        "steel_ingots": 12,
+        "herbs": 15,
+        "mana": 4000
+      },
+      "territory_required": true,
+      "territory_tier_requirement": 2,
+      "base_stats": {
+        "defense": 60,
+        "speed": 5
+      },
+      "possible_substats": ["hp", "attack"],
+      "icon": "fortified_boots"
+    },
+
+    "mythril_warblade": {
+      "id": "mythril_warblade",
+      "name": "Mythril Warblade",
+      "description": "An epic blade forged from mythril, known for its sharpness and durability",
+      "equipment_type": "weapon",
+      "equipment_slot": 0,
+      "rarity": "epic",
+      "level": 35,
+      "materials": {
+        "mythril_ore": 30,
+        "forging_flame": 3,
+        "magic_crystals": 10,
+        "mana": 25000
+      },
+      "territory_required": true,
+      "territory_tier_requirement": 3,
+      "territory_type_requirement": "forge",
+      "specialization_requirement": "crafter_blacksmith_tier2",
+      "god_level_requirement": 30,
+      "guaranteed_substats": [
+        {"stat": "attack", "value": 150},
+        {"stat": "crit_rate", "value": 15}
+      ],
+      "base_stats": {
+        "attack": 250
+      },
+      "possible_substats": ["crit_damage", "hp", "defense"],
+      "icon": "mythril_warblade"
+    },
+
+    "mythril_full_plate": {
+      "id": "mythril_full_plate",
+      "name": "Mythril Full Plate",
+      "description": "Complete mythril armor providing exceptional protection",
+      "equipment_type": "armor",
+      "equipment_slot": 1,
+      "rarity": "epic",
+      "level": 35,
+      "materials": {
+        "mythril_ore": 35,
+        "forging_flame": 2,
+        "steel_ingots": 20,
+        "mana": 25000
+      },
+      "territory_required": true,
+      "territory_tier_requirement": 3,
+      "territory_type_requirement": "forge",
+      "specialization_requirement": "crafter_blacksmith_tier2",
+      "god_level_requirement": 30,
+      "guaranteed_substats": [
+        {"stat": "defense", "value": 120},
+        {"stat": "hp", "value": 500}
+      ],
+      "base_stats": {
+        "defense": 220,
+        "hp": 1500
+      },
+      "possible_substats": ["attack", "speed", "resistance"],
+      "icon": "mythril_full_plate"
+    },
+
+    "crystal_pendant": {
+      "id": "crystal_pendant",
+      "name": "Crystal Pendant",
+      "description": "A beautiful pendant containing a powerful magic crystal",
+      "equipment_type": "accessory",
+      "equipment_slot": 4,
+      "rarity": "epic",
+      "level": 35,
+      "materials": {
+        "magic_crystals": 25,
+        "rare_herbs": 15,
+        "diamond": 3,
+        "sapphire": 3,
+        "mana": 22000
+      },
+      "territory_required": true,
+      "territory_tier_requirement": 3,
+      "territory_type_requirement": "temple",
+      "specialization_requirement": "scholar_tier2",
+      "god_level_requirement": 30,
+      "guaranteed_substats": [
+        {"stat": "hp", "value": 600},
+        {"stat": "defense", "value": 80}
+      ],
+      "guaranteed_sockets": 1,
+      "base_stats": {
+        "hp": 1000,
+        "defense": 120
+      },
+      "possible_substats": ["attack", "crit_rate", "accuracy"],
+      "icon": "crystal_pendant"
+    }
+  }
+}
