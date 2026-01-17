@@ -127,7 +127,7 @@ func _build_ui() -> void:
 func _build_header() -> void:
 	"""Build header with title and close button"""
 	var header_panel = Panel.new()
-	header_panel.custom_minimum_size = Vector2(0, 60)
+	header_panel.custom_minimum_size = Vector2(0, 70)  # Increased for 60x60 close button
 
 	var header_style = StyleBoxFlat.new()
 	header_style.bg_color = Color(0.1, 0.1, 0.14, 0.95)
@@ -150,7 +150,7 @@ func _build_header() -> void:
 	# Close button (60x60px minimum tap target)
 	_close_button = Button.new()
 	_close_button.text = "X"
-	_close_button.custom_minimum_size = Vector2(60, 44)
+	_close_button.custom_minimum_size = Vector2(60, 60)
 	_close_button.pressed.connect(_on_close_pressed)
 	_style_close_button(_close_button)
 	_header_container.add_child(_close_button)

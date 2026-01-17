@@ -9,8 +9,8 @@ Create a left-sliding god selection panel that opens when you tap worker/garriso
 - ✅ TerritoryOverviewScreen has visual slot boxes (garrison + worker)
 - ✅ GodSelectionGrid component exists for showing god portraits
 - ✅ NodeDetailScreen exists separately
-- ❌ No connection between slot taps and god selection
-- ❌ No left-sliding panel for god selection
+- ✅ Connection between slot taps and god selection WORKS
+- ✅ Left-sliding panel for god selection WORKS
 
 ## Goal
 **Simple UX Flow:**
@@ -105,7 +105,7 @@ Create a left-sliding god selection panel that opens when you tap worker/garriso
       "Test: god portraits load correctly with element colors",
       "Add loading state while CollectionManager fetches gods"
     ],
-    "passes": false
+    "passes": true
   }
 ]
 ```
@@ -175,3 +175,4 @@ Create a left-sliding god selection panel that opens when you tap worker/garriso
 
 ## Completion Criteria
 All tasks marked `"passes": true`, then output `<promise>COMPLETE</promise>`
+
