@@ -425,27 +425,28 @@ func _convert_wave_data_to_battle_config(wave_data: Array) -> Array:
 	return enemy_waves
 
 func _calculate_enemy_stats(level: int, tier: String) -> Dictionary:
-	"""Calculate enemy stats based on level and tier"""
-	# Base stats at level 1
-	var base_hp = 100
-	var base_attack = 20
-	var base_defense = 10
-	var base_speed = 50
+	"""Calculate enemy stats based on level and tier - BALANCED for god stats"""
+	# Base stats at level 1 - matched to god power levels
+	# Average god at level 1: ~110 HP, ~55 ATK, ~70 DEF, ~60 SPD
+	var base_hp = 120  # Slightly tankier than gods
+	var base_attack = 50  # Slightly weaker than gods
+	var base_defense = 60  # Similar to gods
+	var base_speed = 55  # Similar to gods
 
-	# Tier multipliers
+	# Tier multipliers - REDUCED from previous values
 	var tier_multipliers = {
-		"basic": 1.0,
-		"leader": 1.5,
-		"elite": 2.0,
-		"boss": 3.0
+		"basic": 1.0,    # 1v1 fair fight
+		"leader": 1.4,   # Reduced from 1.5 - mini-boss
+		"elite": 1.8,    # Reduced from 2.0 - challenging
+		"boss": 2.5      # Reduced from 3.0 - team effort required
 	}
 	var tier_mult = tier_multipliers.get(tier, 1.0)
 
-	# Level scaling: stats grow by ~10% per level
+	# Level scaling: stats grow by ~10% per level (same as gods)
 	var level_mult = 1.0 + (level - 1) * 0.1
 
 	return {
-		"hp": int(base_hp * level_mult * tier_mult * 10),  # HP scales higher
+		"hp": int(base_hp * level_mult * tier_mult),  # REMOVED x10 multiplier!
 		"attack": int(base_attack * level_mult * tier_mult),
 		"defense": int(base_defense * level_mult * tier_mult),
 		"speed": int(base_speed + level * 2)  # Speed grows linearly

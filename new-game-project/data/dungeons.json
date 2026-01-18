@@ -13,24 +13,24 @@
       "schedule_day": "monday",
       "difficulty_levels": {
         "beginner": {
-          "energy_cost": 8,
+          "energy_cost": 6,
           "recommended_level": 10,
-          "first_clear_rewards": { "crystals": 50, "mana": 500 }
+          "first_clear_rewards": { "crystals": 50, "mana": 1500 }
         },
         "intermediate": {
-          "energy_cost": 10,
+          "energy_cost": 8,
           "recommended_level": 20,
-          "first_clear_rewards": { "crystals": 75, "mana": 1000 }
+          "first_clear_rewards": { "crystals": 75, "mana": 3000 }
         },
         "advanced": {
-          "energy_cost": 12,
+          "energy_cost": 10,
           "recommended_level": 35,
-          "first_clear_rewards": { "crystals": 100, "mana": 2000 }
+          "first_clear_rewards": { "crystals": 100, "mana": 6000 }
         },
         "expert": {
-          "energy_cost": 15,
+          "energy_cost": 12,
           "recommended_level": 50,
-          "first_clear_rewards": { "crystals": 150, "mana": 5000 }
+          "first_clear_rewards": { "crystals": 150, "mana": 12000 }
         }
       }
     },
@@ -41,24 +41,24 @@
       "schedule_day": "tuesday",
       "difficulty_levels": {
         "beginner": {
-          "energy_cost": 8,
+          "energy_cost": 6,
           "recommended_level": 10,
-          "first_clear_rewards": { "crystals": 50, "mana": 500 }
+          "first_clear_rewards": { "crystals": 50, "mana": 1500 }
         },
         "intermediate": {
-          "energy_cost": 10,
+          "energy_cost": 8,
           "recommended_level": 20,
-          "first_clear_rewards": { "crystals": 75, "mana": 1000 }
+          "first_clear_rewards": { "crystals": 75, "mana": 3000 }
         },
         "advanced": {
-          "energy_cost": 12,
+          "energy_cost": 10,
           "recommended_level": 35,
-          "first_clear_rewards": { "crystals": 100, "mana": 2000 }
+          "first_clear_rewards": { "crystals": 100, "mana": 6000 }
         },
         "expert": {
-          "energy_cost": 15,
+          "energy_cost": 12,
           "recommended_level": 50,
-          "first_clear_rewards": { "crystals": 150, "mana": 5000 }
+          "first_clear_rewards": { "crystals": 150, "mana": 12000 }
         }
       }
     },
@@ -69,24 +69,24 @@
       "schedule_day": "wednesday",
       "difficulty_levels": {
         "beginner": {
-          "energy_cost": 8,
+          "energy_cost": 6,
           "recommended_level": 10,
-          "first_clear_rewards": { "crystals": 50, "mana": 500 }
+          "first_clear_rewards": { "crystals": 50, "mana": 1500 }
         },
         "intermediate": {
-          "energy_cost": 10,
+          "energy_cost": 8,
           "recommended_level": 20,
-          "first_clear_rewards": { "crystals": 75, "mana": 1000 }
+          "first_clear_rewards": { "crystals": 75, "mana": 3000 }
         },
         "advanced": {
-          "energy_cost": 12,
+          "energy_cost": 10,
           "recommended_level": 35,
-          "first_clear_rewards": { "crystals": 100, "mana": 2000 }
+          "first_clear_rewards": { "crystals": 100, "mana": 6000 }
         },
         "expert": {
-          "energy_cost": 15,
+          "energy_cost": 12,
           "recommended_level": 50,
-          "first_clear_rewards": { "crystals": 150, "mana": 5000 }
+          "first_clear_rewards": { "crystals": 150, "mana": 12000 }
         }
       }
     },
@@ -97,24 +97,24 @@
       "schedule_day": "thursday",
       "difficulty_levels": {
         "beginner": {
-          "energy_cost": 8,
+          "energy_cost": 6,
           "recommended_level": 10,
-          "first_clear_rewards": { "crystals": 50, "mana": 500 }
+          "first_clear_rewards": { "crystals": 50, "mana": 1500 }
         },
         "intermediate": {
-          "energy_cost": 10,
+          "energy_cost": 8,
           "recommended_level": 20,
-          "first_clear_rewards": { "crystals": 75, "mana": 1000 }
+          "first_clear_rewards": { "crystals": 75, "mana": 3000 }
         },
         "advanced": {
-          "energy_cost": 12,
+          "energy_cost": 10,
           "recommended_level": 35,
-          "first_clear_rewards": { "crystals": 100, "mana": 2000 }
+          "first_clear_rewards": { "crystals": 100, "mana": 6000 }
         },
         "expert": {
-          "energy_cost": 15,
+          "energy_cost": 12,
           "recommended_level": 50,
-          "first_clear_rewards": { "crystals": 150, "mana": 5000 }
+          "first_clear_rewards": { "crystals": 150, "mana": 12000 }
         }
       }
     },
@@ -125,24 +125,24 @@
       "schedule_day": "friday",
       "difficulty_levels": {
         "beginner": {
-          "energy_cost": 8,
+          "energy_cost": 6,
           "recommended_level": 10,
-          "first_clear_rewards": { "crystals": 50, "mana": 500 }
+          "first_clear_rewards": { "crystals": 50, "mana": 1500 }
         },
         "intermediate": {
-          "energy_cost": 10,
+          "energy_cost": 8,
           "recommended_level": 20,
-          "first_clear_rewards": { "crystals": 75, "mana": 1000 }
+          "first_clear_rewards": { "crystals": 75, "mana": 3000 }
         },
         "advanced": {
-          "energy_cost": 12,
+          "energy_cost": 10,
           "recommended_level": 35,
-          "first_clear_rewards": { "crystals": 100, "mana": 2000 }
+          "first_clear_rewards": { "crystals": 100, "mana": 6000 }
         },
         "expert": {
-          "energy_cost": 15,
+          "energy_cost": 12,
           "recommended_level": 50,
-          "first_clear_rewards": { "crystals": 150, "mana": 5000 }
+          "first_clear_rewards": { "crystals": 150, "mana": 12000 }
         }
       }
     },
@@ -153,24 +153,24 @@
       "schedule_day": "saturday",
       "difficulty_levels": {
         "beginner": {
-          "energy_cost": 8,
+          "energy_cost": 6,
           "recommended_level": 10,
-          "first_clear_rewards": { "crystals": 50, "mana": 500 }
+          "first_clear_rewards": { "crystals": 50, "mana": 1500 }
         },
         "intermediate": {
-          "energy_cost": 10,
+          "energy_cost": 8,
           "recommended_level": 20,
-          "first_clear_rewards": { "crystals": 75, "mana": 1000 }
+          "first_clear_rewards": { "crystals": 75, "mana": 3000 }
         },
         "advanced": {
-          "energy_cost": 12,
+          "energy_cost": 10,
           "recommended_level": 35,
-          "first_clear_rewards": { "crystals": 100, "mana": 2000 }
+          "first_clear_rewards": { "crystals": 100, "mana": 6000 }
         },
         "expert": {
-          "energy_cost": 15,
+          "energy_cost": 12,
           "recommended_level": 50,
-          "first_clear_rewards": { "crystals": 150, "mana": 5000 }
+          "first_clear_rewards": { "crystals": 150, "mana": 12000 }
         }
       }
     }
@@ -184,24 +184,24 @@
       "schedule": "always_available",
       "difficulty_levels": {
         "beginner": {
-          "energy_cost": 10,
+          "energy_cost": 8,
           "recommended_level": 15,
-          "first_clear_rewards": { "crystals": 60, "mana": 750 }
+          "first_clear_rewards": { "crystals": 60, "mana": 2000 }
         },
         "intermediate": {
-          "energy_cost": 12,
+          "energy_cost": 10,
           "recommended_level": 25,
-          "first_clear_rewards": { "crystals": 90, "mana": 1500 }
+          "first_clear_rewards": { "crystals": 90, "mana": 4000 }
         },
         "advanced": {
-          "energy_cost": 15,
+          "energy_cost": 12,
           "recommended_level": 40,
-          "first_clear_rewards": { "crystals": 125, "mana": 3000 }
+          "first_clear_rewards": { "crystals": 125, "mana": 8000 }
         },
         "expert": {
-          "energy_cost": 18,
+          "energy_cost": 15,
           "recommended_level": 60,
-          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
+          "first_clear_rewards": { "crystals": 200, "mana": 16000 }
         }
       }
     }
@@ -215,14 +215,14 @@
       "schedule": "weekend_saturday",
       "difficulty_levels": {
         "heroic": {
-          "energy_cost": 15,
+          "energy_cost": 12,
           "recommended_level": 30,
-          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
+          "first_clear_rewards": { "crystals": 100, "mana": 7500 }
         },
         "legendary": {
-          "energy_cost": 20,
+          "energy_cost": 18,
           "recommended_level": 50,
-          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
+          "first_clear_rewards": { "crystals": 200, "mana": 20000 }
         }
       }
     },
@@ -233,14 +233,14 @@
       "schedule": "weekend_saturday",
       "difficulty_levels": {
         "heroic": {
-          "energy_cost": 15,
+          "energy_cost": 12,
           "recommended_level": 30,
-          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
+          "first_clear_rewards": { "crystals": 100, "mana": 7500 }
         },
         "legendary": {
-          "energy_cost": 20,
+          "energy_cost": 18,
           "recommended_level": 50,
-          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
+          "first_clear_rewards": { "crystals": 200, "mana": 20000 }
         }
       }
     },
@@ -251,14 +251,14 @@
       "schedule": "weekend_sunday",
       "difficulty_levels": {
         "heroic": {
-          "energy_cost": 15,
+          "energy_cost": 12,
           "recommended_level": 30,
-          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
+          "first_clear_rewards": { "crystals": 100, "mana": 7500 }
         },
         "legendary": {
-          "energy_cost": 20,
+          "energy_cost": 18,
           "recommended_level": 50,
-          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
+          "first_clear_rewards": { "crystals": 200, "mana": 20000 }
         }
       }
     },
@@ -269,14 +269,14 @@
       "schedule": "weekend_sunday",
       "difficulty_levels": {
         "heroic": {
-          "energy_cost": 15,
+          "energy_cost": 12,
           "recommended_level": 30,
-          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
+          "first_clear_rewards": { "crystals": 100, "mana": 7500 }
         },
         "legendary": {
-          "energy_cost": 20,
+          "energy_cost": 18,
           "recommended_level": 50,
-          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
+          "first_clear_rewards": { "crystals": 200, "mana": 20000 }
         }
       }
     },
@@ -287,14 +287,14 @@
       "schedule": "weekend_rotating",
       "difficulty_levels": {
         "heroic": {
-          "energy_cost": 15,
+          "energy_cost": 12,
           "recommended_level": 30,
-          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
+          "first_clear_rewards": { "crystals": 100, "mana": 7500 }
         },
         "legendary": {
-          "energy_cost": 20,
+          "energy_cost": 18,
           "recommended_level": 50,
-          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
+          "first_clear_rewards": { "crystals": 200, "mana": 20000 }
         }
       }
     },
@@ -305,14 +305,14 @@
       "schedule": "weekend_rotating",
       "difficulty_levels": {
         "heroic": {
-          "energy_cost": 15,
+          "energy_cost": 12,
           "recommended_level": 30,
-          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
+          "first_clear_rewards": { "crystals": 100, "mana": 7500 }
         },
         "legendary": {
-          "energy_cost": 20,
+          "energy_cost": 18,
           "recommended_level": 50,
-          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
+          "first_clear_rewards": { "crystals": 200, "mana": 20000 }
         }
       }
     },
@@ -323,14 +323,14 @@
       "schedule": "weekend_rotating",
       "difficulty_levels": {
         "heroic": {
-          "energy_cost": 15,
+          "energy_cost": 12,
           "recommended_level": 30,
-          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
+          "first_clear_rewards": { "crystals": 100, "mana": 7500 }
         },
         "legendary": {
-          "energy_cost": 20,
+          "energy_cost": 18,
           "recommended_level": 50,
-          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
+          "first_clear_rewards": { "crystals": 200, "mana": 20000 }
         }
       }
     },
@@ -341,14 +341,14 @@
       "schedule": "weekend_rotating",
       "difficulty_levels": {
         "heroic": {
-          "energy_cost": 15,
+          "energy_cost": 12,
           "recommended_level": 30,
-          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
+          "first_clear_rewards": { "crystals": 100, "mana": 7500 }
         },
         "legendary": {
-          "energy_cost": 20,
+          "energy_cost": 18,
           "recommended_level": 50,
-          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
+          "first_clear_rewards": { "crystals": 200, "mana": 20000 }
         }
       }
     }
