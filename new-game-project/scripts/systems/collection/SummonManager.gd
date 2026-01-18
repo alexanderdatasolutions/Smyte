@@ -8,6 +8,7 @@ signal summon_failed(reason)
 signal multi_summon_completed(gods)
 signal pity_milestone_reached(pity_type: String, count: int)
 signal summon_history_updated(history_entry: Dictionary)
+signal duplicate_obtained(god, mana_reward: int)
 
 # Pity counters per banner type for guaranteed drops
 var pity_counters: Dictionary = {
@@ -23,6 +24,7 @@ var summon_history: Array = []  # Last 100 summons
 var total_summons: int = 0
 var claimed_milestones: Array = []
 var _summon_config: Dictionary = {}
+var _last_summon_duplicates: Dictionary = {}  # god_id -> bool (true if was duplicate)
 const MAX_HISTORY_SIZE: int = 100
 
 func _ready():
@@ -38,9 +40,7 @@ func get_config() -> Dictionary:
 		_load_config()
 	return _summon_config
 
-# ==============================================================================
 # MAIN SUMMON FUNCTIONS
-# ==============================================================================
 
 func summon_basic() -> bool:
 	var config = get_config()
@@ -77,9 +77,7 @@ func summon_with_element_soul(element: String) -> bool:
 	var soul_type = element + "_soul"
 	return _perform_summon({soul_type: 1}, soul_type, "element", element)
 
-# ==============================================================================
 # CORE SUMMON LOGIC
-# ==============================================================================
 
 func _perform_summon(cost: Dictionary, summon_type: String, banner_type: String, element_filter: String = "") -> bool:
 	if not _can_afford_cost(cost):
@@ -122,9 +120,7 @@ func _spend_cost(cost: Dictionary):
 	for currency in cost:
 		resource_manager.spend(currency, cost[currency])
 
-# ==============================================================================
 # GOD GENERATION
-# ==============================================================================
 
 func _get_random_god(summon_type: String, banner_type: String, element_filter: String = "") -> God:
 	var rates = _get_summon_rates(summon_type)
@@ -232,14 +228,57 @@ func _get_element_string(element_value) -> String:
 		return ["fire", "water", "earth", "lightning", "light", "dark"][clampi(int(element_value), 0, 5)]
 	return "fire"
 
-func _add_god_to_collection(god: God):
+func _add_god_to_collection(god: God) -> bool:
+	"""Add god to collection, handling duplicates with mana rewards. Tracks status for UI."""
 	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager") if SystemRegistry.get_instance() else null
-	if collection_manager:
-		collection_manager.add_god(god)
+	if not collection_manager:
+		push_error("SummonManager: CollectionManager not available")
+		return false
 
-# ==============================================================================
+	var is_new = collection_manager.add_god(god)
+	_last_summon_duplicates[god.id] = not is_new  # Track for UI display
+
+	if not is_new:
+		var mana_reward = _get_duplicate_mana_reward(god.tier)
+		var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
+		if resource_manager:
+			resource_manager.add_resource("mana", mana_reward)
+		duplicate_obtained.emit(god, mana_reward)
+
+	_check_legendary_notification(god)
+	return is_new
+
+func _get_duplicate_mana_reward(tier: God.TierType) -> int:
+	"""Get mana reward for duplicate god based on tier."""
+	match tier:
+		God.TierType.LEGENDARY:
+			return 5000
+		God.TierType.EPIC:
+			return 2000
+		God.TierType.RARE:
+			return 500
+		_:  # COMMON
+			return 100
+
+func _check_legendary_notification(god: God):
+	"""Show notification for legendary/epic pulls via EventBus."""
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	if not event_bus or not event_bus.has_method("emit_notification"):
+		return
+	if god.tier == God.TierType.LEGENDARY:
+		event_bus.emit_notification("LEGENDARY! %s has joined your pantheon!" % god.name, "legendary", 5.0)
+	elif god.tier == God.TierType.EPIC:
+		event_bus.emit_notification("Epic summon! %s obtained!" % god.name, "epic", 3.0)
+
+func was_duplicate(god_id: String) -> bool:
+	"""Check if a recently summoned god was a duplicate. For UI display."""
+	return _last_summon_duplicates.get(god_id, false)
+
+func clear_duplicate_tracking():
+	"""Clear duplicate tracking for new summon session."""
+	_last_summon_duplicates.clear()
+
 # PITY SYSTEM
-# ==============================================================================
 
 func _update_pity_counters(tier: String, banner_type: String):
 	if not pity_counters.has(banner_type):
@@ -269,9 +308,7 @@ func get_pity_counter(banner_type: String, rarity: String) -> int:
 		return 0
 	return pity_counters[banner_type].get(rarity, 0)
 
-# ==============================================================================
 # SUMMON HISTORY
-# ==============================================================================
 
 func _add_to_history(god: God, summon_type: String, cost: Dictionary):
 	var entry = {
@@ -296,9 +333,7 @@ func get_rarity_stats() -> Dictionary:
 			stats[tier] += 1
 	return stats
 
-# ==============================================================================
 # MILESTONE REWARDS
-# ==============================================================================
 
 func _check_milestone_rewards():
 	var config = get_config()
@@ -322,9 +357,7 @@ func _award_milestone(key: String, data: Dictionary):
 			resource_manager.add_resource(resource_id, reward[resource_id])
 	claimed_milestones.append(key)
 
-# ==============================================================================
 # SPECIAL SUMMON AVAILABILITY
-# ==============================================================================
 
 func can_use_daily_free_summon() -> bool:
 	return last_free_summon_date != Time.get_date_string_from_system()
@@ -344,9 +377,7 @@ func get_time_until_free_summon() -> int:
 	var now = Time.get_unix_time_from_system()
 	return (int(now / 86400) + 1) * 86400 - int(now)
 
-# ==============================================================================
 # MULTI-SUMMON
-# ==============================================================================
 
 func multi_summon_premium(count: int = 10) -> bool:
 	var config = get_config()
@@ -425,9 +456,7 @@ func summon_multi_with_soul(soul_type: String, count: int = 10) -> bool:
 func _is_element_soul(soul_type: String) -> bool:
 	return soul_type in ["fire_soul", "water_soul", "earth_soul", "lightning_soul", "light_soul", "dark_soul"]
 
-# ==============================================================================
 # SAVE/LOAD
-# ==============================================================================
 
 func get_save_data() -> Dictionary:
 	return {

@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-18
-**Tasks Completed:** 8/16
-**Current Task:** Task 9 - Connect summon to CollectionManager
+**Tasks Completed:** 9/16
+**Current Task:** Task 10 - Integrate with ResourceManager for costs
 
 ---
 
@@ -298,6 +298,45 @@
 - Pity counter updated to 1/100 on banner cards
 - God appeared in Summon Showcase panel
 - Screenshot: `screenshots/summon-task8-result-shown.png`
+
+**Errors encountered:** None
+
+---
+
+### 2026-01-18 - Task 9: Connect summon to CollectionManager ✅
+
+**What was done:**
+- Enhanced `_add_god_to_collection()` in SummonManager to properly track duplicate status
+- Added `duplicate_obtained` signal for UI feedback when duplicate gods are summoned
+- Implemented tier-based mana rewards for duplicates:
+  - Legendary: 5,000 mana
+  - Epic: 2,000 mana
+  - Rare: 500 mana
+  - Common: 100 mana
+- Added `_check_legendary_notification()` to emit notifications via EventBus for epic/legendary pulls
+- Added `was_duplicate()` and `clear_duplicate_tracking()` methods for UI tracking
+- Updated SummonResultOverlay to use SummonManager's duplicate tracking instead of checking CollectionManager directly
+- Updated SummonScreen to clear duplicate tracking at start of each summon session
+
+**Files modified:**
+- `scripts/systems/collection/SummonManager.gd` - Added duplicate handling, mana rewards, legendary notifications (489 lines, under 500 limit)
+- `scripts/ui/summon/SummonResultOverlay.gd` - Fixed duplicate detection to use SummonManager tracking
+- `scripts/ui/screens/SummonScreen.gd` - Added `clear_duplicate_tracking()` calls before summons
+
+**Technical details:**
+- `CollectionManager.add_god()` returns `false` for duplicates - used to determine mana reward
+- Duplicate tracking via `_last_summon_duplicates` dictionary (cleared per summon session)
+- `EventBus.emit_notification()` used for legendary/epic pull notifications (if method exists)
+- `god_obtained` signal already emitted by CollectionManager.add_god() via EventBus
+- `collection_updated` signal already emitted for UI refresh
+
+**Verified with Godot MCP:**
+- Project runs without errors
+- Navigated to SummonScreen successfully
+- Daily Free summon executed successfully
+- Verified gods added to collection (8 gods visible: Poseidon, Bastet, Artemis, Set, Isis, Hachiman, Ares, Frigg)
+- No summon-related errors in debug output
+- Screenshot: `screenshots/summon-task9-collection.png`
 
 **Errors encountered:** None
 

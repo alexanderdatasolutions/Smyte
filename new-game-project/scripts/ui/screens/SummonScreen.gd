@@ -314,6 +314,8 @@ func _on_banner_single_summon(_banner_data: Dictionary, banner: Dictionary):
 	is_processing_summon = true
 	current_banner_data = banner  # Store for "Summon Again"
 	pending_summon_results.clear()  # Clear previous results
+	if summon_system.has_method("clear_duplicate_tracking"):
+		summon_system.clear_duplicate_tracking()  # Fresh duplicate tracking for this session
 
 	var success = false
 	if banner.get("is_daily_free", false):
@@ -340,6 +342,8 @@ func _on_banner_multi_summon(_banner_data: Dictionary, banner: Dictionary):
 	is_processing_summon = true
 	current_banner_data = banner  # Store for "Summon Again"
 	pending_summon_results.clear()  # Clear previous results
+	if summon_system.has_method("clear_duplicate_tracking"):
+		summon_system.clear_duplicate_tracking()  # Fresh duplicate tracking for this session
 
 	var success = false
 	if banner.summon_type == "divine_crystals":

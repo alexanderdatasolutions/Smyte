@@ -238,16 +238,12 @@ func _populate_grid():
 		card.modulate.a = 0.0
 		card.scale = Vector2(0.8, 0.8)
 
-func _create_god_card(god: God, collection_mgr) -> PanelContainer:
+func _create_god_card(god: God, _collection_mgr) -> PanelContainer:
 	var card = PanelContainer.new()
 	card.custom_minimum_size = CARD_SIZE
 
-	# Determine if this is a new god or duplicate
-	var is_duplicate = false
-	if collection_mgr:
-		# Check if god exists in collection by counting occurrences
-		var god_count = _count_god_in_collection(god.id, collection_mgr)
-		is_duplicate = god_count > 1  # More than 1 means we already had it
+	# Determine if this is a new god or duplicate via SummonManager tracking
+	var is_duplicate = _was_duplicate(god.id)
 
 	# Style card based on rarity
 	var tier_string = God.tier_to_string(god.tier).to_lower()
@@ -363,13 +359,12 @@ func _get_god_stats(god: God) -> Dictionary:
 		"speed": god.base_speed
 	}
 
-func _count_god_in_collection(god_id: String, collection_mgr) -> int:
-	# Since gods are unique by ID, check if it exists
-	# For duplicate detection, we track in SummonManager
-	# Here we just check if it existed before this summon session
-	if collection_mgr.has_god(god_id):
-		return 2  # Mark as duplicate
-	return 1  # New god
+func _was_duplicate(god_id: String) -> bool:
+	"""Check if god was a duplicate by querying SummonManager."""
+	var summon_manager = SystemRegistry.get_instance().get_system("SummonManager") if SystemRegistry.get_instance() else null
+	if summon_manager and summon_manager.has_method("was_duplicate"):
+		return summon_manager.was_duplicate(god_id)
+	return false
 
 func _update_summary():
 	var total = displayed_gods.size()

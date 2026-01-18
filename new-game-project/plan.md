@@ -129,7 +129,7 @@ Complete overhaul of the summon/gacha system to create an engaging, balanced exp
       "Update collection UI if currently viewing",
       "Show notification for legendary pulls"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "integration",
