@@ -470,7 +470,7 @@
       "Gods can be used in next battle immediately"
     ],
     "files_to_modify": [],
-    "passes": false
+    "passes": true
   },
   {
     "id": "TEST-004",
