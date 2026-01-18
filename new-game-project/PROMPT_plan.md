@@ -141,21 +141,19 @@ Study the **entire codebase** with up to **500 parallel Sonnet subagents** to un
 
 ---
 
-## Step 1: Create Comprehensive Analysis Document
+## Step 1: Create Comprehensive Game Design Document
 
 Use up to **50 parallel Opus subagents with ultrathink** to create a massive analysis document.
 
-### Document Structure
+Create `docs/GAME_DESIGN_DOCUMENT.md` with comprehensive documentation covering:
 
-Create `docs/GAME_DESIGN_DOCUMENT.md` with these sections:
-
-#### 1. Executive Summary
+### Executive Summary
 - Current state (what works, what doesn't)
 - Core gameplay loop (intended vs actual)
 - Biggest gaps
 - Recommended priorities
 
-#### 2. Resource Economy
+### Resource Economy
 **For ALL 49 resources:**
 - Resource name and ID
 - Where it comes from (sources: nodes, dungeons, tasks, etc.)
@@ -172,14 +170,14 @@ Tasks    Summoning  Awakening
 Dungeons  Gods    Specialization
 ```
 
-#### 3. God Progression System
+### God Progression System
 - Summoning (how to get gods, costs, rates)
 - Leveling (XP sources, formulas, sacrifice system)
 - Awakening (requirements, costs, benefits)
 - Specialization (trees, unlocks, bonuses)
 - Equipment (slots, stats, crafting)
 
-#### 4. Territory/Hex Node System
+### Territory/Hex Node System
 - Node types and tiers
 - Production rates and formulas
 - Worker assignment (efficiency bonuses)
@@ -187,35 +185,35 @@ Dungeons  Gods    Specialization
 - AFK production (timer, offline gains)
 - UI visibility (what players see)
 
-#### 5. Dungeon System
+### Dungeon System
 - All dungeons (tier, difficulty, rewards)
 - Replayability mechanics
 - Reward scaling
 - Risk vs reward balance
 - Entry requirements
 
-#### 6. Battle System
+### Battle System
 - Combat flow (turn order, actions)
 - Stats that matter (formulas)
 - Abilities and skills
 - Damage calculation
 - Victory/defeat conditions
 
-#### 7. Crafting System
+### Crafting System
 - All recipes (10+ recipes)
 - Material requirements
 - Equipment stats
 - Crafting UI (exists? missing?)
 - Discovery mechanics
 
-#### 8. Playstyle Archetypes
+### Playstyle Archetypes
 **Can you play as:**
 - Gatherer (passive income, minimal combat)
 - Warrior (conquest, combat-focused)
 - Crafter (equipment production)
 - Specialist (role optimization)
 
-#### 9. UI/UX Audit
+### UI/UX Audit
 **For each system:**
 - Screen name
 - What's visible
@@ -225,14 +223,14 @@ Dungeons  Gods    Specialization
 - Missing tooltips
 - Missing tutorials
 
-#### 10. System Integration Map
+### System Integration Map
 **Connections between systems:**
 - Which systems call which?
 - Which systems depend on which?
 - Which systems are isolated?
 - Which connections are missing?
 
-#### 11. Missing Pieces
+### Missing Pieces
 **What needs to be built:**
 - Missing UI screens
 - Missing tooltips
@@ -240,7 +238,7 @@ Dungeons  Gods    Specialization
 - Missing formulas
 - Missing feedback loops
 
-#### 12. Code Quality Audit
+### Code Quality Audit
 **Cleanup opportunities:**
 - Untyped variables
 - Magic numbers
@@ -252,13 +250,14 @@ Dungeons  Gods    Specialization
 
 ## Step 2: Create plan.md
 
-After the comprehensive analysis, create `plan.md` following ralph_wiggum_guide.md format:
+After the comprehensive analysis, create `plan.md` following ralph_wiggum_guide.md format with JSON task structure:
 
+**Structure should follow:**
 ```markdown
-# Unified Game Design Document & System Connection - Implementation Plan
+# [Title] - Implementation Plan
 
 ## Overview
-Connect all backend systems to UI, create unified game design document, expose hidden features, and complete the core gameplay loop.
+[Brief description]
 
 **Reference:** `docs/GAME_DESIGN_DOCUMENT.md`
 
@@ -270,68 +269,14 @@ Connect all backend systems to UI, create unified game design document, expose h
 [
   {
     "category": "audit",
-    "description": "Complete comprehensive system audit and create GDD",
-    "steps": [
-      "Analyze all 49 resources (sources, sinks, visibility)",
-      "Map god progression (summoning, leveling, awakening, specialization)",
-      "Document territory system (nodes, production, workers)",
-      "Audit dungeon system (rewards, replayability, scaling)",
-      "Map battle system (combat, stats, abilities)",
-      "Audit crafting system (recipes, materials, UI gaps)",
-      "Identify playstyle archetypes",
-      "Create system integration map",
-      "List all missing UI components",
-      "Create docs/GAME_DESIGN_DOCUMENT.md with all findings"
-    ],
+    "description": "...",
+    "steps": ["...", "..."],
     "passes": false
   },
   {
     "category": "ui",
-    "description": "Build Crafting UI to expose recipe system",
-    "steps": [
-      "Create RecipeBookScreen.gd (browse all recipes)",
-      "Add crafting tab to EquipmentScreen",
-      "Show material requirements with have/need counts",
-      "Add Craft button that calls EquipmentCraftingManager",
-      "Add success/failure feedback",
-      "Test crafting flow end-to-end"
-    ],
-    "passes": false
-  },
-  {
-    "category": "ui",
-    "description": "Add resource tooltips explaining purpose",
-    "steps": [
-      "Create ResourceTooltip component",
-      "Add 'Used For' section (crafting, summoning, etc.)",
-      "Add 'Sources' section (nodes, dungeons, tasks)",
-      "Integrate tooltips in ResourceManager displays",
-      "Test all 49 resource tooltips"
-    ],
-    "passes": false
-  },
-  {
-    "category": "ui",
-    "description": "Add god assignment efficiency display",
-    "steps": [
-      "Show efficiency % when assigning gods to nodes",
-      "Show why (specialization bonus, level bonus)",
-      "Add tooltip: 'This god is 35% efficient at fishing'",
-      "Show comparison: 'Zeus: 15% | Poseidon: 85%'",
-      "Test assignment UI updates"
-    ],
-    "passes": false
-  },
-  {
-    "category": "integration",
-    "description": "Connect dungeon rewards to resource economy",
-    "steps": [
-      "Show dungeon rewards BEFORE entering",
-      "Display material drops in preview",
-      "Show reward multipliers for difficulty",
-      "Add dungeon→crafting connection UI",
-      "Test dungeon reward visibility"
-    ],
+    "description": "...",
+    "steps": ["...", "..."],
     "passes": false
   }
 ]
@@ -347,43 +292,24 @@ Connect all backend systems to UI, create unified game design document, expose h
 7. Git commit
 8. Repeat until all pass
 
-**Important:** The first task is MASSIVE - use 500 parallel Sonnet agents to analyze the entire codebase and create the comprehensive GDD.
-
 ## Completion Criteria
 All tasks marked "passes": true
 ```
 
-### Task Prioritization
-1. **AUDIT FIRST** - Comprehensive analysis with 500 parallel agents
-2. **Document everything** - Create GAME_DESIGN_DOCUMENT.md
-3. **UI gaps** - Build missing screens (Crafting, Tooltips, etc.)
-4. **System connections** - Wire up isolated systems
-5. **Player visibility** - Make everything discoverable
-6. **Polish** - Tutorials, guides, feedback loops
+**Task Categories Should Cover:**
+- Audit/Documentation (if needed)
+- UI gaps (missing screens, tooltips)
+- System connections (wire up isolated systems)
+- Integration (connect backends to frontends)
+- Testing (verify end-to-end flows)
+- Polish (visual feedback, tutorials)
 
-IMPORTANT: **Plan only.** Do NOT implement anything. This is comprehensive gap analysis only.
-
----
-
-## Expected Output
-
-When complete, we should have:
-
-1. **docs/GAME_DESIGN_DOCUMENT.md** (100+ pages)
-   - Complete resource economy map
-   - Full god progression documentation
-   - All formulas and calculations
-   - All systems documented end-to-end
-   - All missing pieces identified
-   - Priority-ordered implementation tasks
-
-2. **plan.md** with tasks to:
-   - Build missing UI (Crafting Screen, Recipe Book, Tooltips)
-   - Connect isolated systems (Dungeons → Crafting, Nodes → Resources)
-   - Add visibility features (Efficiency %, Resource purposes)
-   - Create feedback loops (Progression guide, Tutorials)
-
-3. **activity.md** logging the audit process
+**Task Prioritization Guidelines:**
+1. **Document first** - Ensure GDD is complete
+2. **UI gaps** - Build missing screens (Crafting, Tooltips, etc.)
+3. **System connections** - Wire up isolated systems
+4. **Player visibility** - Make everything discoverable
+5. **Polish** - Tutorials, guides, feedback loops
 
 ---
 
@@ -407,4 +333,10 @@ This is NOT a quick pass. This requires:
 - What to build next
 - How it all connects
 
+---
+
 IMPORTANT: **Plan only. Do NOT implement anything. This is gap analysis only.**
+
+When complete, output exactly:
+
+<promise>PLAN_COMPLETE</promise>
