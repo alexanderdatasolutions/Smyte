@@ -9,6 +9,7 @@ signal multi_summon_completed(gods)
 signal pity_milestone_reached(pity_type: String, count: int)
 signal summon_history_updated(history_entry: Dictionary)
 signal duplicate_obtained(god, mana_reward: int)
+signal milestone_reward_claimed(milestone_key: String, rewards: Dictionary)
 
 # Pity counters per banner type for guaranteed drops
 var pity_counters: Dictionary = {
@@ -357,6 +358,30 @@ func _award_milestone(key: String, data: Dictionary):
 			resource_manager.add_resource(resource_id, reward[resource_id])
 	claimed_milestones.append(key)
 
+	# Emit signal and notification for milestone reward
+	milestone_reward_claimed.emit(key, reward)
+	_notify_milestone_reward(key, reward)
+
+func _notify_milestone_reward(key: String, reward: Dictionary):
+	"""Show notification for milestone reward via EventBus."""
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	if not event_bus or not event_bus.has_method("emit_notification"):
+		return
+
+	# Format reward text
+	var reward_parts = []
+	for resource_id in reward:
+		var display_name = resource_id.replace("_", " ").capitalize()
+		reward_parts.append("%d %s" % [reward[resource_id], display_name])
+	var reward_text = ", ".join(reward_parts)
+
+	# Get summon count from key (e.g., "10_summons" -> 10)
+	var parts = key.split("_")
+	var count = int(parts[0]) if parts.size() > 0 else 0
+
+	var message = "Milestone: %d Summons! Reward: %s" % [count, reward_text]
+	event_bus.emit_notification(message, "milestone", 4.0)
+
 # SPECIAL SUMMON AVAILABILITY
 
 func can_use_daily_free_summon() -> bool:
@@ -382,76 +407,45 @@ func get_time_until_free_summon() -> int:
 func multi_summon_premium(count: int = 10) -> bool:
 	var config = get_config()
 	var single_cost = 100
-	var discount = 0.9
 	if config.has("summon_configuration"):
 		var multi = config.summon_configuration.get("costs", {}).get("multi_summons", {})
 		if multi.has("premium_pack_10") and multi.premium_pack_10.has("divine_crystals"):
 			single_cost = int(multi.premium_pack_10.divine_crystals / count)
-
-	var total_cost = {"divine_crystals": int(single_cost * count * discount)}
-	if not _can_afford_cost(total_cost):
-		summon_failed.emit("Cannot afford multi-summon")
-		return false
-	_spend_cost(total_cost)
-
-	var summoned_gods = []
-	var has_rare = false
-	for i in range(count):
-		var god = _get_random_god("divine_crystals", "premium")
-		# Guarantee rare on last pull if none yet
-		if i == count - 1 and not has_rare:
-			var found_rare = false
-			for g in summoned_gods:
-				if g.tier >= God.TierType.RARE:
-					found_rare = true
-					break
-			if not found_rare:
-				god = _create_god_of_tier("rare")
-		if god:
-			if god.tier >= God.TierType.RARE:
-				has_rare = true
-			summoned_gods.append(god)
-			_add_god_to_collection(god)
-			_update_pity_counters(God.tier_to_string(god.tier).to_lower(), "premium")
-			total_summons += 1
-			_add_to_history(god, "divine_crystals", {"divine_crystals": int(single_cost * discount)})
-
-	_check_milestone_rewards()
-	multi_summon_completed.emit(summoned_gods)
-	return summoned_gods.size() > 0
+	var total_cost = {"divine_crystals": int(single_cost * count * 0.9)}
+	return _perform_multi_summon(total_cost, "divine_crystals", "premium", count, single_cost)
 
 func summon_multi_with_soul(soul_type: String, count: int = 10) -> bool:
-	var discount = 0.9
-	var total_cost = {soul_type: int(count * discount)}
-	if not _can_afford_cost(total_cost):
+	var total_cost = {soul_type: int(count * 0.9)}
+	var banner_type = "element" if _is_element_soul(soul_type) else "default"
+	return _perform_multi_summon(total_cost, soul_type, banner_type, count, 1)
+
+func _perform_multi_summon(cost: Dictionary, summon_type: String, banner_type: String, count: int, unit_cost: int) -> bool:
+	if not _can_afford_cost(cost):
 		summon_failed.emit("Cannot afford multi-summon")
 		return false
-	_spend_cost(total_cost)
-
-	var banner_type = "element" if _is_element_soul(soul_type) else "default"
+	_spend_cost(cost)
 	var summoned_gods = []
-	var has_rare = false
 	for i in range(count):
-		var god = _get_random_god(soul_type, banner_type)
-		if i == count - 1 and not has_rare:
-			var found_rare = false
-			for g in summoned_gods:
-				if g.tier >= God.TierType.RARE:
-					found_rare = true
-					break
-			if not found_rare:
-				god = _create_god_of_tier("rare")
+		var god = _get_random_god(summon_type, banner_type)
+		# Guarantee rare on last pull if none obtained
+		if i == count - 1 and not _has_rare_or_better(summoned_gods):
+			god = _create_god_of_tier("rare")
 		if god:
-			if god.tier >= God.TierType.RARE:
-				has_rare = true
 			summoned_gods.append(god)
 			_add_god_to_collection(god)
 			_update_pity_counters(God.tier_to_string(god.tier).to_lower(), banner_type)
 			total_summons += 1
-			_add_to_history(god, soul_type, {soul_type: 1})
+			var entry_cost = {summon_type: unit_cost} if summon_type != "divine_crystals" else {"divine_crystals": int(unit_cost * 0.9)}
+			_add_to_history(god, summon_type, entry_cost)
 	_check_milestone_rewards()
 	multi_summon_completed.emit(summoned_gods)
 	return summoned_gods.size() > 0
+
+func _has_rare_or_better(gods: Array) -> bool:
+	for g in gods:
+		if g.tier >= God.TierType.RARE:
+			return true
+	return false
 
 func _is_element_soul(soul_type: String) -> bool:
 	return soul_type in ["fire_soul", "water_soul", "earth_soul", "lightning_soul", "light_soul", "dark_soul"]

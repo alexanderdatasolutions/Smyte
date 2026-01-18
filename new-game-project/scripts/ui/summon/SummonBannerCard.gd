@@ -269,12 +269,22 @@ func _update_button_states():
 	var can_afford_single = _can_afford(single_cost)
 	var can_afford_multi = _can_afford(multi_cost)
 
+	# Check daily free availability
+	if banner_data.get("is_daily_free", false):
+		var summon_manager = _get_summon_manager()
+		if summon_manager and not summon_manager.can_use_daily_free_summon():
+			can_afford_single = false
+			can_afford_multi = false
+
 	single_button.disabled = not can_afford_single
 	multi_button.disabled = not can_afford_multi
 
 	# Update button text with cost hint if disabled
 	if not can_afford_single:
-		single_button.tooltip_text = "Insufficient resources"
+		if banner_data.get("is_daily_free", false):
+			single_button.tooltip_text = "Already used today"
+		else:
+			single_button.tooltip_text = "Insufficient resources"
 	else:
 		single_button.tooltip_text = ""
 

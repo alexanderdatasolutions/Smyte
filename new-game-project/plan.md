@@ -141,7 +141,7 @@ Complete overhaul of the summon/gacha system to create an engaging, balanced exp
       "Show error notification if insufficient resources",
       "Track total summons for milestone rewards"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "features",

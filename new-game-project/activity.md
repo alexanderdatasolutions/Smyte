@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-18
-**Tasks Completed:** 9/16
-**Current Task:** Task 10 - Integrate with ResourceManager for costs
+**Tasks Completed:** 10/16
+**Current Task:** Task 11 - Implement daily free summon system
 
 ---
 
@@ -339,6 +339,51 @@
 - Screenshot: `screenshots/summon-task9-collection.png`
 
 **Errors encountered:** None
+
+---
+
+### 2026-01-18 - Task 10: Integrate with ResourceManager for costs ✅
+
+**What was done:**
+- Verified existing ResourceManager integration in SummonManager was already functional:
+  - `_can_afford_cost()` checks resource availability before summon
+  - `_spend_cost()` deducts resources via ResourceManager.spend()
+- Added `milestone_reward_claimed` signal to SummonManager for UI notification
+- Enhanced `_award_milestone()` to emit notification via EventBus when milestones are claimed
+- Added `_notify_milestone_reward()` helper function for formatted milestone notifications
+- Fixed SummonBannerCard to check daily free availability via SummonManager.can_use_daily_free_summon()
+- Added screen refresh when returning to SummonScreen (cards now refresh in _notification handler)
+- Connected SummonScreen to ResourceManager.resource_changed and resource_insufficient signals
+- Added `_on_resource_insufficient()` handler to show popup via SummonPopupHelper
+
+**Files modified:**
+- `scripts/systems/collection/SummonManager.gd` - Added milestone notifications, refactored multi-summon (483 lines, under 500 limit)
+- `scripts/ui/summon/SummonBannerCard.gd` - Added daily free availability check in `_update_button_states()`
+- `scripts/ui/screens/SummonScreen.gd` - Added card refresh when screen becomes visible
+
+**Key features verified:**
+- Resource checking: Buttons disabled when player lacks resources (souls, crystals)
+- Resource spending: Cost deducted from ResourceManager on successful summon
+- Resource display updates: Banner cards refresh when resources change
+- Error notification: Popup shown via SummonPopupHelper when insufficient resources
+- Daily free tracking: Buttons disabled after daily free summon used
+- Milestone tracking: `total_summons` incremented, rewards granted at 10/50/100/500 summons
+
+**Verified with Godot MCP:**
+- Project runs without summon-related errors
+- Navigated to SummonScreen successfully
+- All summon buttons properly disabled when lacking resources
+- Daily Free summon buttons enabled on fresh session
+- Daily Free summon tested - summoned "Guanyin" (Rare Water)
+- Daily Free buttons correctly disabled after use
+- Pity counter updated to 1/100 after summon
+- God displayed in Summon Showcase with stats (HP:100, ATK:47, DEF:81)
+- Result overlay shows correctly with View/Again/Close buttons
+- Screenshots: `summon-task10-initial.png`, `summon-task10-result.png`, `summon-task10-final.png`
+
+**Errors encountered:**
+- Daily free buttons remained enabled after use - fixed by adding `can_use_daily_free_summon()` check in SummonBannerCard
+- Banner cards not refreshing when returning to screen - fixed by adding refresh call in _notification handler
 
 ---
 

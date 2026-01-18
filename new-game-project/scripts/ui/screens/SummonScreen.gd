@@ -1,14 +1,12 @@
-# scripts/ui/SummonScreen.gd
-# RULE 1: Coordinator pattern - delegates to specialized components
-# Updated: Task 8 - SummonResultOverlay integration
+# scripts/ui/SummonScreen.gd - Coordinator pattern with ResourceManager integration
 extends Control
 
-# Preload helper classes (prefixed to avoid class_name conflicts)
 const _SummonButtonFactory = preload("res://scripts/ui/summon/SummonButtonFactory.gd")
 const _SummonShowcaseClass = preload("res://scripts/ui/summon/SummonShowcase.gd")
 const _SummonBannerCardClass = preload("res://scripts/ui/summon/SummonBannerCard.gd")
 const _SummonAnimationClass = preload("res://scripts/ui/summon/SummonAnimation.gd")
 const _SummonResultOverlayClass = preload("res://scripts/ui/summon/SummonResultOverlay.gd")
+const _SummonPopupHelperClass = preload("res://scripts/ui/summon/SummonPopupHelper.gd")
 
 signal back_pressed
 
@@ -17,21 +15,16 @@ signal back_pressed
 @onready var showcase_content = $MainContainer/RightPanel/ShowcaseContainer/ShowcaseContent
 @onready var default_message = $MainContainer/RightPanel/ShowcaseContainer/ShowcaseContent/DefaultMessage
 
-# Banner cards (new system with pity progress)
 var banner_cards: Array = []
-
-# Components (RULE 1 compliance - delegation)
 var showcase: SummonShowcase
-var summon_animation  # Type: SummonAnimation (preloaded)
-var result_overlay  # Type: SummonResultOverlay (preloaded)
-
-# State
+var summon_animation  # SummonAnimation
+var result_overlay  # SummonResultOverlay
 var selected_element: int = 0
 var is_processing_summon: bool = false
 var cards_initialized: bool = false
 var animations_enabled: bool = true
-var pending_summon_results: Array[God] = []  # Collect results during animation
-var current_banner_data: Dictionary = {}  # For "Summon Again" feature
+var pending_summon_results: Array[God] = []
+var current_banner_data: Dictionary = {}
 
 func _ready():
 	# Ensure fullscreen (needed when parent is Node2D)
@@ -68,6 +61,9 @@ func _notification(what):
 			_connect_summon_signals()
 			_create_summon_cards()
 			cards_initialized = true
+		elif cards_initialized:
+			# Refresh cards when returning to screen (resource state may have changed)
+			_refresh_all_cards()
 
 func _setup_fullscreen():
 	"""Make this control fill the entire viewport"""
@@ -184,6 +180,24 @@ func _connect_summon_signals():
 	summon_manager.summon_failed.connect(_on_summon_failed)
 	summon_manager.multi_summon_completed.connect(_on_multi_summon_completed)
 
+	# Connect to ResourceManager for resource updates to refresh UI
+	_connect_resource_signals()
+
+func _connect_resource_signals():
+	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
+	if not resource_manager:
+		return
+
+	# Disconnect first if already connected
+	if resource_manager.resource_changed.is_connected(_on_resource_changed):
+		resource_manager.resource_changed.disconnect(_on_resource_changed)
+	if resource_manager.resource_insufficient.is_connected(_on_resource_insufficient):
+		resource_manager.resource_insufficient.disconnect(_on_resource_insufficient)
+
+	# Connect to resource change signals
+	resource_manager.resource_changed.connect(_on_resource_changed)
+	resource_manager.resource_insufficient.connect(_on_resource_insufficient)
+
 func _create_summon_cards():
 	if not summon_container:
 		return
@@ -273,31 +287,13 @@ func _convert_summon_container_to_grid():
 	var parent = summon_container.get_parent()
 	if not parent:
 		return
-
 	var pos = summon_container.get_index()
 	summon_container.queue_free()
-
 	var grid = GridContainer.new()
 	grid.name = "SummonContainer"
-	grid.columns = 2  # 2 columns for larger banner cards with pity progress
+	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 16)
 	grid.add_theme_constant_override("v_separation", 16)
-
-	var grid_style = StyleBoxFlat.new()
-	grid_style.bg_color = Color.BLACK
-	grid_style.bg_color.a = 0.1
-	grid_style.corner_radius_top_left = 8
-	grid_style.corner_radius_top_right = 8
-	grid_style.corner_radius_bottom_left = 8
-	grid_style.corner_radius_bottom_right = 8
-	grid_style.border_width_left = 1
-	grid_style.border_width_top = 1
-	grid_style.border_width_right = 1
-	grid_style.border_width_bottom = 1
-	grid_style.border_color = Color.GRAY
-	grid_style.border_color.a = 0.3
-	grid.add_theme_stylebox_override("panel", grid_style)
-
 	parent.add_child(grid)
 	parent.move_child(grid, pos)
 	summon_container = grid
@@ -391,6 +387,24 @@ func _on_summon_failed(reason):
 
 func _on_duplicate_obtained(_god, _existing_count: int):
 	pass
+
+func _on_resource_changed(_resource_id: String, _new_amount: int, _delta: int):
+	"""Called when any resource changes - refresh banner card states"""
+	_refresh_all_cards()
+	# Also update the ResourceDisplay if it exists
+	_update_resource_display()
+
+func _on_resource_insufficient(resource_id: String, required: int, available: int):
+	"""Called when trying to spend more resources than available"""
+	var display_name = _SummonPopupHelperClass.get_resource_display_name(resource_id)
+	var message = "Not enough %s! Need %d, have %d" % [display_name, required, available]
+	_SummonPopupHelperClass.show_insufficient_resources(self, message, resource_id)
+
+func _update_resource_display():
+	"""Update ResourceDisplay component if present in scene"""
+	var resource_display = get_node_or_null("ResourceDisplay")
+	if resource_display and resource_display.has_method("_update_this_instance"):
+		resource_display._update_this_instance()
 
 ## Animation callbacks
 
