@@ -363,7 +363,7 @@
     "files_to_modify": [
       "scripts/ui/battle/BattleResultOverlay.gd"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "UI-004",

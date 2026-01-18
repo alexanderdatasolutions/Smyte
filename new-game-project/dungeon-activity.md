@@ -2,9 +2,9 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 10
+**Tasks Completed:** 11
 **Current Phase:** Build
-**Current Task:** UI-002 completed
+**Current Task:** UI-003 completed
 
 ---
 
@@ -378,5 +378,52 @@ This log tracks Ralph working through the dungeon system implementation.
 - ✅ New wave enemies slide/fade in (staggered animation in `_refresh_enemy_cards_with_animation`)
 - ✅ Transition duration feels satisfying (~1.5s total: 0.3s in, 0.8s hold, 0.4s out)
 - ✅ Player units remain visible throughout (overlay is semi-transparent dark, player cards unaffected)
+
+---
+
+### 2026-01-17 - UI-003: Enhance loot reveal animation on victory
+
+**What was changed:**
+- Added animation tracking variables (`_reward_rows`, `_loot_rows`, `_reveal_tween`, `_is_animating`)
+- Added `_first_clear_container` VBoxContainer for special first-clear bonus section
+- Replaced `_populate_rewards()` with `_prepare_rewards()` that creates hidden rows for animation
+- Added `_create_reward_row()` function that creates reward rows with:
+  - Colored resource icon (ColorRect) based on resource type
+  - Formatted resource name
+  - Amount with +X formatting
+  - Optional glow effect for rare+ items
+- Added `_get_resource_icon_color()` to map resource names to colors (mana=blue, fire=orange, etc.)
+- Added `_apply_glow_effect()` to add glowing background for rare/epic/legendary/mythic items
+- Added `_prepare_first_clear_bonus()` that creates "🏆 FIRST CLEAR BONUS! 🏆" header section
+  - Gold text for header
+  - Legendary glow effect on first-clear reward rows
+- Added `_prepare_loot()` for equipment loot items with rarity coloring and glow effects
+- Replaced `_animate_show()` with `_animate_show_with_rewards()`:
+  - Step 1: Fade in overlay (0.3s)
+  - Step 2: Brief pause (0.2s)
+  - Step 3: Fade in rewards title
+  - Step 4: Reveal each reward row sequentially (150ms fade + 100ms delay)
+  - Step 5: Reveal first-clear bonus section with scale bounce animation
+  - Step 6: Reveal loot items sequentially
+- Added `_on_reveal_complete()` callback when animation finishes
+- Updated `hide_result()` to cleanup animation state
+
+**Files modified:**
+- `scripts/ui/battle/BattleResultOverlay.gd` (380→587 lines)
+
+**Verification:**
+- Ran game successfully with no script errors
+- BattleResultOverlay code compiles and loads correctly
+- Animation functions properly reference tween API
+- First-clear detection uses `source: "first_clear"` from loot_obtained items
+- Sequential animation timing: ~100ms between each reward (satisfies acceptance criteria)
+
+**Screenshots:**
+- `loot_reveal_ui003.png` - Game running with enhanced BattleResultOverlay system
+
+**Acceptance Criteria Met:**
+- ✅ Rewards appear sequentially (100ms delay each via tween_interval)
+- ✅ Rare drops have distinct visual treatment (glow effect via `_apply_glow_effect`)
+- ✅ First-clear bonus shows as "🏆 FIRST CLEAR BONUS! 🏆" header with gold styling
 
 ---
