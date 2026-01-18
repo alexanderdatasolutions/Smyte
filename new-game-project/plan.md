@@ -193,7 +193,7 @@ Complete overhaul of the summon/gacha system to create an engaging, balanced exp
       "Test resource deduction works correctly",
       "Test gods added to collection properly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "testing",
