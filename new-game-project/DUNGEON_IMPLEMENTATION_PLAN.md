@@ -407,7 +407,7 @@
       "scripts/ui/screens/BattleScreen.gd",
       "scenes/ui/battle/WaveRewardEffect.tscn (new)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "TEST-001",

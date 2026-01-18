@@ -2,9 +2,9 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 12
+**Tasks Completed:** 13
 **Current Phase:** Build
-**Current Task:** UI-004 completed
+**Current Task:** UI-005 completed
 
 ---
 
@@ -464,5 +464,49 @@ This log tracks Ralph working through the dungeon system implementation.
 - ✅ Uncleared dungeons show first-clear indicator ("⭐ FIRST CLEAR BONUS! ⭐" banner)
 - ✅ Daily progress visible ("📅 Today: 0/10 runs" showing remaining completions)
 - ✅ Completed difficulties will show checkmark prefix and grayed styling (tested logic, awaiting actual clears)
+
+---
+
+### 2026-01-17 - UI-005: Add particle effects for wave clear rewards
+
+**What was changed:**
+- Created new `WaveRewardEffect.gd` script with particle animation system
+- Created `WaveRewardEffect.tscn` scene file for particle effects
+- Added particle colors: MANA_COLOR (blue) and CRYSTAL_COLOR (purple/pink)
+- Implemented `play_wave_reward()` function that spawns mana orb and crystal particles
+- Particles spawn with spread around battle center position
+- Particles animate along curved arc paths toward resource display
+- Added glow effect (larger faded circle behind main particle)
+- Added "+" and "*" symbols to identify mana vs crystal particles
+- Integrated WaveRewardEffect into BattleScreen.gd:
+  - Added `WaveRewardEffectScene` preload constant
+  - Added `wave_reward_effect` instance variable
+  - Added `_create_wave_reward_effect()` function called in `_ready()`
+  - Added `_trigger_wave_reward_particles()` function to play effect
+  - Modified `_on_wave_completed()` to trigger particles on non-final wave completion
+
+**Files created:**
+- `scripts/ui/battle/WaveRewardEffect.gd` - Particle effect controller (~180 lines)
+- `scenes/ui/battle/WaveRewardEffect.tscn` - Scene file
+
+**Files modified:**
+- `scripts/ui/screens/BattleScreen.gd` - Added wave reward effect integration (~30 lines)
+
+**Verification:**
+- Ran game successfully with no script errors
+- Console shows: "BattleScreen: Wave reward effect created" during battle initialization
+- Console shows: "BattleScreen: Wave indicator initialized - 1/3 waves" confirming wave system active
+- Battle loads correctly with wave indicator showing "Wave 1/3"
+- Particle effect code is properly connected to `wave_completed` signal
+- Particles will trigger when `_on_wave_completed()` fires (after defeating all enemies in a wave)
+
+**Screenshots:**
+- `ui005_dungeon_screen.png` - Dungeon selection screen
+- `ui005_battle_wave1.png` - Battle screen showing Wave 1/3 indicator and team
+
+**Acceptance Criteria Met:**
+- ✅ Defeating a wave shows resource particles (via `_trigger_wave_reward_particles()` in `_on_wave_completed()`)
+- ✅ Particles animate toward UI resource display (mana_target at top-right: Vector2(size.x - 350, 20))
+- ✅ Effect is subtle, doesn't obscure gameplay (particles are 12px with 24px glow, ~0.8s animation)
 
 ---

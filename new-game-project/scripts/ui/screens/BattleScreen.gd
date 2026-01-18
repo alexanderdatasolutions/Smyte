@@ -14,6 +14,7 @@ Following prompt.prompt.md architecture:
 
 const BattleUnitCardScene = preload("res://scenes/ui/battle/BattleUnitCard.tscn")
 const BattleResultOverlayScene = preload("res://scenes/ui/battle/BattleResultOverlay.tscn")
+const WaveRewardEffectScene = preload("res://scenes/ui/battle/WaveRewardEffect.tscn")
 
 # UI Components (following RULE 2: Single responsibility)
 @onready var back_button = $MainContainer/BottomContainer/ButtonContainer/BackButton
@@ -50,6 +51,9 @@ var selected_skill_index: int = -1
 # Battle result overlay
 var battle_result_overlay = null  # BattleResultOverlay instance
 
+# Wave reward particle effect
+var wave_reward_effect = null  # WaveRewardEffect instance
+
 func _ready():
 	# Connect visibility changed to clean up when screen is hidden
 	visibility_changed.connect(_on_visibility_changed)
@@ -65,6 +69,9 @@ func _ready():
 
 	# Create battle result overlay (hidden by default)
 	_create_battle_result_overlay()
+
+	# Create wave reward effect (hidden by default)
+	_create_wave_reward_effect()
 
 	# Get battle coordinator and connect to signals
 	battle_coordinator = SystemRegistry.get_instance().get_system("BattleCoordinator")
@@ -722,7 +729,7 @@ func _hide_wave_indicator():
 # =============================================================================
 
 func _on_wave_completed(wave_number: int):
-	"""Handle wave completed signal - show celebratory transition"""
+	"""Handle wave completed signal - show celebratory transition and particle effects"""
 	if not wave_transition_overlay or not wave_transition_label:
 		return
 
@@ -739,7 +746,10 @@ func _on_wave_completed(wave_number: int):
 	print("BattleScreen: Wave %d completed, showing transition animation" % wave_number)
 	_show_wave_transition(wave_number, total_waves)
 
-func _show_wave_transition(completed_wave: int, total_waves: int):
+	# Trigger wave reward particle effect
+	_trigger_wave_reward_particles()
+
+func _show_wave_transition(completed_wave: int, _total_waves: int):
 	"""Display wave transition overlay with animation"""
 	if not wave_transition_overlay or not wave_transition_label:
 		return
@@ -821,3 +831,30 @@ func _refresh_enemy_cards_with_animation():
 		tween.tween_property(unit_card, "position:x", unit_card.position.x - 50, 0.3).set_delay(delay).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
 
 	print("BattleScreen: Enemy cards refreshed with fade-in animation")
+
+# =============================================================================
+# WAVE REWARD PARTICLE EFFECTS
+# =============================================================================
+
+func _create_wave_reward_effect():
+	"""Create the wave reward particle effect (hidden by default)"""
+	wave_reward_effect = WaveRewardEffectScene.instantiate()
+	add_child(wave_reward_effect)
+	print("BattleScreen: Wave reward effect created")
+
+func _trigger_wave_reward_particles():
+	"""Trigger wave reward particle effect - particles fly toward resource display"""
+	if not wave_reward_effect:
+		return
+
+	# Calculate spawn position (center of battle area)
+	var spawn_pos = size / 2.0
+
+	# Calculate target position (top-right where resource display is)
+	# ResourceDisplay is positioned at offset_left: 453, offset_top: 3 in MainUIOverlay
+	# We target the mana and crystal icon positions
+	var mana_target = Vector2(size.x - 350, 20)  # Approximate mana icon position
+
+	# Play particles flying toward resource display
+	wave_reward_effect.play_wave_reward(spawn_pos, mana_target, 5, 3)
+	print("BattleScreen: Wave reward particles triggered from %s to %s" % [spawn_pos, mana_target])
