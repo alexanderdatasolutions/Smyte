@@ -2,9 +2,9 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 8
+**Tasks Completed:** 9
 **Current Phase:** Build
-**Current Task:** SYS-005 completed
+**Current Task:** UI-001 completed
 
 ---
 
@@ -307,5 +307,35 @@ This log tracks Ralph working through the dungeon system implementation.
 - ✅ TerritoryManager.is_node_unlocked_by_dungeons() reflects dungeon progress (returns false before clear, true after)
 - ✅ Unlock requirements defined in hex_nodes.json (dungeon_clears array in unlock_requirements)
 - ✅ node_unlocked signal emitted when dungeon completion unlocks a node
+
+---
+
+### 2026-01-17 - UI-001: Add wave indicator to BattleScreen
+
+**What was changed:**
+- Added WaveIndicator Label node to BattleScreen.tscn (placed above TurnIndicator)
+- Added `@onready var wave_indicator` reference in BattleScreen.gd
+- Connected to `wave_manager.wave_started` signal in `_ready()` for wave updates
+- Added `_initialize_wave_indicator(config)` - shows indicator for wave battles (enemy_waves > 1), hides for arena
+- Added `_update_wave_indicator(current_wave, total_waves)` - updates display text to "Wave X/Y"
+- Added `_on_wave_started(wave_number)` - handles wave progression updates
+- Added `_hide_wave_indicator()` - hides indicator when battle ends or no battle active
+- Wave indicator hidden in `_on_battle_ended()` and `_show_no_battle_state()`
+
+**Files modified:**
+- `scenes/BattleScreen.tscn` - Added WaveIndicator Label node
+- `scripts/ui/screens/BattleScreen.gd` - Added wave indicator management section (~40 lines)
+
+**Verification:**
+- Ran game and navigated to battle
+- Console shows: "BattleScreen: Wave indicator hidden (non-wave battle)" for test battles without waves
+- For wave-based battles: shows "Wave 1/3" at start, updates on wave progression
+- Indicator correctly hidden for non-wave battles (arena, single-wave)
+- Code properly connects to wave_manager.wave_started signal for updates
+
+**Acceptance Criteria Met:**
+- ✅ Wave indicator shows 'Wave 1/3' at battle start (via `_initialize_wave_indicator` for wave battles)
+- ✅ Indicator updates to 'Wave 2/3' after wave 1 cleared (via `_on_wave_started` signal handler)
+- ✅ Indicator not visible in arena battles (hidden when `config.enemy_waves.size() <= 1`)
 
 ---

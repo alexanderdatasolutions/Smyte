@@ -22,6 +22,7 @@ const BattleResultOverlayScene = preload("res://scenes/ui/battle/BattleResultOve
 @onready var battle_status_label = $MainContainer/BottomContainer/BattleStatusLabel
 @onready var player_team_container = $MainContainer/BattleArenaContainer/PlayerTeamSide/PlayerTeamContainer
 @onready var enemy_team_container = $MainContainer/BattleArenaContainer/EnemyTeamSide/EnemyTeamContainer
+@onready var wave_indicator = $MainContainer/BattleArenaContainer/BattleCenter/WaveIndicator
 @onready var turn_indicator = $MainContainer/BattleArenaContainer/BattleCenter/TurnIndicator
 @onready var ability_bar = $MainContainer/BottomContainer/AbilityBarContainer/AbilityBar
 @onready var turn_order_bar = $MainContainer/HeaderContainer/TurnOrderContainer/TurnOrderBar
@@ -48,6 +49,9 @@ var selected_skill_index: int = -1
 var battle_result_overlay = null  # BattleResultOverlay instance
 
 func _ready():
+	# Connect visibility changed to clean up when screen is hidden
+	visibility_changed.connect(_on_visibility_changed)
+
 	# Connect back button (RULE 4: UI signals)
 	if back_button:
 		back_button.pressed.connect(_on_back_pressed)
@@ -75,6 +79,11 @@ func _ready():
 			if not battle_coordinator.action_processor.action_executed.is_connected(_on_action_executed):
 				battle_coordinator.action_processor.action_executed.connect(_on_action_executed)
 
+		# Connect to wave signals for wave indicator
+		if battle_coordinator.wave_manager:
+			if not battle_coordinator.wave_manager.wave_started.is_connected(_on_wave_started):
+				battle_coordinator.wave_manager.wave_started.connect(_on_wave_started)
+
 		# Check if there's already an active battle
 		if battle_coordinator.has_method("is_in_battle") and battle_coordinator.is_in_battle():
 			# Battle already active, populate UI
@@ -84,8 +93,37 @@ func _ready():
 	else:
 		_show_no_battle_state()
 
+func _notification(what: int) -> void:
+	"""Handle notifications including visibility changes"""
+	if what == NOTIFICATION_VISIBILITY_CHANGED:
+		# Clean up stale battle result overlay when screen becomes visible
+		if visible and battle_result_overlay and battle_result_overlay.visible:
+			_hide_battle_result_overlay()
+			print("BattleScreen: Became visible with stale overlay, cleaned up")
+		elif not visible and battle_result_overlay:
+			_hide_battle_result_overlay()
+			print("BattleScreen: Became hidden, cleaned up overlay")
+
+func _on_visibility_changed():
+	"""Handle visibility change - clean up battle result overlay when screen is hidden OR shown"""
+	if not visible and battle_result_overlay:
+		# Screen is being hidden, hide the battle result overlay
+		_hide_battle_result_overlay()
+		print("BattleScreen: Screen hidden, cleaned up battle result overlay")
+	elif visible and battle_result_overlay and battle_result_overlay.visible:
+		# Screen is being shown but battle result overlay is still visible from previous battle
+		# This happens when user navigates back to battle screen after returning to map
+		# Hide it to prevent showing stale results
+		_hide_battle_result_overlay()
+		print("BattleScreen: Screen shown with stale overlay, cleaned up")
+
 func _on_back_pressed():
 	"""Handle back button press - RULE 4: UI signals"""
+	# Hide battle result overlay if it's showing (prevents it from reappearing when returning to this screen)
+	if battle_result_overlay and battle_result_overlay.visible:
+		_hide_battle_result_overlay()
+		print("BattleScreen: Back pressed, cleaned up battle result overlay")
+
 	back_pressed.emit()
 
 func start_battle(battle_config):
@@ -94,10 +132,13 @@ func start_battle(battle_config):
 	if battle_coordinator:
 		battle_coordinator.start_battle(battle_config)
 
-func _on_battle_started(_config):
+func _on_battle_started(config):
 	"""Handle battle start event - populate UI with units"""
 	print("BattleScreen: Battle started, populating UI")
 	_populate_battle_ui()
+
+	# Initialize wave indicator for wave-based battles
+	_initialize_wave_indicator(config)
 
 func _on_battle_ended(result: BattleResult):
 	"""Handle battle end - RULE 4: UI listens to events"""
@@ -111,6 +152,9 @@ func _on_battle_ended(result: BattleResult):
 
 	# Clear turn order bar when battle ends
 	_clear_turn_order_bar()
+
+	# Hide wave indicator when battle ends
+	_hide_wave_indicator()
 
 	# Update UI based on result
 	if battle_status_label:
@@ -251,6 +295,8 @@ func _show_no_battle_state():
 	_hide_ability_bar()
 	# Clear turn order bar when no battle
 	_clear_turn_order_bar()
+	# Hide wave indicator when no battle
+	_hide_wave_indicator()
 
 # =============================================================================
 # ABILITY BAR MANAGEMENT
@@ -602,24 +648,63 @@ func _hide_battle_result_overlay():
 		battle_result_overlay.hide_result()
 
 func _on_return_to_map_pressed():
-	"""Handle return to map button - navigate back to hex territory"""
+	"""Handle return to map button - navigate back using back signal"""
 	print("BattleScreen: Return to map pressed")
 
 	# Hide the overlay
 	_hide_battle_result_overlay()
 
-	# Navigate back using ScreenManager
-	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
-	if screen_manager:
-		# Navigate to hex_territory screen (the map)
-		screen_manager.change_screen("hex_territory")
-		print("BattleScreen: Navigated to hex_territory")
-	else:
-		# Fallback to emitting back_pressed signal
-		print("BattleScreen: No ScreenManager, emitting back_pressed")
-		back_pressed.emit()
+	# Emit back_pressed to navigate back naturally
+	# This will go back to wherever we came from (hex_territory or worldview)
+	# without messing up the navigation stack
+	back_pressed.emit()
+	print("BattleScreen: Emitted back_pressed")
 
 func _on_continue_pressed():
 	"""Handle continue button - for multi-stage battles or replaying"""
 	print("BattleScreen: Continue pressed")
 	_hide_battle_result_overlay()
+
+# =============================================================================
+# WAVE INDICATOR MANAGEMENT
+# =============================================================================
+
+func _initialize_wave_indicator(config):
+	"""Initialize wave indicator based on battle configuration"""
+	if not wave_indicator:
+		return
+
+	# Check if this is a wave-based battle (dungeon) or non-wave battle (arena)
+	var has_waves = config.enemy_waves.size() > 1
+
+	if has_waves:
+		# Show wave indicator for wave-based battles
+		var total_waves = config.enemy_waves.size()
+		_update_wave_indicator(1, total_waves)
+		wave_indicator.visible = true
+		print("BattleScreen: Wave indicator initialized - 1/%d waves" % total_waves)
+	else:
+		# Hide for non-wave battles (arena, single wave)
+		wave_indicator.visible = false
+		print("BattleScreen: Wave indicator hidden (non-wave battle)")
+
+func _update_wave_indicator(current_wave: int, total_waves: int):
+	"""Update wave indicator display"""
+	if wave_indicator:
+		wave_indicator.text = "Wave %d/%d" % [current_wave, total_waves]
+
+func _on_wave_started(wave_number: int):
+	"""Handle wave started signal - update wave indicator"""
+	if not wave_indicator or not wave_indicator.visible:
+		return
+
+	# Get total waves from battle config
+	if battle_coordinator and battle_coordinator.wave_manager:
+		var total_waves = battle_coordinator.wave_manager.get_wave_count()
+		_update_wave_indicator(wave_number, total_waves)
+		print("BattleScreen: Wave indicator updated to %d/%d" % [wave_number, total_waves])
+
+func _hide_wave_indicator():
+	"""Hide the wave indicator"""
+	if wave_indicator:
+		wave_indicator.visible = false

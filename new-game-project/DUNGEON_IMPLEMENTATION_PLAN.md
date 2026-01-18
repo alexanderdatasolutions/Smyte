@@ -317,7 +317,7 @@
       "scripts/ui/screens/BattleScreen.gd",
       "scenes/ui/screens/BattleScreen.tscn"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "UI-002",
