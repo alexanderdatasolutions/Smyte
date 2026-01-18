@@ -51,6 +51,8 @@ Following CLAUDE.md architecture:
 @export var active_tasks: Array[String] = []  # Task IDs in progress
 @export var base_production: Dictionary = {}  # {"resource_id": amount_per_hour}
 @export var available_tasks: Array[String] = []  # Task IDs available at this node type
+@export var last_production_time: int = 0  # Unix timestamp of last production tick
+@export var accumulated_resources: Dictionary = {}  # {"resource_id": amount} - pending resources to claim
 
 # ==============================================================================
 # UPGRADES
@@ -181,6 +183,8 @@ func to_dict() -> Dictionary:
 		"active_tasks": active_tasks,
 		"base_production": base_production,
 		"available_tasks": available_tasks,
+		"last_production_time": last_production_time,
+		"accumulated_resources": accumulated_resources,
 		"production_level": production_level,
 		"defense_level": defense_level,
 		"last_raid_time": last_raid_time,
@@ -226,6 +230,8 @@ static func from_dict(data: Dictionary):
 	node.base_production = data.get("base_production", {})
 	var available_tasks_data = data.get("available_tasks", [])
 	node.available_tasks.assign(available_tasks_data)
+	node.last_production_time = data.get("last_production_time", 0)
+	node.accumulated_resources = data.get("accumulated_resources", {})
 
 	# Upgrades
 	node.production_level = data.get("production_level", 1)

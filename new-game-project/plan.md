@@ -34,7 +34,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "Update from_dict() method to deserialize new fields (around line 191)",
       "Verify serialization with debug print"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "core",

@@ -374,6 +374,8 @@ func load_save_data(save_data: Dictionary) -> void:
 			node.defense_level = saved_state.get("defense_level", 1)
 			node.last_raid_time = saved_state.get("last_raid_time", 0)
 			node.raid_cooldown = saved_state.get("raid_cooldown", 0)
+			node.last_production_time = saved_state.get("last_production_time", 0)
+			node.accumulated_resources = saved_state.get("accumulated_resources", {})
 
 	grid_updated.emit()
 

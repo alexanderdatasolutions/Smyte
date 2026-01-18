@@ -307,3 +307,49 @@ Copy working patterns from old Territory system (L27-46, L100-118) and apply to 
 ---
 
 <!-- Ralph Wiggum will append task completion entries below -->
+
+### 2026-01-18 18:00 - Task 1 Complete: Production Timestamps Added to HexNode
+
+**Task:** Add production timestamps to HexNode data class
+
+**What Was Done:**
+Added two new export fields to HexNode.gd for tracking AFK resource generation:
+- `last_production_time: int = 0` - Unix timestamp of last production tick
+- `accumulated_resources: Dictionary = {}` - Pending resources awaiting collection
+
+**Files Modified:**
+
+1. **scripts/data/HexNode.gd** (Lines 54-55):
+   - Added `@export var last_production_time: int = 0`
+   - Added `@export var accumulated_resources: Dictionary = {}`
+
+2. **scripts/data/HexNode.gd** (Lines 186-187 in to_dict()):
+   - Added serialization for `last_production_time`
+   - Added serialization for `accumulated_resources`
+
+3. **scripts/data/HexNode.gd** (Lines 233-234 in from_dict()):
+   - Added deserialization for `last_production_time`
+   - Added deserialization for `accumulated_resources`
+
+4. **scripts/systems/territory/HexGridManager.gd** (Lines 377-378 in load_save_data()):
+   - Added loading of `last_production_time` from save data
+   - Added loading of `accumulated_resources` from save data
+
+**Verification:**
+- ✅ Project runs without errors
+- ✅ Debug output confirms fields initialize correctly: `HexNode [divine_sanctum]: Initialized with last_production_time=0, accumulated_resources={  }`
+- ✅ Fields serialize in to_dict() method
+- ✅ Fields deserialize in from_dict() method
+- ✅ HexGridManager properly loads fields from save data
+
+**Testing Method:**
+1. Ran project with `mcp__godot__run_project`
+2. Added debug print to verify field initialization
+3. Checked debug output with `mcp__godot__get_debug_output`
+4. Confirmed no compilation errors or runtime errors
+
+**Status:** Task 1 COMPLETE - All acceptance criteria met
+
+**Next Task:** Task 2 - Implement periodic resource accumulation for hex nodes
+
+---
