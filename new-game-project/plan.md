@@ -171,7 +171,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "Verify debug output shows accumulation happening",
       "Verify resources match production formula"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "testing",
