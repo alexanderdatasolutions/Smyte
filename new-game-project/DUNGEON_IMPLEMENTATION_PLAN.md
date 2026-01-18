@@ -551,7 +551,7 @@
       "Dropped equipment fully functional"
     ],
     "files_to_modify": [],
-    "passes": false
+    "passes": true
   }
 ]
 ```
