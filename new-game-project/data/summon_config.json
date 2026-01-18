@@ -1,5 +1,11 @@
 {
   "summon_configuration": {
+    "version": "1.0",
+    "soul_types": {
+      "rarity_souls": ["common_soul", "rare_soul", "epic_soul", "legendary_soul"],
+      "element_souls": ["fire_soul", "water_soul", "earth_soul", "lightning_soul", "light_soul", "dark_soul"],
+      "description": "Rarity souls guarantee minimum rarity. Element souls increase odds of matching element gods."
+    },
     "costs": {
       "soul_based_summons": {
         "common_soul_summon": { "common_soul": 1 },
@@ -184,13 +190,17 @@
       "daily_free": {
         "enabled": true,
         "uses_common_soul_rates": true,
-        "cooldown_hours": 24
+        "cooldown_hours": 24,
+        "reset_hour_utc": 0,
+        "max_stockpile": 1,
+        "description": "One free summon per day using common soul rates"
       },
       "weekly_premium": {
         "enabled": true,
         "original_cost": { "divine_crystals": 500 },
         "discounted_cost": { "divine_crystals": 250 },
-        "cooldown_hours": 168
+        "cooldown_hours": 168,
+        "description": "Discounted premium summon available once per week"
       }
     }
   },

@@ -1,191 +1,244 @@
-# Node Detail Side Panel - Implementation Plan
+# Summon System Overhaul Plan
 
-## Goal
-When you click a hex tile, a panel slides in from the RIGHT showing node details with garrison/worker slot boxes. Tapping a slot opens GodSelectionPanel from the LEFT.
+## Overview
+Complete overhaul of the summon/gacha system to create an engaging, balanced experience with proper UI/UX, animations, pity system, and soul-based summoning.
 
-## Desired Layout for NodeDetailScreen (Right Panel)
-
-```
-┌─────────────────────────────┐
-│ Dawn Shrine Temple    ★★★  │  <- Name + Tier Stars
-├─────────────────────────────┤
-│ Production                  │  <- Section Header
-│ [Production info here]      │
-├─────────────────────────────┤
-│ Garrison (Defense)          │  <- Section Header
-│ [+] [+] [+] [+]            │  <- 4 empty slot boxes (60x60px)
-│ Defense Rating: 0           │  <- Total combat power
-├─────────────────────────────┤
-│ Workers (Production)        │  <- Section Header
-│ [+] [+] [+]                │  <- Tier-based empty slot boxes
-├─────────────────────────────┤
-│ Requirements (if uncaptured)│  <- Only show if not owned
-│ - Defeat garrison           │
-│ - [other requirements]      │
-└─────────────────────────────┘
-```
-
-**When slots are filled:**
-- Show god portrait instead of '+'
-- Tapping empty slot → GodSelectionPanel slides in from LEFT
-- Tapping filled slot → Option to remove or replace god
+**Reference:** `data/summon_config.json` (existing), `docs/CLAUDE.md` (architecture)
 
 ---
 
-## Current State (Updated 2026-01-17)
-
-**Implementation differs from original plan but is MORE functional:**
-
-TerritoryOverviewScreen (PRIMARY interface):
-- ✅ Shows all owned nodes with inline slot boxes
-- ✅ Garrison slots (4 per node) with god portraits
-- ✅ Worker slots (tier-based) with god portraits
-- ✅ Tapping empty slot → GodSelectionPanel slides from LEFT
-- ✅ Tapping filled slot → Remove god confirmation
-- ✅ 60x60px tap targets for mobile UX
-
-NodeDetailScreen (SECONDARY interface):
-- ✅ GarrisonDisplay component (shows slot boxes + Combat Power)
-- ✅ WorkerSlotDisplay component (shows slot boxes)
-- ✅ Connected to GodSelectionGrid for god selection
-- ✅ Accessible via "Workers" or "Garrison" buttons from hex info panel
-
-GodSelectionPanel:
-- ✅ Slides in from LEFT (opposite of territory panel)
-- ✅ Context filters (All/Worker/Garrison)
-- ✅ Element affinity filters
-- ✅ God cards with element-colored borders
-
----
-
-## Tasks
+## Task List
 
 ```json
 [
   {
-    "category": "refactor",
-    "description": "Update NodeDetailScreen layout to match desired structure",
+    "category": "data",
+    "description": "Audit and enhance summon_config.json with balanced rates",
     "steps": [
-      "Move NodeDetailScreen to slide in from RIGHT when hex clicked",
-      "Header: Node name + type icon + tier stars (like 'Dawn Shrine Temple ★★★')",
-      "Production section: Show resource output info",
-      "Garrison section: Use existing GarrisonDisplay with 4 slot boxes",
-      "Workers section: Use existing WorkerSlotDisplay with tier-based slots",
-      "Defense Rating: Calculate total combat power from garrison",
-      "Requirements section: Only show if node not owned (hide after capture)",
-      "Ensure scrollable if content exceeds screen height"
+      "Review current summon_config.json structure",
+      "Verify rarity rates match industry standards (70% common, 25% rare, 4.5% epic, 0.5% legendary)",
+      "Add missing soul types if needed",
+      "Ensure pity system thresholds are balanced",
+      "Add daily free summon configuration"
     ],
-    "passes": true,
-    "notes": "NodeDetailScreen exists with header, garrison (with Combat Power display), workers, scrollable. Production/Requirements sections deferred."
+    "passes": true
   },
   {
-    "category": "integration",
-    "description": "Replace embedded GodSelectionGrid with left-sliding GodSelectionPanel",
+    "category": "systems",
+    "description": "Create SummonManager system for gacha logic",
     "steps": [
-      "Remove embedded GodSelectionGrid from NodeDetailScreen",
-      "Instead emit signal when slot tapped: request_god_selection(slot_type, slot_index)",
-      "HexTerritoryScreen listens to this signal",
-      "Shows GodSelectionPanel (slides in from LEFT)",
-      "When god selected, HexTerritoryScreen updates node data",
-      "Calls NodeDetailScreen.refresh() to update slot portraits"
+      "Create scripts/systems/summon/SummonManager.gd",
+      "Load summon_config.json on initialization",
+      "Implement perform_summon(cost_type) - returns God data",
+      "Implement pity system tracking (counters per banner)",
+      "Implement soft pity rate increases",
+      "Add summon history tracking",
+      "Add save/load integration for pity counters"
     ],
-    "passes": true,
-    "notes": "TerritoryOverviewScreen uses GodSelectionPanel (slides LEFT). NodeDetailScreen keeps embedded grid as fallback."
+    "passes": false
   },
   {
-    "category": "refactor",
-    "description": "Simplify TerritoryOverviewScreen - remove slot boxes",
+    "category": "systems",
+    "description": "Implement rarity roll algorithm with pity",
     "steps": [
-      "Remove _create_slot_section() and slot box code from TerritoryOverviewScreen",
-      "Node cards should only show: name, type badge, tier stars",
-      "Add 'View Details' button or make whole card tappable",
-      "Clicking node opens NodeDetailScreen (right panel)",
-      "Keep back button and filters",
-      "This becomes a simple node list/browser"
+      "Create _roll_rarity(banner_type) function",
+      "Check hard pity first (guaranteed at threshold)",
+      "Apply soft pity rate boosts if past soft_pity threshold",
+      "Roll random weighted selection based on rates",
+      "Update pity counters after roll",
+      "Emit signals for pity milestones"
     ],
-    "passes": true,
-    "notes": "DESIGN CHANGED: TerritoryOverviewScreen now HAS inline slot boxes for direct management. This is MORE functional than original plan."
+    "passes": false
   },
   {
-    "category": "feature",
-    "description": "Add defense rating calculation to NodeDetailScreen",
+    "category": "systems",
+    "description": "Implement god selection from rarity pool",
     "steps": [
-      "Create calculate_defense_rating(node: HexNode) method",
-      "Sum combat stats of all garrison gods",
-      "Apply any garrison buffs/bonuses",
-      "Display as 'Defense Rating: X' under garrison section",
-      "Update when garrison changes"
+      "Create _select_god_from_rarity(rarity, element_filter) function",
+      "Filter gods.json by rarity tier",
+      "Apply element weights if using element souls",
+      "Apply pantheon weights if using pantheon banner",
+      "Return random god from filtered pool",
+      "Prevent duplicates in 10-pull (if configured)"
     ],
-    "passes": true,
-    "notes": "Implemented as 'Combat Power' in GarrisonDisplay using GodCalculator.get_power_rating(). Updates on garrison change."
-  },
-  {
-    "category": "feature",
-    "description": "Show/hide requirements section based on node ownership",
-    "steps": [
-      "Check node.controller or node ownership status",
-      "If not owned: show Requirements section with capture requirements",
-      "If owned: hide Requirements section completely",
-      "Update when node is captured"
-    ],
-    "passes": true,
-    "notes": "TerritoryOverviewScreen only shows OWNED nodes. Requirements handled separately via NodeRequirementsPanel for unowned nodes."
+    "passes": false
   },
   {
     "category": "ui",
-    "description": "Make node cards bigger in TerritoryOverviewScreen",
+    "description": "Create SummonScreen base UI layout",
     "steps": [
-      "Increase card minimum height to at least 120px (currently too small)",
-      "Increase node name font size to 18-20px for better readability",
-      "Increase type badge size and icon",
-      "Make tier stars larger (at least 16-18px)",
-      "Increase spacing/padding between elements (10-15px margins)",
-      "Ensure cards are easily tappable on mobile (larger tap targets)",
-      "Test that cards look good on mobile screen"
+      "Create scenes/SummonScreen.tscn with dark fantasy theme",
+      "Create scripts/ui/screens/SummonScreen.gd",
+      "Add background with summoning circle/portal visual",
+      "Add resource display at top (souls, crystals, mana)",
+      "Add tab system for different summon types",
+      "Add back button to return to WorldView",
+      "Register screen in ScreenManager"
     ],
-    "passes": true,
-    "notes": "Cards are 260px height with garrison+worker slot boxes. All slots meet 60x60px minimum tap target."
+    "passes": false
   },
   {
-    "category": "test",
-    "description": "End-to-end testing of complete flow",
+    "category": "ui",
+    "description": "Implement summon banner cards UI",
     "steps": [
-      "Start game, go to hex territory",
-      "Click TERRITORY OVERVIEW to see node list with slots",
-      "Tap empty garrison slot → GodSelectionPanel slides in from LEFT",
-      "Select god → panel closes, slot shows god portrait",
-      "Verify Combat Power updates in GarrisonDisplay",
-      "Tap filled slot → can remove god via confirmation dialog",
-      "Garrison and worker data persists via TerritoryManager"
+      "Create scripts/ui/summon/SummonBannerCard.gd component",
+      "Display banner name, featured gods, rates",
+      "Show cost (souls, crystals, or mana)",
+      "Add single summon button (1x)",
+      "Add multi summon button (10x) with discount display",
+      "Show pity counter progress bar",
+      "Disable if player lacks resources"
     ],
-    "passes": true,
-    "notes": "E2E tested 2026-01-17. Full flow working: slot tap → GodSelectionPanel → select god → portrait appears. Screenshots in activity.md."
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Create summon animation system",
+    "steps": [
+      "Create scripts/ui/summon/SummonAnimation.gd",
+      "Implement portal/summoning circle glow animation",
+      "Add god reveal sequence (rarity-based colors)",
+      "Common: white glow, Rare: blue, Epic: purple, Legendary: gold",
+      "Animate god portrait fade-in with name/stats",
+      "Add skip button for impatient players",
+      "Queue animations for 10-pull reveals"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Implement summon result display",
+    "steps": [
+      "Create scripts/ui/summon/SummonResultOverlay.gd",
+      "Show all gods obtained in 10-pull as grid",
+      "Highlight new gods vs duplicates",
+      "Show stat preview for each god",
+      "Add 'View in Collection' button",
+      "Add 'Summon Again' button",
+      "Handle duplicate conversion (if implemented)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "integration",
+    "description": "Connect summon to CollectionManager",
+    "steps": [
+      "Call CollectionManager.add_god() for each summon result",
+      "Handle duplicate gods (award soul shards or power-up material)",
+      "Emit god_obtained signal for achievement tracking",
+      "Update collection UI if currently viewing",
+      "Show notification for legendary pulls"
+    ],
+    "passes": false
+  },
+  {
+    "category": "integration",
+    "description": "Integrate with ResourceManager for costs",
+    "steps": [
+      "Check resource availability before summon",
+      "Spend souls/crystals/mana on summon execution",
+      "Update resource display after summon",
+      "Show error notification if insufficient resources",
+      "Track total summons for milestone rewards"
+    ],
+    "passes": false
+  },
+  {
+    "category": "features",
+    "description": "Implement daily free summon system",
+    "steps": [
+      "Track last_free_summon_date in save data",
+      "Reset free summon at daily reset (midnight)",
+      "Show 'FREE' badge on summon button when available",
+      "Disable cost check for free summon",
+      "Show timer until next free summon"
+    ],
+    "passes": false
+  },
+  {
+    "category": "features",
+    "description": "Add summon history tracking",
+    "steps": [
+      "Create summon_history array in SummonManager",
+      "Record each summon with timestamp, cost, result",
+      "Add 'History' button to SummonScreen",
+      "Create SummonHistoryPanel UI showing recent 50 summons",
+      "Display rarity distribution stats",
+      "Show pity counter history"
+    ],
+    "passes": false
+  },
+  {
+    "category": "polish",
+    "description": "Add sound effects and visual polish",
+    "steps": [
+      "Add summon button click sound",
+      "Add portal activation sound (different per rarity)",
+      "Add god reveal fanfare (rarity-based intensity)",
+      "Add particle effects for legendary summons",
+      "Add screen shake on legendary reveal",
+      "Polish button hover states and transitions"
+    ],
+    "passes": false
+  },
+  {
+    "category": "testing",
+    "description": "Test summon system end-to-end",
+    "steps": [
+      "Grant test resources (souls, crystals)",
+      "Test single summon for each soul type",
+      "Test 10-pull with guaranteed rare",
+      "Test pity system triggers at threshold",
+      "Test free daily summon resets properly",
+      "Test resource deduction works correctly",
+      "Test gods added to collection properly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "testing",
+    "description": "Verify save/load persistence",
+    "steps": [
+      "Perform summons to increase pity counter",
+      "Save game",
+      "Close and reload game",
+      "Verify pity counters persisted",
+      "Verify summon history persisted",
+      "Verify free summon timer persisted"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Add WorldView button for SUMMON screen",
+    "steps": [
+      "Add SUMMON button to WorldView.gd",
+      "Position button in button grid",
+      "Connect pressed signal to navigate to SummonScreen",
+      "Style button with summoning theme (purple/mystical)",
+      "Add icon/visual to button"
+    ],
+    "passes": false
   }
 ]
 ```
 
 ---
 
-## Architecture (Actual Implementation)
+## Agent Instructions
 
-**Primary Flow (TerritoryOverviewScreen):**
-1. Click "TERRITORY OVERVIEW" → Shows all owned nodes with inline slot boxes
-2. Tap empty slot → GodSelectionPanel slides in from LEFT
-3. Select god → Panel closes, slot shows god portrait with element-colored border
-4. Tap filled slot → Confirmation dialog to remove god
+1. Read `activity.md` first to see current progress
+2. Find next task with `"passes": false`
+3. Complete all steps for that task
+4. Test using Godot MCP tools (run project, interact, verify)
+5. Update task to `"passes": true`
+6. Log completion in `activity.md`
+7. Commit changes with format: `feat(summon): [description]`
+8. Repeat until all tasks pass
 
-**Secondary Flow (NodeDetailScreen):**
-1. Click hex tile → Node info panel appears
-2. Click "Workers" or "Garrison" button → NodeDetailScreen opens
-3. Manage slots via embedded GodSelectionGrid
-
-**Components:**
-- **TerritoryOverviewScreen**: Full node list with INLINE slot boxes (primary interface)
-- **GodSelectionPanel** (LEFT panel): Slides in for god selection with filters
-- **NodeDetailScreen**: Detailed view with GarrisonDisplay + WorkerSlotDisplay (secondary)
-- **HexTerritoryScreen**: Orchestrates all panels and handles persistence
+**Important:** Only work on ONE task at a time. Do not skip ahead.
 
 ---
 
 ## Completion Criteria
-All tasks `"passes": true` ✅ - Verified working in-game 2026-01-17
+All tasks marked with `"passes": true`
