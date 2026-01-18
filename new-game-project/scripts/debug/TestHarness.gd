@@ -433,12 +433,7 @@ func _navigate_to_screen(screen_name: String) -> Dictionary:
 	if not screen_manager:
 		return {"success": false, "error": "ScreenManager not found"}
 
-	if screen_manager.has_method("show_screen"):
-		screen_manager.show_screen(screen_name)
-		# Give it a frame to process
-		await get_tree().process_frame
-		return {"success": true, "result": "Navigated to: " + screen_name}
-	elif screen_manager.has_method("change_screen"):
+	if screen_manager.has_method("change_screen"):
 		screen_manager.change_screen(screen_name)
 		await get_tree().process_frame
 		return {"success": true, "result": "Navigated to: " + screen_name}

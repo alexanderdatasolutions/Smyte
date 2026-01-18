@@ -162,7 +162,9 @@ func get_turn_progress() -> float:
 
 ## Increase turn bar based on speed
 func advance_turn_bar():
-	current_turn_bar += speed * 0.07  # Formula similar to Summoners War
+	# Ensure minimum increment to prevent infinite loops with low/zero speed
+	var increment = max(speed * 0.07, 1.0)  # Minimum 1.0 per tick
+	current_turn_bar += increment
 
 ## Reset turn bar after taking a turn
 func reset_turn_bar():

@@ -901,6 +901,11 @@ func _assign_god_to_garrison(node: HexNode, god_id: String, _slot_index: int) ->
 		push_error("HexTerritoryScreen: TerritoryManager not available")
 		return false
 
+	# Check if node is controlled by player
+	if not node.is_controlled_by_player():
+		push_warning("HexTerritoryScreen: Cannot assign garrison to uncontrolled node")
+		return false
+
 	# Check if there's room in garrison
 	if node.garrison.size() >= 4:  # MAX_GARRISON_SLOTS
 		push_warning("HexTerritoryScreen: Garrison is full")
@@ -920,6 +925,11 @@ func _assign_god_to_worker(node: HexNode, god_id: String, _slot_index: int) -> b
 	"""Assign a god as a worker to the node"""
 	if not territory_manager:
 		push_error("HexTerritoryScreen: TerritoryManager not available")
+		return false
+
+	# Check if node is controlled by player
+	if not node.is_controlled_by_player():
+		push_warning("HexTerritoryScreen: Cannot assign workers to uncontrolled node")
 		return false
 
 	# Check if there's room for workers

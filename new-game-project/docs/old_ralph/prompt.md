@@ -1,86 +1,54 @@
-# Implement ONE Task from Role & Specialization System
+@summon_plan.md @summon_activity.md @docs/CLAUDE.md
 
-Read the CLAUDE.md section below for architecture, code standards, and design philosophy.
-Read the role_spec_activity.md section below to see what was recently accomplished.
+We are building the summon/gacha system for this Godot 4.5 game.
 
-## Find Your Task
+This includes SummonManager, pity system, UI screens, animations, and integration with collection/resources.
 
-Find the FIRST task in role_spec_plan.md (included below) where `"complete": false`.
+First read summon_activity.md to see what was recently accomplished.
 
-Work on exactly ONE task per iteration.
+You have access to Godot MCP tools:
+- mcp__godot__run_project - Run the game
+- mcp__godot__game_navigate - Navigate to screens
+- mcp__godot__game_screenshot - Take screenshots
+- mcp__godot__game_get_ui_tree - Inspect UI structure
+- mcp__godot__game_click - Click buttons
+- mcp__godot__game_interact - Interact with game
+- mcp__godot__get_debug_output - Check for errors
 
-## Implementation Rules
+Open summon_plan.md and choose the single highest priority task where passes is false.
 
-### Critical Godot 4.5 Rules
-- NEVER use `var trait` or `var task` as variable names - these are RESERVED
-- Static factory methods must use: `var script = load("res://path.gd"); var instance = script.new()`
-- NOT: `ClassName.new()` inside static methods returning same class type
+Work on exactly ONE task: implement all the steps listed.
 
-### Code Standards (from CLAUDE.md)
-- Files under 500 lines - split if larger
-- Single responsibility - each class does one thing
-- SystemRegistry pattern for system access: `SystemRegistry.get_instance().get_system("Name")`
-- Logic in systems - data classes are dumb containers
+Follow these architecture rules:
+- Keep files under 500 lines
+- UI components only display, no logic
+- Use SystemRegistry.get_instance().get_system() for all system access
+- Data classes have no logic, only properties
+- No direct file access, use managers
+- Systems register in SystemRegistry phases (Phase 2-3)
+- Save system uses get_save_data() / load_save_data() interface
 
-### Test Requirements
-- All system files MUST have corresponding tests in tests/unit/
-- Follow existing test pattern (see tests/unit/test_god_data.gd)
-- Test all public methods with edge cases
+After implementing:
+1. Run the project with mcp__godot__run_project
+2. Navigate to summon screen (if UI task)
+3. Test summon functionality
+4. Use mcp__godot__game_screenshot to save screenshots/summon-[task].png
+5. Check mcp__godot__get_debug_output for any errors
+6. Verify the task's acceptance criteria are met
 
-## Task Execution Flow
+Append a dated progress entry to summon_activity.md describing:
+- What you changed
+- Which files you created/modified
+- What you verified with Godot MCP
+- Screenshot filename (if applicable)
+- Any errors encountered and how you fixed them
 
-### For Data Classes (scripts/data/):
-1. Read existing patterns: God.gd, GodTrait.gd, Equipment.gd
-2. Create the data class with proper from_dict() method
-3. Ensure class_name is declared
-4. Verify no reserved keywords used
+Update that task's "passes" in summon_plan.md from false to true.
 
-### For System Files (scripts/systems/):
-1. Read existing patterns: TraitManager.gd, CollectionManager.gd
-2. Create the system extending Node with class_name
-3. Add to SystemRegistry.gd at appropriate phase
-4. Create corresponding test file immediately
+Make one git commit for that task only with format: "feat(summon): [task description]"
 
-### For JSON Data (data/):
-1. Read existing patterns: traits.json, gods.json
-2. Create comprehensive data (not placeholders)
-3. Validate JSON syntax
+Do not git init, do not change remotes, do not push.
 
-### For UI (scripts/ui/):
-1. Read existing patterns in scripts/ui/screens/ and scripts/ui/components/
-2. Follow dark fantasy theme
-3. Match existing styling patterns
+ONLY WORK ON A SINGLE TASK.
 
-## After Implementation
-
-1. Take a screenshot of the game to verify nothing is broken (if UI changed)
-2. Update the task's `complete` in smyte-ralph/role_spec_plan.md from `false` to `true`
-3. Append a dated entry to smyte-ralph/role_spec_activity.md:
-   ```
-   ## [DATE] - Task ID: [task_id]
-   - Completed: [task description]
-   - Files created/modified: [list]
-   - Notes: [any relevant info]
-   ```
-
-4. Make one git commit:
-   ```bash
-   cd ~/Documents/Coding/Smyte && git add -A && git commit -m "feat(roles): [brief description]"
-   ```
-
-## IMPORTANT
-
-- ONLY WORK ON A SINGLE TASK PER ITERATION
-- DO NOT skip ahead to later phases
-- If a task depends on incomplete prerequisite, note it and move to next available task
-- When ALL tasks have `"complete": true`, output <promise>COMPLETE</promise>
-
-## Reference Files
-
-Essential reads before starting:
-- CLAUDE.md - Master design document
-- scripts/data/GodTrait.gd - Data class pattern (NOTE: named GodTrait, not Trait)
-- scripts/systems/traits/TraitManager.gd - System manager pattern
-- scripts/systems/core/SystemRegistry.gd - Registration pattern
-- data/traits.json - JSON data pattern
-- tests/unit/test_god_data.gd - Test file pattern
+When ALL tasks have passes true, output <promise>COMPLETE</promise>

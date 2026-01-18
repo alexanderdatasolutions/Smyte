@@ -669,7 +669,7 @@ func _on_return_to_map_pressed():
 	# This ensures players always return to home after battle, not DungeonScreen
 	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
 	if screen_manager:
-		screen_manager.show_screen("WorldView")
+		screen_manager.change_screen("WorldView")
 		print("BattleScreen: Navigated to WorldView")
 	else:
 		# Fallback to back_pressed if ScreenManager not available

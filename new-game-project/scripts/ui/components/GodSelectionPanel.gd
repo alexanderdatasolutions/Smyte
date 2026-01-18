@@ -1,6 +1,6 @@
 # scripts/ui/components/GodSelectionPanel.gd
 # Single responsibility: Handle god selection for territory roles
-class_name GodSelectionPanel extends Node
+class_name TerritoryGodSelectionHelper extends Node
 
 # God selection signals
 signal god_selected(god_id: String, role_name: String, slot_index: int)

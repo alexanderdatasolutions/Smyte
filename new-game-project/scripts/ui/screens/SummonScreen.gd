@@ -358,7 +358,7 @@ func _show_god_in_showcase(god: God):
 
 func _on_view_collection_pressed():
 	var sm = SystemRegistry.get_instance().get_system("ScreenManager") if SystemRegistry.get_instance() else null
-	if sm and sm.has_method("show_screen"): sm.show_screen("collection")
+	if sm and sm.has_method("change_screen"): sm.change_screen("collection")
 
 func _on_summon_again_pressed():
 	if current_banner_data.is_empty(): return

@@ -8,12 +8,12 @@ extends Control
 # Preload component classes
 const TerritoryInfoDisplayManager = preload("res://scripts/ui/components/TerritoryInfoDisplayManager.gd")
 const TerritoryRoleManager = preload("res://scripts/ui/components/TerritoryRoleManager.gd")
-const GodSelectionPanel = preload("res://scripts/ui/components/GodSelectionPanel.gd")
+const TerritoryGodSelectionHelper = preload("res://scripts/ui/components/GodSelectionPanel.gd")
 
 # Component managers for focused responsibilities
 var info_display_manager: TerritoryInfoDisplayManager
-var role_manager: TerritoryRoleManager  
-var god_selection_panel: GodSelectionPanel
+var role_manager: TerritoryRoleManager
+var god_selection_panel: TerritoryGodSelectionHelper
 
 # UI references
 @onready var territory_info_container: Control = $VBox/TopSection/TerritoryInfoPanel
