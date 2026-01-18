@@ -165,26 +165,47 @@ func _style_button(button: Button, is_multi: bool):
 	var normal = StyleBoxFlat.new()
 	normal.bg_color = Color(0.2, 0.15, 0.3) if is_multi else Color(0.15, 0.12, 0.2)
 	normal.border_color = Color(0.5, 0.4, 0.6) if is_multi else Color(0.4, 0.35, 0.5)
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(6)
+	normal.set_border_width_all(2 if is_multi else 1)
+	normal.set_corner_radius_all(8)
+	normal.shadow_color = Color(0.0, 0.0, 0.0, 0.3)
+	normal.shadow_size = 2
 	button.add_theme_stylebox_override("normal", normal)
 
 	var hover = normal.duplicate()
-	hover.bg_color = hover.bg_color.lightened(0.15)
-	hover.border_color = hover.border_color.lightened(0.2)
+	hover.bg_color = hover.bg_color.lightened(0.2)
+	hover.border_color = Color(0.7, 0.6, 0.9) if is_multi else Color(0.6, 0.55, 0.7)
+	hover.set_border_width_all(2)
+	hover.shadow_color = Color(0.4, 0.3, 0.6, 0.4) if is_multi else Color(0.3, 0.25, 0.4, 0.3)
+	hover.shadow_size = 4
 	button.add_theme_stylebox_override("hover", hover)
 
 	var pressed = normal.duplicate()
-	pressed.bg_color = pressed.bg_color.darkened(0.1)
+	pressed.bg_color = pressed.bg_color.darkened(0.15)
+	pressed.shadow_size = 0
 	button.add_theme_stylebox_override("pressed", pressed)
 
 	var disabled = normal.duplicate()
 	disabled.bg_color = Color(0.1, 0.1, 0.1, 0.6)
 	disabled.border_color = Color(0.2, 0.2, 0.2, 0.4)
+	disabled.shadow_size = 0
 	button.add_theme_stylebox_override("disabled", disabled)
 
 	button.add_theme_color_override("font_color", Color.WHITE)
+	button.add_theme_color_override("font_hover_color", Color(1.0, 0.95, 0.85))
+	button.add_theme_color_override("font_pressed_color", Color(0.9, 0.85, 0.75))
 	button.add_theme_color_override("font_disabled_color", Color(0.5, 0.5, 0.5))
+	button.mouse_entered.connect(_on_button_hover.bind(button))
+	button.mouse_exited.connect(_on_button_unhover.bind(button))
+
+func _on_button_hover(button: Button):
+	if button.disabled:
+		return
+	var tween = create_tween()
+	tween.tween_property(button, "scale", Vector2(1.02, 1.02), 0.1).set_trans(Tween.TRANS_QUAD)
+
+func _on_button_unhover(button: Button):
+	var tween = create_tween()
+	tween.tween_property(button, "scale", Vector2(1.0, 1.0), 0.1).set_trans(Tween.TRANS_QUAD)
 
 ## Configure the banner card with data
 func configure(data: Dictionary):

@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-18
-**Tasks Completed:** 12/16
-**Current Task:** Task 13 - Add sound effects and visual polish
+**Tasks Completed:** 13/16
+**Current Task:** Task 14 - Test summon system end-to-end
 
 ---
 
@@ -489,6 +489,66 @@
 - SummonScreen.gd exceeded 500 lines after adding history integration
 - Fixed by condensing code: removing docstrings, combining single-line statements, using shorter variable names
 - Final file size: 398 lines
+
+---
+
+### 2026-01-18 - Task 13: Add sound effects and visual polish ✅
+
+**What was done:**
+- Created `scripts/ui/summon/SummonSoundManager.gd` - Audio playback component (~115 lines)
+- Integrated SummonSoundManager with SummonAnimation for rarity-based sounds
+- Implemented particle effects for epic/legendary summons
+- Added screen shake effect on legendary reveals
+- Enhanced button hover states with scale transitions and improved styling
+
+**SummonSoundManager features:**
+- **Button click sound**: `play_button_click()` for UI feedback
+- **Portal activation sound**: `play_portal_sound(rarity)` - different intensity per rarity
+- **God reveal sound**: `play_reveal_sound(rarity)` - rarity-based volume scaling
+- **Legendary fanfare**: `play_legendary_fanfare()` - extra celebration for legendary pulls
+- **Volume control**: Master and SFX volume settings
+- **Placeholder paths**: Ready for audio files when assets are added
+
+**SummonAnimation enhancements:**
+- Added `_spawn_particles(color, count)` function for celebration effects
+- Legendary summons spawn 24 particles, epic summons spawn 12 particles
+- Particles fly outward from center with fade and scale animation
+- Added `_apply_screen_shake()` function for legendary reveals
+- 8-iteration shake with decreasing intensity over 0.4 seconds
+- Sound manager integration: portal, reveal, and fanfare sounds at appropriate moments
+
+**SummonBannerCard button polish:**
+- Enhanced `_style_button()` with improved styling:
+  - Larger corner radius (8px)
+  - Drop shadows on normal and hover states
+  - Glowing hover effect with expanded shadows
+  - Font color changes on hover/press
+- Added `_on_button_hover()` and `_on_button_unhover()` with scale transitions
+- Buttons scale to 1.02x on hover with smooth TRANS_QUAD easing
+- Multi-summon buttons have thicker borders and stronger effects
+
+**Files created:**
+- `scripts/ui/summon/SummonSoundManager.gd` - New audio manager component
+
+**Files modified:**
+- `scripts/ui/summon/SummonAnimation.gd` - Added sounds, particles, screen shake (498 lines, under 500 limit)
+- `scripts/ui/summon/SummonBannerCard.gd` - Enhanced button styling with hover effects (444 lines, under 500 limit)
+
+**Verified with Godot MCP:**
+- Project runs without summon-related errors
+- Navigated to SummonScreen successfully
+- Daily Free summon executed with animation
+- No particle/shake/sound manager errors in debug output
+- Result overlay shows correctly after summon
+- All banner cards display with enhanced button styling
+- Screenshots: `summon-task13-initial.png`, `summon-task13-result.png`, `summon-task13-final.png`
+
+**Errors encountered:** None
+
+**Note on audio files:**
+- SummonSoundManager is ready for audio assets but no audio files exist yet
+- Sound paths are defined in SOUND_PATHS constant for easy asset integration
+- When audio files are added to `res://assets/audio/summon/`, sounds will play automatically
 
 ---
 

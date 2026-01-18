@@ -8,6 +8,9 @@ signal animation_completed(god: God)
 signal animation_skipped(god: God)
 signal all_animations_completed()
 
+# Preload sound manager
+const _SummonSoundManagerClass = preload("res://scripts/ui/summon/SummonSoundManager.gd")
+
 # Animation states
 enum AnimState { IDLE, PORTAL_GLOW, RARITY_REVEAL, GOD_REVEAL, COMPLETE }
 
@@ -22,6 +25,8 @@ var god_tier_label: Label
 var god_stats_label: Label
 var skip_button: Button
 var backdrop: ColorRect
+var particle_container: Control
+var sound_manager  # SummonSoundManager
 
 # Animation state
 var current_state: AnimState = AnimState.IDLE
@@ -29,12 +34,19 @@ var current_god: God = null
 var animation_queue: Array[God] = []
 var is_animating: bool = false
 var skip_requested: bool = false
+var original_position: Vector2 = Vector2.ZERO
 
 # Timing constants (seconds)
 const PORTAL_GLOW_DURATION: float = 0.8
 const RARITY_REVEAL_DURATION: float = 0.6
 const GOD_REVEAL_DURATION: float = 0.7
 const DISPLAY_DURATION: float = 1.5
+
+# Particle and shake settings
+const LEGENDARY_PARTICLE_COUNT: int = 24
+const EPIC_PARTICLE_COUNT: int = 12
+const SHAKE_DURATION: float = 0.4
+const SHAKE_INTENSITY: float = 8.0
 
 # Rarity colors
 const RARITY_COLORS: Dictionary = {
@@ -46,10 +58,15 @@ const RARITY_COLORS: Dictionary = {
 
 func _ready():
 	_setup_ui()
+	_setup_sound_manager()
 	visible = false
 
+func _setup_sound_manager():
+	sound_manager = _SummonSoundManagerClass.new()
+	sound_manager.name = "SummonSoundManager"
+	add_child(sound_manager)
+
 func _setup_ui():
-	# Full-screen backdrop
 	backdrop = ColorRect.new()
 	backdrop.name = "Backdrop"
 	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -57,7 +74,6 @@ func _setup_ui():
 	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(backdrop)
 
-	# Center container for portal and reveal
 	var center_container = Control.new()
 	center_container.name = "CenterContainer"
 	center_container.set_anchors_preset(Control.PRESET_CENTER)
@@ -65,32 +81,16 @@ func _setup_ui():
 	center_container.position = Vector2(-200, -250)
 	add_child(center_container)
 
-	# Portal ring (outer circle)
 	portal_ring = _create_portal_ring()
 	portal_ring.position = Vector2(100, 100)
 	center_container.add_child(portal_ring)
 
-	# Portal glow (inner)
-	portal_glow = ColorRect.new()
-	portal_glow.name = "PortalGlow"
-	portal_glow.custom_minimum_size = Vector2(180, 180)
-	portal_glow.size = Vector2(180, 180)
-	portal_glow.position = Vector2(110, 110)
-	portal_glow.color = Color(0.5, 0.4, 0.8, 0.0)
-	portal_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	portal_glow = _create_color_rect("PortalGlow", Vector2(180, 180), Vector2(110, 110), Color(0.5, 0.4, 0.8, 0.0))
 	center_container.add_child(portal_glow)
 
-	# Rarity burst effect
-	rarity_burst = ColorRect.new()
-	rarity_burst.name = "RarityBurst"
-	rarity_burst.custom_minimum_size = Vector2(300, 300)
-	rarity_burst.size = Vector2(300, 300)
-	rarity_burst.position = Vector2(50, 50)
-	rarity_burst.color = Color(1.0, 1.0, 1.0, 0.0)
-	rarity_burst.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rarity_burst = _create_color_rect("RarityBurst", Vector2(300, 300), Vector2(50, 50), Color(1.0, 1.0, 1.0, 0.0))
 	center_container.add_child(rarity_burst)
 
-	# God portrait container
 	god_portrait_container = Control.new()
 	god_portrait_container.name = "GodPortraitContainer"
 	god_portrait_container.custom_minimum_size = Vector2(200, 200)
@@ -98,7 +98,6 @@ func _setup_ui():
 	god_portrait_container.modulate.a = 0.0
 	center_container.add_child(god_portrait_container)
 
-	# God portrait (placeholder or actual texture)
 	god_portrait = TextureRect.new()
 	god_portrait.name = "GodPortrait"
 	god_portrait.custom_minimum_size = Vector2(180, 180)
@@ -157,6 +156,23 @@ func _setup_ui():
 
 	# Make click anywhere skip
 	backdrop.gui_input.connect(_on_backdrop_input)
+
+	# Particle container for legendary effects
+	particle_container = Control.new()
+	particle_container.name = "ParticleContainer"
+	particle_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	particle_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(particle_container)
+
+func _create_color_rect(rect_name: String, rect_size: Vector2, rect_pos: Vector2, rect_color: Color) -> ColorRect:
+	var rect = ColorRect.new()
+	rect.name = rect_name
+	rect.custom_minimum_size = rect_size
+	rect.size = rect_size
+	rect.position = rect_pos
+	rect.color = rect_color
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return rect
 
 func _create_portal_ring() -> Control:
 	var ring = Control.new()
@@ -253,6 +269,10 @@ func _start_portal_glow():
 	var tier_string = God.tier_to_string(current_god.tier).to_lower()
 	var glow_color = RARITY_COLORS.get(tier_string, RARITY_COLORS.common)
 
+	# Play portal activation sound
+	if sound_manager:
+		sound_manager.play_portal_sound(tier_string)
+
 	# Animate portal ring spinning (set_loops on Tween, not PropertyTweener)
 	var ring_tween = create_tween()
 	ring_tween.set_loops(0)  # Infinite loops
@@ -280,6 +300,15 @@ func _start_rarity_reveal():
 	var tier_string = God.tier_to_string(current_god.tier).to_lower()
 	var burst_color = RARITY_COLORS.get(tier_string, RARITY_COLORS.common)
 
+	# Spawn particles for epic/legendary
+	if tier_string == "legendary":
+		_spawn_particles(burst_color, LEGENDARY_PARTICLE_COUNT)
+		_apply_screen_shake()
+		if sound_manager:
+			sound_manager.play_legendary_fanfare()
+	elif tier_string == "epic":
+		_spawn_particles(burst_color, EPIC_PARTICLE_COUNT)
+
 	# Flash burst effect
 	rarity_burst.color = burst_color
 	rarity_burst.color.a = 0.0
@@ -300,6 +329,11 @@ func _start_god_reveal():
 		return
 
 	current_state = AnimState.GOD_REVEAL
+
+	# Play reveal sound
+	var tier_string = God.tier_to_string(current_god.tier).to_lower()
+	if sound_manager:
+		sound_manager.play_reveal_sound(tier_string)
 
 	# Setup god info
 	_setup_god_display()
@@ -404,3 +438,61 @@ func is_playing() -> bool:
 ## Get count of queued animations
 func get_queue_count() -> int:
 	return animation_queue.size()
+
+## Spawn celebration particles for epic/legendary summons
+func _spawn_particles(color: Color, count: int):
+	if not particle_container:
+		return
+
+	var viewport_size = get_viewport().get_visible_rect().size
+	var center = viewport_size / 2
+
+	for i in range(count):
+		var particle = ColorRect.new()
+		particle.custom_minimum_size = Vector2(8, 8)
+		particle.size = Vector2(8, 8)
+		particle.color = color
+
+		# Start from center
+		particle.position = center - Vector2(4, 4)
+
+		# Random direction
+		var angle = randf() * TAU
+		var speed = randf_range(300.0, 600.0)
+		var target_offset = Vector2(cos(angle), sin(angle)) * speed
+
+		particle_container.add_child(particle)
+
+		# Animate particle flying outward and fading
+		var tween = create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(particle, "position", center + target_offset, 1.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(particle, "modulate:a", 0.0, 1.2).set_delay(0.3)
+		tween.tween_property(particle, "scale", Vector2(0.3, 0.3), 1.2)
+
+		# Cleanup after animation
+		tween.chain().tween_callback(particle.queue_free)
+
+## Apply screen shake effect for legendary reveals
+func _apply_screen_shake():
+	original_position = position
+	var shake_tween = create_tween()
+
+	# Multiple shake iterations
+	var iterations = 8
+	for i in range(iterations):
+		var intensity = SHAKE_INTENSITY * (1.0 - float(i) / iterations)
+		var offset = Vector2(
+			randf_range(-intensity, intensity),
+			randf_range(-intensity, intensity)
+		)
+		shake_tween.tween_property(self, "position", original_position + offset, SHAKE_DURATION / iterations)
+
+	# Return to original position
+	shake_tween.tween_property(self, "position", original_position, 0.05)
+
+## Clear all particles
+func _clear_particles():
+	if particle_container:
+		for child in particle_container.get_children():
+			child.queue_free()
