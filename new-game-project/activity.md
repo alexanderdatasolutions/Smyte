@@ -55,11 +55,50 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
    - Missing Pieces
    - Code Quality Audit
 4. Defined key questions to answer for each system
-5. Created sample plan.md structure with 5 initial UI/integration tasks
+5. ~~Created sample plan.md structure with 5 initial UI/integration tasks~~ (REMOVED - Ralph should create this)
 
 **Files Modified:**
-- `PROMPT_plan.md` - Created comprehensive audit prompt (411 lines)
+- `PROMPT_plan.md` - Created comprehensive audit prompt (corrected to let Ralph create plan)
 - `activity.md` - This file, updated for new planning phase
+
+### 2026-01-18 (Later) - Updated Ralph Prompts to Match ralph_wiggum_guide.md Pattern
+
+**Task:** Align Ralph prompts with the baseline pattern from ralph_wiggum_guide.md
+
+**What Was Done:**
+1. **Completely rewrote `PROMPT_plan.md`** to match ralph_wiggum_guide.md pattern:
+   - Added Step 0a-0d: Study specs/docs, IMPLEMENTATION_PLAN.md, entire codebase with 500 agents
+   - Changed Step 1: Use Opus subagent with ultrathink for comprehensive analysis
+   - Changed Step 2: Create `IMPLEMENTATION_PLAN.md` (not `plan.md`) with checkbox format (not JSON)
+   - Changed completion promise to `<promise>PLAN_COMPLETE</promise>`
+   - Added Obsidian documentation requirements (wiki-links, frontmatter, MOCs)
+   - Added expectation to create both `GAME_DESIGN_DOCUMENT.md` AND `IMPLEMENTATION_PLAN.md`
+
+2. **Completely rewrote `PROMPT_build.md`** to match ralph_wiggum_guide.md pattern:
+   - Added Step 0a-0c: Study docs, IMPLEMENTATION_PLAN.md, relevant scripts with agents
+   - Changed Step 1: Choose task from `IMPLEMENTATION_PLAN.md` (not `plan.md`)
+   - Added detailed instructions for Documentation Tasks (Obsidian format, wiki-links, MOCs)
+   - Added detailed instructions for UI/UX Tasks (with Godot MCP tools)
+   - Added detailed instructions for Code Cleanup Tasks (static typing, constants, refactoring)
+   - Added Step 2: Validate work (docs and code separately)
+   - Added Step 3: Update `IMPLEMENTATION_PLAN.md` with discoveries
+   - Added Step 4: Log in activity.md and commit
+   - Added all 14 "Important Rules" from ralph_wiggum_guide.md
+   - Changed completion promise to `<promise>COMPLETE</promise>`
+
+**Files Modified:**
+- `PROMPT_plan.md` - Completely rewritten (148 lines → matches baseline pattern)
+- `PROMPT_build.md` - Completely rewritten (54 lines → 220 lines, matches baseline pattern)
+- `activity.md` - This file, documenting the alignment
+
+**Key Changes:**
+- Now uses `IMPLEMENTATION_PLAN.md` with checkbox tasks instead of `plan.md` with JSON
+- Documentation must be Obsidian format with `[[wiki-links]]`, frontmatter, MOCs
+- Every doc must link to at least 2 other docs
+- Added emphasis on static typing for all GDScript
+- Added signal flow documentation requirements
+- Added JSON schema documentation requirements
+- Ralph will create BOTH the GDD AND the implementation plan in plan mode
 
 **Systems to Analyze:**
 - Core: SystemRegistry, SaveManager, ResourceManager, GameCoordinator

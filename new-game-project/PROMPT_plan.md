@@ -1,8 +1,8 @@
-@docs/CLAUDE.md @ralph_wiggum_guide.md
+@docs/CLAUDE.md @activity.md
 
 ## Context
 
-We need a **Complete Game Design Document** that unifies all systems and reveals the core gameplay loop. The goal is documented in CLAUDE.md.
+We need a **Complete Game Design Document** that unifies all systems and reveals the core gameplay loop.
 
 **Current Situation**: We have many backend systems implemented (summoning, dungeons, hex nodes, equipment, crafting, specializations, awakening, etc.) but we don't know:
 - What connects to what?
@@ -12,7 +12,7 @@ We need a **Complete Game Design Document** that unifies all systems and reveals
 - What's implemented vs what's missing?
 - Which systems are visible to players vs hidden in backend?
 
-The core loop SHOULD be:
+**The Core Loop (Intended):**
 1. Acquire god (summoning)
 2. Use god in battle (node capture, dungeons, PvP)
 3. Gain rewards (resources, materials)
@@ -23,17 +23,33 @@ The core loop SHOULD be:
    - Specialize gods into roles
 5. Capture more nodes → get more passive resources → loop
 
-**BUT:** We need to verify what actually exists, what works, what's connected, and what's missing.
+---
+
+## Step 0a: Study Existing Documentation
+
+Study `docs/*` with up to **250 parallel Sonnet subagents** to understand:
+- What documentation already exists?
+- What's the current state of the project?
+- What architectural decisions are documented?
+- What gaps exist in the documentation?
 
 ---
 
-## Step 0a-0d: Study the Entire Codebase
+## Step 0b: Study IMPLEMENTATION_PLAN.md (if present)
+
+Read `IMPLEMENTATION_PLAN.md` (if it exists) to understand:
+- What progress has been made so far?
+- What tasks are complete?
+- What tasks are pending?
+- What discoveries were made during previous work?
+
+---
+
+## Step 0c: Study the Entire Codebase
 
 Study the **entire codebase** with up to **500 parallel Sonnet subagents** to understand:
 
-### All Systems to Analyze
-
-**Core Systems:**
+### Core Systems
 - `scripts/systems/core/` - SystemRegistry, SaveManager, ResourceManager, GameCoordinator
 - `scripts/systems/collection/` - GodManager, SummoningManager, TeamManager
 - `scripts/systems/battle/` - BattleManager, DamageCalculator
@@ -43,299 +59,290 @@ Study the **entire codebase** with up to **500 parallel Sonnet subagents** to un
 - `scripts/systems/dungeon/` - DungeonManager, DungeonRewardCalculator, DungeonDifficultyManager
 - `scripts/systems/resources/` - ResourceManager
 
-**Data Models:**
-- `scripts/data/` - God.gd, HexNode.gd, Equipment.gd, Dungeon.gd, Specialization.gd, etc.
+### JSON Configs
+- `data/resources.json` - All 49 resources
+- `data/recipes.json` - Crafting recipes
+- `data/gods.json` - God definitions
+- `data/dungeons.json` - Dungeon configurations
+- `data/hex_nodes.json` - Territory node types
+- `data/specializations.json` - God role specializations
+- `data/equipment.json` - Equipment definitions
 
-**UI Screens:**
-- `scripts/ui/screens/` - All screens (Collection, Battle, Dungeon, Equipment, HexTerritory, Summoning, etc.)
-- `scripts/ui/` - All UI components
+### UI Screens and Components
+- `scripts/ui/screens/` - All game screens
+- `scripts/ui/components/` - Reusable UI components
+- `scenes/` - All scene files
 
-**JSON Configs:**
-- `data/` - All JSON files (gods_base_data.json, dungeons.json, crafting_recipes.json, resources.json, hex_nodes.json, specializations.json, equipment_base_data.json, etc.)
+### Signal Connections and Event Flow
+- How do systems communicate?
+- What signals are emitted and listened to?
+- How does data flow through the game?
 
-### Key Questions to Answer
+### Code Patterns and Architecture
+- How is SystemRegistry used?
+- How do systems register themselves?
+- How does save/load work?
+- What patterns are followed consistently?
+- What patterns are inconsistent?
 
-**Resource Flow:**
-1. What are ALL 49 resources used for?
-2. Where do resources come from (hex nodes, dungeons, tasks, PvP)?
-3. Where do resources go (crafting, summoning, awakening, specialization)?
-4. Which resources are bottlenecks?
-5. Which resources are useless?
+### Code Quality Issues
+- Untyped variables and functions
+- Duplicated logic across systems
+- Inconsistent patterns between similar systems
+- Magic numbers without constants
+- Dead code or unused signals
+- Overly complex functions that need refactoring
+- JSON config parsing that could be cleaner
 
-**God Progression:**
-1. How do you level up gods (sacrifice system)?
-2. How does awakening work (requirements, effects)?
-3. How do specializations work (fish → fisher → master fisher)?
-4. What stats do gods have? How do they grow?
-5. Can you see god potential before summoning?
+---
 
-**Equipment System:**
-1. What equipment exists?
-2. How do you craft equipment (recipes, materials)?
-3. Can you equip gods? How does it work?
-4. What stats does equipment provide?
-5. Is the crafting UI built?
+## Step 0d: Study docs/ Directory
 
-**Territory/Hex Nodes:**
-1. Which gods are good for which nodes (efficiency bonuses)?
-2. What do nodes produce? At what rates?
-3. How does AFK production work? Is it visible?
-4. Can you see production rates before assigning workers?
-5. Are there node upgrade paths?
+Study existing documentation in `docs/` to understand:
+- What's already documented?
+- What documentation standards exist?
+- How are docs structured?
+- What gaps exist?
+
+---
+
+## Step 1: Create Comprehensive Analysis
+
+Using up to **50 parallel Opus subagents with ultrathink**, create a comprehensive analysis covering:
+
+### Documentation Gaps
+
+**Core Systems:**
+- Which systems lack documentation? (Start with SystemRegistry and core managers)
+- What formulas/calculations are buried in managers but not explained?
+- How do the JSON configs get loaded and used?
+- What signals connect which systems?
+
+**Game Loops:**
+- How does combat flow? (BattleManager, DamageCalculator)
+- How does progression work? (LevelingManager, AwakeningManager, SpecializationManager)
+- How does territory work? (TerritoryManager, HexGridManager, TaskAssignmentManager)
+- How does crafting work? (EquipmentCraftingManager, ResourceManager)
+- How do dungeons work? (DungeonManager, DungeonRewardCalculator)
+
+**Resource Economy:**
+- What are ALL 49 resources?
+- Where does each resource come from (sources)?
+- Where does each resource go (sinks)?
+- Is each resource balanced? (too much, too little, useless)
+- Is each resource visible to players?
+- What's the intended purpose of each resource?
+
+**God System:**
+- How do gods level up? (formulas, XP sources)
+- How does awakening work? (costs, materials, effects)
+- How do specializations work? (requirements, bonuses, efficiency)
+- Which gods are good for which tasks?
+- How do god stats affect combat?
+
+**Territory/Hex System:**
+- What node types exist?
+- What resources do nodes produce?
+- How do god assignments work?
+- What efficiency bonuses exist?
+- How does passive production work?
 
 **Dungeon System:**
-1. What dungeons exist? What do they reward?
-2. Are dungeon rewards visible before entering?
-3. Do dungeons scale with difficulty?
-4. Can you replay dungeons (replayability system)?
-5. What's the risk vs reward?
+- What dungeons exist?
+- What do they reward?
+- How does difficulty scale?
+- How do players access dungeons?
 
-**Battle System:**
-1. How does combat work (turn-based, real-time, auto)?
-2. What stats matter (Attack, Defense, HP, Mana)?
-3. How do god abilities work?
-4. Can you see battle previews?
-5. Is there a combat log?
+**Equipment/Crafting:**
+- What equipment exists?
+- What recipes exist?
+- Is crafting UI built?
+- How do players craft?
+- How does equipment affect gods?
 
-**Playstyles:**
-1. Can you play as a gatherer (passive resource main)?
-2. Can you play as a warrior (conquest main)?
-3. Can you play as a crafter (equipment main)?
-4. Are there roles/archetypes for gods?
+**UI/UX Audit:**
+- Which systems have UI and which are backend-only?
+- What screens exist?
+- What's missing from player visibility?
+- Where are tooltips needed?
+- Where is feedback missing?
 
-**UI Visibility:**
-1. Which systems have UI screens?
-2. Which systems are backend-only (no UI)?
-3. Can players discover all features organically?
-4. Are there tooltips explaining systems?
-5. Is there a tutorial or guide?
+**System Integration:**
+- How do systems connect?
+- What's the actual gameplay loop vs intended loop?
+- Where are connections missing?
+- What systems are isolated?
 
-### Look For
+**Playstyle Archetypes:**
+- Can you play as a gatherer main?
+- Can you go full warrior?
+- Can you focus on crafting?
+- Are all playstyles viable?
 
-**Signal connections between systems:**
-- How do managers communicate?
-- Which systems depend on each other?
-- What's the event flow?
+**What's Missing:**
+- What UI is missing?
+- What connections are missing?
+- What features are partially implemented?
+- What's next to build?
 
-**Code patterns and architecture:**
-- How are systems registered?
-- How is data saved/loaded?
-- How are resources added/spent?
+### Code Cleanup Opportunities
 
-**Missing connections:**
-- Systems that exist but aren't called
-- UI screens that don't expose functionality
-- Data that's defined but not used
-
-**Formulas and magic numbers:**
-- Production rate calculations
-- XP/leveling formulas
-- Damage calculations
-- Drop rate formulas
-- Awakening costs
-
-**Visibility gaps:**
-- What players can't see
-- What players can't discover
-- What players don't understand
+- Untyped variables and functions (GDScript supports static typing!)
+- Duplicated logic across systems
+- Inconsistent patterns between similar systems
+- Magic numbers without constants
+- Dead code or unused signals
+- Overly complex functions that need refactoring
+- JSON config parsing that could be cleaner
 
 ---
 
-## Step 1: Create Comprehensive Game Design Document
+## Step 2: Create IMPLEMENTATION_PLAN.md
 
-Use up to **50 parallel Opus subagents with ultrathink** to create a massive analysis document.
+Create/update `IMPLEMENTATION_PLAN.md` with prioritized tasks. Structure as:
 
-Create `docs/GAME_DESIGN_DOCUMENT.md` with comprehensive documentation covering:
-
-### Executive Summary
-- Current state (what works, what doesn't)
-- Core gameplay loop (intended vs actual)
-- Biggest gaps
-- Recommended priorities
-
-### Resource Economy
-**For ALL 49 resources:**
-- Resource name and ID
-- Where it comes from (sources: nodes, dungeons, tasks, etc.)
-- Where it goes (sinks: crafting, summoning, awakening, etc.)
-- Is it balanced? (too much, too little, useless)
-- Is it visible to players?
-
-**Resource Flow Diagram:**
-```
-Nodes → Materials → Crafting → Equipment → Power
-  ↓         ↓           ↓
-Tasks    Summoning  Awakening
-  ↓         ↓           ↓
-Dungeons  Gods    Specialization
-```
-
-### God Progression System
-- Summoning (how to get gods, costs, rates)
-- Leveling (XP sources, formulas, sacrifice system)
-- Awakening (requirements, costs, benefits)
-- Specialization (trees, unlocks, bonuses)
-- Equipment (slots, stats, crafting)
-
-### Territory/Hex Node System
-- Node types and tiers
-- Production rates and formulas
-- Worker assignment (efficiency bonuses)
-- Upgrade paths
-- AFK production (timer, offline gains)
-- UI visibility (what players see)
-
-### Dungeon System
-- All dungeons (tier, difficulty, rewards)
-- Replayability mechanics
-- Reward scaling
-- Risk vs reward balance
-- Entry requirements
-
-### Battle System
-- Combat flow (turn order, actions)
-- Stats that matter (formulas)
-- Abilities and skills
-- Damage calculation
-- Victory/defeat conditions
-
-### Crafting System
-- All recipes (10+ recipes)
-- Material requirements
-- Equipment stats
-- Crafting UI (exists? missing?)
-- Discovery mechanics
-
-### Playstyle Archetypes
-**Can you play as:**
-- Gatherer (passive income, minimal combat)
-- Warrior (conquest, combat-focused)
-- Crafter (equipment production)
-- Specialist (role optimization)
-
-### UI/UX Audit
-**For each system:**
-- Screen name
-- What's visible
-- What's hidden
-- What's discoverable
-- What's confusing
-- Missing tooltips
-- Missing tutorials
-
-### System Integration Map
-**Connections between systems:**
-- Which systems call which?
-- Which systems depend on which?
-- Which systems are isolated?
-- Which connections are missing?
-
-### Missing Pieces
-**What needs to be built:**
-- Missing UI screens
-- Missing tooltips
-- Missing connections
-- Missing formulas
-- Missing feedback loops
-
-### Code Quality Audit
-**Cleanup opportunities:**
-- Untyped variables
-- Magic numbers
-- Dead code
-- Duplicated logic
-- Inconsistent patterns
-
----
-
-## Step 2: Create plan.md
-
-After the comprehensive analysis, create `plan.md` following ralph_wiggum_guide.md format with JSON task structure:
-
-**Structure should follow:**
 ```markdown
-# [Title] - Implementation Plan
+# Game Design & System Integration - Implementation Plan
 
 ## Overview
-[Brief description]
+[Brief description of what needs to be done based on the analysis]
 
 **Reference:** `docs/GAME_DESIGN_DOCUMENT.md`
 
 ---
 
-## Task List
+## Documentation Tasks
 
-```json
-[
-  {
-    "category": "audit",
-    "description": "...",
-    "steps": ["...", "..."],
-    "passes": false
-  },
-  {
-    "category": "ui",
-    "description": "...",
-    "steps": ["...", "..."],
-    "passes": false
-  }
-]
-```
+- [ ] Document SystemRegistry and core architecture (creates `docs/architecture/SystemRegistry.md`)
+- [ ] Document all 49 resources with sources/sinks (creates `docs/economy/Resources.md`)
+- [ ] Document god progression system (creates `docs/systems/GodProgression.md`)
+- [ ] Document territory/hex system (creates `docs/systems/Territory.md`)
+- [ ] Document dungeon system (creates `docs/systems/Dungeons.md`)
+- [ ] Document battle system (creates `docs/systems/Battle.md`)
+- [ ] Document crafting system (creates `docs/systems/Crafting.md`)
+- [ ] Create MOC for game systems (creates `docs/MOCs/GameSystems.md`)
+- [ ] Create MOC for resource economy (creates `docs/MOCs/ResourceEconomy.md`)
 
-## Agent Instructions
-1. Read GAME_DESIGN_DOCUMENT.md first
-2. Find next task with "passes": false
-3. Complete all steps
-4. Verify with Godot MCP tools
-5. Update "passes" to true
-6. Log in activity.md
-7. Git commit
-8. Repeat until all pass
+## UI/UX Tasks
 
-## Completion Criteria
-All tasks marked "passes": true
-```
+- [ ] Build Crafting Screen UI (affects `scripts/ui/screens/CraftingScreen.gd`)
+- [ ] Build Recipe Book UI (affects `scripts/ui/screens/RecipeBookScreen.gd`)
+- [ ] Add resource tooltips (affects `scripts/ui/components/ResourceTooltip.gd`)
+- [ ] Add god efficiency indicators (affects `scripts/ui/components/GodCard.gd`)
+- [ ] Add dungeon reward preview (affects `scripts/ui/screens/DungeonSelectScreen.gd`)
 
-**Task Categories Should Cover:**
-- Audit/Documentation (if needed)
-- UI gaps (missing screens, tooltips)
-- System connections (wire up isolated systems)
-- Integration (connect backends to frontends)
-- Testing (verify end-to-end flows)
-- Polish (visual feedback, tutorials)
+## Integration Tasks
 
-**Task Prioritization Guidelines:**
-1. **Document first** - Ensure GDD is complete
-2. **UI gaps** - Build missing screens (Crafting, Tooltips, etc.)
-3. **System connections** - Wire up isolated systems
-4. **Player visibility** - Make everything discoverable
-5. **Polish** - Tutorials, guides, feedback loops
+- [ ] Connect dungeon rewards to crafting (affects `scripts/systems/dungeon/DungeonManager.gd`)
+- [ ] Connect node production to resource display (affects `scripts/systems/territory/TerritoryManager.gd`)
+- [ ] Add progression feedback (affects `scripts/systems/progression/LevelingManager.gd`)
+- [ ] Build tutorial system (affects `scripts/systems/tutorial/TutorialManager.gd`)
+
+## Code Cleanup Tasks
+
+- [ ] Add static typing to all core systems (affects `scripts/systems/core/*.gd`)
+- [ ] Extract magic numbers to constants (affects multiple files)
+- [ ] Refactor complex functions (affects specific files as discovered)
+- [ ] Remove dead code (affects multiple files)
 
 ---
 
-## Analysis Depth Required
-
-This is NOT a quick pass. This requires:
-- **500 parallel Sonnet subagents** reading every file
-- **50 parallel Opus subagents** synthesizing findings
-- **Deep code analysis** (formulas, signals, connections)
-- **Complete JSON config parsing** (all 49 resources, all recipes, all nodes, all dungeons)
-- **UI/UX audit** (what's visible, what's hidden, what's confusing)
-- **System integration mapping** (who calls who, what depends on what)
-
-**Estimated agent hours:** 100+ hours of parallel agent work compressed into minutes.
-
-**End result:** Complete understanding of:
-- What we have
-- What works
-- What's broken
-- What's missing
-- What to build next
-- How it all connects
+Prioritize tasks that:
+1. Document core systems first (SystemRegistry, ResourceManager, GodManager)
+2. Document resource economy (all 49 resources)
+3. Document core game loops (combat, progression, crafting, territory)
+4. Create MOC (Map of Content) pages that link systems together
+5. Build missing UI that exposes backend systems
+6. Fix code quality issues that block understanding
+7. Capture formulas and magic numbers
+```
 
 ---
 
-IMPORTANT: **Plan only. Do NOT implement anything. This is gap analysis only.**
+## Step 3: Create GAME_DESIGN_DOCUMENT.md
+
+Create `docs/GAME_DESIGN_DOCUMENT.md` with comprehensive documentation covering all the areas analyzed in Step 1.
+
+**Documentation Standards:**
+- Use Obsidian format with frontmatter, wiki-links, callouts
+- Every doc must link to at least 2 other docs (no isolated notes)
+- Include GDScript snippets with file paths
+- Document formulas in both prose AND code blocks
+- Document signal flows (who emits, who listens, what data)
+- Document JSON config structure with examples
+- Create MOC pages that serve as hubs
+- Use tags and aliases liberally
+
+**Example Structure:**
+
+```markdown
+---
+tags: [game-design, core-loop, economy]
+aliases: [GDD, Game Design Document]
+related: [[GameSystems]], [[ResourceEconomy]], [[GodProgression]]
+---
+
+# Game Design Document
+
+## Executive Summary
+
+[Current state, core loop, biggest gaps, recommended priorities]
+
+## Resource Economy
+
+### Overview
+The game has 49 resources across multiple categories...
+
+### Resource Breakdown
+
+#### Basic Resources
+- **[[Wood]]**: Gathered from forest nodes, used for [[Crafting]] basic equipment
+  - Sources: Forest nodes (forest_basic, forest_ancient)
+  - Sinks: Equipment recipes (wooden_sword, wooden_shield)
+  - Balance: ✅ Well balanced
+  - Visibility: ⚠️ Players don't know what it's for
+
+[Continue for all 49 resources...]
+
+## God Progression System
+
+### Leveling
+[Document formulas, XP sources, level caps]
+
+### Awakening
+[Document costs, materials, effects]
+
+### Specialization
+[Document roles, requirements, bonuses]
+
+[Continue for all systems...]
+```
+
+---
+
+## Important Notes
+
+**IMPORTANT: Plan only. Do NOT implement anything. This is gap analysis and documentation only.**
+
+**ULTIMATE GOAL:**
+1. Create a comprehensive Game Design Document in `docs/GAME_DESIGN_DOCUMENT.md`
+2. Create a rich Obsidian knowledge base with interconnected notes
+3. Create an actionable implementation plan in `IMPLEMENTATION_PLAN.md`
+4. Document the codebase architecture so it's maintainable
+5. Identify what's missing and prioritize what to build next
+
+**Documentation Requirements:**
+- Use Obsidian format: frontmatter, `[[wiki-links]]`, callouts (> [!note]), tags
+- Every doc links to at least 2 other docs (isolated notes are useless)
+- Include GDScript snippets with file paths
+- Document formulas in both prose AND code blocks
+- Document signal flows (who emits, who listens, what data is passed)
+- Document JSON config structure with examples
+- Create `docs/MOCs/` index pages that link all related concepts together
+
+---
+
+## Completion
 
 When complete, output exactly:
 
