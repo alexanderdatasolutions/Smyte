@@ -78,9 +78,10 @@
 - no bottom bar for navigation set up
 - nothing about the god specializations on the colelciton
 - no social functionalities - friends, battle 
-- set up battle, get it looking solid with abilities icons and such. summoners war-esqe 
+- set up battle, get it looking solid with abilities icons and such. summoners war-esqe -- completed
 - set up dungeon entering and wave and shit.
 - ~~need to pve battle to capture nodes, allowingyou to capture, and then set lifeskillers on it, and still grind pve mobs with your combat team for exp and more loot if you want.~~ **COMPLETED 2026-01-16 - capture flow complete with team selection**
+- add proper details to the nodeinfoscreen or w/e the click in thing to the node is that pops up on the right. should show what the nodes crafting/fishing/gathering stuff is, show why people care about this. 
 - set up auto battling
 - set up proper integration tests with everything needed
 - make sure afk functionality is ready

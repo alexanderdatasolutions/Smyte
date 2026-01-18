@@ -182,6 +182,10 @@ func get_save_data() -> Dictionary:
 		"player_resources": player_resources.duplicate()
 	}
 
+## Load save data (SaveManager compatibility)
+func load_save_data(save_data: Dictionary):
+	load_from_save(save_data)
+
 ## Initialize resources for new game
 func initialize_new_game():
 	player_resources.clear()
@@ -189,7 +193,7 @@ func initialize_new_game():
 	player_resources["gold"] = 10000
 	player_resources["mana"] = 0
 	player_resources["divine_crystals"] = 0
-	player_resources["energy"] = 10
+	player_resources["energy"] = 80
 
 ## Debug: Print all resources
 func debug_print_resources():
