@@ -103,6 +103,16 @@ func _count_future_turns(turn_bar_value: float) -> int:
 	"""Helper to allow same unit appearing multiple times if very fast"""
 	return int(turn_bar_value / 100.0) + 1
 
+## Add new units to the battle (for wave progression)
+func add_units(new_units: Array):
+	"""Add new units to the turn order (e.g., when a new wave spawns)"""
+	for unit in new_units:
+		if unit and unit not in battle_units:
+			battle_units.append(unit)
+			# Initialize their turn bar (start at 0 so existing units get to act first)
+			unit.current_turn_bar = 0.0
+			print("TurnManager: Added new unit to turn order: ", unit.display_name)
+
 ## End the battle
 func end_battle():
 	battle_units.clear()

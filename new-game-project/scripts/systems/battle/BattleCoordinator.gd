@@ -337,12 +337,10 @@ func _process_enemy_turn(unit: BattleUnit):
 		turn_manager.advance_turn()
 
 func _on_turn_ended(_unit: BattleUnit):
-	# Check for battle end conditions
-	if _check_battle_end_conditions():
-		return  # Battle ended
-	
-	# Continue to next turn
-	turn_manager.advance_turn()
+	# Check for battle end conditions after turn ends
+	# Note: turn advancement is handled by the action execution flow,
+	# not here - this is just for checking battle end conditions
+	_check_battle_end_conditions()
 
 func _on_action_executed(_action: BattleAction, result: ActionResult):
 	battle_log_message.emit(result.get_log_message())
@@ -367,6 +365,30 @@ func _on_all_waves_completed():
 	var result = BattleResult.create_victory("All waves defeated")
 	end_battle(result)
 
+func _advance_to_next_wave():
+	"""Advance to the next wave of enemies"""
+	print("BattleCoordinator: Advancing to next wave...")
+
+	# Mark current wave as complete
+	wave_manager.complete_current_wave()
+
+	# Get next wave enemies from config
+	var next_wave_index = battle_state.current_wave  # current_wave is 1-indexed, array is 0-indexed
+	if next_wave_index >= current_battle_config.enemy_waves.size():
+		push_error("BattleCoordinator: No more wave data available")
+		return
+
+	var next_wave_enemies = current_battle_config.enemy_waves[next_wave_index]
+	print("BattleCoordinator: Next wave has ", next_wave_enemies.size(), " enemy entries")
+
+	# Advance battle state to next wave (this creates new enemy BattleUnits)
+	battle_state.advance_to_next_wave(next_wave_enemies)
+	print("BattleCoordinator: Battle state advanced to wave ", battle_state.current_wave)
+
+	# Update turn manager with new enemies
+	turn_manager.add_units(battle_state.get_enemy_units())
+	print("BattleCoordinator: Added new enemies to turn order")
+
 func _check_battle_end_conditions() -> bool:
 	"""Check if battle should end and end it if necessary"""
 	# Check if all player units are defeated
@@ -383,6 +405,10 @@ func _check_battle_end_conditions() -> bool:
 			# No more waves or all waves completed
 			end_battle(BattleResult.create_victory("All enemies defeated"))
 			return true
+		else:
+			# More waves remaining - advance to next wave
+			_advance_to_next_wave()
+			return false  # Battle continues
 
 	return false
 

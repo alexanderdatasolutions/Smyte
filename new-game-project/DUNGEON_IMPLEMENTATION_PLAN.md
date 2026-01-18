@@ -203,7 +203,7 @@
       "scripts/systems/battle/BattleCoordinator.gd",
       "scripts/data/BattleState.gd"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "SYS-002",

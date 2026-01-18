@@ -373,15 +373,15 @@ func _on_battle_setup_complete(context: Dictionary):
 	battle_config.attacker_team = valid_team
 	battle_config.dungeon_name = dungeon_id
 
-	# Get enemy waves from dungeon manager
+	# Get enemy waves from dungeon manager using get_battle_configuration
 	if dungeon_manager:
-		var dungeon_info = dungeon_manager.get_dungeon_info(dungeon_id)
-		var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
-		var waves = difficulty_info.get("enemy_waves", [])
+		var dungeon_battle_config = dungeon_manager.get_battle_configuration(dungeon_id, difficulty)
+		var waves = dungeon_battle_config.get("enemy_waves", [])
 		if waves.is_empty():
 			# Create default enemy wave if none defined
 			waves = [[{"name": "Dungeon Monster", "level": 5, "hp": 500, "attack": 100, "defense": 50, "speed": 80}]]
 		battle_config.enemy_waves = waves
+		print("DungeonScreen: Loaded ", waves.size(), " waves with enemies: ", waves)
 
 	# Navigate to battle screen first
 	if screen_manager.change_screen("battle"):
