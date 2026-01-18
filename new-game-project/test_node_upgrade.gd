@@ -1,0 +1,7 @@
+var tm = SystemRegistry.get_instance().get_system("TerritoryManager")
+var hgm = SystemRegistry.get_instance().get_system("HexGridManager")
+var node = hgm.get_node_by_id("divine_sanctum")
+print("Current production_level: ", node.production_level)
+var result = tm.upgrade_hex_node("divine_sanctum")
+print("Upgrade result: ", result)
+print("New production_level: ", node.production_level)

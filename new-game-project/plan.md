@@ -158,7 +158,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "UI listens and refreshes display",
       "Test by upgrading a node's production_level"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "testing",

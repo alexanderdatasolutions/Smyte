@@ -631,6 +631,66 @@ func update_node_workers(node_id: String, worker_ids: Array) -> bool:
 
 	return true
 
+## Upgrade production level of a hex node
+func upgrade_hex_node(node_id: String) -> bool:
+	"""Upgrade the production_level of a hex node"""
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		push_error("TerritoryManager: HexGridManager not found")
+		return false
+
+	var node = hex_grid_manager.get_node_by_id(node_id)
+	if not node:
+		push_error("TerritoryManager: Node not found: " + node_id)
+		return false
+
+	if not node.is_controlled_by_player():
+		push_error("TerritoryManager: Cannot upgrade uncontrolled node")
+		return false
+
+	# Check if already at max level
+	var max_level = 5  # From CLAUDE.md
+	if node.production_level >= max_level:
+		print("TerritoryManager: Node %s already at max production level" % node_id)
+		return false
+
+	# Get upgrade cost
+	var upgrade_cost = _get_hex_node_upgrade_cost(node.production_level + 1)
+	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
+
+	if not resource_manager or not resource_manager.can_afford(upgrade_cost):
+		print("TerritoryManager: Cannot afford upgrade cost for node %s" % node_id)
+		return false
+
+	# Spend resources and upgrade
+	resource_manager.spend_resources(upgrade_cost)
+	node.production_level += 1
+
+	print("TerritoryManager: Upgraded node %s to production level %d" % [node_id, node.production_level])
+
+	# Emit production_updated signal to refresh UI
+	var production_manager = SystemRegistry.get_instance().get_system("TerritoryProductionManager")
+	if production_manager:
+		var new_production_rate: Dictionary = production_manager.calculate_node_production(node)
+		var total_rate: int = 0
+		for resource_id in new_production_rate:
+			total_rate += int(new_production_rate[resource_id])
+		production_manager.production_updated.emit(node_id, total_rate)
+		print("TerritoryManager: Emitted production_updated signal for node %s with new rate %d" % [node_id, total_rate])
+
+	return true
+
+## Get hex node upgrade cost
+func _get_hex_node_upgrade_cost(target_level: int) -> Dictionary:
+	"""Calculate resource cost for upgrading to target production level"""
+	var base_cost = 500
+	var level_multiplier = pow(1.5, target_level - 1)
+
+	return {
+		"gold": int(base_cost * level_multiplier),
+		"mana": int(base_cost * 0.5 * level_multiplier)
+	}
+
 # ==============================================================================
 # DUNGEON COMPLETION INTEGRATION
 # ==============================================================================
