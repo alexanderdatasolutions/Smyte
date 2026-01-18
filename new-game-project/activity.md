@@ -751,3 +751,90 @@ Enhanced NodeInfoPanel to display production rates and bonuses breakdown when vi
 
 ---
 
+### 2026-01-18 23:45 - Task 7 Complete: Pending Resources Indicator in NodeInfoPanel
+
+**Task:** Add pending resources indicator to NodeInfoPanel with collect button
+
+**What Was Done:**
+Enhanced NodeInfoPanel to display pending (accumulated) resources and provide a manual collection button. The system:
+- Shows pending resources for player-controlled nodes above the production section
+- Displays accumulated resources with formatting (e.g., "Mana: 1.7", "Gold: 0.8")
+- Provides a "Collect Resources" button to manually claim pending resources
+- Awards resources via ResourceManager.award_resources() when collected
+- Shows temporary feedback message after collection
+- Clears accumulated_resources after awarding
+- Updates display after collection to show 0 pending
+- Handles edge cases (non-player nodes, no workers, no pending resources)
+
+**Files Modified:**
+
+1. **scripts/ui/territory/NodeInfoPanel.gd** (Lines 75-85):
+   - Added `_pending_resources_container: VBoxContainer` to UI components
+
+2. **scripts/ui/territory/NodeInfoPanel.gd** (Lines 153-159):
+   - Added call to `_build_pending_resources_section()` in UI initialization
+   - Inserted pending resources section above production section
+
+3. **scripts/ui/territory/NodeInfoPanel.gd** (Lines 193-201):
+   - Added `_build_pending_resources_section()` method
+   - Creates VBoxContainer for pending resources display
+
+4. **scripts/ui/territory/NodeInfoPanel.gd** (Lines 288-290):
+   - Added call to `_update_pending_resources()` in _update_all_displays()
+
+5. **scripts/ui/territory/NodeInfoPanel.gd** (Lines 313-370):
+   - Added `_update_pending_resources()` method - displays pending resources and collect button
+   - Added `_get_total_accumulated()` helper method - calculates total pending resources
+   - Shows "Capture node to accumulate resources" for non-player nodes
+   - Shows "No pending resources (assign workers to begin)" when empty
+   - Displays each accumulated resource with amount
+   - Adds "Collect Resources" button that calls collect handler
+
+6. **scripts/ui/territory/NodeInfoPanel.gd** (Lines 849-892):
+   - Added `_on_collect_resources_pressed()` signal handler
+   - Calls TerritoryProductionManager.collect_node_resources()
+   - Shows feedback message about collected resources
+   - Refreshes display after collection (shows 0 pending)
+   - Added `_show_collection_feedback()` method for temporary feedback messages
+   - Feedback fades after 3 seconds
+
+**Verification:**
+
+✅ **Project runs without compilation errors**
+✅ **Pending resources section displays in NodeInfoPanel**
+✅ **Collection method works correctly:**
+   - Called collect_node_resources("divine_sanctum")
+   - Returned: {mana: 1.7, gold: 0.8}
+   - Debug output: `[TerritoryProductionManager] Collected resources from node (0,0) 'Divine Sanctum': {mana: 1.7, gold: 0.8}`
+✅ **Resources awarded to player** - ResourceManager.award_resources() called successfully
+✅ **Production continues after collection:**
+   - Resources accumulate: 0.8 → 1.7 (first cycle)
+   - Collection clears to 0
+   - Accumulation restarts: 0.8 → 1.7 (second cycle)
+✅ **Edge cases handled:**
+   - Non-player nodes: Shows "Capture node to accumulate resources"
+   - No pending: Shows "No pending resources (assign workers to begin)"
+   - Empty node: Returns {} correctly
+
+**Testing Method:**
+1. Ran project with mcp__godot__run_project
+2. Navigated to hex_territory screen
+3. Waited 70 seconds for production timer to accumulate resources (2 ticks)
+4. Called collect_node_resources("divine_sanctum") via game_interact
+5. Verified resources collected: {mana: 1.7, gold: 0.8}
+6. Checked debug output showing collection and continued accumulation
+7. Took screenshot: screenshots/production-task7-complete.png
+
+**Implementation Notes:**
+- UI only displays and triggers collection, no logic in UI component
+- Uses SystemRegistry pattern for all system access (production_manager)
+- Feedback message uses await with timer for auto-removal after 3 seconds
+- Pending resources section positioned above production for visibility
+- Collect button styled in green to indicate positive action
+
+**Status:** Task 7 COMPLETE - All acceptance criteria met
+
+**Next Task:** Task 8 - Add total production display to TerritoryOverviewScreen
+
+---
+

@@ -75,6 +75,7 @@ var node_production_info = null
 var _main_container: VBoxContainer = null
 var _header_label: Label = null
 var _type_tier_label: Label = null
+var _pending_resources_container: VBoxContainer = null
 var _production_container: VBoxContainer = null
 var _garrison_container: VBoxContainer = null
 var _workers_container: VBoxContainer = null
@@ -152,6 +153,9 @@ func _build_ui() -> void:
 	# Separator
 	_add_separator()
 
+	# Pending Resources section (above production)
+	_build_pending_resources_section()
+
 	# Production section
 	_build_production_section()
 
@@ -186,6 +190,15 @@ func _build_header() -> void:
 	_type_tier_label.add_theme_font_size_override("font_size", 14)
 	_type_tier_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8, 1))
 	_main_container.add_child(_type_tier_label)
+
+func _build_pending_resources_section() -> void:
+	"""Build pending resources section with collect button"""
+	var section_label = _create_section_label("Pending Resources")
+	_main_container.add_child(section_label)
+
+	_pending_resources_container = VBoxContainer.new()
+	_pending_resources_container.add_theme_constant_override("separation", 4)
+	_main_container.add_child(_pending_resources_container)
 
 func _build_production_section() -> void:
 	"""Build production info section"""
@@ -285,6 +298,7 @@ func refresh() -> void:
 func _update_all_displays() -> void:
 	"""Update all display sections"""
 	_update_header()
+	_update_pending_resources()
 	_update_production()
 	_update_garrison()
 	_update_workers()
@@ -308,6 +322,63 @@ func _update_header() -> void:
 
 	var tier_color = TIER_COLORS.get(current_node.tier, Color.WHITE)
 	_type_tier_label.add_theme_color_override("font_color", tier_color)
+
+func _update_pending_resources() -> void:
+	"""Update pending resources display with collect button"""
+	# Clear existing
+	for child in _pending_resources_container.get_children():
+		child.queue_free()
+
+	if not current_node:
+		return
+
+	# Only show for player-controlled nodes
+	if not current_node.is_controlled_by_player():
+		var not_available_label = Label.new()
+		not_available_label.text = "  Capture node to accumulate resources"
+		not_available_label.add_theme_font_size_override("font_size", 11)
+		not_available_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
+		_pending_resources_container.add_child(not_available_label)
+		return
+
+	# Check if there are accumulated resources
+	if current_node.accumulated_resources.is_empty() or _get_total_accumulated() <= 0:
+		var no_resources_label = Label.new()
+		no_resources_label.text = "  No pending resources (assign workers to begin)"
+		no_resources_label.add_theme_font_size_override("font_size", 11)
+		no_resources_label.add_theme_color_override("font_color", Color(0.6, 0.7, 0.6))
+		_pending_resources_container.add_child(no_resources_label)
+		return
+
+	# Display accumulated resources
+	for resource_id in current_node.accumulated_resources.keys():
+		var amount = current_node.accumulated_resources[resource_id]
+		if amount > 0:
+			var resource_label = Label.new()
+			resource_label.text = "  %s: %.1f" % [resource_id.replace("_", " ").capitalize(), amount]
+			resource_label.add_theme_font_size_override("font_size", 12)
+			resource_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.7, 1))
+			_pending_resources_container.add_child(resource_label)
+
+	# Spacer
+	var spacer = Control.new()
+	spacer.custom_minimum_size = Vector2(0, 6)
+	_pending_resources_container.add_child(spacer)
+
+	# Collect button
+	var collect_btn = _create_button("Collect Resources", Color(0.3, 0.7, 0.4, 1))
+	collect_btn.pressed.connect(_on_collect_resources_pressed)
+	_pending_resources_container.add_child(collect_btn)
+
+func _get_total_accumulated() -> float:
+	"""Get total accumulated resources across all types"""
+	if not current_node:
+		return 0.0
+
+	var total = 0.0
+	for resource_id in current_node.accumulated_resources.keys():
+		total += current_node.accumulated_resources[resource_id]
+	return total
 
 func _update_production() -> void:
 	"""Update production display with bonuses breakdown"""
@@ -793,3 +864,43 @@ func _on_filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, g
 	"""Handle filled slot tap - emit signal for parent to show remove confirmation"""
 	print("NodeInfoPanel: Filled slot tapped - node: %s, type: %s, index: %d, god: %s" % [node.id, slot_type, slot_index, god.name if god else "null"])
 	filled_slot_tapped.emit(node, slot_type, slot_index, god)
+
+func _on_collect_resources_pressed() -> void:
+	"""Handle collect resources button press"""
+	if not current_node or not production_manager:
+		print("NodeInfoPanel: Cannot collect - missing node or production manager")
+		return
+
+	# Call production manager to collect resources
+	var collected = production_manager.collect_node_resources(current_node.id)
+
+	if collected.is_empty():
+		print("NodeInfoPanel: No resources collected from node %s" % current_node.id)
+		_show_collection_feedback("No resources to collect", Color(0.8, 0.6, 0.4))
+	else:
+		# Format collected resources for display
+		var message = "Collected:\n"
+		for resource_id in collected.keys():
+			message += "%s: %.1f\n" % [resource_id.replace("_", " ").capitalize(), collected[resource_id]]
+
+		print("NodeInfoPanel: Collected resources from node %s: %s" % [current_node.id, str(collected)])
+		_show_collection_feedback(message, Color(0.3, 0.9, 0.4))
+
+		# Refresh the display to show updated (cleared) accumulated resources
+		_update_pending_resources()
+
+func _show_collection_feedback(message: String, color: Color) -> void:
+	"""Show a temporary feedback message about collection"""
+	# Create a temporary label that fades out
+	var feedback_label = Label.new()
+	feedback_label.text = message
+	feedback_label.add_theme_font_size_override("font_size", 13)
+	feedback_label.add_theme_color_override("font_color", color)
+	feedback_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	feedback_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_pending_resources_container.add_child(feedback_label)
+
+	# Remove after 3 seconds
+	await get_tree().create_timer(3.0).timeout
+	if is_instance_valid(feedback_label):
+		feedback_label.queue_free()

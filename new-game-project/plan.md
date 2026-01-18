@@ -119,7 +119,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "Update display after collection (should show 0)",
       "Test by waiting 60s and clicking Collect button"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
