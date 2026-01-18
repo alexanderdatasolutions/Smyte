@@ -1,9 +1,9 @@
-# Summon System Overhaul Plan
+# AFK Resource Generation System - Implementation Plan
 
 ## Overview
-Complete overhaul of the summon/gacha system to create an engaging, balanced experience with proper UI/UX, animations, pity system, and soul-based summoning.
+Implement the AFK resource generation system so that gods assigned to hex nodes actually produce resources over time. This includes production tracking, offline gains calculation, and UI for claiming rewards.
 
-**Reference:** `data/summon_config.json` (existing), `docs/CLAUDE.md` (architecture)
+**Reference:** `docs/CLAUDE.md` (Section IV: Resource Economy, AFK Strategy)
 
 ---
 
@@ -12,213 +12,138 @@ Complete overhaul of the summon/gacha system to create an engaging, balanced exp
 ```json
 [
   {
+    "category": "audit",
+    "description": "Audit existing production systems and identify gaps",
+    "steps": [
+      "Review TerritoryManager for production tracking",
+      "Review TaskAssignmentManager for worker efficiency calculations",
+      "Review NodeProductionInfo for production type mapping",
+      "Check if production rates are actually being calculated",
+      "Check if resources are being generated over time",
+      "Identify what's missing to make AFK production work"
+    ],
+    "passes": false
+  },
+  {
+    "category": "systems",
+    "description": "Implement ProductionManager for resource generation",
+    "steps": [
+      "Create scripts/systems/territory/ProductionManager.gd",
+      "Load production_rates.json (rates per node type per hour)",
+      "Implement calculate_production_rate(node, workers) method",
+      "Apply worker efficiency bonuses (spec match, trait bonuses)",
+      "Apply connected node bonuses (+10/20/30% for 2/3/4+ connections)",
+      "Track last_production_update timestamp per node",
+      "Implement process_production(delta_time) to generate resources"
+    ],
+    "passes": false
+  },
+  {
     "category": "data",
-    "description": "Audit and enhance summon_config.json with balanced rates",
+    "description": "Create production_rates.json configuration",
     "steps": [
-      "Review current summon_config.json structure",
-      "Verify rarity rates match industry standards (70% common, 25% rare, 4.5% epic, 0.5% legendary)",
-      "Add missing soul types if needed",
-      "Ensure pity system thresholds are balanced",
-      "Add daily free summon configuration"
+      "Create data/production_rates.json",
+      "Define base hourly rates for each node type (mine, forest, coast, etc.)",
+      "Define output resources per node type (e.g., mine → iron_ore, copper_ore, stone)",
+      "Add tier multipliers (Tier 1 = 1x, Tier 2 = 2x, Tier 3 = 4x, Tier 4 = 8x, Tier 5 = 16x)",
+      "Add efficiency formulas for spec/trait matching",
+      "Document connected bonus calculations"
     ],
-    "passes": true
+    "passes": false
   },
   {
     "category": "systems",
-    "description": "Create SummonManager system for gacha logic",
+    "description": "Implement offline gains calculation",
     "steps": [
-      "Create scripts/systems/summon/SummonManager.gd",
-      "Load summon_config.json on initialization",
-      "Implement perform_summon(cost_type) - returns God data",
-      "Implement pity system tracking (counters per banner)",
-      "Implement soft pity rate increases",
-      "Add summon history tracking",
-      "Add save/load integration for pity counters"
+      "Add last_login_timestamp to save data",
+      "On game load, calculate time_elapsed since last login",
+      "Cap offline gains at 8 hours (encourage daily login)",
+      "Calculate production for all controlled nodes",
+      "Store pending_offline_rewards in memory",
+      "Emit offline_rewards_ready signal for UI"
     ],
-    "passes": true
-  },
-  {
-    "category": "systems",
-    "description": "Implement rarity roll algorithm with pity",
-    "steps": [
-      "Create _roll_rarity(banner_type) function",
-      "Check hard pity first (guaranteed at threshold)",
-      "Apply soft pity rate boosts if past soft_pity threshold",
-      "Roll random weighted selection based on rates",
-      "Update pity counters after roll",
-      "Emit signals for pity milestones"
-    ],
-    "passes": true
-  },
-  {
-    "category": "systems",
-    "description": "Implement god selection from rarity pool",
-    "steps": [
-      "Create _select_god_from_rarity(rarity, element_filter) function",
-      "Filter gods.json by rarity tier",
-      "Apply element weights if using element souls",
-      "Apply pantheon weights if using pantheon banner",
-      "Return random god from filtered pool",
-      "Prevent duplicates in 10-pull (if configured)"
-    ],
-    "passes": true
+    "passes": false
   },
   {
     "category": "ui",
-    "description": "Create SummonScreen base UI layout",
+    "description": "Create OfflineRewardsPanel UI",
     "steps": [
-      "Create scenes/SummonScreen.tscn with dark fantasy theme",
-      "Create scripts/ui/screens/SummonScreen.gd",
-      "Add background with summoning circle/portal visual",
-      "Add resource display at top (souls, crystals, mana)",
-      "Add tab system for different summon types",
-      "Add back button to return to WorldView",
-      "Register screen in ScreenManager"
+      "Create scripts/ui/screens/OfflineRewardsPanel.gd",
+      "Show time away (HH:MM:SS format)",
+      "Display all resources gained (grouped by category)",
+      "Show total production rate per hour",
+      "Add 'Claim All' button",
+      "Add to ResourceManager when claimed",
+      "Show panel automatically on game start if rewards > 0"
     ],
-    "passes": true
+    "passes": false
   },
   {
     "category": "ui",
-    "description": "Implement summon banner cards UI",
+    "description": "Add production display to NodeInfoPanel",
     "steps": [
-      "Create scripts/ui/summon/SummonBannerCard.gd component",
-      "Display banner name, featured gods, rates",
-      "Show cost (souls, crystals, or mana)",
-      "Add single summon button (1x)",
-      "Add multi summon button (10x) with discount display",
-      "Show pity counter progress bar",
-      "Disable if player lacks resources"
+      "Add 'Production' section to NodeInfoPanel",
+      "Show current hourly production rate",
+      "Show resources being generated (with icons/amounts)",
+      "Show efficiency bonuses applied (spec match, connections)",
+      "Update in real-time when workers change",
+      "Add tooltip showing bonus breakdown"
     ],
-    "passes": true
-  },
-  {
-    "category": "ui",
-    "description": "Create summon animation system",
-    "steps": [
-      "Create scripts/ui/summon/SummonAnimation.gd",
-      "Implement portal/summoning circle glow animation",
-      "Add god reveal sequence (rarity-based colors)",
-      "Common: white glow, Rare: blue, Epic: purple, Legendary: gold",
-      "Animate god portrait fade-in with name/stats",
-      "Add skip button for impatient players",
-      "Queue animations for 10-pull reveals"
-    ],
-    "passes": true
-  },
-  {
-    "category": "ui",
-    "description": "Implement summon result display",
-    "steps": [
-      "Create scripts/ui/summon/SummonResultOverlay.gd",
-      "Show all gods obtained in 10-pull as grid",
-      "Highlight new gods vs duplicates",
-      "Show stat preview for each god",
-      "Add 'View in Collection' button",
-      "Add 'Summon Again' button",
-      "Handle duplicate conversion (if implemented)"
-    ],
-    "passes": true
+    "passes": false
   },
   {
     "category": "integration",
-    "description": "Connect summon to CollectionManager",
+    "description": "Integrate ProductionManager with TerritoryManager",
     "steps": [
-      "Call CollectionManager.add_god() for each summon result",
-      "Handle duplicate gods (award soul shards or power-up material)",
-      "Emit god_obtained signal for achievement tracking",
-      "Update collection UI if currently viewing",
-      "Show notification for legendary pulls"
+      "Call ProductionManager.process_production() every second",
+      "Update node.resources_pending with generated amounts",
+      "Emit production_updated signal when resources increment",
+      "Add claim_production(node_id) method to collect resources",
+      "Transfer from node.resources_pending to ResourceManager",
+      "Save production state with last_production_update timestamps"
     ],
-    "passes": true
+    "passes": false
   },
   {
-    "category": "integration",
-    "description": "Integrate with ResourceManager for costs",
+    "category": "ui",
+    "description": "Add production indicators to HexMapView",
     "steps": [
-      "Check resource availability before summon",
-      "Spend souls/crystals/mana on summon execution",
-      "Update resource display after summon",
-      "Show error notification if insufficient resources",
-      "Track total summons for milestone rewards"
+      "Add resource icon badges to hex tiles with workers",
+      "Show production rate as floating text above active nodes",
+      "Add pulsing glow effect on nodes generating resources",
+      "Show pending resources count on tile (e.g., '+24 ore')",
+      "Add 'Collect All' button to claim all pending production",
+      "Update badges in real-time as production accumulates"
     ],
-    "passes": true
-  },
-  {
-    "category": "features",
-    "description": "Implement daily free summon system",
-    "steps": [
-      "Track last_free_summon_date in save data",
-      "Reset free summon at daily reset (midnight)",
-      "Show 'FREE' badge on summon button when available",
-      "Disable cost check for free summon",
-      "Show timer until next free summon"
-    ],
-    "passes": true
-  },
-  {
-    "category": "features",
-    "description": "Add summon history tracking",
-    "steps": [
-      "Create summon_history array in SummonManager",
-      "Record each summon with timestamp, cost, result",
-      "Add 'History' button to SummonScreen",
-      "Create SummonHistoryPanel UI showing recent 50 summons",
-      "Display rarity distribution stats",
-      "Show pity counter history"
-    ],
-    "passes": true
-  },
-  {
-    "category": "polish",
-    "description": "Add sound effects and visual polish",
-    "steps": [
-      "Add summon button click sound",
-      "Add portal activation sound (different per rarity)",
-      "Add god reveal fanfare (rarity-based intensity)",
-      "Add particle effects for legendary summons",
-      "Add screen shake on legendary reveal",
-      "Polish button hover states and transitions"
-    ],
-    "passes": true
+    "passes": false
   },
   {
     "category": "testing",
-    "description": "Test summon system end-to-end",
+    "description": "Test production system end-to-end",
     "steps": [
-      "Grant test resources (souls, crystals)",
-      "Test single summon for each soul type",
-      "Test 10-pull with guaranteed rare",
-      "Test pity system triggers at threshold",
-      "Test free daily summon resets properly",
-      "Test resource deduction works correctly",
-      "Test gods added to collection properly"
+      "Assign workers to multiple node types (mine, forest, coast)",
+      "Wait 10 seconds and verify resources are generated",
+      "Check production rates match expected calculations",
+      "Test efficiency bonuses (spec match, connections)",
+      "Test offline gains (save, close, reopen)",
+      "Verify cap at 8 hours offline",
+      "Test claim functionality adds to ResourceManager"
     ],
-    "passes": true
+    "passes": false
   },
   {
     "category": "testing",
-    "description": "Verify save/load persistence",
+    "description": "Verify save/load persistence for production",
     "steps": [
-      "Perform summons to increase pity counter",
+      "Assign workers and let production accumulate",
       "Save game",
       "Close and reload game",
-      "Verify pity counters persisted",
-      "Verify summon history persisted",
-      "Verify free summon timer persisted"
+      "Verify pending production persisted",
+      "Verify last_production_update timestamps saved",
+      "Verify production resumes correctly after load",
+      "Test offline rewards panel appears with correct amounts"
     ],
-    "passes": true
-  },
-  {
-    "category": "ui",
-    "description": "Add WorldView button for SUMMON screen",
-    "steps": [
-      "Add SUMMON button to WorldView.gd",
-      "Position button in button grid",
-      "Connect pressed signal to navigate to SummonScreen",
-      "Style button with summoning theme (purple/mystical)",
-      "Add icon/visual to button"
-    ],
-    "passes": true
+    "passes": false
   }
 ]
 ```
@@ -227,16 +152,15 @@ Complete overhaul of the summon/gacha system to create an engaging, balanced exp
 
 ## Agent Instructions
 
-1. Read `activity.md` first to see current progress
+1. Read `activity.md` first to understand current state
 2. Find next task with `"passes": false`
 3. Complete all steps for that task
-4. Test using Godot MCP tools (run project, interact, verify)
+4. Verify in Godot using MCP tools (run, navigate, screenshot, debug output)
 5. Update task to `"passes": true`
 6. Log completion in `activity.md`
-7. Commit changes with format: `feat(summon): [description]`
-8. Repeat until all tasks pass
+7. Repeat until all tasks pass
 
-**Important:** Only work on ONE task at a time. Do not skip ahead.
+**Important:** Do not mark as passed unless you verify with debug output and button presses that it's functional and works.
 
 ---
 

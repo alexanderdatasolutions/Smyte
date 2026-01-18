@@ -1,8 +1,8 @@
 @plan.md @activity.md @docs/CLAUDE.md
 
-We are building the summon/gacha system for this Godot 4.5 game.
+We are building the AFK resource generation system for this Godot 4.5 game.
 
-This includes SummonManager, pity system, UI screens, animations, and integration with collection/resources.
+This includes ProductionManager, offline gains calculation, production rates config, and UI for claiming rewards.
 
 First read activity.md to see what was recently accomplished.
 
@@ -30,12 +30,12 @@ Follow these architecture rules from CLAUDE.md:
 
 After implementing:
 1. Run the project with mcp__godot__run_project
-2. Navigate to summon screen (if UI task)
-3. Test summon functionality
-4. Use mcp__godot__game_screenshot to save screenshots/summon-[task].png
+2. Navigate to hex_territory screen (if UI task)
+3. Test production functionality
+4. Use mcp__godot__game_screenshot to save screenshots/production-[task].png
 5. Check mcp__godot__get_debug_output for any errors
 6. Verify the task's acceptance criteria are met
-7. Do not mark as passed unless you verify with debug output and button presses that its functional and works. 
+7. Do not mark as passed unless you verify with debug output and button presses that its functional and works.
 
 Append a dated progress entry to activity.md describing:
 - What you changed
@@ -46,7 +46,7 @@ Append a dated progress entry to activity.md describing:
 
 Update that task's "passes" in plan.md from false to true.
 
-Make one git commit for that task only with format: "feat(summon): [task description]"
+Make one git commit for that task only with format: "feat(afk): [task description]"
 
 Do not git init, do not change remotes, do not push.
 
