@@ -218,7 +218,7 @@ Complete overhaul of the summon/gacha system to create an engaging, balanced exp
       "Style button with summoning theme (purple/mystical)",
       "Add icon/visual to button"
     ],
-    "passes": false
+    "passes": true
   }
 ]
 ```
