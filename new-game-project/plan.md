@@ -186,7 +186,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "Verify resources were awarded correctly",
       "Check ResourceManager balances increased"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "testing",

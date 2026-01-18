@@ -1193,3 +1193,84 @@ This task tested existing functionality implemented in Tasks 1-2:
 
 ---
 
+### 2026-01-19 04:00 - Task 12 Complete: Test Offline Production Calculation
+
+**Task:** Test offline production calculation (5-minute offline test)
+
+**What Was Done:**
+Verified that offline production calculation works correctly when the game is closed and reopened. The system successfully:
+- Saves current game state with timestamps
+- Calculates time elapsed between save and load
+- Generates appropriate resources based on hourly production rates
+- Awards resources to player via ResourceManager
+- Clears accumulated_resources after awarding
+
+**Testing Method:**
+1. Ran project with `mcp__godot__run_project`
+2. Triggered manual save via GameCoordinator.save_game()
+3. Stopped project with `mcp__godot__stop_project`
+4. Waited 5 minutes (300 seconds) for offline time to accumulate
+5. Restarted project and checked debug output for offline calculation
+6. Verified resources were calculated and awarded correctly
+
+**Verification Results:**
+
+✅ **Offline calculation triggered on load:**
+```
+[SaveManager] Calculating offline production for 1 player nodes...
+[TerritoryProductionManager] Offline calculation for node (0,0) 'Divine Sanctum':
+  - Offline duration: 0.10 hours (346 seconds)
+  - Hourly rate: {mana: 50.0, gold: 25.0}
+  - Generated offline: {mana: 4.8, gold: 2.4}
+  - Total accumulated: {mana: 4.8, gold: 2.4}
+[SaveManager] Awarded offline production rewards: {mana: 4.8, gold: 2.4}
+[SaveManager] 1 nodes produced resources while offline
+```
+
+✅ **Time calculation accurate:**
+   - Offline duration: 346 seconds ≈ 5.77 minutes
+   - Converted to hours: 346 / 3600 = 0.096 hours ≈ 0.10 hours shown
+   - Time tracking working correctly
+
+✅ **Resource calculation correct:**
+   - Divine Sanctum base production: 50 mana/hr, 25 gold/hr
+   - Expected mana: 50 × 0.096 = 4.8 ✓
+   - Expected gold: 25 × 0.096 = 2.4 ✓
+   - Calculation matches formula exactly
+
+✅ **Resources awarded to player:**
+   - ResourceManager.award_resources() called successfully
+   - Resources added to player inventory
+   - Debug output confirms awarding: "Awarded offline production rewards"
+
+✅ **Accumulated resources cleared:**
+   - node.accumulated_resources cleared after awarding
+   - Prevents double-awarding on subsequent loads
+   - Clean state for next accumulation cycle
+
+✅ **No errors or warnings:**
+   - Project runs without compilation errors
+   - Offline calculation executes cleanly
+   - SaveManager integration working correctly
+
+**Screenshots:**
+- `production-task12-complete.png` - After offline test completed
+
+**Implementation Already Complete:**
+This task tested existing functionality implemented in Tasks 3-4:
+- Task 3: Implemented calculate_offline_hex_production() in TerritoryProductionManager
+- Task 4: Integrated offline calculation with SaveManager.load_game()
+
+**Math Verification:**
+- Offline time: 346 seconds = 5.77 minutes = 0.096 hours
+- Hourly production: 50 mana/hr, 25 gold/hr
+- Expected offline rewards: 50 × 0.096 = 4.8 mana, 25 × 0.096 = 2.4 gold
+- Actual offline rewards: 4.8 mana, 2.4 gold ✓
+- Formula working correctly: offline_reward = hourly_rate × hours_passed
+
+**Status:** Task 12 COMPLETE - All acceptance criteria met
+
+**Next Task:** Task 13 - Test manual collection via UI
+
+---
+
