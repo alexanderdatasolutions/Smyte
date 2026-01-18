@@ -430,3 +430,51 @@ func _format_resources_dict(resources: Dictionary) -> String:
 		parts.append("%s: %.1f" % [resource_id, amount])
 
 	return "{" + ", ".join(parts) + "}"
+
+func calculate_offline_hex_production(node: HexNode) -> Dictionary:
+	"""Calculate offline production for a hex node based on time passed
+	Follows pattern from get_pending_resources() (Lines 104-122)
+	Returns: Dictionary of resources generated while offline
+	"""
+	if not node or not node.is_controlled_by_player():
+		return {}
+
+	# Calculate time difference since last production
+	var current_time: int = int(Time.get_unix_time_from_system())
+	var time_diff: int = current_time - node.last_production_time
+
+	# Convert to hours
+	var hours_passed: float = time_diff / 3600.0
+
+	if hours_passed <= 0:
+		return {}
+
+	# Get hourly production rate using existing formula
+	var hourly_rate: Dictionary = calculate_node_production(node)
+
+	if hourly_rate.is_empty():
+		return {}
+
+	# Calculate total offline resources (hourly_rate × hours)
+	var offline_resources: Dictionary = {}
+	for resource_id in hourly_rate:
+		offline_resources[resource_id] = hourly_rate[resource_id] * hours_passed
+
+	# Add to node's accumulated resources (don't replace)
+	for resource_id in offline_resources:
+		if node.accumulated_resources.has(resource_id):
+			node.accumulated_resources[resource_id] += offline_resources[resource_id]
+		else:
+			node.accumulated_resources[resource_id] = offline_resources[resource_id]
+
+	# Update timestamp
+	node.last_production_time = current_time
+
+	# Debug output
+	print("[TerritoryProductionManager] Offline calculation for node (%d,%d) '%s':" % [node.coord.q, node.coord.r, node.name])
+	print("  - Offline duration: %.2f hours (%.0f seconds)" % [hours_passed, time_diff])
+	print("  - Hourly rate: %s" % _format_resources_dict(hourly_rate))
+	print("  - Generated offline: %s" % _format_resources_dict(offline_resources))
+	print("  - Total accumulated: %s" % _format_resources_dict(node.accumulated_resources))
+
+	return offline_resources

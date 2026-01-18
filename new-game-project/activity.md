@@ -414,3 +414,80 @@ Implemented automatic resource accumulation that runs every 60 seconds for all p
 **Next Task:** Task 3 - Implement offline production calculation for hex nodes
 
 ---
+
+### 2026-01-18 20:30 - Task 3 Complete: Offline Production Calculation for Hex Nodes
+
+**Task:** Implement offline production calculation for hex nodes
+
+**What Was Done:**
+Implemented `calculate_offline_hex_production(node: HexNode) -> Dictionary` method that calculates resources generated while offline. The system:
+- Calculates time difference between current time and node.last_production_time
+- Converts to hours (time_diff / 3600.0)
+- Gets hourly production rate using existing `calculate_node_production(node)`
+- Multiplies hourly rate by hours_passed for each resource
+- Adds to node.accumulated_resources (additive, doesn't replace)
+- Updates node.last_production_time to current timestamp
+- Provides detailed debug output showing duration, rates, and totals
+
+**Files Modified:**
+
+1. **scripts/systems/territory/TerritoryProductionManager.gd** (Lines 434-480):
+   - Added `calculate_offline_hex_production(node: HexNode) -> Dictionary` method
+   - Follows exact pattern from `get_pending_resources()` (Lines 104-122)
+   - Validates node is player-controlled before calculation
+   - Handles edge cases (no time passed, empty production)
+   - Accumulates resources additively in node.accumulated_resources
+   - Updates timestamp after calculation
+   - Comprehensive debug logging
+
+**Implementation Details:**
+```gdscript
+# Time calculation
+var current_time: int = int(Time.get_unix_time_from_system())
+var time_diff: int = current_time - node.last_production_time
+var hours_passed: float = time_diff / 3600.0
+
+# Get production rate using existing formula
+var hourly_rate: Dictionary = calculate_node_production(node)
+
+# Calculate offline rewards (hourly_rate × hours)
+var offline_resources: Dictionary = {}
+for resource_id in hourly_rate:
+    offline_resources[resource_id] = hourly_rate[resource_id] * hours_passed
+
+# Add to accumulated (not replace)
+for resource_id in offline_resources:
+    if node.accumulated_resources.has(resource_id):
+        node.accumulated_resources[resource_id] += offline_resources[resource_id]
+    else:
+        node.accumulated_resources[resource_id] = offline_resources[resource_id]
+```
+
+**Verification:**
+- ✅ Project runs without compilation errors
+- ✅ Method signature matches plan specification
+- ✅ Follows reference pattern from get_pending_resources()
+- ✅ Uses int(Time.get_unix_time_from_system()) to avoid narrowing conversion warning
+- ✅ Accesses node.coord.q and node.coord.r correctly (HexCoord axial coordinates)
+- ✅ Accesses node.name correctly (not node_name)
+- ✅ All edge cases handled (null node, not player-controlled, no time passed)
+- ✅ Debug output formatted with _format_resources_dict() helper
+
+**Testing Method:**
+1. Ran project with `mcp__godot__run_project`
+2. Verified no compilation errors in debug output
+3. Confirmed method is available on TerritoryProductionManager system
+4. Took screenshot: `screenshots/production-task3-complete.png`
+
+**Math Verification:**
+- Example: Divine Sanctum produces 50 mana/hr, 25 gold/hr
+- After 5 minutes (300 seconds = 0.0833 hours):
+  - Mana: 50 × 0.0833 = 4.17 mana
+  - Gold: 25 × 0.0833 = 2.08 gold
+- Calculation is additive to existing accumulated_resources
+
+**Status:** Task 3 COMPLETE - All acceptance criteria met
+
+**Next Task:** Task 4 - Integrate offline calculation with SaveManager on load
+
+---

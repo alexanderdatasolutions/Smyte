@@ -63,7 +63,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "Update node.last_production_time",
       "Add debug print showing offline time and resources generated"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "core",
