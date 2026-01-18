@@ -53,6 +53,10 @@ func save_game() -> bool:
 	if territory_manager and territory_manager.has_method("get_save_data"):
 		save_data["territory"] = territory_manager.get_save_data()
 
+	var dungeon_manager = system_registry.get_system("DungeonManager") if system_registry else null
+	if dungeon_manager and dungeon_manager.has_method("get_save_data"):
+		save_data["dungeon"] = dungeon_manager.get_save_data()
+
 	# Write to file
 	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.WRITE)
 	if not file:
@@ -118,6 +122,11 @@ func load_game() -> bool:
 		var territory_manager = system_registry.get_system("TerritoryManager") if system_registry else null
 		if territory_manager and territory_manager.has_method("load_save_data"):
 			territory_manager.load_save_data(save_data.territory)
+
+	if save_data.has("dungeon"):
+		var dungeon_manager = system_registry.get_system("DungeonManager") if system_registry else null
+		if dungeon_manager and dungeon_manager.has_method("load_save_data"):
+			dungeon_manager.load_save_data(save_data.dungeon)
 
 	load_completed.emit(true, save_data)
 	return true

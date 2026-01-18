@@ -540,6 +540,15 @@ func load_progress(saved_data: Dictionary):
 		# Check if daily reset is needed after loading
 		_check_daily_reset()
 
+# SaveManager-compatible interface
+func get_save_data() -> Dictionary:
+	"""Get save data for SaveManager integration"""
+	return save_progress()
+
+func load_save_data(saved_data: Dictionary):
+	"""Load save data from SaveManager"""
+	load_progress(saved_data)
+
 func update_clear_count(dungeon_id: String, difficulty: String):
 	"""Update clear count for completed dungeon"""
 	var clear_key = dungeon_id + "_" + difficulty

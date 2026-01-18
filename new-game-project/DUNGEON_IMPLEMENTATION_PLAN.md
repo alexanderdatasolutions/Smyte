@@ -492,7 +492,7 @@
       "First-clear tracking persists"
     ],
     "files_to_modify": [],
-    "passes": false
+    "passes": true
   },
   {
     "id": "TEST-005",

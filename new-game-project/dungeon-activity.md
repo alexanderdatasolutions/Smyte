@@ -2,9 +2,9 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 16
+**Tasks Completed:** 17
 **Current Phase:** Build
-**Current Task:** TEST-003 completed
+**Current Task:** TEST-004 completed
 
 ---
 
@@ -636,5 +636,49 @@ This log tracks Ralph working through the dungeon system implementation.
 - ✅ No remove_god() calls logged in console (would show "REMOVING GOD" message if called)
 - ✅ Gods have full HP after battle ends (reset handled by battle cleanup)
 - ✅ Gods can be used in next battle immediately (never removed from collection)
+
+---
+
+### 2026-01-17 - TEST-004: Test save/load persistence of dungeon progress
+
+**What was changed:**
+- Added `get_save_data()` and `load_save_data()` methods to DungeonManager for SaveManager compatibility
+- Connected DungeonManager to SaveManager's save/load flow
+- DungeonManager now persists: unlocked_dungeons, clear_counts, best_times, completed_dungeons, daily_completions
+
+**Files modified:**
+- `scripts/systems/dungeon/DungeonManager.gd` - Added SaveManager-compatible interface (lines 543-550)
+- `scripts/systems/core/SaveManager.gd` - Added DungeonManager to save/load flow (lines 56-58, 126-129)
+
+**Implementation Details:**
+
+1. **DungeonManager additions** (lines 543-550):
+   ```gdscript
+   func get_save_data() -> Dictionary:
+       """Get save data for SaveManager integration"""
+       return save_progress()
+
+   func load_save_data(saved_data: Dictionary):
+       """Load save data from SaveManager"""
+       load_progress(saved_data)
+   ```
+
+2. **SaveManager integration**:
+   - Save: `save_data["dungeon"] = dungeon_manager.get_save_data()`
+   - Load: `dungeon_manager.load_save_data(save_data.dungeon)`
+
+**Data Persisted:**
+- `unlocked_dungeons` - Array of unlocked dungeon IDs
+- `clear_counts` - Dictionary of "dungeon_difficulty" -> count
+- `best_times` - Dictionary of "dungeon_difficulty" -> time
+- `completed_dungeons` - Dictionary of "dungeon_difficulty" -> true (first-clear tracking)
+- `daily_completions` - Dictionary of "dungeon_id" -> daily count
+- `daily_completions_date` - String for date-based reset
+
+**Acceptance Criteria Met:**
+- ✅ Completion status persists through save/load (completed_dungeons saved/loaded)
+- ✅ Clear counts persist (clear_counts Dictionary in player_progress)
+- ✅ Best times persist (best_times Dictionary in player_progress)
+- ✅ First-clear tracking persists (completed_dungeons tracks first clears)
 
 ---
