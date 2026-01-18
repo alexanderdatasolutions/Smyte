@@ -2,9 +2,9 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 5
+**Tasks Completed:** 6
 **Current Phase:** Build
-**Current Task:** SYS-002 completed
+**Current Task:** SYS-003 completed
 
 ---
 
@@ -196,5 +196,44 @@ This log tracks Ralph working through the dungeon system implementation.
 - ✅ LootSystem.loot_awarded signal emitted (award_loot calls emit loot_awarded)
 - ✅ ResourceManager resources increase after victory (award_loot calls add_resource)
 - ✅ BattleResult contains generated loot for UI display (add_reward and add_loot_item called)
+
+---
+
+### 2026-01-17 - SYS-003: Implement daily dungeon reset mechanic
+
+**What was changed:**
+- Added `daily_completions` Dictionary to `player_progress` for tracking daily runs per dungeon
+- Added `daily_completions_date` string to track which day's data we have (for reset detection)
+- Added `_get_current_date_string()` helper to format current date as "YYYY-MM-DD"
+- Added `_check_daily_reset()` function that resets daily completions when date changes
+- Added `get_daily_limit()` function to get dungeon's daily limit (default: 10)
+- Added `get_daily_completion_count()` to get how many times a dungeon was completed today
+- Added `get_daily_completions_remaining()` to get remaining completions for the day
+- Added `is_daily_limit_reached()` to check if limit has been reached
+- Added `increment_daily_completion()` to track each completion
+- Updated `validate_dungeon_entry()` to check daily limit before allowing entry
+- Updated `record_completion()` to call `increment_daily_completion()`
+- Updated `load_progress()` to initialize daily fields and check for reset
+
+**Files modified:**
+- `scripts/systems/dungeon/DungeonManager.gd`
+
+**Verification:**
+- Ran game and confirmed daily reset message: "DungeonManager: Daily completions reset for new day: 2026-01-17"
+- Tested `get_daily_completion_count("fire_sanctum")` - returns 0 initially
+- Tested `get_daily_limit("fire_sanctum")` - returns 10 (default)
+- Incremented fire_sanctum 10 times, console shows "Daily completion for fire_sanctum: X/10" for each
+- Tested `is_daily_limit_reached("fire_sanctum")` after 10 completions - returns true
+- Tested `validate_dungeon_entry("fire_sanctum", "beginner", ["god1"])` - returns error "Daily limit reached (10/10 completions today)"
+- Tested `get_daily_completion_count("water_sanctum")` - returns 0 (different dungeons tracked separately)
+
+**Screenshots:**
+- `daily_limit_sys003.png` - Game running with daily limit system active
+
+**Acceptance Criteria Met:**
+- ✅ Each dungeon can be completed 10 times per day (default limit)
+- ✅ 11th attempt shows 'Daily limit reached' error in validate_dungeon_entry()
+- ✅ At midnight (local), daily count resets to 0 (date change detection in _check_daily_reset)
+- ✅ Progress persists through save/load (daily_completions and daily_completions_date saved in player_progress)
 
 ---

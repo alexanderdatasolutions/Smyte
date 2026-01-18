@@ -92,8 +92,11 @@ func initialize_player_progress():
 		"clear_counts": {},
 		"best_times": {},
 		"total_clears": 0,
-		"completed_dungeons": {}  # Tracks first clears: "dungeon_id_difficulty" -> true
+		"completed_dungeons": {},  # Tracks first clears: "dungeon_id_difficulty" -> true
+		"daily_completions": {},   # Tracks daily runs: "dungeon_id" -> count
+		"daily_completions_date": ""  # Date string for reset detection: "YYYY-MM-DD"
 	}
+	_check_daily_reset()
 
 func get_available_dungeons() -> Array:
 	"""Get all available dungeons for today"""
@@ -244,32 +247,39 @@ func validate_dungeon_entry(dungeon_id: String, difficulty: String, team: Array)
 		"error_message": "",
 		"energy_cost": 0
 	}
-	
+
 	# Check if dungeon exists
 	var dungeon_info = get_dungeon_info(dungeon_id)
 	if dungeon_info.is_empty():
 		result.error_message = "Dungeon not found"
 		validation_completed.emit(result)
 		return result
-	
+
 	# Check difficulty
 	var difficulties = dungeon_info.get("difficulty_levels", {})
 	if not difficulties.has(difficulty):
 		result.error_message = "Invalid difficulty"
 		validation_completed.emit(result)
 		return result
-	
+
 	# Check team
 	if team.is_empty() or team.size() > 4:
 		result.error_message = "Invalid team size (1-4 gods required)"
 		validation_completed.emit(result)
 		return result
-	
+
+	# Check daily limit
+	if is_daily_limit_reached(dungeon_id):
+		var daily_limit = get_daily_limit(dungeon_id)
+		result.error_message = "Daily limit reached (%d/%d completions today)" % [daily_limit, daily_limit]
+		validation_completed.emit(result)
+		return result
+
 	# Check energy cost
 	var difficulty_info = difficulties[difficulty]
 	var energy_cost = difficulty_info.get("energy_cost", 8)
 	result.energy_cost = energy_cost
-	
+
 	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager")
 	if resource_manager:
 		var current_energy = resource_manager.get_resource("energy")
@@ -277,7 +287,7 @@ func validate_dungeon_entry(dungeon_id: String, difficulty: String, team: Array)
 			result.error_message = "Not enough energy (%d required, %d available)" % [energy_cost, current_energy]
 			validation_completed.emit(result)
 			return result
-	
+
 	result.success = true
 	validation_completed.emit(result)
 	return result
@@ -499,6 +509,9 @@ func record_completion(dungeon_id: String, difficulty: String, completion_time: 
 
 	update_clear_count(dungeon_id, difficulty)
 
+	# Increment daily completion count
+	increment_daily_completion(dungeon_id)
+
 	# Update best time
 	var time_key = dungeon_id + "_" + difficulty + "_best_time"
 	var current_best = player_progress.best_times.get(time_key, INF)
@@ -519,6 +532,13 @@ func load_progress(saved_data: Dictionary):
 		# Ensure completed_dungeons exists for backwards compatibility
 		if not player_progress.has("completed_dungeons"):
 			player_progress["completed_dungeons"] = {}
+		# Ensure daily tracking fields exist for backwards compatibility
+		if not player_progress.has("daily_completions"):
+			player_progress["daily_completions"] = {}
+		if not player_progress.has("daily_completions_date"):
+			player_progress["daily_completions_date"] = ""
+		# Check if daily reset is needed after loading
+		_check_daily_reset()
 
 func update_clear_count(dungeon_id: String, difficulty: String):
 	"""Update clear count for completed dungeon"""
@@ -546,6 +566,53 @@ func get_first_clear_rewards(dungeon_id: String, difficulty: String) -> Dictiona
 
 	var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
 	return difficulty_info.get("first_clear_rewards", {})
+
+# ===== Daily Completion Tracking =====
+
+func _get_current_date_string() -> String:
+	"""Get current date as YYYY-MM-DD string for daily tracking"""
+	var date = Time.get_date_dict_from_system()
+	return "%04d-%02d-%02d" % [date.year, date.month, date.day]
+
+func _check_daily_reset():
+	"""Check if daily completions need to be reset (new day)"""
+	var current_date = _get_current_date_string()
+	var stored_date = player_progress.get("daily_completions_date", "")
+
+	if stored_date != current_date:
+		# New day - reset daily completions
+		player_progress["daily_completions"] = {}
+		player_progress["daily_completions_date"] = current_date
+		print("DungeonManager: Daily completions reset for new day: %s" % current_date)
+
+func get_daily_limit(dungeon_id: String) -> int:
+	"""Get the daily completion limit for a dungeon (default: 10)"""
+	var dungeon_info = get_dungeon_info(dungeon_id)
+	if dungeon_info.is_empty():
+		return 10
+	return dungeon_info.get("daily_limit", 10)
+
+func get_daily_completion_count(dungeon_id: String) -> int:
+	"""Get how many times this dungeon has been completed today"""
+	_check_daily_reset()  # Ensure we're working with current day's data
+	return player_progress.daily_completions.get(dungeon_id, 0)
+
+func get_daily_completions_remaining(dungeon_id: String) -> int:
+	"""Get how many daily completions remain for this dungeon"""
+	var limit = get_daily_limit(dungeon_id)
+	var count = get_daily_completion_count(dungeon_id)
+	return max(0, limit - count)
+
+func is_daily_limit_reached(dungeon_id: String) -> bool:
+	"""Check if the daily completion limit has been reached"""
+	return get_daily_completions_remaining(dungeon_id) <= 0
+
+func increment_daily_completion(dungeon_id: String):
+	"""Increment the daily completion count for a dungeon"""
+	_check_daily_reset()  # Ensure we're working with current day's data
+	var current_count = player_progress.daily_completions.get(dungeon_id, 0)
+	player_progress.daily_completions[dungeon_id] = current_count + 1
+	print("DungeonManager: Daily completion for %s: %d/%d" % [dungeon_id, current_count + 1, get_daily_limit(dungeon_id)])
 
 func _enhance_dungeon_info(info: Dictionary):
 	"""Enhance dungeon info with calculated power ratings and detailed information"""
