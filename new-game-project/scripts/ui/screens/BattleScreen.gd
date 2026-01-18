@@ -659,17 +659,22 @@ func _hide_battle_result_overlay():
 		battle_result_overlay.hide_result()
 
 func _on_return_to_map_pressed():
-	"""Handle return to map button - navigate back using back signal"""
-	print("BattleScreen: Return to map pressed")
+	"""Handle return to map button - always navigate to WorldView (home)"""
+	print("BattleScreen: Return to map pressed - navigating to WorldView")
 
 	# Hide the overlay
 	_hide_battle_result_overlay()
 
-	# Emit back_pressed to navigate back naturally
-	# This will go back to wherever we came from (hex_territory or worldview)
-	# without messing up the navigation stack
-	back_pressed.emit()
-	print("BattleScreen: Emitted back_pressed")
+	# Navigate to WorldView (home) instead of going back
+	# This ensures players always return to home after battle, not DungeonScreen
+	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
+	if screen_manager:
+		screen_manager.show_screen("WorldView")
+		print("BattleScreen: Navigated to WorldView")
+	else:
+		# Fallback to back_pressed if ScreenManager not available
+		back_pressed.emit()
+		print("BattleScreen: ScreenManager not found, falling back to back_pressed")
 
 func _on_continue_pressed():
 	"""Handle continue button - for multi-stage battles or replaying"""
