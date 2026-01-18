@@ -35,6 +35,8 @@ const ELEMENT_COLORS = {
 # System references
 var territory_manager = null
 var collection_manager = null
+var production_manager = null
+var resource_manager = null
 
 # UI Components
 var _scroll_container: ScrollContainer
@@ -42,6 +44,9 @@ var _node_list_container: VBoxContainer
 var _header_label: Label
 var _summary_label: Label
 var _filter_options: HBoxContainer
+var _production_summary_container: VBoxContainer
+var _pending_resources_container: VBoxContainer
+var _claim_all_button: Button
 
 # Filter state
 var _filter_by_type: String = ""  # Empty = show all
@@ -67,6 +72,8 @@ func _init_systems():
 	var registry = SystemRegistry.get_instance()
 	territory_manager = registry.get_system("TerritoryManager")
 	collection_manager = registry.get_system("CollectionManager")
+	production_manager = registry.get_system("TerritoryProductionManager")
+	resource_manager = registry.get_system("ResourceManager")
 
 func _build_ui():
 	"""Build the UI structure"""
@@ -108,6 +115,9 @@ func _build_ui():
 	_summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content_vbox.add_child(_summary_label)
 
+	# Production Summary Section
+	_build_production_summary(content_vbox)
+
 	# Filter options
 	_build_filters(content_vbox)
 
@@ -127,6 +137,64 @@ func _build_ui():
 	back_btn.custom_minimum_size = Vector2(120, 40)
 	back_btn.pressed.connect(_on_back_pressed)
 	content_vbox.add_child(back_btn)
+
+func _build_production_summary(parent: VBoxContainer):
+	"""Build production summary section showing total production and pending resources"""
+	var summary_panel = Panel.new()
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.1, 0.15, 0.2, 0.8)
+	panel_style.border_color = Color(0.4, 0.6, 0.7, 1)
+	panel_style.set_border_width_all(2)
+	panel_style.set_corner_radius_all(8)
+	summary_panel.add_theme_stylebox_override("panel", panel_style)
+	parent.add_child(summary_panel)
+
+	var panel_vbox = VBoxContainer.new()
+	panel_vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	panel_vbox.add_theme_constant_override("separation", 12)
+	panel_vbox.offset_left = 16
+	panel_vbox.offset_top = 12
+	panel_vbox.offset_right = -16
+	panel_vbox.offset_bottom = -12
+	summary_panel.add_child(panel_vbox)
+
+	# Total production section
+	var production_title = Label.new()
+	production_title.text = "TOTAL HOURLY PRODUCTION"
+	production_title.add_theme_font_size_override("font_size", 14)
+	production_title.add_theme_color_override("font_color", Color(0.8, 0.9, 1, 1))
+	panel_vbox.add_child(production_title)
+
+	_production_summary_container = VBoxContainer.new()
+	_production_summary_container.add_theme_constant_override("separation", 4)
+	panel_vbox.add_child(_production_summary_container)
+
+	# Pending resources section
+	var pending_title = Label.new()
+	pending_title.text = "PENDING RESOURCES"
+	pending_title.add_theme_font_size_override("font_size", 14)
+	pending_title.add_theme_color_override("font_color", Color(0.9, 0.8, 0.6, 1))
+	panel_vbox.add_child(pending_title)
+
+	_pending_resources_container = VBoxContainer.new()
+	_pending_resources_container.add_theme_constant_override("separation", 4)
+	panel_vbox.add_child(_pending_resources_container)
+
+	# Claim All button
+	_claim_all_button = Button.new()
+	_claim_all_button.text = "CLAIM ALL RESOURCES"
+	_claim_all_button.custom_minimum_size = Vector2(200, 40)
+	_claim_all_button.add_theme_color_override("font_color", Color.WHITE)
+	var button_style = StyleBoxFlat.new()
+	button_style.bg_color = Color(0.2, 0.6, 0.3, 1)
+	button_style.set_corner_radius_all(6)
+	_claim_all_button.add_theme_stylebox_override("normal", button_style)
+	var button_hover_style = StyleBoxFlat.new()
+	button_hover_style.bg_color = Color(0.3, 0.7, 0.4, 1)
+	button_hover_style.set_corner_radius_all(6)
+	_claim_all_button.add_theme_stylebox_override("hover", button_hover_style)
+	_claim_all_button.pressed.connect(_on_claim_all_pressed)
+	panel_vbox.add_child(_claim_all_button)
 
 func _build_filters(parent: VBoxContainer):
 	"""Build filter controls"""
@@ -164,6 +232,7 @@ func _build_filters(parent: VBoxContainer):
 func _refresh_display():
 	"""Refresh the entire display"""
 	_update_summary()
+	_update_production_summary()
 	_populate_node_list()
 
 func _update_summary():
@@ -176,6 +245,82 @@ func _update_summary():
 	var total_nodes = owned_nodes.size()
 
 	_summary_label.text = "%d Nodes Controlled" % [total_nodes]
+
+func _update_production_summary():
+	"""Update total production and pending resources display"""
+	# Clear existing children
+	for child in _production_summary_container.get_children():
+		child.queue_free()
+	for child in _pending_resources_container.get_children():
+		child.queue_free()
+
+	if not production_manager:
+		var error_label = Label.new()
+		error_label.text = "Production system not available"
+		error_label.add_theme_color_override("font_color", Color(0.8, 0.4, 0.4))
+		_production_summary_container.add_child(error_label)
+		_claim_all_button.disabled = true
+		return
+
+	# Get total hourly production
+	var total_production = production_manager.get_all_hex_nodes_production()
+
+	if total_production.is_empty():
+		var no_prod_label = Label.new()
+		no_prod_label.text = "No active production (assign workers to nodes)"
+		no_prod_label.add_theme_font_size_override("font_size", 12)
+		no_prod_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
+		_production_summary_container.add_child(no_prod_label)
+	else:
+		for resource_id in total_production:
+			var amount = total_production[resource_id]
+			var resource_label = Label.new()
+			resource_label.text = "%s: +%.1f/hour" % [_format_resource_name(resource_id), amount]
+			resource_label.add_theme_font_size_override("font_size", 13)
+			resource_label.add_theme_color_override("font_color", Color(0.7, 0.9, 0.8))
+			_production_summary_container.add_child(resource_label)
+
+	# Get total pending resources across all nodes
+	var total_pending = _get_total_pending_resources()
+
+	if total_pending.is_empty():
+		var no_pending_label = Label.new()
+		no_pending_label.text = "No pending resources (wait for production to accumulate)"
+		no_pending_label.add_theme_font_size_override("font_size", 12)
+		no_pending_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
+		_pending_resources_container.add_child(no_pending_label)
+		_claim_all_button.disabled = true
+	else:
+		for resource_id in total_pending:
+			var amount = total_pending[resource_id]
+			var pending_label = Label.new()
+			pending_label.text = "%s: %.1f" % [_format_resource_name(resource_id), amount]
+			pending_label.add_theme_font_size_override("font_size", 13)
+			pending_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
+			_pending_resources_container.add_child(pending_label)
+		_claim_all_button.disabled = false
+
+func _get_total_pending_resources() -> Dictionary:
+	"""Calculate total pending resources across all controlled nodes"""
+	var total_pending = {}
+
+	if not territory_manager:
+		return total_pending
+
+	var controlled_nodes = territory_manager.get_controlled_nodes()
+	for node in controlled_nodes:
+		if not node or not node.accumulated_resources:
+			continue
+
+		for resource_id in node.accumulated_resources:
+			var amount = node.accumulated_resources[resource_id]
+			total_pending[resource_id] = total_pending.get(resource_id, 0.0) + amount
+
+	return total_pending
+
+func _format_resource_name(resource_id: String) -> String:
+	"""Format resource ID to display name"""
+	return resource_id.replace("_", " ").capitalize()
 
 func _populate_node_list():
 	"""Populate the list of nodes"""
@@ -437,6 +582,45 @@ func _on_type_filter_changed(index: int):
 func _on_manage_node_pressed(node: HexNode):
 	"""Handle manage button press for a specific node"""
 	manage_node_requested.emit(node)
+
+func _on_claim_all_pressed():
+	"""Handle Claim All Resources button press"""
+	if not production_manager or not territory_manager or not resource_manager:
+		print("[TerritoryOverviewScreen] ERROR: Required systems not available for claim all")
+		return
+
+	var controlled_nodes = territory_manager.get_controlled_nodes()
+	var total_collected = {}
+	var nodes_collected_count = 0
+
+	# Collect from each node
+	for node in controlled_nodes:
+		if not node or node.accumulated_resources.is_empty():
+			continue
+
+		var collected = production_manager.collect_node_resources(node.id)
+		if not collected.is_empty():
+			nodes_collected_count += 1
+			for resource_id in collected:
+				total_collected[resource_id] = total_collected.get(resource_id, 0.0) + collected[resource_id]
+
+	# Show feedback
+	if total_collected.is_empty():
+		print("[TerritoryOverviewScreen] No resources to claim")
+	else:
+		print("[TerritoryOverviewScreen] Claimed all resources from %d nodes: %s" % [nodes_collected_count, _format_resources_dict(total_collected)])
+
+	# Refresh display
+	_update_production_summary()
+
+func _format_resources_dict(resources: Dictionary) -> String:
+	"""Format resources dictionary for display"""
+	if resources.is_empty():
+		return "{}"
+	var parts = []
+	for resource_id in resources:
+		parts.append("%s: %.1f" % [resource_id, resources[resource_id]])
+	return "{" + ", ".join(parts) + "}"
 
 func _on_back_pressed():
 	"""Handle back button press"""

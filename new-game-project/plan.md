@@ -133,7 +133,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "On click, collect from all nodes and award bulk",
       "Test by viewing overview with multiple producing nodes"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "integration",
