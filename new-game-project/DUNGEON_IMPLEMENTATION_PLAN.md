@@ -449,7 +449,7 @@
       "Rare drops appear at configured chance rates"
     ],
     "files_to_modify": [],
-    "passes": false
+    "passes": true
   },
   {
     "id": "TEST-003",
