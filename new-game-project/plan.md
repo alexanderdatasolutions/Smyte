@@ -103,7 +103,7 @@ Complete overhaul of the summon/gacha system to create an engaging, balanced exp
       "Add skip button for impatient players",
       "Queue animations for 10-pull reveals"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",

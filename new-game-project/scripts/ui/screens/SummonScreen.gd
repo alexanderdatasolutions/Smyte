@@ -1,12 +1,13 @@
 # scripts/ui/SummonScreen.gd
 # RULE 1: Coordinator pattern - delegates to specialized components
-# Updated: Task 6 - SummonBannerCard with pity progress
+# Updated: Task 7 - SummonAnimation integration
 extends Control
 
 # Preload helper classes (prefixed to avoid class_name conflicts)
 const _SummonButtonFactory = preload("res://scripts/ui/summon/SummonButtonFactory.gd")
 const _SummonShowcaseClass = preload("res://scripts/ui/summon/SummonShowcase.gd")
 const _SummonBannerCardClass = preload("res://scripts/ui/summon/SummonBannerCard.gd")
+const _SummonAnimationClass = preload("res://scripts/ui/summon/SummonAnimation.gd")
 
 signal back_pressed
 
@@ -20,11 +21,13 @@ var banner_cards: Array = []
 
 # Components (RULE 1 compliance - delegation)
 var showcase: SummonShowcase
+var summon_animation  # Type: SummonAnimation (preloaded)
 
 # State
 var selected_element: int = 0
 var is_processing_summon: bool = false
 var cards_initialized: bool = false
+var animations_enabled: bool = true
 
 func _ready():
 	# Ensure fullscreen (needed when parent is Node2D)
@@ -42,6 +45,9 @@ func _ready():
 	# Initialize showcase component
 	if showcase_content is GridContainer:
 		showcase = _SummonShowcaseClass.new(showcase_content)
+
+	# Initialize summon animation overlay
+	_setup_summon_animation()
 
 	# Connect back button
 	if back_button:
@@ -62,6 +68,20 @@ func _setup_fullscreen():
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	set_size(viewport_size)
 	position = Vector2.ZERO
+
+func _setup_summon_animation():
+	"""Initialize the summon animation overlay component"""
+	summon_animation = _SummonAnimationClass.new()
+	summon_animation.name = "SummonAnimation"
+	summon_animation.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(summon_animation)
+	# Move to top of draw order
+	move_child(summon_animation, get_child_count() - 1)
+
+	# Connect animation signals
+	summon_animation.animation_completed.connect(_on_animation_completed)
+	summon_animation.animation_skipped.connect(_on_animation_skipped)
+	summon_animation.all_animations_completed.connect(_on_all_animations_completed)
 
 func _style_back_button():
 	"""Style the back button to match dark fantasy theme"""
@@ -317,23 +337,23 @@ func _on_back_pressed():
 ## Summon callbacks
 
 func _on_god_summoned(god):
-	if showcase:
-		_clear_showcase_invisible_nodes()
-		if default_message:
-			default_message.visible = false
-		showcase.show_god(god, is_processing_summon)
-	_set_cards_enabled(true)
-	_refresh_all_cards()
+	# Play animation if enabled, otherwise show directly
+	if animations_enabled and summon_animation:
+		summon_animation.queue_summon(god)
+	else:
+		_show_god_in_showcase(god)
+		_set_cards_enabled(true)
+		_refresh_all_cards()
 
 func _on_multi_summon_completed(gods: Array):
-	if showcase:
-		_clear_showcase_invisible_nodes()
-		if default_message:
-			default_message.visible = false
+	# Play animations for all gods if enabled
+	if animations_enabled and summon_animation:
+		summon_animation.queue_multi_summon(gods)
+	else:
 		for god in gods:
-			showcase.show_god(god, false)
-	_set_cards_enabled(true)
-	_refresh_all_cards()
+			_show_god_in_showcase(god)
+		_set_cards_enabled(true)
+		_refresh_all_cards()
 
 func _on_summon_failed(reason):
 	_show_error_message(reason)
@@ -342,6 +362,29 @@ func _on_summon_failed(reason):
 
 func _on_duplicate_obtained(_god, _existing_count: int):
 	pass
+
+## Animation callbacks
+
+func _on_animation_completed(god):
+	"""Called when a single summon animation finishes"""
+	_show_god_in_showcase(god)
+
+func _on_animation_skipped(god):
+	"""Called when animation is skipped"""
+	_show_god_in_showcase(god)
+
+func _on_all_animations_completed():
+	"""Called when all queued animations are done"""
+	_set_cards_enabled(true)
+	_refresh_all_cards()
+
+func _show_god_in_showcase(god: God):
+	"""Display god in the showcase panel"""
+	if showcase:
+		_clear_showcase_invisible_nodes()
+		if default_message:
+			default_message.visible = false
+		showcase.show_god(god, false)  # Don't animate showcase cards, animation already played
 
 ## Helper functions
 
