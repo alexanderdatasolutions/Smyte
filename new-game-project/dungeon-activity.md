@@ -2,9 +2,9 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 4
+**Tasks Completed:** 5
 **Current Phase:** Build
-**Current Task:** SYS-001 completed
+**Current Task:** SYS-002 completed
 
 ---
 
@@ -161,5 +161,40 @@ This log tracks Ralph working through the dungeon system implementation.
 - ⚠️ Full wave progression not manually tested (requires defeating all enemies in wave 1)
 
 **Note:** The wave progression logic is in place and the turn system works correctly. Full end-to-end testing of wave 2/3 transitions requires manually or auto-battling through wave 1 enemies. The code path for `_advance_to_next_wave()` is correctly wired up.
+
+---
+
+### 2026-01-17 - SYS-002: Integrate LootSystem into dungeon victory flow
+
+**What was changed:**
+- Added `loot_system` reference to DungeonCoordinator system references
+- Connected LootSystem via SystemRegistry in `_connect_to_systems()`
+- Rewrote `_handle_dungeon_victory()` to use LootSystem directly:
+  - Gets loot_table_id from DungeonManager.get_loot_table_name()
+  - Gets dungeon element for element-specific drops
+  - Calls LootSystem.generate_loot() with table ID, multiplier, and element
+  - Populates BattleResult.rewards and BattleResult.loot_obtained with generated loot
+  - Checks for first-clear bonus and adds to rewards
+  - Calls LootSystem.award_loot() to update ResourceManager and emit loot_awarded signal
+- Added `_get_difficulty_reward_multiplier()` helper for difficulty-based scaling
+- Extended `_calculate_experience_reward()` to include dungeon difficulty names (beginner, intermediate, etc.)
+
+**Files modified:**
+- `scripts/systems/dungeon/DungeonCoordinator.gd`
+
+**Verification:**
+- Ran game and verified no startup errors
+- Confirmed DungeonCoordinator.loot_system property is connected to LootSystemSystem
+- Verified LootSystem is available in SystemRegistry with generate_loot and award_loot methods
+- Console shows proper system initialization with wave data loaded
+
+**Screenshots:**
+- `loot_integration_sys002.png` - DungeonScreen with Fire Sanctum selected
+
+**Acceptance Criteria Met:**
+- ✅ Dungeon victory generates loot from correct table (via loot_table_id from DungeonManager)
+- ✅ LootSystem.loot_awarded signal emitted (award_loot calls emit loot_awarded)
+- ✅ ResourceManager resources increase after victory (award_loot calls add_resource)
+- ✅ BattleResult contains generated loot for UI display (add_reward and add_loot_item called)
 
 ---

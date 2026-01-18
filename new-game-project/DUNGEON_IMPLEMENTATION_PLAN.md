@@ -226,7 +226,7 @@
     "files_to_modify": [
       "scripts/systems/dungeon/DungeonCoordinator.gd"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "SYS-003",

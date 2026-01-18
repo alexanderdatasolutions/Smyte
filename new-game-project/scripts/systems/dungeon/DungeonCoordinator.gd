@@ -16,6 +16,7 @@ var resource_manager: Node
 var battle_coordinator: Node
 var collection_manager: Node
 var territory_manager: Node
+var loot_system: Node
 
 # Current battle state
 var current_dungeon_battle: Dictionary = {}
@@ -36,7 +37,8 @@ func _connect_to_systems():
 	battle_coordinator = system_registry.get_system("BattleCoordinator")
 	collection_manager = system_registry.get_system("CollectionManager")
 	territory_manager = system_registry.get_system("TerritoryManager")
-	
+	loot_system = system_registry.get_system("LootSystem")
+
 	# Connect battle completion signals
 	if battle_coordinator:
 		battle_coordinator.battle_ended.connect(_on_battle_completed)
@@ -141,41 +143,88 @@ func _on_battle_completed(result: BattleResult):
 
 	_reset_battle_state()
 
-func _handle_dungeon_victory(_battle_result: BattleResult):
+func _handle_dungeon_victory(battle_result: BattleResult):
 	"""Process dungeon victory rewards and progression"""
 	var dungeon_id = current_dungeon_battle.dungeon_id
 	var difficulty = current_dungeon_battle.difficulty
-	
+
 	# Calculate completion time
 	var completion_time = Time.get_unix_time_from_system() - current_dungeon_battle.start_time
-	
+
 	# Get dungeon manager for rewards
 	var dungeon_manager = SystemRegistry.get_instance().get_system("DungeonManager")
-	if dungeon_manager:
-		# Award completion rewards
+	var all_rewards: Dictionary = {}
+
+	if dungeon_manager and loot_system:
+		# Get loot table info from DungeonManager
+		var loot_table_id = dungeon_manager.get_loot_table_name(dungeon_id, difficulty)
+		var dungeon_info = dungeon_manager.get_dungeon_info(dungeon_id)
+		var element = dungeon_info.get("element", "")
+		var multiplier = _get_difficulty_reward_multiplier(difficulty)
+
+		# Generate loot through LootSystem
+		if not loot_table_id.is_empty():
+			var generated_loot = loot_system.generate_loot(loot_table_id, multiplier, element)
+			print("DungeonCoordinator: Generated loot from table '%s': %s" % [loot_table_id, generated_loot])
+
+			# Merge generated loot into all_rewards
+			for resource_id in generated_loot:
+				all_rewards[resource_id] = all_rewards.get(resource_id, 0) + generated_loot[resource_id]
+
+			# Add loot to BattleResult for UI display
+			for resource_id in generated_loot:
+				battle_result.add_reward(resource_id, generated_loot[resource_id])
+				battle_result.add_loot_item({
+					"resource_id": resource_id,
+					"amount": generated_loot[resource_id],
+					"source": "loot_table"
+				})
+
+		# Check for first-clear bonus
+		var is_first = dungeon_manager.is_first_clear(dungeon_id, difficulty)
+		if is_first:
+			var first_clear_rewards = dungeon_manager.get_first_clear_rewards(dungeon_id, difficulty)
+			print("DungeonCoordinator: First clear bonus: %s" % first_clear_rewards)
+			for resource_id in first_clear_rewards:
+				all_rewards[resource_id] = all_rewards.get(resource_id, 0) + first_clear_rewards[resource_id]
+				battle_result.add_reward(resource_id, first_clear_rewards[resource_id])
+				battle_result.add_loot_item({
+					"resource_id": resource_id,
+					"amount": first_clear_rewards[resource_id],
+					"source": "first_clear"
+				})
+
+		# Award all loot through LootSystem (updates ResourceManager and emits loot_awarded)
+		if not all_rewards.is_empty():
+			loot_system.award_loot(all_rewards)
+			print("DungeonCoordinator: Awarded loot to player: %s" % all_rewards)
+	elif dungeon_manager:
+		# Fallback if LootSystem not available - use DungeonManager directly
 		var rewards = dungeon_manager.get_completion_rewards(dungeon_id, difficulty)
 		if resource_manager and not rewards.is_empty():
 			resource_manager.add_bulk_resources(rewards)
-	
+		all_rewards = rewards
+
 	# Award experience to team
 	if collection_manager:
 		var exp_per_god = _calculate_experience_reward(difficulty)
 		for god in current_dungeon_battle.team:
 			collection_manager.award_experience(god.id, exp_per_god)
-	
-	# Update dungeon progress
+			battle_result.add_experience_gained(god.id, exp_per_god)
+
+	# Update dungeon progress (also handles first-clear tracking)
 	if dungeon_manager:
 		dungeon_manager.record_completion(dungeon_id, difficulty, completion_time)
-	
+
 	# Emit completion signal
 	var result_data = {
 		"dungeon_id": dungeon_id,
 		"difficulty": difficulty,
 		"victory": true,
 		"completion_time": completion_time,
-		"rewards": dungeon_manager.get_completion_rewards(dungeon_id, difficulty) if dungeon_manager else {}
+		"rewards": all_rewards
 	}
-	
+
 	dungeon_battle_completed.emit(result_data)
 
 func _handle_dungeon_defeat(_battle_result: BattleResult):
@@ -206,10 +255,36 @@ func _calculate_experience_reward(difficulty: String) -> int:
 		"easy": 25,
 		"normal": 50,
 		"hard": 100,
-		"hell": 200
+		"hell": 200,
+		"beginner": 25,
+		"intermediate": 50,
+		"advanced": 100,
+		"expert": 150,
+		"heroic": 100,
+		"legendary": 200
 	}
-	
+
 	return base_exp.get(difficulty, 50)
+
+func _get_difficulty_reward_multiplier(difficulty: String) -> float:
+	"""Get reward multiplier based on difficulty"""
+	match difficulty:
+		"beginner":
+			return 1.0
+		"intermediate":
+			return 1.2
+		"advanced":
+			return 1.5
+		"expert":
+			return 2.0
+		"master":
+			return 2.5
+		"heroic":
+			return 2.0
+		"legendary":
+			return 3.0
+		_:
+			return 1.0
 
 func _reset_battle_state():
 	"""Reset battle state after completion"""
