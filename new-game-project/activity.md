@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-18
-**Tasks Completed:** 14/16
-**Current Task:** Task 15 - Verify save/load persistence
+**Tasks Completed:** 15/16
+**Current Task:** Task 16 - Add WorldView button for SUMMON screen
 
 ---
 
@@ -609,6 +609,78 @@
 - Gods added to CollectionManager
 
 **Errors encountered:** None (only pre-existing warnings unrelated to summon system)
+
+---
+
+### 2026-01-18 - Task 15: Verify save/load persistence ✅
+
+**What was done:**
+- Comprehensive end-to-end testing of save/load persistence for summon system
+- Verified all summon-related data persists correctly across game sessions
+
+**Tests performed:**
+1. **Perform summons to increase pity counter** ✅
+   - Ran project and navigated to SummonScreen
+   - Added test resources (50 common_soul, 1000 divine_crystals)
+   - Performed 3 additional basic summons
+   - Pity counter reached 4 for default banner
+
+2. **Save game** ✅
+   - Called SaveManager.save_game() successfully
+   - Save file created with timestamp: 2026-01-18T09:22:15
+   - Save version: 1.0
+
+3. **Close and reload game** ✅
+   - Stopped project via mcp__godot__stop_project
+   - Relaunched project via mcp__godot__run_project
+   - Game loaded without errors
+
+4. **Verify pity counters persisted** ✅
+   - `get_pity_counter("default", "legendary")` returned 4 (correct)
+   - All banner pity counters preserved (default, premium, element)
+
+5. **Verify summon history persisted** ✅
+   - `get_summon_history()` returned all 13 entries
+   - Each entry contains: god_id, god_name, tier, element, summon_type, cost, timestamp, date
+   - History order preserved (newest first)
+
+6. **Verify free summon timer persisted** ✅
+   - `last_free_summon_date` correctly set to "2026-01-18"
+   - `can_use_daily_free_summon()` returned false (correctly blocked)
+   - `get_time_until_free_summon_formatted()` returned countdown timer (14:36:59)
+   - Daily free summon button correctly disabled in UI
+
+**Files verified (no modifications needed):**
+- `scripts/systems/core/SaveManager.gd` - Lines 60-62: Gets SummonManager save data
+- `scripts/systems/core/SaveManager.gd` - Lines 135-138: Loads SummonManager data
+- `scripts/systems/collection/SummonManager.gd` - Lines 471-481: `get_save_data()` returns all state
+- `scripts/systems/collection/SummonManager.gd` - Lines 483-499: `load_save_data()` restores all state
+
+**Data persisted:**
+- `pity_counters` - Per-banner counters for rare/epic/legendary
+- `last_free_summon_date` - UTC reset day string for daily free
+- `daily_free_used` - Boolean flag
+- `last_weekly_premium_date` - Date of last weekly premium
+- `weekly_premium_used` - Boolean flag
+- `summon_history` - Array of up to 100 summon entries
+- `total_summons` - Lifetime summon count
+- `claimed_milestones` - Array of claimed milestone keys
+
+**Screenshots:**
+- `summon-task15-initial.png` - SummonScreen before testing
+- `summon-task15-after-summon1.png` - After first summon
+- `summon-task15-before-reload.png` - State before save/reload
+- `summon-task15-after-reload.png` - State after reload (pity preserved)
+- `summon-task15-history-after-reload.png` - History panel after reload
+
+**Verified with Godot MCP:**
+- Project runs without summon-related errors
+- All data correctly serialized to JSON save file
+- All data correctly deserialized on load
+- UI correctly reflects persisted state after reload
+- No data loss or corruption detected
+
+**Errors encountered:** None
 
 ---
 

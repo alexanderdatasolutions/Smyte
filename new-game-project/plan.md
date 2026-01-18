@@ -206,7 +206,7 @@ Complete overhaul of the summon/gacha system to create an engaging, balanced exp
       "Verify summon history persisted",
       "Verify free summon timer persisted"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
