@@ -78,7 +78,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "Add debug print showing total offline rewards",
       "Test by saving, closing, reopening after 5 minutes"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "core",

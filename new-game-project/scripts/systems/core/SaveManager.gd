@@ -122,6 +122,9 @@ func load_game() -> bool:
 		if hex_grid_manager and hex_grid_manager.has_method("load_save_data"):
 			hex_grid_manager.load_save_data(save_data.hex_grid)
 
+		# Calculate offline production rewards for hex nodes
+		_calculate_offline_production_rewards(system_registry, hex_grid_manager)
+
 	if save_data.has("territory"):
 		var territory_manager = system_registry.get_system("TerritoryManager") if system_registry else null
 		if territory_manager and territory_manager.has_method("load_save_data"):
@@ -177,3 +180,66 @@ func get_save_info() -> Dictionary:
 		"timestamp": save_data.get("timestamp", 0),
 		"readable_time": Time.get_datetime_string_from_unix_time(save_data.get("timestamp", 0))
 	}
+
+## Calculate offline production rewards for hex nodes
+func _calculate_offline_production_rewards(system_registry, hex_grid_manager) -> void:
+	if not system_registry or not hex_grid_manager:
+		return
+
+	var territory_production_manager = system_registry.get_system("TerritoryProductionManager")
+	if not territory_production_manager:
+		print("[SaveManager] TerritoryProductionManager not found, skipping offline production")
+		return
+
+	var resource_manager = system_registry.get_system("ResourceManager")
+	if not resource_manager:
+		print("[SaveManager] ResourceManager not found, skipping offline production")
+		return
+
+	# Get all player-controlled nodes
+	var player_nodes: Array = hex_grid_manager.get_player_nodes()
+	if player_nodes.is_empty():
+		print("[SaveManager] No player nodes found, skipping offline production")
+		return
+
+	print("[SaveManager] Calculating offline production for %d player nodes..." % player_nodes.size())
+
+	var total_offline_rewards: Dictionary = {}
+	var nodes_with_production: int = 0
+
+	# Calculate offline production for each node
+	for node in player_nodes:
+		var offline_rewards: Dictionary = territory_production_manager.calculate_offline_hex_production(node)
+
+		if not offline_rewards.is_empty():
+			nodes_with_production += 1
+
+			# Accumulate total rewards
+			for resource_id in offline_rewards:
+				if total_offline_rewards.has(resource_id):
+					total_offline_rewards[resource_id] += offline_rewards[resource_id]
+				else:
+					total_offline_rewards[resource_id] = offline_rewards[resource_id]
+
+	# Award accumulated resources to player
+	if not total_offline_rewards.is_empty():
+		resource_manager.award_resources(total_offline_rewards)
+		print("[SaveManager] Awarded offline production rewards: %s" % _format_rewards_dict(total_offline_rewards))
+		print("[SaveManager] %d nodes produced resources while offline" % nodes_with_production)
+
+		# Clear accumulated resources from all nodes
+		for node in player_nodes:
+			node.accumulated_resources.clear()
+	else:
+		print("[SaveManager] No offline production rewards to award")
+
+## Format rewards dictionary for debug output
+func _format_rewards_dict(rewards: Dictionary) -> String:
+	if rewards.is_empty():
+		return "{}"
+
+	var parts: Array[String] = []
+	for resource_id in rewards:
+		parts.append("%s: %.1f" % [resource_id, rewards[resource_id]])
+
+	return "{%s}" % ", ".join(parts)

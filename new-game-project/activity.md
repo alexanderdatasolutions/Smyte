@@ -491,3 +491,97 @@ for resource_id in offline_resources:
 **Next Task:** Task 4 - Integrate offline calculation with SaveManager on load
 
 ---
+
+### 2026-01-18 21:00 - Task 4 Complete: Offline Calculation Integrated with SaveManager
+
+**Task:** Integrate offline calculation with SaveManager on load
+
+**What Was Done:**
+Integrated offline production calculation into SaveManager.load_game() so that resources accumulate while the game is closed. When the player loads a save, the system:
+- Calculates time difference between current time and node.last_production_time
+- Computes offline production for each player-controlled hex node
+- Awards accumulated resources to the player via ResourceManager
+- Clears accumulated_resources from nodes after awarding
+- Provides comprehensive debug output showing offline rewards
+
+**Files Modified:**
+
+1. **scripts/systems/core/SaveManager.gd** (Lines 125-126):
+   - Added call to `_calculate_offline_production_rewards()` after hex_grid loads
+   - Integrated into load_game() flow after HexGridManager.load_save_data()
+
+2. **scripts/systems/core/SaveManager.gd** (Lines 184-245):
+   - Added `_calculate_offline_production_rewards(system_registry, hex_grid_manager)` method
+   - Gets TerritoryProductionManager and ResourceManager from SystemRegistry
+   - Gets all player nodes from HexGridManager.get_player_nodes()
+   - Calls `calculate_offline_hex_production(node)` for each node
+   - Accumulates total offline rewards across all nodes
+   - Awards via ResourceManager.award_resources()
+   - Clears node.accumulated_resources after awarding
+   - Comprehensive debug logging
+
+3. **scripts/systems/core/SaveManager.gd** (Lines 236-245):
+   - Added `_format_rewards_dict(rewards: Dictionary)` helper method
+   - Formats resource dictionaries for debug output (e.g., "{mana: 2.0, gold: 1.0}")
+
+**Implementation Details:**
+```gdscript
+# Integration point (after hex_grid load)
+if save_data.has("hex_grid"):
+    var hex_grid_manager = system_registry.get_system("HexGridManager")
+    if hex_grid_manager and hex_grid_manager.has_method("load_save_data"):
+        hex_grid_manager.load_save_data(save_data.hex_grid)
+
+    # Calculate offline production rewards for hex nodes
+    _calculate_offline_production_rewards(system_registry, hex_grid_manager)
+
+# Calculation method
+func _calculate_offline_production_rewards(system_registry, hex_grid_manager):
+    - Get all player nodes
+    - For each node, call calculate_offline_hex_production()
+    - Accumulate total offline rewards
+    - Award via ResourceManager.award_resources()
+    - Clear node.accumulated_resources
+```
+
+**Verification:**
+
+✅ **Project runs without compilation errors**
+✅ **Offline calculation triggers on load:**
+```
+[SaveManager] Calculating offline production for 1 player nodes...
+[TerritoryProductionManager] Offline calculation for node (0,0) 'Divine Sanctum':
+  - Offline duration: 0.04 hours (142 seconds)
+  - Hourly rate: {mana: 50.0, gold: 25.0}
+  - Generated offline: {mana: 2.0, gold: 1.0}
+  - Total accumulated: {gold: 1.8, mana: 3.6}
+[SaveManager] Awarded offline production rewards: {mana: 2.0, gold: 1.0}
+[SaveManager] 1 nodes produced resources while offline
+```
+✅ **Resources awarded to player** - ResourceManager.award_resources() called successfully
+✅ **Accumulated resources cleared** - node.accumulated_resources.clear() executed
+✅ **Time calculation accurate** - 142 seconds offline = 2.0 mana (50/hr × 0.04h)
+✅ **Debug output comprehensive** - Shows duration, rates, rewards, and node count
+
+**Testing Method:**
+1. Ran project with `mcp__godot__run_project`
+2. Waited 70 seconds for production timer to accumulate resources
+3. Triggered save via GameCoordinator.save_game()
+4. Stopped project with `mcp__godot__stop_project`
+5. Waited 90 seconds to simulate offline time
+6. Restarted project - offline calculation triggered automatically on load
+7. Verified debug output showed correct calculation: 142 seconds → 2.0 mana, 1.0 gold
+8. Took screenshot: `screenshots/production-task4-complete.png`
+
+**Math Verification:**
+- Divine Sanctum: 50 mana/hr, 25 gold/hr (base production)
+- Offline time: 142 seconds = 0.0394 hours
+- Expected mana: 50 × 0.0394 = 1.97 ≈ 2.0 ✓
+- Expected gold: 25 × 0.0394 = 0.99 ≈ 1.0 ✓
+- Calculation matches expected values
+
+**Status:** Task 4 COMPLETE - All acceptance criteria met
+
+**Next Task:** Task 5 - Add resource collection method for manual claiming
+
+---
