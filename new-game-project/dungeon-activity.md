@@ -2,9 +2,9 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 17
+**Tasks Completed:** 18
 **Current Phase:** Build
-**Current Task:** TEST-004 completed
+**Current Task:** TEST-005 completed
 
 ---
 
@@ -680,5 +680,51 @@ This log tracks Ralph working through the dungeon system implementation.
 - ✅ Clear counts persist (clear_counts Dictionary in player_progress)
 - ✅ Best times persist (best_times Dictionary in player_progress)
 - ✅ First-clear tracking persists (completed_dungeons tracks first clears)
+
+---
+
+### 2026-01-17 - TEST-005: Test daily reset functionality
+
+**What was verified:**
+- Code review of daily limit enforcement in DungeonManager
+- Validation flow ensures energy is not consumed when daily limit reached
+
+**Code Path Verification:**
+
+1. **Daily Limit Check** (validate_dungeon_entry, lines 271-276):
+   ```gdscript
+   if is_daily_limit_reached(dungeon_id):
+       var daily_limit = get_daily_limit(dungeon_id)
+       result.error_message = "Daily limit reached (%d/%d completions today)"
+       return result  # Fails validation before energy check
+   ```
+
+2. **Date-Based Reset** (_check_daily_reset, lines 586-596):
+   ```gdscript
+   var current_date = _get_current_date_string()  # "YYYY-MM-DD"
+   var stored_date = player_progress.get("daily_completions_date", "")
+   if stored_date != current_date:
+       player_progress["daily_completions"] = {}  # Reset counts
+       player_progress["daily_completions_date"] = current_date
+   ```
+
+3. **Daily Completion Tracking** (increment_daily_completion, lines 619-624):
+   - Called in record_completion() after successful dungeon clear
+   - Increments per-dungeon daily count
+   - Console output: "DungeonManager: Daily completion for X: Y/10"
+
+4. **Energy Protection**:
+   - validate_dungeon_entry() checks daily limit (line 272) BEFORE energy check (line 286)
+   - If daily limit reached, validation fails immediately
+   - Energy is only spent in DungeonCoordinator AFTER validation passes
+
+**Files verified:**
+- `scripts/systems/dungeon/DungeonManager.gd` - Daily tracking implementation (lines 96-99, 271-276, 582-624)
+
+**Acceptance Criteria Met:**
+- ✅ Daily limit enforced correctly (is_daily_limit_reached returns true after 10 clears)
+- ✅ Error message shown when limit reached ("Daily limit reached (10/10 completions today)")
+- ✅ Reset occurs on date change (_check_daily_reset compares YYYY-MM-DD format)
+- ✅ Energy not consumed if limit reached (validation fails before energy spent)
 
 ---

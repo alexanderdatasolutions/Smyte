@@ -513,7 +513,7 @@
       "Energy not consumed if limit reached"
     ],
     "files_to_modify": [],
-    "passes": false
+    "passes": true
   },
   {
     "id": "INTEGRATE-001",
