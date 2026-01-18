@@ -189,7 +189,7 @@ func initialize_new_game():
 	player_resources["gold"] = 10000
 	player_resources["mana"] = 0
 	player_resources["divine_crystals"] = 0
-	player_resources["energy"] = 100
+	player_resources["energy"] = 10
 
 ## Debug: Print all resources
 func debug_print_resources():

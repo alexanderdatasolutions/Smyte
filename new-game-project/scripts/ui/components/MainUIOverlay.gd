@@ -95,11 +95,15 @@ func _connect_to_systems():
 	if system_registry:
 		tutorial_manager = system_registry.get_system("TutorialManager")
 		notification_manager = system_registry.get_system("NotificationManager")
-		
+
 		# Connect tutorial system to tutorial layer
 		if tutorial_manager and tutorial_manager.has_signal("tutorial_dialog_created"):
 			tutorial_manager.tutorial_dialog_created.connect(_on_tutorial_dialog_created)
-	
+
+		# Connect notification system to notification layer
+		if notification_manager and notification_manager.has_signal("notification_shown"):
+			notification_manager.notification_shown.connect(_on_notification_shown)
+
 	# Load and setup persistent UI elements that should always be on top
 	_setup_persistent_ui()
 
@@ -194,6 +198,56 @@ func _on_tutorial_dialog_completed():
 	"""Handle tutorial dialog completion"""
 	print("MainUIOverlay: Tutorial dialog completed, resetting layer")
 	tutorial_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+func _on_notification_shown(type: String, message: String):
+	"""Handle notification display request"""
+	# Create a simple notification toast
+	var toast = _create_notification_toast(type, message)
+	if toast:
+		add_to_notification_layer(toast)
+
+func _create_notification_toast(type: String, message: String) -> Control:
+	"""Create a notification toast UI element"""
+	# Create a simple Panel-based toast
+	var toast = PanelContainer.new()
+	toast.name = "NotificationToast"
+
+	# Position at top center of screen
+	toast.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	toast.offset_top = 20
+	toast.offset_bottom = 80
+	toast.offset_left = get_viewport().get_visible_rect().size.x / 2 - 200
+	toast.offset_right = get_viewport().get_visible_rect().size.x / 2 + 200
+
+	# Create content container
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	toast.add_child(margin)
+
+	# Create label
+	var label = Label.new()
+	label.text = message
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+	# Style based on type
+	if type == "error":
+		label.add_theme_color_override("font_color", Color(1, 0.3, 0.3))  # Red text
+
+	margin.add_child(label)
+
+	# Auto-dismiss after 2.5 seconds
+	var timer = get_tree().create_timer(2.5)
+	timer.timeout.connect(func():
+		if toast and is_instance_valid(toast):
+			toast.queue_free()
+	)
+
+	return toast
 
 # Public API for other systems
 

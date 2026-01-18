@@ -399,10 +399,11 @@ func _on_battle_setup_cancelled():
 	# Already on dungeon screen, nothing to do
 	pass
 
-func _show_error_message(_message: String):
+func _show_error_message(message: String):
 	"""Show error message to user"""
-	# Could integrate with NotificationManager through SystemRegistry
-	pass
+	var notification_manager = SystemRegistry.get_instance().get_system("NotificationManager")
+	if notification_manager:
+		notification_manager.show_error(message)
 
 func _on_back_button_pressed():
 	"""Handle back button press"""

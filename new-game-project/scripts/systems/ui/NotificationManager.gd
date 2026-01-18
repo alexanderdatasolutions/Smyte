@@ -73,7 +73,7 @@ func show_notification(type: String, message: String, duration: float = 3.0):
 		"timestamp": Time.get_unix_time_from_system(),
 		"duration": duration
 	}
-	
+
 	active_notifications.append(notif_data)
 	notification_shown.emit(type, message)
 
@@ -81,6 +81,10 @@ func show_notification(type: String, message: String, duration: float = 3.0):
 	if duration > 0:
 		await get_tree().create_timer(duration).timeout
 		clear_notification(notif_data)
+
+func show_error(message: String, duration: float = 2.5):
+	"""Show an error notification - quick method for errors"""
+	show_notification("error", message, duration)
 
 func clear_notification(notif_data: Dictionary):
 	"""Clear a specific notification"""
