@@ -441,13 +441,52 @@ func _calculate_enemy_stats(level: int, tier: String) -> Dictionary:
 	}
 
 func get_completion_rewards(dungeon_id: String, difficulty: String) -> Dictionary:
-	"""Get rewards for completing dungeon"""
+	"""Get rewards for completing dungeon using LootSystem"""
 	var dungeon_info = get_dungeon_info(dungeon_id)
 	if dungeon_info.is_empty():
 		return {}
-	
-	var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
-	return difficulty_info.get("rewards", {})
+
+	# Get the loot table name for this dungeon + difficulty
+	var loot_table_id = get_loot_table_name(dungeon_id, difficulty)
+	if loot_table_id.is_empty():
+		push_warning("DungeonManager: No loot table for " + dungeon_id + " " + difficulty)
+		return {}
+
+	# Get element for element-specific drops
+	var element = dungeon_info.get("element", "")
+
+	# Get difficulty multiplier (higher difficulties = more rewards)
+	var multiplier = _get_difficulty_reward_multiplier(difficulty)
+
+	# Generate loot through LootSystem
+	var loot_system = SystemRegistry.get_instance().get_system("LootSystem") if SystemRegistry.get_instance() else null
+	if loot_system:
+		var rewards = loot_system.generate_loot(loot_table_id, multiplier, element)
+		print("DungeonManager: Generated rewards for %s %s: %s" % [dungeon_id, difficulty, rewards])
+		return rewards
+	else:
+		push_warning("DungeonManager: LootSystem not available, returning empty rewards")
+		return {}
+
+func _get_difficulty_reward_multiplier(difficulty: String) -> float:
+	"""Get reward multiplier based on difficulty"""
+	match difficulty:
+		"beginner":
+			return 1.0
+		"intermediate":
+			return 1.2
+		"advanced":
+			return 1.5
+		"expert":
+			return 2.0
+		"master":
+			return 2.5
+		"heroic":
+			return 2.0
+		"legendary":
+			return 3.0
+		_:
+			return 1.0
 
 func record_completion(dungeon_id: String, difficulty: String, completion_time: float):
 	"""Record dungeon completion for statistics"""

@@ -58,24 +58,80 @@ func _load_fallback_loot_tables():
 		loot_items = {}
 
 ## Generate loot from a table
-func generate_loot(table_id: String, multiplier: float = 1.0) -> Dictionary:
+func generate_loot(table_id: String, multiplier: float = 1.0, element: String = "") -> Dictionary:
 	if not loot_tables.has(table_id):
 		push_warning("LootSystem: Unknown loot table: " + table_id)
 		return {}
-	
+
 	var table = loot_tables[table_id]
 	var results = {}
-	
+
+	# Process guaranteed drops (always drop if chance roll succeeds)
+	for item_data in table.get("guaranteed_drops", []):
+		if _roll_chance(item_data.get("chance", 1.0)):
+			var loot_item_id = item_data.get("loot_item_id", "")
+			var is_element_specific = item_data.get("element_specific", false)
+			var resource_id = _resolve_resource_id(loot_item_id, element if is_element_specific else "")
+			var amount = _calculate_loot_amount(loot_item_id, multiplier)
+
+			if amount > 0 and resource_id != "":
+				results[resource_id] = results.get(resource_id, 0) + amount
+
+	# Process rare drops (chance-based)
+	for item_data in table.get("rare_drops", []):
+		if _roll_chance(item_data.get("chance", 0.0)):
+			var loot_item_id = item_data.get("loot_item_id", "")
+			var is_element_specific = item_data.get("element_specific", false)
+			var resource_id = _resolve_resource_id(loot_item_id, element if is_element_specific else "")
+			var amount = _calculate_loot_amount(loot_item_id, multiplier)
+
+			if amount > 0 and resource_id != "":
+				results[resource_id] = results.get(resource_id, 0) + amount
+
+	# Fallback for old "items" format
 	for item_data in table.get("items", []):
 		if _roll_chance(item_data.get("chance", 0.0)):
 			var item_id = item_data.get("item_id", "")
 			var amount = _calculate_amount(item_data, multiplier)
-			
+
 			if amount > 0:
 				results[item_id] = results.get(item_id, 0) + amount
-	
+
 	loot_generated.emit(results)
 	return results
+
+## Resolve loot_item_id to actual resource_id, with element substitution
+func _resolve_resource_id(loot_item_id: String, element: String) -> String:
+	if not loot_items.has(loot_item_id):
+		# If not in loot_items, treat as direct resource_id
+		return loot_item_id
+
+	var item_def = loot_items[loot_item_id]
+
+	# Check for element-based items
+	if item_def.get("resource_type", "") == "element_based":
+		var base_resource = item_def.get("base_resource", "")
+		if element != "" and base_resource != "":
+			# Return element-specific resource (e.g., "fire_powder_low" from "powder_low")
+			return element + "_" + base_resource
+		else:
+			# Fallback to generic if no element specified
+			return "magic_" + base_resource
+
+	# Standard resource_id lookup
+	return item_def.get("resource_id", loot_item_id)
+
+## Calculate amount from loot_items definition
+func _calculate_loot_amount(loot_item_id: String, multiplier: float) -> int:
+	if not loot_items.has(loot_item_id):
+		return 1  # Default to 1 if not defined
+
+	var item_def = loot_items[loot_item_id]
+	var min_amount = item_def.get("min_amount", 1)
+	var max_amount = item_def.get("max_amount", 1)
+	var base_amount = randi_range(min_amount, max_amount)
+
+	return int(base_amount * multiplier)
 
 ## Generate battle rewards
 func generate_battle_rewards(stage_level: int, victory_type: String = "normal") -> Dictionary:

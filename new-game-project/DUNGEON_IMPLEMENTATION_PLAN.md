@@ -158,7 +158,7 @@
     "files_to_modify": [
       "scripts/systems/dungeon/DungeonManager.gd"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "DATA-003",

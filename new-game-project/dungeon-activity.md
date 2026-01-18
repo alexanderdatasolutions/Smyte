@@ -2,9 +2,9 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 1
+**Tasks Completed:** 2
 **Current Phase:** Build
-**Current Task:** DATA-001 completed
+**Current Task:** DATA-002 completed
 
 ---
 
@@ -53,5 +53,38 @@ This log tracks Ralph working through the dungeon system implementation.
 - ✅ DungeonManager.get_battle_configuration() returns populated enemy_waves array
 - ✅ Wave enemies have correct stats (level, hp, attack, defense, speed)
 - ✅ All 6 elemental sanctums return 3-wave configurations
+
+---
+
+### 2026-01-17 - DATA-002: Wire loot tables to dungeon rewards
+
+**What was changed:**
+- Updated `LootSystem.generate_loot()` to accept optional `element` parameter for element-specific drops
+- Added `_resolve_resource_id()` helper to convert loot_item_id to resource_id with element substitution
+- Added `_calculate_loot_amount()` helper to get amounts from loot_items.json definitions
+- Updated processing to handle `guaranteed_drops` and `rare_drops` arrays from loot_templates
+- Updated `DungeonManager.get_completion_rewards()` to call LootSystem with correct loot table and element
+- Added `_get_difficulty_reward_multiplier()` for difficulty-based reward scaling
+
+**Files modified:**
+- `scripts/systems/resources/LootSystem.gd`
+- `scripts/systems/dungeon/DungeonManager.gd`
+
+**Verification:**
+- Ran game and tested `get_completion_rewards("fire_sanctum", "beginner")`:
+  - Returns: `{ "fire_powder_low": 8, "mana": 538, "magic_powder_low": 16, "fire_powder_mid": 8 }`
+- Tested `get_completion_rewards("fire_sanctum", "expert")`:
+  - Returns: `{ "fire_powder_high": 6, "mana": 3398, "fire_soul": 2 }` (2x multiplier applied)
+- Tested `get_completion_rewards("water_sanctum", "beginner")`:
+  - Returns: `{ "water_powder_low": 15, "mana": 611, "magic_powder_low": 9, "water_powder_mid": 3 }`
+- Console shows: "DungeonManager: Generated rewards for fire_sanctum beginner: {...}"
+
+**Screenshots:**
+- `dungeon_loot_data002.png` - DungeonScreen showing dungeons
+
+**Acceptance Criteria Met:**
+- ✅ get_completion_rewards() returns non-empty rewards dict
+- ✅ Fire Sanctum drops fire_powder_low, not generic powder (element-specific!)
+- ✅ Difficulty affects reward quantities (expert > beginner: 2x multiplier)
 
 ---
