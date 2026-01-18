@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-18
-**Tasks Completed:** 10/16
-**Current Task:** Task 11 - Implement daily free summon system
+**Tasks Completed:** 11/16
+**Current Task:** Task 12 - Add summon history tracking
 
 ---
 
@@ -384,6 +384,53 @@
 **Errors encountered:**
 - Daily free buttons remained enabled after use - fixed by adding `can_use_daily_free_summon()` check in SummonBannerCard
 - Banner cards not refreshing when returning to screen - fixed by adding refresh call in _notification handler
+
+---
+
+### 2026-01-18 - Task 11: Implement daily free summon system ✅
+
+**What was done:**
+- Enhanced SummonManager with proper UTC-based daily reset timing
+- Added `_get_daily_reset_hour()` to read reset hour from `summon_config.json` (default: midnight UTC)
+- Added `_get_reset_day_string(reset_hour)` to calculate which "reset day" we're in based on current UTC time
+- Added `_get_next_reset_timestamp(reset_hour)` to calculate next reset Unix timestamp
+- Added `get_time_until_free_summon_formatted()` returning "HH:MM:SS" countdown string
+- Modified `summon_free_daily()` to store reset day string instead of raw date
+- Modified `can_use_daily_free_summon()` to compare against current reset day
+
+- Enhanced SummonBannerCard with FREE badge and countdown timer:
+- Added `free_badge` Label showing bright green "FREE!" next to title when available
+- Added `timer_label` showing "Next free in: HH:MM:SS" countdown when unavailable
+- Implemented `_update_timer_display()` to toggle badge/timer visibility
+- Implemented `_update_timer_loop()` with 1-second refresh for real-time countdown
+- Timer automatically detects when reset time passes and refreshes the card
+- Hidden 10x multi-summon button for daily free (only single summon allowed)
+
+**Files modified:**
+- `scripts/systems/collection/SummonManager.gd` - Added UTC reset timing functions (499 lines, under 500 limit)
+- `scripts/ui/summon/SummonBannerCard.gd` - Added FREE badge and timer display (423 lines, under 500 limit)
+
+**Key features implemented:**
+- `can_use_daily_free_summon()` - Checks against UTC reset time, not local date
+- `get_time_until_free_summon()` - Returns seconds until next reset
+- `get_time_until_free_summon_formatted()` - Returns "HH:MM:SS" string for UI
+- FREE badge shows next to title when daily free is available
+- Countdown timer shows when daily free has been used
+- Timer updates every second in real-time
+- Button disabled with tooltip "Already used today - resets at midnight UTC"
+
+**Verified with Godot MCP:**
+- Project runs without summon-related errors
+- Fresh save: FREE badge visible, summon button enabled
+- Clicked daily free summon - Nezha (Rare Fire) summoned successfully
+- After use: FREE badge hidden, timer showing "Next free in: 15:02:30"
+- Summon button correctly disabled after use
+- Pity counter updated to 1/100 across all banners
+- Screenshots: `summon-task11-fresh.png`, `summon-task11-after-free.png`, `summon-task11-timer-showing.png`
+
+**Errors encountered:**
+- Integer division warnings in SummonManager (line 393) - minor warnings, no functional impact
+- File exceeded 500 line limit initially - consolidated notification functions to get under limit
 
 ---
 

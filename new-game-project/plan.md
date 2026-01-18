@@ -153,7 +153,7 @@ Complete overhaul of the summon/gacha system to create an engaging, balanced exp
       "Disable cost check for free summon",
       "Show timer until next free summon"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "features",

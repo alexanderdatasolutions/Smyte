@@ -66,7 +66,9 @@ func summon_free_daily() -> bool:
 		summon_failed.emit("Daily free summon already used")
 		return false
 	daily_free_used = true
-	last_free_summon_date = Time.get_date_string_from_system()
+	# Store the reset day string (not just current date) so reset timing works correctly
+	var reset_hour = _get_daily_reset_hour()
+	last_free_summon_date = _get_reset_day_string(reset_hour)
 	return _perform_summon({}, "common_soul", "default")
 
 func summon_with_soul(soul_type: String) -> bool:
@@ -262,14 +264,10 @@ func _get_duplicate_mana_reward(tier: God.TierType) -> int:
 			return 100
 
 func _check_legendary_notification(god: God):
-	"""Show notification for legendary/epic pulls via EventBus."""
-	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
-	if not event_bus or not event_bus.has_method("emit_notification"):
-		return
-	if god.tier == God.TierType.LEGENDARY:
-		event_bus.emit_notification("LEGENDARY! %s has joined your pantheon!" % god.name, "legendary", 5.0)
-	elif god.tier == God.TierType.EPIC:
-		event_bus.emit_notification("Epic summon! %s obtained!" % god.name, "epic", 3.0)
+	var eb = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	if not eb or not eb.has_method("emit_notification"): return
+	if god.tier == God.TierType.LEGENDARY: eb.emit_notification("LEGENDARY! %s joined!" % god.name, "legendary", 5.0)
+	elif god.tier == God.TierType.EPIC: eb.emit_notification("Epic! %s obtained!" % god.name, "epic", 3.0)
 
 func was_duplicate(god_id: String) -> bool:
 	"""Check if a recently summoned god was a duplicate. For UI display."""
@@ -357,35 +355,25 @@ func _award_milestone(key: String, data: Dictionary):
 		for resource_id in reward:
 			resource_manager.add_resource(resource_id, reward[resource_id])
 	claimed_milestones.append(key)
-
-	# Emit signal and notification for milestone reward
 	milestone_reward_claimed.emit(key, reward)
-	_notify_milestone_reward(key, reward)
-
-func _notify_milestone_reward(key: String, reward: Dictionary):
-	"""Show notification for milestone reward via EventBus."""
+	# Notify via EventBus
 	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
-	if not event_bus or not event_bus.has_method("emit_notification"):
-		return
-
-	# Format reward text
-	var reward_parts = []
-	for resource_id in reward:
-		var display_name = resource_id.replace("_", " ").capitalize()
-		reward_parts.append("%d %s" % [reward[resource_id], display_name])
-	var reward_text = ", ".join(reward_parts)
-
-	# Get summon count from key (e.g., "10_summons" -> 10)
-	var parts = key.split("_")
-	var count = int(parts[0]) if parts.size() > 0 else 0
-
-	var message = "Milestone: %d Summons! Reward: %s" % [count, reward_text]
-	event_bus.emit_notification(message, "milestone", 4.0)
+	if event_bus and event_bus.has_method("emit_notification"):
+		var parts = []
+		for r in reward:
+			parts.append("%d %s" % [reward[r], r.replace("_", " ").capitalize()])
+		var count = int(key.split("_")[0]) if "_" in key else 0
+		event_bus.emit_notification("Milestone: %d Summons! Reward: %s" % [count, ", ".join(parts)], "milestone", 4.0)
 
 # SPECIAL SUMMON AVAILABILITY
 
 func can_use_daily_free_summon() -> bool:
-	return last_free_summon_date != Time.get_date_string_from_system()
+	"""Check if daily free summon is available based on UTC reset time"""
+	if last_free_summon_date.is_empty():
+		return true
+	var reset_hour = _get_daily_reset_hour()
+	var current_reset_day = _get_reset_day_string(reset_hour)
+	return last_free_summon_date != current_reset_day
 
 func can_use_weekly_premium_summon() -> bool:
 	if last_weekly_premium_date.is_empty():
@@ -397,10 +385,38 @@ func can_use_weekly_premium_summon() -> bool:
 	return int(curr_parts[2]) - int(last_parts[2]) >= 7
 
 func get_time_until_free_summon() -> int:
-	if can_use_daily_free_summon():
-		return 0
-	var now = Time.get_unix_time_from_system()
-	return (int(now / 86400) + 1) * 86400 - int(now)
+	if can_use_daily_free_summon(): return 0
+	return max(0, _get_next_reset_timestamp(_get_daily_reset_hour()) - int(Time.get_unix_time_from_system()))
+
+func get_time_until_free_summon_formatted() -> String:
+	var s = get_time_until_free_summon()
+	return "Available Now!" if s <= 0 else "%02d:%02d:%02d" % [s / 3600, (s % 3600) / 60, s % 60]
+
+func _get_daily_reset_hour() -> int:
+	var cfg = get_config()
+	return cfg.get("banner_system", {}).get("special_summons", {}).get("daily_free", {}).get("reset_hour_utc", 0)
+
+func _get_reset_day_string(reset_hour: int) -> String:
+	var now_utc = Time.get_unix_time_from_system()
+	var utc_dict = Time.get_datetime_dict_from_unix_time(int(now_utc))
+	if utc_dict.hour < reset_hour: now_utc -= 86400
+	var adj = Time.get_datetime_dict_from_unix_time(int(now_utc))
+	return "%04d-%02d-%02d" % [adj.year, adj.month, adj.day]
+
+func _get_next_reset_timestamp(reset_hour: int) -> int:
+	"""Calculate the Unix timestamp for the next reset time"""
+	var now_utc = Time.get_unix_time_from_system()
+	var utc_dict = Time.get_datetime_dict_from_unix_time(int(now_utc))
+	# Build today's reset time
+	var today_reset_dict = {
+		"year": utc_dict.year, "month": utc_dict.month, "day": utc_dict.day,
+		"hour": reset_hour, "minute": 0, "second": 0
+	}
+	var today_reset = Time.get_unix_time_from_datetime_dict(today_reset_dict)
+	# If we've passed today's reset, next reset is tomorrow
+	if now_utc >= today_reset:
+		return int(today_reset) + 86400
+	return int(today_reset)
 
 # MULTI-SUMMON
 

@@ -23,6 +23,9 @@ var multi_button: Button
 var pity_progress: ProgressBar
 var pity_label: Label
 var cost_label: Label
+var free_badge: Label
+var timer_label: Label
+var _timer_update_active: bool = false
 
 func _init():
 	custom_minimum_size = Vector2(280, 220)
@@ -38,6 +41,11 @@ func _setup_ui():
 	main_vbox.add_theme_constant_override("separation", 6)
 	add_child(main_vbox)
 
+	# Title row with FREE badge
+	var title_row = HBoxContainer.new()
+	title_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	main_vbox.add_child(title_row)
+
 	# Title
 	title_label = Label.new()
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -45,7 +53,17 @@ func _setup_ui():
 	title_label.add_theme_color_override("font_color", Color.WHITE)
 	title_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	title_label.add_theme_constant_override("outline_size", 2)
-	main_vbox.add_child(title_label)
+	title_row.add_child(title_label)
+
+	# FREE badge (shown when daily free is available)
+	free_badge = Label.new()
+	free_badge.text = " FREE!"
+	free_badge.add_theme_font_size_override("font_size", 14)
+	free_badge.add_theme_color_override("font_color", Color.LIME)
+	free_badge.add_theme_color_override("font_outline_color", Color.BLACK)
+	free_badge.add_theme_constant_override("outline_size", 2)
+	free_badge.visible = false
+	title_row.add_child(free_badge)
 
 	# Description with rates
 	description_label = Label.new()
@@ -87,6 +105,14 @@ func _setup_ui():
 	cost_label.add_theme_font_size_override("font_size", 12)
 	cost_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
 	main_vbox.add_child(cost_label)
+
+	# Timer label for daily free (shows countdown when not available)
+	timer_label = Label.new()
+	timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	timer_label.add_theme_font_size_override("font_size", 11)
+	timer_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
+	timer_label.visible = false
+	main_vbox.add_child(timer_label)
 
 	# Spacer
 	var spacer = Control.new()
@@ -268,21 +294,36 @@ func _update_button_states():
 
 	var can_afford_single = _can_afford(single_cost)
 	var can_afford_multi = _can_afford(multi_cost)
+	var is_daily_free = banner_data.get("is_daily_free", false)
+	var daily_free_available = true
 
-	# Check daily free availability
-	if banner_data.get("is_daily_free", false):
+	# Check daily free availability and update UI elements
+	if is_daily_free:
 		var summon_manager = _get_summon_manager()
-		if summon_manager and not summon_manager.can_use_daily_free_summon():
-			can_afford_single = false
-			can_afford_multi = false
+		if summon_manager:
+			daily_free_available = summon_manager.can_use_daily_free_summon()
+			if not daily_free_available:
+				can_afford_single = false
+				can_afford_multi = false
+
+			# Update FREE badge visibility
+			if free_badge:
+				free_badge.visible = daily_free_available
+
+			# Update timer visibility and text
+			_update_timer_display(summon_manager, daily_free_available)
 
 	single_button.disabled = not can_afford_single
 	multi_button.disabled = not can_afford_multi
 
+	# Hide multi button for daily free (only single summon allowed)
+	if is_daily_free:
+		multi_button.visible = false
+
 	# Update button text with cost hint if disabled
 	if not can_afford_single:
-		if banner_data.get("is_daily_free", false):
-			single_button.tooltip_text = "Already used today"
+		if is_daily_free and not daily_free_available:
+			single_button.tooltip_text = "Already used today - resets at midnight UTC"
 		else:
 			single_button.tooltip_text = "Insufficient resources"
 	else:
@@ -292,6 +333,52 @@ func _update_button_states():
 		multi_button.tooltip_text = "Insufficient resources"
 	else:
 		multi_button.tooltip_text = ""
+
+func _update_timer_display(summon_manager, is_available: bool):
+	"""Update the timer label for daily free summon"""
+	if not timer_label:
+		return
+
+	if is_available:
+		timer_label.visible = false
+		_stop_timer_updates()
+	else:
+		timer_label.visible = true
+		if summon_manager and summon_manager.has_method("get_time_until_free_summon_formatted"):
+			timer_label.text = "Next free in: " + summon_manager.get_time_until_free_summon_formatted()
+			_start_timer_updates()
+		else:
+			timer_label.text = "Resets at midnight UTC"
+
+func _start_timer_updates():
+	"""Start updating the timer every second"""
+	if _timer_update_active:
+		return
+	_timer_update_active = true
+	_update_timer_loop()
+
+func _stop_timer_updates():
+	"""Stop the timer update loop"""
+	_timer_update_active = false
+
+func _update_timer_loop():
+	"""Timer update loop - runs every second while timer is visible"""
+	if not _timer_update_active or not is_inside_tree():
+		return
+
+	var summon_manager = _get_summon_manager()
+	if summon_manager:
+		if summon_manager.can_use_daily_free_summon():
+			# Timer expired, refresh everything
+			_timer_update_active = false
+			refresh()
+			return
+
+		if summon_manager.has_method("get_time_until_free_summon_formatted"):
+			timer_label.text = "Next free in: " + summon_manager.get_time_until_free_summon_formatted()
+
+	# Schedule next update
+	get_tree().create_timer(1.0).timeout.connect(_update_timer_loop)
 
 func _can_afford(cost: Dictionary) -> bool:
 	if cost.is_empty():
