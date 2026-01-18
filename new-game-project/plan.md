@@ -89,7 +89,7 @@ Complete overhaul of the summon/gacha system to create an engaging, balanced exp
       "Show pity counter progress bar",
       "Disable if player lacks resources"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",

@@ -389,6 +389,42 @@ func multi_summon_premium(count: int = 10) -> bool:
 	multi_summon_completed.emit(summoned_gods)
 	return summoned_gods.size() > 0
 
+func summon_multi_with_soul(soul_type: String, count: int = 10) -> bool:
+	var discount = 0.9
+	var total_cost = {soul_type: int(count * discount)}
+	if not _can_afford_cost(total_cost):
+		summon_failed.emit("Cannot afford multi-summon")
+		return false
+	_spend_cost(total_cost)
+
+	var banner_type = "element" if _is_element_soul(soul_type) else "default"
+	var summoned_gods = []
+	var has_rare = false
+	for i in range(count):
+		var god = _get_random_god(soul_type, banner_type)
+		if i == count - 1 and not has_rare:
+			var found_rare = false
+			for g in summoned_gods:
+				if g.tier >= God.TierType.RARE:
+					found_rare = true
+					break
+			if not found_rare:
+				god = _create_god_of_tier("rare")
+		if god:
+			if god.tier >= God.TierType.RARE:
+				has_rare = true
+			summoned_gods.append(god)
+			_add_god_to_collection(god)
+			_update_pity_counters(God.tier_to_string(god.tier).to_lower(), banner_type)
+			total_summons += 1
+			_add_to_history(god, soul_type, {soul_type: 1})
+	_check_milestone_rewards()
+	multi_summon_completed.emit(summoned_gods)
+	return summoned_gods.size() > 0
+
+func _is_element_soul(soul_type: String) -> bool:
+	return soul_type in ["fire_soul", "water_soul", "earth_soul", "lightning_soul", "light_soul", "dark_soul"]
+
 # ==============================================================================
 # SAVE/LOAD
 # ==============================================================================

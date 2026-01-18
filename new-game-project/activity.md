@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 5/16
-**Current Task:** Task 6 - Implement summon banner cards UI
+**Tasks Completed:** 6/16
+**Current Task:** Task 7 - Create summon animation system
 
 ---
 
@@ -135,6 +135,56 @@
 - Screenshots: `summon-task5-layout.png`, `summon-task5-free.png`
 
 **Errors encountered:** None
+
+---
+
+### 2026-01-17 - Task 6: Implement summon banner cards UI ✅
+
+**What was done:**
+- Created `scripts/ui/summon/SummonBannerCard.gd` - New PanelContainer-based component (~327 lines)
+- Refactored `scripts/ui/screens/SummonScreen.gd` to use new SummonBannerCard components
+- Added `summon_multi_with_soul()` and `_is_element_soul()` to SummonManager.gd
+
+**SummonBannerCard features:**
+- Displays banner title, description, and rarity rates
+- Shows summon cost (souls, crystals, or FREE)
+- Pity counter progress bar with legendary threshold display (X/100)
+- Progress bar color changes: blue (normal) → yellow (50%+) → orange (soft pity 75%+)
+- Single summon (1x) and multi summon (10x) buttons
+- Buttons disabled when player lacks resources
+- `refresh()` method updates pity and button states after summons
+
+**Banner cards created:**
+- BASIC SUMMON - Common Soul (1x/10x at 10% discount)
+- PREMIUM SUMMON - Divine Crystals (100/900)
+- ELEMENT SUMMON - Fire Soul with 3x element weight
+- DAILY FREE - No cost, once per day
+
+**Technical fixes applied:**
+- Used underscore-prefixed const preloads to avoid class_name conflicts
+- Added `_notification(VISIBILITY_CHANGED)` handler for late initialization (ScreenManager caching)
+- Added `cards_initialized` flag to prevent duplicate card creation
+- Clears existing children before creating new cards
+
+**Files modified:**
+- `scripts/ui/summon/SummonBannerCard.gd` - Created new component
+- `scripts/ui/screens/SummonScreen.gd` - Refactored to use SummonBannerCard
+- `scripts/systems/collection/SummonManager.gd` - Added multi-soul summon support
+
+**Verified with Godot MCP:**
+- Project runs without errors
+- Navigated to SummonScreen successfully
+- 4 banner cards displayed in 2-column grid with all UI elements
+- Pity counter shows "Legendary Pity: 0/100" initially
+- Daily Free summon tested - summoned "Isis" (RARE WATER)
+- Pity counter updated to 1/100 after summon
+- God displayed in showcase panel
+- Buttons properly disabled when resources insufficient
+- Screenshots: `summon-task6-new-cards.png`, `summon-task6-summon-result.png`
+
+**Errors encountered:**
+- Initial Godot script caching issues (resolved by killing all Godot processes and relaunching editor)
+- Class name conflicts with preloaded consts (resolved with underscore prefix)
 
 ---
 

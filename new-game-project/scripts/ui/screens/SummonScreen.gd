@@ -1,10 +1,12 @@
 # scripts/ui/SummonScreen.gd
 # RULE 1: Coordinator pattern - delegates to specialized components
+# Updated: Task 6 - SummonBannerCard with pity progress
 extends Control
 
-# Preload helper classes
-const SummonButtonFactory = preload("res://scripts/ui/summon/SummonButtonFactory.gd")
-const SummonShowcase = preload("res://scripts/ui/summon/SummonShowcase.gd")
+# Preload helper classes (prefixed to avoid class_name conflicts)
+const _SummonButtonFactory = preload("res://scripts/ui/summon/SummonButtonFactory.gd")
+const _SummonShowcaseClass = preload("res://scripts/ui/summon/SummonShowcase.gd")
+const _SummonBannerCardClass = preload("res://scripts/ui/summon/SummonBannerCard.gd")
 
 signal back_pressed
 
@@ -13,14 +15,8 @@ signal back_pressed
 @onready var showcase_content = $MainContainer/RightPanel/ShowcaseContainer/ShowcaseContent
 @onready var default_message = $MainContainer/RightPanel/ShowcaseContainer/ShowcaseContent/DefaultMessage
 
-# Summon buttons
-var basic_button: Button
-var premium_button: Button
-var element_button: Button
-var crystal_button: Button
-var daily_free_button: Button
-var basic_10x_button: Button
-var premium_10x_button: Button
+# Banner cards (new system with pity progress)
+var banner_cards: Array = []
 
 # Components (RULE 1 compliance - delegation)
 var showcase: SummonShowcase
@@ -28,6 +24,7 @@ var showcase: SummonShowcase
 # State
 var selected_element: int = 0
 var is_processing_summon: bool = false
+var cards_initialized: bool = false
 
 func _ready():
 	# Ensure fullscreen (needed when parent is Node2D)
@@ -44,12 +41,20 @@ func _ready():
 
 	# Initialize showcase component
 	if showcase_content is GridContainer:
-		showcase = SummonShowcase.new(showcase_content)
+		showcase = _SummonShowcaseClass.new(showcase_content)
 
 	# Connect back button
 	if back_button:
 		back_button.pressed.connect(_on_back_pressed)
 		_style_back_button()
+
+func _notification(what):
+	# When screen becomes visible, ensure cards are using new system
+	if what == NOTIFICATION_VISIBILITY_CHANGED and visible:
+		if not cards_initialized and summon_container:
+			_connect_summon_signals()
+			_create_summon_cards()
+			cards_initialized = true
 
 func _setup_fullscreen():
 	"""Make this control fill the entire viewport"""
@@ -84,6 +89,7 @@ func _style_back_button():
 
 	# Create summon cards
 	_create_summon_cards()
+	cards_initialized = true
 
 func _setup_showcase_grid():
 	if not showcase_content or showcase_content is GridContainer:
@@ -145,55 +151,82 @@ func _create_summon_cards():
 	if not summon_container is GridContainer:
 		_convert_summon_container_to_grid()
 
-	# Use SummonButtonFactory to create all buttons
-	basic_button = SummonButtonFactory.create_summon_card(
-		"BASIC SUMMON", "Common Soul Summon\nBetter than prayers!", "1 Common Soul", Color.CYAN)
-	basic_button.pressed.connect(_on_basic_summon_pressed)
-	SummonButtonFactory.add_special_effects(basic_button, Color.CYAN, "basic")
-	summon_container.add_child(basic_button)
+	# Clear any existing children (old buttons from previous code)
+	for child in summon_container.get_children():
+		child.queue_free()
 
-	basic_10x_button = SummonButtonFactory.create_summon_card(
-		"BASIC 10x SUMMON", "10 Gods Guaranteed\n1 Rare or Better!", "9 Common Souls\n(10% OFF!)", Color.CYAN)
-	basic_10x_button.pressed.connect(_on_basic_10x_summon_pressed)
-	SummonButtonFactory.add_special_effects(basic_10x_button, Color.CYAN, "basic")
-	summon_container.add_child(basic_10x_button)
+	banner_cards.clear()
 
-	premium_button = SummonButtonFactory.create_summon_card(
-		"PREMIUM SUMMON", "Premium Crystal Summon\nHigher Rates!", "50 Divine Crystals", Color.GOLD)
-	premium_button.pressed.connect(_on_premium_summon_pressed)
-	SummonButtonFactory.add_special_effects(premium_button, Color.GOLD, "premium")
-	summon_container.add_child(premium_button)
+	# Create banner cards with full pity progress display
+	var banners = _get_banner_configs()
+	for banner in banners:
+		var card = _SummonBannerCardClass.new()
+		card.configure(banner)
+		card.set_accent_color(banner.get("color", Color.WHITE))
+		card.single_summon_pressed.connect(_on_banner_single_summon.bind(banner))
+		card.multi_summon_pressed.connect(_on_banner_multi_summon.bind(banner))
+		summon_container.add_child(card)
+		banner_cards.append(card)
 
-	premium_10x_button = SummonButtonFactory.create_summon_card(
-		"PREMIUM 10x SUMMON", "10 Premium Gods\n1 Epic or Better!", "450 Divine Crystals\n(10% OFF!)", Color.GOLD)
-	premium_10x_button.pressed.connect(_on_premium_10x_summon_pressed)
-	SummonButtonFactory.add_special_effects(premium_10x_button, Color.GOLD, "premium")
-	summon_container.add_child(premium_10x_button)
+func _get_banner_configs() -> Array:
+	var summon_mgr = _get_summon_system()
+	var config = summon_mgr.get_config() if summon_mgr else {}
+	var rates_cfg = config.get("summon_configuration", {}).get("rates", {})
 
-	element_button = SummonButtonFactory.create_summon_card(
-		"ELEMENT SUMMON", "Element Soul Summon\nTargeted Element!", "1 Element Soul", Color.ORANGE_RED)
-	element_button.pressed.connect(_on_element_summon_pressed)
-	SummonButtonFactory.add_special_effects(element_button, Color.ORANGE_RED, "element")
-	summon_container.add_child(element_button)
-
-	crystal_button = SummonButtonFactory.create_summon_card(
-		"CRYSTAL SUMMON", "Premium Currency\nHigher Legendary Rates!", "100 Divine Crystals", Color.DEEP_PINK)
-	crystal_button.pressed.connect(_on_crystal_summon_pressed)
-	SummonButtonFactory.add_special_effects(crystal_button, Color.DEEP_PINK, "crystal")
-	summon_container.add_child(crystal_button)
-
-	daily_free_button = SummonButtonFactory.create_summon_card(
-		"DAILY FREE SUMMON", "One per day\nBasic rates, no cost!", "FREE!", Color.GREEN)
-	daily_free_button.pressed.connect(_on_daily_free_summon_pressed)
-	SummonButtonFactory.add_special_effects(daily_free_button, Color.GREEN, "daily_free")
-	summon_container.add_child(daily_free_button)
-
-	var focus_button = SummonButtonFactory.create_summon_card(
-		"ELEMENT FOCUS", "Choose your element\nfor targeted summons", "Select Below", Color.PURPLE)
-	focus_button.pressed.connect(_on_element_focus_pressed)
-	summon_container.add_child(focus_button)
-
-	_update_daily_free_availability()
+	return [
+		{
+			"id": "basic",
+			"title": "BASIC SUMMON",
+			"description": "Common Soul Summon\nStandard rates for all gods",
+			"banner_type": "default",
+			"single_cost": {"common_soul": 1},
+			"multi_cost": {"common_soul": 9},
+			"multi_count": 10,
+			"multi_discount": "10% OFF",
+			"rates": rates_cfg.get("soul_based_rates", {}).get("common_soul", {"common": 70, "rare": 25, "epic": 4.5, "legendary": 0.5}),
+			"color": Color.CYAN,
+			"summon_type": "common_soul"
+		},
+		{
+			"id": "premium",
+			"title": "PREMIUM SUMMON",
+			"description": "Divine Crystal Summon\nHigher legendary rates!",
+			"banner_type": "premium",
+			"single_cost": {"divine_crystals": 100},
+			"multi_cost": {"divine_crystals": 900},
+			"multi_count": 10,
+			"multi_discount": "10% OFF",
+			"rates": rates_cfg.get("premium_rates", {}).get("divine_crystals", {"common": 35, "rare": 40, "epic": 20, "legendary": 5}),
+			"color": Color.GOLD,
+			"summon_type": "divine_crystals"
+		},
+		{
+			"id": "element",
+			"title": "ELEMENT SUMMON",
+			"description": "Element Soul Summon\n3x weight for matching element",
+			"banner_type": "element",
+			"single_cost": {"fire_soul": 1},
+			"multi_cost": {"fire_soul": 9},
+			"multi_count": 10,
+			"multi_discount": "10% OFF",
+			"rates": rates_cfg.get("element_soul_rates", {}).get("fire_soul", {"common": 50, "rare": 35, "epic": 13, "legendary": 2}),
+			"color": Color.ORANGE_RED,
+			"summon_type": "fire_soul"
+		},
+		{
+			"id": "daily_free",
+			"title": "DAILY FREE",
+			"description": "One free summon per day\nBasic rates, no cost!",
+			"banner_type": "default",
+			"single_cost": {},
+			"multi_cost": {},
+			"multi_count": 0,
+			"rates": rates_cfg.get("soul_based_rates", {}).get("common_soul", {"common": 70, "rare": 25, "epic": 4.5, "legendary": 0.5}),
+			"color": Color.GREEN,
+			"summon_type": "daily_free",
+			"is_daily_free": true
+		}
+	]
 
 func _convert_summon_container_to_grid():
 	var parent = summon_container.get_parent()
@@ -205,9 +238,9 @@ func _convert_summon_container_to_grid():
 
 	var grid = GridContainer.new()
 	grid.name = "SummonContainer"
-	grid.columns = 3
-	grid.add_theme_constant_override("h_separation", 12)
-	grid.add_theme_constant_override("v_separation", 12)
+	grid.columns = 2  # 2 columns for larger banner cards with pity progress
+	grid.add_theme_constant_override("h_separation", 16)
+	grid.add_theme_constant_override("v_separation", 16)
 
 	var grid_style = StyleBoxFlat.new()
 	grid_style.bg_color = Color.BLACK
@@ -228,64 +261,55 @@ func _convert_summon_container_to_grid():
 	parent.move_child(grid, pos)
 	summon_container = grid
 
-## Button event handlers
+## Banner card event handlers
 
-func _on_basic_summon_pressed():
+func _on_banner_single_summon(_banner_data: Dictionary, banner: Dictionary):
 	var summon_system = _get_summon_system()
-	if summon_system:
-		_set_buttons_enabled(false)
-		is_processing_summon = true
-		var success = summon_system.summon_with_soul("common_soul")
-		if not success:
-			_set_buttons_enabled(true)
+	if not summon_system:
+		_show_error_message("Summon system not available")
+		return
+
+	_set_cards_enabled(false)
+	is_processing_summon = true
+
+	var success = false
+	if banner.get("is_daily_free", false):
+		success = summon_system.summon_free_daily()
+	elif banner.summon_type == "divine_crystals":
+		success = summon_system.summon_premium()
 	else:
-		_show_error_message("SummonSystem not available")
+		success = summon_system.summon_with_soul(banner.summon_type)
 
-func _on_premium_summon_pressed():
+	if not success:
+		_set_cards_enabled(true)
+
+func _on_banner_multi_summon(_banner_data: Dictionary, banner: Dictionary):
 	var summon_system = _get_summon_system()
-	if summon_system:
-		_set_buttons_enabled(false)
-		is_processing_summon = true
-		summon_system.summon_premium()
+	if not summon_system:
+		_show_error_message("Summon system not available")
+		return
 
-func _on_basic_10x_summon_pressed():
-	var summon_system = _get_summon_system()
-	if summon_system:
-		_set_buttons_enabled(false)
-		is_processing_summon = false
-		summon_system.summon_multi_with_soul("common_soul", 10)
+	if banner.multi_count <= 0:
+		_show_error_message("Multi-summon not available for this banner")
+		return
 
-func _on_premium_10x_summon_pressed():
-	var summon_system = _get_summon_system()
-	if summon_system:
-		_set_buttons_enabled(false)
-		is_processing_summon = false
-		summon_system.summon_multi_premium(10)
+	_set_cards_enabled(false)
+	is_processing_summon = false
 
-func _on_element_summon_pressed():
-	var summon_system = _get_summon_system()
-	if summon_system:
-		_set_buttons_enabled(false)
-		is_processing_summon = true
-		summon_system.summon_with_soul("element_soul")
+	var success = false
+	if banner.summon_type == "divine_crystals":
+		success = summon_system.multi_summon_premium(banner.multi_count)
+	elif summon_system.has_method("summon_multi_with_soul"):
+		success = summon_system.summon_multi_with_soul(banner.summon_type, banner.multi_count)
+	else:
+		# Fallback: perform multiple single summons
+		for i in range(banner.multi_count):
+			success = summon_system.summon_with_soul(banner.summon_type)
+			if not success:
+				break
 
-func _on_element_focus_pressed():
-	selected_element = (selected_element + 1) % 6
-	_show_error_message("Element focus changed to: " + God.element_to_string(selected_element))
-
-func _on_crystal_summon_pressed():
-	var summon_system = _get_summon_system()
-	if summon_system:
-		_set_buttons_enabled(false)
-		is_processing_summon = true
-		summon_system.summon_with_soul("divine_crystal")
-
-func _on_daily_free_summon_pressed():
-	var summon_system = _get_summon_system()
-	if summon_system:
-		_set_buttons_enabled(false)
-		is_processing_summon = true
-		summon_system.summon_free_daily()
+	if not success:
+		_set_cards_enabled(true)
 
 func _on_back_pressed():
 	back_pressed.emit()
@@ -298,7 +322,8 @@ func _on_god_summoned(god):
 		if default_message:
 			default_message.visible = false
 		showcase.show_god(god, is_processing_summon)
-	_set_buttons_enabled(true)
+	_set_cards_enabled(true)
+	_refresh_all_cards()
 
 func _on_multi_summon_completed(gods: Array):
 	if showcase:
@@ -307,11 +332,13 @@ func _on_multi_summon_completed(gods: Array):
 			default_message.visible = false
 		for god in gods:
 			showcase.show_god(god, false)
-	_set_buttons_enabled(true)
+	_set_cards_enabled(true)
+	_refresh_all_cards()
 
 func _on_summon_failed(reason):
 	_show_error_message(reason)
-	_set_buttons_enabled(true)
+	_set_cards_enabled(true)
+	_refresh_all_cards()
 
 func _on_duplicate_obtained(_god, _existing_count: int):
 	pass
@@ -321,21 +348,12 @@ func _on_duplicate_obtained(_god, _existing_count: int):
 func _get_summon_system():
 	return SystemRegistry.get_instance().get_system("SummonManager") if SystemRegistry.get_instance() else null
 
-func _set_buttons_enabled(enabled: bool):
-	if basic_button:
-		basic_button.disabled = not enabled
-	if premium_button:
-		premium_button.disabled = not enabled
-	if element_button:
-		element_button.disabled = not enabled
-	if crystal_button:
-		crystal_button.disabled = not enabled
-	if daily_free_button and enabled:
-		_update_daily_free_availability()
-	if basic_10x_button:
-		basic_10x_button.disabled = not enabled
-	if premium_10x_button:
-		premium_10x_button.disabled = not enabled
+func _set_cards_enabled(enabled: bool):
+	for card in banner_cards:
+		if card and card.has_method("refresh"):
+			if enabled:
+				card.refresh()
+			# Cards handle their own disabled state based on resources
 
 func _show_error_message(message: String):
 	if not default_message:
@@ -358,12 +376,7 @@ func _clear_showcase_invisible_nodes():
 	if showcase:
 		showcase.clear_invisible_nodes()
 
-func _update_daily_free_availability():
-	if not daily_free_button:
-		return
-
-	var summon_system = _get_summon_system()
-	if summon_system and summon_system.has_method("can_use_daily_free"):
-		daily_free_button.disabled = not summon_system.can_use_daily_free()
-	else:
-		daily_free_button.disabled = false
+func _refresh_all_cards():
+	for card in banner_cards:
+		if card and card.has_method("refresh"):
+			card.refresh()
