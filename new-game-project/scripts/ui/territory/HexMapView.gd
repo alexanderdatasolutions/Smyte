@@ -40,8 +40,8 @@ var selected_node: HexNode = null
 const HEX_WIDTH: float = 80.0  # Hex tile width
 const HEX_HEIGHT: float = 92.0  # Hex tile height
 const HEX_HORIZONTAL_SPACING: float = 90.0  # Horizontal distance between hex centers (increased to prevent overlap)
-const HEX_VERTICAL_SPACING: float = 80.0  # Vertical distance between hex centers (increased to prevent overlap)
-const HEX_VERTICAL_OFFSET: float = 40.0  # Vertical offset for odd columns
+const HEX_VERTICAL_SPACING: float = 100.0  # Vertical distance between hex centers (increased padding)
+const HEX_VERTICAL_OFFSET: float = 50.0  # Vertical offset for odd columns (increased for better spacing)
 
 # Zoom limits
 const MIN_ZOOM: float = 0.5
