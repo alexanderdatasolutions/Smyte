@@ -385,7 +385,7 @@
       "scripts/ui/screens/DungeonScreen.gd",
       "scripts/ui/dungeon/DungeonInfoDisplay.gd"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "UI-005",

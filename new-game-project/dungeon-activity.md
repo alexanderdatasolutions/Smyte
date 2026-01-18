@@ -2,9 +2,9 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 11
+**Tasks Completed:** 12
 **Current Phase:** Build
-**Current Task:** UI-003 completed
+**Current Task:** UI-004 completed
 
 ---
 
@@ -425,5 +425,44 @@ This log tracks Ralph working through the dungeon system implementation.
 - ✅ Rewards appear sequentially (100ms delay each via tween_interval)
 - ✅ Rare drops have distinct visual treatment (glow effect via `_apply_glow_effect`)
 - ✅ First-clear bonus shows as "🏆 FIRST CLEAR BONUS! 🏆" header with gold styling
+
+---
+
+### 2026-01-17 - UI-004: Add wave count and first-clear indicator to DungeonScreen
+
+**What was changed:**
+- Updated `update_difficulty_buttons()` to accept optional `dungeon_manager` parameter
+- Added checkmark prefix ("✓") to difficulty button text for cleared difficulties
+- Desaturated color styling for completed difficulty buttons (grayed out slightly)
+- Updated `_add_dungeon_stats()` to accept dungeon_id, difficulty, and dungeon_manager parameters
+- Added "⭐ FIRST CLEAR BONUS! ⭐" golden banner for uncleared difficulties
+- Added "🌊 Waves: X" stat row showing wave count from battle configuration
+- Added "📅 Today: X/10 runs" stat row showing daily completion progress
+- Updated `update_rewards_display()` call to pass new parameters to `_add_dungeon_stats()`
+- Updated `DungeonScreen._show_dungeon_info()` to pass `dungeon_manager` to `update_difficulty_buttons()`
+
+**Files modified:**
+- `scripts/ui/dungeon/DungeonInfoDisplay.gd` - Added wave count, first-clear badge, daily progress, completion styling
+- `scripts/ui/screens/DungeonScreen.gd` - Updated to pass dungeon_manager to InfoDisplay functions
+
+**Verification:**
+- Ran game and navigated to Dungeon screen
+- Selected Fire Sanctum (Elemental tab)
+- Info panel shows:
+  - "⭐ FIRST CLEAR BONUS! ⭐" in golden text (since beginner not cleared)
+  - "🌊 Waves: 3" displaying correct wave count
+  - "📅 Today: 0/10 runs" showing daily progress
+  - All difficulty levels shown without checkmarks (none cleared yet)
+- Console output shows no errors
+
+**Screenshots:**
+- `ui004_dungeon_screen.png` - Dungeon selection screen
+- `ui004_dungeon_info_panel.png` - Dungeon info panel with all new indicators
+
+**Acceptance Criteria Met:**
+- ✅ Player can see wave count before entering dungeon ("🌊 Waves: 3" in Dungeon Details)
+- ✅ Uncleared dungeons show first-clear indicator ("⭐ FIRST CLEAR BONUS! ⭐" banner)
+- ✅ Daily progress visible ("📅 Today: 0/10 runs" showing remaining completions)
+- ✅ Completed difficulties will show checkmark prefix and grayed styling (tested logic, awaiting actual clears)
 
 ---

@@ -12,7 +12,8 @@ static func update_difficulty_buttons(
 	container: Node,
 	dungeon_info: Dictionary,
 	selected_difficulty: String,
-	on_difficulty_selected: Callable
+	on_difficulty_selected: Callable,
+	dungeon_manager: Node = null
 ):
 	"""Update difficulty selection buttons with organized layout"""
 	if not container:
@@ -24,16 +25,26 @@ static func update_difficulty_buttons(
 
 	var difficulties = dungeon_info.get("difficulty_levels", {})
 	var button_group = ButtonGroup.new()
+	var dungeon_id = dungeon_info.get("id", "")
 
 	# Create a more compact layout
 	for difficulty in difficulties.keys():
 		var button = Button.new()
 		var difficulty_info = difficulties[difficulty]
 
+		# Check if this difficulty has been cleared
+		var is_cleared = false
+		if dungeon_manager and dungeon_manager.has_method("is_first_clear"):
+			is_cleared = not dungeon_manager.is_first_clear(dungeon_id, difficulty)
+
 		# Create more compact button text
 		var button_text = difficulty.capitalize()
 		var enemy_power = difficulty_info.get("enemy_power", 0)
 		var energy_cost = difficulty_info.get("energy_cost", 0)
+
+		# Add checkmark for completed difficulties
+		if is_cleared:
+			button_text = "✓ " + button_text
 
 		if enemy_power > 0:
 			button_text += "\n⚔%s • ⚡%d" % [_format_power(enemy_power), energy_cost]
@@ -44,9 +55,13 @@ static func update_difficulty_buttons(
 		button.custom_minimum_size = Vector2(100, 55)  # More compact
 		button.add_theme_font_size_override("font_size", 14)  # Add mobile-friendly font size
 
-		# Apply difficulty color
+		# Apply difficulty color - gray out completed difficulties slightly
 		var difficulty_color = difficulty_info.get("difficulty_color", Color.WHITE)
-		button.modulate = difficulty_color.lerp(Color.WHITE, 0.7)  # Lighter tint
+		if is_cleared:
+			# Desaturate completed difficulties
+			button.modulate = difficulty_color.lerp(Color(0.6, 0.6, 0.6), 0.4)
+		else:
+			button.modulate = difficulty_color.lerp(Color.WHITE, 0.7)  # Lighter tint
 
 		# Set default selection
 		if difficulty == selected_difficulty:
@@ -84,8 +99,8 @@ static func update_rewards_display(
 	var info_container = VBoxContainer.new()
 	container.add_child(info_container)
 
-	# Add dungeon stats section
-	_add_dungeon_stats(info_container, difficulty_info)
+	# Add dungeon stats section (with wave count, first-clear indicator, daily progress)
+	_add_dungeon_stats(info_container, difficulty_info, dungeon_id, difficulty, dungeon_manager)
 
 	# Add enemy information section
 	_add_enemy_info(info_container, dungeon_info, dungeon_manager)
@@ -93,11 +108,17 @@ static func update_rewards_display(
 	# Add rewards section
 	_add_rewards_section(info_container, dungeon_id, difficulty, dungeon_manager, loot_system)
 
-static func _add_dungeon_stats(container: Node, difficulty_info: Dictionary):
+static func _add_dungeon_stats(
+	container: Node,
+	difficulty_info: Dictionary,
+	dungeon_id: String = "",
+	difficulty: String = "",
+	dungeon_manager: Node = null
+):
 	"""Add dungeon statistics information in a organized card layout"""
 	# Create a styled panel for stats
 	var stats_panel = Panel.new()
-	stats_panel.custom_minimum_size = Vector2(0, 120)
+	stats_panel.custom_minimum_size = Vector2(0, 150)  # Slightly taller for new info
 	container.add_child(stats_panel)
 
 	var stats_container = VBoxContainer.new()
@@ -113,6 +134,20 @@ static func _add_dungeon_stats(container: Node, difficulty_info: Dictionary):
 	stats_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	stats_container.add_child(stats_title)
 
+	# Check for first-clear bonus
+	var is_first_clear = true
+	if dungeon_manager and dungeon_manager.has_method("is_first_clear") and not dungeon_id.is_empty() and not difficulty.is_empty():
+		is_first_clear = dungeon_manager.is_first_clear(dungeon_id, difficulty)
+
+	# Show First Clear Bonus banner if not yet cleared
+	if is_first_clear:
+		var first_clear_label = Label.new()
+		first_clear_label.text = "⭐ FIRST CLEAR BONUS! ⭐"
+		first_clear_label.add_theme_font_size_override("font_size", 16)
+		first_clear_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0))  # Golden
+		first_clear_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		stats_container.add_child(first_clear_label)
+
 	# Stats in a more organized grid
 	var stats_grid = GridContainer.new()
 	stats_grid.columns = 2
@@ -125,9 +160,24 @@ static func _add_dungeon_stats(container: Node, difficulty_info: Dictionary):
 	var recommended_team_power = difficulty_info.get("recommended_team_power", 0)
 	var boss_power = difficulty_info.get("boss_power", 0)
 
-	# Add stat pairs
+	# Get wave count from dungeon manager
+	var wave_count = 3  # Default
+	if dungeon_manager and dungeon_manager.has_method("get_battle_configuration") and not dungeon_id.is_empty() and not difficulty.is_empty():
+		var battle_config = dungeon_manager.get_battle_configuration(dungeon_id, difficulty)
+		wave_count = battle_config.get("wave_count", 3)
+
+	# Get daily completion info
+	var daily_count = 0
+	var daily_limit = 10
+	if dungeon_manager and dungeon_manager.has_method("get_daily_completion_count") and not dungeon_id.is_empty():
+		daily_count = dungeon_manager.get_daily_completion_count(dungeon_id)
+		daily_limit = dungeon_manager.get_daily_limit(dungeon_id)
+
+	# Add stat pairs including new wave and daily info
 	_add_stat_pair(stats_grid, "⚡ Energy:", str(energy_cost))
+	_add_stat_pair(stats_grid, "🌊 Waves:", str(wave_count))
 	_add_stat_pair(stats_grid, "⚔ Enemy Power:", _format_power(enemy_power))
+	_add_stat_pair(stats_grid, "📅 Today:", "%d/%d runs" % [daily_count, daily_limit])
 	_add_stat_pair(stats_grid, "🛡 Recommended:", _format_power(recommended_team_power))
 	_add_stat_pair(stats_grid, "👑 Boss Power:", _format_power(boss_power))
 

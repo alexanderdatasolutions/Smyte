@@ -246,12 +246,13 @@ func _show_dungeon_info(dungeon_id: String):
 		dungeon_description.custom_minimum_size = Vector2(0, 40)
 		dungeon_description.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
-	# Create difficulty buttons using InfoDisplay
+	# Create difficulty buttons using InfoDisplay (with completion status)
 	InfoDisplay.update_difficulty_buttons(
 		difficulty_buttons,
 		dungeon_info,
 		selected_difficulty,
-		_on_difficulty_selected
+		_on_difficulty_selected,
+		dungeon_manager
 	)
 
 	# Update rewards display using InfoDisplay
