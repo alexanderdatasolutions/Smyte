@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 1/16
-**Current Task:** Task 2 - Create SummonManager system
+**Tasks Completed:** 2/16
+**Current Task:** Task 3 - Implement rarity roll algorithm with pity (already implemented in Task 2)
 
 ---
 
@@ -39,6 +39,46 @@
 - Project runs without JSON parsing errors
 - Game loads to WorldView screen correctly
 - Screenshot: `screenshots/summon-task1-audit.png`
+
+**Errors encountered:** None
+
+---
+
+### 2026-01-17 - Task 2: Create SummonManager system ✅
+
+**What was done:**
+- Enhanced existing `SummonManager.gd` to load rates from `summon_config.json` via ConfigurationManager
+- Added `get_summon_config()` method to ConfigurationManager for accessing summon configuration
+- Implemented per-banner pity tracking with separate counters for `default`, `premium`, and `element` banners
+- Added comprehensive summon history tracking (stores last 100 summons with full metadata)
+- Implemented milestone reward system that awards bonuses at 10/50/100/500 summons
+- Added new signals: `pity_milestone_reached`, `summon_history_updated`
+- Implemented config-driven rate lookup for all summon types (soul-based, element, premium)
+- Added element filtering with weighted selection for element soul summons
+- Enhanced save/load with pity counters, history, total summons, and claimed milestones
+- Integrated SummonManager with SaveManager for automatic persistence
+
+**Files modified:**
+- `scripts/systems/collection/SummonManager.gd` - Complete enhancement (425 lines, under 500 limit)
+- `scripts/systems/core/ConfigurationManager.gd` - Added summon config loading
+- `scripts/systems/core/SaveManager.gd` - Added SummonManager save/load integration
+
+**Key features implemented:**
+- `summon_basic()` - Mana-based summon using config rates
+- `summon_premium()` - Divine crystals summon with premium rates
+- `summon_free_daily()` - Free daily summon with date tracking
+- `summon_with_soul(soul_type)` - Soul-based summon with proper rate lookup
+- `summon_with_element_soul(element)` - Element-weighted summon
+- `multi_summon_premium(count)` - 10-pull with guaranteed rare
+- `get_pity_counter(banner_type, rarity)` - Query pity progress
+- `get_summon_history()` - Retrieve summon history
+- `get_rarity_stats()` - Get rarity distribution from history
+
+**Verified with Godot MCP:**
+- Project runs without errors
+- Game loads to WorldView screen correctly
+- No SummonManager-related errors in console
+- Screenshot: `screenshots/summon-task2-manager.png`
 
 **Errors encountered:** None
 

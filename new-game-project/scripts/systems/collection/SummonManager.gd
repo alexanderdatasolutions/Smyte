@@ -1,336 +1,391 @@
 # scripts/systems/collection/SummonManager.gd
-# RULE 1 COMPLIANCE: Under 500-line limit
-# RULE 2 COMPLIANCE: Single responsibility - summoning system only
-# RULE 5 COMPLIANCE: SystemRegistry access only
+# RULE 1 COMPLIANCE: Under 500-line limit | RULE 2: Single responsibility | RULE 5: SystemRegistry only
 extends Node
 class_name SummonManager
-
-# Summoning system following clean architecture - uses SystemRegistry for all operations
-# NO JSON loading - uses existing systems through SystemRegistry
 
 signal summon_completed(god)
 signal summon_failed(reason)
 signal multi_summon_completed(gods)
+signal pity_milestone_reached(pity_type: String, count: int)
+signal summon_history_updated(history_entry: Dictionary)
 
-# Pity counters for guaranteed drops
-var pity_counter = {
-	"rare": 0,
-	"epic": 0, 
-	"legendary": 0
+# Pity counters per banner type for guaranteed drops
+var pity_counters: Dictionary = {
+	"default": {"rare": 0, "epic": 0, "legendary": 0},
+	"premium": {"rare": 0, "epic": 0, "legendary": 0},
+	"element": {"rare": 0, "epic": 0, "legendary": 0}
 }
-
-# Daily/Weekly tracking
-var last_free_summon_date = ""
-var daily_free_used = false
-var last_weekly_premium_date = ""
-var weekly_premium_used = false
+var last_free_summon_date: String = ""
+var daily_free_used: bool = false
+var last_weekly_premium_date: String = ""
+var weekly_premium_used: bool = false
+var summon_history: Array = []  # Last 100 summons
+var total_summons: int = 0
+var claimed_milestones: Array = []
+var _summon_config: Dictionary = {}
+const MAX_HISTORY_SIZE: int = 100
 
 func _ready():
-	pass
+	_load_config()
+
+func _load_config():
+	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager") if SystemRegistry.get_instance() else null
+	if config_manager:
+		_summon_config = config_manager.get_summon_config()
+
+func get_config() -> Dictionary:
+	if _summon_config.is_empty():
+		_load_config()
+	return _summon_config
 
 # ==============================================================================
-# MAIN SUMMON FUNCTIONS - Using SystemRegistry Pattern
+# MAIN SUMMON FUNCTIONS
 # ==============================================================================
 
 func summon_basic() -> bool:
-	"""Basic summon using mana"""
-	var cost = {"mana": 1000}
-	return _perform_summon(cost, "basic")
+	var config = get_config()
+	var cost = {"mana": 10000}
+	if config.has("summon_configuration"):
+		var costs = config.summon_configuration.get("costs", {}).get("premium_summons", {})
+		if costs.has("mana_summon"):
+			cost = costs.mana_summon
+	return _perform_summon(cost, "mana", "default")
 
 func summon_premium() -> bool:
-	"""Premium summon using crystals"""
-	var cost = {"crystals": 100}
-	return _perform_summon(cost, "premium")
+	var config = get_config()
+	var cost = {"divine_crystals": 100}
+	if config.has("summon_configuration"):
+		var costs = config.summon_configuration.get("costs", {}).get("premium_summons", {})
+		if costs.has("divine_crystals_summon"):
+			cost = costs.divine_crystals_summon
+	return _perform_summon(cost, "divine_crystals", "premium")
 
 func summon_free_daily() -> bool:
-	"""Free daily summon"""
 	if not can_use_daily_free_summon():
 		summon_failed.emit("Daily free summon already used")
 		return false
-	
 	daily_free_used = true
 	last_free_summon_date = Time.get_date_string_from_system()
-	
-	return _perform_summon({}, "free_daily")
+	return _perform_summon({}, "common_soul", "default")
 
 func summon_with_soul(soul_type: String) -> bool:
-	"""Summon using souls"""
-	var cost = {}
-	cost[soul_type] = 1
-	return _perform_summon(cost, "soul_based")
+	var cost = {soul_type: 1}
+	var banner_type = "element" if soul_type.ends_with("_soul") and not soul_type.begins_with("common") and not soul_type.begins_with("rare") and not soul_type.begins_with("epic") and not soul_type.begins_with("legendary") else "default"
+	return _perform_summon(cost, soul_type, banner_type)
+
+func summon_with_element_soul(element: String) -> bool:
+	var soul_type = element + "_soul"
+	return _perform_summon({soul_type: 1}, soul_type, "element", element)
 
 # ==============================================================================
-# CORE SUMMON LOGIC - SystemRegistry Pattern
+# CORE SUMMON LOGIC
 # ==============================================================================
 
-func _perform_summon(cost: Dictionary, summon_type: String) -> bool:
-	"""Core summon logic using SystemRegistry systems"""
-	
-	# Check affordability using ResourceManager
+func _perform_summon(cost: Dictionary, summon_type: String, banner_type: String, element_filter: String = "") -> bool:
 	if not _can_afford_cost(cost):
 		summon_failed.emit("Cannot afford summon cost")
 		return false
-	
-	# Spend resources using ResourceManager
 	_spend_cost(cost)
-	
-	# Get random god using CollectionManager
-	var god = _get_random_god(summon_type)
+
+	var god = _get_random_god(summon_type, banner_type, element_filter)
 	if not god:
 		summon_failed.emit("Failed to generate god")
 		return false
-	
-	# Add to collection using CollectionManager
+
 	_add_god_to_collection(god)
-	
-	# Update pity counters
-	_update_pity_counters(God.tier_to_string(god.tier).to_lower())
-	
+	var tier_string = God.tier_to_string(god.tier).to_lower()
+	_update_pity_counters(tier_string, banner_type)
+	total_summons += 1
+	_check_milestone_rewards()
+	_add_to_history(god, summon_type, cost)
 	summon_completed.emit(god)
 	return true
 
-# ==============================================================================
-# RESOURCE MANAGEMENT - Uses ResourceManager through SystemRegistry
-# ==============================================================================
-
 func _can_afford_cost(cost: Dictionary) -> bool:
-	"""Check if player can afford cost using ResourceManager"""
+	if cost.is_empty():
+		return true
 	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
 	if not resource_manager:
-		push_error("SummonSystem: ResourceManager not available")
+		push_error("SummonManager: ResourceManager not available")
 		return false
-	
 	for currency in cost:
-		var required = cost[currency]
-		if resource_manager.get_resource(currency) < required:
+		if resource_manager.get_resource(currency) < cost[currency]:
 			return false
-	
 	return true
 
 func _spend_cost(cost: Dictionary):
-	"""Spend resources for summon using ResourceManager"""
+	if cost.is_empty():
+		return
 	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
 	if not resource_manager:
-		push_error("SummonSystem: ResourceManager not available")
 		return
-	
 	for currency in cost:
-		var amount = cost[currency]
-		resource_manager.spend(currency, amount)
+		resource_manager.spend(currency, cost[currency])
 
 # ==============================================================================
-# GOD GENERATION - Uses CollectionManager through SystemRegistry
+# GOD GENERATION
 # ==============================================================================
 
-func _get_random_god(summon_type: String) -> God:
-	"""Generate random god based on summon type"""
-	
-	# Get rates for this summon type
+func _get_random_god(summon_type: String, banner_type: String, element_filter: String = "") -> God:
 	var rates = _get_summon_rates(summon_type)
-	
-	# Apply pity system
-	rates = _apply_pity_system(rates)
-	
-	# Randomly select tier
+	rates = _apply_pity_system(rates, banner_type)
 	var tier = _get_random_tier(rates)
-	
-	# Create god of that tier
-	return _create_god_of_tier(tier)
+	return _create_god_of_tier(tier, element_filter)
 
 func _get_summon_rates(summon_type: String) -> Dictionary:
-	"""Get base summon rates for different types"""
-	match summon_type:
-		"basic":
-			return {"common": 70.0, "rare": 25.0, "epic": 4.5, "legendary": 0.5}
-		"premium":
-			return {"common": 50.0, "rare": 35.0, "epic": 12.0, "legendary": 3.0}
-		"free_daily":
-			return {"common": 80.0, "rare": 18.0, "epic": 2.0, "legendary": 0.0}
-		"soul_based":
-			return {"common": 60.0, "rare": 30.0, "epic": 8.0, "legendary": 2.0}
-		_:
-			return {"common": 85.0, "rare": 13.0, "epic": 2.0, "legendary": 0.0}
+	var config = get_config()
+	var default_rates = {"common": 70.0, "rare": 25.0, "epic": 4.5, "legendary": 0.5}
+	if not config.has("summon_configuration"):
+		return default_rates
+	var rates_section = config.summon_configuration.get("rates", {})
+	# Check all rate categories
+	for category in ["soul_based_rates", "element_soul_rates", "premium_rates"]:
+		var category_rates = rates_section.get(category, {})
+		if category_rates.has(summon_type):
+			return category_rates[summon_type]
+	return default_rates
 
-func _apply_pity_system(rates: Dictionary) -> Dictionary:
-	"""Apply pity system modifications to rates"""
+func _apply_pity_system(rates: Dictionary, banner_type: String) -> Dictionary:
 	var modified_rates = rates.duplicate()
-	
-	# Hard pity - guarantee legendary at 100 summons
-	if pity_counter.legendary >= 100:
+	var config = get_config()
+	var pity_config = config.get("summon_configuration", {}).get("pity_system", {})
+	if not pity_config.get("enabled", true):
+		return modified_rates
+
+	if not pity_counters.has(banner_type):
+		pity_counters[banner_type] = {"rare": 0, "epic": 0, "legendary": 0}
+	var counters = pity_counters[banner_type]
+	var thresholds = pity_config.get("thresholds", {"rare": 10, "epic": 50, "legendary": 100})
+
+	# Hard pity checks
+	if counters.legendary >= thresholds.get("legendary", 100):
+		pity_milestone_reached.emit("legendary_hard_pity", counters.legendary)
 		return {"legendary": 100.0, "epic": 0.0, "rare": 0.0, "common": 0.0}
-	
-	# Hard pity - guarantee epic at 50 summons
-	if pity_counter.epic >= 50:
-		var legendary_rate = modified_rates.get("legendary", 0.0)
-		return {"legendary": legendary_rate, "epic": 100.0 - legendary_rate, "rare": 0.0, "common": 0.0}
-	
-	# Soft pity - increase rates gradually
-	if pity_counter.legendary >= 75:
-		var bonus = (pity_counter.legendary - 75) * 0.5
-		modified_rates.legendary = min(modified_rates.get("legendary", 0.0) + bonus, 50.0)
-	
-	if pity_counter.epic >= 35:
-		var bonus = (pity_counter.epic - 35) * 1.0
-		modified_rates.epic = min(modified_rates.get("epic", 0.0) + bonus, 50.0)
-	
+	if counters.epic >= thresholds.get("epic", 50):
+		pity_milestone_reached.emit("epic_hard_pity", counters.epic)
+		return {"legendary": modified_rates.get("legendary", 0.0), "epic": 100.0 - modified_rates.get("legendary", 0.0), "rare": 0.0, "common": 0.0}
+
+	# Soft pity
+	var soft_pity = pity_config.get("soft_pity", {})
+	if soft_pity.get("enabled", true):
+		var leg_soft = soft_pity.get("legendary", {"starts_at": 75, "rate_increase_per_summon": 0.5})
+		if counters.legendary >= leg_soft.get("starts_at", 75):
+			modified_rates.legendary = min(modified_rates.get("legendary", 0.0) + (counters.legendary - leg_soft.starts_at) * leg_soft.rate_increase_per_summon, 50.0)
+		var epic_soft = soft_pity.get("epic", {"starts_at": 35, "rate_increase_per_summon": 1.0})
+		if counters.epic >= epic_soft.get("starts_at", 35):
+			modified_rates.epic = min(modified_rates.get("epic", 0.0) + (counters.epic - epic_soft.starts_at) * epic_soft.rate_increase_per_summon, 50.0)
 	return modified_rates
 
 func _get_random_tier(rates: Dictionary) -> String:
-	"""Randomly select tier based on rates"""
 	var random_value = randf() * 100.0
 	var cumulative = 0.0
-	
 	for tier in ["legendary", "epic", "rare", "common"]:
 		cumulative += rates.get(tier, 0.0)
 		if random_value <= cumulative:
 			return tier
-	
-	return "common"  # Fallback
+	return "common"
 
-func _create_god_of_tier(tier: String) -> God:
-	"""Create a random god of specified tier using real god data"""
-	# Get all available gods from configuration
+func _create_god_of_tier(tier: String, element_filter: String = "") -> God:
 	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager") if SystemRegistry.get_instance() else null
 	if not config_manager:
-		push_error("SummonSystem: ConfigurationManager not available")
 		return null
-	
 	var gods_config = config_manager.get_gods_config()
 	if not gods_config.has("gods"):
-		push_error("SummonSystem: No gods data found in configuration")
 		return null
-	
-	# Convert tier string to number for comparison
-	var tier_number = _tier_string_to_number(tier)
+
+	var tier_number = {"common": 1, "rare": 2, "epic": 3, "legendary": 4}.get(tier.to_lower(), -1)
 	if tier_number == -1:
-		push_error("SummonSystem: Invalid tier: " + tier)
 		return null
-	
-	# Filter gods by tier
+
+	# Get filtering weights from config
+	var summon_cfg = get_config()
+	var element_weight = 3.0
+	var other_weight = 1.0
+	if summon_cfg.has("summon_configuration"):
+		var weights = summon_cfg.summon_configuration.get("filtering_weights", {}).get("element_focus", {})
+		element_weight = weights.get("matching_element_weight", 3.0)
+		other_weight = weights.get("other_elements_weight", 1.0)
+
+	# Build weighted pool
 	var available_gods = []
 	for god_id in gods_config.gods:
 		var god_data = gods_config.gods[god_id]
 		if god_data.get("tier", 1) == tier_number:
-			available_gods.append(god_id)
-	
-	if available_gods.is_empty():
-		push_error("SummonSystem: No gods found for tier: " + tier)
-		# Fallback to creating a simple god
-		var fallback_god = God.new()
-		fallback_god.name = "Random " + tier.capitalize() + " God"
-		fallback_god.tier = GodFactory.string_to_tier(tier)
-		fallback_god.level = 1
-		return fallback_god
-	
-	# Randomly select a god from available gods
-	var random_god_id = available_gods[randi() % available_gods.size()]
-	
-	# Create god using GodFactory
-	var god = GodFactory.create_from_json(random_god_id)
-	if not god:
-		push_error("SummonSystem: Failed to create god with id: " + random_god_id)
-		return null
-	
-	return god
+			var weight = god_data.get("summon_weight", 1.0)
+			if not element_filter.is_empty():
+				var god_element = _get_element_string(god_data.get("element", 0))
+				weight *= element_weight if god_element == element_filter else other_weight
+			for i in range(max(1, int(weight))):
+				available_gods.append(god_id)
 
-func _tier_string_to_number(tier: String) -> int:
-	"""Convert tier string to number for configuration matching"""
-	match tier.to_lower():
-		"common":
-			return 1
-		"rare":
-			return 2
-		"epic":
-			return 3
-		"legendary":
-			return 4
-		_:
-			return -1
+	if available_gods.is_empty():
+		var fallback = God.new()
+		fallback.name = "Random " + tier.capitalize() + " God"
+		fallback.tier = GodFactory.string_to_tier(tier)
+		fallback.level = 1
+		return fallback
+
+	return GodFactory.create_from_json(available_gods[randi() % available_gods.size()])
+
+func _get_element_string(element_value) -> String:
+	if element_value is int or element_value is float:
+		return ["fire", "water", "earth", "lightning", "light", "dark"][clampi(int(element_value), 0, 5)]
+	return "fire"
 
 func _add_god_to_collection(god: God):
-	"""Add god to player collection using CollectionManager"""
 	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager") if SystemRegistry.get_instance() else null
-	if not collection_manager:
-		push_error("SummonSystem: CollectionManager not available")
-		return
-	
-	collection_manager.add_god(god)
+	if collection_manager:
+		collection_manager.add_god(god)
 
 # ==============================================================================
 # PITY SYSTEM
 # ==============================================================================
 
-func _update_pity_counters(tier: String):
-	"""Update pity counters after summon"""
+func _update_pity_counters(tier: String, banner_type: String):
+	if not pity_counters.has(banner_type):
+		pity_counters[banner_type] = {"rare": 0, "epic": 0, "legendary": 0}
+	var counters = pity_counters[banner_type]
 	match tier:
 		"legendary":
-			pity_counter.legendary = 0
-			pity_counter.epic = 0
-			pity_counter.rare = 0
+			counters.legendary = 0
+			counters.epic = 0
+			counters.rare = 0
 		"epic":
-			pity_counter.epic = 0
-			pity_counter.rare = 0
-			pity_counter.legendary += 1
+			counters.epic = 0
+			counters.rare = 0
+			counters.legendary += 1
 		"rare":
-			pity_counter.rare = 0
-			pity_counter.legendary += 1
-			pity_counter.epic += 1
+			counters.rare = 0
+			counters.legendary += 1
+			counters.epic += 1
 		"common":
-			pity_counter.legendary += 1
-			pity_counter.epic += 1
-			pity_counter.rare += 1
+			counters.legendary += 1
+			counters.epic += 1
+			counters.rare += 1
+	pity_counters[banner_type] = counters
+
+func get_pity_counter(banner_type: String, rarity: String) -> int:
+	if not pity_counters.has(banner_type):
+		return 0
+	return pity_counters[banner_type].get(rarity, 0)
+
+# ==============================================================================
+# SUMMON HISTORY
+# ==============================================================================
+
+func _add_to_history(god: God, summon_type: String, cost: Dictionary):
+	var entry = {
+		"god_id": god.id, "god_name": god.name,
+		"tier": God.tier_to_string(god.tier), "element": GodFactory.element_to_string(god.element),
+		"summon_type": summon_type, "cost": cost.duplicate(),
+		"timestamp": Time.get_unix_time_from_system(), "date": Time.get_date_string_from_system()
+	}
+	summon_history.insert(0, entry)
+	if summon_history.size() > MAX_HISTORY_SIZE:
+		summon_history.resize(MAX_HISTORY_SIZE)
+	summon_history_updated.emit(entry)
+
+func get_summon_history() -> Array:
+	return summon_history.duplicate()
+
+func get_rarity_stats() -> Dictionary:
+	var stats = {"common": 0, "rare": 0, "epic": 0, "legendary": 0}
+	for entry in summon_history:
+		var tier = entry.get("tier", "common").to_lower()
+		if stats.has(tier):
+			stats[tier] += 1
+	return stats
+
+# ==============================================================================
+# MILESTONE REWARDS
+# ==============================================================================
+
+func _check_milestone_rewards():
+	var config = get_config()
+	if not config.has("progression_tracking"):
+		return
+	var milestones = config.progression_tracking.get("milestones", {})
+	for key in milestones:
+		if key in claimed_milestones:
+			continue
+		var parts = key.split("_")
+		if parts.size() > 0 and total_summons >= int(parts[0]):
+			_award_milestone(key, milestones[key])
+
+func _award_milestone(key: String, data: Dictionary):
+	var reward = data.get("reward", {})
+	if reward.is_empty():
+		return
+	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
+	if resource_manager:
+		for resource_id in reward:
+			resource_manager.add_resource(resource_id, reward[resource_id])
+	claimed_milestones.append(key)
 
 # ==============================================================================
 # SPECIAL SUMMON AVAILABILITY
 # ==============================================================================
 
 func can_use_daily_free_summon() -> bool:
-	var current_date = Time.get_date_string_from_system()
-	return last_free_summon_date != current_date
+	return last_free_summon_date != Time.get_date_string_from_system()
 
 func can_use_weekly_premium_summon() -> bool:
 	if last_weekly_premium_date.is_empty():
 		return true
-	
-	# Simple date comparison - check if a week has passed
-	var last_date_parts = last_weekly_premium_date.split("-")
-	var current_date_parts = Time.get_date_string_from_system().split("-")
-	
-	if last_date_parts.size() != 3 or current_date_parts.size() != 3:
+	var last_parts = last_weekly_premium_date.split("-")
+	var curr_parts = Time.get_date_string_from_system().split("-")
+	if last_parts.size() != 3 or curr_parts.size() != 3:
 		return true
-	
-	# Basic week check (simplified)
-	var days_diff = int(current_date_parts[2]) - int(last_date_parts[2])
-	return days_diff >= 7
+	return int(curr_parts[2]) - int(last_parts[2]) >= 7
+
+func get_time_until_free_summon() -> int:
+	if can_use_daily_free_summon():
+		return 0
+	var now = Time.get_unix_time_from_system()
+	return (int(now / 86400) + 1) * 86400 - int(now)
 
 # ==============================================================================
-# MULTI-SUMMON FUNCTIONS
+# MULTI-SUMMON
 # ==============================================================================
 
 func multi_summon_premium(count: int = 10) -> bool:
-	"""Premium 10-pull with guarantees"""
-	var single_cost = {"crystals": 100}
-	var total_cost = {"crystals": single_cost.crystals * (count - 1)}  # 10-pull discount
-	
+	var config = get_config()
+	var single_cost = 100
+	var discount = 0.9
+	if config.has("summon_configuration"):
+		var multi = config.summon_configuration.get("costs", {}).get("multi_summons", {})
+		if multi.has("premium_pack_10") and multi.premium_pack_10.has("divine_crystals"):
+			single_cost = int(multi.premium_pack_10.divine_crystals / count)
+
+	var total_cost = {"divine_crystals": int(single_cost * count * discount)}
 	if not _can_afford_cost(total_cost):
 		summon_failed.emit("Cannot afford multi-summon")
 		return false
-	
 	_spend_cost(total_cost)
-	
+
 	var summoned_gods = []
+	var has_rare = false
 	for i in range(count):
-		var summon_type = "premium"
-		# Last summon has guarantee
-		if i == count - 1:
-			summon_type = "premium_guaranteed"
-		
-		var god = _get_random_god(summon_type)
+		var god = _get_random_god("divine_crystals", "premium")
+		# Guarantee rare on last pull if none yet
+		if i == count - 1 and not has_rare:
+			var found_rare = false
+			for g in summoned_gods:
+				if g.tier >= God.TierType.RARE:
+					found_rare = true
+					break
+			if not found_rare:
+				god = _create_god_of_tier("rare")
 		if god:
+			if god.tier >= God.TierType.RARE:
+				has_rare = true
 			summoned_gods.append(god)
 			_add_god_to_collection(god)
-			_update_pity_counters(God.tier_to_string(god.tier).to_lower())
-	
+			_update_pity_counters(God.tier_to_string(god.tier).to_lower(), "premium")
+			total_summons += 1
+			_add_to_history(god, "divine_crystals", {"divine_crystals": int(single_cost * discount)})
+
+	_check_milestone_rewards()
 	multi_summon_completed.emit(summoned_gods)
 	return summoned_gods.size() > 0
 
@@ -340,16 +395,19 @@ func multi_summon_premium(count: int = 10) -> bool:
 
 func get_save_data() -> Dictionary:
 	return {
-		"pity_counter": pity_counter.duplicate(),
+		"pity_counters": pity_counters.duplicate(true),
 		"last_free_summon_date": last_free_summon_date,
 		"daily_free_used": daily_free_used,
 		"last_weekly_premium_date": last_weekly_premium_date,
-		"weekly_premium_used": weekly_premium_used
+		"weekly_premium_used": weekly_premium_used,
+		"summon_history": summon_history.duplicate(true),
+		"total_summons": total_summons,
+		"claimed_milestones": claimed_milestones.duplicate()
 	}
 
 func load_save_data(save_data: Dictionary):
-	if save_data.has("pity_counter"):
-		pity_counter = save_data.pity_counter.duplicate()
+	if save_data.has("pity_counters"):
+		pity_counters = save_data.pity_counters.duplicate(true)
 	if save_data.has("last_free_summon_date"):
 		last_free_summon_date = save_data.last_free_summon_date
 	if save_data.has("daily_free_used"):
@@ -358,3 +416,9 @@ func load_save_data(save_data: Dictionary):
 		last_weekly_premium_date = save_data.last_weekly_premium_date
 	if save_data.has("weekly_premium_used"):
 		weekly_premium_used = save_data.weekly_premium_used
+	if save_data.has("summon_history"):
+		summon_history = save_data.summon_history.duplicate(true)
+	if save_data.has("total_summons"):
+		total_summons = save_data.total_summons
+	if save_data.has("claimed_milestones"):
+		claimed_milestones = save_data.claimed_milestones.duplicate()

@@ -35,7 +35,7 @@ Complete overhaul of the summon/gacha system to create an engaging, balanced exp
       "Add summon history tracking",
       "Add save/load integration for pity counters"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "systems",

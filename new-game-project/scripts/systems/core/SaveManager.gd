@@ -57,6 +57,10 @@ func save_game() -> bool:
 	if dungeon_manager and dungeon_manager.has_method("get_save_data"):
 		save_data["dungeon"] = dungeon_manager.get_save_data()
 
+	var summon_manager = system_registry.get_system("SummonManager") if system_registry else null
+	if summon_manager and summon_manager.has_method("get_save_data"):
+		save_data["summon"] = summon_manager.get_save_data()
+
 	# Write to file
 	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.WRITE)
 	if not file:
@@ -127,6 +131,11 @@ func load_game() -> bool:
 		var dungeon_manager = system_registry.get_system("DungeonManager") if system_registry else null
 		if dungeon_manager and dungeon_manager.has_method("load_save_data"):
 			dungeon_manager.load_save_data(save_data.dungeon)
+
+	if save_data.has("summon"):
+		var summon_manager = system_registry.get_system("SummonManager") if system_registry else null
+		if summon_manager and summon_manager.has_method("load_save_data"):
+			summon_manager.load_save_data(save_data.summon)
 
 	load_completed.emit(true, save_data)
 	return true
