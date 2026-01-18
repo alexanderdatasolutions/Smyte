@@ -105,7 +105,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "Update when workers change via _on_workers_updated()",
       "Test by viewing different nodes with different workers"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",

@@ -88,6 +88,7 @@ var _action_buttons: HBoxContainer = null
 func _ready() -> void:
 	_init_systems()
 	_build_ui()
+	_connect_signals()
 	visible = false  # Start hidden
 
 func _init_systems() -> void:
@@ -102,6 +103,13 @@ func _init_systems() -> void:
 	collection_manager = registry.get_system("CollectionManager")
 	node_requirement_checker = registry.get_system("NodeRequirementChecker")
 	node_production_info = registry.get_system("NodeProductionInfo")
+
+func _connect_signals() -> void:
+	"""Connect to production update signals"""
+	if production_manager:
+		# Listen for production updates
+		if production_manager.has_signal("production_updated"):
+			production_manager.production_updated.connect(_on_production_updated)
 
 func _build_ui() -> void:
 	"""Build the UI components"""
@@ -302,7 +310,7 @@ func _update_header() -> void:
 	_type_tier_label.add_theme_color_override("font_color", tier_color)
 
 func _update_production() -> void:
-	"""Update production display"""
+	"""Update production display with bonuses breakdown"""
 	# Clear existing
 	for child in _production_container.get_children():
 		child.queue_free()
@@ -346,18 +354,111 @@ func _update_production() -> void:
 		spacer.custom_minimum_size = Vector2(0, 6)
 		_production_container.add_child(spacer)
 
-	# Get production data
-	if production_manager:
+	# Get production data and show hourly rates
+	if production_manager and current_node.is_controlled_by_player():
 		var production_data = production_manager.calculate_node_production(current_node)
 		if not production_data.is_empty():
 			# Display each resource production
 			for resource_id in production_data.keys():
 				var amount = production_data[resource_id]
 				var resource_label = Label.new()
-				resource_label.text = "  %s: +%d/hour" % [resource_id.replace("_", " ").capitalize(), amount]
+				resource_label.text = "  %s: +%.1f/hour" % [resource_id.replace("_", " ").capitalize(), amount]
 				resource_label.add_theme_font_size_override("font_size", 12)
 				resource_label.add_theme_color_override("font_color", Color(0.8, 0.9, 0.8, 1))
 				_production_container.add_child(resource_label)
+
+			# Spacer before bonuses
+			var spacer2 = Control.new()
+			spacer2.custom_minimum_size = Vector2(0, 4)
+			_production_container.add_child(spacer2)
+
+			# Show production bonuses breakdown
+			_show_production_bonuses()
+		else:
+			# No production (no workers assigned)
+			var no_prod_label = Label.new()
+			no_prod_label.text = "  No production (assign workers)"
+			no_prod_label.add_theme_font_size_override("font_size", 11)
+			no_prod_label.add_theme_color_override("font_color", Color(0.7, 0.6, 0.5))
+			_production_container.add_child(no_prod_label)
+	elif not current_node.is_controlled_by_player():
+		# Not controlled by player
+		var not_controlled_label = Label.new()
+		not_controlled_label.text = "  Capture to enable production"
+		not_controlled_label.add_theme_font_size_override("font_size", 11)
+		not_controlled_label.add_theme_color_override("font_color", Color(0.7, 0.6, 0.5))
+		_production_container.add_child(not_controlled_label)
+
+func _show_production_bonuses() -> void:
+	"""Show breakdown of production bonuses"""
+	if not current_node or not production_manager:
+		return
+
+	# Bonuses header
+	var bonuses_label = Label.new()
+	bonuses_label.text = "Bonuses:"
+	bonuses_label.add_theme_font_size_override("font_size", 11)
+	bonuses_label.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0))
+	_production_container.add_child(bonuses_label)
+
+	# Upgrade bonus
+	if current_node.production_level > 1:
+		var upgrade_bonus = (current_node.production_level - 1) * 0.10
+		var upgrade_label = Label.new()
+		upgrade_label.text = "  +%.0f%% Upgrade (Level %d)" % [upgrade_bonus * 100, current_node.production_level]
+		upgrade_label.add_theme_font_size_override("font_size", 10)
+		upgrade_label.add_theme_color_override("font_color", Color(0.7, 0.9, 0.7))
+		_production_container.add_child(upgrade_label)
+
+	# Connected bonus
+	if territory_manager:
+		var connected_count = territory_manager.get_connected_node_count(current_node.coord)
+		var connected_bonus = 0.0
+		if connected_count >= 4:
+			connected_bonus = 0.30
+		elif connected_count == 3:
+			connected_bonus = 0.20
+		elif connected_count == 2:
+			connected_bonus = 0.10
+
+		if connected_bonus > 0:
+			var connected_label = Label.new()
+			connected_label.text = "  +%.0f%% Connected (%d nodes)" % [connected_bonus * 100, connected_count]
+			connected_label.add_theme_font_size_override("font_size", 10)
+			connected_label.add_theme_color_override("font_color", Color(0.7, 0.9, 0.7))
+			_production_container.add_child(connected_label)
+
+	# Worker efficiency bonus
+	if not current_node.assigned_workers.is_empty():
+		var worker_efficiency = _calculate_worker_efficiency_display()
+		if worker_efficiency > 0:
+			var worker_label = Label.new()
+			worker_label.text = "  +%.0f%% Workers (%d assigned)" % [worker_efficiency * 100, current_node.assigned_workers.size()]
+			worker_label.add_theme_font_size_override("font_size", 10)
+			worker_label.add_theme_color_override("font_color", Color(0.7, 0.9, 0.7))
+			_production_container.add_child(worker_label)
+
+func _calculate_worker_efficiency_display() -> float:
+	"""Calculate total worker efficiency for display purposes"""
+	if not current_node or not collection_manager:
+		return 0.0
+
+	var total_efficiency = 0.0
+	for worker_id in current_node.assigned_workers:
+		var god = collection_manager.get_god_by_id(worker_id)
+		if god:
+			# Base 10% per worker
+			var efficiency = 0.10
+
+			# Add level bonus (1% per level)
+			efficiency += god.level * 0.01
+
+			# TODO: Add specialization bonus when SpecializationManager is available
+			# For now, just use base + level
+
+			total_efficiency += efficiency
+
+	return total_efficiency
 
 func _update_garrison() -> void:
 	"""Update garrison display WITH SLOT BOXES"""
@@ -668,6 +769,11 @@ func _create_button(text: String, color: Color) -> Button:
 # ==============================================================================
 # SIGNAL HANDLERS
 # ==============================================================================
+func _on_production_updated(territory_id: String, _new_rate: Dictionary) -> void:
+	"""Handle production update signal - refresh display if this is our node"""
+	if current_node and current_node.id == territory_id:
+		_update_production()
+
 func _on_capture_pressed() -> void:
 	"""Handle capture button press"""
 	if current_node:
