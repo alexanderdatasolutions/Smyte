@@ -928,8 +928,32 @@ func _on_collect_resources_pressed() -> void:
 		print("NodeInfoPanel: Collected resources from node %s: %s" % [current_node.id, str(collected)])
 		_show_collection_feedback(message, Color(0.3, 0.9, 0.4))
 
+		# Trigger visual collection effect on the hex tile
+		_trigger_collection_effect_on_tile()
+
 		# Refresh the display to show updated (cleared) accumulated resources
 		_update_pending_resources()
+
+func _trigger_collection_effect_on_tile() -> void:
+	"""Trigger visual collection effect on the hex tile in the map view"""
+	if not current_node:
+		return
+
+	# Get HexMapView from parent screen
+	var hex_screen = get_parent()
+	if not hex_screen:
+		return
+
+	var hex_map_view = hex_screen.get_node_or_null("HexMapView")
+	if not hex_map_view:
+		return
+
+	# Get the tile for current node
+	var coord_key = "%d,%d" % [current_node.coord.q, current_node.coord.r]
+	if hex_map_view.hex_tiles.has(coord_key):
+		var tile = hex_map_view.hex_tiles[coord_key]
+		if tile and tile.has_method("show_collection_effect"):
+			tile.show_collection_effect()
 
 func _show_collection_feedback(message: String, color: Color) -> void:
 	"""Show a temporary feedback message about collection"""

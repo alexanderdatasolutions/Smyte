@@ -65,6 +65,10 @@ var connection_lines: Array = []  # Array of Line2D nodes
 var grid_container: Control = null
 var connection_layer: Control = null
 var scroll_container: ScrollContainer = null
+var tooltip_label: Label = null
+
+# Refresh timer for pending indicators
+var refresh_timer: Timer = null
 
 # ==============================================================================
 # PRELOADS
@@ -132,6 +136,12 @@ func _setup_ui() -> void:
 	connection_layer.name = "ConnectionLayer"
 	connection_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	grid_container.add_child(connection_layer)
+
+	# Create tooltip label (overlay on top)
+	_create_tooltip()
+
+	# Create refresh timer for pending indicators
+	_create_refresh_timer()
 
 	# Initial render
 	render_hex_grid()
@@ -511,10 +521,11 @@ func _on_hex_hovered(tile: HexTile) -> void:
 	var hex_node = tile.node_data
 	if hex_node:
 		hex_hovered.emit(hex_node)
+		_show_tooltip(tile)
 
 func _on_hex_unhovered(tile: HexTile) -> void:
 	"""Handle hex tile unhover"""
-	pass  # Could show tooltip hide here
+	_hide_tooltip()
 
 # ==============================================================================
 # ANIMATION METHODS
@@ -594,3 +605,96 @@ func _animate_connection_line_glow(line: Line2D) -> void:
 	# Pulse width
 	line_tween.parallel().tween_property(line, "width", 4.0, 1.5)
 	line_tween.tween_property(line, "width", 3.0, 1.5)
+
+# ==============================================================================
+# TOOLTIP METHODS
+# ==============================================================================
+func _create_tooltip() -> void:
+	"""Create production tooltip overlay"""
+	tooltip_label = Label.new()
+	tooltip_label.name = "ProductionTooltip"
+	tooltip_label.visible = false
+	tooltip_label.z_index = 100  # On top of everything
+	tooltip_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Style the tooltip
+	var tooltip_style = StyleBoxFlat.new()
+	tooltip_style.bg_color = Color(0.1, 0.1, 0.15, 0.95)
+	tooltip_style.border_color = Color(0.5, 0.7, 1.0, 1.0)
+	tooltip_style.border_width_left = 2
+	tooltip_style.border_width_right = 2
+	tooltip_style.border_width_top = 2
+	tooltip_style.border_width_bottom = 2
+	tooltip_style.corner_radius_top_left = 4
+	tooltip_style.corner_radius_top_right = 4
+	tooltip_style.corner_radius_bottom_left = 4
+	tooltip_style.corner_radius_bottom_right = 4
+	tooltip_style.content_margin_left = 8
+	tooltip_style.content_margin_right = 8
+	tooltip_style.content_margin_top = 6
+	tooltip_style.content_margin_bottom = 6
+
+	# Create background panel
+	var tooltip_bg = Panel.new()
+	tooltip_bg.name = "TooltipBackground"
+	tooltip_bg.add_theme_stylebox_override("panel", tooltip_style)
+	tooltip_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tooltip_label.add_child(tooltip_bg)
+	tooltip_bg.z_index = -1
+
+	# Add to main control (not grid_container, so it's not affected by zoom/pan)
+	add_child(tooltip_label)
+
+func _show_tooltip(tile: HexTile) -> void:
+	"""Show production tooltip for a hex tile"""
+	if not tooltip_label or not tile:
+		return
+
+	# Get tooltip text from tile
+	var tooltip_text = tile.show_production_tooltip()
+	if tooltip_text == "":
+		_hide_tooltip()
+		return
+
+	# Update tooltip text
+	tooltip_label.text = tooltip_text
+	tooltip_label.add_theme_color_override("font_color", Color(0.9, 0.9, 1.0))
+	tooltip_label.add_theme_font_size_override("font_size", 12)
+
+	# Position tooltip near mouse (offset from tile position)
+	var mouse_pos = get_local_mouse_position()
+	tooltip_label.position = mouse_pos + Vector2(15, 15)
+
+	# Update background size to match text
+	var tooltip_bg = tooltip_label.get_node_or_null("TooltipBackground")
+	if tooltip_bg:
+		# Wait one frame for label size to update
+		await get_tree().process_frame
+		tooltip_bg.custom_minimum_size = tooltip_label.size
+		tooltip_bg.size = tooltip_label.size
+
+	tooltip_label.visible = true
+
+func _hide_tooltip() -> void:
+	"""Hide production tooltip"""
+	if tooltip_label:
+		tooltip_label.visible = false
+
+func refresh_pending_indicators() -> void:
+	"""Refresh pending resource indicators on all tiles"""
+	for tile in hex_tiles.values():
+		if tile and is_instance_valid(tile):
+			tile._update_pending_resources_indicator()
+
+func _create_refresh_timer() -> void:
+	"""Create timer to periodically refresh pending indicators"""
+	refresh_timer = Timer.new()
+	refresh_timer.name = "RefreshTimer"
+	refresh_timer.wait_time = 5.0  # Refresh every 5 seconds
+	refresh_timer.autostart = true
+	refresh_timer.timeout.connect(_on_refresh_timer_timeout)
+	add_child(refresh_timer)
+
+func _on_refresh_timer_timeout() -> void:
+	"""Refresh pending indicators periodically"""
+	refresh_pending_indicators()

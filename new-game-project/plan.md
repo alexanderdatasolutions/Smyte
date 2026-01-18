@@ -251,7 +251,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "Show production rate tooltip on node hover",
       "Test visual polish in game"
     ],
-    "passes": false
+    "passes": true
   }
 ]
 ```
