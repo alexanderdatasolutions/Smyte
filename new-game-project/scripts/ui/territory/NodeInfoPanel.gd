@@ -69,6 +69,7 @@ var territory_manager = null
 var production_manager = null
 var collection_manager = null
 var node_requirement_checker = null
+var node_production_info = null
 
 # UI components
 var _main_container: VBoxContainer = null
@@ -100,6 +101,7 @@ func _init_systems() -> void:
 	production_manager = registry.get_system("TerritoryProductionManager")
 	collection_manager = registry.get_system("CollectionManager")
 	node_requirement_checker = registry.get_system("NodeRequirementChecker")
+	node_production_info = registry.get_system("NodeProductionInfo")
 
 func _build_ui() -> void:
 	"""Build the UI components"""
@@ -305,31 +307,57 @@ func _update_production() -> void:
 	for child in _production_container.get_children():
 		child.queue_free()
 
-	if not current_node or not production_manager:
-		var no_prod_label = Label.new()
-		no_prod_label.text = "No production data"
-		no_prod_label.add_theme_font_size_override("font_size", 12)
-		_production_container.add_child(no_prod_label)
+	if not current_node:
 		return
+
+	# Show production category and type info
+	if node_production_info and node_production_info.has_production_info(current_node.node_type):
+		var category = node_production_info.get_node_production_category(current_node.node_type)
+		var description = node_production_info.get_node_production_description(current_node.node_type)
+		var focus = node_production_info.get_node_production_focus(current_node.node_type)
+		var icon = node_production_info.get_node_icon(current_node.node_type)
+		var category_color = node_production_info.get_category_color(category)
+
+		# Production type header
+		var type_label = Label.new()
+		type_label.text = "%s %s" % [icon, node_production_info.get_category_name(category)]
+		type_label.add_theme_font_size_override("font_size", 13)
+		type_label.add_theme_color_override("font_color", category_color)
+		_production_container.add_child(type_label)
+
+		# Description
+		var desc_label = Label.new()
+		desc_label.text = description
+		desc_label.add_theme_font_size_override("font_size", 11)
+		desc_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
+		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_label.custom_minimum_size = Vector2(PANEL_WIDTH - 30, 0)
+		_production_container.add_child(desc_label)
+
+		# Focus
+		var focus_label = Label.new()
+		focus_label.text = "Produces: " + focus
+		focus_label.add_theme_font_size_override("font_size", 11)
+		focus_label.add_theme_color_override("font_color", Color(0.8, 0.9, 0.7))
+		_production_container.add_child(focus_label)
+
+		# Spacer
+		var spacer = Control.new()
+		spacer.custom_minimum_size = Vector2(0, 6)
+		_production_container.add_child(spacer)
 
 	# Get production data
-	var production_data = production_manager.calculate_node_production(current_node)
-
-	if production_data.is_empty():
-		var no_prod_label = Label.new()
-		no_prod_label.text = "No active production"
-		no_prod_label.add_theme_font_size_override("font_size", 12)
-		_production_container.add_child(no_prod_label)
-		return
-
-	# Display each resource production
-	for resource_id in production_data.keys():
-		var amount = production_data[resource_id]
-		var resource_label = Label.new()
-		resource_label.text = "  %s: +%d/hour" % [resource_id.replace("_", " ").capitalize(), amount]
-		resource_label.add_theme_font_size_override("font_size", 12)
-		resource_label.add_theme_color_override("font_color", Color(0.8, 0.9, 0.8, 1))
-		_production_container.add_child(resource_label)
+	if production_manager:
+		var production_data = production_manager.calculate_node_production(current_node)
+		if not production_data.is_empty():
+			# Display each resource production
+			for resource_id in production_data.keys():
+				var amount = production_data[resource_id]
+				var resource_label = Label.new()
+				resource_label.text = "  %s: +%d/hour" % [resource_id.replace("_", " ").capitalize(), amount]
+				resource_label.add_theme_font_size_override("font_size", 12)
+				resource_label.add_theme_color_override("font_color", Color(0.8, 0.9, 0.8, 1))
+				_production_container.add_child(resource_label)
 
 func _update_garrison() -> void:
 	"""Update garrison display WITH SLOT BOXES"""
@@ -362,6 +390,47 @@ func _update_workers() -> void:
 
 	if not current_node:
 		return
+
+	# Show optimal god recommendations
+	if node_production_info and node_production_info.has_production_info(current_node.node_type):
+		var optimal_stats = node_production_info.get_node_optimal_stats(current_node.node_type)
+		var optimal_traits = node_production_info.get_node_optimal_traits(current_node.node_type)
+
+		if not optimal_stats.is_empty() or not optimal_traits.is_empty():
+			var rec_label = Label.new()
+			rec_label.text = "Best workers:"
+			rec_label.add_theme_font_size_override("font_size", 11)
+			rec_label.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0))
+			_workers_container.add_child(rec_label)
+
+			if not optimal_stats.is_empty():
+				var stats_label = Label.new()
+				var stats_text = "  High "
+				for i in range(optimal_stats.size()):
+					stats_text += optimal_stats[i].to_upper()
+					if i < optimal_stats.size() - 1:
+						stats_text += ", "
+				stats_label.text = stats_text
+				stats_label.add_theme_font_size_override("font_size", 10)
+				stats_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.6))
+				_workers_container.add_child(stats_label)
+
+			if not optimal_traits.is_empty():
+				var traits_label = Label.new()
+				var traits_text = "  Traits: "
+				for i in range(optimal_traits.size()):
+					traits_text += optimal_traits[i].replace("_", " ").capitalize()
+					if i < optimal_traits.size() - 1:
+						traits_text += ", "
+				traits_label.text = traits_text
+				traits_label.add_theme_font_size_override("font_size", 10)
+				traits_label.add_theme_color_override("font_color", Color(0.7, 0.9, 0.7))
+				_workers_container.add_child(traits_label)
+
+			# Spacer
+			var spacer = Control.new()
+			spacer.custom_minimum_size = Vector2(0, 6)
+			_workers_container.add_child(spacer)
 
 	var max_workers = mini(current_node.tier, 5)
 

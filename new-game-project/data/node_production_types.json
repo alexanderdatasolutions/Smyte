@@ -1,0 +1,117 @@
+{
+  "node_type_production_mapping": {
+    "mine": {
+      "primary_category": "gathering",
+      "description": "Extract precious ores and minerals from the earth",
+      "optimal_stats": ["defense", "hp"],
+      "optimal_traits": ["miner", "earth_affinity"],
+      "icon": "⛏️",
+      "production_focus": "Ores, Gems, Stone"
+    },
+    "forest": {
+      "primary_category": "gathering",
+      "description": "Harvest wood, herbs, and natural resources",
+      "optimal_stats": ["speed", "defense"],
+      "optimal_traits": ["forager", "nature_affinity"],
+      "icon": "🌲",
+      "production_focus": "Wood, Herbs, Fibers"
+    },
+    "coast": {
+      "primary_category": "gathering",
+      "description": "Fish for seafood and collect pearls from the ocean",
+      "optimal_stats": ["hp", "defense"],
+      "optimal_traits": ["fisher", "water_affinity"],
+      "icon": "🎣",
+      "production_focus": "Fish, Pearls, Shells"
+    },
+    "hunting_ground": {
+      "primary_category": "gathering",
+      "description": "Hunt creatures for meat, pelts, and rare drops",
+      "optimal_stats": ["attack", "speed"],
+      "optimal_traits": ["hunter", "beast_slayer"],
+      "icon": "🏹",
+      "production_focus": "Meat, Pelts, Bones"
+    },
+    "forge": {
+      "primary_category": "crafting",
+      "description": "Craft weapons, armor, and metal equipment",
+      "optimal_stats": ["attack", "defense"],
+      "optimal_traits": ["blacksmith", "fire_affinity"],
+      "icon": "🔨",
+      "production_focus": "Weapons, Armor, Tools"
+    },
+    "library": {
+      "primary_category": "research",
+      "description": "Research ancient knowledge and unlock new abilities",
+      "optimal_stats": ["magic", "resistance"],
+      "optimal_traits": ["scholar", "light_affinity"],
+      "icon": "📚",
+      "production_focus": "Research Points, Scrolls"
+    },
+    "temple": {
+      "primary_category": "special",
+      "description": "Channel divine power and produce souls",
+      "optimal_stats": ["magic", "hp"],
+      "optimal_traits": ["priest", "divine_affinity"],
+      "icon": "⛪",
+      "production_focus": "Souls, Divine Energy"
+    },
+    "fortress": {
+      "primary_category": "defense",
+      "description": "Strengthen defenses and train combat units",
+      "optimal_stats": ["defense", "hp"],
+      "optimal_traits": ["guardian", "defender"],
+      "icon": "🏰",
+      "production_focus": "Defense Power, Training"
+    },
+    "workshop": {
+      "primary_category": "crafting",
+      "description": "Craft tools, consumables, and special items",
+      "optimal_stats": ["speed", "magic"],
+      "optimal_traits": ["artisan", "craftsman"],
+      "icon": "🛠️",
+      "production_focus": "Consumables, Tools"
+    },
+    "farm": {
+      "primary_category": "gathering",
+      "description": "Grow crops and raise livestock for food",
+      "optimal_stats": ["hp", "defense"],
+      "optimal_traits": ["farmer", "earth_affinity"],
+      "icon": "🌾",
+      "production_focus": "Food, Crops, Milk"
+    }
+  },
+
+  "task_category_info": {
+    "gathering": {
+      "name": "Gathering",
+      "description": "Collect raw materials and resources from the land",
+      "color": {"r": 0.4, "g": 0.8, "b": 0.4},
+      "icon": "🌿"
+    },
+    "crafting": {
+      "name": "Crafting",
+      "description": "Transform raw materials into useful items",
+      "color": {"r": 0.9, "g": 0.5, "b": 0.2},
+      "icon": "⚒️"
+    },
+    "research": {
+      "name": "Research",
+      "description": "Study ancient knowledge to unlock new possibilities",
+      "color": {"r": 0.5, "g": 0.5, "b": 1.0},
+      "icon": "🔬"
+    },
+    "defense": {
+      "name": "Defense",
+      "description": "Strengthen fortifications and military capabilities",
+      "color": {"r": 0.8, "g": 0.3, "b": 0.3},
+      "icon": "🛡️"
+    },
+    "special": {
+      "name": "Special",
+      "description": "Unique divine tasks with extraordinary rewards",
+      "color": {"r": 1.0, "g": 0.8, "b": 0.2},
+      "icon": "✨"
+    }
+  }
+}

@@ -182,6 +182,11 @@ func register_core_systems():
 		var node_task_calculator = preload("res://scripts/systems/territory/NodeTaskCalculator.gd").new()
 		register_system("NodeTaskCalculator", node_task_calculator)
 
+	# NodeProductionInfo - provides production type info for hex nodes
+	if FileAccess.file_exists("res://scripts/systems/territory/NodeProductionInfo.gd"):
+		var node_production_info = preload("res://scripts/systems/territory/NodeProductionInfo.gd").new()
+		register_system("NodeProductionInfo", node_production_info)
+
 	# Phase 4: Battle systems
 	var battle_coordinator = preload("res://scripts/systems/battle/BattleCoordinator.gd").new()
 	register_system("BattleCoordinator", battle_coordinator)
