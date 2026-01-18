@@ -341,7 +341,7 @@
       "scripts/ui/screens/BattleScreen.gd",
       "scripts/systems/battle/BattleCoordinator.gd"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "UI-003",

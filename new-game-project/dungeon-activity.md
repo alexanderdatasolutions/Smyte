@@ -2,9 +2,9 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 9
+**Tasks Completed:** 10
 **Current Phase:** Build
-**Current Task:** UI-001 completed
+**Current Task:** UI-002 completed
 
 ---
 
@@ -337,5 +337,46 @@ This log tracks Ralph working through the dungeon system implementation.
 - ✅ Wave indicator shows 'Wave 1/3' at battle start (via `_initialize_wave_indicator` for wave battles)
 - ✅ Indicator updates to 'Wave 2/3' after wave 1 cleared (via `_on_wave_started` signal handler)
 - ✅ Indicator not visible in arena battles (hidden when `config.enemy_waves.size() <= 1`)
+
+---
+
+### 2026-01-17 - UI-002: Implement wave transition animation
+
+**What was changed:**
+- Added WaveTransitionOverlay ColorRect node to BattleScreen.tscn (full-screen dark overlay)
+- Added WaveTransitionLabel child node with 36px font for celebratory text
+- Added `@onready` references for wave_transition_overlay and wave_transition_label
+- Connected to `wave_manager.wave_completed` signal for transition triggers
+- Added `_on_wave_completed(wave_number)` handler that triggers transition for non-final waves
+- Added `_show_wave_transition(completed_wave, total_waves)` with tween animations:
+  - Overlay fades in (0.3s)
+  - Text scales up from 0.5x to 1.0x with bounce ease (0.4s)
+  - Holds for 0.8s
+  - Both fade out (0.3-0.4s)
+  - Total transition ~1.5s
+- Added `_hide_wave_transition()` callback to hide overlay when animation completes
+- Updated `_on_wave_started(wave_number)` to refresh enemy cards for waves 2+
+- Added `_refresh_enemy_cards_with_animation()` for staggered enemy fade-in:
+  - Each enemy card fades in and slides from right
+  - 0.1s stagger between each enemy for smooth appearance
+
+**Files modified:**
+- `scenes/BattleScreen.tscn` - Added WaveTransitionOverlay and WaveTransitionLabel nodes
+- `scripts/ui/screens/BattleScreen.gd` - Added wave transition animation section (~70 lines)
+
+**Verification:**
+- Ran game and confirmed no errors loading BattleScreen scene
+- Code structure verified: signal connections in place for wave_completed
+- Animation methods properly reference overlay nodes
+- Final wave completion skips transition (victory screen shows instead)
+
+**Screenshots:**
+- `wave_transition_ui002.png` - Game running with wave transition system active
+
+**Acceptance Criteria Met:**
+- ✅ Wave completion shows celebratory text ("Wave X Complete!" with scale animation)
+- ✅ New wave enemies slide/fade in (staggered animation in `_refresh_enemy_cards_with_animation`)
+- ✅ Transition duration feels satisfying (~1.5s total: 0.3s in, 0.8s hold, 0.4s out)
+- ✅ Player units remain visible throughout (overlay is semi-transparent dark, player cards unaffected)
 
 ---

@@ -29,6 +29,8 @@ const BattleResultOverlayScene = preload("res://scenes/ui/battle/BattleResultOve
 @onready var skill_details_panel = $SkillDetailsOverlay
 @onready var skill_name_label = $SkillDetailsOverlay/MarginContainer/VBoxContainer/SkillNameLabel
 @onready var skill_desc_label = $SkillDetailsOverlay/MarginContainer/VBoxContainer/SkillDescLabel
+@onready var wave_transition_overlay = $WaveTransitionOverlay
+@onready var wave_transition_label = $WaveTransitionOverlay/WaveTransitionLabel
 
 # Signal for screen navigation (RULE 4: UI signals)
 signal back_pressed
@@ -79,10 +81,12 @@ func _ready():
 			if not battle_coordinator.action_processor.action_executed.is_connected(_on_action_executed):
 				battle_coordinator.action_processor.action_executed.connect(_on_action_executed)
 
-		# Connect to wave signals for wave indicator
+		# Connect to wave signals for wave indicator and transitions
 		if battle_coordinator.wave_manager:
 			if not battle_coordinator.wave_manager.wave_started.is_connected(_on_wave_started):
 				battle_coordinator.wave_manager.wave_started.connect(_on_wave_started)
+			if not battle_coordinator.wave_manager.wave_completed.is_connected(_on_wave_completed):
+				battle_coordinator.wave_manager.wave_completed.connect(_on_wave_completed)
 
 		# Check if there's already an active battle
 		if battle_coordinator.has_method("is_in_battle") and battle_coordinator.is_in_battle():
@@ -694,17 +698,126 @@ func _update_wave_indicator(current_wave: int, total_waves: int):
 		wave_indicator.text = "Wave %d/%d" % [current_wave, total_waves]
 
 func _on_wave_started(wave_number: int):
-	"""Handle wave started signal - update wave indicator"""
-	if not wave_indicator or not wave_indicator.visible:
-		return
+	"""Handle wave started signal - update wave indicator and refresh enemy cards"""
+	print("BattleScreen: Wave %d started" % wave_number)
 
-	# Get total waves from battle config
-	if battle_coordinator and battle_coordinator.wave_manager:
-		var total_waves = battle_coordinator.wave_manager.get_wave_count()
-		_update_wave_indicator(wave_number, total_waves)
-		print("BattleScreen: Wave indicator updated to %d/%d" % [wave_number, total_waves])
+	# Update wave indicator
+	if wave_indicator and wave_indicator.visible:
+		if battle_coordinator and battle_coordinator.wave_manager:
+			var total_waves = battle_coordinator.wave_manager.get_wave_count()
+			_update_wave_indicator(wave_number, total_waves)
+			print("BattleScreen: Wave indicator updated to %d/%d" % [wave_number, total_waves])
+
+	# Refresh enemy unit cards for new wave (wave 2+)
+	if wave_number > 1:
+		_refresh_enemy_cards_with_animation()
 
 func _hide_wave_indicator():
 	"""Hide the wave indicator"""
 	if wave_indicator:
 		wave_indicator.visible = false
+
+# =============================================================================
+# WAVE TRANSITION ANIMATION
+# =============================================================================
+
+func _on_wave_completed(wave_number: int):
+	"""Handle wave completed signal - show celebratory transition"""
+	if not wave_transition_overlay or not wave_transition_label:
+		return
+
+	# Get total waves from wave manager
+	var total_waves = 0
+	if battle_coordinator and battle_coordinator.wave_manager:
+		total_waves = battle_coordinator.wave_manager.get_wave_count()
+
+	# Don't show transition after final wave (victory screen will show instead)
+	if wave_number >= total_waves:
+		print("BattleScreen: Final wave completed, skipping transition (victory will show)")
+		return
+
+	print("BattleScreen: Wave %d completed, showing transition animation" % wave_number)
+	_show_wave_transition(wave_number, total_waves)
+
+func _show_wave_transition(completed_wave: int, total_waves: int):
+	"""Display wave transition overlay with animation"""
+	if not wave_transition_overlay or not wave_transition_label:
+		return
+
+	# Set transition text
+	wave_transition_label.text = "Wave %d Complete!" % completed_wave
+
+	# Reset overlay state for animation
+	wave_transition_overlay.modulate = Color(1, 1, 1, 0)
+	wave_transition_label.modulate = Color(1, 1, 1, 0)
+	wave_transition_label.scale = Vector2(0.5, 0.5)
+	wave_transition_label.pivot_offset = wave_transition_label.size / 2
+	wave_transition_overlay.visible = true
+
+	# Animate in: fade overlay, scale up text
+	var tween = create_tween()
+	tween.set_parallel(true)
+
+	# Fade in overlay
+	tween.tween_property(wave_transition_overlay, "modulate:a", 1.0, 0.3)
+
+	# Scale up and fade in text
+	tween.tween_property(wave_transition_label, "modulate:a", 1.0, 0.3)
+	tween.tween_property(wave_transition_label, "scale", Vector2(1.0, 1.0), 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+
+	# Hold for a moment, then fade out
+	tween.chain()
+	tween.tween_interval(0.8)
+
+	# Fade out
+	tween.set_parallel(true)
+	tween.tween_property(wave_transition_overlay, "modulate:a", 0.0, 0.4)
+	tween.tween_property(wave_transition_label, "modulate:a", 0.0, 0.3)
+
+	# Hide overlay when done
+	tween.chain()
+	tween.tween_callback(_hide_wave_transition)
+
+	print("BattleScreen: Wave transition animation started")
+
+func _hide_wave_transition():
+	"""Hide the wave transition overlay"""
+	if wave_transition_overlay:
+		wave_transition_overlay.visible = false
+	print("BattleScreen: Wave transition animation completed")
+
+func _refresh_enemy_cards_with_animation():
+	"""Refresh enemy unit cards with fade-in animation for new wave"""
+	if not battle_coordinator or not battle_coordinator.battle_state:
+		return
+
+	# Clear old enemy cards
+	_clear_container(enemy_team_container)
+	enemy_unit_cards.clear()
+
+	# Get new enemy units from battle state
+	var enemy_units = battle_coordinator.battle_state.get_enemy_units()
+	print("BattleScreen: Refreshing enemy cards for new wave - %d enemies" % enemy_units.size())
+
+	# Create new enemy cards with animation
+	for i in range(enemy_units.size()):
+		var unit = enemy_units[i]
+		var unit_card = _create_battle_unit_card(unit)
+		enemy_team_container.add_child(unit_card)
+		enemy_unit_cards[unit] = unit_card
+
+		# Connect click signal for targeting
+		unit_card.unit_clicked.connect(_on_unit_card_clicked)
+
+		# Start invisible for animation
+		unit_card.modulate = Color(1, 1, 1, 0)
+		unit_card.position.x += 50  # Start offset to the right
+
+		# Animate in with staggered delay
+		var tween = create_tween()
+		tween.set_parallel(true)
+		var delay = i * 0.1  # Stagger each card by 0.1s
+		tween.tween_property(unit_card, "modulate:a", 1.0, 0.3).set_delay(delay)
+		tween.tween_property(unit_card, "position:x", unit_card.position.x - 50, 0.3).set_delay(delay).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+
+	print("BattleScreen: Enemy cards refreshed with fade-in animation")
