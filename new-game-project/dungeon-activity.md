@@ -2,9 +2,9 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 7
+**Tasks Completed:** 8
 **Current Phase:** Build
-**Current Task:** SYS-004 completed
+**Current Task:** SYS-005 completed
 
 ---
 
@@ -268,5 +268,44 @@ This log tracks Ralph working through the dungeon system implementation.
 - ✅ Second clear of same difficulty doesn't grant bonus (is_first_clear returns false after marking)
 - ✅ Different difficulties tracked separately (fire_sanctum_beginner vs fire_sanctum_intermediate are independent keys)
 - ✅ Completion status persists through save/load (completed_dungeons saved in player_progress via save_progress/load_progress)
+
+---
+
+### 2026-01-17 - SYS-005: Connect dungeon completion to hex territory progression
+
+**What was changed:**
+- Added `dungeon_completed` signal to DungeonCoordinator (emits dungeon_id and difficulty after victory)
+- DungeonCoordinator now emits `dungeon_completed` signal in `_handle_dungeon_victory()` after recording completion
+- Added `dungeon_clears` array to unlock_requirements in hex_nodes.json for specific nodes
+- Added `node_unlocked` signal to TerritoryManager for progression systems
+- TerritoryManager connects to DungeonCoordinator.dungeon_completed signal on startup
+- Added `_on_dungeon_completed()` handler that checks all nodes for matching dungeon requirements
+- Added `is_node_unlocked_by_dungeons(node_id)` to check if all dungeon requirements are met
+- Added `get_nodes_unlockable_by_dungeon(dungeon_id, difficulty)` to find nodes requiring a specific dungeon clear
+- Added `_check_node_dungeon_unlock()` helper to match node requirements against completions
+
+**Files modified:**
+- `scripts/systems/dungeon/DungeonCoordinator.gd` - Added dungeon_completed signal, emit in victory handler
+- `scripts/systems/territory/TerritoryManager.gd` - Added dungeon integration section (~100 lines)
+- `data/hex_nodes.json` - Added dungeon_clears to olympus_outpost_5 (greek_trials heroic) and valhalla_gateway_5 (norse_trials heroic)
+
+**Verification:**
+- Ran game and confirmed "TerritoryManager: Connected to DungeonCoordinator.dungeon_completed signal"
+- Tested `is_node_unlocked_by_dungeons("olympus_outpost_5")` - returns `false` before dungeon cleared
+- Marked `greek_trials` heroic as cleared via DungeonManager
+- Tested `is_node_unlocked_by_dungeons("olympus_outpost_5")` again - returns `true`
+- Tested `get_nodes_unlockable_by_dungeon("greek_trials", "heroic")` - returns olympus_outpost_5 node
+- Emitted `dungeon_completed` signal manually for `norse_trials` heroic
+- Console shows: "TerritoryManager: Received dungeon_completed for norse_trials heroic"
+- Console shows: "TerritoryManager: Dungeon clear norse_trials heroic unlocked node valhalla_gateway_5"
+
+**Screenshots:**
+- `dungeon_territory_integration_sys005.png` - Game running with territory integration active
+
+**Acceptance Criteria Met:**
+- ✅ Completing 'greek_trials' heroic unlocks olympus_outpost_5 hex node (dungeon_clears defined in JSON)
+- ✅ TerritoryManager.is_node_unlocked_by_dungeons() reflects dungeon progress (returns false before clear, true after)
+- ✅ Unlock requirements defined in hex_nodes.json (dungeon_clears array in unlock_requirements)
+- ✅ node_unlocked signal emitted when dungeon completion unlocks a node
 
 ---

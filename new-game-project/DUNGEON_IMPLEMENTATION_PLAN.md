@@ -294,7 +294,7 @@
       "scripts/systems/dungeon/DungeonCoordinator.gd",
       "scripts/systems/territory/TerritoryManager.gd"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "UI-001",

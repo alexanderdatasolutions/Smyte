@@ -10,6 +10,7 @@ class_name DungeonCoordinator
 signal dungeon_battle_started(dungeon_id: String, difficulty: String)
 signal dungeon_battle_completed(result: Dictionary)
 signal dungeon_battle_failed(dungeon_id: String, difficulty: String, reason: String)
+signal dungeon_completed(dungeon_id: String, difficulty: String)  # For progression systems
 
 # System references
 var resource_manager: Node
@@ -216,7 +217,11 @@ func _handle_dungeon_victory(battle_result: BattleResult):
 	if dungeon_manager:
 		dungeon_manager.record_completion(dungeon_id, difficulty, completion_time)
 
-	# Emit completion signal
+	# Emit dungeon completed signal for progression systems (territory unlocks, etc.)
+	dungeon_completed.emit(dungeon_id, difficulty)
+	print("DungeonCoordinator: Emitted dungeon_completed signal for %s %s" % [dungeon_id, difficulty])
+
+	# Emit completion signal for UI
 	var result_data = {
 		"dungeon_id": dungeon_id,
 		"difficulty": difficulty,

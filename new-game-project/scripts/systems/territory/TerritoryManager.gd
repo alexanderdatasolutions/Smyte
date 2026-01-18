@@ -5,12 +5,14 @@ class_name TerritoryManager extends Node
 signal territory_captured(territory_id: String)
 signal territory_lost(territory_id: String)
 signal territory_upgraded(territory_id: String, new_level: int)
+signal node_unlocked(node_id: String, unlock_source: String)  # Emitted when dungeon completion unlocks a node
 
 var controlled_territories: Array[String] = []
 var territory_data: Dictionary = {}
 
 func _ready():
 	_load_territory_configuration()
+	_connect_to_dungeon_coordinator()
 
 ## Load territory configuration
 func _load_territory_configuration():
@@ -510,15 +512,15 @@ func _calculate_garrison_power(node) -> float:
 
 	var total_power = 0.0
 	for god_id in node.garrison:
-		var god_obj = collection_manager.get_god(god_id)
+		var god_obj = collection_manager.get_god_by_id(god_id)
 		if god_obj:
 			# Use same power calculation as NodeRequirementChecker
-			var hp = god_obj.current_hp
-			var attack = god_obj.attack
-			var defense = god_obj.defense
-			var speed = god_obj.speed
+			var hp = god_obj.base_hp
+			var attack = god_obj.base_attack
+			var defense = god_obj.base_defense
+			var speed = god_obj.base_speed
 			var level = god_obj.level
-			var awakening_bonus = 1.0 + (god_obj.awakening_level * 0.1)
+			var awakening_bonus = 1.0 + (god_obj.ascension_level * 0.1)
 
 			var god_power = (hp + attack * 2 + defense + speed) * (1.0 + level * 0.05) * awakening_bonus
 			total_power += god_power
@@ -617,3 +619,110 @@ func update_node_workers(node_id: String, worker_ids: Array) -> bool:
 
 	print("TerritoryManager: Updated workers for node %s: %s" % [node_id, node.assigned_workers])
 	return true
+
+# ==============================================================================
+# DUNGEON COMPLETION INTEGRATION
+# ==============================================================================
+
+## Connect to DungeonCoordinator for dungeon completion events
+func _connect_to_dungeon_coordinator():
+	"""Connect to DungeonCoordinator to listen for dungeon completions"""
+	# Use call_deferred to ensure systems are ready
+	call_deferred("_deferred_connect_dungeon_coordinator")
+
+func _deferred_connect_dungeon_coordinator():
+	"""Deferred connection to DungeonCoordinator"""
+	var system_registry = SystemRegistry.get_instance()
+	if not system_registry:
+		return
+
+	var dungeon_coordinator = system_registry.get_system("DungeonCoordinator")
+	if dungeon_coordinator and dungeon_coordinator.has_signal("dungeon_completed"):
+		if not dungeon_coordinator.dungeon_completed.is_connected(_on_dungeon_completed):
+			dungeon_coordinator.dungeon_completed.connect(_on_dungeon_completed)
+			print("TerritoryManager: Connected to DungeonCoordinator.dungeon_completed signal")
+
+## Handle dungeon completion event
+func _on_dungeon_completed(dungeon_id: String, difficulty: String):
+	"""Check if dungeon completion unlocks any hex nodes"""
+	print("TerritoryManager: Received dungeon_completed for %s %s" % [dungeon_id, difficulty])
+
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		return
+
+	# Check all nodes to see if any require this dungeon clear
+	var all_nodes = hex_grid_manager.get_all_nodes()
+	for node in all_nodes:
+		if _check_node_dungeon_unlock(node, dungeon_id, difficulty):
+			print("TerritoryManager: Dungeon clear %s %s unlocked node %s" % [dungeon_id, difficulty, node.id])
+			node_unlocked.emit(node.id, "%s_%s" % [dungeon_id, difficulty])
+
+## Check if a node's dungeon unlock requirements are satisfied by this clear
+func _check_node_dungeon_unlock(node, dungeon_id: String, difficulty: String) -> bool:
+	"""Check if node has a dungeon_clears requirement that matches this completion"""
+	if not node or not node.unlock_requirements:
+		return false
+
+	var dungeon_clears = node.unlock_requirements.get("dungeon_clears", [])
+	if dungeon_clears.is_empty():
+		return false
+
+	for requirement in dungeon_clears:
+		var req_dungeon = requirement.get("dungeon_id", "")
+		var req_difficulty = requirement.get("difficulty", "")
+
+		if req_dungeon == dungeon_id and req_difficulty == difficulty:
+			return true
+
+	return false
+
+## Check if a node is unlocked based on dungeon completion progress
+func is_node_unlocked_by_dungeons(node_id: String) -> bool:
+	"""Check if all dungeon requirements are met for a node"""
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		return true  # Default to unlocked if can't check
+
+	var node = hex_grid_manager.get_node_by_id(node_id)
+	if not node:
+		return true
+
+	var dungeon_clears = node.unlock_requirements.get("dungeon_clears", [])
+	if dungeon_clears.is_empty():
+		return true  # No dungeon requirements
+
+	var dungeon_manager = SystemRegistry.get_instance().get_system("DungeonManager") if SystemRegistry.get_instance() else null
+	if not dungeon_manager:
+		return false  # Can't verify
+
+	# Check all dungeon requirements
+	for requirement in dungeon_clears:
+		var req_dungeon = requirement.get("dungeon_id", "")
+		var req_difficulty = requirement.get("difficulty", "")
+
+		if not dungeon_manager.is_first_clear(req_dungeon, req_difficulty):
+			# is_first_clear returns false if the dungeon HAS been cleared
+			# So NOT is_first_clear means it has been cleared
+			continue
+		else:
+			# Still first clear available = not yet completed
+			return false
+
+	return true
+
+## Get list of nodes that would be unlocked by completing a specific dungeon
+func get_nodes_unlockable_by_dungeon(dungeon_id: String, difficulty: String) -> Array:
+	"""Get all nodes that have this dungeon as an unlock requirement"""
+	var unlockable_nodes: Array = []
+
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		return unlockable_nodes
+
+	var all_nodes = hex_grid_manager.get_all_nodes()
+	for node in all_nodes:
+		if _check_node_dungeon_unlock(node, dungeon_id, difficulty):
+			unlockable_nodes.append(node)
+
+	return unlockable_nodes

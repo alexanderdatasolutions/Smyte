@@ -1921,7 +1921,8 @@
       "unlock_requirements": {
         "player_level": 30,
         "specialization_tier": 2,
-        "specialization_role": "fighter"
+        "specialization_role": "fighter",
+        "dungeon_clears": [{"dungeon_id": "greek_trials", "difficulty": "heroic"}]
       },
       "description": "An outpost of Mount Olympus itself. The gods watch over this stronghold."
     },
@@ -1949,7 +1950,8 @@
       "unlock_requirements": {
         "player_level": 30,
         "specialization_tier": 2,
-        "specialization_role": "fighter"
+        "specialization_role": "fighter",
+        "dungeon_clears": [{"dungeon_id": "norse_trials", "difficulty": "heroic"}]
       },
       "description": "The gateway to Valhalla where the greatest warriors are chosen. Glory awaits those who control it."
     },
