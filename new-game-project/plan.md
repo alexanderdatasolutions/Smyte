@@ -92,7 +92,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "Return collected resources for UI feedback",
       "Test by accumulating for 60s then calling this method"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",

@@ -478,3 +478,52 @@ func calculate_offline_hex_production(node: HexNode) -> Dictionary:
 	print("  - Total accumulated: %s" % _format_resources_dict(node.accumulated_resources))
 
 	return offline_resources
+
+func collect_node_resources(node_id: String) -> Dictionary:
+	"""Collect accumulated resources from a hex node for manual claiming
+	Returns: Dictionary of collected resources that were awarded to player
+	"""
+	# Get node from HexGridManager
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager")
+	if not hex_grid_manager or not hex_grid_manager.has_method("get_node_by_id"):
+		print("[TerritoryProductionManager] ERROR: HexGridManager not available for collect_node_resources")
+		return {}
+
+	var node: HexNode = hex_grid_manager.get_node_by_id(node_id)
+	if not node:
+		print("[TerritoryProductionManager] ERROR: Node '%s' not found" % node_id)
+		return {}
+
+	if not node.is_controlled_by_player():
+		print("[TerritoryProductionManager] ERROR: Node '%s' not controlled by player" % node_id)
+		return {}
+
+	# Copy accumulated_resources to return Dictionary
+	var collected_resources: Dictionary = {}
+	for resource_id in node.accumulated_resources:
+		collected_resources[resource_id] = node.accumulated_resources[resource_id]
+
+	if collected_resources.is_empty():
+		print("[TerritoryProductionManager] Node '%s' has no accumulated resources to collect" % node_id)
+		return {}
+
+	# Award resources to player via ResourceManager
+	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager")
+	if resource_manager and resource_manager.has_method("award_resources"):
+		resource_manager.award_resources(collected_resources)
+
+	# Clear node.accumulated_resources
+	node.accumulated_resources.clear()
+
+	# Emit resources_generated signal
+	resources_generated.emit(node_id, collected_resources)
+
+	# Debug output
+	var coord_str = "(%d,%d)" % [node.coord.q, node.coord.r] if node.coord else "unknown"
+	print("[TerritoryProductionManager] Collected resources from node %s '%s': %s" % [
+		coord_str,
+		node.name if node.name else node_id,
+		_format_resources_dict(collected_resources)
+	])
+
+	return collected_resources
