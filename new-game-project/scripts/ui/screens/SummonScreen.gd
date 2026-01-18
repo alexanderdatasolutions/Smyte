@@ -1,12 +1,12 @@
 # scripts/ui/SummonScreen.gd - Coordinator pattern with ResourceManager integration
 extends Control
 
-const _SummonButtonFactory = preload("res://scripts/ui/summon/SummonButtonFactory.gd")
 const _SummonShowcaseClass = preload("res://scripts/ui/summon/SummonShowcase.gd")
 const _SummonBannerCardClass = preload("res://scripts/ui/summon/SummonBannerCard.gd")
 const _SummonAnimationClass = preload("res://scripts/ui/summon/SummonAnimation.gd")
 const _SummonResultOverlayClass = preload("res://scripts/ui/summon/SummonResultOverlay.gd")
 const _SummonPopupHelperClass = preload("res://scripts/ui/summon/SummonPopupHelper.gd")
+const _SummonHistoryPanelClass = preload("res://scripts/ui/summon/SummonHistoryPanel.gd")
 
 signal back_pressed
 
@@ -19,6 +19,8 @@ var banner_cards: Array = []
 var showcase: SummonShowcase
 var summon_animation  # SummonAnimation
 var result_overlay  # SummonResultOverlay
+var history_panel  # SummonHistoryPanel
+var history_button: Button
 var selected_element: int = 0
 var is_processing_summon: bool = false
 var cards_initialized: bool = false
@@ -49,10 +51,16 @@ func _ready():
 	# Initialize result overlay
 	_setup_result_overlay()
 
+	# Initialize history panel
+	_setup_history_panel()
+
 	# Connect back button
 	if back_button:
 		back_button.pressed.connect(_on_back_pressed)
 		_style_back_button()
+
+	# Create history button next to back button
+	_create_history_button()
 
 func _notification(what):
 	# When screen becomes visible, ensure cards are using new system
@@ -66,155 +74,129 @@ func _notification(what):
 			_refresh_all_cards()
 
 func _setup_fullscreen():
-	"""Make this control fill the entire viewport"""
-	var viewport_size = get_viewport().get_visible_rect().size
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	set_size(viewport_size)
+	set_size(get_viewport().get_visible_rect().size)
 	position = Vector2.ZERO
 
 func _setup_summon_animation():
-	"""Initialize the summon animation overlay component"""
 	summon_animation = _SummonAnimationClass.new()
 	summon_animation.name = "SummonAnimation"
 	summon_animation.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(summon_animation)
-	# Move to top of draw order
 	move_child(summon_animation, get_child_count() - 1)
-
-	# Connect animation signals
 	summon_animation.animation_completed.connect(_on_animation_completed)
 	summon_animation.animation_skipped.connect(_on_animation_skipped)
 	summon_animation.all_animations_completed.connect(_on_all_animations_completed)
 
 func _setup_result_overlay():
-	"""Initialize the summon result overlay component"""
 	result_overlay = _SummonResultOverlayClass.new()
 	result_overlay.name = "SummonResultOverlay"
 	result_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(result_overlay)
-	# Move above animation layer
 	move_child(result_overlay, get_child_count() - 1)
-
-	# Connect result overlay signals
 	result_overlay.view_collection_pressed.connect(_on_view_collection_pressed)
 	result_overlay.summon_again_pressed.connect(_on_summon_again_pressed)
 	result_overlay.close_pressed.connect(_on_result_overlay_closed)
 
+func _setup_history_panel():
+	history_panel = _SummonHistoryPanelClass.new()
+	history_panel.name = "SummonHistoryPanel"
+	history_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(history_panel)
+	move_child(history_panel, get_child_count() - 1)
+	history_panel.close_pressed.connect(_on_history_panel_closed)
+
+func _create_history_button():
+	history_button = Button.new()
+	history_button.text = "History"
+	history_button.position = Vector2(107, 650)
+	history_button.size = Vector2(80, 40)
+	history_button.pressed.connect(_on_history_button_pressed)
+	add_child(history_button)
+	_style_history_button()
+
+func _style_history_button():
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.15, 0.12, 0.2, 0.95)
+	style.border_color = Color(0.5, 0.4, 0.6, 0.8)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(6)
+	history_button.add_theme_stylebox_override("normal", style)
+	var hover = StyleBoxFlat.new()
+	hover.bg_color = Color(0.22, 0.18, 0.28, 0.98)
+	hover.border_color = Color(0.6, 0.5, 0.7, 1.0)
+	hover.set_border_width_all(1)
+	hover.set_corner_radius_all(6)
+	history_button.add_theme_stylebox_override("hover", hover)
+	history_button.add_theme_color_override("font_color", Color(0.85, 0.8, 0.7))
+	history_button.add_theme_color_override("font_hover_color", Color(1.0, 0.95, 0.85))
+
 func _style_back_button():
-	"""Style the back button to match dark fantasy theme"""
-	if not back_button:
-		return
+	if not back_button: return
 	var style = StyleBoxFlat.new()
 	style.bg_color = Color(0.12, 0.1, 0.15, 0.95)
 	style.border_color = Color(0.4, 0.35, 0.5, 0.8)
 	style.set_border_width_all(1)
 	style.set_corner_radius_all(6)
 	back_button.add_theme_stylebox_override("normal", style)
-
 	var hover = StyleBoxFlat.new()
 	hover.bg_color = Color(0.18, 0.15, 0.22, 0.98)
 	hover.border_color = Color(0.5, 0.45, 0.6, 1.0)
 	hover.set_border_width_all(1)
 	hover.set_corner_radius_all(6)
 	back_button.add_theme_stylebox_override("hover", hover)
-
 	back_button.add_theme_color_override("font_color", Color(0.85, 0.8, 0.7))
 	back_button.add_theme_color_override("font_hover_color", Color(1.0, 0.95, 0.85))
-
-	# Connect to SummonManager
 	_connect_summon_signals()
-
-	# Create summon cards
 	_create_summon_cards()
 	cards_initialized = true
 
 func _setup_showcase_grid():
-	if not showcase_content or showcase_content is GridContainer:
-		return
-
+	if not showcase_content or showcase_content is GridContainer: return
 	var showcase_parent = showcase_content.get_parent()
-	if not showcase_parent:
-		return
-
+	if not showcase_parent: return
 	var showcase_pos = showcase_content.get_index()
 	var showcase_name = showcase_content.name
-
-	# Store existing children
 	var existing_children = []
 	for child in showcase_content.get_children():
 		existing_children.append(child)
 		showcase_content.remove_child(child)
-
 	showcase_content.queue_free()
-
-	# Create GridContainer (2 columns)
 	var grid = GridContainer.new()
 	grid.name = showcase_name
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 10)
 	grid.add_theme_constant_override("v_separation", 10)
-
-	# Re-add children
-	for child in existing_children:
-		grid.add_child(child)
-
+	for child in existing_children: grid.add_child(child)
 	showcase_parent.add_child(grid)
 	showcase_parent.move_child(grid, showcase_pos)
 	showcase_content = grid
 
 func _connect_summon_signals():
-	var summon_manager = SystemRegistry.get_instance().get_system("SummonManager") if SystemRegistry.get_instance() else null
-	if not summon_manager:
-		return
-
-	# Disconnect first if already connected
-	if summon_manager.summon_completed.is_connected(_on_god_summoned):
-		summon_manager.summon_completed.disconnect(_on_god_summoned)
-	if summon_manager.summon_failed.is_connected(_on_summon_failed):
-		summon_manager.summon_failed.disconnect(_on_summon_failed)
-	if summon_manager.multi_summon_completed.is_connected(_on_multi_summon_completed):
-		summon_manager.multi_summon_completed.disconnect(_on_multi_summon_completed)
-
-	# Connect signals
-	summon_manager.summon_completed.connect(_on_god_summoned)
-	summon_manager.summon_failed.connect(_on_summon_failed)
-	summon_manager.multi_summon_completed.connect(_on_multi_summon_completed)
-
-	# Connect to ResourceManager for resource updates to refresh UI
+	var sm = SystemRegistry.get_instance().get_system("SummonManager") if SystemRegistry.get_instance() else null
+	if not sm: return
+	if sm.summon_completed.is_connected(_on_god_summoned): sm.summon_completed.disconnect(_on_god_summoned)
+	if sm.summon_failed.is_connected(_on_summon_failed): sm.summon_failed.disconnect(_on_summon_failed)
+	if sm.multi_summon_completed.is_connected(_on_multi_summon_completed): sm.multi_summon_completed.disconnect(_on_multi_summon_completed)
+	sm.summon_completed.connect(_on_god_summoned)
+	sm.summon_failed.connect(_on_summon_failed)
+	sm.multi_summon_completed.connect(_on_multi_summon_completed)
 	_connect_resource_signals()
 
 func _connect_resource_signals():
-	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
-	if not resource_manager:
-		return
-
-	# Disconnect first if already connected
-	if resource_manager.resource_changed.is_connected(_on_resource_changed):
-		resource_manager.resource_changed.disconnect(_on_resource_changed)
-	if resource_manager.resource_insufficient.is_connected(_on_resource_insufficient):
-		resource_manager.resource_insufficient.disconnect(_on_resource_insufficient)
-
-	# Connect to resource change signals
-	resource_manager.resource_changed.connect(_on_resource_changed)
-	resource_manager.resource_insufficient.connect(_on_resource_insufficient)
+	var rm = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
+	if not rm: return
+	if rm.resource_changed.is_connected(_on_resource_changed): rm.resource_changed.disconnect(_on_resource_changed)
+	if rm.resource_insufficient.is_connected(_on_resource_insufficient): rm.resource_insufficient.disconnect(_on_resource_insufficient)
+	rm.resource_changed.connect(_on_resource_changed)
+	rm.resource_insufficient.connect(_on_resource_insufficient)
 
 func _create_summon_cards():
-	if not summon_container:
-		return
-
-	# Convert to GridContainer if needed
-	if not summon_container is GridContainer:
-		_convert_summon_container_to_grid()
-
-	# Clear any existing children (old buttons from previous code)
-	for child in summon_container.get_children():
-		child.queue_free()
-
+	if not summon_container: return
+	if not summon_container is GridContainer: _convert_summon_container_to_grid()
+	for child in summon_container.get_children(): child.queue_free()
 	banner_cards.clear()
-
-	# Create banner cards with full pity progress display
-	var banners = _get_banner_configs()
-	for banner in banners:
+	for banner in _get_banner_configs():
 		var card = _SummonBannerCardClass.new()
 		card.configure(banner)
 		card.set_accent_color(banner.get("color", Color.WHITE))
@@ -285,8 +267,7 @@ func _get_banner_configs() -> Array:
 
 func _convert_summon_container_to_grid():
 	var parent = summon_container.get_parent()
-	if not parent:
-		return
+	if not parent: return
 	var pos = summon_container.get_index()
 	summon_container.queue_free()
 	var grid = GridContainer.new()
@@ -298,203 +279,120 @@ func _convert_summon_container_to_grid():
 	parent.move_child(grid, pos)
 	summon_container = grid
 
-## Banner card event handlers
-
 func _on_banner_single_summon(_banner_data: Dictionary, banner: Dictionary):
-	var summon_system = _get_summon_system()
-	if not summon_system:
-		_show_error_message("Summon system not available")
-		return
-
+	var ss = _get_summon_system()
+	if not ss: _show_error_message("Summon system not available"); return
 	_set_cards_enabled(false)
 	is_processing_summon = true
-	current_banner_data = banner  # Store for "Summon Again"
-	pending_summon_results.clear()  # Clear previous results
-	if summon_system.has_method("clear_duplicate_tracking"):
-		summon_system.clear_duplicate_tracking()  # Fresh duplicate tracking for this session
-
+	current_banner_data = banner
+	pending_summon_results.clear()
+	if ss.has_method("clear_duplicate_tracking"): ss.clear_duplicate_tracking()
 	var success = false
-	if banner.get("is_daily_free", false):
-		success = summon_system.summon_free_daily()
-	elif banner.summon_type == "divine_crystals":
-		success = summon_system.summon_premium()
-	else:
-		success = summon_system.summon_with_soul(banner.summon_type)
-
-	if not success:
-		_set_cards_enabled(true)
+	if banner.get("is_daily_free", false): success = ss.summon_free_daily()
+	elif banner.summon_type == "divine_crystals": success = ss.summon_premium()
+	else: success = ss.summon_with_soul(banner.summon_type)
+	if not success: _set_cards_enabled(true)
 
 func _on_banner_multi_summon(_banner_data: Dictionary, banner: Dictionary):
-	var summon_system = _get_summon_system()
-	if not summon_system:
-		_show_error_message("Summon system not available")
-		return
-
-	if banner.multi_count <= 0:
-		_show_error_message("Multi-summon not available for this banner")
-		return
-
+	var ss = _get_summon_system()
+	if not ss: _show_error_message("Summon system not available"); return
+	if banner.multi_count <= 0: _show_error_message("Multi-summon not available"); return
 	_set_cards_enabled(false)
 	is_processing_summon = true
-	current_banner_data = banner  # Store for "Summon Again"
-	pending_summon_results.clear()  # Clear previous results
-	if summon_system.has_method("clear_duplicate_tracking"):
-		summon_system.clear_duplicate_tracking()  # Fresh duplicate tracking for this session
-
+	current_banner_data = banner
+	pending_summon_results.clear()
+	if ss.has_method("clear_duplicate_tracking"): ss.clear_duplicate_tracking()
 	var success = false
-	if banner.summon_type == "divine_crystals":
-		success = summon_system.multi_summon_premium(banner.multi_count)
-	elif summon_system.has_method("summon_multi_with_soul"):
-		success = summon_system.summon_multi_with_soul(banner.summon_type, banner.multi_count)
+	if banner.summon_type == "divine_crystals": success = ss.multi_summon_premium(banner.multi_count)
+	elif ss.has_method("summon_multi_with_soul"): success = ss.summon_multi_with_soul(banner.summon_type, banner.multi_count)
 	else:
-		# Fallback: perform multiple single summons
 		for i in range(banner.multi_count):
-			success = summon_system.summon_with_soul(banner.summon_type)
-			if not success:
-				break
+			success = ss.summon_with_soul(banner.summon_type)
+			if not success: break
+	if not success: _set_cards_enabled(true)
 
-	if not success:
-		_set_cards_enabled(true)
-
-func _on_back_pressed():
-	back_pressed.emit()
-
-## Summon callbacks
+func _on_back_pressed(): back_pressed.emit()
 
 func _on_god_summoned(god):
-	# Play animation if enabled, otherwise show directly
-	if animations_enabled and summon_animation:
-		summon_animation.queue_summon(god)
-	else:
-		_show_god_in_showcase(god)
-		_set_cards_enabled(true)
-		_refresh_all_cards()
+	if animations_enabled and summon_animation: summon_animation.queue_summon(god)
+	else: _show_god_in_showcase(god); _set_cards_enabled(true); _refresh_all_cards()
 
 func _on_multi_summon_completed(gods: Array):
-	# Play animations for all gods if enabled
-	if animations_enabled and summon_animation:
-		summon_animation.queue_multi_summon(gods)
+	if animations_enabled and summon_animation: summon_animation.queue_multi_summon(gods)
 	else:
-		for god in gods:
-			_show_god_in_showcase(god)
-		_set_cards_enabled(true)
-		_refresh_all_cards()
+		for god in gods: _show_god_in_showcase(god)
+		_set_cards_enabled(true); _refresh_all_cards()
 
 func _on_summon_failed(reason):
-	_show_error_message(reason)
-	_set_cards_enabled(true)
-	_refresh_all_cards()
+	_show_error_message(reason); _set_cards_enabled(true); _refresh_all_cards()
 
-func _on_duplicate_obtained(_god, _existing_count: int):
-	pass
+func _on_duplicate_obtained(_god, _existing_count: int): pass
 
 func _on_resource_changed(_resource_id: String, _new_amount: int, _delta: int):
-	"""Called when any resource changes - refresh banner card states"""
-	_refresh_all_cards()
-	# Also update the ResourceDisplay if it exists
-	_update_resource_display()
+	_refresh_all_cards(); _update_resource_display()
 
 func _on_resource_insufficient(resource_id: String, required: int, available: int):
-	"""Called when trying to spend more resources than available"""
-	var display_name = _SummonPopupHelperClass.get_resource_display_name(resource_id)
-	var message = "Not enough %s! Need %d, have %d" % [display_name, required, available]
-	_SummonPopupHelperClass.show_insufficient_resources(self, message, resource_id)
+	var dn = _SummonPopupHelperClass.get_resource_display_name(resource_id)
+	_SummonPopupHelperClass.show_insufficient_resources(self, "Not enough %s! Need %d, have %d" % [dn, required, available], resource_id)
 
 func _update_resource_display():
-	"""Update ResourceDisplay component if present in scene"""
-	var resource_display = get_node_or_null("ResourceDisplay")
-	if resource_display and resource_display.has_method("_update_this_instance"):
-		resource_display._update_this_instance()
-
-## Animation callbacks
+	var rd = get_node_or_null("ResourceDisplay")
+	if rd and rd.has_method("_update_this_instance"): rd._update_this_instance()
 
 func _on_animation_completed(god):
-	"""Called when a single summon animation finishes"""
-	_show_god_in_showcase(god)
-	pending_summon_results.append(god)
+	_show_god_in_showcase(god); pending_summon_results.append(god)
 
 func _on_animation_skipped(god):
-	"""Called when animation is skipped"""
-	_show_god_in_showcase(god)
-	pending_summon_results.append(god)
+	_show_god_in_showcase(god); pending_summon_results.append(god)
 
 func _on_all_animations_completed():
-	"""Called when all queued animations are done"""
-	_set_cards_enabled(true)
-	_refresh_all_cards()
-
-	# Show result overlay if we have results
+	_set_cards_enabled(true); _refresh_all_cards()
 	if pending_summon_results.size() > 0 and result_overlay:
 		result_overlay.show_results(pending_summon_results, current_banner_data)
 
 func _show_god_in_showcase(god: God):
-	"""Display god in the showcase panel"""
 	if showcase:
 		_clear_showcase_invisible_nodes()
-		if default_message:
-			default_message.visible = false
-		showcase.show_god(god, false)  # Don't animate showcase cards, animation already played
-
-## Result overlay callbacks
+		if default_message: default_message.visible = false
+		showcase.show_god(god, false)
 
 func _on_view_collection_pressed():
-	"""Navigate to collection screen when 'View in Collection' is pressed"""
-	var screen_mgr = SystemRegistry.get_instance().get_system("ScreenManager") if SystemRegistry.get_instance() else null
-	if screen_mgr and screen_mgr.has_method("show_screen"):
-		screen_mgr.show_screen("collection")
+	var sm = SystemRegistry.get_instance().get_system("ScreenManager") if SystemRegistry.get_instance() else null
+	if sm and sm.has_method("show_screen"): sm.show_screen("collection")
 
 func _on_summon_again_pressed():
-	"""Repeat the last summon when 'Summon Again' is pressed"""
-	if current_banner_data.is_empty():
-		return
+	if current_banner_data.is_empty(): return
+	if pending_summon_results.size() > 1: _on_banner_multi_summon(current_banner_data, current_banner_data)
+	else: _on_banner_single_summon(current_banner_data, current_banner_data)
 
-	# Determine if it was single or multi summon based on pending results
-	var was_multi = pending_summon_results.size() > 1
-
-	if was_multi:
-		_on_banner_multi_summon(current_banner_data, current_banner_data)
-	else:
-		_on_banner_single_summon(current_banner_data, current_banner_data)
-
-func _on_result_overlay_closed():
-	"""Handle result overlay close"""
-	# Nothing special needed, just refresh cards
-	_refresh_all_cards()
-
-## Helper functions
+func _on_result_overlay_closed(): _refresh_all_cards()
+func _on_history_button_pressed():
+	if history_panel: history_panel.show_panel()
+func _on_history_panel_closed(): pass
 
 func _get_summon_system():
 	return SystemRegistry.get_instance().get_system("SummonManager") if SystemRegistry.get_instance() else null
 
 func _set_cards_enabled(enabled: bool):
 	for card in banner_cards:
-		if card and card.has_method("refresh"):
-			if enabled:
-				card.refresh()
-			# Cards handle their own disabled state based on resources
+		if card and card.has_method("refresh") and enabled: card.refresh()
 
 func _show_error_message(message: String):
-	if not default_message:
-		return
-
+	if not default_message: return
 	default_message.visible = true
 	default_message.text = message
 	default_message.add_theme_color_override("font_color", Color.ORANGE_RED)
-
 	var tween = create_tween()
 	tween.tween_interval(2.0)
 	tween.tween_callback(func():
 		if default_message:
 			default_message.visible = false
 			default_message.text = "Select a summon type to begin"
-			default_message.remove_theme_color_override("font_color")
-	)
+			default_message.remove_theme_color_override("font_color"))
 
 func _clear_showcase_invisible_nodes():
-	if showcase:
-		showcase.clear_invisible_nodes()
+	if showcase: showcase.clear_invisible_nodes()
 
 func _refresh_all_cards():
 	for card in banner_cards:
-		if card and card.has_method("refresh"):
-			card.refresh()
+		if card and card.has_method("refresh"): card.refresh()

@@ -166,7 +166,7 @@ Complete overhaul of the summon/gacha system to create an engaging, balanced exp
       "Display rarity distribution stats",
       "Show pity counter history"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "polish",
