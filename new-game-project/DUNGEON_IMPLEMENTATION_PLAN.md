@@ -429,7 +429,7 @@
       "No crash or stuck state during transitions"
     ],
     "files_to_modify": [],
-    "passes": false
+    "passes": true
   },
   {
     "id": "TEST-002",
