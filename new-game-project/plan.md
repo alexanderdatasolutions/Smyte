@@ -146,7 +146,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "Refresh production display when signal received",
       "Test by assigning/removing workers and watching rates update"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "integration",

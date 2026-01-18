@@ -618,6 +618,17 @@ func update_node_workers(node_id: String, worker_ids: Array) -> bool:
 			node.assigned_workers.append(god_id)
 
 	print("TerritoryManager: Updated workers for node %s: %s" % [node_id, node.assigned_workers])
+
+	# Emit production_updated signal to refresh UI
+	var production_manager = SystemRegistry.get_instance().get_system("TerritoryProductionManager")
+	if production_manager:
+		var new_production_rate: Dictionary = production_manager.calculate_node_production(node)
+		var total_rate: int = 0
+		for resource_id in new_production_rate:
+			total_rate += int(new_production_rate[resource_id])
+		production_manager.production_updated.emit(node_id, total_rate)
+		print("TerritoryManager: Emitted production_updated signal for node %s with rate %d" % [node_id, total_rate])
+
 	return true
 
 # ==============================================================================

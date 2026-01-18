@@ -942,3 +942,69 @@ Enhanced TerritoryOverviewScreen to display aggregate production data and pendin
 
 ---
 
+### 2026-01-19 01:00 - Task 9 Complete: Production Updates When Workers Change
+
+**Task:** Update production when workers change (emit signal for UI refresh)
+
+**What Was Done:**
+Implemented automatic UI refresh when workers are assigned/removed from hex nodes. The system:
+- Emits `production_updated` signal when `update_node_workers()` is called
+- Calculates new production rate after worker update
+- Passes node_id and total production rate to signal
+- NodeInfoPanel already connected to signal (from Task 6) - automatically refreshes
+- Fixed signal type mismatch (changed handler from Dictionary to int parameter)
+- Also triggers pending resources display refresh
+
+**Files Modified:**
+
+1. **scripts/systems/territory/TerritoryManager.gd** (Lines 622-630):
+   - Added production_updated signal emission after worker update
+   - Gets TerritoryProductionManager via SystemRegistry
+   - Calculates new production rate using calculate_node_production()
+   - Sums total hourly rate across all resources
+   - Emits signal with node_id and total_rate
+   - Debug output confirms signal emission
+
+2. **scripts/ui/territory/NodeInfoPanel.gd** (Line 843):
+   - Fixed `_on_production_updated()` signal handler parameter type
+   - Changed from `_new_rate: Dictionary` to `_new_rate: int` (matches signal signature)
+   - Added call to `_update_pending_resources()` for comprehensive UI refresh
+   - Signal connection already established in Task 6 (line 113)
+
+**Verification:**
+
+✅ **Project runs without errors**
+✅ **Signal emitted correctly when workers updated:**
+   - Debug output: `TerritoryManager: Updated workers for node divine_sanctum: []`
+   - Debug output: `TerritoryManager: Emitted production_updated signal for node divine_sanctum with rate 75`
+✅ **No type conversion errors** - Fixed parameter type mismatch
+✅ **Production display refreshes automatically:**
+   - NodeInfoPanel._on_production_updated() receives signal
+   - Calls _update_production() to refresh production rates
+   - Calls _update_pending_resources() to refresh pending display
+✅ **Signal properly connected:**
+   - Connection established in NodeInfoPanel._connect_signals() (line 113)
+   - Handler triggers when node_id matches current_node.id
+
+**Testing Method:**
+1. Ran project with `mcp__godot__run_project`
+2. Navigated to hex_territory screen
+3. Called `TerritoryManager.update_node_workers("divine_sanctum", [])` via game_interact
+4. Verified signal emission in debug output (no errors)
+5. Confirmed production_updated signal emitted with correct parameters
+6. Screenshot saved: `screenshots/production-task9-complete.png`
+
+**Implementation Notes:**
+- Signal already defined in TerritoryProductionManager.gd:15
+- UI connection already established in Task 6
+- Only needed to add emission point in TerritoryManager
+- Fixed type mismatch discovered during testing
+- Uses SystemRegistry pattern for all system access
+- Production rate calculation delegated to TerritoryProductionManager
+
+**Status:** Task 9 COMPLETE - All acceptance criteria met
+
+**Next Task:** Task 10 - Update production when nodes are upgraded
+
+---
+

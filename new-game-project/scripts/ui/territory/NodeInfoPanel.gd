@@ -840,10 +840,11 @@ func _create_button(text: String, color: Color) -> Button:
 # ==============================================================================
 # SIGNAL HANDLERS
 # ==============================================================================
-func _on_production_updated(territory_id: String, _new_rate: Dictionary) -> void:
+func _on_production_updated(territory_id: String, _new_rate: int) -> void:
 	"""Handle production update signal - refresh display if this is our node"""
 	if current_node and current_node.id == territory_id:
 		_update_production()
+		_update_pending_resources()
 
 func _on_capture_pressed() -> void:
 	"""Handle capture button press"""
