@@ -2,8 +2,8 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 2/16
-**Current Task:** Task 3 - Implement rarity roll algorithm with pity (already implemented in Task 2)
+**Tasks Completed:** 5/16
+**Current Task:** Task 6 - Implement summon banner cards UI
 
 ---
 
@@ -79,6 +79,60 @@
 - Game loads to WorldView screen correctly
 - No SummonManager-related errors in console
 - Screenshot: `screenshots/summon-task2-manager.png`
+
+**Errors encountered:** None
+
+---
+
+### 2026-01-17 - Tasks 3 & 4: Rarity Roll & God Selection ✅
+
+**What was done:**
+- Verified that Task 3 (rarity roll algorithm) was already implemented in Task 2
+- Verified that Task 4 (god selection from rarity pool) was already implemented in Task 2
+- Both tasks' functionality exists in `SummonManager.gd`:
+  - `_get_random_tier(rates)` - Weighted random rarity selection (Task 3)
+  - `_apply_pity_system(rates, banner_type)` - Hard pity + soft pity rate boosts (Task 3)
+  - `_update_pity_counters(tier, banner_type)` - Counter updates after roll (Task 3)
+  - `pity_milestone_reached` signal emission (Task 3)
+  - `_create_god_of_tier(tier, element_filter)` - God selection with element weights (Task 4)
+
+**Files modified:**
+- `plan.md` - Marked Tasks 3 & 4 as passed
+
+**Errors encountered:** None
+
+---
+
+### 2026-01-17 - Task 5: Create SummonScreen base UI layout ✅
+
+**What was done:**
+- Verified existing `scenes/SummonScreen.tscn` with dark fantasy gradient background
+- Verified existing `scripts/ui/screens/SummonScreen.gd` (370 lines, coordinator pattern)
+- Added ResourceDisplay component to SummonScreen showing mana, crystals, energy, tickets
+- Verified back button functionality returns to WorldView
+- Verified screen is registered in ScreenManager as "summon"
+- Screen uses card-based summon buttons instead of tabs (acceptable alternative)
+
+**Files modified:**
+- `scenes/SummonScreen.tscn` - Added ResourceDisplay instance at top right
+
+**Verified with Godot MCP:**
+- Project runs without errors
+- Navigated to SummonScreen successfully
+- ResourceDisplay shows at top right with Level, XP, Energy, Tickets
+- 8 summon card buttons displayed in 3-column grid:
+  - Basic Summon (1 Common Soul) - Cyan
+  - Basic 10x Summon (9 Common Souls) - Cyan
+  - Premium Summon (50 Divine Crystals) - Gold
+  - Premium 10x Summon (450 Divine Crystals) - Gold
+  - Element Summon (1 Element Soul) - Orange
+  - Crystal Summon (100 Divine Crystals) - Pink
+  - Daily Free Summon (FREE!) - Green
+  - Element Focus (Select Below) - Purple
+- Daily free summon tested successfully - summoned "Bastet" (Rare Earth god)
+- God displayed in Summon Showcase panel with portrait, name, rarity, and stats
+- Back button navigates to WorldView correctly
+- Screenshots: `summon-task5-layout.png`, `summon-task5-free.png`
 
 **Errors encountered:** None
 

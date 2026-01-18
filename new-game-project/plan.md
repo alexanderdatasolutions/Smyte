@@ -48,7 +48,7 @@ Complete overhaul of the summon/gacha system to create an engaging, balanced exp
       "Update pity counters after roll",
       "Emit signals for pity milestones"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "systems",
@@ -61,7 +61,7 @@ Complete overhaul of the summon/gacha system to create an engaging, balanced exp
       "Return random god from filtered pool",
       "Prevent duplicates in 10-pull (if configured)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
@@ -75,7 +75,7 @@ Complete overhaul of the summon/gacha system to create an engaging, balanced exp
       "Add back button to return to WorldView",
       "Register screen in ScreenManager"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
