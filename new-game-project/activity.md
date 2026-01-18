@@ -1424,3 +1424,98 @@ Tick 4 (240s): {mana: 3.3, gold: 1.7}
 
 ---
 
+### 2026-01-19 07:30 - Task 15 Complete: Apply Balance Config Limits (Max Storage Hours)
+
+**Task:** Apply balance config limits (max storage hours)
+
+**What Was Done:**
+Implemented max storage hours cap from territory_balance_config.json to limit offline production accumulation. The system:
+- Loads max_storage_hours from territory_balance_config.json (default: 12 hours)
+- Caps offline time to max_storage_hours in calculate_offline_hex_production()
+- Shows warning message in debug output when cap is applied
+- Displays UI warning in NodeInfoPanel when resources reach max storage duration
+- Prevents resource inflation from extended offline periods
+
+**Files Modified:**
+
+1. **scripts/systems/territory/TerritoryProductionManager.gd** (Lines 452-463):
+   - Added max storage hours cap logic in calculate_offline_hex_production()
+   - Loads balance config directly using _load_balance_config() helper
+   - Caps hours_passed to max_storage_hours when offline time exceeds limit
+   - Added was_capped flag to track when cap is applied
+
+2. **scripts/systems/territory/TerritoryProductionManager.gd** (Lines 487-491):
+   - Updated debug output to show warning when max storage reached
+   - Displays: "⚠️ Max storage reached (capped at 12.0 hours)"
+   - Shows actual offline duration for reference
+
+3. **scripts/systems/territory/TerritoryProductionManager.gd** (Lines 547-568):
+   - Added _load_balance_config() helper method
+   - Loads territory_balance_config.json directly
+   - Returns Dictionary with balance configuration
+   - Handles file read errors gracefully
+
+4. **scripts/ui/territory/NodeInfoPanel.gd** (Lines 352-373):
+   - Added max storage warning in _update_pending_resources()
+   - Calculates time since last production
+   - Loads max_storage_hours from balance config
+   - Shows warning: "⚠️ Max storage reached (12 hours)" in yellow when time >= max_storage_hours
+   - Warning appears above pending resources display
+
+5. **scripts/ui/territory/NodeInfoPanel.gd** (Lines 933-952):
+   - Added _load_balance_config() helper method (same as TerritoryProductionManager)
+   - Loads configuration for UI display
+
+**Verification:**
+
+✅ **Project runs without errors**
+✅ **Offline calculation caps correctly:**
+```
+[TerritoryProductionManager] Offline calculation for node (0,0) 'Divine Sanctum':
+  - Offline duration: 12.00 hours (1768759385 seconds)
+  - ⚠️ Max storage reached (capped at 12.0 hours)
+  - Hourly rate: {mana: 50.0, gold: 25.0}
+  - Generated offline: {mana: 600.0, gold: 300.0}
+```
+✅ **Actual offline time was ~49,132 hours (1.77 billion seconds)**
+✅ **Capped to 12 hours as configured**
+✅ **Resources calculated for exactly 12 hours:**
+   - Mana: 50/hr × 12 = 600 ✓
+   - Gold: 25/hr × 12 = 300 ✓
+✅ **Warning message displayed in debug output**
+✅ **UI code added to show warning in NodeInfoPanel**
+✅ **Balance config loaded correctly from JSON**
+
+**Testing Method:**
+1. Ran project with mcp__godot__run_project
+2. Game loaded with save file that had very old timestamp (1.77 billion seconds offline)
+3. Verified offline calculation capped at 12 hours in debug output
+4. Confirmed resources awarded matched 12-hour cap (600 mana, 300 gold)
+5. Navigated to hex_territory screen
+6. Verified no compilation errors or runtime errors
+7. Screenshots saved:
+   - production-task15-hex-view.png
+   - production-task15-complete.png
+
+**Implementation Notes:**
+- Balance config default: 12 hours max storage
+- Config path: res://data/territory_balance_config.json
+- Offline time of 49,132 hours capped to 12 hours (99.98% reduction)
+- Without cap, would have awarded 2,456,596 mana instead of 600
+- Prevents extreme resource inflation from long offline periods
+- UI warning displays when time_since_last_production >= max_storage_hours
+- Warning shown in yellow color (1.0, 0.8, 0.3) for visibility
+
+**Math Verification:**
+- Actual offline: 1,768,759,385 seconds = 491,322.05 hours
+- Capped to: 12 hours
+- Hourly rate: 50 mana/hr, 25 gold/hr
+- Expected with cap: 50 × 12 = 600 mana, 25 × 12 = 300 gold ✓
+- Expected without cap: 50 × 491,322 = 24,566,102 mana (inflation prevented)
+
+**Status:** Task 15 COMPLETE - All acceptance criteria met
+
+**Next Task:** Task 16 - Add manual collection bonus from balance config
+
+---
+

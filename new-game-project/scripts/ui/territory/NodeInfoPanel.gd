@@ -350,6 +350,30 @@ func _update_pending_resources() -> void:
 		_pending_resources_container.add_child(no_resources_label)
 		return
 
+	# Check if we're approaching max storage
+	var time_since_last_production: float = 0.0
+	if current_node.last_production_time > 0:
+		var current_time = int(Time.get_unix_time_from_system())
+		time_since_last_production = (current_time - current_node.last_production_time) / 3600.0
+
+	# Get max storage hours from config
+	var max_storage_hours: float = 12.0
+	var balance_config = _load_balance_config()
+	if balance_config and balance_config.has("generation_timing"):
+		max_storage_hours = balance_config.generation_timing.get("max_storage_hours", 12.0)
+
+	# Show warning if at or near max storage
+	if time_since_last_production >= max_storage_hours:
+		var warning_label = Label.new()
+		warning_label.text = "  ⚠️ Max storage reached (%.0f hours)" % max_storage_hours
+		warning_label.add_theme_font_size_override("font_size", 11)
+		warning_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
+		_pending_resources_container.add_child(warning_label)
+
+		var spacer = Control.new()
+		spacer.custom_minimum_size = Vector2(0, 4)
+		_pending_resources_container.add_child(spacer)
+
 	# Display accumulated resources
 	for resource_id in current_node.accumulated_resources.keys():
 		var amount = current_node.accumulated_resources[resource_id]
@@ -905,3 +929,23 @@ func _show_collection_feedback(message: String, color: Color) -> void:
 	await get_tree().create_timer(3.0).timeout
 	if is_instance_valid(feedback_label):
 		feedback_label.queue_free()
+
+func _load_balance_config() -> Dictionary:
+	"""Load territory balance config from JSON file
+	Returns: Dictionary with balance configuration or empty dict on failure
+	"""
+	var file_path = "res://data/territory_balance_config.json"
+	var file = FileAccess.open(file_path, FileAccess.READ)
+	if not file:
+		return {}
+
+	var json_text = file.get_as_text()
+	file.close()
+
+	var json = JSON.new()
+	var parse_result = json.parse(json_text)
+
+	if parse_result != OK:
+		return {}
+
+	return json.get_data()

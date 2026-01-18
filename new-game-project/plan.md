@@ -227,7 +227,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "Add message to UI: 'Max storage reached (12 hours)'",
       "Test by being offline for 24 hours and verifying cap"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "polish",

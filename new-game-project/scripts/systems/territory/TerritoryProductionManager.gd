@@ -449,6 +449,19 @@ func calculate_offline_hex_production(node: HexNode) -> Dictionary:
 	if hours_passed <= 0:
 		return {}
 
+	# Apply max storage hours cap from balance config
+	var max_storage_hours: float = 12.0  # Default
+	var was_capped: bool = false
+
+	# Load balance config directly
+	var balance_config = _load_balance_config()
+	if balance_config and balance_config.has("generation_timing"):
+		max_storage_hours = balance_config.generation_timing.get("max_storage_hours", 12.0)
+
+	if hours_passed > max_storage_hours:
+		was_capped = true
+		hours_passed = max_storage_hours
+
 	# Get hourly production rate using existing formula
 	var hourly_rate: Dictionary = calculate_node_production(node)
 
@@ -473,6 +486,8 @@ func calculate_offline_hex_production(node: HexNode) -> Dictionary:
 	# Debug output
 	print("[TerritoryProductionManager] Offline calculation for node (%d,%d) '%s':" % [node.coord.q, node.coord.r, node.name])
 	print("  - Offline duration: %.2f hours (%.0f seconds)" % [hours_passed, time_diff])
+	if was_capped:
+		print("  - ⚠️ Max storage reached (capped at %.1f hours)" % max_storage_hours)
 	print("  - Hourly rate: %s" % _format_resources_dict(hourly_rate))
 	print("  - Generated offline: %s" % _format_resources_dict(offline_resources))
 	print("  - Total accumulated: %s" % _format_resources_dict(node.accumulated_resources))
@@ -527,3 +542,25 @@ func collect_node_resources(node_id: String) -> Dictionary:
 	])
 
 	return collected_resources
+
+func _load_balance_config() -> Dictionary:
+	"""Load territory balance config from JSON file
+	Returns: Dictionary with balance configuration or empty dict on failure
+	"""
+	var file_path = "res://data/territory_balance_config.json"
+	var file = FileAccess.open(file_path, FileAccess.READ)
+	if not file:
+		push_warning("TerritoryProductionManager: Could not open " + file_path)
+		return {}
+
+	var json_text = file.get_as_text()
+	file.close()
+
+	var json = JSON.new()
+	var parse_result = json.parse(json_text)
+
+	if parse_result != OK:
+		push_error("TerritoryProductionManager: Error parsing " + file_path + ": " + json.get_error_message())
+		return {}
+
+	return json.get_data()
