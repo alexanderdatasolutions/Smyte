@@ -8,25 +8,29 @@
   "elemental_sanctums": {
     "fire_sanctum": {
       "name": "Sanctum of Flames",
-      "element": "fire", 
+      "element": "fire",
       "description": "Ancient temple where fire spirits guard powerful flame essences.",
       "schedule_day": "monday",
       "difficulty_levels": {
         "beginner": {
           "energy_cost": 8,
-          "recommended_level": 10
+          "recommended_level": 10,
+          "first_clear_rewards": { "crystals": 50, "mana": 500 }
         },
         "intermediate": {
           "energy_cost": 10,
-          "recommended_level": 20
+          "recommended_level": 20,
+          "first_clear_rewards": { "crystals": 75, "mana": 1000 }
         },
         "advanced": {
           "energy_cost": 12,
-          "recommended_level": 35
+          "recommended_level": 35,
+          "first_clear_rewards": { "crystals": 100, "mana": 2000 }
         },
         "expert": {
           "energy_cost": 15,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 150, "mana": 5000 }
         }
       }
     },
@@ -34,23 +38,27 @@
       "name": "Sanctum of Tides",
       "element": "water",
       "description": "Underwater palace where ancient sea spirits guard frozen essences.",
-      "schedule_day": "tuesday", 
+      "schedule_day": "tuesday",
       "difficulty_levels": {
         "beginner": {
           "energy_cost": 8,
-          "recommended_level": 10
+          "recommended_level": 10,
+          "first_clear_rewards": { "crystals": 50, "mana": 500 }
         },
         "intermediate": {
           "energy_cost": 10,
-          "recommended_level": 20
+          "recommended_level": 20,
+          "first_clear_rewards": { "crystals": 75, "mana": 1000 }
         },
         "advanced": {
           "energy_cost": 12,
-          "recommended_level": 35
+          "recommended_level": 35,
+          "first_clear_rewards": { "crystals": 100, "mana": 2000 }
         },
         "expert": {
           "energy_cost": 15,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 150, "mana": 5000 }
         }
       }
     },
@@ -62,43 +70,51 @@
       "difficulty_levels": {
         "beginner": {
           "energy_cost": 8,
-          "recommended_level": 10
+          "recommended_level": 10,
+          "first_clear_rewards": { "crystals": 50, "mana": 500 }
         },
         "intermediate": {
           "energy_cost": 10,
-          "recommended_level": 20
+          "recommended_level": 20,
+          "first_clear_rewards": { "crystals": 75, "mana": 1000 }
         },
         "advanced": {
           "energy_cost": 12,
-          "recommended_level": 35
+          "recommended_level": 35,
+          "first_clear_rewards": { "crystals": 100, "mana": 2000 }
         },
         "expert": {
           "energy_cost": 15,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 150, "mana": 5000 }
         }
       }
     },
     "lightning_sanctum": {
-      "name": "Sanctum of Storms", 
+      "name": "Sanctum of Storms",
       "element": "lightning",
       "description": "Sky fortress where storm spirits guard electrified essences.",
       "schedule_day": "thursday",
       "difficulty_levels": {
         "beginner": {
           "energy_cost": 8,
-          "recommended_level": 10
+          "recommended_level": 10,
+          "first_clear_rewards": { "crystals": 50, "mana": 500 }
         },
         "intermediate": {
           "energy_cost": 10,
-          "recommended_level": 20
+          "recommended_level": 20,
+          "first_clear_rewards": { "crystals": 75, "mana": 1000 }
         },
         "advanced": {
           "energy_cost": 12,
-          "recommended_level": 35
+          "recommended_level": 35,
+          "first_clear_rewards": { "crystals": 100, "mana": 2000 }
         },
         "expert": {
           "energy_cost": 15,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 150, "mana": 5000 }
         }
       }
     },
@@ -110,19 +126,23 @@
       "difficulty_levels": {
         "beginner": {
           "energy_cost": 8,
-          "recommended_level": 10
+          "recommended_level": 10,
+          "first_clear_rewards": { "crystals": 50, "mana": 500 }
         },
         "intermediate": {
           "energy_cost": 10,
-          "recommended_level": 20
+          "recommended_level": 20,
+          "first_clear_rewards": { "crystals": 75, "mana": 1000 }
         },
         "advanced": {
           "energy_cost": 12,
-          "recommended_level": 35
+          "recommended_level": 35,
+          "first_clear_rewards": { "crystals": 100, "mana": 2000 }
         },
         "expert": {
           "energy_cost": 15,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 150, "mana": 5000 }
         }
       }
     },
@@ -134,19 +154,23 @@
       "difficulty_levels": {
         "beginner": {
           "energy_cost": 8,
-          "recommended_level": 10
+          "recommended_level": 10,
+          "first_clear_rewards": { "crystals": 50, "mana": 500 }
         },
         "intermediate": {
           "energy_cost": 10,
-          "recommended_level": 20
+          "recommended_level": 20,
+          "first_clear_rewards": { "crystals": 75, "mana": 1000 }
         },
         "advanced": {
           "energy_cost": 12,
-          "recommended_level": 35
+          "recommended_level": 35,
+          "first_clear_rewards": { "crystals": 100, "mana": 2000 }
         },
         "expert": {
           "energy_cost": 15,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 150, "mana": 5000 }
         }
       }
     }
@@ -161,19 +185,23 @@
       "difficulty_levels": {
         "beginner": {
           "energy_cost": 10,
-          "recommended_level": 15
+          "recommended_level": 15,
+          "first_clear_rewards": { "crystals": 60, "mana": 750 }
         },
         "intermediate": {
           "energy_cost": 12,
-          "recommended_level": 25
+          "recommended_level": 25,
+          "first_clear_rewards": { "crystals": 90, "mana": 1500 }
         },
         "advanced": {
           "energy_cost": 15,
-          "recommended_level": 40
+          "recommended_level": 40,
+          "first_clear_rewards": { "crystals": 125, "mana": 3000 }
         },
         "expert": {
           "energy_cost": 18,
-          "recommended_level": 60
+          "recommended_level": 60,
+          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
         }
       }
     }
@@ -188,11 +216,13 @@
       "difficulty_levels": {
         "heroic": {
           "energy_cost": 15,
-          "recommended_level": 30
+          "recommended_level": 30,
+          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
         },
         "legendary": {
           "energy_cost": 20,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
         }
       }
     },
@@ -204,11 +234,13 @@
       "difficulty_levels": {
         "heroic": {
           "energy_cost": 15,
-          "recommended_level": 30
+          "recommended_level": 30,
+          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
         },
         "legendary": {
           "energy_cost": 20,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
         }
       }
     },
@@ -220,11 +252,13 @@
       "difficulty_levels": {
         "heroic": {
           "energy_cost": 15,
-          "recommended_level": 30
+          "recommended_level": 30,
+          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
         },
         "legendary": {
           "energy_cost": 20,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
         }
       }
     },
@@ -236,11 +270,13 @@
       "difficulty_levels": {
         "heroic": {
           "energy_cost": 15,
-          "recommended_level": 30
+          "recommended_level": 30,
+          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
         },
         "legendary": {
           "energy_cost": 20,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
         }
       }
     },
@@ -252,11 +288,13 @@
       "difficulty_levels": {
         "heroic": {
           "energy_cost": 15,
-          "recommended_level": 30
+          "recommended_level": 30,
+          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
         },
         "legendary": {
           "energy_cost": 20,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
         }
       }
     },
@@ -268,11 +306,13 @@
       "difficulty_levels": {
         "heroic": {
           "energy_cost": 15,
-          "recommended_level": 30
+          "recommended_level": 30,
+          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
         },
         "legendary": {
           "energy_cost": 20,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
         }
       }
     },
@@ -284,11 +324,13 @@
       "difficulty_levels": {
         "heroic": {
           "energy_cost": 15,
-          "recommended_level": 30
+          "recommended_level": 30,
+          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
         },
         "legendary": {
           "energy_cost": 20,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
         }
       }
     },
@@ -300,11 +342,13 @@
       "difficulty_levels": {
         "heroic": {
           "energy_cost": 15,
-          "recommended_level": 30
+          "recommended_level": 30,
+          "first_clear_rewards": { "crystals": 100, "mana": 2500 }
         },
         "legendary": {
           "energy_cost": 20,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 200, "mana": 7500 }
         }
       }
     }
@@ -319,15 +363,18 @@
       "difficulty_levels": {
         "beginner": {
           "energy_cost": 8,
-          "recommended_level": 25
+          "recommended_level": 25,
+          "first_clear_rewards": { "crystals": 75, "mana": 1000 }
         },
         "intermediate": {
           "energy_cost": 10,
-          "recommended_level": 35
+          "recommended_level": 35,
+          "first_clear_rewards": { "crystals": 100, "mana": 2000 }
         },
         "advanced": {
           "energy_cost": 12,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 150, "mana": 4000 }
         }
       }
     },
@@ -339,15 +386,18 @@
       "difficulty_levels": {
         "beginner": {
           "energy_cost": 8,
-          "recommended_level": 25
+          "recommended_level": 25,
+          "first_clear_rewards": { "crystals": 75, "mana": 1000 }
         },
         "intermediate": {
           "energy_cost": 10,
-          "recommended_level": 35
+          "recommended_level": 35,
+          "first_clear_rewards": { "crystals": 100, "mana": 2000 }
         },
         "advanced": {
           "energy_cost": 12,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 150, "mana": 4000 }
         }
       }
     },
@@ -359,15 +409,18 @@
       "difficulty_levels": {
         "beginner": {
           "energy_cost": 8,
-          "recommended_level": 25
+          "recommended_level": 25,
+          "first_clear_rewards": { "crystals": 75, "mana": 1000 }
         },
         "intermediate": {
           "energy_cost": 10,
-          "recommended_level": 35
+          "recommended_level": 35,
+          "first_clear_rewards": { "crystals": 100, "mana": 2000 }
         },
         "advanced": {
           "energy_cost": 12,
-          "recommended_level": 50
+          "recommended_level": 50,
+          "first_clear_rewards": { "crystals": 150, "mana": 4000 }
         }
       }
     }

@@ -2,9 +2,9 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 2
+**Tasks Completed:** 3
 **Current Phase:** Build
-**Current Task:** DATA-002 completed
+**Current Task:** DATA-003 completed
 
 ---
 
@@ -86,5 +86,42 @@ This log tracks Ralph working through the dungeon system implementation.
 - ✅ get_completion_rewards() returns non-empty rewards dict
 - ✅ Fire Sanctum drops fire_powder_low, not generic powder (element-specific!)
 - ✅ Difficulty affects reward quantities (expert > beginner: 2x multiplier)
+
+---
+
+### 2026-01-17 - DATA-003: Add first-clear bonus definitions to dungeons
+
+**What was changed:**
+- Added `first_clear_rewards` field to all dungeon difficulty_levels in dungeons.json
+- Elemental sanctums: beginner=50 crystals/500 mana, intermediate=75/1000, advanced=100/2000, expert=150/5000
+- Special sanctums (magic): beginner=60/750, intermediate=90/1500, advanced=125/3000, expert=200/7500
+- Pantheon trials: heroic=100/2500, legendary=200/7500
+- Equipment dungeons: beginner=75/1000, intermediate=100/2000, advanced=150/4000
+- Added `completed_dungeons` Dictionary to `player_progress` for tracking first clears
+- Added `is_first_clear()` function to check if dungeon+difficulty has been cleared
+- Added `mark_dungeon_cleared()` function to mark a dungeon as cleared
+- Added `get_first_clear_rewards()` function to retrieve first-clear bonus from JSON
+- Updated `record_completion()` to return bool indicating if this was a first clear
+- Updated `load_progress()` for backwards compatibility with completed_dungeons field
+
+**Files modified:**
+- `data/dungeons.json`
+- `scripts/systems/dungeon/DungeonManager.gd`
+
+**Verification:**
+- Ran game and tested `get_first_clear_rewards("fire_sanctum", "beginner")` - returns `{ "crystals": 50, "mana": 500 }`
+- Tested `is_first_clear("fire_sanctum", "beginner")` - returns `true` initially
+- Called `mark_dungeon_cleared("fire_sanctum", "beginner")`
+- Tested `is_first_clear("fire_sanctum", "beginner")` again - returns `false`
+- Tested `is_first_clear("fire_sanctum", "intermediate")` - returns `true` (different difficulties tracked separately)
+- Console shows: "DungeonManager: Marked fire_sanctum_beginner as cleared (first clear)"
+
+**Screenshots:**
+- `dungeon_first_clear_data003.png` - Game running with first-clear system active
+
+**Acceptance Criteria Met:**
+- ✅ First clear of fire_sanctum beginner grants bonus 50 crystals (defined in JSON)
+- ✅ Subsequent clears don't grant first-clear bonus (is_first_clear returns false after mark_dungeon_cleared)
+- ✅ First-clear tracked per difficulty level (fire_sanctum_beginner vs fire_sanctum_intermediate are separate)
 
 ---

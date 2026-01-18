@@ -91,7 +91,8 @@ func initialize_player_progress():
 		"unlocked_dungeons": [],
 		"clear_counts": {},
 		"best_times": {},
-		"total_clears": 0
+		"total_clears": 0,
+		"completed_dungeons": {}  # Tracks first clears: "dungeon_id_difficulty" -> true
 	}
 
 func get_available_dungeons() -> Array:
@@ -488,15 +489,23 @@ func _get_difficulty_reward_multiplier(difficulty: String) -> float:
 		_:
 			return 1.0
 
-func record_completion(dungeon_id: String, difficulty: String, completion_time: float):
-	"""Record dungeon completion for statistics"""
+func record_completion(dungeon_id: String, difficulty: String, completion_time: float) -> bool:
+	"""Record dungeon completion for statistics. Returns true if this was a first clear."""
+	var was_first_clear = is_first_clear(dungeon_id, difficulty)
+
+	# Mark as cleared if this is the first time
+	if was_first_clear:
+		mark_dungeon_cleared(dungeon_id, difficulty)
+
 	update_clear_count(dungeon_id, difficulty)
-	
+
 	# Update best time
 	var time_key = dungeon_id + "_" + difficulty + "_best_time"
 	var current_best = player_progress.best_times.get(time_key, INF)
 	if completion_time < current_best:
 		player_progress.best_times[time_key] = completion_time
+
+	return was_first_clear
 
 # Save/Load functionality for player progress
 func save_progress() -> Dictionary:
@@ -507,6 +516,9 @@ func load_progress(saved_data: Dictionary):
 	"""Load dungeon progress data"""
 	if saved_data.has("unlocked_dungeons"):
 		player_progress = saved_data.duplicate()
+		# Ensure completed_dungeons exists for backwards compatibility
+		if not player_progress.has("completed_dungeons"):
+			player_progress["completed_dungeons"] = {}
 
 func update_clear_count(dungeon_id: String, difficulty: String):
 	"""Update clear count for completed dungeon"""
@@ -514,6 +526,26 @@ func update_clear_count(dungeon_id: String, difficulty: String):
 	var current_count = player_progress.clear_counts.get(clear_key, 0)
 	player_progress.clear_counts[clear_key] = current_count + 1
 	player_progress.total_clears += 1
+
+func is_first_clear(dungeon_id: String, difficulty: String) -> bool:
+	"""Check if this dungeon+difficulty has never been cleared before"""
+	var clear_key = dungeon_id + "_" + difficulty
+	return not player_progress.completed_dungeons.get(clear_key, false)
+
+func mark_dungeon_cleared(dungeon_id: String, difficulty: String):
+	"""Mark a dungeon+difficulty as cleared (for first-clear tracking)"""
+	var clear_key = dungeon_id + "_" + difficulty
+	player_progress.completed_dungeons[clear_key] = true
+	print("DungeonManager: Marked %s as cleared (first clear)" % clear_key)
+
+func get_first_clear_rewards(dungeon_id: String, difficulty: String) -> Dictionary:
+	"""Get first-clear bonus rewards for a dungeon+difficulty"""
+	var dungeon_info = get_dungeon_info(dungeon_id)
+	if dungeon_info.is_empty():
+		return {}
+
+	var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
+	return difficulty_info.get("first_clear_rewards", {})
 
 func _enhance_dungeon_info(info: Dictionary):
 	"""Enhance dungeon info with calculated power ratings and detailed information"""

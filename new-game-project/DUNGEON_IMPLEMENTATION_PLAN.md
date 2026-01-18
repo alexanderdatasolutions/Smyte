@@ -179,7 +179,7 @@
       "data/dungeons.json",
       "scripts/systems/dungeon/DungeonManager.gd"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "SYS-001",
