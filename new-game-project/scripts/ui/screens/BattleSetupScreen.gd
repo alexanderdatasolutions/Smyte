@@ -4,6 +4,7 @@ extends Control
 
 signal battle_setup_complete(context: Dictionary)
 signal setup_cancelled
+signal back_pressed  # For navigation
 
 const GodCardFactory = preload("res://scripts/utilities/GodCardFactory.gd")
 
@@ -52,3 +53,5 @@ func _on_battle_setup_complete(context: Dictionary):
 
 func _on_setup_cancelled():
 	setup_cancelled.emit()
+	# Also emit back_pressed for navigation
+	back_pressed.emit()

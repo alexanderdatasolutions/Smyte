@@ -500,28 +500,32 @@ func _refresh_god_grid() -> void:
 	print("GodSelectionPanel: Displaying %d gods" % filtered_gods.size())
 
 func _filter_gods(gods: Array) -> Array:
-	"""Apply current filters to god list"""
+	"""Apply current filters to god list (excluded gods are shown but grayed out)"""
 	var result = []
 
 	for god in gods:
 		if not god is God:
 			continue
 
-		# Exclusion check
-		if god.id in _excluded_god_ids:
-			continue
+		# Don't exclude assigned gods - they'll be shown grayed out instead
+		# (this lets players see ALL their gods and reassign if needed)
 
 		# Context filter
 		match _current_context:
 			SelectionContext.WORKER:
 				if god.stationed_territory != "" or god.is_working_on_task():
-					continue
+					if god.id not in _excluded_god_ids:
+						# Only exclude if not already in the exclusion list (those we want to show grayed)
+						continue
 			SelectionContext.GARRISON:
 				if god.stationed_territory != "" or god.is_working_on_task():
-					continue
-				# Garrison prefers combat-capable gods
-				if god.level < 5 and god.base_attack <= 50:
-					continue
+					if god.id not in _excluded_god_ids:
+						# Only exclude if not already in the exclusion list (those we want to show grayed)
+						continue
+				# Garrison prefers combat-capable gods (but still show weak ones grayed)
+				# Commented out to show all gods
+				# if god.level < 5 and god.base_attack <= 50:
+				#     continue
 
 		# Affinity filter
 		if _active_affinity_filter >= 0:
@@ -533,15 +537,24 @@ func _filter_gods(gods: Array) -> Array:
 	return result
 
 func _create_god_card(god: God) -> Control:
-	"""Create a compact god card (80x100px)"""
+	"""Create a compact god card (80x100px), grayed out if already assigned"""
 	var card = Panel.new()
 	card.custom_minimum_size = Vector2(80, 100)
 	card.name = "GodCard_" + god.id
 
-	# Style with element border
+	# Check if god is already assigned (excluded)
+	var is_assigned = god.id in _excluded_god_ids
+
+	# Style with element border (dimmed if assigned)
 	var element_color = ELEMENT_COLORS.get(god.element, Color.GRAY)
+	if is_assigned:
+		element_color = element_color * 0.4  # Dim the border color
+
 	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.15, 0.15, 0.18, 0.9)
+	if is_assigned:
+		style.bg_color = Color(0.1, 0.1, 0.12, 0.7)  # Darker background for assigned
+	else:
+		style.bg_color = Color(0.15, 0.15, 0.18, 0.9)
 	style.border_color = element_color
 	style.set_border_width_all(3)
 	style.set_corner_radius_all(8)
@@ -563,14 +576,28 @@ func _create_god_card(god: God) -> Control:
 	# Portrait (40x40)
 	var portrait_container = CenterContainer.new()
 	var portrait = _create_portrait(god)
+	if is_assigned:
+		portrait.modulate = Color(0.5, 0.5, 0.5, 0.8)  # Dim the portrait
 	portrait_container.add_child(portrait)
 	vbox.add_child(portrait_container)
+
+	# "ASSIGNED" indicator badge for assigned gods
+	if is_assigned:
+		var assigned_badge = Label.new()
+		assigned_badge.text = "ASSIGNED"
+		assigned_badge.add_theme_font_size_override("font_size", 8)
+		assigned_badge.add_theme_color_override("font_color", Color(1.0, 0.6, 0.3, 0.9))  # Orange warning color
+		assigned_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vbox.add_child(assigned_badge)
 
 	# Name (truncated)
 	var name_label = Label.new()
 	name_label.text = _truncate_name(god.name, 10)
 	name_label.add_theme_font_size_override("font_size", 10)
-	name_label.add_theme_color_override("font_color", Color.WHITE)
+	if is_assigned:
+		name_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))  # Dimmed white
+	else:
+		name_label.add_theme_color_override("font_color", Color.WHITE)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(name_label)
 
@@ -578,7 +605,10 @@ func _create_god_card(god: God) -> Control:
 	var level_label = Label.new()
 	level_label.text = "Lv.%d" % god.level
 	level_label.add_theme_font_size_override("font_size", 9)
-	level_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	if is_assigned:
+		level_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))  # More dimmed
+	else:
+		level_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(level_label)
 

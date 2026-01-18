@@ -4,27 +4,59 @@ extends Control
 class_name NodeInfoPanel
 
 """
-NodeInfoPanel.gd - Display details for selected hex node
-RULE 2: Single responsibility - ONLY displays node information and action buttons
+NodeInfoPanel.gd - Display details for selected hex node with slot boxes
+RULE 2: Single responsibility - ONLY displays node information with interactive slots
 RULE 1: Under 500 lines
 
 Shows:
 - Node name, type, tier
 - Production rates
-- Garrison (gods defending)
-- Workers (gods on tasks)
-- Defense rating with distance penalty
+- Garrison with slot boxes (60x60px tap targets)
+- Workers with slot boxes (tier-based)
+- Defense rating with combat power
 - Requirements if locked
-- Action buttons: Capture, Manage Workers, Manage Garrison
+- Action buttons: Capture, Close
 """
 
 # ==============================================================================
 # SIGNALS
 # ==============================================================================
 signal capture_requested(hex_node: HexNode)
-signal manage_workers_requested(hex_node: HexNode)
-signal manage_garrison_requested(hex_node: HexNode)
 signal close_requested()
+signal slot_tapped(node: HexNode, slot_type: String, slot_index: int)
+signal filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God)
+
+# ==============================================================================
+# CONSTANTS
+# ==============================================================================
+const PANEL_WIDTH = 380
+const PANEL_HEIGHT = 600
+const BUTTON_HEIGHT = 40
+const SLOT_SIZE = 60  # 60x60px tap target (min requirement)
+const SLOT_SPACING = 6
+const MAX_GARRISON_SLOTS = 4
+
+# Colors
+const COLOR_LOCKED = Color(0.15, 0.15, 0.15, 0.9)
+const COLOR_NEUTRAL = Color(0.3, 0.3, 0.35, 0.9)
+const COLOR_CONTROLLED = Color(0.2, 0.5, 0.3, 0.9)
+
+const TIER_COLORS = {
+	1: Color(0.6, 0.6, 0.6, 1),
+	2: Color(0.3, 0.8, 0.3, 1),
+	3: Color(0.3, 0.5, 1.0, 1),
+	4: Color(0.8, 0.3, 1.0, 1),
+	5: Color(1.0, 0.6, 0.0, 1)
+}
+
+const ELEMENT_COLORS = {
+	God.ElementType.FIRE: Color(0.9, 0.2, 0.1),
+	God.ElementType.WATER: Color(0.2, 0.5, 0.9),
+	God.ElementType.EARTH: Color(0.6, 0.4, 0.2),
+	God.ElementType.LIGHTNING: Color(0.6, 0.8, 1.0),
+	God.ElementType.LIGHT: Color(1.0, 0.85, 0.3),
+	God.ElementType.DARK: Color(0.5, 0.2, 0.6)
+}
 
 # ==============================================================================
 # PROPERTIES
@@ -50,26 +82,6 @@ var _requirements_container: VBoxContainer = null
 var _action_buttons: HBoxContainer = null
 
 # ==============================================================================
-# CONSTANTS
-# ==============================================================================
-const PANEL_WIDTH = 350
-const PANEL_HEIGHT = 500
-const BUTTON_HEIGHT = 40
-
-# Colors matching HexTile
-const COLOR_LOCKED = Color(0.15, 0.15, 0.15, 0.9)
-const COLOR_NEUTRAL = Color(0.3, 0.3, 0.35, 0.9)
-const COLOR_CONTROLLED = Color(0.2, 0.5, 0.3, 0.9)
-
-const TIER_COLORS = {
-	1: Color(0.6, 0.6, 0.6, 1),
-	2: Color(0.3, 0.8, 0.3, 1),
-	3: Color(0.3, 0.5, 1.0, 1),
-	4: Color(0.8, 0.3, 1.0, 1),
-	5: Color(1.0, 0.6, 0.0, 1)
-}
-
-# ==============================================================================
 # INITIALIZATION
 # ==============================================================================
 func _ready() -> void:
@@ -88,15 +100,6 @@ func _init_systems() -> void:
 	production_manager = registry.get_system("TerritoryProductionManager")
 	collection_manager = registry.get_system("CollectionManager")
 	node_requirement_checker = registry.get_system("NodeRequirementChecker")
-
-	if not territory_manager:
-		push_error("NodeInfoPanel: TerritoryManager not found")
-	if not production_manager:
-		push_error("NodeInfoPanel: TerritoryProductionManager not found")
-	if not collection_manager:
-		push_error("NodeInfoPanel: CollectionManager not found")
-	if not node_requirement_checker:
-		push_error("NodeInfoPanel: NodeRequirementChecker not found")
 
 func _build_ui() -> void:
 	"""Build the UI components"""
@@ -184,8 +187,8 @@ func _build_production_section() -> void:
 	_main_container.add_child(_production_container)
 
 func _build_garrison_section() -> void:
-	"""Build garrison info section"""
-	var section_label = _create_section_label("Garrison")
+	"""Build garrison info section with slot boxes"""
+	var section_label = _create_section_label("Garrison (Defense)")
 	_main_container.add_child(section_label)
 
 	_garrison_container = VBoxContainer.new()
@@ -193,8 +196,8 @@ func _build_garrison_section() -> void:
 	_main_container.add_child(_garrison_container)
 
 func _build_workers_section() -> void:
-	"""Build workers info section"""
-	var section_label = _create_section_label("Workers")
+	"""Build workers info section with slot boxes"""
+	var section_label = _create_section_label("Workers (Production)")
 	_main_container.add_child(section_label)
 
 	_workers_container = VBoxContainer.new()
@@ -203,7 +206,7 @@ func _build_workers_section() -> void:
 
 func _build_defense_section() -> void:
 	"""Build defense info section"""
-	var section_label = _create_section_label("Defense")
+	var section_label = _create_section_label("Combat Power")
 	_main_container.add_child(section_label)
 
 	_defense_label = Label.new()
@@ -329,7 +332,7 @@ func _update_production() -> void:
 		_production_container.add_child(resource_label)
 
 func _update_garrison() -> void:
-	"""Update garrison display"""
+	"""Update garrison display WITH SLOT BOXES"""
 	# Clear existing
 	for child in _garrison_container.get_children():
 		child.queue_free()
@@ -337,27 +340,22 @@ func _update_garrison() -> void:
 	if not current_node:
 		return
 
-	var garrison_count = current_node.get_garrison_count()
-	var max_garrison = current_node.max_garrison
+	# Create slot boxes
+	var slots_row = HBoxContainer.new()
+	slots_row.add_theme_constant_override("separation", SLOT_SPACING)
+	_garrison_container.add_child(slots_row)
 
-	var header = Label.new()
-	header.text = "Garrison: %d / %d" % [garrison_count, max_garrison]
-	header.add_theme_font_size_override("font_size", 12)
-	_garrison_container.add_child(header)
-
-	# List garrison gods
-	if garrison_count > 0 and collection_manager:
-		for god_id in current_node.garrison:
-			var god = collection_manager.get_god_by_id(god_id)
-			if god:
-				var god_label = Label.new()
-				god_label.text = "  - %s (Lv %d)" % [god.name, god.level]
-				god_label.add_theme_font_size_override("font_size", 11)
-				god_label.add_theme_color_override("font_color", Color(0.9, 0.8, 0.8, 1))
-				_garrison_container.add_child(god_label)
+	for i in range(MAX_GARRISON_SLOTS):
+		var slot: Control
+		if i < current_node.garrison.size():
+			var god = _get_god_by_id(current_node.garrison[i])
+			slot = _create_filled_slot(current_node, "garrison", i, god)
+		else:
+			slot = _create_empty_slot(current_node, "garrison", i)
+		slots_row.add_child(slot)
 
 func _update_workers() -> void:
-	"""Update workers display"""
+	"""Update workers display WITH SLOT BOXES"""
 	# Clear existing
 	for child in _workers_container.get_children():
 		child.queue_free()
@@ -365,27 +363,32 @@ func _update_workers() -> void:
 	if not current_node:
 		return
 
-	var worker_count = current_node.get_worker_count()
-	var max_workers = current_node.max_workers
+	var max_workers = mini(current_node.tier, 5)
 
-	var header = Label.new()
-	header.text = "Workers: %d / %d" % [worker_count, max_workers]
-	header.add_theme_font_size_override("font_size", 12)
-	_workers_container.add_child(header)
+	if max_workers == 0:
+		var no_lbl = Label.new()
+		no_lbl.text = "Not available (Tier 0)"
+		no_lbl.add_theme_font_size_override("font_size", 11)
+		no_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
+		_workers_container.add_child(no_lbl)
+		return
 
-	# List worker gods
-	if worker_count > 0 and collection_manager:
-		for god_id in current_node.assigned_workers:
-			var god = collection_manager.get_god_by_id(god_id)
-			if god:
-				var god_label = Label.new()
-				god_label.text = "  - %s (Lv %d)" % [god.name, god.level]
-				god_label.add_theme_font_size_override("font_size", 11)
-				god_label.add_theme_color_override("font_color", Color(0.8, 0.9, 0.8, 1))
-				_workers_container.add_child(god_label)
+	# Create slot boxes
+	var slots_row = HBoxContainer.new()
+	slots_row.add_theme_constant_override("separation", SLOT_SPACING)
+	_workers_container.add_child(slots_row)
+
+	for i in range(max_workers):
+		var slot: Control
+		if i < current_node.assigned_workers.size():
+			var god = _get_god_by_id(current_node.assigned_workers[i])
+			slot = _create_filled_slot(current_node, "worker", i, god)
+		else:
+			slot = _create_empty_slot(current_node, "worker", i)
+		slots_row.add_child(slot)
 
 func _update_defense() -> void:
-	"""Update defense display"""
+	"""Update combat power display"""
 	if not current_node or not territory_manager:
 		_defense_label.text = "Defense: N/A"
 		return
@@ -393,7 +396,7 @@ func _update_defense() -> void:
 	var defense_rating = territory_manager.get_node_defense_rating(current_node.coord)
 	var distance_penalty = territory_manager.calculate_distance_penalty(current_node.coord)
 
-	_defense_label.text = "Defense Rating: %.0f\nDistance Penalty: -%.0f%%" % [defense_rating, distance_penalty * 100]
+	_defense_label.text = "Rating: %.0f | Distance Penalty: -%.0f%%" % [defense_rating, distance_penalty * 100]
 
 func _update_requirements() -> void:
 	"""Update requirements display (shown when locked)"""
@@ -437,25 +440,126 @@ func _update_action_buttons() -> void:
 	_action_buttons.add_child(close_btn)
 
 	# Context-specific buttons
-	if is_locked:
-		# Locked node - no actions available
-		pass
-	elif current_node.is_controlled_by_player():
-		# Player controlled - show management buttons
-		var workers_btn = _create_button("Workers", Color(0.3, 0.6, 0.8, 1))
-		workers_btn.pressed.connect(_on_manage_workers_pressed)
-		_action_buttons.add_child(workers_btn)
-
-		var garrison_btn = _create_button("Garrison", Color(0.6, 0.3, 0.3, 1))
-		garrison_btn.pressed.connect(_on_manage_garrison_pressed)
-		_action_buttons.add_child(garrison_btn)
-	else:
+	if not is_locked and not current_node.is_controlled_by_player():
 		# Neutral/Enemy - show capture button
 		var can_capture = node_requirement_checker and node_requirement_checker.can_player_capture_node(current_node)
 		var capture_btn = _create_button("Capture", Color(0.2, 0.7, 0.3, 1))
 		capture_btn.pressed.connect(_on_capture_pressed)
 		capture_btn.disabled = not can_capture
 		_action_buttons.add_child(capture_btn)
+
+# ==============================================================================
+# SLOT CREATION METHODS (copied from TerritoryOverviewScreen)
+# ==============================================================================
+func _create_empty_slot(node: HexNode, slot_type: String, slot_index: int) -> Control:
+	"""Create an empty slot with '+' icon (60x60px tap target)"""
+	var slot = Panel.new()
+	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
+	slot.add_theme_stylebox_override("panel", _create_slot_style(Color(0.4, 0.4, 0.45, 0.7), 2))
+
+	# Plus icon
+	var plus_label = Label.new()
+	plus_label.text = "+"
+	plus_label.add_theme_font_size_override("font_size", 24)
+	plus_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
+	plus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	plus_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	plus_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	slot.add_child(plus_label)
+
+	# Tappable button
+	_add_slot_button(slot, node, slot_type, slot_index)
+	return slot
+
+func _create_filled_slot(node: HexNode, slot_type: String, slot_index: int, god: God) -> Control:
+	"""Create a filled slot showing god portrait (60x60px)"""
+	var slot = Panel.new()
+	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
+	var border_color = ELEMENT_COLORS.get(god.element, Color.GRAY) if god else Color(0.5, 0.5, 0.5)
+	slot.add_theme_stylebox_override("panel", _create_slot_style(border_color, 3))
+
+	if god:
+		var portrait = _create_god_portrait(god)
+		portrait.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		portrait.offset_left = 4
+		portrait.offset_right = -4
+		portrait.offset_top = 4
+		portrait.offset_bottom = -14
+		slot.add_child(portrait)
+
+		var level_label = Label.new()
+		level_label.text = "Lv.%d" % god.level
+		level_label.add_theme_font_size_override("font_size", 9)
+		level_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+		level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		level_label.anchor_left = 0
+		level_label.anchor_right = 1
+		level_label.anchor_top = 1
+		level_label.anchor_bottom = 1
+		level_label.offset_top = -14
+		level_label.offset_bottom = -2
+		slot.add_child(level_label)
+	else:
+		var lbl = Label.new()
+		lbl.text = "?"
+		lbl.add_theme_font_size_override("font_size", 20)
+		lbl.add_theme_color_override("font_color", Color(0.6, 0.4, 0.4))
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		slot.add_child(lbl)
+
+	# Use filled slot handler for filled slots
+	_add_filled_slot_button(slot, node, slot_type, slot_index, god)
+	return slot
+
+func _create_slot_style(border_color: Color, border_width: int) -> StyleBoxFlat:
+	"""Create slot panel style"""
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.15, 0.15, 0.18, 0.9)
+	style.border_color = border_color
+	style.set_border_width_all(border_width)
+	style.set_corner_radius_all(6)
+	return style
+
+func _add_slot_button(slot: Panel, node: HexNode, slot_type: String, slot_index: int) -> void:
+	"""Add tappable button overlay to empty slot"""
+	var button = Button.new()
+	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	button.flat = true
+	button.pressed.connect(_on_slot_tapped.bind(node, slot_type, slot_index))
+	slot.add_child(button)
+
+func _add_filled_slot_button(slot: Panel, node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
+	"""Add tappable button overlay to filled slot (emits different signal)"""
+	var button = Button.new()
+	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	button.flat = true
+	button.pressed.connect(_on_filled_slot_tapped.bind(node, slot_type, slot_index, god))
+	slot.add_child(button)
+
+func _create_god_portrait(god: God) -> TextureRect:
+	"""Create god portrait TextureRect"""
+	var portrait = TextureRect.new()
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var sprite_path = "res://assets/gods/" + god.id + ".png"
+	if ResourceLoader.exists(sprite_path):
+		portrait.texture = load(sprite_path)
+	else:
+		var element_color = ELEMENT_COLORS.get(god.element, Color.GRAY)
+		var image = Image.create(50, 50, false, Image.FORMAT_RGBA8)
+		image.fill(element_color)
+		portrait.texture = ImageTexture.create_from_image(image)
+	return portrait
+
+func _get_god_by_id(god_id: String) -> God:
+	"""Get god by ID from CollectionManager"""
+	if not collection_manager:
+		return null
+	if god_id == "":
+		return null
+	return collection_manager.get_god_by_id(god_id)
 
 func _create_button(text: String, color: Color) -> Button:
 	"""Create a styled button"""
@@ -500,17 +604,17 @@ func _on_capture_pressed() -> void:
 	if current_node:
 		capture_requested.emit(current_node)
 
-func _on_manage_workers_pressed() -> void:
-	"""Handle manage workers button press"""
-	if current_node:
-		manage_workers_requested.emit(current_node)
-
-func _on_manage_garrison_pressed() -> void:
-	"""Handle manage garrison button press"""
-	if current_node:
-		manage_garrison_requested.emit(current_node)
-
 func _on_close_pressed() -> void:
 	"""Handle close button press"""
 	close_requested.emit()
 	hide_panel()
+
+func _on_slot_tapped(node: HexNode, slot_type: String, slot_index: int) -> void:
+	"""Handle empty slot tap - emit signal for parent to open god selection"""
+	print("NodeInfoPanel: Empty slot tapped - node: %s, type: %s, index: %d" % [node.id, slot_type, slot_index])
+	slot_tapped.emit(node, slot_type, slot_index)
+
+func _on_filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
+	"""Handle filled slot tap - emit signal for parent to show remove confirmation"""
+	print("NodeInfoPanel: Filled slot tapped - node: %s, type: %s, index: %d, god: %s" % [node.id, slot_type, slot_index, god.name if god else "null"])
+	filled_slot_tapped.emit(node, slot_type, slot_index, god)

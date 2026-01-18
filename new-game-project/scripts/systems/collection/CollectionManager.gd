@@ -46,14 +46,19 @@ func has_god(god_id: String) -> bool:
 func remove_god(god: God) -> bool:
 	if not god:
 		return false
-	
+
 	var index = gods.find(god)
 	if index == -1:
 		return false
-	
+
+	# DEBUG: Log god removal with stack trace
+	print("CollectionManager: REMOVING GOD - ", god.name, " (", god.id, ")")
+	print("CollectionManager: Stack trace:")
+	print_stack()
+
 	gods.remove_at(index)
 	gods_by_id.erase(god.id)
-	
+
 	# Emit event (RULE 4: No UI, use events)
 	var event_bus = SystemRegistry.get_instance().get_system("EventBus")
 	if event_bus:

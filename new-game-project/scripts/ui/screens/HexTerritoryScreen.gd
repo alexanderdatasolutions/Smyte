@@ -409,9 +409,9 @@ func _connect_signals() -> void:
 	# Node info panel signals
 	if node_info_panel:
 		node_info_panel.capture_requested.connect(_on_capture_requested)
-		node_info_panel.manage_workers_requested.connect(_on_manage_workers_requested)
-		node_info_panel.manage_garrison_requested.connect(_on_manage_garrison_requested)
 		node_info_panel.close_requested.connect(_on_node_info_close)
+		node_info_panel.slot_tapped.connect(_on_node_info_slot_tapped)
+		node_info_panel.filled_slot_tapped.connect(_on_node_info_filled_slot_tapped)
 
 	# Node requirements panel signals
 	if node_requirements_panel:
@@ -589,6 +589,54 @@ func _on_node_info_close() -> void:
 	"""Handle node info panel close"""
 	_hide_node_info()
 
+func _on_node_info_slot_tapped(node: HexNode, slot_type: String, slot_index: int) -> void:
+	"""Handle slot tap from NodeInfoPanel - opens GodSelectionPanel"""
+	if not god_selection_panel or not node:
+		return
+
+	print("HexTerritoryScreen: NodeInfoPanel slot tapped - node: %s, type: %s, index: %d" % [node.id, slot_type, slot_index])
+
+	# Store context for when god is selected
+	_pending_slot_node = node
+	_pending_slot_type = slot_type
+	_pending_slot_index = slot_index
+
+	# Get currently assigned god IDs to exclude from selection
+	# Include gods assigned to ANY node, not just the current one
+	var excluded_ids: Array[String] = []
+
+	# Get all owned nodes
+	var owned_nodes = _get_all_owned_nodes()
+
+	if slot_type == "garrison":
+		# Collect all garrison god IDs from all nodes
+		for hex_node in owned_nodes:
+			for god_id in hex_node.garrison:
+				if god_id not in excluded_ids:
+					excluded_ids.append(god_id)
+	else:  # worker
+		# Collect all worker god IDs from all nodes
+		for hex_node in owned_nodes:
+			for god_id in hex_node.assigned_workers:
+				if god_id not in excluded_ids:
+					excluded_ids.append(god_id)
+
+	# Show GodSelectionPanel with appropriate context
+	if slot_type == "garrison":
+		god_selection_panel.show_for_garrison(excluded_ids)
+	else:
+		god_selection_panel.show_for_worker(excluded_ids)
+
+func _on_node_info_filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
+	"""Handle filled slot tap from NodeInfoPanel - show confirmation popup to remove god"""
+	if not node or not god:
+		return
+
+	print("HexTerritoryScreen: NodeInfoPanel filled slot tapped - node: %s, type: %s, god: %s" % [node.id, slot_type, god.name])
+
+	# Show confirmation popup (reuse existing method)
+	_show_remove_god_confirmation(node, slot_type, slot_index, god)
+
 func _on_requirements_panel_close() -> void:
 	"""Handle requirements panel close"""
 	_hide_requirements_panel()
@@ -678,13 +726,24 @@ func _on_overview_slot_tapped(node: HexNode, slot_type: String, slot_index: int)
 	_pending_slot_index = slot_index
 
 	# Get currently assigned god IDs to exclude from selection
+	# Include gods assigned to ANY node, not just the current one
 	var excluded_ids: Array[String] = []
+
+	# Get all owned nodes
+	var owned_nodes = _get_all_owned_nodes()
+
 	if slot_type == "garrison":
-		for god_id in node.garrison:
-			excluded_ids.append(god_id)
+		# Collect all garrison god IDs from all nodes
+		for hex_node in owned_nodes:
+			for god_id in hex_node.garrison:
+				if god_id not in excluded_ids:
+					excluded_ids.append(god_id)
 	else:  # worker
-		for god_id in node.assigned_workers:
-			excluded_ids.append(god_id)
+		# Collect all worker god IDs from all nodes
+		for hex_node in owned_nodes:
+			for god_id in hex_node.assigned_workers:
+				if god_id not in excluded_ids:
+					excluded_ids.append(god_id)
 
 	# Show GodSelectionPanel with appropriate context
 	if slot_type == "garrison":
@@ -744,6 +803,9 @@ func _on_remove_god_confirmed(node: HexNode, slot_type: String, _slot_index: int
 		# Refresh TerritoryOverviewScreen to show updated slots
 		if territory_overview_screen and territory_overview_screen.visible:
 			territory_overview_screen._refresh_display()
+		# Refresh NodeInfoPanel if it's showing
+		if node_info_panel and node_info_panel.visible:
+			node_info_panel.refresh()
 		refresh()
 
 func _remove_god_from_garrison(node: HexNode, god_id: String) -> bool:
@@ -803,6 +865,9 @@ func _on_god_selection_panel_selected(god: God) -> void:
 		# Refresh TerritoryOverviewScreen to show updated slots
 		if territory_overview_screen and territory_overview_screen.visible:
 			territory_overview_screen._refresh_display()
+		# Refresh NodeInfoPanel if it's showing
+		if node_info_panel and node_info_panel.visible:
+			node_info_panel.refresh()
 		refresh()
 
 	_clear_pending_slot()
@@ -815,6 +880,14 @@ func _on_god_selection_panel_cancelled() -> void:
 func _on_god_selection_panel_closed() -> void:
 	"""Handle god selection panel fully closed"""
 	pass  # Panel handles its own hide animation
+
+func _get_all_owned_nodes() -> Array:
+	"""Get all player-owned nodes from the hex grid"""
+	if not hex_map_view or not hex_map_view.hex_grid_manager:
+		push_error("HexTerritoryScreen: hex_map_view or hex_grid_manager not available")
+		return []
+
+	return hex_map_view.hex_grid_manager.get_player_nodes()
 
 func _clear_pending_slot() -> void:
 	"""Clear pending slot context"""

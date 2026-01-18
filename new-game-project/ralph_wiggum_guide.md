@@ -1,5 +1,245 @@
 # Running Ralph Wiggum the Right Way: A Complete Setup Guide
 
+
+0a. Study `specs/*` with up to 250 parallel Sonnet subagents to learn what documentation and cleanup is needed.
+0b. Study @IMPLEMENTATION_PLAN.md (if present) to understand progress so far.
+0c. Study the entire codebase with up to 500 parallel Sonnet subagents to understand:
+    - Autoloaders in `Scripts/Autoloaders/` (the game's backbone - 24 handlers)
+    - JSON configs in `Configs/` (mobs, items, zones, talents, quests, etc.)
+    - Enemy scripts in `Scripts/Enemies/`
+    - Object scripts in `Scripts/Objects/`
+    - UI scripts in `UI/Scripts/` and scenes in `UI/Scenes/`
+    - Game scenes in `Scenes/` (Characters, Objects, Screens, Worlds)
+    - Signal connections and event flow between handlers
+    - Code patterns and architecture
+    - Ugly code, duplication, inconsistencies
+0d. Study `docs/` (if present) to understand existing documentation.
+
+1. Create a comprehensive analysis using an Opus subagent with ultrathink:
+
+   **Documentation Gaps:**
+   - Which Autoloaders lack documentation? (Start here - they're the core)
+   - What formulas/calculations are buried in handlers but not explained?
+   - How do the JSON configs get loaded and used?
+   - What signals connect which handlers?
+   - How does combat flow? (DamageHandler, StatsHandler, BuffHandler, MobHandler)
+   - How does progression work? (TalentHandler, SpecHandler, QuestHandler)
+   - What decisions were made that aren't captured anywhere?
+   
+   **Code Cleanup Opportunities:**
+   - Untyped variables and functions (GDScript 4.x supports static typing!)
+   - Duplicated logic across handlers
+   - Inconsistent patterns between similar systems
+   - Magic numbers without constants
+   - Dead code or unused signals
+   - Overly complex functions that need refactoring
+   - JSON config parsing that could be cleaner
+
+2. Create/update @IMPLEMENTATION_PLAN.md with prioritized tasks. Structure as:
+
+   ## Documentation Tasks
+   - [ ] Task (creates `docs/path/to/file.md`)
+   
+   ## Cleanup Tasks  
+   - [ ] Task (affects `Scripts/Autoloaders/SomeHandler.gd` or similar)
+
+   Prioritize tasks that:
+   1. Document Autoloaders and their responsibilities first (they're everything)
+   2. Document how JSON configs are structured and loaded
+   3. Document core game loops (combat, progression, crafting)
+   4. Create MOC (Map of Content) pages that link systems together
+   5. Fix ugly code that will block understanding
+   6. Capture formulas and magic numbers
+
+IMPORTANT: Plan only. Do NOT implement anything. Do NOT create documentation yet. This is gap analysis only.
+
+ULTIMATE GOAL: Create a rich Obsidian knowledge base with interconnected notes AND clean up the GDScript codebase so it's maintainable. Every doc should use `[[wiki-links]]` to connected concepts.
+
+0a. Study `specs/*` with up to 250 parallel Sonnet subagents to learn documentation standards.
+0b. Study @IMPLEMENTATION_PLAN.md to find your next task.
+0c. Study relevant scripts and scenes with Sonnet subagents before making changes:
+    - Autoloaders: `Scripts/Autoloaders/`
+    - JSON configs: `Configs/`
+    - UI: `UI/Scripts/` and `UI/Scenes/`
+    - Game scenes: `Scenes/`
+
+1. Choose the most important task from @IMPLEMENTATION_PLAN.md and implement it fully.
+
+   **For Documentation Tasks:**
+   - Create atomic notes (one concept per file)
+   - Use `[[wiki-links]]` liberally to connect concepts
+   - Add frontmatter: tags, aliases, related links
+   - Include GDScript snippets with file paths
+   - Document formulas in both prose AND code blocks
+   - Document signal flows between Autoloaders
+   - Document JSON config structure with examples
+   - Create MOC pages that serve as hubs
+   
+   **For Cleanup Tasks:**
+   - Search first (don't assume not implemented)
+   - Add static types to variables, parameters, and return values
+   - Extract magic numbers to constants
+   - Refactor incrementally, test by running the game
+   - Update related docs if behavior changes
+   - Add inline comments explaining "why" for complex logic
+
+2. After implementing, validate your work:
+   - Documentation: Check all `[[links]]` point to real files or create stubs
+   - Code: Run the project to verify no errors (see @AGENTS.md for commands)
+
+3. Update @IMPLEMENTATION_PLAN.md - mark task complete, note any discoveries.
+
+4. When done: `git add -A` then `git commit` with descriptive message, then `git push`.
+
+99999. Documentation must use Obsidian format: frontmatter, wiki-links, callouts (> [!note]), tags.
+999999. Every doc links to at least 2 other docs. Isolated notes are useless.
+9999999. Keep @IMPLEMENTATION_PLAN.md current - future loops depend on it.
+99999999. When you learn how to run/build/test, update @AGENTS.md (keep it brief).
+999999999. Implement completely. No placeholder docs like "TODO: document this".
+9999999999. For game formulas, show BOTH the math notation AND the GDScript implementation.
+99999999999. Create `docs/MOCs/` index pages that link all related concepts together.
+999999999999. Use static typing in ALL GDScript: `var health: int = 100`, `func attack() -> void:`
+9999999999999. Document signal flows - who emits, who listens, what data is passed.
+99999999999999. For JSON configs, document the schema and show example entries.
+
+
+#!/bin/bash
+set -euo pipefail
+
+# Usage:
+#   ./loop.sh              # Build mode, unlimited
+#   ./loop.sh 20           # Build mode, max 20 iterations
+#   ./loop.sh plan         # Plan mode, unlimited
+#   ./loop.sh plan 5       # Plan mode, max 5 iterations
+
+# Parse arguments
+MODE="build"
+PROMPT_FILE="PROMPT_build.md"
+MAX_ITERATIONS=0
+
+if [ "${1:-}" = "plan" ]; then
+    MODE="plan"
+    PROMPT_FILE="PROMPT_plan.md"
+    MAX_ITERATIONS=${2:-0}
+elif [[ "${1:-}" =~ ^[0-9]+$ ]]; then
+    MAX_ITERATIONS=$1
+fi
+
+ITERATION=0
+CURRENT_BRANCH=$(git branch --show-current)
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Mode:   $MODE"
+echo "Prompt: $PROMPT_FILE"
+echo "Branch: $CURRENT_BRANCH"
+[ $MAX_ITERATIONS -gt 0 ] && echo "Max:    $MAX_ITERATIONS iterations"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+if [ ! -f "$PROMPT_FILE" ]; then
+    echo "Error: $PROMPT_FILE not found"
+    exit 1
+fi
+
+while true; do
+    if [ $MAX_ITERATIONS -gt 0 ] && [ $ITERATION -ge $MAX_ITERATIONS ]; then
+        echo "Reached max iterations: $MAX_ITERATIONS"
+        break
+    fi
+
+    cat "$PROMPT_FILE" | claude -p \
+        --dangerously-skip-permissions \
+        --output-format=stream-json \
+        --model sonnet \
+        --verbose
+
+    git push origin "$CURRENT_BRANCH" 2>/dev/null || {
+        echo "Creating remote branch..."
+        git push -u origin "$CURRENT_BRANCH"
+    }
+
+    ITERATION=$((ITERATION + 1))
+    echo -e "\n\n======================== LOOP $ITERATION ========================\n"
+done
+
+# Agents Operational Guide
+
+## Build & Run
+
+```bash
+# Run project (update path to your Godot 4 executable if needed)
+godot --path . --debug
+
+# Run headless
+godot --path . --headless --quit
+```
+
+## Validation
+
+```bash
+# Check for parse errors
+godot --path . --check-only --headless
+
+# If using GUT for tests
+godot --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -gexit
+```
+
+## Project Structure
+
+```
+Idle-Horrors/
+├── Configs/              # JSON data files (mobs, items, zones, etc.)
+├── Scripts/
+│   ├── Autoloaders/      # 24 global singletons (the game's backbone)
+│   ├── Enemies/          # Enemy scripts
+│   └── Objects/          # Interactable object scripts
+├── Scenes/
+│   ├── Characters/       # Player, enemies, NPCs
+│   ├── Objects/          # World objects
+│   ├── Screens/          # Game screens
+│   └── Worlds/           # Zone/world scenes
+├── UI/
+│   ├── Scenes/           # UI .tscn files
+│   └── Scripts/          # UI .gd scripts
+├── Assets/               # Art, sounds, etc.
+└── addons/godotsteam/    # Steam integration
+```
+
+## Key Autoloaders
+
+| Autoloader | Purpose |
+|------------|---------|
+| PlayerData | Player state, inventory, stats |
+| StatsHandler | Stat calculations |
+| DamageHandler | Combat damage |
+| MobHandler | Enemy spawning/management |
+| ItemHandler | Item definitions from items_config.json |
+| ZoneHandler | Zone loading/transitions |
+| QuestHandler | Quest tracking |
+| TalentHandler | Talent/skill tree |
+| BuffHandler | Buff/debuff system |
+| CraftingHandler | Crafting system |
+| ShopHandler | Store/shop system |
+| SpecHandler | Class/spec system |
+
+## Config Files
+
+All game data in `Configs/*.json`:
+- `mobs_config.json` - Enemy definitions
+- `items_config.json` - Item data
+- `equipment_config.json` - Gear stats
+- `zones_config.json` - Zone definitions
+- `talent_config.json` - Talent trees
+- `quests_config.json` - Quest definitions
+- `spec_config.json` - Class specs
+
+## Codebase Patterns
+
+(Ralph will fill this in as it learns)
+
+## Operational Notes
+
+(Ralph will fill this in as it discovers things)
+
 [Full Video Here](https://youtu.be/eAtvoGlpeRU)
 
 ⚫⚫⚫⚪⚪ Intermediate Difficulty | ⏱️ 20-30 Minutes Setup Time

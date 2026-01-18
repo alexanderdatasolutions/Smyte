@@ -30,6 +30,7 @@ func _build_icon():
 	var bg_panel = Panel.new()
 	bg_panel.custom_minimum_size = ICON_SIZE
 	bg_panel.size = ICON_SIZE
+	bg_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Allow mouse events to pass through to parent
 	add_child(bg_panel)
 
 	# Style the background based on effect type and color
@@ -55,6 +56,7 @@ func _build_icon():
 	symbol_label.add_theme_font_size_override("font_size", 10)
 	symbol_label.text = _get_effect_symbol()
 	symbol_label.modulate = _get_effect_type_color()
+	symbol_label.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Allow mouse events to pass through to parent
 	add_child(symbol_label)
 
 	# Stack count label (if stackable and has stacks > 1)
@@ -75,6 +77,7 @@ func _add_stack_indicator():
 	stack_bg.custom_minimum_size = Vector2(8, 8)
 	stack_bg.size = Vector2(8, 8)
 	stack_bg.position = Vector2(ICON_SIZE.x - 9, ICON_SIZE.y - 10)
+	stack_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Allow mouse events to pass through to parent
 	var stack_style = StyleBoxFlat.new()
 	stack_style.bg_color = Color(0.0, 0.0, 0.0, 0.8)
 	stack_style.corner_radius_top_left = 2
@@ -89,15 +92,17 @@ func _add_stack_indicator():
 	stack_label.add_theme_font_size_override("font_size", 7)
 	stack_label.modulate = Color.WHITE
 	stack_label.position = Vector2(ICON_SIZE.x - 7, ICON_SIZE.y - 9)
+	stack_label.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Allow mouse events to pass through to parent
 	add_child(stack_label)
 
 func _add_duration_indicator():
 	"""Add duration indicator at bottom-left"""
 	var duration_label = Label.new()
 	duration_label.text = str(status_effect.duration)
-	duration_label.add_theme_font_size_override("font_size", 6)
-	duration_label.modulate = Color.LIGHT_GRAY
-	duration_label.position = Vector2(1, ICON_SIZE.y - 8)
+	duration_label.add_theme_font_size_override("font_size", 10)  # Increased from 6 to 10 for better visibility
+	duration_label.modulate = Color.WHITE  # Changed from LIGHT_GRAY to WHITE for better visibility
+	duration_label.position = Vector2(1, ICON_SIZE.y - 12)
+	duration_label.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Allow mouse events to pass through to parent
 	add_child(duration_label)
 
 func _setup_tooltip():

@@ -32,6 +32,9 @@ func _ready():
 		_setup_card_structure()
 		_apply_card_style()
 
+	# Enable mouse input for click detection
+	mouse_filter = Control.MOUSE_FILTER_STOP
+
 func setup_unit(unit: BattleUnit, style: CardStyle = CardStyle.NORMAL):
 	"""Setup card with BattleUnit data"""
 	print("BattleUnitCard.setup_unit: Starting setup for ", unit.display_name if unit else "NULL")
@@ -178,13 +181,6 @@ func _setup_card_structure():
 	status_container.custom_minimum_size = Vector2(0, 36)  # Increased from 20 to 36 to fit 32px icons
 	status_container.mouse_filter = Control.MOUSE_FILTER_PASS  # Allow mouse events to pass to icon children
 	vbox.add_child(status_container)
-
-	# Make card clickable
-	var button = Button.new()
-	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	button.flat = true
-	button.pressed.connect(_on_card_clicked)
-	margin.add_child(button)
 
 func _style_hp_bar():
 	"""Style the HP bar"""
@@ -430,6 +426,12 @@ func _apply_card_style():
 	style.corner_radius_bottom_right = 6
 
 	add_theme_stylebox_override("panel", style)
+
+func _gui_input(event: InputEvent):
+	"""Handle mouse input on the card"""
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			_on_card_clicked()
 
 func _on_card_clicked():
 	"""Handle card click"""

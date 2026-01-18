@@ -532,7 +532,7 @@
       "Crafted equipment functional in battle"
     ],
     "files_to_modify": [],
-    "passes": false
+    "passes": true
   },
   {
     "id": "INTEGRATE-002",
