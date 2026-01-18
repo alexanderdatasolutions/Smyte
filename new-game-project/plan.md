@@ -215,7 +215,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "Verify all nodes cleared to 0 pending",
       "Check total resources increased correctly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "polish",

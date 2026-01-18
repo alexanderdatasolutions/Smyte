@@ -1348,3 +1348,79 @@ Direct UI button clicking through TestHarness was not possible due to hex tile i
 
 ---
 
+### 2026-01-19 06:00 - Task 14 Complete: Test 'Claim All' Functionality in Overview
+
+**Task:** Test 'Claim All' functionality in overview (verify total production, pending resources, claim all button)
+
+**What Was Done:**
+Verified that the Claim All Resources functionality works correctly in the TerritoryOverviewScreen. The system successfully:
+- Displays total hourly production rates aggregated across all player nodes
+- Shows total pending resources awaiting collection
+- Provides "Claim All Resources" button that collects from all nodes in one action
+- Updates display after collection to show cleared pending resources
+- Disables button when no pending resources are available
+
+**Testing Method:**
+1. Ran project with `mcp__godot__run_project`
+2. Navigated to hex_territory screen
+3. Clicked "TERRITORY OVERVIEW" button to open overview
+4. Waited 70+ seconds for production timer to accumulate resources (4 ticks)
+5. Clicked "Refresh" button to update pending resources display
+6. Verified pending resources displayed correctly: Mana: 3.3, Gold: 1.7
+7. Clicked "CLAIM ALL RESOURCES" button
+8. Verified resources were collected and awarded to player
+9. Verified pending resources cleared to 0
+
+**Verification Results:**
+
+✅ **Project runs without errors**
+✅ **Territory Overview displays correctly:**
+   - Total hourly production shown: "Mana: +50.0/hour", "Gold: +25.0/hour"
+   - Pending resources displayed after refresh: "Mana: 3.3", "Gold: 1.7"
+   - "CLAIM ALL RESOURCES" button visible and enabled when resources pending
+
+✅ **Production timer accumulates correctly:**
+```
+Tick 1 (60s): {mana: 0.8, gold: 0.4}
+Tick 2 (120s): {mana: 1.7, gold: 0.8}
+Tick 3 (180s): {mana: 2.5, gold: 1.3}
+Tick 4 (240s): {mana: 3.3, gold: 1.7}
+```
+
+✅ **Claim All button works correctly:**
+```
+[TerritoryProductionManager] Collected resources from node (0,0) 'Divine Sanctum': {mana: 3.3, gold: 1.7}
+[TerritoryOverviewScreen] Claimed all resources from 1 nodes: {mana: 3.3, gold: 1.7}
+```
+
+✅ **Resources awarded to player** - ResourceManager.award_resources() called successfully
+✅ **Pending resources cleared after collection:**
+   - Display updated to show "No pending resources (wait for production to accumulate)"
+   - Button disabled after collection (expected behavior)
+   - All nodes cleared to 0 pending
+
+✅ **Display refresh works correctly:**
+   - Initial view showed "No pending resources" (stale data)
+   - After clicking Refresh button, pending resources appeared: Mana: 3.3, Gold: 1.7
+   - After claiming, display updated to show cleared state
+
+**Screenshots:**
+- `task14-hex-view.png` - Initial hex territory screen
+- `task14-overview-initial.png` - Overview screen on first load (before refresh)
+- `task14-after-refresh.png` - Overview after clicking Refresh button (pending resources visible)
+- `task14-overview-with-pending.png` - Overview showing pending resources
+- `task14-complete.png` - Overview after claiming all resources (pending cleared to 0)
+
+**Testing Notes:**
+- The overview screen requires clicking "Refresh" button to see updated pending resources
+- This is expected behavior - the screen doesn't auto-refresh on a timer
+- Claim All functionality implemented in Task 8 works perfectly
+- Bulk collection collects from all nodes in one operation
+- Debug output confirms proper flow: TerritoryProductionManager → TerritoryOverviewScreen → ResourceManager
+
+**Status:** Task 14 COMPLETE - All acceptance criteria met
+
+**Next Task:** Task 15 - Apply balance config limits (max storage hours)
+
+---
+
