@@ -12,11 +12,13 @@ signal validation_completed(result: Dictionary)
 
 # Core data
 var dungeon_data: Dictionary = {}
+var dungeon_waves: Dictionary = {}
 var player_progress: Dictionary = {}
 
 func _ready():
 	"""Initialize dungeon manager"""
 	load_dungeon_data()
+	load_dungeon_waves()
 	initialize_player_progress()
 
 func load_dungeon_data():
@@ -60,6 +62,28 @@ func _load_fallback_data():
 			"always_available": ["fire_sanctum"]
 		}
 	}
+
+func load_dungeon_waves():
+	"""Load wave configurations from dungeon_waves.json"""
+	var file_path = "res://data/dungeon_waves.json"
+	var file = FileAccess.open(file_path, FileAccess.READ)
+
+	if not file:
+		push_warning("DungeonManager: Could not open dungeon_waves.json")
+		return
+
+	var json_text = file.get_as_text()
+	file.close()
+
+	var json = JSON.new()
+	var parse_result = json.parse(json_text)
+
+	if parse_result != OK:
+		push_error("DungeonManager: Error parsing dungeon_waves.json: " + json.error_string)
+		return
+
+	dungeon_waves = json.get_data()
+	print("DungeonManager: Loaded wave data for dungeon categories: ", dungeon_waves.keys())
 
 func initialize_player_progress():
 	"""Initialize player dungeon progress"""
@@ -302,21 +326,118 @@ func get_loot_table_name(dungeon_id: String, difficulty: String) -> String:
 				return "elemental_dungeon_" + difficulty
 
 func get_battle_configuration(dungeon_id: String, difficulty: String) -> Dictionary:
-	"""Get battle configuration for dungeon fight"""
+	"""Get battle configuration for dungeon fight with wave data from dungeon_waves.json"""
 	var dungeon_info = get_dungeon_info(dungeon_id)
 	if dungeon_info.is_empty():
 		return {}
-	
+
 	var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
 	if difficulty_info.is_empty():
 		return {}
-	
+
+	# Look up wave data from dungeon_waves.json
+	var wave_data = _get_wave_data(dungeon_id, difficulty)
+	var enemy_waves = _convert_wave_data_to_battle_config(wave_data)
+
 	return {
 		"enemies": difficulty_info.get("enemies", []),
+		"enemy_waves": enemy_waves,
 		"boss": difficulty_info.get("boss", ""),
 		"battle_type": "dungeon",
 		"background": dungeon_info.get("background_theme", "default"),
-		"special_conditions": difficulty_info.get("special_conditions", [])
+		"special_conditions": difficulty_info.get("special_conditions", []),
+		"wave_count": wave_data.size()
+	}
+
+func _get_wave_data(dungeon_id: String, difficulty: String) -> Array:
+	"""Look up wave data for a dungeon from dungeon_waves.json"""
+	# Map dungeon_id to the correct category in dungeon_waves.json
+	var category_map = {
+		"fire_sanctum": "elemental_sanctums",
+		"water_sanctum": "elemental_sanctums",
+		"earth_sanctum": "elemental_sanctums",
+		"lightning_sanctum": "elemental_sanctums",
+		"light_sanctum": "elemental_sanctums",
+		"dark_sanctum": "elemental_sanctums",
+		"magic_sanctum": "special_sanctums",
+		"titans_forge": "equipment_dungeons",
+		"valhalla_armory": "equipment_dungeons",
+		"oracle_sanctum": "equipment_dungeons",
+		"greek_trials": "pantheon_trials",
+		"norse_trials": "pantheon_trials",
+		"egyptian_trials": "pantheon_trials"
+	}
+
+	var category = category_map.get(dungeon_id, "")
+	if category.is_empty():
+		push_warning("DungeonManager: No wave category found for dungeon: " + dungeon_id)
+		return []
+
+	var category_data = dungeon_waves.get(category, {})
+	var dungeon_wave_data = category_data.get(dungeon_id, {})
+	var difficulty_wave_data = dungeon_wave_data.get(difficulty, {})
+	var waves = difficulty_wave_data.get("waves", [])
+
+	return waves
+
+func _convert_wave_data_to_battle_config(wave_data: Array) -> Array:
+	"""Convert dungeon_waves.json format to BattleConfig.enemy_waves format"""
+	var enemy_waves = []
+
+	for wave in wave_data:
+		var wave_enemies = []
+		var enemies = wave.get("enemies", [])
+
+		for enemy_def in enemies:
+			var count = enemy_def.get("count", 1)
+			var level = enemy_def.get("level", 1)
+			var tier = enemy_def.get("tier", "basic")
+			var enemy_name = enemy_def.get("name", "Unknown Enemy")
+			var element = enemy_def.get("type", "neutral")
+
+			# Expand count into multiple enemy entries
+			for i in range(count):
+				var stats = _calculate_enemy_stats(level, tier)
+				wave_enemies.append({
+					"name": enemy_name,
+					"level": level,
+					"hp": stats.hp,
+					"attack": stats.attack,
+					"defense": stats.defense,
+					"speed": stats.speed,
+					"element": element,
+					"tier": tier
+				})
+
+		enemy_waves.append(wave_enemies)
+
+	return enemy_waves
+
+func _calculate_enemy_stats(level: int, tier: String) -> Dictionary:
+	"""Calculate enemy stats based on level and tier"""
+	# Base stats at level 1
+	var base_hp = 100
+	var base_attack = 20
+	var base_defense = 10
+	var base_speed = 50
+
+	# Tier multipliers
+	var tier_multipliers = {
+		"basic": 1.0,
+		"leader": 1.5,
+		"elite": 2.0,
+		"boss": 3.0
+	}
+	var tier_mult = tier_multipliers.get(tier, 1.0)
+
+	# Level scaling: stats grow by ~10% per level
+	var level_mult = 1.0 + (level - 1) * 0.1
+
+	return {
+		"hp": int(base_hp * level_mult * tier_mult * 10),  # HP scales higher
+		"attack": int(base_attack * level_mult * tier_mult),
+		"defense": int(base_defense * level_mult * tier_mult),
+		"speed": int(base_speed + level * 2)  # Speed grows linearly
 	}
 
 func get_completion_rewards(dungeon_id: String, difficulty: String) -> Dictionary:
@@ -459,3 +580,35 @@ func get_enemy_types_for_dungeon(dungeon_id: String) -> Array:
 			]
 	
 	return enemy_types
+
+func get_dungeon_enemies(dungeon_id: String, difficulty: String) -> Array:
+	"""Get detailed enemy data for battle preview"""
+	var dungeon_info = get_dungeon_info(dungeon_id)
+	var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
+	var waves = difficulty_info.get("waves", [])
+
+	var enemies = []
+	var enemy_types = get_enemy_types_for_dungeon(dungeon_id)
+
+	# If waves exist in data, use them
+	if not waves.is_empty():
+		for wave in waves:
+			for enemy in wave:
+				enemies.append({
+					"name": enemy.get("name", "Enemy"),
+					"level": enemy.get("level", 1)
+				})
+	else:
+		# Generate preview enemies from enemy types
+		var base_level = difficulty_info.get("recommended_level", 5)
+		for enemy_type in enemy_types:
+			enemies.append({
+				"name": enemy_type,
+				"level": base_level
+			})
+
+	return enemies
+
+func get_dungeon_rewards(dungeon_id: String, difficulty: String) -> Dictionary:
+	"""Get rewards for dungeon (alias for get_completion_rewards)"""
+	return get_completion_rewards(dungeon_id, difficulty)
