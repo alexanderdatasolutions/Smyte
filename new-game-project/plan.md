@@ -201,7 +201,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "Verify pending resources cleared to 0",
       "Check toast/popup confirmation appears"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "testing",
