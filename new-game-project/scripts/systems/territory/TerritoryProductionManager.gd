@@ -34,16 +34,20 @@ func _start_generation_cycle():
 	add_child(timer)
 
 func _process_all_territory_generation():
-	"""Process resource generation for all territories - RULE 5: SystemRegistry"""
+	"""Process resource generation for all territories AND hex nodes - RULE 5: SystemRegistry"""
+	# Old Territory system (legacy)
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
 	if not territory_manager:
 		return
-	
+
 	var controlled_territories = territory_manager.get_controlled_territories()
 	for territory_id in controlled_territories:
 		var territory = _get_territory_data(territory_id)
 		if territory:
 			_generate_territory_resources(territory)
+
+	# New Hex Node production system
+	_process_hex_node_generation()
 
 func calculate_territory_production(territory: Territory) -> int:
 	"""Calculate total resource production rate for territory - RULE 3: Pure calculation"""
@@ -362,3 +366,67 @@ func get_all_hex_nodes_production() -> Dictionary:
 			total_production[resource_id] = total_production.get(resource_id, 0) + node_production[resource_id]
 
 	return total_production
+
+func _process_hex_node_generation():
+	"""Process resource accumulation for all player-controlled hex nodes
+	Called every 60 seconds by the generation timer
+	"""
+	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
+	if not territory_manager:
+		return
+
+	var controlled_nodes = territory_manager.get_controlled_nodes()
+	if controlled_nodes.is_empty():
+		return
+
+	var current_time = Time.get_unix_time_from_system()
+
+	for node in controlled_nodes:
+		if not node or not node.is_controlled_by_player():
+			continue
+
+		# Calculate production for this node
+		var hourly_production = calculate_node_production(node)
+		if hourly_production.is_empty():
+			continue
+
+		# Convert hourly to per-minute (60 second tick)
+		var production_this_tick = {}
+		for resource_id in hourly_production:
+			var hourly_amount = hourly_production[resource_id]
+			# 60 seconds = 1/60 of an hour
+			var tick_amount = hourly_amount / 60.0
+			production_this_tick[resource_id] = tick_amount
+
+		# Accumulate resources
+		for resource_id in production_this_tick:
+			var amount = production_this_tick[resource_id]
+			if node.accumulated_resources.has(resource_id):
+				node.accumulated_resources[resource_id] += amount
+			else:
+				node.accumulated_resources[resource_id] = amount
+
+		# Update timestamp
+		node.last_production_time = current_time
+
+		# Debug output
+		var coord_str = "(%d,%d)" % [node.coord.q, node.coord.r] if node.coord else "unknown"
+		print("[TerritoryProductionManager] Node %s '%s' accumulated resources: %s (hourly rate: %s)" % [
+			coord_str,
+			node.name if node.name else node.id,
+			_format_resources_dict(node.accumulated_resources),
+			_format_resources_dict(hourly_production)
+		])
+
+func _format_resources_dict(resources: Dictionary) -> String:
+	"""Format resource dictionary for debug output"""
+	if resources.is_empty():
+		return "{}"
+
+	var parts = []
+	for resource_id in resources:
+		var amount = resources[resource_id]
+		# Format with 1 decimal place
+		parts.append("%s: %.1f" % [resource_id, amount])
+
+	return "{" + ", ".join(parts) + "}"

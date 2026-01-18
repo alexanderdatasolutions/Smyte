@@ -353,3 +353,64 @@ Added two new export fields to HexNode.gd for tracking AFK resource generation:
 **Next Task:** Task 2 - Implement periodic resource accumulation for hex nodes
 
 ---
+
+### 2026-01-18 19:00 - Task 2 Complete: Periodic Resource Accumulation for Hex Nodes
+
+**Task:** Implement periodic resource accumulation for hex nodes (60-second timer cycle)
+
+**What Was Done:**
+Implemented automatic resource accumulation that runs every 60 seconds for all player-controlled hex nodes. The system:
+- Extends existing `_start_generation_cycle()` timer to process hex nodes
+- Calculates hourly production rates using `calculate_node_production()`
+- Converts hourly rates to per-minute amounts (1/60th of hourly rate)
+- Accumulates resources in `node.accumulated_resources` Dictionary
+- Updates `node.last_production_time` timestamp on each tick
+- Provides detailed debug output showing node coordinates, names, and production rates
+
+**Files Modified:**
+
+1. **scripts/systems/territory/TerritoryProductionManager.gd** (Lines 36-50):
+   - Extended `_process_all_territory_generation()` to call new `_process_hex_node_generation()` method
+   - Added call to hex node processing after legacy territory processing
+
+2. **scripts/systems/territory/TerritoryProductionManager.gd** (Lines 370-430):
+   - Added `_process_hex_node_generation()` method - processes all player nodes every 60 seconds
+   - Added `_format_resources_dict()` helper method - formats resource dictionaries for debug output
+   - Implements per-minute resource calculation (hourly_rate / 60)
+   - Accumulates resources into existing node.accumulated_resources field
+   - Updates timestamps and provides debug logging
+
+**Verification:**
+
+✅ **Project runs without errors**
+✅ **Timer fires every 60 seconds** - Confirmed through debug output
+✅ **Resources accumulate correctly:**
+   - Divine Sanctum (0,0): 50 mana/hr, 25 gold/hr
+   - First tick (60s): mana: 0.8, gold: 0.4
+   - Second tick (120s): mana: 1.7, gold: 0.8
+   - Accumulation is additive and correct (0.83 mana per minute ≈ 50/hr)
+✅ **Timestamps update** - last_production_time set to current Unix time
+✅ **Debug output shows:**
+```
+[TerritoryProductionManager] Node (0,0) 'Divine Sanctum' accumulated resources: {mana: 0.8, gold: 0.4} (hourly rate: {mana: 50.0, gold: 25.0})
+[TerritoryProductionManager] Node (0,0) 'Divine Sanctum' accumulated resources: {mana: 1.7, gold: 0.8} (hourly rate: {mana: 50.0, gold: 25.0})
+```
+
+**Testing Method:**
+1. Ran project with `mcp__godot__run_project`
+2. Waited 70 seconds for timer to fire twice
+3. Checked `mcp__godot__get_debug_output` to verify accumulation
+4. Confirmed resources accumulate correctly each tick
+5. Verified no compilation or runtime errors
+6. Took screenshots: `screenshots/production-task2-complete.png`
+
+**Math Verification:**
+- Hourly: 50 mana/hr ÷ 60 minutes = 0.833 mana/minute
+- Hourly: 25 gold/hr ÷ 60 minutes = 0.417 gold/minute
+- Observed: 0.8 mana, 0.4 gold per 60-second tick ✓ Correct
+
+**Status:** Task 2 COMPLETE - All acceptance criteria met
+
+**Next Task:** Task 3 - Implement offline production calculation for hex nodes
+
+---

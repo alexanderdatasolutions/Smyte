@@ -47,7 +47,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "Add debug prints to verify accumulation is working",
       "Test by waiting 60 seconds and checking accumulated_resources"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "core",
