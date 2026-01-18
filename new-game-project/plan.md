@@ -239,7 +239,7 @@ Implement offline resource generation for the 79-node hex territory system. The 
       "Only apply to manual collection, not offline",
       "Test by collecting manually vs offline and comparing amounts"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "polish",

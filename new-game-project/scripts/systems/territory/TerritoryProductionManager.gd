@@ -522,6 +522,19 @@ func collect_node_resources(node_id: String) -> Dictionary:
 		print("[TerritoryProductionManager] Node '%s' has no accumulated resources to collect" % node_id)
 		return {}
 
+	# Apply manual collection bonus from balance config
+	var balance_config: Dictionary = _load_balance_config()
+	var manual_bonus: float = 1.0
+	if balance_config.has("generation_timing") and balance_config.generation_timing.has("manual_collection_bonus"):
+		manual_bonus = balance_config.generation_timing.manual_collection_bonus
+
+	# Multiply collected resources by bonus
+	var base_collected: Dictionary = {}  # Track base amounts for display
+	if manual_bonus > 1.0:
+		for resource_id in collected_resources:
+			base_collected[resource_id] = collected_resources[resource_id]  # Store original
+			collected_resources[resource_id] *= manual_bonus  # Apply bonus
+
 	# Award resources to player via ResourceManager
 	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager")
 	if resource_manager and resource_manager.has_method("award_resources"):
@@ -535,11 +548,20 @@ func collect_node_resources(node_id: String) -> Dictionary:
 
 	# Debug output
 	var coord_str = "(%d,%d)" % [node.coord.q, node.coord.r] if node.coord else "unknown"
-	print("[TerritoryProductionManager] Collected resources from node %s '%s': %s" % [
-		coord_str,
-		node.name if node.name else node_id,
-		_format_resources_dict(collected_resources)
-	])
+	if manual_bonus > 1.0:
+		var bonus_percent = int((manual_bonus - 1.0) * 100)
+		print("[TerritoryProductionManager] Collected resources from node %s '%s': %s (+%d%% manual bonus)" % [
+			coord_str,
+			node.name if node.name else node_id,
+			_format_resources_dict(collected_resources),
+			bonus_percent
+		])
+	else:
+		print("[TerritoryProductionManager] Collected resources from node %s '%s': %s" % [
+			coord_str,
+			node.name if node.name else node_id,
+			_format_resources_dict(collected_resources)
+		])
 
 	return collected_resources
 

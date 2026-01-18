@@ -903,10 +903,27 @@ func _on_collect_resources_pressed() -> void:
 		print("NodeInfoPanel: No resources collected from node %s" % current_node.id)
 		_show_collection_feedback("No resources to collect", Color(0.8, 0.6, 0.4))
 	else:
+		# Load balance config to check for manual collection bonus
+		var balance_config: Dictionary = _load_balance_config()
+		var manual_bonus: float = 1.0
+		if balance_config.has("generation_timing") and balance_config.generation_timing.has("manual_collection_bonus"):
+			manual_bonus = balance_config.generation_timing.manual_collection_bonus
+
 		# Format collected resources for display
 		var message = "Collected:\n"
 		for resource_id in collected.keys():
-			message += "%s: %.1f\n" % [resource_id.replace("_", " ").capitalize(), collected[resource_id]]
+			var amount = collected[resource_id]
+			if manual_bonus > 1.0:
+				var base_amount = amount / manual_bonus
+				var bonus_amount = amount - base_amount
+				message += "%s: %.1f (+%.1f bonus)\n" % [resource_id.replace("_", " ").capitalize(), amount, bonus_amount]
+			else:
+				message += "%s: %.1f\n" % [resource_id.replace("_", " ").capitalize(), amount]
+
+		# Add bonus indicator to message if applicable
+		if manual_bonus > 1.0:
+			var bonus_percent = int((manual_bonus - 1.0) * 100)
+			message += "\n✨ +%d%% Manual Collection Bonus" % bonus_percent
 
 		print("NodeInfoPanel: Collected resources from node %s: %s" % [current_node.id, str(collected)])
 		_show_collection_feedback(message, Color(0.3, 0.9, 0.4))
