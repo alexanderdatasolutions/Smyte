@@ -2,9 +2,9 @@
 
 ## Current Status
 **Last Updated:** 2026-01-17
-**Tasks Completed:** 6
+**Tasks Completed:** 7
 **Current Phase:** Build
-**Current Task:** SYS-003 completed
+**Current Task:** SYS-004 completed
 
 ---
 
@@ -235,5 +235,38 @@ This log tracks Ralph working through the dungeon system implementation.
 - ✅ 11th attempt shows 'Daily limit reached' error in validate_dungeon_entry()
 - ✅ At midnight (local), daily count resets to 0 (date change detection in _check_daily_reset)
 - ✅ Progress persists through save/load (daily_completions and daily_completions_date saved in player_progress)
+
+---
+
+### 2026-01-17 - SYS-004: Add dungeon completion tracking for first-clear bonuses
+
+**What was changed:**
+- Verified existing implementation in DungeonManager.gd and DungeonCoordinator.gd
+- `completed_dungeons` Dictionary already exists in `player_progress` (key format: `dungeon_id_difficulty`)
+- `is_first_clear()` checks if dungeon+difficulty has been completed before
+- `mark_dungeon_cleared()` marks a dungeon as cleared in completed_dungeons
+- `record_completion()` already calls is_first_clear and mark_dungeon_cleared
+- DungeonCoordinator._handle_dungeon_victory() already checks is_first_clear() and adds first_clear_rewards
+
+**Files modified:**
+- None (functionality already implemented in DATA-003 and SYS-002)
+
+**Verification:**
+- Ran game and tested `is_first_clear("fire_sanctum", "beginner")` - returns `true` initially
+- Tested `get_first_clear_rewards("fire_sanctum", "beginner")` - returns `{ "crystals": 50, "mana": 500 }`
+- Called `mark_dungeon_cleared("fire_sanctum", "beginner")`
+- Tested `is_first_clear("fire_sanctum", "beginner")` again - returns `false`
+- Tested `is_first_clear("fire_sanctum", "intermediate")` - returns `true` (different difficulties tracked separately)
+- Checked `save_progress()` output: `completed_dungeons: { "fire_sanctum_beginner": true }`
+- Console shows: "DungeonManager: Marked fire_sanctum_beginner as cleared (first clear)"
+
+**Screenshots:**
+- `first_clear_sys004.png` - Game running with first-clear tracking active
+
+**Acceptance Criteria Met:**
+- ✅ First clear triggers first_clear_rewards addition (DungeonCoordinator lines 183-195 check is_first_clear and add rewards)
+- ✅ Second clear of same difficulty doesn't grant bonus (is_first_clear returns false after marking)
+- ✅ Different difficulties tracked separately (fire_sanctum_beginner vs fire_sanctum_intermediate are independent keys)
+- ✅ Completion status persists through save/load (completed_dungeons saved in player_progress via save_progress/load_progress)
 
 ---
