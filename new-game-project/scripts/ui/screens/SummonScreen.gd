@@ -1,6 +1,6 @@
 # scripts/ui/SummonScreen.gd
 # RULE 1: Coordinator pattern - delegates to specialized components
-# Updated: Task 7 - SummonAnimation integration
+# Updated: Task 8 - SummonResultOverlay integration
 extends Control
 
 # Preload helper classes (prefixed to avoid class_name conflicts)
@@ -8,6 +8,7 @@ const _SummonButtonFactory = preload("res://scripts/ui/summon/SummonButtonFactor
 const _SummonShowcaseClass = preload("res://scripts/ui/summon/SummonShowcase.gd")
 const _SummonBannerCardClass = preload("res://scripts/ui/summon/SummonBannerCard.gd")
 const _SummonAnimationClass = preload("res://scripts/ui/summon/SummonAnimation.gd")
+const _SummonResultOverlayClass = preload("res://scripts/ui/summon/SummonResultOverlay.gd")
 
 signal back_pressed
 
@@ -22,12 +23,15 @@ var banner_cards: Array = []
 # Components (RULE 1 compliance - delegation)
 var showcase: SummonShowcase
 var summon_animation  # Type: SummonAnimation (preloaded)
+var result_overlay  # Type: SummonResultOverlay (preloaded)
 
 # State
 var selected_element: int = 0
 var is_processing_summon: bool = false
 var cards_initialized: bool = false
 var animations_enabled: bool = true
+var pending_summon_results: Array[God] = []  # Collect results during animation
+var current_banner_data: Dictionary = {}  # For "Summon Again" feature
 
 func _ready():
 	# Ensure fullscreen (needed when parent is Node2D)
@@ -48,6 +52,9 @@ func _ready():
 
 	# Initialize summon animation overlay
 	_setup_summon_animation()
+
+	# Initialize result overlay
+	_setup_result_overlay()
 
 	# Connect back button
 	if back_button:
@@ -82,6 +89,20 @@ func _setup_summon_animation():
 	summon_animation.animation_completed.connect(_on_animation_completed)
 	summon_animation.animation_skipped.connect(_on_animation_skipped)
 	summon_animation.all_animations_completed.connect(_on_all_animations_completed)
+
+func _setup_result_overlay():
+	"""Initialize the summon result overlay component"""
+	result_overlay = _SummonResultOverlayClass.new()
+	result_overlay.name = "SummonResultOverlay"
+	result_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(result_overlay)
+	# Move above animation layer
+	move_child(result_overlay, get_child_count() - 1)
+
+	# Connect result overlay signals
+	result_overlay.view_collection_pressed.connect(_on_view_collection_pressed)
+	result_overlay.summon_again_pressed.connect(_on_summon_again_pressed)
+	result_overlay.close_pressed.connect(_on_result_overlay_closed)
 
 func _style_back_button():
 	"""Style the back button to match dark fantasy theme"""
@@ -291,6 +312,8 @@ func _on_banner_single_summon(_banner_data: Dictionary, banner: Dictionary):
 
 	_set_cards_enabled(false)
 	is_processing_summon = true
+	current_banner_data = banner  # Store for "Summon Again"
+	pending_summon_results.clear()  # Clear previous results
 
 	var success = false
 	if banner.get("is_daily_free", false):
@@ -314,7 +337,9 @@ func _on_banner_multi_summon(_banner_data: Dictionary, banner: Dictionary):
 		return
 
 	_set_cards_enabled(false)
-	is_processing_summon = false
+	is_processing_summon = true
+	current_banner_data = banner  # Store for "Summon Again"
+	pending_summon_results.clear()  # Clear previous results
 
 	var success = false
 	if banner.summon_type == "divine_crystals":
@@ -368,15 +393,21 @@ func _on_duplicate_obtained(_god, _existing_count: int):
 func _on_animation_completed(god):
 	"""Called when a single summon animation finishes"""
 	_show_god_in_showcase(god)
+	pending_summon_results.append(god)
 
 func _on_animation_skipped(god):
 	"""Called when animation is skipped"""
 	_show_god_in_showcase(god)
+	pending_summon_results.append(god)
 
 func _on_all_animations_completed():
 	"""Called when all queued animations are done"""
 	_set_cards_enabled(true)
 	_refresh_all_cards()
+
+	# Show result overlay if we have results
+	if pending_summon_results.size() > 0 and result_overlay:
+		result_overlay.show_results(pending_summon_results, current_banner_data)
 
 func _show_god_in_showcase(god: God):
 	"""Display god in the showcase panel"""
@@ -385,6 +416,32 @@ func _show_god_in_showcase(god: God):
 		if default_message:
 			default_message.visible = false
 		showcase.show_god(god, false)  # Don't animate showcase cards, animation already played
+
+## Result overlay callbacks
+
+func _on_view_collection_pressed():
+	"""Navigate to collection screen when 'View in Collection' is pressed"""
+	var screen_mgr = SystemRegistry.get_instance().get_system("ScreenManager") if SystemRegistry.get_instance() else null
+	if screen_mgr and screen_mgr.has_method("show_screen"):
+		screen_mgr.show_screen("collection")
+
+func _on_summon_again_pressed():
+	"""Repeat the last summon when 'Summon Again' is pressed"""
+	if current_banner_data.is_empty():
+		return
+
+	# Determine if it was single or multi summon based on pending results
+	var was_multi = pending_summon_results.size() > 1
+
+	if was_multi:
+		_on_banner_multi_summon(current_banner_data, current_banner_data)
+	else:
+		_on_banner_single_summon(current_banner_data, current_banner_data)
+
+func _on_result_overlay_closed():
+	"""Handle result overlay close"""
+	# Nothing special needed, just refresh cards
+	_refresh_all_cards()
 
 ## Helper functions
 
