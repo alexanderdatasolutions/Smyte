@@ -53,14 +53,15 @@ func _populate_god_grid():
 func _create_god_card(god: God) -> GodCard:
 	"""Create a GodCard for god selection"""
 	var god_card = preload("res://scripts/ui/components/GodCard.gd").new()
-	
-	# Configure card for equipment screen use
-	god_card.card_size = GodCard.CardSize.MEDIUM
+
+	# Configure card for equipment screen use - SMALL size to fit more cards
+	god_card.card_size = GodCard.CardSize.SMALL
 	god_card.show_experience_bar = false  # Keep it cleaner for selection
-	god_card.show_power_rating = true
-	god_card.show_territory_assignment = true  # Show if god is stationed
+	god_card.show_power_rating = false  # Compact view
+	god_card.show_territory_assignment = false  # Compact view
 	god_card.show_awakening_status = false
 	god_card.clickable = true
+	god_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL  # Fill available width
 	
 	# Set up the god data and style
 	var style = GodCard.CardStyle.NORMAL
@@ -116,3 +117,8 @@ func _ensure_card_layout():
 func refresh():
 	"""Refresh the god grid display"""
 	_populate_god_grid()
+
+func select_god(god: God):
+	"""Programmatically select a god"""
+	if god:
+		_on_god_card_selected(god)

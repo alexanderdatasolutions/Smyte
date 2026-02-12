@@ -122,7 +122,6 @@ func _setup_starting_resources():
 		resource_manager.add_resource("gold", 10000)
 		resource_manager.add_resource("mana", 1000)
 		resource_manager.add_resource("energy", 100)
-		resource_manager.add_resource("arena_tokens", 10)
 
 ## Setup starting gods for new players
 func _setup_starting_gods():
@@ -240,6 +239,18 @@ func shutdown_game():
 	# Shutdown all systems
 	if system_registry:
 		system_registry.shutdown_all_systems()
+
+## Handle window close and other notifications
+func _notification(what):
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		# Save game when window is closed
+		print("GameCoordinator: Window close requested, saving game...")
+		save_game()
+	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		# Save game when app loses focus (mobile background, alt-tab, etc.)
+		if is_initialized:
+			print("GameCoordinator: App lost focus, saving game...")
+			save_game()
 
 # ============================================================================
 # EVENT HANDLERS

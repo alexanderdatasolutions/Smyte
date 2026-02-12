@@ -17,12 +17,23 @@ static func populate_category_list(container: Node, dungeons: Array, on_dungeon_
 	for child in container.get_children():
 		child.queue_free()
 
-	# Create a grid container instead of vertical list
+	# Create a margin container for padding
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	container.add_child(margin)
+
+	# Create a grid container - 3 columns for more dungeons visible
 	var grid_container = GridContainer.new()
-	grid_container.columns = 2  # Two columns for better space usage
-	grid_container.add_theme_constant_override("h_separation", 10)
-	grid_container.add_theme_constant_override("v_separation", 10)
-	container.add_child(grid_container)
+	grid_container.columns = 3
+	grid_container.add_theme_constant_override("h_separation", 12)
+	grid_container.add_theme_constant_override("v_separation", 12)
+	grid_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.add_child(grid_container)
 
 	# Add dungeon buttons to grid
 	for dungeon_info in dungeons:
@@ -34,25 +45,26 @@ static func create_dungeon_button(dungeon_info: Dictionary, container: Node, on_
 	var dungeon_id = dungeon_info.get("id", "")
 	var dungeon_name = dungeon_info.get("name", "Unknown Dungeon")
 
-	# Get power information for beginner difficulty
+	# Get power information for first available difficulty (not just beginner)
 	var difficulty_levels = dungeon_info.get("difficulty_levels", {})
-	var beginner_difficulty = difficulty_levels.get("beginner", {})
-	var energy_cost = beginner_difficulty.get("energy_cost", 0)
-	var enemy_power = beginner_difficulty.get("enemy_power", 0)
-	var recommended_level = beginner_difficulty.get("recommended_level", 1)
+	var first_difficulty = _get_first_difficulty(difficulty_levels)
+	var energy_cost = first_difficulty.get("energy_cost", 0)
+	var enemy_power = first_difficulty.get("enemy_power", 0)
+	var recommended_level = first_difficulty.get("recommended_level", 1)
 
-	# Create more compact button text
+	# Create button text with power info
 	var button_text = dungeon_name + "\n"
-	button_text += "⚡%d • ⚔%s • Lv.%d+" % [
+	button_text += "⚡%d  ⚔%s  Lv.%d+" % [
 		energy_cost,
 		_format_power(enemy_power),
 		recommended_level
 	]
 
-	# Set button properties for grid layout
+	# Set button properties for grid layout - cards that fill available space
 	button.text = button_text
-	button.custom_minimum_size = Vector2(200, 70)  # Smaller, more compact
-	button.add_theme_font_size_override("font_size", 14)  # Add mobile-friendly font size
+	button.custom_minimum_size = Vector2(180, 75)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.add_theme_font_size_override("font_size", 14)
 	button.pressed.connect(func(): on_dungeon_selected.call(dungeon_id))
 
 	# Add styling based on element/category
@@ -60,46 +72,80 @@ static func create_dungeon_button(dungeon_info: Dictionary, container: Node, on_
 
 	container.add_child(button)
 
+static func _get_first_difficulty(difficulty_levels: Dictionary) -> Dictionary:
+	"""Get the first (easiest) difficulty info - handles different naming conventions"""
+	# Priority order: beginner, heroic (for pantheon), intermediate, etc.
+	var priority_order = ["beginner", "heroic", "intermediate", "advanced", "expert", "legendary"]
+	for diff_name in priority_order:
+		if difficulty_levels.has(diff_name):
+			return difficulty_levels[diff_name]
+	# Fallback: return first available
+	if not difficulty_levels.is_empty():
+		return difficulty_levels[difficulty_levels.keys()[0]]
+	return {}
+
 static func _style_dungeon_button(button: Button, dungeon_info: Dictionary):
-	"""Apply styling to dungeon button based on properties - Enhanced with element colors"""
+	"""Apply unified styling to dungeon button with element-based accent colors"""
 	var element = dungeon_info.get("element", "neutral")
 
-	# Apply element-based color styling
-	var element_color: Color
+	# Get element-based accent color
+	var accent_color: Color
 	match element:
 		"fire":
-			element_color = Color.ORANGE_RED
+			accent_color = Color(0.9, 0.4, 0.2, 0.9)
 		"water":
-			element_color = Color.CYAN
+			accent_color = Color(0.3, 0.6, 0.9, 0.9)
 		"earth":
-			element_color = Color.SADDLE_BROWN
+			accent_color = Color(0.6, 0.45, 0.3, 0.9)
 		"lightning":
-			element_color = Color.YELLOW
+			accent_color = Color(0.9, 0.8, 0.3, 0.9)
 		"light":
-			element_color = Color.WHITE
+			accent_color = Color(0.9, 0.9, 0.8, 0.9)
 		"dark":
-			element_color = Color.PURPLE
-		"neutral":
-			element_color = Color.LIGHT_GRAY
-		_:
-			element_color = Color.WHITE
+			accent_color = Color(0.6, 0.3, 0.7, 0.9)
+		"neutral", _:
+			accent_color = Color(0.5, 0.5, 0.55, 0.9)
 
-	# Apply the color and store it for hover restoration
-	button.modulate = element_color
-	button.set_meta("original_color", element_color)
+	# Create styled normal state - unified dark panel with element border
+	var style_normal = StyleBoxFlat.new()
+	style_normal.bg_color = Color(0.12, 0.1, 0.16, 0.95)
+	style_normal.border_color = accent_color.darkened(0.3)
+	style_normal.set_border_width_all(2)
+	style_normal.border_width_left = 4  # Thicker left border as element indicator
+	style_normal.set_corner_radius_all(6)
+	button.add_theme_stylebox_override("normal", style_normal)
 
-	# Add hover effects
-	button.mouse_entered.connect(func(): _on_dungeon_button_hovered(button, true))
-	button.mouse_exited.connect(func(): _on_dungeon_button_hovered(button, false))
+	# Hover state - brighten
+	var style_hover = StyleBoxFlat.new()
+	style_hover.bg_color = Color(0.16, 0.14, 0.22, 0.98)
+	style_hover.border_color = accent_color
+	style_hover.set_border_width_all(2)
+	style_hover.border_width_left = 4
+	style_hover.set_corner_radius_all(6)
+	button.add_theme_stylebox_override("hover", style_hover)
 
-static func _on_dungeon_button_hovered(button: Button, is_hovered: bool):
-	"""Handle dungeon button hover effects"""
-	if is_hovered:
-		button.modulate = button.modulate.lightened(0.2)
-	else:
-		# Restore original color
-		var original_color = button.get_meta("original_color", Color.WHITE)
-		button.modulate = original_color
+	# Pressed state
+	var style_pressed = StyleBoxFlat.new()
+	style_pressed.bg_color = Color(0.2, 0.18, 0.28, 1.0)
+	style_pressed.border_color = accent_color.lightened(0.2)
+	style_pressed.set_border_width_all(2)
+	style_pressed.border_width_left = 4
+	style_pressed.set_corner_radius_all(6)
+	button.add_theme_stylebox_override("pressed", style_pressed)
+
+	# Focus state (for keyboard/controller)
+	var style_focus = StyleBoxFlat.new()
+	style_focus.bg_color = Color(0.14, 0.12, 0.2, 0.98)
+	style_focus.border_color = accent_color.lightened(0.1)
+	style_focus.set_border_width_all(2)
+	style_focus.border_width_left = 4
+	style_focus.set_corner_radius_all(6)
+	button.add_theme_stylebox_override("focus", style_focus)
+
+	# Text colors
+	button.add_theme_color_override("font_color", Color(0.8, 0.8, 0.85))
+	button.add_theme_color_override("font_hover_color", Color(0.95, 0.92, 0.85))
+	button.add_theme_color_override("font_pressed_color", Color(1.0, 0.98, 0.9))
 
 static func _format_power(power: int) -> String:
 	"""Format power number for display"""

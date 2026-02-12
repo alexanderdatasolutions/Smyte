@@ -394,8 +394,9 @@ func _create_portrait(god: God) -> Control:
 	portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
-	# Try to load portrait
-	var sprite_path = "res://assets/gods/" + god.id + ".png"
+	# Try to load portrait - use template_id for asset path
+	var god_template = god.template_id if god.template_id else god.id
+	var sprite_path = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		portrait.texture = load(sprite_path)
 	else:
@@ -421,6 +422,10 @@ func _truncate_name(text: String, max_length: int) -> String:
 
 func _on_god_card_pressed(god: God) -> void:
 	"""Handle god card tap - emit signal"""
+	# Don't allow selecting already-assigned gods
+	if god.id in _excluded_god_ids:
+		print("GodSelectionGrid: %s is already assigned, cannot select" % god.name)
+		return
 	print("GodSelectionGrid: God selected - %s (Lv.%d)" % [god.name, god.level])
 	god_selected.emit(god)
 

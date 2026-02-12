@@ -1,5 +1,37 @@
 {
   "node_type_production_mapping": {
+    "resource_node": {
+      "primary_category": "gathering",
+      "description": "Gather raw materials like ore, wood, and herbs",
+      "optimal_stats": ["defense", "hp"],
+      "optimal_traits": ["miner", "earth_affinity", "forager"],
+      "icon": "⛏️",
+      "production_focus": "Ore, Wood, Herbs, Monster Parts"
+    },
+    "forge": {
+      "primary_category": "crafting",
+      "description": "Craft enhancement materials and refine metals",
+      "optimal_stats": ["attack", "defense"],
+      "optimal_traits": ["blacksmith", "fire_affinity"],
+      "icon": "🔥",
+      "production_focus": "Enhancement Powder, Refined Metal, Socket Crystals"
+    },
+    "shrine": {
+      "primary_category": "divine",
+      "description": "Channel divine power and generate spiritual energy",
+      "optimal_stats": ["magic", "resistance"],
+      "optimal_traits": ["priest", "light_affinity", "divine_affinity"],
+      "icon": "✨",
+      "production_focus": "Divine Essence, Mana Crystals, Mana"
+    },
+    "base": {
+      "primary_category": "command",
+      "description": "Your seat of divine power - generates baseline resources",
+      "optimal_stats": [],
+      "optimal_traits": [],
+      "icon": "🏛️",
+      "production_focus": "Mana, Gold"
+    },
     "mine": {
       "primary_category": "gathering",
       "description": "Extract precious ores and minerals from the earth",
@@ -94,6 +126,18 @@
       "description": "Transform raw materials into useful items",
       "color": {"r": 0.9, "g": 0.5, "b": 0.2},
       "icon": "⚒️"
+    },
+    "divine": {
+      "name": "Divine Channeling",
+      "description": "Channel spiritual energy and divine essence",
+      "color": {"r": 1.0, "g": 0.85, "b": 0.4},
+      "icon": "✨"
+    },
+    "command": {
+      "name": "Command Center",
+      "description": "Your divine seat of power",
+      "color": {"r": 0.6, "g": 0.5, "b": 0.9},
+      "icon": "🏛️"
     },
     "research": {
       "name": "Research",

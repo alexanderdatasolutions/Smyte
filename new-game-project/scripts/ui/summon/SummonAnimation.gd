@@ -34,7 +34,9 @@ var current_god: God = null
 var animation_queue: Array[God] = []
 var is_animating: bool = false
 var skip_requested: bool = false
+var skip_handled: bool = false  # Prevents double-emission when skip interrupts tweens
 var original_position: Vector2 = Vector2.ZERO
+var active_tweens: Array[Tween] = []  # Track tweens to kill on skip
 
 # Timing constants (seconds)
 const PORTAL_GLOW_DURATION: float = 0.8
@@ -251,6 +253,7 @@ func _process_next_animation():
 
 func _reset_animation_state():
 	current_state = AnimState.IDLE
+	skip_handled = false  # Reset for new animation
 	portal_glow.color.a = 0.0
 	rarity_burst.color.a = 0.0
 	god_portrait_container.modulate.a = 0.0
@@ -263,6 +266,21 @@ func _reset_animation_state():
 	if portal_ring:
 		portal_ring.rotation = 0.0
 
+	# Kill any lingering tweens from previous animation
+	_kill_active_tweens()
+
+func _kill_active_tweens():
+	"""Kill all tracked active tweens to prevent callbacks after skip"""
+	for tween in active_tweens:
+		if tween and tween.is_running():
+			tween.kill()
+	active_tweens.clear()
+
+func _track_tween(tween: Tween) -> Tween:
+	"""Track a tween so it can be killed on skip"""
+	active_tweens.append(tween)
+	return tween
+
 func _start_portal_glow():
 	current_state = AnimState.PORTAL_GLOW
 
@@ -274,12 +292,12 @@ func _start_portal_glow():
 		sound_manager.play_portal_sound(tier_string)
 
 	# Animate portal ring spinning (set_loops on Tween, not PropertyTweener)
-	var ring_tween = create_tween()
+	var ring_tween = _track_tween(create_tween())
 	ring_tween.set_loops(0)  # Infinite loops
 	ring_tween.tween_property(portal_ring, "rotation", TAU, PORTAL_GLOW_DURATION * 2)
 
 	# Animate portal glow
-	var tween = create_tween()
+	var tween = _track_tween(create_tween())
 	tween.set_parallel(true)
 
 	# Pulse the glow
@@ -315,7 +333,7 @@ func _start_rarity_reveal():
 	rarity_burst.scale = Vector2(0.5, 0.5)
 	rarity_burst.pivot_offset = rarity_burst.size / 2
 
-	var tween = create_tween()
+	var tween = _track_tween(create_tween())
 	tween.set_parallel(true)
 	tween.tween_property(rarity_burst, "color:a", 1.0, RARITY_REVEAL_DURATION * 0.3).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 	tween.tween_property(rarity_burst, "scale", Vector2(1.5, 1.5), RARITY_REVEAL_DURATION).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
@@ -340,7 +358,7 @@ func _start_god_reveal():
 
 	# Animate portrait
 	god_portrait_container.pivot_offset = Vector2(100, 100)
-	var tween = create_tween()
+	var tween = _track_tween(create_tween())
 	tween.set_parallel(true)
 	tween.tween_property(god_portrait_container, "modulate:a", 1.0, GOD_REVEAL_DURATION * 0.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tween.tween_property(god_portrait_container, "scale", Vector2(1.0, 1.0), GOD_REVEAL_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -355,8 +373,9 @@ func _start_god_reveal():
 	tween.chain().tween_callback(_complete_animation)
 
 func _setup_god_display():
-	# Load portrait if available
-	var sprite_path = "res://assets/gods/" + current_god.id + ".png"
+	# Load portrait if available - use template_id for asset path
+	var god_template = current_god.template_id if current_god.template_id else current_god.id
+	var sprite_path = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		god_portrait.texture = load(sprite_path)
 	else:
@@ -391,6 +410,10 @@ func _setup_god_display():
 	god_stats_label.text = "HP: %d | ATK: %d | DEF: %d | SPD: %d" % [hp, atk, def, spd]
 
 func _complete_animation():
+	# Guard: Don't emit if skip was already handled for this god
+	if skip_handled:
+		return
+
 	current_state = AnimState.COMPLETE
 	animation_completed.emit(current_god)
 
@@ -399,6 +422,14 @@ func _complete_animation():
 	_process_next_animation()
 
 func _skip_to_end():
+	# Guard: Don't process skip twice for same god
+	if skip_handled:
+		return
+	skip_handled = true
+
+	# Kill all active tweens to prevent their callbacks from firing
+	_kill_active_tweens()
+
 	# Immediately show the god without remaining animations
 	_setup_god_display()
 	god_portrait_container.modulate.a = 1.0

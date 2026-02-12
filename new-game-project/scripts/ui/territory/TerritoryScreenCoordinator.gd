@@ -46,12 +46,13 @@ func _create_ui_structure():
 	scroll_container.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	main_container.add_child(scroll_container)
 
-	# Back button at bottom
+	# Back button at bottom (hidden - using unified header instead)
 	back_button = Button.new()
 	back_button.text = "← BACK TO WORLD"
 	back_button.custom_minimum_size = Vector2(150, 40)
 	back_button.pressed.connect(_on_back_pressed)
 	_style_back_button()
+	back_button.visible = false  # Hidden - using unified header
 	main_container.add_child(back_button)
 
 func _style_back_button():

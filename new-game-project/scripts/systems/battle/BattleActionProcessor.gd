@@ -147,22 +147,21 @@ func _apply_skill_status_effects(skill, caster, target, result: ActionResult):
 	# Process each effect in the skill
 	for effect_data in effects:
 		if not effect_data is Dictionary:
-			print("BattleActionProcessor: Skipping non-dictionary effect")
 			continue
 
 		var effect_type = effect_data.get("type", "")
-		print("BattleActionProcessor: Found effect type: %s" % effect_type)
 
-		# Handle debuff effects
-		if effect_type == "debuff":
-			print("BattleActionProcessor: Applying debuff: ", effect_data.get("debuff", "unknown"))
-			_apply_debuff_effect(effect_data, caster, target, result)
-		# Handle buff effects
-		elif effect_type == "buff":
-			print("BattleActionProcessor: Applying buff: ", effect_data.get("buff", "unknown"))
-			_apply_buff_effect(effect_data, caster, target, result)
-		else:
-			print("BattleActionProcessor: Skipping effect type: %s (not buff or debuff)" % effect_type)
+		match effect_type:
+			"debuff":
+				_apply_debuff_effect(effect_data, caster, target, result)
+			"buff":
+				_apply_buff_effect(effect_data, caster, target, result)
+			"atb_decrease":
+				_apply_atb_decrease(effect_data, caster, target, result)
+			"atb_steal":
+				_apply_atb_steal(effect_data, caster, target, result)
+			"life_drain":
+				_apply_life_drain(effect_data, caster, target, result)
 
 func _get_ability_data(skill_id: String) -> Dictionary:
 	"""Load ability data from JSON file"""
@@ -249,8 +248,13 @@ func _apply_debuff_effect(effect_data: Dictionary, caster, target, result: Actio
 	# Apply the status effect to target
 	if status_effect and target.has_method("add_status_effect"):
 		print("BattleActionProcessor: Applying status effect to %s: %s" % [target.display_name, status_effect.name])
+		# Set tracking info for battle log
+		status_effect.target_name = target.display_name
+		status_effect.caster_name = caster.display_name if caster else ""
 		target.add_status_effect(status_effect)
 		result.message += " " + target.display_name + " is " + status_effect.name + "!"
+		# Track applied status effect in result for logging
+		result.add_status_effect(status_effect)
 		print("BattleActionProcessor: Status effect applied successfully")
 	else:
 		print("BattleActionProcessor: Failed to apply status effect (status_effect=%s, has_method=%s)" % [status_effect != null, target.has_method("add_status_effect")])
@@ -302,5 +306,49 @@ func _apply_buff_effect(effect_data: Dictionary, caster, target, result: ActionR
 
 	# Apply the status effect to target
 	if status_effect and target.has_method("add_status_effect"):
+		# Set tracking info for battle log
+		status_effect.target_name = target.display_name
+		status_effect.caster_name = caster.display_name if caster else ""
 		target.add_status_effect(status_effect)
 		result.message += " " + target.display_name + " gains " + status_effect.name + "!"
+		# Track applied status effect in result for logging
+		result.add_status_effect(status_effect)
+
+func _apply_atb_decrease(effect_data: Dictionary, _caster, target, result: ActionResult):
+	"""Decrease target's attack turn bar"""
+	var chance = effect_data.get("chance", 100)
+	var amount = effect_data.get("amount", 30)  # Percentage to decrease
+
+	if randf() * 100 > chance:
+		return
+
+	var decrease_amount = target.current_turn_bar * (amount / 100.0)
+	target.current_turn_bar = max(0, target.current_turn_bar - decrease_amount)
+	result.message += " %s's turn bar decreased by %d%%!" % [target.display_name, amount]
+
+func _apply_atb_steal(effect_data: Dictionary, caster, target, result: ActionResult):
+	"""Steal turn bar from target and give to caster"""
+	var chance = effect_data.get("chance", 100)
+	var amount = effect_data.get("amount", 20)  # Percentage to steal
+
+	if randf() * 100 > chance:
+		return
+
+	var steal_amount = target.current_turn_bar * (amount / 100.0)
+	target.current_turn_bar = max(0, target.current_turn_bar - steal_amount)
+	caster.current_turn_bar = min(100, caster.current_turn_bar + steal_amount)
+	result.message += " %s steals %d%% turn bar from %s!" % [caster.display_name, amount, target.display_name]
+
+func _apply_life_drain(effect_data: Dictionary, caster, _target, result: ActionResult):
+	"""Heal caster based on damage dealt"""
+	var drain_percent = effect_data.get("amount", 30)  # Percentage of damage to heal
+
+	# Calculate heal from total damage dealt this action
+	var total_damage = 0
+	for dmg_result in result.damage_results:
+		total_damage += dmg_result.total
+
+	var heal_amount = int(total_damage * (drain_percent / 100.0))
+	if heal_amount > 0:
+		caster.heal(heal_amount)
+		result.message += " %s drains %d HP!" % [caster.display_name, heal_amount]

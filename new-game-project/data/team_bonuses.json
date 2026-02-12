@@ -1,0 +1,246 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "description": "Team composition bonuses - the core synergy system for god teams",
+    "last_updated": "2026-02-10",
+    "design_notes": "Add new bonus types here. System checks team composition and applies matching bonuses."
+  },
+
+  "pantheon_bonuses": {
+    "_description": "Bonuses for teams with matching pantheons",
+
+    "full_match": {
+      "description": "All team members from the same pantheon",
+      "required_count": "all",
+      "bonuses": {
+        "production": 0.25,
+        "defense": 0.25,
+        "attack": 0.15,
+        "speed": 0.10
+      }
+    },
+    "majority_match": {
+      "description": "3+ team members from the same pantheon",
+      "required_count": 3,
+      "bonuses": {
+        "production": 0.10,
+        "defense": 0.10,
+        "attack": 0.05,
+        "speed": 0.05
+      }
+    },
+    "duo_match": {
+      "description": "2 team members from the same pantheon",
+      "required_count": 2,
+      "bonuses": {
+        "production": 0.05,
+        "defense": 0.05
+      }
+    }
+  },
+
+  "element_bonuses": {
+    "_description": "Bonuses for teams with matching elements - includes both combat and production",
+
+    "full_match": {
+      "description": "All team members share the same element",
+      "required_count": "all",
+      "bonuses": {
+        "elemental_damage": 0.30,
+        "elemental_resistance": 0.20,
+        "production": 0.15
+      }
+    },
+    "majority_match": {
+      "description": "3+ team members share the same element",
+      "required_count": 3,
+      "bonuses": {
+        "elemental_damage": 0.15,
+        "elemental_resistance": 0.10,
+        "production": 0.10
+      }
+    },
+    "duo_match": {
+      "description": "2 team members share the same element",
+      "required_count": 2,
+      "bonuses": {
+        "elemental_damage": 0.10,
+        "production": 0.05
+      }
+    }
+  },
+
+  "role_bonuses": {
+    "_description": "Bonuses for balanced team compositions",
+
+    "balanced_team": {
+      "description": "Team has tank, healer, and DPS roles covered",
+      "required_roles": ["tank", "healer", "dps"],
+      "bonuses": {
+        "survivability": 0.15,
+        "healing_received": 0.10
+      }
+    },
+    "all_attackers": {
+      "description": "All team members are damage dealers",
+      "required_count": "all",
+      "required_role": "dps",
+      "bonuses": {
+        "attack": 0.20,
+        "crit_chance": 0.10
+      }
+    },
+    "fortress_team": {
+      "description": "Team has 2+ tanks",
+      "required_count": 2,
+      "required_role": "tank",
+      "bonuses": {
+        "defense": 0.25,
+        "taunt_effectiveness": 0.15
+      }
+    }
+  },
+
+  "tier_bonuses": {
+    "_description": "Bonuses based on god rarity tiers",
+
+    "all_legendary": {
+      "description": "All team members are legendary tier",
+      "required_tier": 4,
+      "required_count": "all",
+      "bonuses": {
+        "all_stats": 0.10,
+        "skill_damage": 0.15
+      }
+    },
+    "mixed_tiers": {
+      "description": "Team has gods from at least 3 different tiers",
+      "min_unique_tiers": 3,
+      "bonuses": {
+        "experience_gain": 0.20
+      }
+    }
+  },
+
+  "special_synergies": {
+    "_description": "Unique bonuses for specific god combinations",
+
+    "olympian_council": {
+      "description": "Zeus, Poseidon, and Hades together",
+      "required_gods": ["zeus", "poseidon", "hades"],
+      "bonuses": {
+        "all_stats": 0.15,
+        "ultimate_charge": 0.25
+      }
+    },
+    "norse_brothers": {
+      "description": "Odin, Thor, and Loki together",
+      "required_gods": ["odin", "thor", "loki"],
+      "bonuses": {
+        "attack": 0.20,
+        "crit_damage": 0.15
+      }
+    },
+    "egyptian_trinity": {
+      "description": "Ra, Osiris, and Anubis together",
+      "required_gods": ["ra", "osiris", "anubis"],
+      "bonuses": {
+        "defense": 0.15,
+        "healing_power": 0.20
+      }
+    },
+    "sun_gods": {
+      "description": "Multiple sun deities (Ra, Apollo, Amaterasu, etc.)",
+      "required_traits": ["sun_deity"],
+      "required_count": 2,
+      "bonuses": {
+        "light_damage": 0.25,
+        "burn_chance": 0.15
+      }
+    },
+    "death_gods": {
+      "description": "Multiple death deities (Hades, Anubis, Hel, etc.)",
+      "required_traits": ["death_deity"],
+      "required_count": 2,
+      "bonuses": {
+        "dark_damage": 0.25,
+        "life_steal": 0.10
+      }
+    }
+  },
+
+  "territory_synergies": {
+    "_description": "Bonuses that apply specifically to territory/production based on elements",
+
+    "fire_workers": {
+      "description": "Fire-aligned gods boost forge production",
+      "required_elements": ["fire"],
+      "required_count": 2,
+      "node_types": ["forge"],
+      "bonuses": {
+        "crafting_speed": 0.20,
+        "resource_production": 0.15
+      }
+    },
+    "earth_workers": {
+      "description": "Earth-aligned gods boost mining/gathering",
+      "required_elements": ["earth"],
+      "required_count": 2,
+      "node_types": ["mine", "quarry", "farm"],
+      "bonuses": {
+        "resource_production": 0.25,
+        "rare_drop_chance": 0.10
+      }
+    },
+    "water_workers": {
+      "description": "Water-aligned gods boost growth and healing",
+      "required_elements": ["water"],
+      "required_count": 2,
+      "node_types": ["farm", "grove", "spring"],
+      "bonuses": {
+        "resource_production": 0.20,
+        "quality_bonus": 0.10
+      }
+    },
+    "light_workers": {
+      "description": "Light-aligned gods boost shrine output",
+      "required_elements": ["light"],
+      "required_count": 2,
+      "node_types": ["shrine", "temple", "sanctum"],
+      "bonuses": {
+        "mana_production": 0.25,
+        "divine_essence_production": 0.20
+      }
+    },
+    "dark_workers": {
+      "description": "Dark-aligned gods boost rare material drops",
+      "required_elements": ["dark"],
+      "required_count": 2,
+      "bonuses": {
+        "rare_drop_chance": 0.20,
+        "resource_production": 0.10
+      }
+    },
+    "lightning_workers": {
+      "description": "Lightning-aligned gods speed up all work",
+      "required_elements": ["lightning"],
+      "required_count": 2,
+      "bonuses": {
+        "crafting_speed": 0.15,
+        "resource_production": 0.10
+      }
+    }
+  },
+
+  "stacking_rules": {
+    "_description": "How multiple bonuses interact",
+    "same_category": "highest_only",
+    "different_categories": "additive",
+    "cap_per_stat": {
+      "production": 1.0,
+      "defense": 0.75,
+      "attack": 0.75,
+      "speed": 0.50
+    }
+  }
+}

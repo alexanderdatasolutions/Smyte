@@ -110,41 +110,45 @@ func get_available_dungeons() -> Array:
 	return available
 
 func get_all_dungeons() -> Array:
-	"""Get all dungeons across all categories"""
+	"""Get all dungeons across all categories with enhanced power info"""
 	var all_dungeons = []
-	
+
 	# Elemental sanctums
 	var elemental = dungeon_data.get("elemental_sanctums", {})
 	for dungeon_id in elemental.keys():
 		var info = elemental[dungeon_id].duplicate()
 		info["id"] = dungeon_id
 		info["category"] = "elemental"
+		_enhance_dungeon_info(info)
 		all_dungeons.append(info)
-	
+
 	# Special sanctums
 	var special = dungeon_data.get("special_sanctums", {})
 	for dungeon_id in special.keys():
 		var info = special[dungeon_id].duplicate()
-		info["id"] = dungeon_id  
+		info["id"] = dungeon_id
 		info["category"] = "special"
+		_enhance_dungeon_info(info)
 		all_dungeons.append(info)
-	
+
 	# Pantheon trials
 	var pantheon = dungeon_data.get("pantheon_trials", {})
 	for dungeon_id in pantheon.keys():
 		var info = pantheon[dungeon_id].duplicate()
 		info["id"] = dungeon_id
-		info["category"] = "pantheon" 
+		info["category"] = "pantheon"
+		_enhance_dungeon_info(info)
 		all_dungeons.append(info)
-		
+
 	# Equipment dungeons
 	var equipment_dungeons = dungeon_data.get("equipment_dungeons", {})
 	for dungeon_id in equipment_dungeons.keys():
 		var info = equipment_dungeons[dungeon_id].duplicate()
 		info["id"] = dungeon_id
 		info["category"] = "equipment"
+		_enhance_dungeon_info(info)
 		all_dungeons.append(info)
-	
+
 	return all_dungeons
 
 func get_dungeon_info(dungeon_id: String) -> Dictionary:
@@ -182,6 +186,7 @@ func get_dungeon_info(dungeon_id: String) -> Dictionary:
 		var info = equipment_dungeons[dungeon_id].duplicate()
 		info["id"] = dungeon_id
 		info["category"] = "equipment"
+		_enhance_dungeon_info(info)
 		return info
 	
 	return {}
@@ -673,6 +678,10 @@ func _calculate_enemy_power(dungeon_info: Dictionary, difficulty: String) -> int
 		"expert":
 			difficulty_multiplier = 3.0
 		"master":
+			difficulty_multiplier = 4.0
+		"heroic":
+			difficulty_multiplier = 2.5
+		"legendary":
 			difficulty_multiplier = 4.0
 	
 	# Apply level scaling from dungeon data if available

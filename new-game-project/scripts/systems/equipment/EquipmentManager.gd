@@ -125,17 +125,17 @@ func equip_equipment_to_god(god: God, equipment: Equipment, slot: int) -> bool:
 	# Ensure god has equipment array
 	if not god.equipment:
 		god.equipment = []
-	
+
 	# Resize array if needed (6 equipment slots)
 	while god.equipment.size() < 6:
 		god.equipment.append(null)
-	
+
 	# Unequip existing equipment in this slot
 	if god.equipment[slot] != null:
-		var old_equipment = god.equipment[slot] 
+		var old_equipment = god.equipment[slot]
 		if old_equipment is Equipment:
 			old_equipment.equipped_by_god_id = ""
-	
+
 	# Equip new equipment - ensure it's an Equipment object
 	if equipment is Equipment:
 		god.equipment[slot] = equipment
@@ -150,15 +150,30 @@ func unequip_equipment_from_god(god: God, slot: int) -> bool:
 	"""Unequip equipment from god at specific slot"""
 	if not god or not god.equipment or slot >= god.equipment.size():
 		return false
-	
-	var equipment = god.equipment[slot] as Equipment
+
+	var slot_content = god.equipment[slot]
+	if slot_content == null:
+		return false
+
+	# Handle both Equipment objects and string IDs
+	var equipment: Equipment = null
+	if slot_content is Equipment:
+		equipment = slot_content
+	elif slot_content is String and slot_content != "":
+		# If stored as string ID, find it in inventory
+		if inventory_manager:
+			equipment = inventory_manager.get_equipment_by_id(slot_content)
+
 	if equipment:
 		equipment.equipped_by_god_id = ""
 		god.equipment[slot] = null
 		equipment_unequipped.emit(god, slot)
 		return true
-	
-	return false
+	else:
+		# Clear the slot even if we couldn't find the equipment object
+		god.equipment[slot] = null
+		equipment_unequipped.emit(god, slot)
+		return true
 
 func get_equipment_stats(equipment: Equipment) -> Dictionary:
 	"""Calculate equipment stats including enhancement bonuses"""
@@ -248,26 +263,39 @@ func add_gem_to_inventory(gem_id: String, quantity: int = 1):
 func _on_equipment_equipped(god: God, equipment: Equipment, slot: int):
 	"""Handle equipment equipped event"""
 	equipment_equipped.emit(god, equipment, slot)
+	_trigger_save()
 
 func _on_equipment_unequipped(god: God, slot: int):
 	"""Handle equipment unequipped event"""
 	equipment_unequipped.emit(god, slot)
+	_trigger_save()
 
 func _on_equipment_crafted(equipment: Equipment, recipe_id: String):
 	"""Handle equipment crafted event"""
 	equipment_crafted.emit(equipment, recipe_id)
+	_trigger_save()
 
 func _on_equipment_enhanced(equipment: Equipment, success: bool):
 	"""Handle equipment enhanced event"""
 	equipment_enhanced.emit(equipment, success)
+	if success:
+		_trigger_save()
 
 func _on_socket_unlocked(equipment: Equipment, socket_index: int):
 	"""Handle socket unlocked event"""
 	socket_unlocked.emit(equipment, socket_index)
+	_trigger_save()
 
 func _on_gem_socketed(equipment: Equipment, socket_index: int, gem: Dictionary):
 	"""Handle gem socketed event"""
 	gem_socketed.emit(equipment, socket_index, gem)
+	_trigger_save()
+
+func _trigger_save():
+	"""Trigger a game save after important equipment changes"""
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	if event_bus:
+		event_bus.save_requested.emit()
 
 # === EQUIPMENT LOADING ===
 

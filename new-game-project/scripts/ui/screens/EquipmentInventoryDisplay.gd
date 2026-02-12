@@ -13,16 +13,15 @@ Pure UI component for equipment inventory management
 """
 
 signal equipment_selected(equipment: Equipment)
-signal equip_requested()
 
 # UI References
 var inventory_grid: GridContainer
 var info_panel: VBoxContainer
-var equipment_preview_panel: VBoxContainer
 
 # Selected state
 var selected_equipment: Equipment = null
 var filter_slot_type: int = -1  # Filter by equipment slot type
+var _is_refreshing: bool = false  # Guard against concurrent refreshes
 
 # Systems - accessed through SystemRegistry (RULE 5)
 var equipment_manager: EquipmentManager
@@ -68,17 +67,22 @@ func refresh_inventory():
 	"""Refresh equipment inventory display - RULE 4: UI display only"""
 	if not inventory_grid or not equipment_manager:
 		return
-	
+
+	# Guard against concurrent refreshes (due to await)
+	if _is_refreshing:
+		return
+	_is_refreshing = true
+
 	# Clear existing inventory
 	for child in inventory_grid.get_children():
 		child.queue_free()
-	
+
 	await get_tree().process_frame
-	
+
 	# Get equipment from inventory
 	var all_equipment = equipment_manager.get_unequipped_equipment()
 	var display_equipment = []
-	
+
 	# Filter by slot type if specified
 	if filter_slot_type != -1:
 		for equipment in all_equipment:
@@ -86,11 +90,13 @@ func refresh_inventory():
 				display_equipment.append(equipment)
 	else:
 		display_equipment = all_equipment.duplicate()
-	
+
 	# Create equipment buttons
 	for equipment in display_equipment:
 		if equipment != null:
 			create_equipment_button(equipment)
+
+	_is_refreshing = false
 	
 	# Ensure proper sizing
 	if inventory_grid:
@@ -101,7 +107,7 @@ func refresh_inventory():
 func create_equipment_button(equipment: Equipment):
 	"""Create equipment button - RULE 4: UI creation only"""
 	var button = Button.new()
-	button.custom_minimum_size = Vector2(120, 140)
+	button.custom_minimum_size = Vector2(110, 130)  # Larger to fit stats properly
 	button.expand_icon = true
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
@@ -168,9 +174,9 @@ func create_equipment_button(equipment: Equipment):
 	
 	# Create info overlay (bottom section with text)
 	var info_container = VBoxContainer.new()
-	info_container.position = Vector2(5, 95)
-	info_container.size = Vector2(110, 40)
-	info_container.add_theme_constant_override("separation", 1)
+	info_container.position = Vector2(3, 65)
+	info_container.size = Vector2(104, 62)
+	info_container.add_theme_constant_override("separation", 2)
 	
 	# Equipment name (shortened if needed)
 	var name_label = Label.new()
@@ -182,21 +188,25 @@ func create_equipment_button(equipment: Equipment):
 	name_label.modulate = rarity_color
 	info_container.add_child(name_label)
 	
-	# Type and level info
-	var type_label = Label.new()
-	type_label.text = "%s +%d" % [get_equipment_type_name(equipment.type), equipment.enhancement_level]
-	type_label.add_theme_font_size_override("font_size", 9)
-	type_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_label.modulate = Color(0.9, 0.9, 0.9)
-	info_container.add_child(type_label)
-	
-	# Rarity stars
-	var stars_label = Label.new()
-	stars_label.text = get_rarity_stars(equipment.rarity)
-	stars_label.add_theme_font_size_override("font_size", 12)
-	stars_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stars_label.modulate = rarity_color
-	info_container.add_child(stars_label)
+	# Main stat display (most important info)
+	var stat_label = Label.new()
+	if equipment.main_stat_type != "":
+		stat_label.text = "%s +%d" % [_get_stat_abbrev(equipment.main_stat_type), equipment.main_stat_value]
+	else:
+		stat_label.text = "+%d" % equipment.enhancement_level
+	stat_label.add_theme_font_size_override("font_size", 10)
+	stat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stat_label.add_theme_color_override("font_color", Color.GOLD)
+	info_container.add_child(stat_label)
+
+	# Set name if applicable
+	if equipment.equipment_set_name != "":
+		var set_label = Label.new()
+		set_label.text = equipment.equipment_set_name
+		set_label.add_theme_font_size_override("font_size", 8)
+		set_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		set_label.add_theme_color_override("font_color", Color.CYAN)
+		info_container.add_child(set_label)
 	
 	button.add_child(info_container)
 	
@@ -210,7 +220,7 @@ func _on_equipment_button_pressed(equipment: Equipment):
 	selected_equipment = equipment
 	equipment_selected.emit(equipment)
 	show_equipment_details(equipment)
-	refresh_inventory()  # Refresh to show selection state
+	# Note: Don't refresh here - EquipmentScreen will refresh after equipping
 
 func show_equipment_details(equipment: Equipment):
 	"""Display equipment details in info panel - RULE 4: UI display only"""
@@ -272,18 +282,6 @@ func show_equipment_details(equipment: Equipment):
 		set_label.add_theme_font_size_override("font_size", 11)
 		set_label.modulate = Color.CYAN
 		info_panel.add_child(set_label)
-	
-	# Equip button
-	var equip_button = Button.new()
-	equip_button.text = "Equip"
-	equip_button.custom_minimum_size = Vector2(100, 30)
-	equip_button.pressed.connect(_on_equip_button_pressed)
-	info_panel.add_child(equip_button)
-
-func _on_equip_button_pressed():
-	"""Handle equip button press"""
-	if selected_equipment:
-		equip_requested.emit()
 
 func get_slot_for_equipment_type(type: Equipment.EquipmentType) -> int:
 	"""Get slot index for equipment type - RULE 4: UI helper"""
@@ -343,18 +341,25 @@ func get_rarity_name(rarity: Equipment.Rarity) -> String:
 		Equipment.Rarity.LEGENDARY: return "Legendary"
 		_: return "Unknown"
 
+func _get_stat_abbrev(stat_type: String) -> String:
+	"""Get abbreviated stat name for compact display"""
+	match stat_type.to_lower():
+		"hp": return "HP"
+		"attack": return "ATK"
+		"defense": return "DEF"
+		"speed": return "SPD"
+		"crit_rate": return "CR"
+		"crit_damage": return "CD"
+		"resistance": return "RES"
+		"accuracy": return "ACC"
+		_: return stat_type.substr(0, 3).to_upper()
+
 # Compatibility methods for EquipmentScreen integration
 func set_inventory_grid(grid: GridContainer):
 	"""Set the inventory grid reference"""
 	inventory_grid = grid
 	if is_node_ready():
 		refresh_inventory()
-
-func set_selected_god(_god: God):
-	"""Set currently selected god - for context"""
-	# This display doesn't need the god reference directly
-	# But we can refresh inventory when god changes
-	refresh_inventory()
 
 func set_selected_slot(slot_index: int):
 	"""Set selected slot for filtering compatible equipment"""

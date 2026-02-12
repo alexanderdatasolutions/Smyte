@@ -75,7 +75,10 @@
       "Bash(Select-Object -First 20)",
       "Bash(\"C:/Users/alexa/Documents/Godot_v4.5-stable_win64.exe\" --path . --headless --script tests/test_runner.gd)",
       "Bash(python:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(copy:*)",
+      "Bash(comm:*)",
+      "Bash(\"C:\\\\Program Files\\\\Godot\\\\Godot.exe\" --headless --check-only)"
     ]
   },
   "enableAllProjectMcpServers": true,

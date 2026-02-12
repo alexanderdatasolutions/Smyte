@@ -57,56 +57,17 @@
       "min_amount": 20,
       "max_amount": 50
     },
-    "element_powder_low": {
-      "id": "element_powder_low",
+    "element_powder": {
+      "id": "element_powder",
       "resource_type": "element_based",
-      "base_resource": "powder_low",
-      "min_amount": 5,
-      "max_amount": 15,
-      "element_bonus": {
-        "matching_element": 2.0,
-        "opposite_element": 0.5
-      }
-    },
-    "element_powder_mid": {
-      "id": "element_powder_mid",
-      "resource_type": "element_based",
-      "base_resource": "powder_mid",
-      "min_amount": 2,
-      "max_amount": 8,
-      "element_bonus": {
-        "matching_element": 2.0,
-        "opposite_element": 0.5
-      }
-    },
-    "element_powder_high": {
-      "id": "element_powder_high",
-      "resource_type": "element_based",
-      "base_resource": "powder_high",
-      "min_amount": 1,
-      "max_amount": 4,
-      "element_bonus": {
-        "matching_element": 1.5,
-        "opposite_element": 0.5
-      }
-    },
-    "magic_powder_low": {
-      "id": "magic_powder_low",
-      "resource_id": "magic_powder_low",
-      "min_amount": 8,
-      "max_amount": 18
-    },
-    "magic_powder_mid": {
-      "id": "magic_powder_mid",
-      "resource_id": "magic_powder_mid",
+      "base_resource": "powder",
+      "description": "Resolves to {element}_powder based on dungeon element",
       "min_amount": 3,
-      "max_amount": 10
-    },
-    "magic_powder_high": {
-      "id": "magic_powder_high",
-      "resource_id": "magic_powder_high",
-      "min_amount": 1,
-      "max_amount": 5
+      "max_amount": 10,
+      "element_bonus": {
+        "matching_element": 2.0,
+        "opposite_element": 0.5
+      }
     },
     "element_soul": {
       "id": "element_soul",
@@ -141,19 +102,19 @@
     },
     "common_ore": {
       "id": "common_ore",
-      "resource_id": "iron_ore",
+      "resource_id": "ore",
       "min_amount": 5,
       "max_amount": 15
     },
     "rare_ore": {
       "id": "rare_ore",
-      "resource_id": "mythril_ore",
+      "resource_id": "refined_metal",
       "min_amount": 2,
       "max_amount": 8
     },
     "legendary_ore": {
       "id": "legendary_ore",
-      "resource_id": "adamantite_ore",
+      "resource_id": "celestial_ore",
       "min_amount": 1,
       "max_amount": 3
     },
@@ -164,17 +125,11 @@
       "min_amount": 1,
       "max_amount": 2
     },
-    "awakening_stone": {
-      "id": "awakening_stone",
-      "resource_id": "awakening_stone",
+    "awakening_essence": {
+      "id": "awakening_essence",
+      "resource_id": "awakening_essence",
       "min_amount": 1,
       "max_amount": 3
-    },
-    "skill_book": {
-      "id": "skill_book",
-      "resource_id": "skill_book",
-      "min_amount": 1,
-      "max_amount": 1
     },
     "experience_small": {
       "id": "experience_small",
@@ -217,17 +172,6 @@
       "pool": ["strength_elixir", "vitality_potion", "swiftness_brew", "experience_boost"],
       "min_amount": 1,
       "max_amount": 3
-    },
-    "enhancement_powder": {
-      "id": "enhancement_powder",
-      "resource_id": "enhancement_powder",
-      "min_amount": 2,
-      "max_amount": 8,
-      "scaling": {
-        "type": "linear",
-        "base_multiplier": 1.1,
-        "per_stage": true
-      }
     },
     "socket_crystal": {
       "id": "socket_crystal",

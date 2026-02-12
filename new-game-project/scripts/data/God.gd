@@ -8,7 +8,8 @@ enum TierType { COMMON, RARE, EPIC, LEGENDARY }
 # ==============================================================================
 # CORE IDENTITY - Pure data properties only
 # ==============================================================================
-@export var id: String
+@export var id: String  # Unique instance ID (e.g., "zeus_1707664823_abc123")
+@export var template_id: String  # Base god template ID (e.g., "zeus")
 @export var name: String
 @export var pantheon: String  # "greek", "norse", "egyptian"
 @export var element: ElementType
@@ -70,6 +71,11 @@ enum TierType { COMMON, RARE, EPIC, LEGENDARY }
 @export var current_tasks: Array[String] = []  # Task IDs currently assigned (usually 1, more with multitask trait)
 @export var task_start_times: Array[int] = []  # Unix timestamps when each task started
 @export var task_progress: Dictionary = {}  # {"task_id": progress_percentage}
+
+# ==============================================================================
+# COLLECTION TRACKING
+# ==============================================================================
+@export var summon_time: int = 0  # Unix timestamp when god was summoned/acquired
 
 # ==============================================================================
 # AWAKENING SYSTEM - Summoners War style

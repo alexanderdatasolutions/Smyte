@@ -19,6 +19,12 @@ static func _get_system_registry():
 # All ResourceDisplay instances sync updates globally when resources change
 static var _instances: Array = []
 
+# === EXPANDED PANEL STATE ===
+var is_expanded: bool = false
+var expanded_panel: PanelContainer = null
+var expand_indicator: Label = null
+var _tween: Tween = null
+
 # === UI ELEMENTS ===
 # These correspond to nodes in ResourceDisplay.tscn (redesigned with containers)
 @onready var player_level_label: Label = null # Player level - created dynamically if needed
@@ -53,7 +59,8 @@ func _ready():
 	
 	# Setup UI interactions
 	_setup_materials_button()
-	
+	_setup_tap_to_expand()
+
 	# Perform initial display update
 	call_deferred("_update_this_instance")
 
@@ -61,11 +68,29 @@ func _exit_tree():
 	"""Clean up when leaving the scene tree"""
 	# Remove from instances list
 	_instances.erase(self)
-	
+
 	# Disconnect signals to prevent errors
 	var event_bus = _get_system_registry().get_system("EventBus") if _get_system_registry() else null
 	if event_bus and event_bus.has_signal("resources_updated") and event_bus.resources_updated.is_connected(_update_all_instances):
 		event_bus.resources_updated.disconnect(_update_all_instances)
+
+func _input(event: InputEvent):
+	"""Handle global input to close expanded panel when clicking outside"""
+	if not is_expanded:
+		return
+
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			# Check if click is outside the resource bar and expanded panel
+			var click_pos = event.position
+			var bar_rect = get_global_rect()
+
+			# Expand bar_rect to include the expanded panel area
+			if expanded_panel and expanded_panel.visible:
+				bar_rect.size.y += expanded_panel.size.y
+
+			if not bar_rect.has_point(click_pos):
+				_collapse_panel()
 
 # === INITIALIZATION HELPERS ===
 
@@ -76,14 +101,31 @@ func _initialize_resource_manager():
 		resource_manager = system_registry.get_system("ResourceManager")
 
 func _setup_signal_connections():
-	"""Connect to system signals through SystemRegistry (first instance only to avoid duplicates)"""
-	if _instances.size() == 1:
-		var system_registry = _get_system_registry()
-		if system_registry:
-			var eb = system_registry.get_system("EventBus")
-			if eb and eb.has_signal("resources_updated"):
-				eb.resources_updated.connect(_update_all_instances)
-			# Note: resources_updated signal may not exist in EventBus - this is expected
+	"""Connect to ResourceManager's resource_changed signal for live updates"""
+	# Defer connection to ensure systems are fully initialized
+	call_deferred("_connect_to_resource_manager")
+
+func _connect_to_resource_manager():
+	"""Actually connect to ResourceManager - called deferred to ensure systems are ready"""
+	var system_registry = _get_system_registry()
+	if not system_registry:
+		# Retry after a frame if SystemRegistry not ready
+		get_tree().create_timer(0.1).timeout.connect(_connect_to_resource_manager)
+		return
+
+	var res_mgr = system_registry.get_system("ResourceManager")
+	if res_mgr and res_mgr.has_signal("resource_changed"):
+		if not res_mgr.resource_changed.is_connected(_on_resource_changed):
+			res_mgr.resource_changed.connect(_on_resource_changed)
+			print("[ResourceDisplay] Connected to ResourceManager.resource_changed signal")
+	else:
+		# ResourceManager not ready yet, retry after a short delay
+		get_tree().create_timer(0.1).timeout.connect(_connect_to_resource_manager)
+
+func _on_resource_changed(resource_id: String, new_amount: int, delta: int):
+	"""Handle resource change - update all displays"""
+	print("[ResourceDisplay] Resource changed: %s = %d (delta: %d)" % [resource_id, new_amount, delta])
+	_update_all_instances()
 
 func _setup_progression_signals():
 	"""Connect to progression system signals for player level updates"""
@@ -92,29 +134,524 @@ func _setup_progression_signals():
 	pass
 
 func _setup_materials_button():
-	"""Setup materials button interactions"""
+	"""Setup materials button interactions - HIDDEN, tap-to-expand replaces this"""
 	if materials_button:
-		materials_button.pressed.connect(_show_materials_table)
-		# Add hover effects for better UX
-		materials_button.mouse_entered.connect(func(): materials_button.modulate = Color(1.2, 1.2, 1.2))
-		materials_button.mouse_exited.connect(func(): materials_button.modulate = Color.WHITE)
+		# Hide the old materials button - tap-to-expand replaces it
+		materials_button.visible = false
+	if materials_count_label:
+		materials_count_label.visible = false
+
+func _setup_tap_to_expand():
+	"""Make the entire resource bar tappable to expand/collapse"""
+	# Set all children to ignore mouse so clicks reach this PanelContainer
+	_set_children_mouse_ignore(self)
+
+	# Add expand indicator (▼) to the HBoxContainer
+	var hbox = get_node_or_null("MarginContainer/HBoxContainer")
+	if hbox:
+		expand_indicator = Label.new()
+		expand_indicator.name = "ExpandIndicator"
+		expand_indicator.text = " ▼"
+		expand_indicator.add_theme_font_size_override("font_size", 12)
+		expand_indicator.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
+		expand_indicator.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		expand_indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hbox.add_child(expand_indicator)
+
+	# This PanelContainer receives clicks
+	mouse_filter = Control.MOUSE_FILTER_STOP
+
+func _set_children_mouse_ignore(node: Node):
+	"""Recursively set all Control children to MOUSE_FILTER_IGNORE"""
+	for child in node.get_children():
+		if child is Control:
+			child.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_set_children_mouse_ignore(child)
+
+func _gui_input(event: InputEvent):
+	"""Handle tap/click on the resource bar to expand/collapse"""
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			_toggle_expanded_panel()
+			accept_event()
+
+func _toggle_expanded_panel():
+	"""Toggle the expanded resources panel"""
+	if is_expanded:
+		_collapse_panel()
+	else:
+		_expand_panel()
+
+func _expand_panel():
+	"""Show the expanded resources panel with slide-down animation"""
+	if is_expanded:
+		return
+
+	is_expanded = true
+	if expand_indicator:
+		expand_indicator.text = "▲"
+
+	# Create expanded panel if it doesn't exist
+	if not expanded_panel:
+		_create_expanded_panel()
+
+	# Position panel just below the resource bar
+	var panel_height = 300  # Height of expanded content (scrollable)
+	expanded_panel.position = Vector2(0, size.y)
+	expanded_panel.size = Vector2(size.x, 0)
+	expanded_panel.visible = true
+
+	# Refresh content AFTER setting visible (so _update_expanded_panel_values doesn't skip)
+	_update_expanded_panel_values()
+
+	# Animate slide down
+	if _tween and _tween.is_valid():
+		_tween.kill()
+	_tween = create_tween()
+	_tween.set_ease(Tween.EASE_OUT)
+	_tween.set_trans(Tween.TRANS_CUBIC)
+	_tween.tween_property(expanded_panel, "size:y", panel_height, 0.2)
+
+func _collapse_panel():
+	"""Hide the expanded resources panel with slide-up animation"""
+	if not is_expanded:
+		return
+
+	is_expanded = false
+	if expand_indicator:
+		expand_indicator.text = "▼"
+
+	if not expanded_panel:
+		return
+
+	# Animate slide up
+	if _tween and _tween.is_valid():
+		_tween.kill()
+	_tween = create_tween()
+	_tween.set_ease(Tween.EASE_IN)
+	_tween.set_trans(Tween.TRANS_CUBIC)
+	_tween.tween_property(expanded_panel, "size:y", 0, 0.15)
+	_tween.tween_callback(func(): expanded_panel.visible = false)
+
+func _create_expanded_panel():
+	"""Create the expanded resources panel that slides down as overlay"""
+	expanded_panel = PanelContainer.new()
+	expanded_panel.name = "ExpandedResourcesPanel"
+	expanded_panel.z_index = 100  # Above game UI
+	expanded_panel.visible = false
+	expanded_panel.clip_contents = true
+
+	# Dark panel styling
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.12, 0.12, 0.16, 0.98)
+	panel_style.border_color = Color(0.3, 0.3, 0.4, 1.0)
+	panel_style.set_border_width_all(1)
+	panel_style.set_corner_radius_all(0)
+	panel_style.corner_radius_bottom_left = 8
+	panel_style.corner_radius_bottom_right = 8
+	expanded_panel.add_theme_stylebox_override("panel", panel_style)
+
+	# Content container with margins
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 12)
+	expanded_panel.add_child(margin)
+
+	# ScrollContainer for all content
+	var scroll = ScrollContainer.new()
+	scroll.name = "ResourceScroll"
+	scroll.custom_minimum_size = Vector2(0, 260)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	margin.add_child(scroll)
+
+	var vbox = VBoxContainer.new()
+	vbox.name = "ResourceContent"
+	vbox.add_theme_constant_override("separation", 10)
+	scroll.add_child(vbox)
+
+	# Populate with all player resources
+	_populate_expanded_panel(vbox)
+
+	# Add as child of this control so it overlays correctly
+	add_child(expanded_panel)
+
+func _populate_expanded_panel(vbox: VBoxContainer):
+	"""Populate expanded panel with all resources player has (non-zero only)"""
+	var system_registry = _get_system_registry()
+	var resource_mgr = system_registry.get_system("ResourceManager") if system_registry else null
+	if not resource_mgr:
+		return
+
+	var all_resources = resource_mgr.get_all_resources()
+
+	# Categorize resources
+	var currencies = {}    # gold, mana, crystals, energy, tickets
+	var raw_materials = {} # ore, wood, herbs, monster_parts
+	var processed = {}     # ingots, planks, leather, etc.
+	var special = {}       # elemental crystals, essences, etc.
+
+	# Resource metadata for display names, categories, and descriptions
+	var resource_info = {
+		# Currencies
+		"gold": {"name": "Gold", "icon": "💰", "category": "currency", "desc": "Currency for shop purchases and node upgrades"},
+		"mana": {"name": "Mana", "icon": "✦", "category": "currency", "desc": "Primary currency for leveling, enhancement, and crafting"},
+		"divine_crystals": {"name": "Divine Crystals", "icon": "◆", "category": "currency", "desc": "Premium currency for summons and special items"},
+		"energy": {"name": "Energy", "icon": "⚡", "category": "currency", "desc": "Used to enter dungeons and battles. Regenerates over time"},
+		"summon_tickets": {"name": "Summon Tickets", "icon": "★", "category": "currency", "desc": "Free summon attempts. Obtained from events and rewards"},
+		"experience": {"name": "Experience", "icon": "📈", "category": "currency", "desc": "Player experience points for account level"},
+		# Raw materials (T1)
+		"ore": {"name": "Ore", "icon": "🪨", "category": "raw", "desc": "T1 material from resource nodes. Used in basic equipment crafting"},
+		"wood": {"name": "Wood", "icon": "🪵", "category": "raw", "desc": "T1 material from resource nodes. Used in bows and accessories"},
+		"herbs": {"name": "Herbs", "icon": "🌿", "category": "raw", "desc": "T1 material from resource nodes. Used in amulets and potions"},
+		"monster_parts": {"name": "Monster Parts", "icon": "🦴", "category": "raw", "desc": "Dropped from garrison defense battles. Used in armor crafting"},
+		"stone": {"name": "Stone", "icon": "🧱", "category": "raw", "desc": "Basic building material from resource nodes"},
+		"cloth": {"name": "Cloth", "icon": "🧵", "category": "raw", "desc": "Used in light armor and accessory crafting"},
+		# Processed materials (T2)
+		"iron_ingots": {"name": "Iron Ingots", "icon": "🔩", "category": "processed", "desc": "Processed ore. Used in advanced equipment"},
+		"steel_ingots": {"name": "Steel Ingots", "icon": "⚙️", "category": "processed", "desc": "High-quality metal for rare equipment"},
+		"planks": {"name": "Planks", "icon": "🪓", "category": "processed", "desc": "Processed wood for construction"},
+		"hardwood": {"name": "Hardwood", "icon": "🪵", "category": "processed", "desc": "Quality timber for rare weapons"},
+		"leather": {"name": "Leather", "icon": "🥊", "category": "processed", "desc": "Processed beast scales for armor"},
+		"bone_fragments": {"name": "Bone Fragments", "icon": "🦴", "category": "processed", "desc": "Processed monster parts"},
+		"herb_essence": {"name": "Herb Essence", "icon": "💧", "category": "processed", "desc": "Concentrated herbs for enchanting"},
+		"refined_metal": {"name": "Refined Metal", "icon": "⚙️", "category": "processed", "desc": "T2 forge material. Used in rare/epic equipment crafting"},
+		"quality_timber": {"name": "Quality Timber", "icon": "🪵", "category": "processed", "desc": "T2 material from ancient groves"},
+		"rare_herbs": {"name": "Rare Herbs", "icon": "🌿", "category": "processed", "desc": "T2 material for advanced accessories"},
+		"beast_scales": {"name": "Beast Scales", "icon": "🐉", "category": "processed", "desc": "T2 defense drop. Used in rare armor crafting"},
+		# Special/Enhancement (T3+)
+		"socket_crystal": {"name": "Socket Crystal", "icon": "💎", "category": "special", "desc": "Add gem sockets to equipment"},
+		"socket_crystals": {"name": "Socket Crystals", "icon": "💎", "category": "special", "desc": "Add gem sockets to equipment"},
+		"divine_essence": {"name": "Divine Essence", "icon": "🌟", "category": "special", "desc": "T3 shrine material. Used in epic accessories and awakening"},
+		"mana_crystals": {"name": "Mana Crystals", "icon": "💠", "category": "special", "desc": "Concentrated mana from shrines. Used in enchanting"},
+		"crystal_shards": {"name": "Crystal Shards", "icon": "💠", "category": "special", "desc": "Used for gem crafting and socketing"},
+		"forging_flame": {"name": "Forging Flame", "icon": "🔥", "category": "special", "desc": "T3 forge material. Required for epic equipment crafting"},
+		"magic_crystals": {"name": "Magic Crystals", "icon": "💎", "category": "special", "desc": "T3 material. Used in epic equipment and enchanting"},
+		"blessed_oil": {"name": "Blessed Oil", "icon": "🛢️", "category": "special", "desc": "T3 shrine material for divine enchanting"},
+		# T4 PvP Materials
+		"celestial_ore": {"name": "Celestial Ore", "icon": "⭐", "category": "special", "desc": "T4 PvP-only material. Required for legendary weapons"},
+		"dragon_parts": {"name": "Dragon Parts", "icon": "🐲", "category": "special", "desc": "T4 PvP defense drop. Used in legendary crafting"},
+		"ascension_crystal": {"name": "Ascension Crystal", "icon": "🌌", "category": "special", "desc": "T4 shrine material. Used for final awakening stages"},
+		# Elemental
+		"fire_crystals": {"name": "Fire Crystals", "icon": "🔥", "category": "special", "desc": "Elemental gem for fire damage bonus"},
+		"water_crystals": {"name": "Water Crystals", "icon": "💧", "category": "special", "desc": "Elemental gem for HP bonus"},
+		"earth_crystals": {"name": "Earth Crystals", "icon": "🌍", "category": "special", "desc": "Elemental gem for defense bonus"},
+		"lightning_crystals": {"name": "Lightning Crystals", "icon": "⚡", "category": "special", "desc": "Elemental gem for speed bonus"},
+		"light_crystals": {"name": "Light Crystals", "icon": "☀️", "category": "special", "desc": "Elemental gem for crit rate bonus"},
+		"dark_crystals": {"name": "Dark Crystals", "icon": "🌑", "category": "special", "desc": "Elemental gem for accuracy bonus"},
+	}
+
+	# Sort resources into categories (only non-zero)
+	for resource_id in all_resources:
+		var amount = all_resources[resource_id]
+		if amount <= 0:
+			continue
+
+		var info = resource_info.get(resource_id, {"name": resource_id.capitalize().replace("_", " "), "icon": "📦", "category": "special"})
+		var category = info.get("category", "special")
+
+		match category:
+			"currency":
+				currencies[resource_id] = {"amount": amount, "info": info}
+			"raw":
+				raw_materials[resource_id] = {"amount": amount, "info": info}
+			"processed":
+				processed[resource_id] = {"amount": amount, "info": info}
+			_:
+				special[resource_id] = {"amount": amount, "info": info}
+
+	# Add currencies section
+	if not currencies.is_empty():
+		vbox.add_child(_create_section_header("CURRENCIES"))
+		var grid = _create_resource_grid(3)
+		vbox.add_child(grid)
+		for res_id in currencies:
+			var data = currencies[res_id]
+			_add_resource_to_grid(grid, res_id, data)
+
+	# Add raw materials section
+	if not raw_materials.is_empty():
+		vbox.add_child(_create_section_header("RAW MATERIALS"))
+		var grid = _create_resource_grid(3)
+		vbox.add_child(grid)
+		for res_id in raw_materials:
+			var data = raw_materials[res_id]
+			_add_resource_to_grid(grid, res_id, data)
+
+	# Add processed materials section
+	if not processed.is_empty():
+		vbox.add_child(_create_section_header("PROCESSED"))
+		var grid = _create_resource_grid(3)
+		vbox.add_child(grid)
+		for res_id in processed:
+			var data = processed[res_id]
+			_add_resource_to_grid(grid, res_id, data)
+
+	# Add special/enhancement section
+	if not special.is_empty():
+		vbox.add_child(_create_section_header("SPECIAL"))
+		var grid = _create_resource_grid(3)
+		vbox.add_child(grid)
+		for res_id in special:
+			var data = special[res_id]
+			_add_resource_to_grid(grid, res_id, data)
+
+	# If nothing to show
+	if currencies.is_empty() and raw_materials.is_empty() and processed.is_empty() and special.is_empty():
+		var empty_label = Label.new()
+		empty_label.text = "No resources yet"
+		empty_label.add_theme_font_size_override("font_size", 12)
+		empty_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
+		vbox.add_child(empty_label)
+
+func _create_resource_grid(columns: int) -> GridContainer:
+	"""Create a grid for displaying resources"""
+	var grid = GridContainer.new()
+	grid.columns = columns
+	grid.add_theme_constant_override("h_separation", 16)
+	grid.add_theme_constant_override("v_separation", 6)
+	return grid
+
+func _add_resource_to_grid(grid: GridContainer, resource_id: String, data: Dictionary):
+	"""Add a single resource to the grid (tappable for description)"""
+	var info = data.get("info", {})
+	var amount = data.get("amount", 0)
+
+	# Use a Button as the base for tap detection
+	var item_btn = Button.new()
+	item_btn.flat = true
+	item_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	item_btn.custom_minimum_size = Vector2(120, 24)
+
+	# Style the button
+	var btn_style = StyleBoxFlat.new()
+	btn_style.bg_color = Color(0.15, 0.15, 0.2, 0.0)
+	btn_style.set_corner_radius_all(4)
+	item_btn.add_theme_stylebox_override("normal", btn_style)
+
+	var btn_hover = StyleBoxFlat.new()
+	btn_hover.bg_color = Color(0.25, 0.25, 0.35, 0.5)
+	btn_hover.set_corner_radius_all(4)
+	item_btn.add_theme_stylebox_override("hover", btn_hover)
+
+	var btn_pressed = StyleBoxFlat.new()
+	btn_pressed.bg_color = Color(0.3, 0.3, 0.4, 0.6)
+	btn_pressed.set_corner_radius_all(4)
+	item_btn.add_theme_stylebox_override("pressed", btn_pressed)
+
+	# Content inside button
+	var item = HBoxContainer.new()
+	item.add_theme_constant_override("separation", 4)
+	item.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	item_btn.add_child(item)
+
+	# Icon
+	var icon_label = Label.new()
+	icon_label.text = info.get("icon", "📦")
+	icon_label.add_theme_font_size_override("font_size", 12)
+	icon_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	item.add_child(icon_label)
+
+	# Name and amount
+	var text_label = Label.new()
+	text_label.name = "Resource_%s" % resource_id
+	text_label.text = "%s: %s" % [info.get("name", resource_id), _format_amount(amount)]
+	text_label.add_theme_font_size_override("font_size", 11)
+	text_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9))
+	text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	item.add_child(text_label)
+
+	# Connect tap to show description
+	var description = info.get("desc", "No description available")
+	var res_name = info.get("name", resource_id)
+	item_btn.pressed.connect(_show_resource_description.bind(res_name, description))
+
+	grid.add_child(item_btn)
+
+var _description_popup: PanelContainer = null
+
+func _show_resource_description(res_name: String, description: String):
+	"""Show a small popup with the resource description"""
+	# Remove existing popup if any
+	if _description_popup and is_instance_valid(_description_popup):
+		_description_popup.queue_free()
+
+	_description_popup = PanelContainer.new()
+	_description_popup.z_index = 200
+
+	# Style
+	var popup_style = StyleBoxFlat.new()
+	popup_style.bg_color = Color(0.1, 0.1, 0.15, 0.95)
+	popup_style.border_color = Color(0.5, 0.5, 0.6, 1.0)
+	popup_style.set_border_width_all(2)
+	popup_style.set_corner_radius_all(8)
+	popup_style.content_margin_left = 12
+	popup_style.content_margin_right = 12
+	popup_style.content_margin_top = 8
+	popup_style.content_margin_bottom = 8
+	_description_popup.add_theme_stylebox_override("panel", popup_style)
+
+	# Content
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+	_description_popup.add_child(vbox)
+
+	# Title
+	var title = Label.new()
+	title.text = res_name
+	title.add_theme_font_size_override("font_size", 14)
+	title.add_theme_color_override("font_color", Color.GOLD)
+	vbox.add_child(title)
+
+	# Description
+	var desc_label = Label.new()
+	desc_label.text = description
+	desc_label.add_theme_font_size_override("font_size", 11)
+	desc_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.85))
+	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_label.custom_minimum_size.x = 250
+	vbox.add_child(desc_label)
+
+	# Tap to close hint
+	var hint = Label.new()
+	hint.text = "(tap anywhere to close)"
+	hint.add_theme_font_size_override("font_size", 9)
+	hint.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(hint)
+
+	# Position in center of screen
+	add_child(_description_popup)
+	await get_tree().process_frame
+
+	var viewport_size = get_viewport().get_visible_rect().size
+	_description_popup.position = Vector2(
+		(viewport_size.x - _description_popup.size.x) / 2,
+		(viewport_size.y - _description_popup.size.y) / 2 - 50
+	)
+
+	# Auto-close after delay or on next click
+	get_tree().create_timer(3.0).timeout.connect(func():
+		if _description_popup and is_instance_valid(_description_popup):
+			_description_popup.queue_free()
+			_description_popup = null
+	)
+
+func _format_amount(amount) -> String:
+	"""Format amount for display"""
+	if amount is float:
+		if amount >= 1000000:
+			return "%.1fM" % (amount / 1000000.0)
+		elif amount >= 1000:
+			return "%.1fK" % (amount / 1000.0)
+		elif amount >= 100:
+			return "%d" % int(amount)
+		else:
+			return "%.1f" % amount
+	else:
+		if amount >= 1000000:
+			return "%.1fM" % (float(amount) / 1000000.0)
+		elif amount >= 1000:
+			return "%.1fK" % (float(amount) / 1000.0)
+		else:
+			return str(amount)
+
+func _create_section_header(text: String) -> Label:
+	"""Create a styled section header label"""
+	var header = Label.new()
+	header.text = text
+	header.add_theme_font_size_override("font_size", 11)
+	header.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
+	return header
+
+func _add_expanded_resource_row(grid: GridContainer, icon: String, name: String, resource_id: String, is_energy: bool = false):
+	"""Add a resource row to the expanded panel"""
+	# Left side: icon + name
+	var left_label = Label.new()
+	left_label.text = "%s %s:" % [icon, name]
+	left_label.add_theme_font_size_override("font_size", 13)
+	left_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9))
+	grid.add_child(left_label)
+
+	# Right side: value
+	var value_label = Label.new()
+	value_label.name = "Expanded_%s" % resource_id
+	value_label.add_theme_font_size_override("font_size", 13)
+	value_label.add_theme_color_override("font_color", Color.GOLD)
+
+	var system_registry = _get_system_registry()
+	var resource_mgr = system_registry.get_system("ResourceManager") if system_registry else null
+
+	if is_energy and resource_mgr:
+		var energy_val = resource_mgr.get_resource("energy")
+		var energy_max = resource_mgr.get_resource_limit("energy")
+		value_label.text = "%d/%d (+1/5m)" % [energy_val, energy_max]
+	elif resource_mgr:
+		var val = resource_mgr.get_resource(resource_id)
+		value_label.text = format_large_number(val)
+	else:
+		value_label.text = "0"
+
+	grid.add_child(value_label)
+
+func _add_material_item(grid: GridContainer, display_name: String, resource_id: String):
+	"""Add a material item to the expanded panel"""
+	var label = Label.new()
+	label.name = "Mat_%s" % resource_id
+
+	var system_registry = _get_system_registry()
+	var resource_mgr = system_registry.get_system("ResourceManager") if system_registry else null
+	var count = resource_mgr.get_resource(resource_id) if resource_mgr else 0
+
+	label.text = "%s: %d" % [display_name, count]
+	label.add_theme_font_size_override("font_size", 12)
+	label.add_theme_color_override("font_color", Color(0.75, 0.75, 0.8))
+	grid.add_child(label)
+
+func _update_expanded_panel_values():
+	"""Rebuild expanded panel content when resources change"""
+	if not expanded_panel or not expanded_panel.visible:
+		return
+
+	# Find the content container and rebuild it
+	var scroll = expanded_panel.find_child("ResourceScroll", true, false)
+	if not scroll:
+		return
+
+	var vbox = scroll.find_child("ResourceContent", true, false)
+	if not vbox:
+		return
+
+	# Clear existing content
+	for child in vbox.get_children():
+		child.queue_free()
+
+	# Repopulate with current resources
+	call_deferred("_populate_expanded_panel", vbox)
 
 func _create_player_level_label():
-	"""Create player level label dynamically (MYTHOS ARCHITECTURE - robust design)"""
+	"""Create player level label dynamically inside the HBoxContainer"""
 	# Try to find existing node first
-	if has_node("PlayerLevelLabel"):
-		player_level_label = $PlayerLevelLabel
+	var hbox = get_node_or_null("MarginContainer/HBoxContainer")
+	if not hbox:
 		return
-	
-	# Create label dynamically and add to the beginning of the container
+
+	if hbox.has_node("PlayerLevelLabel"):
+		player_level_label = hbox.get_node("PlayerLevelLabel")
+		return
+
+	# Create label dynamically and add to the beginning of the HBoxContainer
 	player_level_label = Label.new()
 	player_level_label.name = "PlayerLevelLabel"
-	player_level_label.text = "Level 1 (0/100 XP)"
-	player_level_label.add_theme_font_size_override("font_size", 14)
-	
-	# Add it as the first child (leftmost position)
-	add_child(player_level_label)
-	move_child(player_level_label, 0)
+	player_level_label.text = "Lv1"
+	player_level_label.add_theme_font_size_override("font_size", 12)
+	player_level_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
+	player_level_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
+	# Add it as the first child of HBoxContainer (leftmost position)
+	hbox.add_child(player_level_label)
+	hbox.move_child(player_level_label, 0)
 
 # === DISPLAY UPDATE METHODS ===
 
@@ -141,27 +678,25 @@ func _update_this_instance():
 	_update_energy_display()
 	_update_tickets_display()
 	_update_materials_count()
+	_update_expanded_panel_values()
 
 func _update_player_level_display():
 	"""Update player level display (using ResourceManager)"""
 	if not player_level_label:
 		return
-		
+
 	var player_level = 1
 	var player_xp = 0
-	var xp_to_next = 100
-	
+
 	# Get experience from ResourceManager instead of PlayerData
 	var resource_mgr = _get_system_registry().get_system("ResourceManager") if _get_system_registry() else null
 	if resource_mgr:
 		player_xp = resource_mgr.get_resource("experience")
 		# Simple level calculation: every 1000 XP = 1 level
 		player_level = max(1, int(player_xp / 1000.0) + 1)
-		xp_to_next = (player_level * 1000) - player_xp
-	
-	# Format as "Level 5 (120/300 XP)"
-	var level_text = "Level %d (%d/%d XP)" % [player_level, player_xp, xp_to_next]
-	player_level_label.text = level_text
+
+	# Compact format: "Lv73"
+	player_level_label.text = "Lv%d" % player_level
 
 func _update_mana_display():
 	"""Update mana display (primary currency per prompt architecture)"""
@@ -220,15 +755,33 @@ func _get_total_materials_count() -> int:
 	var resource_mgr = _get_system_registry().get_system("ResourceManager") if _get_system_registry() else null
 	if not resource_mgr:
 		return 0
-	
+
 	var total = 0
-	# Simple count of common materials for now
-	var material_types = ["iron", "wood", "stone", "cloth", "crystal_shards"]
-	
+	# Count all crafting-relevant materials (T1-T4 raw and processed)
+	var material_types = [
+		# T1 Raw
+		"ore", "wood", "herbs", "monster_parts",
+		# T1 Processed
+		"refined_metal", "quality_timber", "rare_herbs",
+		# T2 Raw
+		"fine_ore", "hardwood", "exotic_herbs", "beast_scales",
+		# T2 Processed
+		"steel_ingot", "treated_lumber", "alchemical_extract",
+		# T3 Raw
+		"arcane_ore", "ancient_wood", "mystic_herbs", "elemental_cores", "magic_crystals",
+		# T3 Processed
+		"prometheum", "enchanted_wood", "mystic_bloom", "astral_shard",
+		# T4 (PvP)
+		"celestial_ore", "world_tree_bark", "cosmic_herbs", "dragon_parts",
+		"divine_metal", "world_tree_plank", "void_essence",
+		# Flames
+		"basic_flame", "forging_flame", "divine_flame", "eternal_flame"
+	]
+
 	for material_id in material_types:
 		var count = resource_mgr.get_resource(material_id) if resource_mgr.has_method("get_resource") else 0
 		total += count
-	
+
 	return total
 
 # === MATERIALS TABLE UI ===

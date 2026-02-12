@@ -41,11 +41,16 @@ signal back_pressed
 func _ready():
 	"""Initialize dungeon screen - RULE 4: UI setup only"""
 	_setup_fullscreen()
+	_apply_unified_styling()
 	_init_systems()
 	_connect_ui_signals()
 	_setup_initial_state()
-	_style_back_button()
+	_setup_unified_header()
 	_refresh_dungeons()
+
+	# Hide old back button (using unified header)
+	if back_button:
+		back_button.visible = false
 
 func _setup_fullscreen():
 	"""Make this control fill the entire viewport"""
@@ -53,6 +58,176 @@ func _setup_fullscreen():
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	set_size(viewport_size)
 	position = Vector2.ZERO
+
+func _apply_unified_styling():
+	"""Apply unified dark fantasy styling to match battle setup screen"""
+	# Style main background
+	var bg = get_node_or_null("Background")
+	if bg and bg is ColorRect:
+		bg.color = Color(0.08, 0.06, 0.12, 1.0)
+
+	# Style the main container
+	var main_container = get_node_or_null("MainContainer")
+	if main_container:
+		_style_panel_container(main_container)
+
+	# Style left panel
+	var left_panel = get_node_or_null("MainContainer/LeftPanel")
+	if left_panel:
+		_style_panel(left_panel)
+
+	# Style dungeon info panel
+	if dungeon_info_panel:
+		_style_panel(dungeon_info_panel)
+
+	# Style title label
+	if title_label:
+		title_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
+		title_label.add_theme_font_size_override("font_size", 24)
+
+	# Style schedule label
+	if schedule_label:
+		schedule_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
+		schedule_label.add_theme_font_size_override("font_size", 14)
+
+	# Style dungeon name label
+	if dungeon_name_label:
+		dungeon_name_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
+		dungeon_name_label.add_theme_font_size_override("font_size", 20)
+
+	# Style dungeon description
+	if dungeon_description:
+		dungeon_description.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
+		dungeon_description.add_theme_font_size_override("font_size", 13)
+
+	# Style enter button
+	if enter_button:
+		_style_primary_button(enter_button)
+
+	# Style dungeon lists
+	for list in [elemental_list, pantheon_list, equipment_list]:
+		if list:
+			_style_dungeon_list(list)
+
+func _style_panel(node: Control):
+	"""Apply panel styling with unified colors"""
+	if node is PanelContainer:
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color(0.12, 0.1, 0.16, 0.95)
+		style.border_color = Color(0.3, 0.25, 0.4, 0.8)
+		style.set_border_width_all(1)
+		style.set_corner_radius_all(8)
+		style.set_content_margin_all(10)
+		node.add_theme_stylebox_override("panel", style)
+
+func _style_panel_container(node: Control):
+	"""Style a generic container with subtle background"""
+	if node is PanelContainer:
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color(0.1, 0.08, 0.14, 0.9)
+		style.border_color = Color(0.25, 0.2, 0.35, 0.6)
+		style.set_border_width_all(1)
+		style.set_corner_radius_all(6)
+		node.add_theme_stylebox_override("panel", style)
+
+func _style_primary_button(button: Button):
+	"""Style a primary action button"""
+	var style_normal = StyleBoxFlat.new()
+	style_normal.bg_color = Color(0.2, 0.5, 0.3, 0.9)
+	style_normal.border_color = Color(0.3, 0.7, 0.4, 0.8)
+	style_normal.set_border_width_all(1)
+	style_normal.set_corner_radius_all(6)
+	button.add_theme_stylebox_override("normal", style_normal)
+
+	var style_hover = StyleBoxFlat.new()
+	style_hover.bg_color = Color(0.25, 0.6, 0.35, 0.95)
+	style_hover.border_color = Color(0.4, 0.8, 0.5, 1.0)
+	style_hover.set_border_width_all(1)
+	style_hover.set_corner_radius_all(6)
+	button.add_theme_stylebox_override("hover", style_hover)
+
+	var style_pressed = StyleBoxFlat.new()
+	style_pressed.bg_color = Color(0.15, 0.4, 0.25, 0.95)
+	style_pressed.border_color = Color(0.3, 0.6, 0.4, 0.8)
+	style_pressed.set_border_width_all(1)
+	style_pressed.set_corner_radius_all(6)
+	button.add_theme_stylebox_override("pressed", style_pressed)
+
+	var style_disabled = StyleBoxFlat.new()
+	style_disabled.bg_color = Color(0.15, 0.15, 0.18, 0.7)
+	style_disabled.border_color = Color(0.25, 0.25, 0.3, 0.5)
+	style_disabled.set_border_width_all(1)
+	style_disabled.set_corner_radius_all(6)
+	button.add_theme_stylebox_override("disabled", style_disabled)
+
+	button.add_theme_color_override("font_color", Color(0.9, 0.95, 0.9))
+	button.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
+	button.add_theme_color_override("font_disabled_color", Color(0.4, 0.4, 0.45))
+	button.add_theme_font_size_override("font_size", 16)
+
+func _style_dungeon_list(list: Control):
+	"""Style a dungeon list container"""
+	if list is ItemList:
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color(0.1, 0.08, 0.13, 0.8)
+		style.border_color = Color(0.2, 0.18, 0.28, 0.6)
+		style.set_border_width_all(1)
+		style.set_corner_radius_all(4)
+		list.add_theme_stylebox_override("panel", style)
+		list.add_theme_color_override("font_color", Color(0.75, 0.75, 0.8))
+		list.add_theme_color_override("font_selected_color", Color(0.95, 0.9, 0.8))
+		list.add_theme_color_override("font_hovered_color", Color(0.85, 0.85, 0.9))
+	elif list is VBoxContainer or list is ScrollContainer:
+		# Style children if it's a container
+		for child in list.get_children():
+			if child is Button:
+				_style_list_item_button(child)
+
+func _style_list_item_button(button: Button):
+	"""Style a dungeon list item button"""
+	var style_normal = StyleBoxFlat.new()
+	style_normal.bg_color = Color(0.12, 0.1, 0.16, 0.8)
+	style_normal.border_color = Color(0.25, 0.22, 0.35, 0.6)
+	style_normal.set_border_width_all(1)
+	style_normal.set_corner_radius_all(4)
+	button.add_theme_stylebox_override("normal", style_normal)
+
+	var style_hover = StyleBoxFlat.new()
+	style_hover.bg_color = Color(0.18, 0.15, 0.22, 0.9)
+	style_hover.border_color = Color(0.4, 0.35, 0.5, 0.8)
+	style_hover.set_border_width_all(1)
+	style_hover.set_corner_radius_all(4)
+	button.add_theme_stylebox_override("hover", style_hover)
+
+	var style_pressed = StyleBoxFlat.new()
+	style_pressed.bg_color = Color(0.2, 0.18, 0.28, 0.95)
+	style_pressed.border_color = Color(0.5, 0.45, 0.65, 1.0)
+	style_pressed.set_border_width_all(1)
+	style_pressed.set_corner_radius_all(4)
+	button.add_theme_stylebox_override("pressed", style_pressed)
+
+	button.add_theme_color_override("font_color", Color(0.75, 0.75, 0.8))
+	button.add_theme_color_override("font_hover_color", Color(0.9, 0.88, 0.8))
+
+func _setup_unified_header():
+	"""Configure the unified header for this screen"""
+	if not visibility_changed.is_connected(_on_visibility_changed):
+		visibility_changed.connect(_on_visibility_changed)
+	if visible:
+		_update_header_for_screen()
+
+func _on_visibility_changed():
+	"""Update header when this screen becomes visible"""
+	if visible:
+		_update_header_for_screen()
+
+func _update_header_for_screen():
+	"""Apply this screen's header settings"""
+	var main_ui = get_node_or_null("/root/Main/MainUIOverlay")
+	if main_ui:
+		main_ui.set_screen_title("DUNGEONS")
+		main_ui.show_header_back_button(true)
+		main_ui.connect_header_back_button(_on_back_button_pressed)
 
 func _style_back_button():
 	"""Style the back button to match dark fantasy theme"""
@@ -119,33 +294,50 @@ func _setup_initial_state():
 	_update_schedule_display()
 
 func _style_tab_container():
-	"""Add visual indicator for active tab"""
+	"""Add visual indicator for active tab with unified styling"""
 	if not category_tabs:
 		return
 
-	# Create StyleBoxFlat for selected tab
+	# Create StyleBoxFlat for selected tab - matches unified palette
 	var tab_selected = StyleBoxFlat.new()
-	tab_selected.bg_color = Color(0.3, 0.3, 0.35, 0.8)  # Slightly lighter than background
-	tab_selected.border_color = Color(0.6, 0.8, 1.0)  # Light blue underline
+	tab_selected.bg_color = Color(0.18, 0.15, 0.24, 0.95)
+	tab_selected.border_color = Color(0.5, 0.7, 0.9, 0.9)  # Subtle blue glow
 	tab_selected.set_border_width_all(0)
 	tab_selected.border_width_bottom = 3  # Underline effect
+	tab_selected.set_corner_radius_all(6)
+	tab_selected.corner_radius_bottom_left = 0
+	tab_selected.corner_radius_bottom_right = 0
+	tab_selected.set_content_margin_all(12)  # Add padding inside tabs
 
 	# Create StyleBoxFlat for unselected tabs
 	var tab_unselected = StyleBoxFlat.new()
-	tab_unselected.bg_color = Color(0.2, 0.2, 0.25, 0.6)  # Darker
+	tab_unselected.bg_color = Color(0.1, 0.08, 0.14, 0.7)
 	tab_unselected.set_border_width_all(0)
+	tab_unselected.set_corner_radius_all(6)
+	tab_unselected.corner_radius_bottom_left = 0
+	tab_unselected.corner_radius_bottom_right = 0
+	tab_unselected.set_content_margin_all(12)
 
 	# Create StyleBoxFlat for hover state
 	var tab_hover = StyleBoxFlat.new()
-	tab_hover.bg_color = Color(0.25, 0.25, 0.3, 0.7)  # Medium brightness
+	tab_hover.bg_color = Color(0.14, 0.12, 0.2, 0.85)
+	tab_hover.border_color = Color(0.4, 0.35, 0.55, 0.6)
 	tab_hover.set_border_width_all(0)
+	tab_hover.border_width_bottom = 2
+	tab_hover.set_corner_radius_all(6)
+	tab_hover.corner_radius_bottom_left = 0
+	tab_hover.corner_radius_bottom_right = 0
+	tab_hover.set_content_margin_all(12)
 
 	# Apply styles to tab container
 	category_tabs.add_theme_stylebox_override("tab_selected", tab_selected)
 	category_tabs.add_theme_stylebox_override("tab_unselected", tab_unselected)
 	category_tabs.add_theme_stylebox_override("tab_hovered", tab_hover)
-	category_tabs.add_theme_font_size_override("font_size", 16)  # Also increase tab text size
-	category_tabs.add_theme_constant_override("h_separation", 12)  # Add 12px horizontal spacing between tabs
+	category_tabs.add_theme_font_size_override("font_size", 16)
+	category_tabs.add_theme_constant_override("h_separation", 20)  # More spacing between tabs
+	category_tabs.add_theme_color_override("font_selected_color", Color(0.9, 0.88, 0.8))
+	category_tabs.add_theme_color_override("font_unselected_color", Color(0.55, 0.55, 0.6))
+	category_tabs.add_theme_color_override("font_hovered_color", Color(0.75, 0.75, 0.8))
 
 func _update_schedule_display():
 	"""Update the schedule information like Summoners War - only rotating dungeons"""
@@ -304,14 +496,7 @@ func _on_enter_button_pressed():
 		_show_error_message("Please select a dungeon and difficulty first")
 		return
 
-	# Check energy requirements
-	if resource_manager:
-		var energy_cost = _get_energy_cost(selected_dungeon_id, selected_difficulty)
-		if resource_manager.get_resource("energy") < energy_cost:
-			_show_error_message("Not enough energy (need %d)" % energy_cost)
-			return
-
-	# Proceed to battle setup
+	# Proceed to battle setup (energy cost removed)
 	_open_battle_setup()
 
 func _get_energy_cost(dungeon_id: String, difficulty: String) -> int:

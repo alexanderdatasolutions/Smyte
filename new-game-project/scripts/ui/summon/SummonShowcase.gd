@@ -23,9 +23,10 @@ func show_god(god: God, animate: bool = true):
 		if old_card and is_instance_valid(old_card):
 			old_card.queue_free()
 
-	# Add to showcase with optional animation
+	# Add to showcase at the TOP so newest appears first
 	if showcase_content:
 		showcase_content.add_child(god_button)
+		showcase_content.move_child(god_button, 0)
 
 		if animate:
 			_animate_card_entrance(god_button)
@@ -140,7 +141,8 @@ func _create_card_content(god: God, tier_color: Color) -> VBoxContainer:
 
 ## Adds god image or placeholder to content container
 func _add_god_image(container: VBoxContainer, god: God, tier_color: Color):
-	var sprite_path = "res://assets/gods/" + god.id + ".png"
+	var god_template = god.template_id if god.template_id else god.id
+	var sprite_path = "res://assets/gods/" + god_template + ".png"
 	var god_texture = null
 	if ResourceLoader.exists(sprite_path):
 		god_texture = load(sprite_path)

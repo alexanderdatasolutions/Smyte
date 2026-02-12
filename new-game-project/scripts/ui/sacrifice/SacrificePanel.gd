@@ -392,8 +392,9 @@ func _create_god_item(god: God) -> Control:
 	image.custom_minimum_size = Vector2(32, 32)
 	image.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	
-	# Load god image based on god ID (matching CollectionScreen approach)
-	var sprite_path = "res://assets/gods/" + god.id + ".png"
+	# Load god image based on template ID (id is unique instance)
+	var god_template = god.template_id if god.template_id else god.id
+	var sprite_path = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		image.texture = load(sprite_path)
 	else:

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://xmmqw7l01p2i"
-path="res://.godot/imported/Phoenix_Lord.png-aa8738fb7da5cf3216d2afcd2061b4f0.ctex"
+uid="uid://b64c6ktqk2nr"
+path="res://.godot/imported/phoenix_lord.png-08ca016a7e8d28339f0ba5181578e5b3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/enemies/Phoenix_Lord.png"
-dest_files=["res://.godot/imported/Phoenix_Lord.png-aa8738fb7da5cf3216d2afcd2061b4f0.ctex"]
+source_file="res://assets/enemies/phoenix_lord.png"
+dest_files=["res://.godot/imported/phoenix_lord.png-08ca016a7e8d28339f0ba5181578e5b3.ctex"]
 
 [params]
 

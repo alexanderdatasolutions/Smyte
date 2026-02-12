@@ -19,8 +19,17 @@ Following CLAUDE.md architecture:
 # ==============================================================================
 @export var id: String = ""
 @export var name: String = ""
-@export var node_type: String = ""  # "mine", "forest", "coast", "hunting_ground", "forge", "library", "temple", "fortress"
-@export var tier: int = 1  # 1-5 (difficulty/reward level)
+@export var node_type: String = ""  # "blank", "special", "base" - tile type, not building
+@export var tier: int = 1  # 1-4 (tile tier, determines max building tier)
+
+# ==============================================================================
+# BUILDING SYSTEM (New - player chooses what to build on blank tiles)
+# ==============================================================================
+@export var placed_building: String = ""  # Building ID from buildings.json (empty = no building)
+@export var building_level: int = 1  # Building upgrade level (1-5)
+@export var is_buildable: bool = true  # Can player place a building? (false for special nodes)
+@export var is_special_node: bool = false  # Special fixed-production PvP nodes
+@export var fixed_production: Dictionary = {}  # For special nodes only - bypasses building system
 
 # ==============================================================================
 # POSITION DATA
@@ -42,6 +51,16 @@ Following CLAUDE.md architecture:
 @export var max_garrison: int = 2  # Maximum garrison slots
 @export var base_defenders: Array[String] = []  # PvE defender IDs (neutral nodes)
 @export var capture_power_required: int = 5000  # Combat power needed to capture
+
+# ==============================================================================
+# ATTACK TIMER SYSTEM (Defense mechanic)
+# ==============================================================================
+@export var attack_timer_hours: float = 8.0  # Base timer duration (from JSON)
+@export var attack_timer_remaining: float = -1.0  # Current remaining seconds (-1 = inactive)
+@export var last_attack_check_time: int = 0  # Unix timestamp of last timer update
+@export var defense_drops: Dictionary = {}  # {"resource_id": {"min": X, "max": Y}}
+@export var is_pvp_territory: bool = false  # T4 nodes only available in PvP expansion
+@export var is_capturable: bool = true  # Can this node be captured? (base = false)
 
 # ==============================================================================
 # PRODUCTION & WORKERS
@@ -135,16 +154,61 @@ func has_worker_space() -> bool:
 
 func get_node_type_display() -> String:
 	"""Get human-readable node type"""
+	# New building system - show building name if one is placed
+	if not placed_building.is_empty():
+		return placed_building.replace("_", " ").capitalize()
+
+	# Special nodes show their name
+	if is_special_node:
+		return name if not name.is_empty() else "Special Node"
+
+	# Blank tiles
+	if node_type == "blank" or node_type.is_empty():
+		return "Empty Tile (T%d)" % tier
+
 	match node_type:
+		"base": return "Home Base"
+		"special": return "Special Node"
+		"blank": return "Empty Tile"
+		# Legacy types for backwards compatibility
+		"resource_node": return "Resource Node"
+		"forge": return "Forge"
+		"shrine": return "Shrine"
 		"mine": return "Mine"
 		"forest": return "Forest"
 		"coast": return "Coast"
 		"hunting_ground": return "Hunting Ground"
-		"forge": return "Forge"
 		"library": return "Library"
 		"temple": return "Temple"
 		"fortress": return "Fortress"
 		_: return "Unknown"
+
+func has_building() -> bool:
+	"""Check if this tile has a building placed on it"""
+	return not placed_building.is_empty()
+
+func can_place_building() -> bool:
+	"""Check if a building can be placed on this tile"""
+	return is_buildable and not is_special_node and placed_building.is_empty() and controller == "player"
+
+func get_max_building_tier() -> int:
+	"""Get the maximum building tier this tile can support (equals tile tier)"""
+	return tier
+
+func is_under_attack() -> bool:
+	"""Check if attack timer has expired (defense battle needed)"""
+	return attack_timer_remaining == 0.0
+
+func needs_garrison() -> bool:
+	"""Check if node needs garrison to avoid losing it"""
+	return is_capturable and garrison.size() == 0 and controller == "player"
+
+func get_attack_timer_percent() -> float:
+	"""Get attack timer as percentage (1.0 = full, 0.0 = expired)"""
+	if attack_timer_hours <= 0 or attack_timer_remaining < 0:
+		return 1.0
+	var max_seconds = attack_timer_hours * 3600.0
+	return clampf(attack_timer_remaining / max_seconds, 0.0, 1.0)
 
 func get_required_spec_tier() -> int:
 	"""Get required specialization tier from unlock requirements"""
@@ -178,6 +242,20 @@ func to_dict() -> Dictionary:
 		"max_garrison": max_garrison,
 		"base_defenders": base_defenders,
 		"capture_power_required": capture_power_required,
+		# Attack timer system
+		"attack_timer_hours": attack_timer_hours,
+		"attack_timer_remaining": attack_timer_remaining,
+		"last_attack_check_time": last_attack_check_time,
+		"defense_drops": defense_drops,
+		"is_pvp_territory": is_pvp_territory,
+		"is_capturable": is_capturable,
+		# Building system (new)
+		"placed_building": placed_building,
+		"building_level": building_level,
+		"is_buildable": is_buildable,
+		"is_special_node": is_special_node,
+		"fixed_production": fixed_production,
+		# Production
 		"assigned_workers": assigned_workers,
 		"max_workers": max_workers,
 		"active_tasks": active_tasks,
@@ -217,9 +295,34 @@ static func from_dict(data: Dictionary):
 	var garrison_data = data.get("garrison", [])
 	node.garrison.assign(garrison_data)
 	node.max_garrison = data.get("max_garrison", 2)
+
+	# Handle base_defenders - can be array of strings OR array of dictionaries
 	var defenders_data = data.get("base_defenders", [])
-	node.base_defenders.assign(defenders_data)
+	var defender_ids: Array[String] = []
+	for defender in defenders_data:
+		if defender is String:
+			defender_ids.append(defender)
+		elif defender is Dictionary:
+			# Convert dictionary format {"element": "earth", "role": "basic", "name": "Earth Guardian"}
+			# to just the name string for compatibility
+			defender_ids.append(defender.get("name", "Unknown Guardian"))
+	node.base_defenders.assign(defender_ids)
 	node.capture_power_required = data.get("capture_power_required", 5000)
+
+	# Attack timer system
+	node.attack_timer_hours = data.get("attack_timer_hours", 8.0)
+	node.attack_timer_remaining = data.get("attack_timer_remaining", -1.0)
+	node.last_attack_check_time = data.get("last_attack_check_time", 0)
+	node.defense_drops = data.get("defense_drops", {})
+	node.is_pvp_territory = data.get("is_pvp_territory", false)
+	node.is_capturable = data.get("is_capturable", true)
+
+	# Building system (new)
+	node.placed_building = data.get("placed_building", "")
+	node.building_level = data.get("building_level", 1)
+	node.is_buildable = data.get("is_buildable", true)
+	node.is_special_node = data.get("is_special_node", false)
+	node.fixed_production = data.get("fixed_production", {})
 
 	# Production - Convert to typed arrays
 	var workers_data = data.get("assigned_workers", [])

@@ -118,8 +118,9 @@ func setup_target_display():
 	god_image.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	god_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	
-	# Load god image based on god ID (matching CollectionScreen approach)
-	var sprite_path = "res://assets/gods/" + current_target_god.id + ".png"
+	# Load god image based on template ID (id is unique instance)
+	var god_template = current_target_god.template_id if current_target_god.template_id else current_target_god.id
+	var sprite_path = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		god_image.texture = load(sprite_path)
 	else:

@@ -88,18 +88,16 @@ static func _get_resource_color(resource_id: String) -> Color:
 			return Color(1.0, 0.85, 0.3)  # Gold
 		"mana":
 			return Color(0.5, 0.7, 1.0)  # Blue
-		"fire_soul":
-			return Color(1.0, 0.4, 0.2)  # Orange-red
-		"water_soul":
+		"common_soul":
+			return Color(0.7, 0.7, 0.7)  # Gray
+		"rare_soul":
 			return Color(0.3, 0.6, 1.0)  # Blue
-		"earth_soul":
-			return Color(0.6, 0.5, 0.3)  # Brown
-		"lightning_soul":
-			return Color(1.0, 0.9, 0.3)  # Yellow
-		"light_soul":
-			return Color(1.0, 1.0, 0.8)  # White-yellow
-		"dark_soul":
-			return Color(0.5, 0.3, 0.7)  # Purple
+		"epic_soul":
+			return Color(0.6, 0.3, 0.8)  # Purple
+		"legendary_soul":
+			return Color(1.0, 0.85, 0.3)  # Gold
+		"energy":
+			return Color(0.3, 0.9, 0.4)  # Green
 		_:
 			return Color(0.8, 0.6, 0.3)  # Default amber
 
@@ -110,19 +108,15 @@ static func get_resource_display_name(resource_id: String) -> String:
 			return "Divine Crystals"
 		"mana":
 			return "Mana"
+		"energy":
+			return "Energy"
 		"common_soul":
 			return "Common Souls"
-		"fire_soul":
-			return "Fire Souls"
-		"water_soul":
-			return "Water Souls"
-		"earth_soul":
-			return "Earth Souls"
-		"lightning_soul":
-			return "Lightning Souls"
-		"light_soul":
-			return "Light Souls"
-		"dark_soul":
-			return "Dark Souls"
+		"rare_soul":
+			return "Rare Souls"
+		"epic_soul":
+			return "Epic Souls"
+		"legendary_soul":
+			return "Legendary Souls"
 		_:
 			return resource_id.replace("_", " ").capitalize()

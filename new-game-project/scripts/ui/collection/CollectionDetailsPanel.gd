@@ -32,8 +32,9 @@ static func show_god_details(god: God, details_content: Control, no_selection_la
 	image_container.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	image_container.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 
-	# Load god image based on god ID
-	var sprite_path = "res://assets/gods/" + god.id + ".png"
+	# Load god image based on template ID (id is unique instance)
+	var god_template = god.template_id if god.template_id else god.id
+	var sprite_path = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		image_container.texture = load(sprite_path)
 	else:
@@ -139,35 +140,15 @@ Territory: %s""" % [
 	stats_section.add_child(stats_info)
 	content.add_child(stats_section)
 
-	# Abilities Section
-	if _has_valid_abilities(god):
-		var abilities_section = VBoxContainer.new()
-		var abilities_title = Label.new()
-		abilities_title.text = "═══ ABILITIES ═══"
-		abilities_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		abilities_title.add_theme_font_size_override("font_size", 14)
-		abilities_section.add_child(abilities_title)
+	# Equipment Section
+	var equipment_section = _create_equipment_section(god)
+	if equipment_section:
+		content.add_child(equipment_section)
 
-		for ability in god.active_abilities:
-			var ability_container = VBoxContainer.new()
-			ability_container.add_theme_constant_override("separation", 2)
-
-			var ability_name = Label.new()
-			ability_name.text = "• " + ability.get("name", "Unknown")
-			ability_name.add_theme_font_size_override("font_size", 12)
-			ability_name.add_theme_color_override("font_color", Color.YELLOW)
-			ability_container.add_child(ability_name)
-
-			var ability_desc = Label.new()
-			ability_desc.text = "  " + ability.get("description", "No description")
-			ability_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			ability_desc.custom_minimum_size.x = 300
-			ability_desc.add_theme_font_size_override("font_size", 10)
-			ability_container.add_child(ability_desc)
-
-			abilities_section.add_child(ability_container)
-
-		content.add_child(abilities_section)
+	# Skills/Abilities Section
+	var skills_section = _create_skills_section(god)
+	if skills_section:
+		content.add_child(skills_section)
 
 	# Add content to details panel
 	details_content.add_child(content)
@@ -209,3 +190,245 @@ static func _get_tier_border_color(tier: int) -> Color:
 
 static func _has_valid_abilities(god: God) -> bool:
 	return "ability_ids" in god and god.ability_ids.size() > 0
+
+static func _create_equipment_section(god: God) -> VBoxContainer:
+	"""Create equipment section showing all 6 slots"""
+	var section = VBoxContainer.new()
+	section.add_theme_constant_override("separation", 4)
+
+	var title = Label.new()
+	title.text = "═══ EQUIPMENT ═══"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 14)
+	section.add_child(title)
+
+	# Equipment slot names
+	var slot_names = ["Weapon", "Armor", "Helm", "Boots", "Amulet", "Ring"]
+
+	# Create grid for equipment
+	var grid = GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 4)
+
+	for i in range(6):
+		var slot_container = HBoxContainer.new()
+		slot_container.add_theme_constant_override("separation", 4)
+
+		# Slot icon/name
+		var slot_label = Label.new()
+		slot_label.text = slot_names[i] + ":"
+		slot_label.add_theme_font_size_override("font_size", 11)
+		slot_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
+		slot_label.custom_minimum_size.x = 60
+		slot_container.add_child(slot_label)
+
+		# Equipment info
+		var equip_label = Label.new()
+		equip_label.add_theme_font_size_override("font_size", 11)
+
+		if god.equipment.size() > i and god.equipment[i] != null:
+			var eq = god.equipment[i]
+			equip_label.text = eq.name if eq.name else "Unknown"
+			equip_label.add_theme_color_override("font_color", _get_rarity_color(eq.rarity if "rarity" in eq else 0))
+		else:
+			equip_label.text = "Empty"
+			equip_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+
+		slot_container.add_child(equip_label)
+		grid.add_child(slot_container)
+
+	section.add_child(grid)
+	return section
+
+static func _create_skills_section(god: God) -> VBoxContainer:
+	"""Create skills section showing abilities with damage, scaling, cooldown"""
+	var section = VBoxContainer.new()
+	section.add_theme_constant_override("separation", 6)
+
+	var title = Label.new()
+	title.text = "═══ SKILLS ═══"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 14)
+	section.add_child(title)
+
+	# Load abilities data and god config
+	var abilities_data = _load_abilities_data()
+	var god_config = _load_god_config(god.id)
+	var ability_ids = god_config.get("ability_ids", [])
+
+	# Show abilities from config
+	if not ability_ids.is_empty():
+		for i in range(ability_ids.size()):
+			var ability_id = ability_ids[i]
+			var skill_level = god.skill_levels[i] if i < god.skill_levels.size() else 1
+			var ability_data = abilities_data.get(ability_id, {})
+
+			var ability_container = VBoxContainer.new()
+			ability_container.add_theme_constant_override("separation", 2)
+
+			# Ability name row with level and cooldown
+			var name_row = HBoxContainer.new()
+			name_row.add_theme_constant_override("separation", 6)
+
+			var ability_name = Label.new()
+			ability_name.text = "• " + ability_data.get("name", ability_id.capitalize().replace("_", " "))
+			ability_name.add_theme_font_size_override("font_size", 12)
+			ability_name.add_theme_color_override("font_color", Color.YELLOW)
+			name_row.add_child(ability_name)
+
+			var level_label = Label.new()
+			level_label.text = "[Lv.%d]" % skill_level
+			level_label.add_theme_font_size_override("font_size", 10)
+			level_label.add_theme_color_override("font_color", Color(0.4, 0.8, 1.0))
+			name_row.add_child(level_label)
+
+			ability_container.add_child(name_row)
+
+			# Stats row: Damage, Scaling, Targets, Cooldown
+			var stats_row = HBoxContainer.new()
+			stats_row.add_theme_constant_override("separation", 12)
+
+			var dmg_mult = ability_data.get("damage_multiplier", 0)
+			var scaling = ability_data.get("scaling_stat", "ATK")
+			var targets = ability_data.get("targets", "single")
+			var cooldown = ability_data.get("cooldown", 0)
+			var hits = ability_data.get("hits", 1)
+
+			# Damage multiplier
+			if dmg_mult > 0:
+				var dmg_label = Label.new()
+				var dmg_text = "%.0f%% %s" % [dmg_mult * 100, scaling]
+				if hits > 1:
+					dmg_text += " x%d" % hits
+				dmg_label.text = dmg_text
+				dmg_label.add_theme_font_size_override("font_size", 10)
+				dmg_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.4))
+				stats_row.add_child(dmg_label)
+
+			# Target type
+			var target_label = Label.new()
+			var target_text = _format_target_type(targets)
+			target_label.text = target_text
+			target_label.add_theme_font_size_override("font_size", 10)
+			target_label.add_theme_color_override("font_color", Color(0.6, 0.8, 1.0))
+			stats_row.add_child(target_label)
+
+			# Cooldown
+			if cooldown > 0:
+				var cd_label = Label.new()
+				cd_label.text = "CD: %d" % cooldown
+				cd_label.add_theme_font_size_override("font_size", 10)
+				cd_label.add_theme_color_override("font_color", Color(0.8, 0.6, 0.4))
+				stats_row.add_child(cd_label)
+			else:
+				var cd_label = Label.new()
+				cd_label.text = "No CD"
+				cd_label.add_theme_font_size_override("font_size", 10)
+				cd_label.add_theme_color_override("font_color", Color(0.5, 0.7, 0.5))
+				stats_row.add_child(cd_label)
+
+			ability_container.add_child(stats_row)
+
+			# Ability description
+			var desc = ability_data.get("description", "No description available")
+			var ability_desc = Label.new()
+			ability_desc.text = "  " + desc
+			ability_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			ability_desc.custom_minimum_size.x = 280
+			ability_desc.add_theme_font_size_override("font_size", 10)
+			ability_desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+			ability_container.add_child(ability_desc)
+
+			section.add_child(ability_container)
+	else:
+		var no_skills = Label.new()
+		no_skills.text = "No skills available"
+		no_skills.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		no_skills.add_theme_font_size_override("font_size", 11)
+		no_skills.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		section.add_child(no_skills)
+
+	return section
+
+static func _get_rarity_color(rarity: int) -> Color:
+	"""Get color for equipment rarity"""
+	match rarity:
+		0: return Color(0.6, 0.6, 0.6)      # Common - Gray
+		1: return Color(0.4, 0.8, 0.4)      # Rare - Green
+		2: return Color(0.6, 0.4, 0.9)      # Epic - Purple
+		3: return Color(1.0, 0.8, 0.2)      # Legendary - Gold
+		4: return Color(1.0, 0.4, 0.4)      # Mythic - Red
+		_: return Color(0.7, 0.7, 0.7)
+
+static var _cached_abilities: Dictionary = {}
+
+static func _load_abilities_data() -> Dictionary:
+	"""Load and cache abilities from JSON"""
+	if not _cached_abilities.is_empty():
+		return _cached_abilities
+
+	var file = FileAccess.open("res://data/abilities.json", FileAccess.READ)
+	if not file:
+		return {}
+
+	var json_text = file.get_as_text()
+	file.close()
+
+	var json = JSON.new()
+	if json.parse(json_text) != OK:
+		return {}
+
+	var data = json.get_data()
+	if data.has("abilities"):
+		_cached_abilities = data.abilities
+
+	return _cached_abilities
+
+static var _cached_gods: Dictionary = {}
+
+static func _load_god_config(god_id: String) -> Dictionary:
+	"""Load god config from JSON to get ability_ids"""
+	if _cached_gods.has(god_id):
+		return _cached_gods[god_id]
+
+	# Try via SystemRegistry first
+	var registry_class = load("res://scripts/systems/core/SystemRegistry.gd")
+	if registry_class and registry_class.has_method("get_instance"):
+		var registry = registry_class.get_instance()
+		if registry:
+			var config_manager = registry.get_system("ConfigurationManager")
+			if config_manager and config_manager.has_method("get_god_config"):
+				var config = config_manager.get_god_config(god_id)
+				if config:
+					_cached_gods[god_id] = config
+					return config
+
+	# Fallback: Load directly from JSON
+	var file = FileAccess.open("res://data/gods.json", FileAccess.READ)
+	if not file:
+		return {}
+
+	var json_text = file.get_as_text()
+	file.close()
+
+	var json = JSON.new()
+	if json.parse(json_text) != OK:
+		return {}
+
+	var data = json.get_data()
+	if data.has("gods") and data.gods.has(god_id):
+		_cached_gods[god_id] = data.gods[god_id]
+		return _cached_gods[god_id]
+
+	return {}
+
+static func _format_target_type(targets: String) -> String:
+	"""Format target type for display"""
+	match targets:
+		"single": return "Single"
+		"all_enemies": return "All Enemies"
+		"all_allies": return "All Allies"
+		"self": return "Self"
+		"random_enemy": return "Random"
+		_: return targets.capitalize().replace("_", " ")

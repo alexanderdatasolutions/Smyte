@@ -230,7 +230,11 @@ func _clear_grid():
 func _populate_grid():
 	var collection_mgr = _get_collection_manager()
 
-	for god in displayed_gods:
+	# Reverse order so newest summons appear at the top
+	var gods_reversed = displayed_gods.duplicate()
+	gods_reversed.reverse()
+
+	for god in gods_reversed:
 		var card = _create_god_card(god, collection_mgr)
 		gods_grid.add_child(card)
 		god_cards.append(card)
@@ -289,7 +293,8 @@ func _create_god_card(god: God, _collection_mgr) -> PanelContainer:
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 
-	var sprite_path = "res://assets/gods/" + god.id + ".png"
+	var god_template = god.template_id if god.template_id else god.id
+	var sprite_path = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		portrait.texture = load(sprite_path)
 	else:

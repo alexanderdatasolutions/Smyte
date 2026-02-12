@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://dhg8k2m4xpvnw"]
+
+[ext_resource type="Script" path="res://scripts/ui/components/GameHeader.gd" id="1_header_script"]
+
+[node name="GameHeader" type="Control"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 50.0
+grow_horizontal = 2
+size_flags_horizontal = 3
+script = ExtResource("1_header_script")

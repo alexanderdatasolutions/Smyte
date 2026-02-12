@@ -12,8 +12,11 @@ const SAVE_FILE_PATH = "user://save_game.dat"  # Match GameCoordinator path
 const SAVE_VERSION = "1.0"
 
 var auto_save_enabled: bool = true
-var auto_save_interval: float = 300.0  # 5 minutes
+var auto_save_interval: float = 60.0  # 1 minute - shorter interval to prevent data loss
 var last_auto_save: float = 0.0
+
+# Player-specific data that doesn't belong to any system
+var player_data: Dictionary = {}
 
 func _ready():
 	pass
@@ -60,6 +63,13 @@ func save_game() -> bool:
 	var summon_manager = system_registry.get_system("SummonManager") if system_registry else null
 	if summon_manager and summon_manager.has_method("get_save_data"):
 		save_data["summon"] = summon_manager.get_save_data()
+
+	var tutorial_orchestrator = system_registry.get_system("TutorialOrchestrator") if system_registry else null
+	if tutorial_orchestrator and tutorial_orchestrator.has_method("get_tutorial_save_data"):
+		save_data["tutorial"] = tutorial_orchestrator.get_tutorial_save_data()
+
+	# Save player-specific data (tower best floor, etc.)
+	save_data["player_data"] = player_data
 
 	# Write to file
 	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.WRITE)
@@ -118,12 +128,23 @@ func load_game() -> bool:
 			collection_manager.load_save_data(save_data.collection)
 
 	if save_data.has("hex_grid"):
+		print("[SaveManager] hex_grid data found in save")
+		var hex_grid_data = save_data.hex_grid
+		if hex_grid_data.has("nodes"):
+			print("[SaveManager] hex_grid has %d nodes in save data" % hex_grid_data.nodes.size())
+		else:
+			print("[SaveManager] WARNING: hex_grid has no 'nodes' key!")
+
 		var hex_grid_manager = system_registry.get_system("HexGridManager") if system_registry else null
 		if hex_grid_manager and hex_grid_manager.has_method("load_save_data"):
 			hex_grid_manager.load_save_data(save_data.hex_grid)
+		else:
+			print("[SaveManager] WARNING: HexGridManager not found or no load_save_data method!")
 
 		# Calculate offline production rewards for hex nodes
 		_calculate_offline_production_rewards(system_registry, hex_grid_manager)
+	else:
+		print("[SaveManager] WARNING: No hex_grid data in save file!")
 
 	if save_data.has("territory"):
 		var territory_manager = system_registry.get_system("TerritoryManager") if system_registry else null
@@ -139,6 +160,15 @@ func load_game() -> bool:
 		var summon_manager = system_registry.get_system("SummonManager") if system_registry else null
 		if summon_manager and summon_manager.has_method("load_save_data"):
 			summon_manager.load_save_data(save_data.summon)
+
+	if save_data.has("tutorial"):
+		var tutorial_orchestrator = system_registry.get_system("TutorialOrchestrator") if system_registry else null
+		if tutorial_orchestrator and tutorial_orchestrator.has_method("load_tutorial_save_data"):
+			tutorial_orchestrator.load_tutorial_save_data(save_data.tutorial)
+
+	# Load player-specific data (tower best floor, etc.)
+	if save_data.has("player_data"):
+		player_data = save_data.player_data
 
 	load_completed.emit(true, save_data)
 	return true
@@ -157,6 +187,18 @@ func delete_save_file() -> bool:
 		DirAccess.remove_absolute(SAVE_FILE_PATH)
 		return true
 	return false
+
+## Get player data dictionary
+func get_player_data() -> Dictionary:
+	return player_data
+
+## Set a player data value
+func set_player_value(key: String, value) -> void:
+	player_data[key] = value
+
+## Get a player data value
+func get_player_value(key: String, default = null):
+	return player_data.get(key, default)
 
 ## Get save file info
 func get_save_info() -> Dictionary:
@@ -181,7 +223,8 @@ func get_save_info() -> Dictionary:
 		"readable_time": Time.get_datetime_string_from_unix_time(save_data.get("timestamp", 0))
 	}
 
-## Calculate offline production rewards for hex nodes
+## Calculate offline production and store in nodes for manual collection
+## Player collects via "Collect All" on territory screen for satisfying reward moment
 func _calculate_offline_production_rewards(system_registry, hex_grid_manager) -> void:
 	if not system_registry or not hex_grid_manager:
 		return
@@ -189,11 +232,6 @@ func _calculate_offline_production_rewards(system_registry, hex_grid_manager) ->
 	var territory_production_manager = system_registry.get_system("TerritoryProductionManager")
 	if not territory_production_manager:
 		print("[SaveManager] TerritoryProductionManager not found, skipping offline production")
-		return
-
-	var resource_manager = system_registry.get_system("ResourceManager")
-	if not resource_manager:
-		print("[SaveManager] ResourceManager not found, skipping offline production")
 		return
 
 	# Get all player-controlled nodes
@@ -208,30 +246,26 @@ func _calculate_offline_production_rewards(system_registry, hex_grid_manager) ->
 	var nodes_with_production: int = 0
 
 	# Calculate offline production for each node
+	# calculate_offline_hex_production() adds to node.accumulated_resources automatically
 	for node in player_nodes:
 		var offline_rewards: Dictionary = territory_production_manager.calculate_offline_hex_production(node)
 
 		if not offline_rewards.is_empty():
 			nodes_with_production += 1
 
-			# Accumulate total rewards
+			# Track total for logging only
 			for resource_id in offline_rewards:
 				if total_offline_rewards.has(resource_id):
 					total_offline_rewards[resource_id] += offline_rewards[resource_id]
 				else:
 					total_offline_rewards[resource_id] = offline_rewards[resource_id]
 
-	# Award accumulated resources to player
+	# Log what's waiting to be collected (NOT auto-awarded)
 	if not total_offline_rewards.is_empty():
-		resource_manager.award_resources(total_offline_rewards)
-		print("[SaveManager] Awarded offline production rewards: %s" % _format_rewards_dict(total_offline_rewards))
-		print("[SaveManager] %d nodes produced resources while offline" % nodes_with_production)
-
-		# Clear accumulated resources from all nodes
-		for node in player_nodes:
-			node.accumulated_resources.clear()
+		print("[SaveManager] Offline production stored in nodes (awaiting collection): %s" % _format_rewards_dict(total_offline_rewards))
+		print("[SaveManager] %d nodes have resources ready - player can Collect All!" % nodes_with_production)
 	else:
-		print("[SaveManager] No offline production rewards to award")
+		print("[SaveManager] No offline production to store")
 
 ## Format rewards dictionary for debug output
 func _format_rewards_dict(rewards: Dictionary) -> String:

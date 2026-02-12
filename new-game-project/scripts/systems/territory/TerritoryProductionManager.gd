@@ -216,18 +216,28 @@ func calculate_node_production(node: HexNode) -> Dictionary:
 	"""Calculate total resource production for a hex node
 	Production formula: base * (1 + upgrade_bonus) * (1 + connected_bonus) * (1 + worker_efficiency)
 	Returns: Dictionary of {"resource_id": amount_per_hour}
+
+	NEW BUILDING SYSTEM:
+	- Special nodes: Use fixed_production (cannot be changed)
+	- Blank tiles with building: Look up production from BuildingManager
+	- Blank tiles without building: No production
 	"""
 	if not node or not node.is_controlled_by_player():
 		return {}
 
 	var production = {}
+	var base_production = _get_node_base_production(node)
 
-	# Start with base production from node
-	for resource_id in node.base_production:
-		var base_amount = node.base_production[resource_id]
+	if base_production.is_empty():
+		return {}
 
-		# Apply upgrade bonus (10% per production level above 1)
-		var upgrade_bonus = (node.production_level - 1) * 0.10
+	# Start with base production
+	for resource_id in base_production:
+		var base_amount = base_production[resource_id]
+
+		# Apply upgrade bonus - use building_level for buildings, production_level for special nodes
+		var upgrade_level = node.building_level if node.has_building() else node.production_level
+		var upgrade_bonus = (upgrade_level - 1) * 0.10
 		var amount = base_amount * (1.0 + upgrade_bonus)
 
 		# Apply connected node bonus
@@ -241,6 +251,48 @@ func calculate_node_production(node: HexNode) -> Dictionary:
 		production[resource_id] = int(amount)
 
 	return production
+
+func _get_node_base_production(node: HexNode) -> Dictionary:
+	"""Get base production for a node based on its type:
+	- Special nodes: fixed_production (immutable)
+	- Blank tiles with building: BuildingManager.get_building_production()
+	- Blank tiles without building: empty (no production)
+	- Legacy nodes: base_production (backwards compat)
+	"""
+	# Special nodes have fixed production
+	if node.is_special_node and not node.fixed_production.is_empty():
+		return node.fixed_production
+
+	# Check if node has a building
+	if node.has_building():
+		var building_manager = _get_building_manager()
+		if building_manager:
+			return building_manager.get_building_production(node.placed_building, node.building_level)
+
+	# Blank tile without building - no production
+	if node.node_type == "blank" and node.placed_building.is_empty():
+		return {}
+
+	# Base node (Divine Sanctum) uses fixed production
+	if node.node_type == "base":
+		return node.fixed_production if not node.fixed_production.is_empty() else node.base_production
+
+	# Legacy fallback: use base_production directly
+	return node.base_production
+
+func _get_building_manager():
+	"""Get BuildingManager via SystemRegistry"""
+	var registry = SystemRegistry.get_instance()
+	if registry:
+		return registry.get_system("BuildingManager")
+	return null
+
+func _get_resource_manager():
+	"""Get ResourceManager via SystemRegistry"""
+	var registry = SystemRegistry.get_instance()
+	if registry:
+		return registry.get_system("ResourceManager")
+	return null
 
 func apply_connected_bonus(node: HexNode) -> float:
 	"""Calculate production bonus from adjacent controlled nodes
@@ -309,10 +361,16 @@ func apply_spec_bonus(node: HexNode, god: God) -> float:
 
 func _calculate_worker_efficiency(node: HexNode) -> float:
 	"""Calculate total efficiency bonus from workers at this node
-	Combines: spec bonuses, trait bonuses, level bonuses
+	Combines: spec bonuses, trait bonuses, level bonuses, pantheon bonuses
+	Returns 0 if garrison power requirement is not met (workers inactive)
 	"""
 	if not node or node.assigned_workers.is_empty():
 		return 0.0
+
+	# Check garrison power requirement - workers are inactive without sufficient garrison
+	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
+	if territory_manager and not territory_manager.can_assign_workers(node):
+		return 0.0  # Workers inactive - no production bonus
 
 	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager")
 	var spec_manager = SystemRegistry.get_instance().get_system("SpecializationManager")
@@ -340,7 +398,55 @@ func _calculate_worker_efficiency(node: HexNode) -> float:
 
 		total_bonus += worker_bonus
 
+	# Add pantheon matching bonus for worker team
+	var pantheon_bonus = _calculate_pantheon_bonus(node.assigned_workers, collection_manager)
+	total_bonus += pantheon_bonus
+
 	return total_bonus
+
+func _calculate_pantheon_bonus(god_ids: Array, collection_manager) -> float:
+	"""Calculate production bonus for matching pantheons in a team
+	Uses team_bonuses.json for configuration
+	"""
+	if god_ids.size() < 2 or not collection_manager:
+		return 0.0
+
+	# Count pantheons
+	var pantheon_counts: Dictionary = {}
+	for god_id in god_ids:
+		var god = collection_manager.get_god_by_id(god_id)
+		if god and god.pantheon:
+			var pantheon = god.pantheon.to_lower()
+			pantheon_counts[pantheon] = pantheon_counts.get(pantheon, 0) + 1
+
+	# Find the most common pantheon
+	var max_count = 0
+	for pantheon in pantheon_counts:
+		if pantheon_counts[pantheon] > max_count:
+			max_count = pantheon_counts[pantheon]
+
+	# Load team bonuses from dedicated config
+	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager")
+	var production_bonus = 0.0
+
+	if config_manager:
+		var team_bonuses = config_manager.get_team_bonuses_config()
+		var pantheon_bonuses = team_bonuses.get("pantheon_bonuses", {})
+
+		# Full pantheon bonus (all same)
+		if max_count == god_ids.size() and max_count >= 2:
+			var full_bonus = pantheon_bonuses.get("full_match", {}).get("bonuses", {})
+			production_bonus = full_bonus.get("production", 0.25)
+		# Majority bonus (3+ same)
+		elif max_count >= 3:
+			var majority_bonus = pantheon_bonuses.get("majority_match", {}).get("bonuses", {})
+			production_bonus = majority_bonus.get("production", 0.10)
+		# Duo bonus (2 same)
+		elif max_count >= 2:
+			var duo_bonus = pantheon_bonuses.get("duo_match", {}).get("bonuses", {})
+			production_bonus = duo_bonus.get("production", 0.05)
+
+	return production_bonus
 
 func get_node_hourly_production(node: HexNode) -> Dictionary:
 	"""Get hourly production rate for a specific hex node
@@ -375,6 +481,10 @@ func _process_hex_node_generation():
 	if not territory_manager:
 		return
 
+	# Update attack timers (garrison defense mechanic)
+	if territory_manager.has_method("update_attack_timers"):
+		territory_manager.update_attack_timers()
+
 	var controlled_nodes = territory_manager.get_controlled_nodes()
 	if controlled_nodes.is_empty():
 		return
@@ -385,38 +495,171 @@ func _process_hex_node_generation():
 		if not node or not node.is_controlled_by_player():
 			continue
 
-		# Calculate production for this node
-		var hourly_production = calculate_node_production(node)
-		if hourly_production.is_empty():
+		# Check if this is a processing building that needs to consume resources
+		var building_consumes = _get_building_consumes(node)
+
+		if not building_consumes.is_empty():
+			# Processing building - consume inputs to produce outputs
+			_process_conversion_building(node, controlled_nodes, current_time)
+		else:
+			# Normal extraction/production building
+			_process_extraction_building(node, current_time)
+
+func _process_extraction_building(node: HexNode, current_time: float) -> void:
+	"""Process normal extraction/production buildings that don't consume resources"""
+	var hourly_production = calculate_node_production(node)
+	if hourly_production.is_empty():
+		return
+
+	# Convert hourly to per-minute (60 second tick)
+	var production_this_tick = {}
+	for resource_id in hourly_production:
+		var hourly_amount = hourly_production[resource_id]
+		var tick_amount = hourly_amount / 60.0
+		production_this_tick[resource_id] = tick_amount
+
+	# Accumulate resources
+	for resource_id in production_this_tick:
+		var amount = production_this_tick[resource_id]
+		if node.accumulated_resources.has(resource_id):
+			node.accumulated_resources[resource_id] += amount
+		else:
+			node.accumulated_resources[resource_id] = amount
+
+	# Update timestamp
+	node.last_production_time = current_time
+
+	# Debug output
+	var coord_str = "(%d,%d)" % [node.coord.q, node.coord.r] if node.coord else "unknown"
+	print("[TerritoryProductionManager] Node %s '%s' accumulated resources: %s (hourly rate: %s)" % [
+		coord_str,
+		node.name if node.name else node.id,
+		_format_resources_dict(node.accumulated_resources),
+		_format_resources_dict(hourly_production)
+	])
+
+func _process_conversion_building(node: HexNode, all_nodes: Array, current_time: float) -> void:
+	"""Process conversion buildings that consume input resources to produce outputs"""
+	var building_manager = _get_building_manager()
+	if not building_manager:
+		return
+
+	var building = building_manager.get_building(node.placed_building)
+	var consumes = building.get("consumes", {})
+	var produces = building.get("production", {})
+
+	if consumes.is_empty() or produces.is_empty():
+		return
+
+	# Check if we have workers assigned (required for conversion)
+	if node.assigned_workers.is_empty():
+		return
+
+	# Calculate how much we want to consume this tick (hourly / 60)
+	var consume_this_tick = {}
+	for res_id in consumes:
+		consume_this_tick[res_id] = consumes[res_id] / 60.0
+
+	# Calculate what fraction of consumption we can fulfill
+	var fulfillment_ratio = _calculate_consumption_fulfillment(consume_this_tick, all_nodes)
+
+	if fulfillment_ratio <= 0:
+		# No input resources available
+		var coord_str = "(%d,%d)" % [node.coord.q, node.coord.r] if node.coord else "unknown"
+		print("[TerritoryProductionManager] Conversion %s '%s': No input resources available" % [coord_str, node.name])
+		node.last_production_time = current_time
+		return
+
+	# Consume resources (from accumulated first, then inventory)
+	for res_id in consume_this_tick:
+		var amount_to_consume = consume_this_tick[res_id] * fulfillment_ratio
+		_consume_resource(res_id, amount_to_consume, all_nodes)
+
+	# Produce output proportional to what we consumed
+	var hourly_production = calculate_node_production(node)
+	for res_id in hourly_production:
+		var base_tick_amount = hourly_production[res_id] / 60.0
+		var actual_amount = base_tick_amount * fulfillment_ratio
+
+		if node.accumulated_resources.has(res_id):
+			node.accumulated_resources[res_id] += actual_amount
+		else:
+			node.accumulated_resources[res_id] = actual_amount
+
+	# Update timestamp
+	node.last_production_time = current_time
+
+	# Debug output
+	var coord_str = "(%d,%d)" % [node.coord.q, node.coord.r] if node.coord else "unknown"
+	print("[TerritoryProductionManager] Conversion %s '%s': %.0f%% efficiency, consumed %s, produced %s" % [
+		coord_str,
+		node.name if node.name else node.id,
+		fulfillment_ratio * 100,
+		_format_resources_dict(consume_this_tick),
+		_format_resources_dict(node.accumulated_resources)
+	])
+
+func _get_building_consumes(node: HexNode) -> Dictionary:
+	"""Get the consumes dictionary for a node's building, if any"""
+	if node.placed_building.is_empty():
+		return {}
+
+	var building_manager = _get_building_manager()
+	if not building_manager:
+		return {}
+
+	var building = building_manager.get_building(node.placed_building)
+	return building.get("consumes", {})
+
+func _calculate_consumption_fulfillment(consume_amounts: Dictionary, all_nodes: Array) -> float:
+	"""Calculate what fraction of the consumption we can fulfill (0.0 to 1.0)"""
+	var resource_manager = _get_resource_manager()
+	var min_ratio = 1.0
+
+	for res_id in consume_amounts:
+		var needed = consume_amounts[res_id]
+		if needed <= 0:
 			continue
 
-		# Convert hourly to per-minute (60 second tick)
-		var production_this_tick = {}
-		for resource_id in hourly_production:
-			var hourly_amount = hourly_production[resource_id]
-			# 60 seconds = 1/60 of an hour
-			var tick_amount = hourly_amount / 60.0
-			production_this_tick[resource_id] = tick_amount
+		# Count available from accumulated resources across all nodes
+		var available_accumulated = 0.0
+		for node in all_nodes:
+			if node and node.is_controlled_by_player():
+				available_accumulated += node.accumulated_resources.get(res_id, 0)
 
-		# Accumulate resources
-		for resource_id in production_this_tick:
-			var amount = production_this_tick[resource_id]
-			if node.accumulated_resources.has(resource_id):
-				node.accumulated_resources[resource_id] += amount
-			else:
-				node.accumulated_resources[resource_id] = amount
+		# Add inventory
+		var available_inventory = 0.0
+		if resource_manager:
+			available_inventory = resource_manager.get_resource(res_id)
 
-		# Update timestamp
-		node.last_production_time = current_time
+		var total_available = available_accumulated + available_inventory
+		var ratio = total_available / needed if needed > 0 else 0.0
+		min_ratio = min(min_ratio, ratio)
 
-		# Debug output
-		var coord_str = "(%d,%d)" % [node.coord.q, node.coord.r] if node.coord else "unknown"
-		print("[TerritoryProductionManager] Node %s '%s' accumulated resources: %s (hourly rate: %s)" % [
-			coord_str,
-			node.name if node.name else node.id,
-			_format_resources_dict(node.accumulated_resources),
-			_format_resources_dict(hourly_production)
-		])
+	return clamp(min_ratio, 0.0, 1.0)
+
+func _consume_resource(res_id: String, amount: float, all_nodes: Array) -> void:
+	"""Consume resources - from accumulated first, then inventory"""
+	var remaining = amount
+
+	# First consume from accumulated resources on nodes
+	for node in all_nodes:
+		if remaining <= 0:
+			break
+		if not node or not node.is_controlled_by_player():
+			continue
+
+		var available = node.accumulated_resources.get(res_id, 0)
+		if available > 0:
+			var to_consume = min(available, remaining)
+			node.accumulated_resources[res_id] = available - to_consume
+			remaining -= to_consume
+
+	# Then consume from inventory if needed
+	if remaining > 0:
+		var resource_manager = _get_resource_manager()
+		if resource_manager:
+			resource_manager.spend(res_id, int(ceil(remaining)))
 
 func _format_resources_dict(resources: Dictionary) -> String:
 	"""Format resource dictionary for debug output"""
@@ -536,9 +779,18 @@ func collect_node_resources(node_id: String) -> Dictionary:
 			collected_resources[resource_id] *= manual_bonus  # Apply bonus
 
 	# Award resources to player via ResourceManager
+	# Convert float amounts to integers for ResourceManager (which expects ints)
+	var integer_resources: Dictionary = {}
+	for resource_id in collected_resources:
+		var int_amount = int(collected_resources[resource_id])
+		if int_amount > 0:
+			integer_resources[resource_id] = int_amount
+
 	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager")
-	if resource_manager and resource_manager.has_method("award_resources"):
-		resource_manager.award_resources(collected_resources)
+	if resource_manager and not integer_resources.is_empty():
+		if resource_manager.has_method("award_resources"):
+			resource_manager.award_resources(integer_resources)
+			print("[TerritoryProductionManager] Awarded to ResourceManager: %s" % str(integer_resources))
 
 	# Clear node.accumulated_resources
 	node.accumulated_resources.clear()

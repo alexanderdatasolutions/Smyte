@@ -1,0 +1,67 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "description": "Pantheon configuration - enable/disable pantheons for MVP",
+    "last_updated": "2026-02-10",
+    "note": "Team bonuses moved to team_bonuses.json"
+  },
+
+  "enabled_pantheons": ["greek", "norse", "egyptian"],
+
+  "all_pantheons": {
+    "greek": {
+      "name": "Greek",
+      "enabled": true,
+      "color": "#FFD700",
+      "description": "Gods of Mount Olympus"
+    },
+    "norse": {
+      "name": "Norse",
+      "enabled": true,
+      "color": "#00BFFF",
+      "description": "Gods of Asgard and the Nine Realms"
+    },
+    "egyptian": {
+      "name": "Egyptian",
+      "enabled": true,
+      "color": "#DAA520",
+      "description": "Gods of Ancient Egypt"
+    },
+    "chinese": {
+      "name": "Chinese",
+      "enabled": false,
+      "color": "#FF4500",
+      "description": "Gods of the Celestial Empire"
+    },
+    "slavic": {
+      "name": "Slavic",
+      "enabled": false,
+      "color": "#228B22",
+      "description": "Gods of the Slavic peoples"
+    },
+    "hindu": {
+      "name": "Hindu",
+      "enabled": false,
+      "color": "#9400D3",
+      "description": "Gods of the Hindu tradition"
+    },
+    "celtic": {
+      "name": "Celtic",
+      "enabled": false,
+      "color": "#32CD32",
+      "description": "Gods of the Celtic peoples"
+    },
+    "japanese": {
+      "name": "Japanese",
+      "enabled": false,
+      "color": "#DC143C",
+      "description": "Kami of Shinto tradition"
+    },
+    "mesopotamian": {
+      "name": "Mesopotamian",
+      "enabled": false,
+      "color": "#8B4513",
+      "description": "Gods of ancient Mesopotamia"
+    }
+  }
+}

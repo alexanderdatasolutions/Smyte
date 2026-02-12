@@ -10,13 +10,15 @@ class_name GodFactory
 static func create_from_json(god_id: String) -> God:
 	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager")
 	var god_data = config_manager.get_god_config(god_id)
-	
+
 	if not god_data:
 		push_error("God data not found for ID: " + god_id)
 		return null
-	
+
 	var god = God.new()
-	god.id = god_id
+	# Generate unique instance ID while preserving template ID
+	god.template_id = god_id
+	god.id = _generate_unique_id(god_id)
 	god.name = god_data.get("name", "Unknown God")
 	god.pantheon = god_data.get("pantheon", "unknown")
 	god.element = parse_element(god_data.get("element", "fire"))
@@ -171,3 +173,9 @@ static func tier_to_string(tier_type: God.TierType) -> String:
 			return "legendary"
 		_:
 			return "common"
+
+static func _generate_unique_id(template_id: String) -> String:
+	"""Generate a unique instance ID for a god"""
+	var timestamp = int(Time.get_unix_time_from_system())
+	var random_part = randi() % 100000
+	return "%s_%d_%05d" % [template_id, timestamp, random_part]

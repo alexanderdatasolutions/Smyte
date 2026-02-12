@@ -29,6 +29,7 @@ signal node_unlocked(node_id: String)
 var _specialization_manager: SpecializationManager = null
 var _player_progression_manager: PlayerProgressionManager = null
 var _collection_manager = null
+var _hex_grid_manager: HexGridManager = null
 
 # ==============================================================================
 # INITIALIZATION
@@ -47,6 +48,7 @@ func _resolve_dependencies() -> void:
 	_specialization_manager = registry.get_system("SpecializationManager")
 	_player_progression_manager = registry.get_system("PlayerProgressionManager")
 	_collection_manager = registry.get_system("CollectionManager")
+	_hex_grid_manager = registry.get_system("HexGridManager")
 
 	if not _specialization_manager:
 		push_warning("NodeRequirementChecker: SpecializationManager not found")
@@ -54,6 +56,8 @@ func _resolve_dependencies() -> void:
 		push_warning("NodeRequirementChecker: PlayerProgressionManager not found")
 	if not _collection_manager:
 		push_warning("NodeRequirementChecker: CollectionManager not found")
+	if not _hex_grid_manager:
+		push_warning("NodeRequirementChecker: HexGridManager not found")
 
 # ==============================================================================
 # MAIN REQUIREMENT CHECKING
@@ -62,13 +66,32 @@ func _resolve_dependencies() -> void:
 func can_player_capture_node(node: HexNode) -> bool:
 	"""Check if player meets all requirements to capture a node"""
 	if not node:
+		print("[NodeRequirementChecker] can_player_capture_node: node is null")
 		return false
 
 	# Check all individual requirements
-	if not check_level_requirement(node):
+	var level_ok = check_level_requirement(node)
+	var spec_ok = check_specialization_requirement(node)
+	var adjacent_ok = check_adjacent_garrison_requirement(node)
+
+	print("[NodeRequirementChecker] Node '%s' (T%d): level_ok=%s, spec_ok=%s, adjacent_ok=%s, unlock_req=%s" % [
+		node.id, node.tier, level_ok, spec_ok, adjacent_ok, node.unlock_requirements
+	])
+
+	if not level_ok:
+		print("[NodeRequirementChecker] BLOCKED: Level requirement not met (need %d, have %d)" % [
+			node.get_required_level(), _get_player_level()
+		])
 		return false
 
-	if not check_specialization_requirement(node):
+	if not spec_ok:
+		print("[NodeRequirementChecker] BLOCKED: Spec requirement not met (need tier %d role '%s')" % [
+			node.get_required_spec_tier(), node.get_required_spec_role()
+		])
+		return false
+
+	if not adjacent_ok:
+		print("[NodeRequirementChecker] BLOCKED: No adjacent garrisoned node")
 		return false
 
 	# Power requirement is checked during battle, not here
@@ -82,6 +105,10 @@ func get_missing_requirements(node: HexNode) -> Array:
 
 	if not node:
 		return missing
+
+	# Check adjacent garrison requirement
+	if not check_adjacent_garrison_requirement(node):
+		missing.append("Adjacent garrisoned territory required")
 
 	# Check level requirement
 	if not check_level_requirement(node):
@@ -149,6 +176,33 @@ func check_power_requirement(node: HexNode) -> bool:
 	var current_power = _get_player_total_power()
 
 	return current_power >= required_power
+
+func check_adjacent_garrison_requirement(node: HexNode) -> bool:
+	"""Check if player has an adjacent node with a garrison to launch attack from"""
+	if not node:
+		return false
+
+	# Home base (T0) doesn't require adjacent garrison
+	if node.tier == 0 or node.node_type == "base":
+		return true
+
+	if not _hex_grid_manager:
+		# If we can't check, be permissive
+		return true
+
+	# Get neighbors of this node
+	var neighbors = _hex_grid_manager.get_neighbors(node.coord)
+
+	for neighbor in neighbors:
+		# Check if neighbor is player-controlled AND has a garrison
+		if neighbor.controller == "player":
+			if neighbor.garrison.size() > 0:
+				return true
+			# Home base always counts (can attack from home even without garrison)
+			if neighbor.node_type == "base" or neighbor.id == "home_base":
+				return true
+
+	return false
 
 # ==============================================================================
 # SPECIALIZATION CHECKING HELPERS
@@ -267,6 +321,10 @@ func get_requirement_status(node: HexNode) -> Dictionary:
 		return {}
 
 	return {
+		"adjacent_garrison": {
+			"required": true,
+			"met": check_adjacent_garrison_requirement(node)
+		},
 		"level": {
 			"required": node.get_required_level(),
 			"current": _get_player_level(),
@@ -291,26 +349,9 @@ func get_requirement_status(node: HexNode) -> Dictionary:
 
 func get_unlockable_tier() -> int:
 	"""Get the highest tier of nodes the player can unlock"""
-	var player_level = _get_player_level()
-
-	# Tier 1: Level 1+
-	if player_level >= 1:
-		# Tier 5: Level 40+, Tier 3 spec
-		if player_level >= 40 and _has_any_specialization_tier(3):
-			return 5
-		# Tier 4: Level 30+, Tier 2 spec
-		elif player_level >= 30 and _has_any_specialization_tier(2):
-			return 4
-		# Tier 3: Level 20+, Tier 2 spec
-		elif player_level >= 20 and _has_any_specialization_tier(2):
-			return 3
-		# Tier 2: Level 10+, Tier 1 spec
-		elif player_level >= 10 and _has_any_specialization_tier(1):
-			return 2
-		else:
-			return 1
-
-	return 1
+	# No level requirements - tiers unlocked by adjacency and combat power
+	# T4 nodes still require pvp_expansion flag (checked separately)
+	return 5
 
 func can_unlock_tier(tier: int) -> bool:
 	"""Check if player can unlock nodes of this tier"""
@@ -318,37 +359,8 @@ func can_unlock_tier(tier: int) -> bool:
 
 func get_next_tier_requirement() -> String:
 	"""Get what's needed to unlock the next tier"""
-	var current_tier = get_unlockable_tier()
-
-	if current_tier >= 5:
-		return "Maximum tier unlocked"
-
-	var next_tier = current_tier + 1
-	var player_level = _get_player_level()
-
-	match next_tier:
-		2:
-			if player_level < 10:
-				return "Reach Level 10"
-			else:
-				return "Unlock any Tier 1 Specialization"
-		3:
-			if player_level < 20:
-				return "Reach Level 20"
-			else:
-				return "Unlock any Tier 2 Specialization"
-		4:
-			if player_level < 30:
-				return "Reach Level 30"
-			else:
-				return "Unlock any Tier 2 Specialization"
-		5:
-			if player_level < 40:
-				return "Reach Level 40"
-			else:
-				return "Unlock any Tier 3 Specialization"
-
-	return "Unknown"
+	# No tier requirements anymore - just need adjacency and combat power
+	return "All tiers unlocked"
 
 # ==============================================================================
 # SAVE/LOAD

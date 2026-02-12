@@ -19,6 +19,7 @@ signal selection_cancelled
 signal panel_closed
 
 enum SelectionContext { ALL, WORKER, GARRISON }
+enum SortType { RECOMMENDED, POWER, LEVEL, TIER, ELEMENT, NAME }
 
 const PANEL_WIDTH := 400  # Width of the sliding panel
 const SLIDE_DURATION := 0.25  # Animation duration in seconds
@@ -37,15 +38,21 @@ var _title_label: Label
 var _filter_bar: HBoxContainer
 var _context_filters: HBoxContainer
 var _affinity_filters: HBoxContainer
+var _sort_bar: HBoxContainer
+var _sort_dropdown: OptionButton
+var _sort_direction_btn: Button
 var _god_selection_grid: GodSelectionGrid
 var _content_container: VBoxContainer
 
 # State
 var _current_context: SelectionContext = SelectionContext.ALL
 var _active_affinity_filter: God.ElementType = -1  # -1 means no filter
+var _current_sort: SortType = SortType.RECOMMENDED
+var _sort_ascending: bool = false  # false = descending (highest first)
 var _excluded_god_ids: Array[String] = []
 var _is_visible: bool = false
 var _slide_tween: Tween = null
+var _current_node: HexNode = null  # Node context for element matching
 
 # Systems
 var collection_manager = null
@@ -246,17 +253,61 @@ func _build_filter_bars() -> void:
 		_style_element_button(elem_btn, elem, false)
 		_affinity_filters.add_child(elem_btn)
 
+	# Build sort controls row
+	_build_sort_bar()
+
+func _build_sort_bar() -> void:
+	"""Build sort dropdown and direction toggle"""
+	_sort_bar = HBoxContainer.new()
+	_sort_bar.add_theme_constant_override("separation", 8)
+	_content_container.add_child(_sort_bar)
+
+	# Sort label
+	var sort_label = Label.new()
+	sort_label.text = "Sort:"
+	sort_label.add_theme_font_size_override("font_size", 12)
+	sort_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
+	sort_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_sort_bar.add_child(sort_label)
+
+	# Sort dropdown
+	_sort_dropdown = OptionButton.new()
+	_sort_dropdown.custom_minimum_size = Vector2(120, 32)
+	_sort_dropdown.add_item("Recommended", SortType.RECOMMENDED)
+	_sort_dropdown.add_item("Power", SortType.POWER)
+	_sort_dropdown.add_item("Level", SortType.LEVEL)
+	_sort_dropdown.add_item("Tier", SortType.TIER)
+	_sort_dropdown.add_item("Element", SortType.ELEMENT)
+	_sort_dropdown.add_item("Name", SortType.NAME)
+	_sort_dropdown.selected = 0
+	_sort_dropdown.item_selected.connect(_on_sort_changed)
+	_sort_bar.add_child(_sort_dropdown)
+
+	# Sort direction button
+	_sort_direction_btn = Button.new()
+	_sort_direction_btn.text = "▼"
+	_sort_direction_btn.custom_minimum_size = Vector2(32, 32)
+	_sort_direction_btn.tooltip_text = "Toggle sort direction"
+	_sort_direction_btn.pressed.connect(_on_sort_direction_pressed)
+	_sort_bar.add_child(_sort_direction_btn)
+
 func _build_god_grid() -> void:
 	"""Build the embedded god selection grid"""
 	# Create a custom grid view (simpler than embedding GodSelectionGrid)
 	var scroll = ScrollContainer.new()
+	scroll.name = "GodScrollContainer"
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	# Ensure scroll container receives mouse input
+	scroll.mouse_filter = Control.MOUSE_FILTER_STOP
 	_content_container.add_child(scroll)
 
 	var grid = GridContainer.new()
 	grid.name = "GodGrid"
 	grid.columns = 4  # Fit in narrower panel
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
 	scroll.add_child(grid)
@@ -361,32 +412,53 @@ func _update_affinity_buttons() -> void:
 # PUBLIC API
 # =============================================================================
 
-func show_for_garrison(excluded_ids: Array[String] = []) -> void:
+func show_for_garrison(excluded_ids: Array[String] = [], node: HexNode = null) -> void:
 	"""Show panel filtered for garrison selection (combat-ready gods)"""
 	_title_label.text = "Select Garrison Defender"
 	_current_context = SelectionContext.GARRISON
 	_excluded_god_ids = excluded_ids
+	_current_node = node
 	_active_affinity_filter = -1
+	_current_sort = SortType.RECOMMENDED
+	_sort_ascending = false
+	if _sort_dropdown:
+		_sort_dropdown.selected = 0
+	if _sort_direction_btn:
+		_sort_direction_btn.text = "▼"
 	_update_context_buttons()
 	_update_affinity_buttons()
 	_show_panel()
 
-func show_for_worker(excluded_ids: Array[String] = []) -> void:
+func show_for_worker(excluded_ids: Array[String] = [], node: HexNode = null) -> void:
 	"""Show panel filtered for worker selection"""
 	_title_label.text = "Select Worker"
 	_current_context = SelectionContext.WORKER
 	_excluded_god_ids = excluded_ids
+	_current_node = node
 	_active_affinity_filter = -1
+	_current_sort = SortType.RECOMMENDED
+	_sort_ascending = false
+	if _sort_dropdown:
+		_sort_dropdown.selected = 0
+	if _sort_direction_btn:
+		_sort_direction_btn.text = "▼"
 	_update_context_buttons()
 	_update_affinity_buttons()
 	_show_panel()
 
-func show_all(excluded_ids: Array[String] = [], title: String = "Select God") -> void:
+func show_all(excluded_ids: Array[String] = [], title: String = "Select God", node: HexNode = null) -> void:
 	"""Show panel with all gods"""
 	_title_label.text = title
 	_current_context = SelectionContext.ALL
 	_excluded_god_ids = excluded_ids
+	_current_node = node
 	_active_affinity_filter = -1
+	_current_sort = SortType.RECOMMENDED
+	_sort_ascending = false
+	if _sort_dropdown:
+		_sort_dropdown.selected = 0
+	if _sort_direction_btn:
+		_sort_direction_btn.text = "▼"
 	_update_context_buttons()
 	_update_affinity_buttons()
 	_show_panel()
@@ -474,60 +546,173 @@ func _refresh_god_grid() -> void:
 		return
 
 	var all_gods = collection_manager.get_all_gods()
+	print("GodSelectionPanel: Collection has %d total gods" % (all_gods.size() if all_gods else 0))
 	if all_gods == null or all_gods.is_empty():
 		_add_empty_label(grid, "No gods available")
 		return
 
+	# Debug: print first few god details
+	for i in range(mini(all_gods.size(), 5)):
+		var g = all_gods[i]
+		print("  God %d: %s (id=%s, stationed=%s, working=%s)" % [i, g.name, g.id, g.stationed_territory, g.is_working_on_task() if g.has_method("is_working_on_task") else "N/A"])
+
 	# Filter gods
 	var filtered_gods = _filter_gods(all_gods)
+	print("GodSelectionPanel: After filter: %d gods" % filtered_gods.size())
 
 	if filtered_gods.is_empty():
 		_add_empty_label(grid, "No gods match filters")
 		return
 
-	# Sort by element, then level
-	filtered_gods.sort_custom(func(a, b):
-		if a.element != b.element:
-			return a.element < b.element
-		return a.level > b.level
-	)
+	# Sort gods using current sort settings
+	var sorted_gods = _sort_gods(filtered_gods)
 
 	# Create cards
-	for god in filtered_gods:
+	for god in sorted_gods:
 		var card = _create_god_card(god)
 		grid.add_child(card)
 
-	print("GodSelectionPanel: Displaying %d gods" % filtered_gods.size())
+	print("GodSelectionPanel: Displaying %d gods" % sorted_gods.size())
+
+func _sort_gods(gods: Array) -> Array:
+	"""Sort gods based on current sort settings"""
+	var sorted = gods.duplicate()
+
+	match _current_sort:
+		SortType.RECOMMENDED:
+			# Recommended: unassigned first, then synergy score, then matching element, then power
+			# Get current garrison gods for synergy calculation
+			var garrison_gods = _get_garrison_gods()
+			sorted.sort_custom(func(a, b):
+				# First priority: unassigned gods first
+				var a_assigned = a.id in _excluded_god_ids
+				var b_assigned = b.id in _excluded_god_ids
+				if a_assigned != b_assigned:
+					return not a_assigned  # unassigned comes first
+				# Second priority: team synergy score (how much this god improves team bonuses)
+				var a_synergy = _calculate_synergy_score(a, garrison_gods)
+				var b_synergy = _calculate_synergy_score(b, garrison_gods)
+				if a_synergy != b_synergy:
+					return a_synergy > b_synergy  # higher synergy first
+				# Third priority: matching node element
+				var a_matches = _god_matches_node_element(a)
+				var b_matches = _god_matches_node_element(b)
+				if a_matches != b_matches:
+					return a_matches  # matching element first
+				# Fourth priority: power (descending)
+				var pa = _calculate_god_power(a)
+				var pb = _calculate_god_power(b)
+				return pa > pb)
+		SortType.POWER:
+			sorted.sort_custom(func(a, b):
+				var pa = _calculate_god_power(a)
+				var pb = _calculate_god_power(b)
+				return pa < pb if _sort_ascending else pa > pb)
+		SortType.LEVEL:
+			sorted.sort_custom(func(a, b):
+				return a.level < b.level if _sort_ascending else a.level > b.level)
+		SortType.TIER:
+			sorted.sort_custom(func(a, b):
+				return a.tier < b.tier if _sort_ascending else a.tier > b.tier)
+		SortType.ELEMENT:
+			sorted.sort_custom(func(a, b):
+				return a.element < b.element if _sort_ascending else a.element > b.element)
+		SortType.NAME:
+			sorted.sort_custom(func(a, b):
+				return a.name < b.name if _sort_ascending else a.name > b.name)
+
+	return sorted
+
+func _god_matches_node_element(god: God) -> bool:
+	"""Check if god's element matches the current node's element"""
+	if not _current_node or not god:
+		return false
+	if "element" in _current_node:
+		return god.element == _current_node.element
+	return false
+
+func _calculate_god_power(god: God) -> float:
+	"""Calculate combat power of a god"""
+	if not god:
+		return 0.0
+
+	# Use GodCalculator for consistent power calculation
+	var registry = SystemRegistry.get_instance()
+	if registry:
+		var calculator = registry.get_system("GodCalculator")
+		if calculator and calculator.has_method("get_power_rating"):
+			return calculator.get_power_rating(god)
+
+	# Fallback if calculator not available
+	var base_power = god.base_hp + god.base_attack * 2.0 + god.base_defense * 1.5
+	var level_multiplier = 1.0 + (god.level - 1) * 0.1
+	return base_power * level_multiplier
+
+func _get_garrison_gods() -> Array:
+	"""Get the gods currently in the node's garrison"""
+	if not _current_node or not collection_manager:
+		return []
+
+	var gods: Array = []
+	for god_id in _current_node.garrison:
+		var god = collection_manager.get_god_by_id(god_id)
+		if god:
+			gods.append(god)
+	return gods
+
+func _calculate_synergy_score(god: God, garrison_gods: Array) -> float:
+	"""Calculate how much adding this god improves team synergies"""
+	if not god:
+		return 0.0
+
+	# If garrison is empty, no synergy to calculate
+	if garrison_gods.is_empty():
+		return 0.0
+
+	# Calculate bonuses without this god
+	var current_bonuses = TeamStatsCalculator.get_team_bonuses(garrison_gods)
+	var current_bonus_value = _sum_bonus_values(current_bonuses)
+
+	# Calculate bonuses with this god added
+	var test_team = garrison_gods.duplicate()
+	test_team.append(god)
+	var new_bonuses = TeamStatsCalculator.get_team_bonuses(test_team)
+	var new_bonus_value = _sum_bonus_values(new_bonuses)
+
+	# Return the improvement
+	return new_bonus_value - current_bonus_value
+
+func _sum_bonus_values(bonuses: Array) -> float:
+	"""Sum up all bonus values from a bonuses array"""
+	var total = 0.0
+	for bonus in bonuses:
+		if bonus.has("bonus"):
+			total += bonus.bonus
+	return total
+
+func _on_sort_changed(index: int) -> void:
+	"""Handle sort dropdown selection change"""
+	_current_sort = _sort_dropdown.get_item_id(index) as SortType
+	_refresh_god_grid()
+
+func _on_sort_direction_pressed() -> void:
+	"""Handle sort direction toggle"""
+	_sort_ascending = not _sort_ascending
+	_sort_direction_btn.text = "▲" if _sort_ascending else "▼"
+	_refresh_god_grid()
 
 func _filter_gods(gods: Array) -> Array:
-	"""Apply current filters to god list (excluded gods are shown but grayed out)"""
+	"""Apply current filters to god list (assigned gods are shown but grayed out)"""
 	var result = []
 
 	for god in gods:
 		if not god is God:
 			continue
 
-		# Don't exclude assigned gods - they'll be shown grayed out instead
-		# (this lets players see ALL their gods and reassign if needed)
+		# SHOW ALL GODS - assigned gods will be grayed out in _create_god_card()
+		# Don't filter based on assignment status - let the UI handle that
 
-		# Context filter
-		match _current_context:
-			SelectionContext.WORKER:
-				if god.stationed_territory != "" or god.is_working_on_task():
-					if god.id not in _excluded_god_ids:
-						# Only exclude if not already in the exclusion list (those we want to show grayed)
-						continue
-			SelectionContext.GARRISON:
-				if god.stationed_territory != "" or god.is_working_on_task():
-					if god.id not in _excluded_god_ids:
-						# Only exclude if not already in the exclusion list (those we want to show grayed)
-						continue
-				# Garrison prefers combat-capable gods (but still show weak ones grayed)
-				# Commented out to show all gods
-				# if god.level < 5 and god.base_attack <= 50:
-				#     continue
-
-		# Affinity filter
+		# Only apply element/affinity filter if active
 		if _active_affinity_filter >= 0:
 			if god.element != _active_affinity_filter:
 				continue
@@ -542,17 +727,21 @@ func _create_god_card(god: God) -> Control:
 	card.custom_minimum_size = Vector2(80, 100)
 	card.name = "GodCard_" + god.id
 
-	# Check if god is already assigned (excluded)
+	# Check if god is already assigned - either to this node (in exclusion list) or stationed elsewhere
 	var is_assigned = god.id in _excluded_god_ids
+	var current_node_id = _current_node.id if _current_node else ""
+	var is_stationed_elsewhere = god.stationed_territory != "" and god.stationed_territory != current_node_id
+	var is_working = god.is_working_on_task() if god.has_method("is_working_on_task") else false
+	var is_unavailable = is_assigned or is_stationed_elsewhere or is_working
 
-	# Style with element border (dimmed if assigned)
+	# Style with element border (dimmed if unavailable)
 	var element_color = ELEMENT_COLORS.get(god.element, Color.GRAY)
-	if is_assigned:
+	if is_unavailable:
 		element_color = element_color * 0.4  # Dim the border color
 
 	var style = StyleBoxFlat.new()
-	if is_assigned:
-		style.bg_color = Color(0.1, 0.1, 0.12, 0.7)  # Darker background for assigned
+	if is_unavailable:
+		style.bg_color = Color(0.1, 0.1, 0.12, 0.7)  # Darker background for unavailable
 	else:
 		style.bg_color = Color(0.15, 0.15, 0.18, 0.9)
 	style.border_color = element_color
@@ -576,41 +765,60 @@ func _create_god_card(god: God) -> Control:
 	# Portrait (40x40)
 	var portrait_container = CenterContainer.new()
 	var portrait = _create_portrait(god)
-	if is_assigned:
+	if is_unavailable:
 		portrait.modulate = Color(0.5, 0.5, 0.5, 0.8)  # Dim the portrait
 	portrait_container.add_child(portrait)
 	vbox.add_child(portrait_container)
 
-	# "ASSIGNED" indicator badge for assigned gods
-	if is_assigned:
-		var assigned_badge = Label.new()
-		assigned_badge.text = "ASSIGNED"
-		assigned_badge.add_theme_font_size_override("font_size", 8)
-		assigned_badge.add_theme_color_override("font_color", Color(1.0, 0.6, 0.3, 0.9))  # Orange warning color
-		assigned_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		vbox.add_child(assigned_badge)
+	# Status indicator badge for unavailable gods
+	if is_unavailable:
+		var status_badge = Label.new()
+		if is_stationed_elsewhere:
+			status_badge.text = "STATIONED"
+		elif is_working:
+			status_badge.text = "WORKING"
+		else:
+			status_badge.text = "ASSIGNED"
+		status_badge.add_theme_font_size_override("font_size", 8)
+		status_badge.add_theme_color_override("font_color", Color(1.0, 0.6, 0.3, 0.9))  # Orange warning color
+		status_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vbox.add_child(status_badge)
 
 	# Name (truncated)
 	var name_label = Label.new()
 	name_label.text = _truncate_name(god.name, 10)
 	name_label.add_theme_font_size_override("font_size", 10)
-	if is_assigned:
+	if is_unavailable:
 		name_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))  # Dimmed white
 	else:
 		name_label.add_theme_color_override("font_color", Color.WHITE)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(name_label)
 
-	# Level
+	# Level + Element (compact row)
+	var level_elem_row = HBoxContainer.new()
+	level_elem_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	level_elem_row.add_theme_constant_override("separation", 2)
+	vbox.add_child(level_elem_row)
+
 	var level_label = Label.new()
 	level_label.text = "Lv.%d" % god.level
 	level_label.add_theme_font_size_override("font_size", 9)
-	if is_assigned:
+	if is_unavailable:
 		level_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))  # More dimmed
 	else:
 		level_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(level_label)
+	level_elem_row.add_child(level_label)
+
+	# Element icon
+	var elem_label = Label.new()
+	elem_label.text = _get_element_icon(god.element)
+	elem_label.add_theme_font_size_override("font_size", 9)
+	var elem_color = ELEMENT_COLORS.get(god.element, Color.GRAY)
+	if is_unavailable:
+		elem_color = elem_color * 0.5
+	elem_label.add_theme_color_override("font_color", elem_color)
+	level_elem_row.add_child(elem_label)
 
 	# Invisible tap button
 	var button = Button.new()
@@ -628,7 +836,8 @@ func _create_portrait(god: God) -> Control:
 	portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
-	var sprite_path = "res://assets/gods/" + god.id + ".png"
+	var god_template = god.template_id if god.template_id else god.id
+	var sprite_path = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		portrait.texture = load(sprite_path)
 	else:
@@ -644,6 +853,17 @@ func _truncate_name(text: String, max_length: int) -> String:
 	if text.length() <= max_length:
 		return text
 	return text.substr(0, max_length - 2) + ".."
+
+func _get_element_icon(element: God.ElementType) -> String:
+	"""Get element icon for display"""
+	match element:
+		God.ElementType.FIRE: return "🔥"
+		God.ElementType.WATER: return "💧"
+		God.ElementType.EARTH: return "🌍"
+		God.ElementType.LIGHTNING: return "⚡"
+		God.ElementType.LIGHT: return "✨"
+		God.ElementType.DARK: return "🌑"
+		_: return "?"
 
 func _add_empty_label(parent: Control, message: String) -> void:
 	"""Add empty state label"""
@@ -665,6 +885,10 @@ func _add_error_label(parent: Control, message: String) -> void:
 
 func _on_god_card_pressed(god: God) -> void:
 	"""Handle god card tap"""
+	# Don't allow selecting already-assigned gods
+	if god.id in _excluded_god_ids:
+		print("GodSelectionPanel: %s is already assigned, cannot select" % god.name)
+		return
 	print("GodSelectionPanel: Selected %s (Lv.%d)" % [god.name, god.level])
 	god_selected.emit(god)
 	hide_panel()
@@ -675,9 +899,10 @@ func _on_close_pressed() -> void:
 	hide_panel()
 
 func _on_overlay_input(event: InputEvent) -> void:
-	"""Handle input on overlay background (tap to close)"""
+	"""Handle input on overlay background (tap to close, pass through scroll)"""
 	if event is InputEventMouseButton:
-		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		# Only handle left click for closing, let scroll events pass through
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			# Check if tap was outside panel
 			var local_pos = _panel_container.get_local_mouse_position()
 			var panel_rect = Rect2(Vector2.ZERO, _panel_container.size)

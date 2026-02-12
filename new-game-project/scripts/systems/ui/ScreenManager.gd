@@ -33,7 +33,7 @@ func _register_screen_scenes():
 		"worldview": "res://scenes/WorldView.tscn",
 		"collection": "res://scenes/CollectionScreen.tscn",
 		"summon": "res://scenes/SummonScreen.tscn",
-		"territory": "res://scenes/TerritoryScreen.tscn",
+		"territory": "res://scenes/HexTerritoryScreen.tscn",  # Territory now uses hex system
 		"hex_territory": "res://scenes/HexTerritoryScreen.tscn",
 		"sacrifice": "res://scenes/SacrificeScreen.tscn",
 		"sacrifice_selection": "res://scenes/SacrificeSelectionScreen.tscn",
@@ -42,7 +42,8 @@ func _register_screen_scenes():
 		"battle": "res://scenes/BattleScreen.tscn",
 		"battle_setup": "res://scenes/BattleSetupScreen.tscn",
 		"shop": "res://scenes/ShopScreen.tscn",
-		"specialization": "res://scenes/GodSpecializationScreen.tscn"
+		"specialization": "res://scenes/GodSpecializationScreen.tscn",
+		"tower": "res://scenes/TowerScreen.tscn"
 	}
 
 func _normalize_screen_name(screen_name: String) -> String:
@@ -64,7 +65,9 @@ func _normalize_screen_name(screen_name: String) -> String:
 		"battlesetupscreen": "battle_setup",
 		"shopscreen": "shop",
 		"specializationscreen": "specialization",
-		"godspecializationscreen": "specialization"
+		"godspecializationscreen": "specialization",
+		"towerscreen": "tower",
+		"infinitetower": "tower"
 	}
 
 	if aliases.has(normalized):
@@ -106,12 +109,45 @@ func change_screen(screen_name: String) -> bool:
 
 	return true
 
-func go_back() -> bool:
-	"""Go back to previous screen"""
-	if previous_screen.is_empty():
-		return false
+## Main screens that back button can navigate to (the 6 home buttons + home itself)
+const MAIN_SCREENS: Array[String] = [
+	"worldview",    # Home
+	"summon",       # Summon screen (browsable, not mid-summon)
+	"collection",   # Collection screen
+	"territory",    # Territory/hex map
+	"sacrifice",    # Sacrifice screen
+	"dungeon",      # Dungeon selection
+	"equipment",    # Equipment screen
+	"shop"          # Shop screen
+]
 
-	return change_screen(previous_screen)
+## Screens that should NEVER be returned to via back button
+const BLOCKED_BACK_SCREENS: Array[String] = [
+	"battle",           # Never go back into a battle
+	"battle_setup",     # Never go back to battle setup
+	"sacrifice_selection"  # Sub-screen, go to sacrifice instead
+]
+
+## When leaving certain screens, this defines where back should go
+const BACK_REDIRECT: Dictionary = {
+	"specialization": "collection",      # Specialization -> Collection
+	"sacrifice_selection": "sacrifice",  # Sacrifice selection -> Sacrifice
+	"battle_setup": "dungeon",           # Battle setup -> Dungeon
+	"battle": "dungeon"                  # Battle -> Dungeon
+}
+
+func go_back() -> bool:
+	"""Go back to a safe main screen - never returns to battles or transient screens"""
+	# If we have a specific redirect for the current screen, use that
+	if BACK_REDIRECT.has(current_screen_name):
+		return change_screen(BACK_REDIRECT[current_screen_name])
+
+	# If previous screen is a safe main screen, go there
+	if not previous_screen.is_empty() and previous_screen in MAIN_SCREENS:
+		return change_screen(previous_screen)
+
+	# Otherwise, go home
+	return change_screen("worldview")
 
 func get_current_screen() -> Control:
 	"""Get the currently active screen instance"""
@@ -163,7 +199,14 @@ func _switch_to_screen(new_screen: Control, _screen_name: String):
 
 	# Add new screen if not already in tree
 	if not new_screen.get_parent():
-		main_scene.add_child(new_screen)
+		# CRITICAL: Insert screens BEFORE MainUIOverlay so the header stays on top
+		var main_ui_overlay = main_scene.get_node_or_null("MainUIOverlay")
+		if main_ui_overlay:
+			var overlay_index = main_ui_overlay.get_index()
+			main_scene.add_child(new_screen)
+			main_scene.move_child(new_screen, overlay_index)
+		else:
+			main_scene.add_child(new_screen)
 
 	# Show new screen
 	new_screen.visible = true

@@ -265,16 +265,17 @@ func _populate_unit_data():
 	print("BattleUnitCard._populate_unit_data: Complete")
 
 func _load_portrait():
-	"""Load the unit portrait from source_god or fallback"""
+	"""Load the unit portrait from source_god or enemy assets"""
 	if not portrait_rect:
 		print("BattleUnitCard._load_portrait: No portrait_rect!")
 		return
 
 	var texture_loaded = false
 
-	# Try to load from source_god
+	# Try to load from source_god - use template_id for asset path
 	if battle_unit.source_god:
-		var sprite_path = "res://assets/gods/" + battle_unit.source_god.id + ".png"
+		var god_template = battle_unit.source_god.template_id if battle_unit.source_god.template_id else battle_unit.source_god.id
+		var sprite_path = "res://assets/gods/" + god_template + ".png"
 		print("BattleUnitCard._load_portrait: Trying to load god sprite: ", sprite_path)
 		if ResourceLoader.exists(sprite_path):
 			portrait_rect.texture = load(sprite_path)
@@ -283,16 +284,35 @@ func _load_portrait():
 		else:
 			print("BattleUnitCard._load_portrait: God sprite not found at path")
 
-	# Try to load from source_enemy
+	# Try to load from source_enemy - auto-generate path from enemy name
 	if not texture_loaded and not battle_unit.source_enemy.is_empty():
+		# First check if explicit sprite path exists in data
 		var enemy_sprite = battle_unit.source_enemy.get("sprite", "")
-		print("BattleUnitCard._load_portrait: Trying to load enemy sprite: ", enemy_sprite)
 		if enemy_sprite != "" and ResourceLoader.exists(enemy_sprite):
 			portrait_rect.texture = load(enemy_sprite)
 			texture_loaded = true
-			print("BattleUnitCard._load_portrait: Enemy sprite loaded successfully")
+			print("BattleUnitCard._load_portrait: Enemy sprite loaded from explicit path")
 		else:
-			print("BattleUnitCard._load_portrait: Enemy sprite not found or empty")
+			# Auto-generate path from enemy name (convert to snake_case)
+			var enemy_name = battle_unit.display_name
+			var snake_case_name = _to_snake_case(enemy_name)
+
+			# Try no-background version first, then regular
+			var nobg_path = "res://assets/enemies/" + snake_case_name + "_nobg.png"
+			var regular_path = "res://assets/enemies/" + snake_case_name + ".png"
+
+			print("BattleUnitCard._load_portrait: Trying enemy paths: ", nobg_path, " or ", regular_path)
+
+			if ResourceLoader.exists(nobg_path):
+				portrait_rect.texture = load(nobg_path)
+				texture_loaded = true
+				print("BattleUnitCard._load_portrait: Enemy sprite loaded (nobg): ", nobg_path)
+			elif ResourceLoader.exists(regular_path):
+				portrait_rect.texture = load(regular_path)
+				texture_loaded = true
+				print("BattleUnitCard._load_portrait: Enemy sprite loaded: ", regular_path)
+			else:
+				print("BattleUnitCard._load_portrait: Enemy sprite not found for: ", enemy_name)
 
 	# Create placeholder if no texture loaded
 	if not texture_loaded:
@@ -300,6 +320,29 @@ func _load_portrait():
 		var placeholder = _create_placeholder_texture()
 		portrait_rect.texture = placeholder
 		print("BattleUnitCard._load_portrait: Placeholder created")
+
+func _to_snake_case(text: String) -> String:
+	"""Convert a display name to snake_case for asset lookup"""
+	# Handle possessives and special characters
+	var result = text.to_lower()
+	# Replace apostrophe-s with just s (e.g., "Scylla's" -> "scyllas")
+	result = result.replace("'s", "s")
+	result = result.replace("'", "")
+	# Replace spaces and special chars with underscores
+	result = result.replace(" ", "_")
+	result = result.replace("-", "_")
+	result = result.replace(",", "")
+	result = result.replace(".", "")
+	# Remove duplicate underscores
+	while result.contains("__"):
+		result = result.replace("__", "_")
+	# Remove leading/trailing underscores
+	result = result.strip_edges()
+	if result.begins_with("_"):
+		result = result.substr(1)
+	if result.ends_with("_"):
+		result = result.substr(0, result.length() - 1)
+	return result
 
 func _create_placeholder_texture() -> ImageTexture:
 	"""Create a colorful placeholder texture based on unit type"""

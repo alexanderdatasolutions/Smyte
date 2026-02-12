@@ -174,23 +174,55 @@ func _load_portrait_texture(rect: TextureRect, unit: BattleUnit):
 	"""Load the appropriate texture for a unit"""
 	var texture_loaded = false
 
-	# Try source_god
+	# Try source_god - use template_id for asset path
 	if unit.source_god:
-		var sprite_path = "res://assets/gods/" + unit.source_god.id + ".png"
+		var god_template = unit.source_god.template_id if unit.source_god.template_id else unit.source_god.id
+		var sprite_path = "res://assets/gods/" + god_template + ".png"
 		if ResourceLoader.exists(sprite_path):
 			rect.texture = load(sprite_path)
 			texture_loaded = true
 
-	# Try source_enemy
+	# Try source_enemy - auto-generate path from enemy name
 	if not texture_loaded and not unit.source_enemy.is_empty():
+		# First check if explicit sprite path exists in data
 		var enemy_sprite = unit.source_enemy.get("sprite", "")
 		if enemy_sprite != "" and ResourceLoader.exists(enemy_sprite):
 			rect.texture = load(enemy_sprite)
 			texture_loaded = true
+		else:
+			# Auto-generate path from enemy name (convert to snake_case)
+			var snake_case_name = _to_snake_case(unit.display_name)
+			var nobg_path = "res://assets/enemies/" + snake_case_name + "_nobg.png"
+			var regular_path = "res://assets/enemies/" + snake_case_name + ".png"
+
+			if ResourceLoader.exists(nobg_path):
+				rect.texture = load(nobg_path)
+				texture_loaded = true
+			elif ResourceLoader.exists(regular_path):
+				rect.texture = load(regular_path)
+				texture_loaded = true
 
 	# Create placeholder
 	if not texture_loaded:
 		rect.texture = _create_placeholder_texture(unit)
+
+func _to_snake_case(text: String) -> String:
+	"""Convert a display name to snake_case for asset lookup"""
+	var result = text.to_lower()
+	result = result.replace("'s", "s")
+	result = result.replace("'", "")
+	result = result.replace(" ", "_")
+	result = result.replace("-", "_")
+	result = result.replace(",", "")
+	result = result.replace(".", "")
+	while result.contains("__"):
+		result = result.replace("__", "_")
+	result = result.strip_edges()
+	if result.begins_with("_"):
+		result = result.substr(1)
+	if result.ends_with("_"):
+		result = result.substr(0, result.length() - 1)
+	return result
 
 func _create_placeholder_texture(unit: BattleUnit) -> ImageTexture:
 	"""Create a placeholder texture"""

@@ -222,26 +222,33 @@ func _clear_slots() -> void:
 
 func _create_worker_slots() -> void:
 	"""Create slot UI elements for all slots"""
+	# Check garrison power requirement
+	var can_assign_workers = true
+	if _current_node:
+		var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager") if SystemRegistry.get_instance() else null
+		if territory_manager:
+			can_assign_workers = territory_manager.can_assign_workers(_current_node)
+
 	for i in range(_max_slots):
 		var slot: Control
 		if i < _assigned_workers.size():
 			# Filled slot - show god with task info
 			slot = _create_filled_slot(i, _assigned_workers[i])
 		else:
-			# Empty slot - show '+' button
-			slot = _create_empty_slot(i)
+			# Empty slot - show '+' button (disabled if garrison power too low)
+			slot = _create_empty_slot(i, not can_assign_workers)
 		_slots_container.add_child(slot)
 
-func _create_empty_slot(slot_index: int) -> Control:
+func _create_empty_slot(slot_index: int, disabled: bool = false) -> Control:
 	"""Create an empty worker slot with '+' icon (60x60px minimum tap target)"""
 	var slot = Panel.new()
 	slot.custom_minimum_size = Vector2(SLOT_WIDTH, SLOT_HEIGHT)
 	slot.name = "EmptySlot_" + str(slot_index)
 
-	# Style: dashed border appearance
+	# Style: dashed border appearance (greyed out if disabled)
 	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.12, 0.15, 0.8)
-	style.border_color = Color(0.4, 0.4, 0.4, 0.6)
+	style.bg_color = Color(0.1, 0.1, 0.12, 0.6) if disabled else Color(0.12, 0.12, 0.15, 0.8)
+	style.border_color = Color(0.3, 0.3, 0.32, 0.4) if disabled else Color(0.4, 0.4, 0.4, 0.6)
 	style.border_width_left = 2
 	style.border_width_right = 2
 	style.border_width_top = 2
@@ -263,19 +270,19 @@ func _create_empty_slot(slot_index: int) -> Control:
 	spacer_top.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(spacer_top)
 
-	# Plus icon (large, centered)
+	# Plus/Lock icon (large, centered)
 	var plus_label = Label.new()
-	plus_label.text = "+"
-	plus_label.add_theme_font_size_override("font_size", 32)
-	plus_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	plus_label.text = "🔒" if disabled else "+"
+	plus_label.add_theme_font_size_override("font_size", 28 if disabled else 32)
+	plus_label.add_theme_color_override("font_color", Color(0.4, 0.35, 0.3) if disabled else Color(0.5, 0.5, 0.5))
 	plus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(plus_label)
 
-	# "Empty Slot" text
+	# Status text
 	var empty_label = Label.new()
-	empty_label.text = "Empty Slot"
+	empty_label.text = "Need Garrison" if disabled else "Empty Slot"
 	empty_label.add_theme_font_size_override("font_size", 10)
-	empty_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	empty_label.add_theme_color_override("font_color", Color(0.5, 0.4, 0.35) if disabled else Color(0.5, 0.5, 0.5))
 	empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(empty_label)
 
@@ -284,12 +291,13 @@ func _create_empty_slot(slot_index: int) -> Control:
 	spacer_bottom.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(spacer_bottom)
 
-	# Tappable button overlay (60x60 min tap target)
-	var button = Button.new()
-	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	button.flat = true
-	button.pressed.connect(_on_empty_slot_pressed.bind(slot_index))
-	slot.add_child(button)
+	# Tappable button overlay (only if not disabled)
+	if not disabled:
+		var button = Button.new()
+		button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		button.flat = true
+		button.pressed.connect(_on_empty_slot_pressed.bind(slot_index))
+		slot.add_child(button)
 
 	return slot
 
@@ -404,8 +412,9 @@ func _create_portrait(god: God) -> Control:
 	portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
-	# Try to load portrait
-	var sprite_path = "res://assets/gods/" + god.id + ".png"
+	# Try to load portrait - use template_id for asset path
+	var god_template = god.template_id if god.template_id else god.id
+	var sprite_path = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		portrait.texture = load(sprite_path)
 	else:

@@ -6,7 +6,7 @@
       "description": "Basic {element} essence farming",
       "guaranteed_drops": [
         {
-          "loot_item_id": "element_powder_low",
+          "loot_item_id": "element_powder",
           "chance": 1.0,
           "element_specific": true
         },
@@ -15,13 +15,13 @@
           "chance": 1.0
         },
         {
-          "loot_item_id": "magic_powder_low",
+          "loot_item_id": "mana_small",
           "chance": 1.0
         }
       ],
       "rare_drops": [
         {
-          "loot_item_id": "element_powder_mid",
+          "loot_item_id": "element_powder",
           "chance": 0.4,
           "element_specific": true
         },
@@ -38,12 +38,12 @@
       "description": "Intermediate {element} essence farming",
       "guaranteed_drops": [
         {
-          "loot_item_id": "element_powder_low",
+          "loot_item_id": "element_powder",
           "chance": 1.0,
           "element_specific": true
         },
         {
-          "loot_item_id": "element_powder_mid",
+          "loot_item_id": "element_powder",
           "chance": 1.0,
           "element_specific": true
         },
@@ -54,7 +54,7 @@
       ],
       "rare_drops": [
         {
-          "loot_item_id": "element_powder_high",
+          "loot_item_id": "element_powder",
           "chance": 0.4,
           "element_specific": true
         },
@@ -76,12 +76,12 @@
       "description": "Advanced {element} dungeon with superior rewards",
       "guaranteed_drops": [
         {
-          "loot_item_id": "element_powder_mid",
+          "loot_item_id": "element_powder",
           "chance": 1.0,
           "element_specific": true
         },
         {
-          "loot_item_id": "element_powder_low",
+          "loot_item_id": "element_powder",
           "chance": 1.0,
           "element_specific": true
         },
@@ -92,12 +92,12 @@
       ],
       "rare_drops": [
         {
-          "loot_item_id": "element_powder_high",
+          "loot_item_id": "element_powder",
           "chance": 0.6,
           "element_specific": true
         },
         {
-          "loot_item_id": "magic_powder_high",
+          "loot_item_id": "mana_medium",
           "chance": 0.25
         },
         {
@@ -118,7 +118,7 @@
       "description": "Expert {element} dungeon with rare materials",
       "guaranteed_drops": [
         {
-          "loot_item_id": "element_powder_high",
+          "loot_item_id": "element_powder",
           "chance": 1.0,
           "element_specific": true
         },
@@ -134,7 +134,7 @@
       ],
       "rare_drops": [
         {
-          "loot_item_id": "awakening_stone",
+          "loot_item_id": "awakening_essence",
           "chance": 0.3
         },
         {
@@ -154,7 +154,7 @@
       "description": "Ultimate {element} dungeon with legendary rewards",
       "guaranteed_drops": [
         {
-          "loot_item_id": "element_powder_high",
+          "loot_item_id": "element_powder",
           "chance": 1.0,
           "element_specific": true
         },
@@ -168,7 +168,7 @@
           "element_specific": true
         },
         {
-          "loot_item_id": "awakening_stone",
+          "loot_item_id": "awakening_essence",
           "chance": 1.0
         }
       ],
@@ -186,7 +186,7 @@
           "chance": 0.25
         },
         {
-          "loot_item_id": "skill_book",
+          "loot_item_id": "divine_essence",
           "chance": 0.2
         }
       ]
@@ -202,7 +202,7 @@
           "chance": 1.0
         },
         {
-          "loot_item_id": "awakening_stone",
+          "loot_item_id": "awakening_essence",
           "chance": 1.0
         },
         {
@@ -216,7 +216,7 @@
           "chance": 0.4
         },
         {
-          "loot_item_id": "skill_book",
+          "loot_item_id": "divine_essence",
           "chance": 0.6
         },
         {
@@ -240,7 +240,7 @@
           "chance": 1.0
         },
         {
-          "loot_item_id": "awakening_stone",
+          "loot_item_id": "awakening_essence",
           "chance": 1.0
         },
         {
@@ -248,7 +248,7 @@
           "chance": 1.0
         },
         {
-          "loot_item_id": "skill_book",
+          "loot_item_id": "divine_essence",
           "chance": 1.0
         }
       ],
@@ -297,7 +297,7 @@
           "chance": 0.2
         },
         {
-          "loot_item_id": "enhancement_powder",
+          "loot_item_id": "mana_medium",
           "chance": 0.4
         },
         {
@@ -332,7 +332,7 @@
           "chance": 0.15
         },
         {
-          "loot_item_id": "enhancement_powder",
+          "loot_item_id": "mana_medium",
           "chance": 0.6
         },
         {
@@ -361,7 +361,7 @@
           "chance": 1.0
         },
         {
-          "loot_item_id": "enhancement_powder",
+          "loot_item_id": "mana_medium",
           "chance": 1.0
         }
       ],
@@ -412,7 +412,7 @@
         "awakened_bonus": {
           "extra_drops": [
             {
-              "loot_item_id": "element_powder_low",
+              "loot_item_id": "element_powder",
               "chance": 0.2,
               "element_specific": true
             }
@@ -432,7 +432,7 @@
           "hourly_rate": true
         },
         {
-          "loot_item_id": "magic_powder_low",
+          "loot_item_id": "mana_small",
           "chance": 1.0,
           "hourly_rate": true
         }
@@ -448,7 +448,7 @@
         "awakened_bonus": {
           "extra_drops": [
             {
-              "loot_item_id": "element_powder_mid",
+              "loot_item_id": "element_powder",
               "chance": 0.3,
               "element_specific": true
             }
@@ -468,7 +468,7 @@
           "hourly_rate": true
         },
         {
-          "loot_item_id": "magic_powder_high",
+          "loot_item_id": "mana_medium",
           "chance": 1.0,
           "hourly_rate": true
         }
@@ -484,7 +484,7 @@
         "awakened_bonus": {
           "extra_drops": [
             {
-              "loot_item_id": "element_powder_high",
+              "loot_item_id": "element_powder",
               "chance": 0.4,
               "element_specific": true
             },
@@ -512,11 +512,11 @@
       ],
       "rare_drops": [
         {
-          "loot_item_id": "element_powder_low",
+          "loot_item_id": "element_powder",
           "chance": 0.4
         },
         {
-          "loot_item_id": "element_powder_mid", 
+          "loot_item_id": "element_powder", 
           "chance": 0.2
         },
         {
@@ -554,19 +554,19 @@
       ],
       "rare_drops": [
         {
-          "loot_item_id": "element_powder_high",
+          "loot_item_id": "element_powder",
           "chance": 0.6
         },
         {
-          "loot_item_id": "magic_powder_high",
+          "loot_item_id": "mana_medium",
           "chance": 0.4
         },
         {
-          "loot_item_id": "awakening_stone",
+          "loot_item_id": "awakening_essence",
           "chance": 0.3
         },
         {
-          "loot_item_id": "skill_book",
+          "loot_item_id": "divine_essence",
           "chance": 0.2
         },
         {
@@ -614,7 +614,7 @@
           "chance": 0.3
         },
         {
-          "loot_item_id": "enhancement_powder",
+          "loot_item_id": "mana_medium",
           "chance": 0.6
         },
         {

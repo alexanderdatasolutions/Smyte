@@ -230,13 +230,13 @@ func _get_node_defenders(hex_node: HexNode) -> Array:
 
 	var defenders = []
 
-	# For neutral nodes, use base_defenders
+	# For neutral nodes, use base_defenders (PvE enemies from enemies.json)
 	if hex_node.controller == "neutral":
-		for defender_id in hex_node.base_defenders:
-			var defender = collection_manager.get_god_by_id(defender_id)
-			if defender:
-				defenders.append(defender)
-	# For enemy nodes, use garrison
+		for defender_name in hex_node.base_defenders:
+			var enemy = _create_enemy_from_config(defender_name, hex_node.tier)
+			if enemy:
+				defenders.append(enemy)
+	# For enemy nodes, use garrison (player gods)
 	else:
 		for god_id in hex_node.garrison:
 			var defender = collection_manager.get_god_by_id(god_id)
@@ -248,6 +248,84 @@ func _get_node_defenders(hex_node: HexNode) -> Array:
 		defenders.append(_create_default_defender(hex_node))
 
 	return defenders
+
+func _create_enemy_from_config(enemy_name: String, tier: int) -> Dictionary:
+	"""Create an enemy from enemies.json config based on name and tier"""
+	# Load enemies config
+	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager")
+	if not config_manager:
+		return {}
+
+	var enemies_config = config_manager._load_json_file("res://data/enemies.json")
+	if enemies_config.is_empty():
+		return {}
+
+	# Search for enemy by name - first in territory_defenders, then in enemy_types
+	var enemy_data = {}
+	var enemy_element = "neutral"
+	var enemy_role = "basic"
+
+	# First: Search territory_defenders (organized by tier/node_type)
+	var territory_defenders = enemies_config.get("territory_defenders", {})
+	var tier_key = "tier_" + str(tier)
+	if territory_defenders.has(tier_key):
+		var tier_data = territory_defenders[tier_key]
+		for node_type in tier_data:
+			if node_type.begins_with("_"):  # Skip metadata keys like _description
+				continue
+			var node_enemies = tier_data[node_type]
+			if node_enemies is Dictionary and node_enemies.has(enemy_name):
+				enemy_data = node_enemies[enemy_name]
+				enemy_element = enemy_data.get("element", "neutral")
+				enemy_role = enemy_data.get("role", "basic")
+				break
+
+	# Fallback: Search enemy_types (dungeon enemies)
+	if enemy_data.is_empty():
+		var enemy_types = enemies_config.get("enemy_types", {})
+		for element in enemy_types:
+			var roles = enemy_types[element]
+			for role in roles:
+				if roles[role] is Dictionary and roles[role].has(enemy_name):
+					enemy_data = roles[role][enemy_name]
+					enemy_element = element
+					enemy_role = role
+					break
+			if not enemy_data.is_empty():
+				break
+
+	if enemy_data.is_empty():
+		return {}
+
+	# Get role multipliers and base stats from config
+	var role_config = enemies_config.get("enemy_roles", {}).get(enemy_role, {})
+	var stat_multipliers = role_config.get("stat_multipliers", {"hp": 1.0, "attack": 1.0, "defense": 1.0, "speed": 1.0})
+	var base_stats = enemies_config.get("enemy_scaling", {}).get("base_stats", {})
+	var per_level = enemies_config.get("enemy_scaling", {}).get("per_level_growth", {})
+	var tier_bonus = enemies_config.get("enemy_scaling", {}).get("stat_calculation", {}).get("territory_tier_bonus", {})
+
+	# Calculate level based on tier
+	var level = tier * 10
+
+	# Calculate stats
+	var tier_mult = float(tier_bonus.get(str(tier), 1.0))
+	var hp = int((base_stats.get("hp", 100) + level * per_level.get("hp", 6)) * stat_multipliers.get("hp", 1.0) * tier_mult)
+	var atk = int((base_stats.get("attack", 45) + level * per_level.get("attack", 2)) * stat_multipliers.get("attack", 1.0) * tier_mult)
+	var def = int((base_stats.get("defense", 35) + level * per_level.get("defense", 1)) * stat_multipliers.get("defense", 1.0) * tier_mult)
+	var spd = int((base_stats.get("speed", 50) + level * per_level.get("speed", 1)) * stat_multipliers.get("speed", 1.0) * tier_mult)
+
+	return {
+		"id": enemy_name.to_lower().replace(" ", "_") + "_" + str(tier),
+		"name": enemy_name,
+		"level": level,
+		"pantheon": enemy_data.get("pantheon", "enemy"),
+		"element": enemy_element,
+		"hp": hp,
+		"attack": atk,
+		"defense": def,
+		"speed": spd,
+		"skills": enemy_data.get("abilities", [])
+	}
 
 func _create_default_defender(hex_node: HexNode) -> Dictionary:
 	"""Create a default defender based on node tier"""

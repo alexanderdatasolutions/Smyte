@@ -18,69 +18,46 @@ Following plan.md task 4:
 """
 
 # ==============================================================================
-# NODE TYPE TO TASK MAPPING
+# NODE TYPE TO TASK MAPPING (v3.0 - Simplified 3 types + base)
 # ==============================================================================
 
 # Map node types to their primary task
 const NODE_TASK_MAP = {
-	"mine": "Mining",
-	"forest": "Gathering",
-	"coast": "Fishing",
-	"hunting_ground": "Hunting",
-	"forge": "Smithing",
-	"library": "Research",
-	"temple": "Meditation",
-	"fortress": "Garrison Duty",
+	"resource_node": "Gathering",
+	"forge": "Crafting",
+	"shrine": "Meditation",
 	"base": "Management"
 }
 
 # Map node types to their primary output resource
 const NODE_RESOURCE_MAP = {
-	"mine": "iron_ore",
-	"forest": "wood",
-	"coast": "fish",
-	"hunting_ground": "pelts",
-	"forge": "iron_ingots",
-	"library": "research_points",
-	"temple": "divine_essence",
-	"fortress": "gold",
+	"resource_node": "ore",
+	"forge": "enhancement_powder",
+	"shrine": "divine_essence",
 	"base": "mana"
 }
 
 # Secondary resources by node type (tier 2+)
 const NODE_SECONDARY_RESOURCES = {
-	"mine": ["copper_ore", "stone"],
-	"forest": ["herbs", "fiber"],
-	"coast": ["salt", "pearls"],
-	"hunting_ground": ["bones"],
-	"forge": ["steel_ingots"],
-	"library": ["scrolls", "knowledge_crystals"],
-	"temple": ["mana_crystals"],
-	"fortress": []
+	"resource_node": ["wood", "herbs", "monster_parts"],
+	"forge": ["refined_metal", "socket_crystal"],
+	"shrine": ["mana_crystals", "blessed_oil"],
+	"base": []
 }
 
 # Node type to affinity mapping (for bonus calculations)
 const NODE_AFFINITY_MAP = {
-	"mine": "earth",
-	"forest": "earth",
-	"coast": "water",
-	"hunting_ground": "fire",
+	"resource_node": "earth",
 	"forge": "fire",
-	"library": "light",
-	"temple": "light",
-	"fortress": "dark"
+	"shrine": "light",
+	"base": ""
 }
 
 # Base output rates per hour (tier 1)
 const BASE_OUTPUT_RATES = {
-	"mine": 10,
-	"forest": 12,
-	"coast": 8,
-	"hunting_ground": 6,
-	"forge": 5,
-	"library": 4,
-	"temple": 3,
-	"fortress": 2,
+	"resource_node": 10,
+	"forge": 8,
+	"shrine": 6,
 	"base": 1
 }
 
@@ -335,14 +312,10 @@ func _calculate_fallback_spec_bonus(god: God) -> float:
 func _get_relevant_tasks_for_node(node_type: String) -> Array:
 	"""Get relevant task IDs for a node type (for spec bonus lookup)."""
 	match node_type:
-		"mine": return ["mining", "mine_ore", "mine_gems", "deep_mining"]
-		"forest": return ["logging", "herbalism", "foraging", "gathering"]
-		"coast": return ["fishing", "pearl_diving", "salt_harvesting"]
-		"hunting_ground": return ["hunting", "tracking", "monster_hunting"]
-		"forge": return ["smithing", "armor_crafting", "weapon_crafting"]
-		"library": return ["research", "scroll_crafting", "training"]
-		"temple": return ["meditation", "blessing", "divine_communion"]
-		"fortress": return ["garrison_duty", "combat_training", "defense_building"]
+		"resource_node": return ["gathering", "mining", "logging", "herbalism", "foraging"]
+		"forge": return ["smithing", "crafting", "armor_crafting", "weapon_crafting", "enchanting"]
+		"shrine": return ["meditation", "blessing", "divine_communion", "research"]
+		"base": return ["management"]
 		_: return []
 
 func _get_resource_display_name(node: HexNode) -> String:
@@ -353,23 +326,30 @@ func _get_resource_display_name(node: HexNode) -> String:
 func _get_resource_short_name(resource_id: String) -> String:
 	"""Convert resource ID to short display name."""
 	match resource_id:
-		"iron_ore": return "ore"
-		"copper_ore": return "copper"
+		# Crafting materials
+		"ore": return "ore"
 		"wood": return "wood"
 		"herbs": return "herbs"
-		"fiber": return "fiber"
-		"fish": return "fish"
-		"salt": return "salt"
-		"pearls": return "pearls"
-		"pelts": return "pelts"
-		"bones": return "bones"
-		"iron_ingots": return "ingots"
-		"steel_ingots": return "steel"
-		"research_points": return "research"
-		"scrolls": return "scrolls"
-		"knowledge_crystals": return "knowledge"
+		"monster_parts": return "parts"
+		"refined_metal": return "metal"
+		"quality_timber": return "timber"
+		"rare_herbs": return "rare herbs"
+		"beast_scales": return "scales"
+		"magic_crystals": return "crystals"
+		"forging_flame": return "flame"
+		"celestial_ore": return "celestial"
+		"dragon_parts": return "dragon"
+		# Enhancement
+		"enhancement_powder": return "powder"
+		"socket_crystal": return "socket"
+		"blessed_oil": return "oil"
+		# Divine
 		"divine_essence": return "essence"
-		"mana_crystals": return "mana"
-		"gold": return "gold"
+		"awakening_essence": return "awakening"
+		"ascension_crystal": return "ascension"
+		"mana_crystals": return "mana crystals"
+		# Currency
 		"mana": return "mana"
+		"gold": return "gold"
+		"divine_crystals": return "crystals"
 		_: return resource_id.replace("_", " ")

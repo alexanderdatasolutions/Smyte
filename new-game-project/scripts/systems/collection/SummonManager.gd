@@ -80,15 +80,75 @@ func summon_with_element_soul(element: String) -> bool:
 	var soul_type = element + "_soul"
 	return _perform_summon({soul_type: 1}, soul_type, "element", element)
 
+func summon_with_powder(soul_type: String, powder_element: String) -> bool:
+	"""Summon using a soul + element powder to boost matching element weight"""
+	var config = get_config()
+	var powder_cost = config.get("element_powder_summon", {}).get("cost_per_summon", 10)
+	var powder_id = powder_element + "_powder"
+
+	# Build cost: soul + powder
+	var cost = {soul_type: 1, powder_id: powder_cost}
+	var banner_type = "element" if _is_element_soul(soul_type) else "default"
+
+	return _perform_summon(cost, soul_type, banner_type, "", powder_element)
+
+func summon_basic_with_powder(powder_element: String) -> bool:
+	"""Summon with mana + element powder"""
+	var config = get_config()
+	var mana_cost = 10000
+	var powder_cost = config.get("element_powder_summon", {}).get("cost_per_summon", 10)
+	var powder_id = powder_element + "_powder"
+
+	if config.has("summon_configuration"):
+		var costs = config.summon_configuration.get("costs", {}).get("premium_summons", {})
+		if costs.has("mana_summon") and costs.mana_summon.has("mana"):
+			mana_cost = costs.mana_summon.mana
+
+	var cost = {"mana": mana_cost, powder_id: powder_cost}
+	return _perform_summon(cost, "mana", "default", "", powder_element)
+
+func summon_premium_with_powder(powder_element: String) -> bool:
+	"""Summon with divine crystals + element powder"""
+	var config = get_config()
+	var crystal_cost = 100
+	var powder_cost = config.get("element_powder_summon", {}).get("cost_per_summon", 10)
+	var powder_id = powder_element + "_powder"
+
+	if config.has("summon_configuration"):
+		var costs = config.summon_configuration.get("costs", {}).get("premium_summons", {})
+		if costs.has("divine_crystals_summon") and costs.divine_crystals_summon.has("divine_crystals"):
+			crystal_cost = costs.divine_crystals_summon.divine_crystals
+
+	var cost = {"divine_crystals": crystal_cost, powder_id: powder_cost}
+	return _perform_summon(cost, "divine_crystals", "premium", "", powder_element)
+
+func get_powder_cost() -> int:
+	"""Get the powder cost per summon from config"""
+	var config = get_config()
+	return config.get("element_powder_summon", {}).get("cost_per_summon", 10)
+
+func get_powder_weight_multiplier() -> float:
+	"""Get the weight multiplier from using powder"""
+	var config = get_config()
+	return config.get("element_powder_summon", {}).get("weight_multiplier", 2.0)
+
+func can_afford_powder_summon(soul_type: String, powder_element: String) -> bool:
+	"""Check if player can afford a powder-boosted summon"""
+	var config = get_config()
+	var powder_cost = config.get("element_powder_summon", {}).get("cost_per_summon", 10)
+	var powder_id = powder_element + "_powder"
+	var cost = {soul_type: 1, powder_id: powder_cost}
+	return _can_afford_cost(cost)
+
 # CORE SUMMON LOGIC
 
-func _perform_summon(cost: Dictionary, summon_type: String, banner_type: String, element_filter: String = "") -> bool:
+func _perform_summon(cost: Dictionary, summon_type: String, banner_type: String, element_filter: String = "", powder_element: String = "") -> bool:
 	if not _can_afford_cost(cost):
 		summon_failed.emit("Cannot afford summon cost")
 		return false
 	_spend_cost(cost)
 
-	var god = _get_random_god(summon_type, banner_type, element_filter)
+	var god = _get_random_god(summon_type, banner_type, element_filter, powder_element)
 	if not god:
 		summon_failed.emit("Failed to generate god")
 		return false
@@ -125,11 +185,11 @@ func _spend_cost(cost: Dictionary):
 
 # GOD GENERATION
 
-func _get_random_god(summon_type: String, banner_type: String, element_filter: String = "") -> God:
+func _get_random_god(summon_type: String, banner_type: String, element_filter: String = "", powder_element: String = "") -> God:
 	var rates = _get_summon_rates(summon_type)
 	rates = _apply_pity_system(rates, banner_type)
 	var tier = _get_random_tier(rates)
-	return _create_god_of_tier(tier, element_filter)
+	return _create_god_of_tier(tier, element_filter, powder_element)
 
 func _get_summon_rates(summon_type: String) -> Dictionary:
 	var config = get_config()
@@ -184,7 +244,7 @@ func _get_random_tier(rates: Dictionary) -> String:
 			return tier
 	return "common"
 
-func _create_god_of_tier(tier: String, element_filter: String = "") -> God:
+func _create_god_of_tier(tier: String, element_filter: String = "", powder_element: String = "") -> God:
 	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager") if SystemRegistry.get_instance() else null
 	if not config_manager:
 		return null
@@ -196,6 +256,9 @@ func _create_god_of_tier(tier: String, element_filter: String = "") -> God:
 	if tier_number == -1:
 		return null
 
+	# Get enabled pantheons for filtering
+	var enabled_pantheons = config_manager.get_enabled_pantheons()
+
 	# Get filtering weights from config
 	var summon_cfg = get_config()
 	var element_weight = 3.0
@@ -205,15 +268,39 @@ func _create_god_of_tier(tier: String, element_filter: String = "") -> God:
 		element_weight = weights.get("matching_element_weight", 3.0)
 		other_weight = weights.get("other_elements_weight", 1.0)
 
-	# Build weighted pool
+	# Get powder weight multiplier
+	var powder_multiplier = summon_cfg.get("element_powder_summon", {}).get("weight_multiplier", 2.0)
+
+	# Get active element favors (from dungeon completions)
+	var active_favors = _get_active_element_favors()
+	var favor_multiplier = summon_cfg.get("element_favor_system", {}).get("buffs", {})
+
+	# Build weighted pool - only include gods from enabled pantheons
 	var available_gods = []
 	for god_id in gods_config.gods:
 		var god_data = gods_config.gods[god_id]
+		# Filter by pantheon first
+		var god_pantheon = god_data.get("pantheon", "").to_lower()
+		if not god_pantheon in enabled_pantheons:
+			continue
 		if god_data.get("tier", 1) == tier_number:
 			var weight = god_data.get("summon_weight", 1.0)
+			var god_element = _get_element_string(god_data.get("element", 0))
+
+			# Apply element filter weight (from element souls)
 			if not element_filter.is_empty():
-				var god_element = _get_element_string(god_data.get("element", 0))
 				weight *= element_weight if god_element == element_filter else other_weight
+
+			# Apply element powder boost
+			if not powder_element.is_empty() and god_element == powder_element:
+				weight *= powder_multiplier
+
+			# Apply element favor boost (from dungeon completions)
+			var favor_key = god_element + "_favor"
+			if favor_key in active_favors:
+				var favor_data = favor_multiplier.get(favor_key, {})
+				weight *= favor_data.get("weight_multiplier", 2.0)
+
 			for i in range(max(1, int(weight))):
 				available_gods.append(god_id)
 
@@ -226,30 +313,89 @@ func _create_god_of_tier(tier: String, element_filter: String = "") -> God:
 
 	return GodFactory.create_from_json(available_gods[randi() % available_gods.size()])
 
+func _get_active_element_favors() -> Array:
+	"""Get list of active element favor buffs from dungeon completions"""
+	var active = []
+	var save_manager = SystemRegistry.get_instance().get_system("SaveManager") if SystemRegistry.get_instance() else null
+	if not save_manager:
+		return active
+
+	var player_data = save_manager.get_player_data()
+	if not player_data:
+		return active
+
+	var favors = player_data.get("element_favors", {})
+	var current_time = Time.get_unix_time_from_system()
+
+	for favor_key in favors:
+		var expire_time = favors[favor_key]
+		if current_time < expire_time:
+			active.append(favor_key)
+
+	return active
+
+func grant_element_favor(element: String, duration_hours: int = 24):
+	"""Grant an element favor buff (called after completing element dungeon)"""
+	var save_manager = SystemRegistry.get_instance().get_system("SaveManager") if SystemRegistry.get_instance() else null
+	if not save_manager:
+		return
+
+	var favor_key = element + "_favor"
+	var expire_time = Time.get_unix_time_from_system() + (duration_hours * 3600)
+
+	save_manager.set_player_value("element_favors", {favor_key: expire_time}, true)
+	print("SummonManager: Granted %s for %d hours" % [favor_key, duration_hours])
+
+func get_element_favor_status() -> Dictionary:
+	"""Get status of all element favors for UI display"""
+	var status = {}
+	var elements = ["fire", "water", "earth", "lightning", "light", "dark"]
+	var active_favors = _get_active_element_favors()
+	var current_time = Time.get_unix_time_from_system()
+
+	var save_manager = SystemRegistry.get_instance().get_system("SaveManager") if SystemRegistry.get_instance() else null
+	var player_data = save_manager.get_player_data() if save_manager else {}
+	var favors = player_data.get("element_favors", {})
+
+	for element in elements:
+		var favor_key = element + "_favor"
+		var is_active = favor_key in active_favors
+		var time_remaining = 0
+		if is_active and favors.has(favor_key):
+			time_remaining = max(0, int(favors[favor_key]) - int(current_time))
+		status[element] = {
+			"active": is_active,
+			"time_remaining": time_remaining,
+			"time_formatted": _format_time_remaining(time_remaining) if is_active else ""
+		}
+	return status
+
+func _format_time_remaining(seconds: int) -> String:
+	if seconds <= 0:
+		return ""
+	var hours = seconds / 3600
+	var minutes = (seconds % 3600) / 60
+	return "%dh %dm" % [hours, minutes]
+
 func _get_element_string(element_value) -> String:
 	if element_value is int or element_value is float:
 		return ["fire", "water", "earth", "lightning", "light", "dark"][clampi(int(element_value), 0, 5)]
 	return "fire"
 
 func _add_god_to_collection(god: God) -> bool:
-	"""Add god to collection, handling duplicates with mana rewards. Tracks status for UI."""
+	"""Add god to collection. Each god has a unique instance ID so duplicates are allowed."""
 	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager") if SystemRegistry.get_instance() else null
 	if not collection_manager:
 		push_error("SummonManager: CollectionManager not available")
 		return false
 
-	var is_new = collection_manager.add_god(god)
-	_last_summon_duplicates[god.id] = not is_new  # Track for UI display
-
-	if not is_new:
-		var mana_reward = _get_duplicate_mana_reward(god.tier)
-		var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
-		if resource_manager:
-			resource_manager.add_resource("mana", mana_reward)
-		duplicate_obtained.emit(god, mana_reward)
+	var success = collection_manager.add_god(god)
+	if not success:
+		push_error("SummonManager: Failed to add god to collection: " + god.name)
+		return false
 
 	_check_legendary_notification(god)
-	return is_new
+	return true
 
 func _get_duplicate_mana_reward(tier: God.TierType) -> int:
 	"""Get mana reward for duplicate god based on tier."""
@@ -463,8 +609,10 @@ func _has_rare_or_better(gods: Array) -> bool:
 			return true
 	return false
 
-func _is_element_soul(soul_type: String) -> bool:
-	return soul_type in ["fire_soul", "water_soul", "earth_soul", "lightning_soul", "light_soul", "dark_soul"]
+func _is_element_soul(_soul_type: String) -> bool:
+	# Element souls removed in v3.0 - use Element Favor buffs from dungeons instead
+	# TODO: Implement element favor system that applies weight bonuses during summoning
+	return false
 
 # SAVE/LOAD
 

@@ -47,7 +47,6 @@ func initialize_new_game():
 		"gold": 0,
 		"mana": 0,
 		"energy": 100,
-		"arena_tokens": 0,
 		"guild_points": 0,
 		"crystals": 0
 	}

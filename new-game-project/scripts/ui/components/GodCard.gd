@@ -71,12 +71,15 @@ func _setup_card_structure():
 	vbox.add_theme_constant_override("separation", 4)
 	margin.add_child(vbox)
 	
-	# God image
+	# God image - centered in container
+	var image_container = CenterContainer.new()
+	image_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_child(image_container)
+
 	god_image = TextureRect.new()
-	god_image.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	god_image.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	god_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	vbox.add_child(god_image)
+	image_container.add_child(god_image)
 	
 	# God name
 	name_label = Label.new()
@@ -152,15 +155,15 @@ func _apply_card_size():
 				info_label.add_theme_font_size_override("font_size", 10)
 		
 		CardSize.MEDIUM:
-			custom_minimum_size = Vector2(140, 200)
-			_set_margins(7, 7, 7, 7)
+			custom_minimum_size = Vector2(160, 200)
+			_set_margins(8, 7, 8, 7)
 			god_image.custom_minimum_size = Vector2(70, 70)
-			name_label.add_theme_font_size_override("font_size", 14)
+			name_label.add_theme_font_size_override("font_size", 13)
 			level_tier_label.add_theme_font_size_override("font_size", 10)
 			if info_label:
-				info_label.add_theme_font_size_override("font_size", 11)
+				info_label.add_theme_font_size_override("font_size", 10)
 			if experience_bar:
-				experience_bar.custom_minimum_size = Vector2(120, 10)
+				experience_bar.custom_minimum_size = Vector2(140, 10)
 		
 		CardSize.LARGE:
 			custom_minimum_size = Vector2(160, 220)
@@ -187,9 +190,10 @@ func _populate_god_data():
 	if not god_data:
 		return
 	
-	# Load god image
+	# Load god image - use template_id for asset path (id is unique instance)
 	if god_image:
-		var sprite_path = "res://assets/gods/" + god_data.id + ".png"
+		var god_template = god_data.template_id if god_data.template_id else god_data.id
+		var sprite_path = "res://assets/gods/" + god_template + ".png"
 		if ResourceLoader.exists(sprite_path):
 			god_image.texture = load(sprite_path)
 		else:

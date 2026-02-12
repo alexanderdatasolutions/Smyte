@@ -17,12 +17,10 @@ var equipment_manager: EquipmentManager
 # UI references
 var god_name_label: Label
 var god_stats_container: Container
-var detailed_stats_panel: VBoxContainer
 var set_bonus_panel: VBoxContainer
 
 func _ready():
 	_initialize_systems()
-	_setup_detailed_panels()
 
 func _initialize_systems():
 	"""Initialize system references"""
@@ -33,12 +31,6 @@ func _initialize_systems():
 			push_error("EquipmentStatsDisplay: Could not get EquipmentManager from SystemRegistry")
 	else:
 		push_error("EquipmentStatsDisplay: Could not get SystemRegistry instance")
-
-func _setup_detailed_panels():
-	"""Setup detailed stats and set bonus panels"""
-	# Note: This component now uses UI references from the scene file
-	# No need to create duplicate panels - they already exist in EquipmentScreen.tscn
-	pass
 
 func set_ui_references(name_label: Label, stats_container: Container):
 	"""Set UI references from parent"""

@@ -26,7 +26,12 @@ signal grid_updated()
 # ==============================================================================
 # CONSTANTS
 # ==============================================================================
-const HEX_NODES_DATA_PATH = "res://data/hex_nodes.json"
+const HEX_TILES_PATH = "res://data/hex_tiles.json"  # New blank tile + special node system
+const HEX_TEMPLATES_PATH = "res://data/hex_node_templates.json"  # Legacy fallback
+const HEX_NODES_DATA_PATH = "res://data/hex_nodes.json"  # Legacy fallback
+
+# Preload the ring generator to ensure it's available
+const HexRingGeneratorScript = preload("res://scripts/systems/territory/HexRingGenerator.gd")
 
 # ==============================================================================
 # STATE
@@ -36,6 +41,16 @@ var _coord_to_node: Dictionary = {}  # "q,r" -> HexNode
 var _is_loaded: bool = false
 var _base_coord = null  # Divine Sanctum at (0,0)
 
+# Active crafts shared across all UI - {"node_id:task_id": {"node_id", "task_id", "start_time", "end_time", "task_data"}}
+var _active_crafts: Dictionary = {}
+
+# Auto-repeat settings - {"node_id:task_id": true} for tasks that should auto-repeat
+var _auto_repeat_crafts: Dictionary = {}
+
+# Signals for craft events
+signal craft_completed(node_id: String, task_id: String, task_data: Dictionary)
+signal craft_auto_restarted(node_id: String, task_id: String)
+
 # ==============================================================================
 # INITIALIZATION
 # ==============================================================================
@@ -44,49 +59,383 @@ func _ready() -> void:
 	_initialize_base_coord()
 	load_nodes_from_json()
 
+func _process(_delta: float) -> void:
+	"""Check for completed auto-repeat crafts"""
+	_check_auto_repeat_crafts()
+
 func _initialize_base_coord() -> void:
 	"""Initialize base coordinate at origin"""
 	var script = load("res://scripts/data/HexCoord.gd")
 	_base_coord = script.new(0, 0)
 
 func load_nodes_from_json() -> void:
-	"""Load all hex node definitions from JSON"""
-	if not FileAccess.file_exists(HEX_NODES_DATA_PATH):
-		push_warning("HexGridManager: Hex nodes data file not found: " + HEX_NODES_DATA_PATH)
-		push_warning("HexGridManager: Starting with empty grid. Create hex_nodes.json to add nodes.")
-		_is_loaded = true
-		nodes_loaded.emit()
+	"""Load hex nodes using programmatic ring generation + templates"""
+	# Try new blank tile system first (hex_tiles.json)
+	if FileAccess.file_exists(HEX_TILES_PATH):
+		_load_from_hex_tiles()
 		return
 
-	var file = FileAccess.open(HEX_NODES_DATA_PATH, FileAccess.READ)
+	# Fallback to legacy template-based generation
+	if FileAccess.file_exists(HEX_TEMPLATES_PATH):
+		_load_from_templates()
+		return
+
+	# Final fallback to legacy JSON
+	_load_legacy_json()
+
+func _load_from_hex_tiles() -> void:
+	"""Generate hex grid from hex_tiles.json (blank tiles + special nodes)"""
+	var file = FileAccess.open(HEX_TILES_PATH, FileAccess.READ)
 	if not file:
-		push_error("HexGridManager: Failed to open hex nodes data file")
+		push_error("HexGridManager: Failed to open hex tiles file")
+		_load_from_templates()
 		return
 
 	var json_text = file.get_as_text()
 	file.close()
 
 	var json = JSON.new()
-	var parse_result = json.parse(json_text)
-	if parse_result != OK:
-		push_error("HexGridManager: Failed to parse hex nodes JSON: " + json.get_error_message())
+	if json.parse(json_text) != OK:
+		push_error("HexGridManager: Failed to parse hex tiles JSON: %s" % json.get_error_message())
+		_load_from_templates()
+		return
+
+	var tiles_config = json.get_data()
+	var hex_node_script = load("res://scripts/data/HexNode.gd")
+
+	# Validate ring generation algorithm
+	if not HexRingGeneratorScript.validate_all_rings(4):
+		push_error("HexGridManager: Ring generation validation failed!")
+		return
+
+	# Load ring configuration
+	var ring_config = tiles_config.get("ring_config", {})
+	var blank_tiles = tiles_config.get("blank_tiles", {})
+	var special_nodes = tiles_config.get("special_nodes", {})
+	var base_node = tiles_config.get("base_node", {})
+
+	# Generate Ring 0 - Base
+	_create_base_node(hex_node_script, base_node)
+
+	# Generate Rings 1-4
+	for ring in range(1, 5):
+		var ring_key = "ring_%d" % ring
+		var ring_data = ring_config.get(ring_key, {})
+		if ring_data.is_empty():
+			continue
+
+		var tier = ring_data.get("tier", ring)
+		var distribution = ring_data.get("distribution", {"blank": ring_data.get("count", 6)})
+
+		# Get coordinates for this ring
+		var ring_coords = HexRingGeneratorScript.generate_ring(ring)
+
+		# Build node list based on distribution
+		var nodes_to_create: Array = []
+
+		# Add blank tiles
+		var blank_count = distribution.get("blank", 0)
+		for i in range(blank_count):
+			nodes_to_create.append({"type": "blank", "tier": tier})
+
+		# Add special nodes
+		for special_id in distribution:
+			if special_id == "blank":
+				continue
+			var special_count = distribution[special_id]
+			for i in range(special_count):
+				nodes_to_create.append({"type": "special", "special_id": special_id, "tier": tier})
+
+		# Shuffle to randomize placement
+		nodes_to_create.shuffle()
+
+		# Create nodes at ring coordinates
+		for i in range(min(nodes_to_create.size(), ring_coords.size())):
+			var coord = ring_coords[i]
+			var node_info = nodes_to_create[i]
+
+			if node_info.type == "blank":
+				_create_blank_tile(hex_node_script, blank_tiles, coord, tier, i)
+			else:
+				var special_id = node_info.special_id
+				var special_template = special_nodes.get(special_id, {})
+				_create_special_node(hex_node_script, special_template, coord, special_id, i)
+
+	_is_loaded = true
+	nodes_loaded.emit()
+	print("HexGridManager: Generated %d hex nodes (blank tiles + special nodes)" % _nodes.size())
+
+func _create_base_node(hex_node_script, base_template: Dictionary) -> void:
+	"""Create the player's home base at (0,0)"""
+	var hex_coord_script = load("res://scripts/data/HexCoord.gd")
+
+	var node_data = {
+		"id": "home_base",
+		"name": base_template.get("name", "Divine Sanctum"),
+		"type": "base",
+		"tier": 0,
+		"coord": {"q": 0, "r": 0},
+		"controller": "player",
+		"is_revealed": true,
+		"is_capturable": false,
+		"is_buildable": false,
+		"is_special_node": false,
+		"fixed_production": base_template.get("fixed_production", {"mana": 100, "gold": 50}),
+		"base_production": base_template.get("fixed_production", {"mana": 100, "gold": 50}),
+		"max_garrison": base_template.get("max_garrison", 0),
+		"max_workers": base_template.get("max_workers", 0),
+		"attack_timer_hours": -1
+	}
+
+	var loaded_node = hex_node_script.from_dict(node_data)
+	if loaded_node:
+		_add_node(loaded_node)
+
+func _create_blank_tile(hex_node_script, blank_tiles: Dictionary, coord: Vector2i, tier: int, index: int) -> void:
+	"""Create a blank buildable tile"""
+	var tier_key = "tier_%d" % tier
+	var template = blank_tiles.get(tier_key, {})
+	if template.is_empty():
+		push_warning("HexGridManager: No blank tile template for tier %d" % tier)
+		return
+
+	# Pick a name from the names array
+	var names = template.get("names", ["Unknown Tile"])
+	var name = names[index % names.size()]
+
+	# Generate unique ID
+	var suffix = char(97 + (index % 26))
+	if index >= 26:
+		suffix = char(97 + (index / 26) - 1) + suffix
+	var node_id = "blank_t%d_%s" % [tier, suffix]
+
+	# Handle defender count
+	var defender_count_config = template.get("defender_count", {"min": 1, "max": 2})
+	var defender_names = template.get("base_defenders", [])
+	var actual_defenders: Array[String] = []
+	var num_defenders = randi_range(defender_count_config.get("min", 1), defender_count_config.get("max", 2))
+	for i in range(num_defenders):
+		if defender_names.size() > 0:
+			actual_defenders.append(defender_names[i % defender_names.size()])
+
+	var node_data = {
+		"id": node_id,
+		"name": name,
+		"type": "blank",
+		"tier": tier,
+		"coord": {"q": coord.x, "r": coord.y},
+		"controller": "neutral",
+		"is_revealed": tier <= 1,
+		"is_capturable": true,
+		"is_buildable": true,
+		"is_special_node": false,
+		"is_pvp_territory": template.get("is_pvp_territory", false),
+		"placed_building": "",
+		"building_level": 1,
+		"fixed_production": {},
+		"base_production": {},
+		"max_garrison": template.get("max_garrison", 2),
+		"max_workers": template.get("max_workers", 3),
+		"base_defenders": actual_defenders,
+		"capture_power_required": template.get("capture_power_required", 2000),
+		"attack_timer_hours": template.get("attack_timer_hours", 8),
+		"defense_drops": template.get("defense_drops", {})
+	}
+
+	var loaded_node = hex_node_script.from_dict(node_data)
+	if loaded_node:
+		_add_node(loaded_node)
+
+func _create_special_node(hex_node_script, template: Dictionary, coord: Vector2i, special_id: String, index: int) -> void:
+	"""Create a special fixed-production node (PvP objective)"""
+	if template.is_empty():
+		push_warning("HexGridManager: No template for special node %s" % special_id)
+		return
+
+	var node_id = "%s_%d" % [special_id, index]
+
+	# Handle defender count
+	var defender_count_config = template.get("defender_count", {"min": 3, "max": 5})
+	var defender_names = template.get("base_defenders", [])
+	var actual_defenders: Array[String] = []
+	var num_defenders = randi_range(defender_count_config.get("min", 3), defender_count_config.get("max", 5))
+	for i in range(num_defenders):
+		if defender_names.size() > 0:
+			actual_defenders.append(defender_names[i % defender_names.size()])
+
+	var fixed_prod = template.get("fixed_production", {})
+
+	var node_data = {
+		"id": node_id,
+		"name": template.get("name", special_id.replace("_", " ").capitalize()),
+		"type": "special",
+		"tier": template.get("tier", 4),
+		"coord": {"q": coord.x, "r": coord.y},
+		"controller": "neutral",
+		"is_revealed": false,
+		"is_capturable": true,
+		"is_buildable": false,
+		"is_special_node": true,
+		"is_pvp_territory": template.get("is_pvp_territory", true),
+		"placed_building": "",
+		"building_level": 1,
+		"fixed_production": fixed_prod,
+		"base_production": fixed_prod,  # Special nodes use fixed_production as base
+		"max_garrison": template.get("max_garrison", 5),
+		"max_workers": template.get("max_workers", 5),
+		"base_defenders": actual_defenders,
+		"capture_power_required": template.get("capture_power_required", 30000),
+		"attack_timer_hours": template.get("attack_timer_hours", 2),
+		"defense_drops": template.get("defense_drops", {})
+	}
+
+	var loaded_node = hex_node_script.from_dict(node_data)
+	if loaded_node:
+		_add_node(loaded_node)
+
+func _load_from_templates() -> void:
+	"""[LEGACY] Generate hex grid programmatically using old templates"""
+	var file = FileAccess.open(HEX_TEMPLATES_PATH, FileAccess.READ)
+	if not file:
+		push_error("HexGridManager: Failed to open templates file")
+		_load_legacy_json()
+		return
+
+	var json_text = file.get_as_text()
+	file.close()
+
+	var json = JSON.new()
+	if json.parse(json_text) != OK:
+		push_error("HexGridManager: Failed to parse templates JSON: " + json.get_error_message())
+		_load_legacy_json()
+		return
+
+	var templates = json.get_data()
+
+	# Validate ring generation algorithm
+	if not HexRingGeneratorScript.validate_all_rings(4):
+		push_error("HexGridManager: Ring generation validation failed!")
+		return
+
+	# Generate nodes for each tier (rings 0-4)
+	var tier_to_ring = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4}
+	var layout = HexRingGeneratorScript.generate_full_layout(tier_to_ring)
+
+	var hex_node_script = load("res://scripts/data/HexNode.gd")
+	var hex_coord_script = load("res://scripts/data/HexCoord.gd")
+
+	for node_layout in layout:
+		var tier = node_layout["tier"]
+		var node_type = node_layout["type"]
+		var coord = node_layout["coord"]
+		var index = node_layout["index"]
+
+		# Get template for this node type and tier
+		var template = _get_node_template(templates, node_type, tier)
+		if template.is_empty():
+			push_warning("HexGridManager: No template for %s tier %d" % [node_type, tier])
+			continue
+
+		# Build node data from template
+		var node_data = template.duplicate(true)
+
+		# Generate unique ID
+		var node_id = _generate_node_id(node_type, tier, index)
+		node_data["id"] = node_id
+
+		# Assign name from template names array
+		node_data["name"] = _get_node_name(template, index)
+
+		# Set type and tier
+		node_data["type"] = node_type
+		node_data["tier"] = tier
+
+		# Set coordinate
+		node_data["coord"] = {"q": coord.x, "r": coord.y}
+
+		# Set defaults if not in template
+		if not node_data.has("controller"):
+			node_data["controller"] = "player" if node_type == "base" else "neutral"
+		if not node_data.has("is_revealed"):
+			node_data["is_revealed"] = tier <= 1  # T0 and T1 revealed by default
+		if not node_data.has("is_capturable"):
+			node_data["is_capturable"] = node_type != "base"
+
+		# Create the HexNode
+		var loaded_node = hex_node_script.from_dict(node_data)
+		if loaded_node:
+			_add_node(loaded_node)
+
+	_is_loaded = true
+	nodes_loaded.emit()
+	print("HexGridManager: Generated %d hex nodes in concentric rings" % [_nodes.size()])
+
+func _get_node_template(templates: Dictionary, node_type: String, tier: int) -> Dictionary:
+	"""Get template for a specific node type and tier"""
+	if node_type == "base":
+		return templates.get("base", {})
+
+	var type_templates = templates.get(node_type, {})
+	var tier_key = "tier_%d" % tier
+	return type_templates.get(tier_key, {})
+
+func _get_node_name(template: Dictionary, index: int) -> String:
+	"""Get node name from template names array"""
+	var names = template.get("names", [])
+	if names.is_empty():
+		return template.get("name", "Unknown Node")
+
+	# Cycle through names if we have more nodes than names
+	var name_index = index % names.size()
+	return names[name_index]
+
+func _generate_node_id(node_type: String, tier: int, index: int) -> String:
+	"""Generate a unique node ID"""
+	if node_type == "base":
+		return "home_base"
+
+	# Convert index to letter suffix (0=a, 1=b, 2=c, etc.)
+	var suffix = char(97 + (index % 26))  # a-z
+	if index >= 26:
+		suffix = char(97 + (index / 26) - 1) + suffix  # aa, ab, etc.
+
+	return "%s_t%d_%s" % [node_type, tier, suffix]
+
+func _load_legacy_json() -> void:
+	"""Fallback: Load from legacy hex_nodes.json with hardcoded coordinates"""
+	if not FileAccess.file_exists(HEX_NODES_DATA_PATH):
+		push_warning("HexGridManager: No hex data files found, starting with empty grid")
+		_is_loaded = true
+		nodes_loaded.emit()
+		return
+
+	var file = FileAccess.open(HEX_NODES_DATA_PATH, FileAccess.READ)
+	if not file:
+		push_error("HexGridManager: Failed to open legacy hex nodes file")
+		return
+
+	var json_text = file.get_as_text()
+	file.close()
+
+	var json = JSON.new()
+	if json.parse(json_text) != OK:
+		push_error("HexGridManager: Failed to parse legacy JSON: " + json.get_error_message())
 		return
 
 	var data = json.get_data()
 
-	# Load node definitions
 	if data.has("nodes"):
+		var hex_node_script = load("res://scripts/data/HexNode.gd")
 		for node_id in data.nodes:
 			var node_data = data.nodes[node_id]
-			node_data["id"] = node_id  # Ensure ID is set
-			var hex_node_script = load("res://scripts/data/HexNode.gd")
+			node_data["id"] = node_id
 			var loaded_node = hex_node_script.from_dict(node_data)
 			if loaded_node:
 				_add_node(loaded_node)
 
 	_is_loaded = true
 	nodes_loaded.emit()
-	print("HexGridManager: Loaded %d hex nodes" % [_nodes.size()])
+	print("HexGridManager: Loaded %d hex nodes from legacy JSON" % [_nodes.size()])
 
 func _add_node(node) -> void:
 	"""Internal method to add a node to the grid"""
@@ -341,17 +690,26 @@ func get_save_data() -> Dictionary:
 		node_states[node_id] = node.to_dict()
 
 	return {
-		"nodes": node_states
+		"nodes": node_states,
+		"active_crafts": _active_crafts.duplicate(true),
+		"auto_repeat_crafts": _auto_repeat_crafts.duplicate()
 	}
 
 func load_save_data(save_data: Dictionary) -> void:
 	"""Load grid state from save data"""
 	if not save_data.has("nodes"):
+		print("[HexGridManager] load_save_data: No 'nodes' key in save data!")
 		return
 
 	var saved_nodes = save_data.nodes
+	print("[HexGridManager] load_save_data: Found %d saved nodes, current grid has %d nodes" % [saved_nodes.size(), _nodes.size()])
+
+	var matched_count = 0
+	var player_nodes_loaded = 0
+
 	for node_id in saved_nodes:
 		if _nodes.has(node_id):
+			matched_count += 1
 			# Update existing node with saved state
 			var node = _nodes[node_id]
 			var saved_state = saved_nodes[node_id]
@@ -361,6 +719,9 @@ func load_save_data(save_data: Dictionary) -> void:
 			node.is_revealed = saved_state.get("is_revealed", false)
 			node.is_contested = saved_state.get("is_contested", false)
 			node.contested_until = saved_state.get("contested_until", 0)
+
+			if node.controller == "player":
+				player_nodes_loaded += 1
 
 			# Update typed arrays using .assign()
 			var garrison_data = saved_state.get("garrison", [])
@@ -377,7 +738,384 @@ func load_save_data(save_data: Dictionary) -> void:
 			node.last_production_time = saved_state.get("last_production_time", 0)
 			node.accumulated_resources = saved_state.get("accumulated_resources", {})
 
+			# Building system state (new)
+			node.placed_building = saved_state.get("placed_building", "")
+			node.building_level = saved_state.get("building_level", 1)
+
+			# Attack timer state
+			node.attack_timer_remaining = saved_state.get("attack_timer_remaining", -1.0)
+			node.last_attack_check_time = saved_state.get("last_attack_check_time", 0)
+		else:
+			# Log unmatched node IDs to diagnose save/load issues
+			print("[HexGridManager] WARNING: Saved node '%s' not found in current grid!" % node_id)
+
+	print("[HexGridManager] load_save_data: Matched %d/%d saved nodes, %d player-controlled" % [matched_count, saved_nodes.size(), player_nodes_loaded])
+
+	# Restore active crafts
+	if save_data.has("active_crafts"):
+		_active_crafts = save_data.active_crafts.duplicate(true)
+
+	# Restore auto-repeat settings
+	if save_data.has("auto_repeat_crafts"):
+		_auto_repeat_crafts = save_data.auto_repeat_crafts.duplicate()
+
+	# Post-load fix: Ensure adjacent nodes to player-controlled nodes are revealed
+	# This handles saves from before the reveal-on-capture logic was added
+	_ensure_adjacent_nodes_revealed()
+
 	grid_updated.emit()
+
+func _ensure_adjacent_nodes_revealed() -> void:
+	"""Ensure all nodes adjacent to player-controlled nodes are revealed.
+	Called after loading save data to fix saves from before reveal logic was added."""
+	var player_nodes = get_player_nodes()
+	var newly_revealed = 0
+
+	for node in player_nodes:
+		var neighbors = get_neighbors(node.coord)
+		for neighbor in neighbors:
+			if neighbor and not neighbor.is_revealed:
+				neighbor.is_revealed = true
+				newly_revealed += 1
+
+	if newly_revealed > 0:
+		print("HexGridManager: Post-load revealed %d adjacent nodes" % newly_revealed)
+
+# ==============================================================================
+# CRAFT TRACKING (Shared across UI screens)
+# ==============================================================================
+
+func start_craft(node_id: String, task_id: String, task_data: Dictionary, auto_repeat: bool = false) -> bool:
+	"""Start tracking a craft - called by UI when player starts crafting.
+	Returns true if craft was started, false if node is at craft limit."""
+	var node = get_node_by_id(node_id)
+	if not node:
+		push_error("HexGridManager: Cannot start craft - node '%s' not found" % node_id)
+		return false
+
+	# Check craft limit for this node (1 craft per node by default, could be expanded based on tier)
+	var current_crafts = get_active_crafts_for_node(node_id)
+	var max_crafts = _get_max_crafts_for_node(node)
+	if current_crafts.size() >= max_crafts:
+		push_warning("HexGridManager: Node '%s' already at craft limit (%d/%d)" % [node_id, current_crafts.size(), max_crafts])
+		return false
+
+	# Check if node has an assigned worker (required for crafting)
+	if node.assigned_workers.is_empty():
+		push_warning("HexGridManager: Cannot start craft - node '%s' has no assigned workers" % node_id)
+		return false
+
+	var duration_seconds = task_data.get("base_duration_seconds", 60)
+	var current_time = int(Time.get_unix_time_from_system())
+	var craft_key = "%s:%s" % [node_id, task_id]
+
+	_active_crafts[craft_key] = {
+		"task_id": task_id,
+		"node_id": node_id,
+		"start_time": current_time,
+		"end_time": current_time + duration_seconds,
+		"task_data": task_data,
+		"auto_repeat": auto_repeat
+	}
+
+	# Track auto-repeat setting
+	if auto_repeat:
+		_auto_repeat_crafts[craft_key] = true
+	elif _auto_repeat_crafts.has(craft_key):
+		_auto_repeat_crafts.erase(craft_key)
+
+	# Also add to node's active_tasks
+	if not node.active_tasks.has(task_id):
+		node.active_tasks.append(task_id)
+
+	print("HexGridManager: Started craft '%s' at node '%s' (auto-repeat: %s)" % [task_id, node_id, auto_repeat])
+	return true
+
+func _get_max_crafts_for_node(node: HexNode) -> int:
+	"""Get maximum concurrent crafts allowed for a node based on tier"""
+	# For now, 1 craft per forge. Could expand to tier-based later.
+	return 1
+
+func get_active_crafts() -> Dictionary:
+	"""Get all active crafts"""
+	return _active_crafts
+
+func get_active_crafts_for_node(node_id: String) -> Array:
+	"""Get active crafts for a specific node"""
+	var result: Array = []
+	for craft_key in _active_crafts.keys():
+		var craft_data = _active_crafts[craft_key]
+		if craft_data.get("node_id", "") == node_id:
+			result.append(craft_data)
+	return result
+
+func complete_craft(node_id: String, task_id: String) -> Dictionary:
+	"""Complete a craft and return its data, or empty dict if not found"""
+	var craft_key = "%s:%s" % [node_id, task_id]
+	if not _active_crafts.has(craft_key):
+		return {}
+
+	var craft_data = _active_crafts[craft_key]
+	_active_crafts.erase(craft_key)
+
+	# Remove from node's active_tasks
+	var node = get_node_by_id(node_id)
+	if node and node.active_tasks.has(task_id):
+		node.active_tasks.erase(task_id)
+
+	# Emit completion signal
+	craft_completed.emit(node_id, task_id, craft_data.get("task_data", {}))
+
+	return craft_data
+
+func set_auto_repeat(node_id: String, task_id: String, enabled: bool) -> void:
+	"""Enable or disable auto-repeat for a craft"""
+	var craft_key = "%s:%s" % [node_id, task_id]
+	if enabled:
+		_auto_repeat_crafts[craft_key] = true
+		# Also update the active craft data if it exists
+		if _active_crafts.has(craft_key):
+			_active_crafts[craft_key]["auto_repeat"] = true
+	else:
+		_auto_repeat_crafts.erase(craft_key)
+		if _active_crafts.has(craft_key):
+			_active_crafts[craft_key]["auto_repeat"] = false
+
+func is_auto_repeat_enabled(node_id: String, task_id: String) -> bool:
+	"""Check if auto-repeat is enabled for a craft"""
+	var craft_key = "%s:%s" % [node_id, task_id]
+	return _auto_repeat_crafts.has(craft_key)
+
+func cancel_craft(node_id: String, task_id: String) -> bool:
+	"""Cancel a specific craft. Returns true if craft was cancelled."""
+	var craft_key = "%s:%s" % [node_id, task_id]
+	if not _active_crafts.has(craft_key):
+		return false
+
+	_active_crafts.erase(craft_key)
+	_auto_repeat_crafts.erase(craft_key)
+
+	# Remove from node's active_tasks
+	var node = get_node_by_id(node_id)
+	if node and node.active_tasks.has(task_id):
+		node.active_tasks.erase(task_id)
+
+	print("HexGridManager: Cancelled craft '%s' at node '%s'" % [task_id, node_id])
+	return true
+
+func cancel_all_crafts_for_node(node_id: String) -> int:
+	"""Cancel all crafts for a node. Returns number of crafts cancelled."""
+	var cancelled = 0
+	var crafts_to_cancel: Array = []
+
+	# Find all crafts for this node
+	for craft_key in _active_crafts.keys():
+		var craft_data = _active_crafts[craft_key]
+		if craft_data.get("node_id", "") == node_id:
+			crafts_to_cancel.append(craft_data.get("task_id", ""))
+
+	# Cancel them
+	for task_id in crafts_to_cancel:
+		if cancel_craft(node_id, task_id):
+			cancelled += 1
+
+	if cancelled > 0:
+		print("HexGridManager: Cancelled %d crafts for node '%s'" % [cancelled, node_id])
+
+	return cancelled
+
+func _check_auto_repeat_crafts() -> void:
+	"""Check for completed auto-repeat crafts and restart them"""
+	var current_time = int(Time.get_unix_time_from_system())
+	var crafts_to_restart: Array = []
+	var crafts_to_cancel: Array = []
+
+	for craft_key in _active_crafts.keys():
+		var craft_data = _active_crafts[craft_key]
+		var end_time = craft_data.get("end_time", current_time)
+		var node_id = craft_data.get("node_id", "")
+
+		# Check if node still has workers assigned
+		var node = get_node_by_id(node_id)
+		if not node or node.assigned_workers.is_empty():
+			# No workers = cancel craft
+			crafts_to_cancel.append(craft_data)
+			continue
+
+		# Check if craft is complete
+		if current_time >= end_time:
+			var is_auto_repeat = craft_data.get("auto_repeat", false) or _auto_repeat_crafts.has(craft_key)
+			if is_auto_repeat:
+				crafts_to_restart.append(craft_data)
+
+	# Cancel crafts with no workers
+	for craft_data in crafts_to_cancel:
+		var node_id = craft_data.get("node_id", "")
+		var task_id = craft_data.get("task_id", "")
+		cancel_craft(node_id, task_id)
+		print("HexGridManager: Auto-cancelled craft '%s' - no workers assigned" % task_id)
+
+	# Process auto-restarts
+	for craft_data in crafts_to_restart:
+		var node_id = craft_data.get("node_id", "")
+		var task_id = craft_data.get("task_id", "")
+		var task_data = craft_data.get("task_data", {})
+
+		# Double-check node still has workers (might have been cancelled above)
+		var node = get_node_by_id(node_id)
+		if not node or node.assigned_workers.is_empty():
+			var craft_key = "%s:%s" % [node_id, task_id]
+			_auto_repeat_crafts.erase(craft_key)
+			continue
+
+		# Check if we can afford the cost
+		if _can_afford_craft_cost(task_data):
+			# Spend the resources
+			_spend_craft_cost(task_data)
+
+			# Award the rewards
+			_award_craft_rewards(task_data)
+
+			# Restart the craft
+			var duration_seconds = task_data.get("base_duration_seconds", 60)
+			var craft_key = "%s:%s" % [node_id, task_id]
+
+			_active_crafts[craft_key] = {
+				"task_id": task_id,
+				"node_id": node_id,
+				"start_time": current_time,
+				"end_time": current_time + duration_seconds,
+				"task_data": task_data,
+				"auto_repeat": true
+			}
+
+			craft_auto_restarted.emit(node_id, task_id)
+		else:
+			# Can't afford, disable auto-repeat
+			var craft_key = "%s:%s" % [node_id, task_id]
+			_auto_repeat_crafts.erase(craft_key)
+
+func _can_afford_craft_cost(task_data: Dictionary) -> bool:
+	"""Check if player can afford the craft costs (including accumulated node resources)"""
+	# Use "materials" from crafting_recipes.json (fallback to "resource_costs")
+	var costs = task_data.get("materials", task_data.get("resource_costs", {}))
+	if costs.is_empty():
+		return true
+
+	var resource_manager = _get_resource_manager()
+	if not resource_manager:
+		return true
+
+	# First check if we can afford directly from inventory
+	if resource_manager.can_afford(costs):
+		return true
+
+	# If not, check if accumulated resources on nodes can cover the deficit
+	var total_available = _get_total_available_resources(resource_manager, costs)
+	for resource_id in costs:
+		var needed = costs[resource_id]
+		var available = total_available.get(resource_id, 0)
+		if available < needed:
+			return false  # Not enough even with accumulated resources
+
+	return true
+
+func _get_total_available_resources(resource_manager, costs: Dictionary) -> Dictionary:
+	"""Get total resources available (inventory + accumulated on all player nodes)"""
+	var total: Dictionary = {}
+
+	# Add inventory resources
+	for resource_id in costs:
+		total[resource_id] = resource_manager.get_resource(resource_id) if resource_manager else 0
+
+	# Add accumulated resources from all player-controlled nodes
+	for node in get_player_nodes():
+		for resource_id in node.accumulated_resources:
+			if costs.has(resource_id):  # Only count resources we need
+				var amount = node.accumulated_resources.get(resource_id, 0)
+				total[resource_id] = total.get(resource_id, 0) + amount
+
+	return total
+
+func _spend_craft_cost(task_data: Dictionary) -> void:
+	"""Spend the resources for a craft, using accumulated resources if needed"""
+	# Use "materials" from crafting_recipes.json (fallback to "resource_costs")
+	var costs = task_data.get("materials", task_data.get("resource_costs", {}))
+	if costs.is_empty():
+		return
+
+	var resource_manager = _get_resource_manager()
+	if not resource_manager:
+		return
+
+	# Try to spend from inventory first, auto-collect from nodes if needed
+	for resource_id in costs:
+		var needed = costs[resource_id]
+		var in_inventory = resource_manager.get_resource(resource_id)
+
+		if in_inventory >= needed:
+			# Can afford entirely from inventory
+			resource_manager.spend(resource_id, needed)
+		else:
+			# Need to collect from accumulated resources first
+			var deficit = needed - in_inventory
+
+			# Collect from nodes to cover deficit
+			_auto_collect_resource_from_nodes(resource_id, deficit, resource_manager)
+
+			# Now spend from inventory (which should have enough after collection)
+			resource_manager.spend(resource_id, needed)
+
+func _auto_collect_resource_from_nodes(resource_id: String, amount_needed: float, resource_manager) -> float:
+	"""Auto-collect a specific resource from player nodes to cover craft costs"""
+	var collected: float = 0.0
+
+	for node in get_player_nodes():
+		if collected >= amount_needed:
+			break
+
+		var available = node.accumulated_resources.get(resource_id, 0)
+		if available > 0:
+			var to_collect = min(available, amount_needed - collected)
+
+			# Remove from node's accumulated
+			node.accumulated_resources[resource_id] = available - to_collect
+
+			# Add to player inventory
+			if resource_manager:
+				resource_manager.add_resource(resource_id, to_collect)
+
+			collected += to_collect
+			print("[HexGridManager] Auto-collected %.1f %s from node %s for craft" % [to_collect, resource_id, node.id])
+
+	return collected
+
+func _award_craft_rewards(task_data: Dictionary) -> void:
+	"""Award the rewards from a completed auto-repeat craft"""
+	var resource_manager = _get_resource_manager()
+	if not resource_manager:
+		push_error("HexGridManager: Cannot award craft rewards - no ResourceManager")
+		return
+
+	# Resource rewards - use "output" from crafting_recipes.json (fallback to "resource_rewards")
+	var resources = task_data.get("output", task_data.get("resource_rewards", {}))
+	if resources.is_empty():
+		push_warning("HexGridManager: No output resources found in task_data: %s" % task_data.keys())
+		return
+
+	for resource_id in resources.keys():
+		var amount = resources[resource_id]
+		resource_manager.add_resource(resource_id, amount)
+		print("HexGridManager: Auto-repeat craft awarded %d %s" % [amount, resource_id])
+
+func _get_resource_manager():
+	"""Get ResourceManager via SystemRegistry"""
+	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+	if registry_script and registry_script.has_method("get_instance"):
+		var registry = registry_script.get_instance()
+		if registry:
+			return registry.get_system("ResourceManager")
+	return null
 
 # ==============================================================================
 # DEBUG
@@ -391,5 +1129,6 @@ func get_debug_info() -> Dictionary:
 		"player_nodes": get_player_nodes().size(),
 		"neutral_nodes": get_neutral_nodes().size(),
 		"revealed_nodes": get_revealed_nodes().size(),
-		"is_loaded": _is_loaded
+		"is_loaded": _is_loaded,
+		"active_crafts": _active_crafts.size()
 	}

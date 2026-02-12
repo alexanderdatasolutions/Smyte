@@ -46,6 +46,10 @@ enum EffectType {
 @export var icon_path: String = ""
 @export var color: Color = Color.WHITE
 
+# Tracking for battle log
+var target_name: String = ""
+var caster_name: String = ""
+
 func _init(effect_id: String = "", effect_name: String = ""):
 	id = effect_id
 	name = effect_name
@@ -65,7 +69,7 @@ func apply_turn_effects(target) -> Dictionary:
 			else:
 				turn_dot_damage = int(target.base_hp * damage_per_turn * stacks)
 		else:
-			turn_dot_damage = int(target.hp * damage_per_turn * stacks)
+			turn_dot_damage = int(target.max_hp * damage_per_turn * stacks)
 		
 		results.damage = turn_dot_damage
 		results.messages.append("%s takes %d %s damage!" % [_get_target_name(target), turn_dot_damage, name])
@@ -87,7 +91,7 @@ func apply_turn_effects(target) -> Dictionary:
 			else:
 				hot_healing = int(target.base_hp * heal_per_turn * stacks)
 		else:
-			hot_healing = int(target.hp * heal_per_turn * stacks)
+			hot_healing = int(target.max_hp * heal_per_turn * stacks)
 		
 		results.healing = hot_healing
 		results.messages.append("%s recovers %d HP from %s!" % [_get_target_name(target), hot_healing, name])
@@ -108,7 +112,7 @@ func _get_target_name(target) -> String:
 	if target is God:
 		return target.name
 	else:
-		return target.get("name", "Enemy")
+		return target.display_name if target.display_name else "Enemy"
 
 # Helper function to get attack stat from caster
 static func _get_attack(caster) -> int:

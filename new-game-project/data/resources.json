@@ -1,32 +1,40 @@
 {
   "_metadata": {
-    "version": "2.2.0",
-    "description": "Streamlined resource economy - 49 core materials aligned with hex territory tier progression",
-    "last_updated": "2026-01-16",
-    "changelog": "Added 14 resources for hex node compatibility: fiber, pelts, bones, fish, salt, iron_ingots, monster_parts, scales, pearls, divine_essence, mana_crystals, research_points, scrolls, knowledge_crystals"
+    "version": "4.0.0",
+    "description": "Tiered pyramid economy - each tier needs lower tier resources for conversion",
+    "last_updated": "2026-02-10",
+    "design_notes": {
+      "pyramid_economy": "Higher tier processing requires EXTRA lower tier raw materials",
+      "T1": "Base tier - ore/wood/herbs gathered, processed into T1 processed",
+      "T2": "Requires T2 raw + extra T1 raw to make T2 processed",
+      "T3": "Requires T3 raw + extra T2 raw to make T3 processed",
+      "T4": "PvP only - requires T4 raw + extra T3 raw",
+      "defense_drops": "Monster parts tiered by node tier defended",
+      "flames": "Tiered forging flames required for each equipment tier"
+    }
   },
 
   "currencies": {
     "mana": {
       "id": "mana",
       "name": "Mana",
-      "description": "Primary currency for god leveling, equipment enhancement, and summoning",
+      "description": "Primary currency for leveling, enhancement, and crafting",
       "icon": "mana_icon",
-      "max_storage": 999999999,
+      "max_storage": -1,
       "category": "currency"
     },
     "gold": {
       "id": "gold",
       "name": "Gold",
-      "description": "Primary currency for equipment crafting, shop purchases, and node upgrades",
+      "description": "Currency for shop purchases and node upgrades",
       "icon": "gold_icon",
-      "max_storage": 999999999,
+      "max_storage": -1,
       "category": "currency"
     },
     "divine_crystals": {
       "id": "divine_crystals",
       "name": "Divine Crystals",
-      "description": "Premium currency for energy refresh, premium summons, and blessed oil",
+      "description": "Premium currency for summons and special items",
       "icon": "crystal_icon",
       "max_storage": 99999,
       "category": "premium_currency"
@@ -34,7 +42,7 @@
     "energy": {
       "id": "energy",
       "name": "Energy",
-      "description": "Used to enter battles and dungeons",
+      "description": "Used to enter dungeons and battles",
       "icon": "energy_icon",
       "max_storage": 150,
       "regen_rate": 300,
@@ -42,262 +50,359 @@
     }
   },
 
-  "crafting_materials_tier1": {
-    "iron_ore": {
-      "id": "iron_ore",
-      "name": "Iron Ore",
-      "description": "Basic ore for crafting common and rare equipment",
+  "crafting_materials": {
+    "_comment": "=== T1 RAW MATERIALS (gathered from T1 nodes) ===",
+    "ore": {
+      "id": "ore",
+      "name": "Ore",
+      "description": "Raw metal ore gathered from T1 mining nodes",
       "tier": 1,
-      "node_source": "tier1_mine",
-      "icon": "iron_ore",
+      "material_type": "raw",
+      "source": "t1_resource_node",
+      "icon": "ore_icon",
       "category": "crafting_material"
     },
     "wood": {
       "id": "wood",
       "name": "Wood",
-      "description": "Basic lumber for crafting common and rare armor and accessories",
+      "description": "Timber gathered from T1 logging nodes",
       "tier": 1,
-      "node_source": "tier1_forest",
-      "icon": "wood",
-      "category": "crafting_material"
-    },
-    "copper_ore": {
-      "id": "copper_ore",
-      "name": "Copper Ore",
-      "description": "Basic ore for crafting common accessories",
-      "tier": 1,
-      "node_source": "tier1_mine",
-      "icon": "copper_ore",
-      "category": "crafting_material"
-    },
-    "stone": {
-      "id": "stone",
-      "name": "Stone",
-      "description": "Basic stone for crafting common armor",
-      "tier": 1,
-      "node_source": "tier1_mine",
-      "icon": "stone",
+      "material_type": "raw",
+      "source": "t1_resource_node",
+      "icon": "wood_icon",
       "category": "crafting_material"
     },
     "herbs": {
       "id": "herbs",
       "name": "Herbs",
-      "description": "Basic herbs for crafting enhancement powder (low)",
+      "description": "Medicinal plants gathered from T1 herbalist nodes",
       "tier": 1,
-      "node_source": "tier1_forest",
-      "icon": "herbs",
+      "material_type": "raw",
+      "source": "t1_resource_node",
+      "icon": "herbs_icon",
       "category": "crafting_material"
     },
-    "fiber": {
-      "id": "fiber",
-      "name": "Fiber",
-      "description": "Basic fiber for crafting cloth armor and accessories",
-      "tier": 1,
-      "node_source": "tier1_forest",
-      "icon": "fiber",
-      "category": "crafting_material"
-    },
-    "pelts": {
-      "id": "pelts",
-      "name": "Pelts",
-      "description": "Animal pelts for crafting leather armor",
-      "tier": 1,
-      "node_source": "tier1_hunting",
-      "icon": "pelts",
-      "category": "crafting_material"
-    },
-    "bones": {
-      "id": "bones",
-      "name": "Bones",
-      "description": "Animal bones for crafting bone weapons and accessories",
-      "tier": 1,
-      "node_source": "tier1_hunting",
-      "icon": "bones",
-      "category": "crafting_material"
-    },
-    "fish": {
-      "id": "fish",
-      "name": "Fish",
-      "description": "Fresh fish for trading or consumption",
-      "tier": 1,
-      "node_source": "tier1_coast",
-      "icon": "fish",
-      "category": "crafting_material"
-    },
-    "salt": {
-      "id": "salt",
-      "name": "Salt",
-      "description": "Sea salt for preservation and trading",
-      "tier": 1,
-      "node_source": "tier1_coast",
-      "icon": "salt",
-      "category": "crafting_material"
-    },
-    "iron_ingots": {
-      "id": "iron_ingots",
-      "name": "Iron Ingots",
-      "description": "Refined iron for advanced crafting",
-      "tier": 1,
-      "node_source": "tier1_forge",
-      "icon": "iron_ingots",
-      "category": "crafting_material"
-    }
-  },
 
-  "crafting_materials_tier2_3": {
-    "mythril_ore": {
-      "id": "mythril_ore",
-      "name": "Mythril Ore",
-      "description": "Rare ore for crafting epic weapons and armor",
-      "tier": 2,
-      "node_source": "tier2_mine",
-      "specialization_required": "tier1_miner",
-      "icon": "mythril_ore",
+    "_comment2": "=== T1 PROCESSED MATERIALS (converted from T1 raw) ===",
+    "refined_metal": {
+      "id": "refined_metal",
+      "name": "Refined Metal",
+      "description": "Processed metal for T1 equipment - refined from ore",
+      "tier": 1,
+      "material_type": "processed",
+      "source": "conversion",
+      "conversion_from": ["ore"],
+      "icon": "refined_metal_icon",
       "category": "crafting_material"
     },
-    "steel_ingots": {
-      "id": "steel_ingots",
-      "name": "Steel Ingots",
-      "description": "Refined steel for crafting epic weapons",
-      "tier": 2,
-      "node_source": "tier2_forge",
-      "specialization_required": "tier1_crafter",
-      "icon": "steel_ingots",
+    "quality_timber": {
+      "id": "quality_timber",
+      "name": "Quality Timber",
+      "description": "Processed wood for T1 equipment - refined from wood",
+      "tier": 1,
+      "material_type": "processed",
+      "source": "conversion",
+      "conversion_from": ["wood"],
+      "icon": "quality_timber_icon",
       "category": "crafting_material"
     },
     "rare_herbs": {
       "id": "rare_herbs",
       "name": "Rare Herbs",
-      "description": "Rare herbs for crafting enhancement powder (mid)",
+      "description": "Processed herbs for T1 equipment - refined from herbs",
+      "tier": 1,
+      "material_type": "processed",
+      "source": "conversion",
+      "conversion_from": ["herbs"],
+      "icon": "rare_herbs_icon",
+      "category": "crafting_material"
+    },
+
+    "_comment3": "=== T2 RAW MATERIALS (gathered from T2 nodes) ===",
+    "fine_ore": {
+      "id": "fine_ore",
+      "name": "Fine Ore",
+      "description": "Higher quality ore gathered from T2 mining nodes",
       "tier": 2,
-      "node_source": "tier2_forest",
-      "specialization_required": "tier1_herbalist",
-      "icon": "rare_herbs",
+      "material_type": "raw",
+      "source": "t2_resource_node",
+      "icon": "fine_ore_icon",
+      "category": "crafting_material"
+    },
+    "hardwood": {
+      "id": "hardwood",
+      "name": "Hardwood",
+      "description": "Dense timber gathered from T2 logging nodes",
+      "tier": 2,
+      "material_type": "raw",
+      "source": "t2_resource_node",
+      "icon": "hardwood_icon",
+      "category": "crafting_material"
+    },
+    "exotic_herbs": {
+      "id": "exotic_herbs",
+      "name": "Exotic Herbs",
+      "description": "Rare plants gathered from T2 herbalist nodes",
+      "tier": 2,
+      "material_type": "raw",
+      "source": "t2_resource_node",
+      "icon": "exotic_herbs_icon",
+      "category": "crafting_material"
+    },
+
+    "_comment4": "=== T2 PROCESSED MATERIALS (T2 raw + extra T1 raw) ===",
+    "steel_ingot": {
+      "id": "steel_ingot",
+      "name": "Steel Ingot",
+      "description": "High-grade metal for T2 equipment - requires fine ore + extra ore",
+      "tier": 2,
+      "material_type": "processed",
+      "source": "conversion",
+      "conversion_from": ["fine_ore", "ore"],
+      "icon": "steel_ingot_icon",
+      "category": "crafting_material"
+    },
+    "treated_lumber": {
+      "id": "treated_lumber",
+      "name": "Treated Lumber",
+      "description": "Reinforced wood for T2 equipment - requires hardwood + extra wood",
+      "tier": 2,
+      "material_type": "processed",
+      "source": "conversion",
+      "conversion_from": ["hardwood", "wood"],
+      "icon": "treated_lumber_icon",
+      "category": "crafting_material"
+    },
+    "alchemical_extract": {
+      "id": "alchemical_extract",
+      "name": "Alchemical Extract",
+      "description": "Potent essence for T2 equipment - requires exotic herbs + extra herbs",
+      "tier": 2,
+      "material_type": "processed",
+      "source": "conversion",
+      "conversion_from": ["exotic_herbs", "herbs"],
+      "icon": "alchemical_extract_icon",
+      "category": "crafting_material"
+    },
+
+    "_comment5": "=== T3 RAW MATERIALS (gathered from T3 nodes) ===",
+    "arcane_ore": {
+      "id": "arcane_ore",
+      "name": "Arcane Ore",
+      "description": "Magically-infused ore gathered from T3 mining nodes",
+      "tier": 3,
+      "material_type": "raw",
+      "source": "t3_resource_node",
+      "icon": "arcane_ore_icon",
+      "category": "crafting_material"
+    },
+    "ancient_wood": {
+      "id": "ancient_wood",
+      "name": "Ancient Wood",
+      "description": "Millennia-old timber gathered from T3 logging nodes",
+      "tier": 3,
+      "material_type": "raw",
+      "source": "t3_resource_node",
+      "icon": "ancient_wood_icon",
+      "category": "crafting_material"
+    },
+    "mystic_herbs": {
+      "id": "mystic_herbs",
+      "name": "Mystic Herbs",
+      "description": "Enchanted plants gathered from T3 herbalist nodes",
+      "tier": 3,
+      "material_type": "raw",
+      "source": "t3_resource_node",
+      "icon": "mystic_herbs_icon",
       "category": "crafting_material"
     },
     "magic_crystals": {
       "id": "magic_crystals",
       "name": "Magic Crystals",
-      "description": "Mystical crystals for crafting epic accessories",
+      "description": "Mystical crystals gathered from T3 shrine nodes",
       "tier": 3,
-      "node_source": "tier3_temple",
-      "specialization_required": "tier2_scholar",
-      "icon": "magic_crystals",
+      "material_type": "raw",
+      "source": "t3_shrine_node",
+      "icon": "magic_crystals_icon",
+      "category": "crafting_material"
+    },
+
+    "_comment6": "=== T3 PROCESSED MATERIALS (T3 raw + extra T2 raw) ===",
+    "prometheum": {
+      "id": "prometheum",
+      "name": "Prometheum",
+      "description": "Divine metal for T3 equipment - requires arcane ore + extra fine ore",
+      "tier": 3,
+      "material_type": "processed",
+      "source": "conversion",
+      "conversion_from": ["arcane_ore", "fine_ore"],
+      "icon": "prometheum_icon",
+      "category": "crafting_material"
+    },
+    "enchanted_wood": {
+      "id": "enchanted_wood",
+      "name": "Enchanted Wood",
+      "description": "Magically-infused timber for T3 equipment - requires ancient wood + extra hardwood",
+      "tier": 3,
+      "material_type": "processed",
+      "source": "conversion",
+      "conversion_from": ["ancient_wood", "hardwood"],
+      "icon": "enchanted_wood_icon",
+      "category": "crafting_material"
+    },
+    "mystic_bloom": {
+      "id": "mystic_bloom",
+      "name": "Mystic Bloom",
+      "description": "Rare alchemical flowers for T3 equipment - requires mystic herbs + extra exotic herbs",
+      "tier": 3,
+      "material_type": "processed",
+      "source": "conversion",
+      "conversion_from": ["mystic_herbs", "exotic_herbs"],
+      "icon": "mystic_bloom_icon",
+      "category": "crafting_material"
+    },
+    "astral_shard": {
+      "id": "astral_shard",
+      "name": "Astral Shard",
+      "description": "Crystallized starlight - processed from magic crystals",
+      "tier": 3,
+      "material_type": "processed",
+      "source": "conversion",
+      "conversion_from": ["magic_crystals"],
+      "icon": "astral_shard_icon",
+      "category": "crafting_material"
+    },
+
+    "_comment7": "=== T4 RAW MATERIALS (PvP territories only) ===",
+    "celestial_ore": {
+      "id": "celestial_ore",
+      "name": "Celestial Ore",
+      "description": "Legendary ore from PvP territories only",
+      "tier": 4,
+      "material_type": "raw",
+      "source": "t4_pvp_resource_node",
+      "pvp_gated": true,
+      "icon": "celestial_ore_icon",
+      "category": "crafting_material"
+    },
+
+    "_comment8": "=== T4 PROCESSED MATERIALS (T4 raw + extra T3 raw) ===",
+    "divine_metal": {
+      "id": "divine_metal",
+      "name": "Divine Metal",
+      "description": "Legendary metal for T4 equipment - requires celestial ore + extra arcane ore",
+      "tier": 4,
+      "material_type": "processed",
+      "source": "conversion",
+      "conversion_from": ["celestial_ore", "arcane_ore"],
+      "pvp_gated": true,
+      "icon": "divine_metal_icon",
+      "category": "crafting_material"
+    },
+
+    "_comment9": "=== DEFENSE DROPS (tiered by node defended) ===",
+    "monster_parts": {
+      "id": "monster_parts",
+      "name": "Monster Parts",
+      "description": "Dropped when garrison successfully defends T1 nodes",
+      "tier": 1,
+      "material_type": "defense_drop",
+      "source": "t1_defense_victory",
+      "icon": "monster_parts_icon",
+      "category": "crafting_material"
+    },
+    "beast_scales": {
+      "id": "beast_scales",
+      "name": "Beast Scales",
+      "description": "Dropped when garrison successfully defends T2 nodes",
+      "tier": 2,
+      "material_type": "defense_drop",
+      "source": "t2_defense_victory",
+      "icon": "beast_scales_icon",
+      "category": "crafting_material"
+    },
+    "elemental_cores": {
+      "id": "elemental_cores",
+      "name": "Elemental Cores",
+      "description": "Dropped when garrison successfully defends T3 nodes",
+      "tier": 3,
+      "material_type": "defense_drop",
+      "source": "t3_defense_victory",
+      "icon": "elemental_cores_icon",
+      "category": "crafting_material"
+    },
+    "dragon_parts": {
+      "id": "dragon_parts",
+      "name": "Dragon Parts",
+      "description": "Dropped when garrison successfully defends T4 PvP nodes",
+      "tier": 4,
+      "material_type": "defense_drop",
+      "source": "t4_pvp_defense_victory",
+      "pvp_gated": true,
+      "icon": "dragon_parts_icon",
+      "category": "crafting_material"
+    },
+
+    "_comment10": "=== FORGING FLAMES (tiered for equipment crafting) ===",
+    "basic_flame": {
+      "id": "basic_flame",
+      "name": "Basic Flame",
+      "description": "Simple forge flame for T1 equipment crafting",
+      "tier": 1,
+      "material_type": "flame",
+      "source": "t1_forge_node",
+      "icon": "basic_flame_icon",
       "category": "crafting_material"
     },
     "forging_flame": {
       "id": "forging_flame",
-      "name": "Eternal Forging Flame",
-      "description": "Divine flame essence required for all epic+ equipment crafting",
+      "name": "Forging Flame",
+      "description": "Hot forge flame for T2 equipment crafting",
+      "tier": 2,
+      "material_type": "flame",
+      "source": "t2_forge_node",
+      "icon": "forging_flame_icon",
+      "category": "crafting_material"
+    },
+    "divine_flame": {
+      "id": "divine_flame",
+      "name": "Divine Flame",
+      "description": "Sacred forge flame for T3 equipment crafting",
       "tier": 3,
-      "node_source": "tier3_forge",
-      "specialization_required": "tier2_crafter",
-      "icon": "forging_flame",
+      "material_type": "flame",
+      "source": "t3_forge_node",
+      "icon": "divine_flame_icon",
       "category": "crafting_material"
     },
-    "monster_parts": {
-      "id": "monster_parts",
-      "name": "Monster Parts",
-      "description": "Parts from mythical beasts used in advanced equipment crafting",
-      "tier": 2,
-      "node_source": "tier2_hunting",
-      "specialization_required": "tier1_hunter",
-      "icon": "monster_parts",
-      "category": "crafting_material"
-    },
-    "scales": {
-      "id": "scales",
-      "name": "Beast Scales",
-      "description": "Scales from monsters used in armor crafting",
-      "tier": 2,
-      "node_source": "tier2_hunting",
-      "specialization_required": "tier1_hunter",
-      "icon": "scales",
-      "category": "crafting_material"
-    }
-  },
-
-  "crafting_materials_tier4_5": {
-    "adamantite_ore": {
-      "id": "adamantite_ore",
-      "name": "Adamantite Ore",
-      "description": "Legendary ore for crafting legendary and mythic weapons",
+    "eternal_flame": {
+      "id": "eternal_flame",
+      "name": "Eternal Flame",
+      "description": "Never-dying divine fire for T4 legendary equipment",
       "tier": 4,
-      "node_source": "tier4_mine",
-      "specialization_required": "tier3_earth_shaper",
-      "icon": "adamantite_ore",
-      "category": "crafting_material"
-    },
-    "dragon_scales": {
-      "id": "dragon_scales",
-      "name": "Dragon Scales",
-      "description": "Legendary scales for crafting legendary armor",
-      "tier": 4,
-      "node_source": "tier4_hunting",
-      "specialization_required": "tier2_monster_hunter",
-      "icon": "dragon_scales",
-      "category": "crafting_material"
-    },
-    "divine_ore": {
-      "id": "divine_ore",
-      "name": "Divine Ore",
-      "description": "Mythic ore for crafting mythic equipment",
-      "tier": 5,
-      "node_source": "tier5_special",
-      "specialization_required": "tier3_any",
-      "icon": "divine_ore",
+      "material_type": "flame",
+      "source": "t4_pvp_forge_node",
+      "pvp_gated": true,
+      "icon": "eternal_flame_icon",
       "category": "crafting_material"
     }
   },
 
   "enhancement_materials": {
-    "enhancement_powder_low": {
-      "id": "enhancement_powder_low",
-      "name": "Enhancement Powder (Low)",
-      "description": "Basic powder for enhancing equipment +1 to +5",
-      "tier": 1,
-      "node_source": "tier1_forest_temple",
-      "enhances": "0_to_5",
-      "icon": "enhancement_powder_low",
-      "category": "enhancement_material"
-    },
-    "enhancement_powder_mid": {
-      "id": "enhancement_powder_mid",
-      "name": "Enhancement Powder (Mid)",
-      "description": "Intermediate powder for enhancing equipment +6 to +10",
-      "tier": 2,
-      "node_source": "tier2_forest_temple",
-      "enhances": "6_to_10",
-      "icon": "enhancement_powder_mid",
-      "category": "enhancement_material"
-    },
-    "enhancement_powder_high": {
-      "id": "enhancement_powder_high",
-      "name": "Enhancement Powder (High)",
-      "description": "Advanced powder for enhancing equipment +11 to +15",
-      "tier": 3,
-      "node_source": "tier3_forest_temple",
-      "enhances": "11_to_15",
-      "icon": "enhancement_powder_high",
+    "socket_crystal": {
+      "id": "socket_crystal",
+      "name": "Socket Crystal",
+      "description": "Opens a socket slot on equipment",
+      "source": "shrine_node",
+      "icon": "socket_crystal_icon",
       "category": "enhancement_material"
     },
     "blessed_oil": {
       "id": "blessed_oil",
       "name": "Blessed Oil",
-      "description": "Sacred oil that prevents equipment from being destroyed during enhancement failure (prevents destruction only, not level loss)",
-      "tier": 3,
-      "node_source": "tier3_temple_dungeons",
+      "description": "Prevents equipment destruction on failed enhancement",
+      "source": "t3_shrine_node",
       "cost_crystals": 50,
-      "icon": "blessed_oil",
-      "category": "enhancement_material"
-    },
-    "socket_crystal": {
-      "id": "socket_crystal",
-      "name": "Socket Crystal",
-      "description": "Pure crystal formations that can open sockets in equipment",
-      "tier": 2,
-      "node_source": "tier2_mine",
-      "icon": "socket_crystal",
+      "icon": "blessed_oil_icon",
       "category": "enhancement_material"
     }
   },
@@ -306,301 +411,87 @@
     "ruby": {
       "id": "ruby",
       "name": "Ruby",
-      "description": "Fire-attuned gemstone for socketing equipment (+ATK)",
+      "description": "Fire gemstone (+ATK when socketed)",
       "element": "fire",
-      "tier": 1,
-      "node_source": "tier1_mine",
-      "stat_bonus": "attack",
-      "icon": "ruby",
+      "stat_bonus": {"attack": 50},
+      "source": "dungeons",
+      "icon": "ruby_icon",
       "category": "gemstone"
     },
     "sapphire": {
       "id": "sapphire",
       "name": "Sapphire",
-      "description": "Water-attuned gemstone for socketing equipment (+HP)",
+      "description": "Water gemstone (+HP when socketed)",
       "element": "water",
-      "tier": 1,
-      "node_source": "tier1_mine",
-      "stat_bonus": "hp",
-      "icon": "sapphire",
+      "stat_bonus": {"hp": 500},
+      "source": "dungeons",
+      "icon": "sapphire_icon",
       "category": "gemstone"
     },
     "emerald": {
       "id": "emerald",
       "name": "Emerald",
-      "description": "Earth-attuned gemstone for socketing equipment (+DEF)",
+      "description": "Earth gemstone (+DEF when socketed)",
       "element": "earth",
-      "tier": 1,
-      "node_source": "tier1_mine",
-      "stat_bonus": "defense",
-      "icon": "emerald",
+      "stat_bonus": {"defense": 40},
+      "source": "dungeons",
+      "icon": "emerald_icon",
       "category": "gemstone"
     },
     "topaz": {
       "id": "topaz",
       "name": "Topaz",
-      "description": "Lightning-attuned gemstone for socketing equipment (+SPD)",
+      "description": "Lightning gemstone (+SPD when socketed)",
       "element": "lightning",
-      "tier": 1,
-      "node_source": "tier1_mine",
-      "stat_bonus": "speed",
-      "icon": "topaz",
+      "stat_bonus": {"speed": 20},
+      "source": "dungeons",
+      "icon": "topaz_icon",
       "category": "gemstone"
     },
     "diamond": {
       "id": "diamond",
       "name": "Diamond",
-      "description": "Light-attuned gemstone for socketing equipment (+CRIT)",
+      "description": "Light gemstone (+CRIT when socketed)",
       "element": "light",
-      "tier": 1,
-      "node_source": "tier1_mine",
-      "stat_bonus": "crit_rate",
-      "icon": "diamond",
+      "stat_bonus": {"crit_rate": 5},
+      "source": "dungeons",
+      "icon": "diamond_icon",
       "category": "gemstone"
     },
     "onyx": {
       "id": "onyx",
       "name": "Onyx",
-      "description": "Dark-attuned gemstone for socketing equipment (+ACC)",
+      "description": "Dark gemstone (+ACC when socketed)",
       "element": "dark",
-      "tier": 1,
-      "node_source": "tier1_mine",
-      "stat_bonus": "accuracy",
-      "icon": "onyx",
-      "category": "gemstone"
-    },
-    "ancient_gems": {
-      "id": "ancient_gems",
-      "name": "Ancient Gems",
-      "description": "Legendary gemstones for crafting legendary accessories",
-      "tier": 5,
-      "node_source": "tier5_mine",
-      "specialization_required": "tier3_master_jeweler",
-      "icon": "ancient_gems",
-      "category": "gemstone"
-    },
-    "pearls": {
-      "id": "pearls",
-      "name": "Pearls",
-      "description": "Water gemstones from coastal nodes (+HP or +DEF)",
-      "element": "water",
-      "tier": 1,
-      "node_source": "tier1_coast",
-      "stat_bonus": "hp",
-      "icon": "pearls",
+      "stat_bonus": {"accuracy": 10},
+      "source": "dungeons",
+      "icon": "onyx_icon",
       "category": "gemstone"
     }
   },
 
   "awakening_materials": {
-    "fire_powder_low": {
-      "id": "fire_powder_low",
-      "name": "Fire Powder (Low)",
-      "description": "Basic fire awakening material for tier 1-2 gods",
-      "element": "fire",
-      "tier": "low",
-      "source": "elemental_sanctum_beginner",
-      "icon": "fire_powder_low",
-      "category": "awakening_material"
+    "awakening_essence": {
+      "id": "awakening_essence",
+      "name": "Awakening Essence",
+      "description": "Universal awakening material (amount scales with awakening level)",
+      "source": "dungeons",
+      "icon": "awakening_essence_icon",
+      "category": "awakening_material",
+      "scaling": {
+        "awakening_1": 50,
+        "awakening_2": 100,
+        "awakening_3": 200
+      }
     },
-    "fire_powder_mid": {
-      "id": "fire_powder_mid",
-      "name": "Fire Powder (Mid)",
-      "description": "Intermediate fire awakening material for tier 3 gods",
-      "element": "fire",
-      "tier": "mid",
-      "source": "elemental_sanctum_intermediate",
-      "icon": "fire_powder_mid",
-      "category": "awakening_material"
-    },
-    "fire_powder_high": {
-      "id": "fire_powder_high",
-      "name": "Fire Powder (High)",
-      "description": "Advanced fire awakening material for tier 4-5 gods",
-      "element": "fire",
-      "tier": "high",
-      "source": "elemental_sanctum_expert",
-      "icon": "fire_powder_high",
-      "category": "awakening_material"
-    },
-    "water_powder_low": {
-      "id": "water_powder_low",
-      "name": "Water Powder (Low)",
-      "description": "Basic water awakening material for tier 1-2 gods",
-      "element": "water",
-      "tier": "low",
-      "source": "elemental_sanctum_beginner",
-      "icon": "water_powder_low",
-      "category": "awakening_material"
-    },
-    "water_powder_mid": {
-      "id": "water_powder_mid",
-      "name": "Water Powder (Mid)",
-      "description": "Intermediate water awakening material for tier 3 gods",
-      "element": "water",
-      "tier": "mid",
-      "source": "elemental_sanctum_intermediate",
-      "icon": "water_powder_mid",
-      "category": "awakening_material"
-    },
-    "water_powder_high": {
-      "id": "water_powder_high",
-      "name": "Water Powder (High)",
-      "description": "Advanced water awakening material for tier 4-5 gods",
-      "element": "water",
-      "tier": "high",
-      "source": "elemental_sanctum_expert",
-      "icon": "water_powder_high",
-      "category": "awakening_material"
-    },
-    "earth_powder_low": {
-      "id": "earth_powder_low",
-      "name": "Earth Powder (Low)",
-      "description": "Basic earth awakening material for tier 1-2 gods",
-      "element": "earth",
-      "tier": "low",
-      "source": "elemental_sanctum_beginner",
-      "icon": "earth_powder_low",
-      "category": "awakening_material"
-    },
-    "earth_powder_mid": {
-      "id": "earth_powder_mid",
-      "name": "Earth Powder (Mid)",
-      "description": "Intermediate earth awakening material for tier 3 gods",
-      "element": "earth",
-      "tier": "mid",
-      "source": "elemental_sanctum_intermediate",
-      "icon": "earth_powder_mid",
-      "category": "awakening_material"
-    },
-    "earth_powder_high": {
-      "id": "earth_powder_high",
-      "name": "Earth Powder (High)",
-      "description": "Advanced earth awakening material for tier 4-5 gods",
-      "element": "earth",
-      "tier": "high",
-      "source": "elemental_sanctum_expert",
-      "icon": "earth_powder_high",
-      "category": "awakening_material"
-    },
-    "lightning_powder_low": {
-      "id": "lightning_powder_low",
-      "name": "Lightning Powder (Low)",
-      "description": "Basic lightning awakening material for tier 1-2 gods",
-      "element": "lightning",
-      "tier": "low",
-      "source": "elemental_sanctum_beginner",
-      "icon": "lightning_powder_low",
-      "category": "awakening_material"
-    },
-    "lightning_powder_mid": {
-      "id": "lightning_powder_mid",
-      "name": "Lightning Powder (Mid)",
-      "description": "Intermediate lightning awakening material for tier 3 gods",
-      "element": "lightning",
-      "tier": "mid",
-      "source": "elemental_sanctum_intermediate",
-      "icon": "lightning_powder_mid",
-      "category": "awakening_material"
-    },
-    "lightning_powder_high": {
-      "id": "lightning_powder_high",
-      "name": "Lightning Powder (High)",
-      "description": "Advanced lightning awakening material for tier 4-5 gods",
-      "element": "lightning",
-      "tier": "high",
-      "source": "elemental_sanctum_expert",
-      "icon": "lightning_powder_high",
-      "category": "awakening_material"
-    },
-    "light_powder_low": {
-      "id": "light_powder_low",
-      "name": "Light Powder (Low)",
-      "description": "Basic light awakening material for tier 1-2 gods",
-      "element": "light",
-      "tier": "low",
-      "source": "elemental_sanctum_beginner",
-      "icon": "light_powder_low",
-      "category": "awakening_material"
-    },
-    "light_powder_mid": {
-      "id": "light_powder_mid",
-      "name": "Light Powder (Mid)",
-      "description": "Intermediate light awakening material for tier 3 gods",
-      "element": "light",
-      "tier": "mid",
-      "source": "elemental_sanctum_intermediate",
-      "icon": "light_powder_mid",
-      "category": "awakening_material"
-    },
-    "light_powder_high": {
-      "id": "light_powder_high",
-      "name": "Light Powder (High)",
-      "description": "Advanced light awakening material for tier 4-5 gods",
-      "element": "light",
-      "tier": "high",
-      "source": "elemental_sanctum_expert",
-      "icon": "light_powder_high",
-      "category": "awakening_material"
-    },
-    "dark_powder_low": {
-      "id": "dark_powder_low",
-      "name": "Dark Powder (Low)",
-      "description": "Basic dark awakening material for tier 1-2 gods",
-      "element": "dark",
-      "tier": "low",
-      "source": "elemental_sanctum_beginner",
-      "icon": "dark_powder_low",
-      "category": "awakening_material"
-    },
-    "dark_powder_mid": {
-      "id": "dark_powder_mid",
-      "name": "Dark Powder (Mid)",
-      "description": "Intermediate dark awakening material for tier 3 gods",
-      "element": "dark",
-      "tier": "mid",
-      "source": "elemental_sanctum_intermediate",
-      "icon": "dark_powder_mid",
-      "category": "awakening_material"
-    },
-    "dark_powder_high": {
-      "id": "dark_powder_high",
-      "name": "Dark Powder (High)",
-      "description": "Advanced dark awakening material for tier 4-5 gods",
-      "element": "dark",
-      "tier": "high",
-      "source": "elemental_sanctum_expert",
-      "icon": "dark_powder_high",
-      "category": "awakening_material"
-    },
-    "magic_powder_low": {
-      "id": "magic_powder_low",
-      "name": "Magic Powder (Low)",
-      "description": "Universal awakening material for tier 1-2 gods - basic tier",
-      "element": "universal",
-      "tier": "low",
-      "source": "weekly_events_shop",
-      "icon": "magic_powder_low",
-      "category": "awakening_material"
-    },
-    "magic_powder_mid": {
-      "id": "magic_powder_mid",
-      "name": "Magic Powder (Mid)",
-      "description": "Universal awakening material for tier 3 gods - intermediate tier",
-      "element": "universal",
-      "tier": "mid",
-      "source": "weekly_events_shop",
-      "icon": "magic_powder_mid",
-      "category": "awakening_material"
-    },
-    "magic_powder_high": {
-      "id": "magic_powder_high",
-      "name": "Magic Powder (High)",
-      "description": "Universal awakening material for tier 4-5 gods - advanced tier",
-      "element": "universal",
-      "tier": "high",
-      "source": "weekly_events_shop",
-      "icon": "magic_powder_high",
+    "ascension_crystal": {
+      "id": "ascension_crystal",
+      "name": "Ascension Crystal",
+      "description": "Required for Awakening 4+ (PvP territories only)",
+      "tier": 4,
+      "source": "t4_pvp_shrine_node",
+      "pvp_gated": true,
+      "icon": "ascension_crystal_icon",
       "category": "awakening_material"
     }
   },
@@ -609,212 +500,194 @@
     "common_soul": {
       "id": "common_soul",
       "name": "Common Soul",
-      "description": "Summons a random common god from Tier 1 Temple tasks",
-      "rarity": "common",
-      "element": "universal",
-      "source": "tier1_temple",
-      "icon": "common_soul",
+      "description": "Standard summon rates (70% common, 25% rare, 4.5% epic, 0.5% legendary)",
+      "rarity_floor": "none",
+      "source": "dungeons_easy",
+      "icon": "common_soul_icon",
       "category": "summoning_material"
     },
     "rare_soul": {
       "id": "rare_soul",
       "name": "Rare Soul",
-      "description": "Summons a random rare god from Tier 2 Temple tasks and dungeon loot",
-      "rarity": "rare",
-      "element": "universal",
-      "source": "tier2_temple_dungeons",
-      "icon": "rare_soul",
+      "description": "Guaranteed rare+ (75% rare, 22% epic, 3% legendary)",
+      "rarity_floor": "rare",
+      "source": "dungeons_normal",
+      "icon": "rare_soul_icon",
       "category": "summoning_material"
     },
     "epic_soul": {
       "id": "epic_soul",
       "name": "Epic Soul",
-      "description": "Summons a random epic god from Tier 3 Temple tasks and dungeon loot",
-      "rarity": "epic",
-      "element": "universal",
-      "source": "tier3_temple_dungeons",
-      "icon": "epic_soul",
+      "description": "Guaranteed epic+ (85% epic, 15% legendary)",
+      "rarity_floor": "epic",
+      "source": "dungeons_hard",
+      "icon": "epic_soul_icon",
       "category": "summoning_material"
     },
     "legendary_soul": {
       "id": "legendary_soul",
       "name": "Legendary Soul",
-      "description": "Summons a random legendary god from Tier 5 Temple tasks and raid rewards",
-      "rarity": "legendary",
-      "element": "universal",
-      "source": "tier5_temple_raids",
-      "icon": "legendary_soul",
-      "category": "summoning_material"
-    },
-    "fire_soul": {
-      "id": "fire_soul",
-      "name": "Fire Soul",
-      "description": "Summons a random fire god from Elemental Sanctum boss drops",
-      "rarity": "universal",
-      "element": "fire",
-      "source": "elemental_sanctum_boss",
-      "icon": "fire_soul",
-      "category": "summoning_material"
-    },
-    "water_soul": {
-      "id": "water_soul",
-      "name": "Water Soul",
-      "description": "Summons a random water god from Elemental Sanctum boss drops",
-      "rarity": "universal",
-      "element": "water",
-      "source": "elemental_sanctum_boss",
-      "icon": "water_soul",
-      "category": "summoning_material"
-    },
-    "earth_soul": {
-      "id": "earth_soul",
-      "name": "Earth Soul",
-      "description": "Summons a random earth god from Elemental Sanctum boss drops",
-      "rarity": "universal",
-      "element": "earth",
-      "source": "elemental_sanctum_boss",
-      "icon": "earth_soul",
-      "category": "summoning_material"
-    },
-    "lightning_soul": {
-      "id": "lightning_soul",
-      "name": "Lightning Soul",
-      "description": "Summons a random lightning god from Elemental Sanctum boss drops",
-      "rarity": "universal",
-      "element": "lightning",
-      "source": "elemental_sanctum_boss",
-      "icon": "lightning_soul",
-      "category": "summoning_material"
-    },
-    "light_soul": {
-      "id": "light_soul",
-      "name": "Light Soul",
-      "description": "Summons a random light god from Elemental Sanctum boss drops",
-      "rarity": "universal",
-      "element": "light",
-      "source": "elemental_sanctum_boss",
-      "icon": "light_soul",
-      "category": "summoning_material"
-    },
-    "dark_soul": {
-      "id": "dark_soul",
-      "name": "Dark Soul",
-      "description": "Summons a random dark god from Elemental Sanctum boss drops",
-      "rarity": "universal",
-      "element": "dark",
-      "source": "elemental_sanctum_boss",
-      "icon": "dark_soul",
+      "description": "Guaranteed legendary god",
+      "rarity_floor": "legendary",
+      "source": "dungeons_expert",
+      "icon": "legendary_soul_icon",
       "category": "summoning_material"
     }
   },
 
-  "special_materials": {
-    "awakening_stone": {
-      "id": "awakening_stone",
-      "name": "Awakening Stone",
-      "description": "Required for awakening legendary gods - drops from Tier 5 nodes or boss dungeons",
-      "source": "tier5_nodes_boss_dungeons",
-      "icon": "awakening_stone",
-      "category": "special_material"
+  "element_powders": {
+    "_note": "Element powders increase weight for summoning gods of matching element.",
+    "fire_powder": {
+      "id": "fire_powder",
+      "name": "Fire Powder",
+      "description": "Increases chance to summon Fire gods",
+      "element": "fire",
+      "weight_bonus": 1.5,
+      "source": "fire_dungeon",
+      "icon": "fire_powder_icon",
+      "category": "element_powder"
     },
-    "ascension_crystal": {
-      "id": "ascension_crystal",
-      "name": "Ascension Crystal",
-      "description": "Required for god ascension to higher star rank - raid rewards and events",
-      "source": "raids_events",
-      "icon": "ascension_crystal",
-      "category": "special_material"
+    "water_powder": {
+      "id": "water_powder",
+      "name": "Water Powder",
+      "description": "Increases chance to summon Water gods",
+      "element": "water",
+      "weight_bonus": 1.5,
+      "source": "water_dungeon",
+      "icon": "water_powder_icon",
+      "category": "element_powder"
     },
-    "celestial_essence": {
-      "id": "celestial_essence",
-      "name": "Celestial Essence",
-      "description": "Divine essence from Tier 5 Temple nodes - for crafting mythic accessories",
-      "tier": 5,
-      "node_source": "tier5_temple",
-      "specialization_required": "tier3_divine_oracle",
-      "icon": "celestial_essence",
-      "category": "special_material"
+    "earth_powder": {
+      "id": "earth_powder",
+      "name": "Earth Powder",
+      "description": "Increases chance to summon Earth gods",
+      "element": "earth",
+      "weight_bonus": 1.5,
+      "source": "earth_dungeon",
+      "icon": "earth_powder_icon",
+      "category": "element_powder"
     },
+    "lightning_powder": {
+      "id": "lightning_powder",
+      "name": "Lightning Powder",
+      "description": "Increases chance to summon Lightning gods",
+      "element": "lightning",
+      "weight_bonus": 1.5,
+      "source": "lightning_dungeon",
+      "icon": "lightning_powder_icon",
+      "category": "element_powder"
+    },
+    "light_powder": {
+      "id": "light_powder",
+      "name": "Light Powder",
+      "description": "Increases chance to summon Light gods",
+      "element": "light",
+      "weight_bonus": 1.5,
+      "source": "light_dungeon",
+      "icon": "light_powder_icon",
+      "category": "element_powder"
+    },
+    "dark_powder": {
+      "id": "dark_powder",
+      "name": "Dark Powder",
+      "description": "Increases chance to summon Dark gods",
+      "element": "dark",
+      "weight_bonus": 1.5,
+      "source": "dark_dungeon",
+      "icon": "dark_powder_icon",
+      "category": "element_powder"
+    }
+  },
+
+  "divine_materials": {
     "divine_essence": {
       "id": "divine_essence",
       "name": "Divine Essence",
-      "description": "Sacred divine power from temple nodes - used in awakening and crafting",
-      "tier": 1,
-      "node_source": "tier1_temple",
-      "icon": "divine_essence",
-      "category": "special_material"
+      "description": "Sacred power from shrines - used in awakening and special crafting",
+      "source": "shrine_node",
+      "icon": "divine_essence_icon",
+      "category": "divine_material"
     },
     "mana_crystals": {
       "id": "mana_crystals",
       "name": "Mana Crystals",
-      "description": "Crystallized mana from temple nodes - used in magic item crafting",
-      "tier": 1,
-      "node_source": "tier1_temple",
-      "icon": "mana_crystals",
-      "category": "special_material"
-    },
-    "research_points": {
-      "id": "research_points",
-      "name": "Research Points",
-      "description": "Knowledge currency from library nodes - unlock new recipes and god training",
-      "tier": 1,
-      "node_source": "tier1_library",
-      "icon": "research_points",
-      "category": "special_material"
-    },
-    "scrolls": {
-      "id": "scrolls",
-      "name": "Scrolls",
-      "description": "Skill scrolls from library nodes - teach gods new abilities",
-      "tier": 1,
-      "node_source": "tier1_library",
-      "icon": "scrolls",
-      "category": "special_material"
-    },
-    "knowledge_crystals": {
-      "id": "knowledge_crystals",
-      "name": "Knowledge Crystals",
-      "description": "Crystallized knowledge from library nodes - accelerate god training",
-      "tier": 1,
-      "node_source": "tier1_library",
-      "icon": "knowledge_crystals",
-      "category": "special_material"
+      "description": "Crystallized mana - converts to large amounts of mana",
+      "source": "shrine_node",
+      "mana_value": 1000,
+      "icon": "mana_crystals_icon",
+      "category": "divine_material"
     }
   },
 
   "resource_groups": {
-    "powders_by_element": {
-      "fire": ["fire_powder_low", "fire_powder_mid", "fire_powder_high"],
-      "water": ["water_powder_low", "water_powder_mid", "water_powder_high"],
-      "earth": ["earth_powder_low", "earth_powder_mid", "earth_powder_high"],
-      "lightning": ["lightning_powder_low", "lightning_powder_mid", "lightning_powder_high"],
-      "light": ["light_powder_low", "light_powder_mid", "light_powder_high"],
-      "dark": ["dark_powder_low", "dark_powder_mid", "dark_powder_high"],
-      "universal": ["magic_powder_low", "magic_powder_mid", "magic_powder_high"]
+    "by_tier": {
+      "t1_raw": ["ore", "wood", "herbs"],
+      "t1_processed": ["refined_metal", "quality_timber", "rare_herbs"],
+      "t1_defense": ["monster_parts"],
+      "t1_flame": ["basic_flame"],
+      "t2_raw": ["fine_ore", "hardwood", "exotic_herbs"],
+      "t2_processed": ["steel_ingot", "treated_lumber", "alchemical_extract"],
+      "t2_defense": ["beast_scales"],
+      "t2_flame": ["forging_flame"],
+      "t3_raw": ["arcane_ore", "ancient_wood", "mystic_herbs", "magic_crystals"],
+      "t3_processed": ["prometheum", "enchanted_wood", "mystic_bloom", "astral_shard"],
+      "t3_defense": ["elemental_cores"],
+      "t3_flame": ["divine_flame"],
+      "t4_raw": ["celestial_ore"],
+      "t4_processed": ["divine_metal"],
+      "t4_defense": ["dragon_parts"],
+      "t4_flame": ["eternal_flame"],
+      "t4_pvp_gated": ["celestial_ore", "divine_metal", "dragon_parts", "eternal_flame", "ascension_crystal"]
     },
-    "souls_by_element": {
-      "fire": ["fire_soul"],
-      "water": ["water_soul"],
-      "earth": ["earth_soul"],
-      "lightning": ["lightning_soul"],
-      "light": ["light_soul"],
-      "dark": ["dark_soul"],
-      "universal": ["common_soul", "rare_soul", "epic_soul", "legendary_soul"]
+    "by_material_type": {
+      "raw": ["ore", "wood", "herbs", "fine_ore", "hardwood", "exotic_herbs", "arcane_ore", "ancient_wood", "mystic_herbs", "magic_crystals", "celestial_ore"],
+      "processed": ["refined_metal", "quality_timber", "rare_herbs", "steel_ingot", "treated_lumber", "alchemical_extract", "prometheum", "enchanted_wood", "mystic_bloom", "astral_shard", "divine_metal"],
+      "defense_drop": ["monster_parts", "beast_scales", "elemental_cores", "dragon_parts"],
+      "flame": ["basic_flame", "forging_flame", "divine_flame", "eternal_flame"]
     },
-    "gemstones_by_element": {
-      "fire": ["ruby"],
-      "water": ["sapphire"],
-      "earth": ["emerald"],
-      "lightning": ["topaz"],
-      "light": ["diamond"],
-      "dark": ["onyx"]
+    "conversion_chains": {
+      "metal": {
+        "t1": {"input": ["ore"], "output": "refined_metal"},
+        "t2": {"input": ["fine_ore", "ore"], "output": "steel_ingot"},
+        "t3": {"input": ["arcane_ore", "fine_ore"], "output": "prometheum"},
+        "t4": {"input": ["celestial_ore", "arcane_ore"], "output": "divine_metal"}
+      },
+      "wood": {
+        "t1": {"input": ["wood"], "output": "quality_timber"},
+        "t2": {"input": ["hardwood", "wood"], "output": "treated_lumber"},
+        "t3": {"input": ["ancient_wood", "hardwood"], "output": "enchanted_wood"}
+      },
+      "herbs": {
+        "t1": {"input": ["herbs"], "output": "rare_herbs"},
+        "t2": {"input": ["exotic_herbs", "herbs"], "output": "alchemical_extract"},
+        "t3": {"input": ["mystic_herbs", "exotic_herbs"], "output": "mystic_bloom"}
+      },
+      "crystals": {
+        "t3": {"input": ["magic_crystals"], "output": "astral_shard"}
+      }
     },
-    "materials_by_tier": {
-      "tier1": ["iron_ore", "wood", "copper_ore", "stone", "herbs"],
-      "tier2": ["mythril_ore", "steel_ingots", "rare_herbs"],
-      "tier3": ["magic_crystals", "forging_flame"],
-      "tier4": ["adamantite_ore", "dragon_scales"],
-      "tier5": ["divine_ore", "ancient_gems", "celestial_essence"]
+    "equipment_crafting": {
+      "t1_common": {
+        "materials": ["refined_metal", "quality_timber", "rare_herbs"],
+        "defense": "monster_parts",
+        "flame": "basic_flame"
+      },
+      "t2_rare": {
+        "materials": ["steel_ingot", "treated_lumber", "alchemical_extract"],
+        "defense": "beast_scales",
+        "flame": "forging_flame"
+      },
+      "t3_epic": {
+        "materials": ["prometheum", "enchanted_wood", "mystic_bloom", "astral_shard"],
+        "defense": "elemental_cores",
+        "flame": "divine_flame"
+      },
+      "t4_legendary": {
+        "materials": ["divine_metal"],
+        "defense": "dragon_parts",
+        "flame": "eternal_flame",
+        "pvp_required": true
+      }
     }
   }
 }

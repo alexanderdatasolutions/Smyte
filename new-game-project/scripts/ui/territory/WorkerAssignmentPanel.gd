@@ -24,6 +24,11 @@ signal worker_assigned(node: HexNode, god_id: String, task_id: String)
 signal worker_unassigned(node: HexNode, god_id: String)
 
 # ==============================================================================
+# ENUMS
+# ==============================================================================
+enum SortType { RECOMMENDED, POWER, LEVEL, TIER, ELEMENT, NAME }
+
+# ==============================================================================
 # PROPERTIES
 # ==============================================================================
 var current_node: HexNode = null
@@ -40,10 +45,14 @@ var _current_workers_container: VBoxContainer = null
 var _available_gods_container: VBoxContainer = null
 var _available_tasks_container: VBoxContainer = null
 var _close_button: Button = null
+var _sort_dropdown: OptionButton = null
+var _sort_direction_btn: Button = null
 
 # State
 var _selected_god_id: String = ""
 var _selected_task_id: String = ""
+var _current_sort: SortType = SortType.RECOMMENDED
+var _sort_ascending: bool = false  # false = descending (highest first)
 
 # ==============================================================================
 # CONSTANTS
@@ -157,9 +166,36 @@ func _build_current_workers_section() -> void:
 	_main_container.add_child(_current_workers_container)
 
 func _build_available_gods_section() -> void:
-	"""Build available gods selection section"""
+	"""Build available gods selection section with sorting controls"""
+	# Header row with label and sort controls
+	var header_row = HBoxContainer.new()
+	header_row.add_theme_constant_override("separation", 10)
+	_main_container.add_child(header_row)
+
 	var section_label = _create_section_label("Available Gods (Select One)")
-	_main_container.add_child(section_label)
+	section_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_row.add_child(section_label)
+
+	# Sort dropdown
+	_sort_dropdown = OptionButton.new()
+	_sort_dropdown.custom_minimum_size = Vector2(110, 28)
+	_sort_dropdown.add_item("Recommended", SortType.RECOMMENDED)
+	_sort_dropdown.add_item("Power", SortType.POWER)
+	_sort_dropdown.add_item("Level", SortType.LEVEL)
+	_sort_dropdown.add_item("Tier", SortType.TIER)
+	_sort_dropdown.add_item("Element", SortType.ELEMENT)
+	_sort_dropdown.add_item("Name", SortType.NAME)
+	_sort_dropdown.selected = 0
+	_sort_dropdown.item_selected.connect(_on_sort_changed)
+	header_row.add_child(_sort_dropdown)
+
+	# Sort direction button
+	_sort_direction_btn = Button.new()
+	_sort_direction_btn.text = "▼"
+	_sort_direction_btn.custom_minimum_size = Vector2(28, 28)
+	_sort_direction_btn.tooltip_text = "Toggle sort direction"
+	_sort_direction_btn.pressed.connect(_on_sort_direction_pressed)
+	header_row.add_child(_sort_direction_btn)
 
 	_available_gods_container = VBoxContainer.new()
 	_available_gods_container.add_theme_constant_override("separation", 4)
@@ -344,14 +380,25 @@ func _update_available_gods() -> void:
 		_available_gods_container.add_child(no_gods_label)
 		return
 
+	# Sort the gods
+	var sorted_gods = _sort_gods(available_gods)
+
 	# List available gods
-	for god in available_gods:
+	for god in sorted_gods:
 		_add_available_god_item(god)
 
 func _add_available_god_item(god: God) -> void:
 	"""Add an available god item to the list"""
+	var matches_element = _god_matches_node_element(god)
+	var element_str = _get_element_string(god.element)
+	var power = _calculate_god_power(god)
+
+	var display_text = "%s (Lv %d, %s) - Power: %.0f" % [god.name, god.level, element_str, power]
+	if matches_element:
+		display_text = "★ " + display_text
+
 	var button = Button.new()
-	button.text = "%s (Lv %d)" % [god.name, god.level]
+	button.text = display_text
 	button.custom_minimum_size = Vector2(0, ITEM_HEIGHT)
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.pressed.connect(_on_god_selected.bind(god.id))
@@ -361,6 +408,9 @@ func _add_available_god_item(god: God) -> void:
 		var selected_style = StyleBoxFlat.new()
 		selected_style.bg_color = Color(0.3, 0.5, 0.7, 1)
 		button.add_theme_stylebox_override("normal", selected_style)
+	elif matches_element:
+		# Gold tint for element match
+		button.add_theme_color_override("font_color", Color(1.0, 0.95, 0.7))
 
 	_available_gods_container.add_child(button)
 
@@ -489,6 +539,94 @@ func _format_duration(seconds: int) -> String:
 		return "%dm" % (seconds / 60)
 	else:
 		return "%dh" % (seconds / 3600)
+
+func _sort_gods(gods: Array) -> Array:
+	"""Sort gods based on current sort settings"""
+	var sorted = gods.duplicate()
+
+	match _current_sort:
+		SortType.RECOMMENDED:
+			# Recommended: prioritize matching element, then power
+			sorted.sort_custom(func(a, b):
+				# First priority: matching node element
+				var a_matches = _god_matches_node_element(a)
+				var b_matches = _god_matches_node_element(b)
+				if a_matches != b_matches:
+					return a_matches  # true comes first
+				# Second priority: power (descending)
+				var pa = _calculate_god_power(a)
+				var pb = _calculate_god_power(b)
+				return pa > pb)
+		SortType.POWER:
+			sorted.sort_custom(func(a, b):
+				var pa = _calculate_god_power(a)
+				var pb = _calculate_god_power(b)
+				return pa < pb if _sort_ascending else pa > pb)
+		SortType.LEVEL:
+			sorted.sort_custom(func(a, b):
+				return a.level < b.level if _sort_ascending else a.level > b.level)
+		SortType.TIER:
+			sorted.sort_custom(func(a, b):
+				return a.tier < b.tier if _sort_ascending else a.tier > b.tier)
+		SortType.ELEMENT:
+			sorted.sort_custom(func(a, b):
+				return a.element < b.element if _sort_ascending else a.element > b.element)
+		SortType.NAME:
+			sorted.sort_custom(func(a, b):
+				return a.name < b.name if _sort_ascending else a.name > b.name)
+
+	return sorted
+
+func _god_matches_node_element(god_data: God) -> bool:
+	"""Check if god's element matches the current node's element"""
+	if not current_node or not god_data:
+		return false
+	# Check if HexNode has element property
+	var node_element = current_node.get("element") if current_node.has_method("get") else null
+	if node_element == null and "element" in current_node:
+		node_element = current_node.element
+	if node_element == null:
+		return false
+	return god_data.element == node_element
+
+func _get_element_string(element) -> String:
+	"""Convert element enum to display string"""
+	if element == null:
+		return "?"
+	match element:
+		God.ElementType.FIRE: return "Fire"
+		God.ElementType.WATER: return "Water"
+		God.ElementType.EARTH: return "Earth"
+		God.ElementType.LIGHTNING: return "Lightning"
+		God.ElementType.LIGHT: return "Light"
+		God.ElementType.DARK: return "Dark"
+		_: return "?"
+
+func _calculate_god_power(god_data: God) -> float:
+	"""Calculate combat power of a god"""
+	if not god_data:
+		return 0.0
+
+	# Use GodCalculator for consistent power calculation
+	var calculator = SystemRegistry.get_instance().get_system("GodCalculator")
+	if calculator and calculator.has_method("get_power_rating"):
+		return calculator.get_power_rating(god_data)
+
+	# Fallback if calculator not available
+	var base_power = god_data.base_hp + god_data.base_attack * 2.0 + god_data.base_defense * 1.5
+	var level_multiplier = 1.0 + (god_data.level - 1) * 0.1
+	return base_power * level_multiplier
+
+func _on_sort_changed(index: int) -> void:
+	"""Handle sort dropdown selection change"""
+	_current_sort = _sort_dropdown.get_item_id(index) as SortType
+	_update_available_gods()
+
+func _on_sort_direction_pressed() -> void:
+	"""Handle sort direction toggle"""
+	_sort_ascending = not _sort_ascending
+	_sort_direction_btn.text = "▲" if _sort_ascending else "▼"
+	_update_available_gods()
 
 # ==============================================================================
 # SIGNAL HANDLERS

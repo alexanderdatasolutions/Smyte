@@ -6,6 +6,7 @@ class_name TurnManager
 var battle_units: Array = []  # Array[BattleUnit]
 var turn_queue: Array = []  # Array[BattleUnit]
 var current_unit_index: int = 0
+var active_unit: BattleUnit = null  # The unit currently taking their turn
 
 signal turn_started(unit: BattleUnit)
 signal turn_ended(unit: BattleUnit)
@@ -33,9 +34,7 @@ func advance_turn():
 
 ## Get the unit whose turn it currently is
 func get_current_unit() -> BattleUnit:
-	if turn_queue.is_empty():
-		return null
-	return turn_queue[0]
+	return active_unit
 
 ## Get predicted turn order for the next N turns (for UI display)
 func get_turn_order_preview(num_turns: int = 8) -> Array:
@@ -118,6 +117,7 @@ func end_battle():
 	battle_units.clear()
 	turn_queue.clear()
 	current_unit_index = 0
+	active_unit = null
 
 # ============================================================================
 # PRIVATE METHODS
@@ -185,27 +185,39 @@ func _begin_next_turn():
 		print("TurnManager._begin_next_turn: Turn queue still empty, ending")
 		return
 
-	# Get next unit
-	var current_unit = turn_queue.pop_front()
-	print("TurnManager._begin_next_turn: Next unit is ", current_unit.display_name if current_unit else "NULL")
-	if not current_unit or not current_unit.is_alive:
+	# Get next unit and store as active unit
+	active_unit = turn_queue.pop_front()
+	print("TurnManager._begin_next_turn: Next unit is ", active_unit.display_name if active_unit else "NULL")
+	if not active_unit or not active_unit.is_alive:
 		# Try again with next unit
 		print("TurnManager._begin_next_turn: Unit dead or null, trying next unit")
+		active_unit = null
 		_begin_next_turn()
 		return
 
 	# Reset unit's turn bar
-	current_unit.reset_turn_bar()
+	active_unit.reset_turn_bar()
 
-	# Process status effects at start of turn
-	current_unit.process_status_effects()
+	# Process status effects at start of turn (DoT/HoT, reduce durations)
+	var effect_results = active_unit.process_status_effects()
+
+	# Check if unit can act (not stunned, frozen, sleeping, etc.)
+	if not active_unit.can_act():
+		var reason = active_unit.get_action_prevention_reason()
+		print("TurnManager: %s cannot act (%s) - skipping turn" % [active_unit.display_name, reason])
+		# Still emit turn_started so UI can show the skip
+		turn_started.emit(active_unit)
+		# Auto-skip to next turn after brief delay
+		_end_current_turn()
+		_begin_next_turn()
+		return
 
 	# Emit turn started signal
-	print("TurnManager._begin_next_turn: Emitting turn_started for ", current_unit.display_name)
-	turn_started.emit(current_unit)
+	print("TurnManager._begin_next_turn: Emitting turn_started for ", active_unit.display_name)
+	turn_started.emit(active_unit)
 
 func _end_current_turn():
 	"""End the current unit's turn"""
-	var current_unit = get_current_unit()
-	if current_unit:
-		turn_ended.emit(current_unit)
+	if active_unit:
+		turn_ended.emit(active_unit)
+		active_unit = null

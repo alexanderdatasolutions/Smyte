@@ -34,6 +34,7 @@ const WorkerAssignmentPanelScript = preload("res://scripts/ui/territory/WorkerAs
 const GarrisonManagementPanelScript = preload("res://scripts/ui/territory/GarrisonManagementPanel.gd")
 const NodeDetailScreenScript = preload("res://scripts/ui/screens/NodeDetailScreen.gd")
 const GodSelectionPanelScript = preload("res://scripts/ui/territory/GodSelectionPanel.gd")
+const BuildingSelectionPopupScript = preload("res://scripts/ui/territory/BuildingSelectionPopup.gd")
 
 # ==============================================================================
 # UI COMPONENTS
@@ -56,6 +57,7 @@ var garrison_management_panel: GarrisonManagementPanel = null
 var territory_overview_screen: TerritoryOverviewScreen = null
 var node_detail_screen: NodeDetailScreen = null
 var god_selection_panel: GodSelectionPanel = null
+var building_selection_popup = null  # BuildingSelectionPopup instance
 
 # Slot selection context for god assignment
 var _pending_slot_node: HexNode = null
@@ -91,9 +93,30 @@ func _ready() -> void:
 	_connect_signals()
 	_style_components()
 	_check_tutorial()
+	_setup_unified_header()
 
 	# Fix size after everything is set up (when Control is child of Node2D)
 	call_deferred("_fix_size_for_node2d_parent")
+
+func _setup_unified_header():
+	"""Configure the unified header for this screen"""
+	if not visibility_changed.is_connected(_on_visibility_changed):
+		visibility_changed.connect(_on_visibility_changed)
+	if visible:
+		_update_header_for_screen()
+
+func _on_visibility_changed():
+	"""Update header when this screen becomes visible"""
+	if visible:
+		_update_header_for_screen()
+
+func _update_header_for_screen():
+	"""Apply this screen's header settings"""
+	var main_ui = get_node_or_null("/root/Main/MainUIOverlay")
+	if main_ui:
+		main_ui.set_screen_title("HEX TERRITORY")
+		main_ui.show_header_back_button(true)
+		main_ui.connect_header_back_button(_on_back_pressed)
 
 func _fix_size_for_node2d_parent() -> void:
 	"""Fix size when Control is child of Node2D - must be deferred"""
@@ -122,7 +145,7 @@ func _create_ui_structure() -> void:
 	main_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(main_container)
 
-	# Top bar for back button and resources
+	# Clear old top bar references (unified header handles back + resources)
 	_create_top_bar()
 
 	# Center container for hex map
@@ -131,43 +154,55 @@ func _create_ui_structure() -> void:
 	# Bottom/side panel container for node info
 	_create_panel_container()
 
+	# Floating buttons on top of everything
+	_create_floating_buttons()
+
 func _create_top_bar() -> void:
-	"""Create top bar with back button and resource display"""
-	top_bar = HBoxContainer.new()
-	top_bar.name = "TopBar"
-	top_bar.anchor_right = 1.0
-	top_bar.anchor_bottom = 0.0
-	top_bar.offset_bottom = TOP_BAR_HEIGHT
-	top_bar.add_theme_constant_override("separation", 20)
-	main_container.add_child(top_bar)
+	"""Create floating UI elements (unified header handles back button and resources)"""
+	# Old elements no longer needed - unified header handles back + resources
+	top_bar = null
+	back_button = null
+	resource_display = null
 
-	# Back button
-	back_button = Button.new()
-	back_button.name = "BackButton"
-	back_button.text = "← BACK"
-	back_button.custom_minimum_size = Vector2(120, 40)
-	top_bar.add_child(back_button)
-
-	# Territory Overview button
+func _create_floating_buttons() -> void:
+	"""Create floating buttons that stay on top of other UI"""
+	# Create a floating overview button on the left side, below the header
 	var overview_button = Button.new()
 	overview_button.name = "OverviewButton"
-	overview_button.text = "TERRITORY OVERVIEW"
-	overview_button.custom_minimum_size = Vector2(180, 40)
+	overview_button.text = "📋"  # Icon-style button
+	overview_button.tooltip_text = "Territory Overview"
+	overview_button.custom_minimum_size = Vector2(50, 50)
 	overview_button.pressed.connect(_on_territory_overview_pressed)
-	top_bar.add_child(overview_button)
 
-	# Spacer
-	var spacer = Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top_bar.add_child(spacer)
+	# Position it on the left side, below the header
+	overview_button.anchor_left = 0.0
+	overview_button.anchor_top = 0.0
+	overview_button.anchor_right = 0.0
+	overview_button.anchor_bottom = 0.0
+	overview_button.offset_left = 10
+	overview_button.offset_top = 60  # Below the header
+	overview_button.offset_right = 60
+	overview_button.offset_bottom = 110
 
-	# Resource display
-	resource_display = HBoxContainer.new()
-	resource_display.name = "ResourceDisplay"
-	resource_display.add_theme_constant_override("separation", 15)
-	top_bar.add_child(resource_display)
+	# Style the button
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.15, 0.12, 0.2, 0.95)
+	style.border_color = Color(0.5, 0.45, 0.6, 0.9)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	overview_button.add_theme_stylebox_override("normal", style)
 
-	_create_resource_labels()
+	var hover_style = StyleBoxFlat.new()
+	hover_style.bg_color = Color(0.2, 0.17, 0.28, 0.98)
+	hover_style.border_color = Color(0.6, 0.55, 0.7, 1.0)
+	hover_style.set_border_width_all(2)
+	hover_style.set_corner_radius_all(8)
+	overview_button.add_theme_stylebox_override("hover", hover_style)
+
+	overview_button.add_theme_font_size_override("font_size", 24)
+
+	# Add directly to self (not main_container) so it's on top of everything
+	add_child(overview_button)
 
 func _create_resource_labels() -> void:
 	"""Create labels for key resources (gold, mana, divine crystals)"""
@@ -281,6 +316,7 @@ func _setup_components() -> void:
 	_setup_territory_overview_screen()
 	_setup_node_detail_screen()
 	_setup_god_selection_panel()
+	_setup_building_selection_popup()
 
 func _setup_hex_map_view() -> void:
 	"""Create and setup HexMapView component"""
@@ -392,6 +428,13 @@ func _setup_god_selection_panel() -> void:
 	god_selection_panel.visible = false
 	main_container.add_child(god_selection_panel)
 
+func _setup_building_selection_popup() -> void:
+	"""Create and setup BuildingSelectionPopup component"""
+	building_selection_popup = BuildingSelectionPopupScript.new()
+	building_selection_popup.name = "BuildingSelectionPopup"
+	building_selection_popup.visible = false
+	main_container.add_child(building_selection_popup)
+
 # ==============================================================================
 # CONNECT SIGNALS
 # ==============================================================================
@@ -412,6 +455,8 @@ func _connect_signals() -> void:
 		node_info_panel.close_requested.connect(_on_node_info_close)
 		node_info_panel.slot_tapped.connect(_on_node_info_slot_tapped)
 		node_info_panel.filled_slot_tapped.connect(_on_node_info_filled_slot_tapped)
+		node_info_panel.task_started.connect(_on_node_task_started)
+		node_info_panel.select_building_requested.connect(_on_select_building_requested)
 
 	# Node requirements panel signals
 	if node_requirements_panel:
@@ -447,6 +492,12 @@ func _connect_signals() -> void:
 		god_selection_panel.god_selected.connect(_on_god_selection_panel_selected)
 		god_selection_panel.selection_cancelled.connect(_on_god_selection_panel_cancelled)
 		god_selection_panel.panel_closed.connect(_on_god_selection_panel_closed)
+
+	# Building selection popup signals
+	if building_selection_popup:
+		building_selection_popup.building_selected.connect(_on_building_selected)
+		building_selection_popup.selection_cancelled.connect(_on_building_selection_cancelled)
+		building_selection_popup.popup_closed.connect(_on_building_popup_closed)
 
 # ==============================================================================
 # STYLING
@@ -589,6 +640,12 @@ func _on_node_info_close() -> void:
 	"""Handle node info panel close"""
 	_hide_node_info()
 
+func _on_node_task_started(hex_node: HexNode, task_id: String) -> void:
+	"""Handle task started from NodeInfoPanel crafting"""
+	print("HexTerritoryScreen: Task started - node: %s, task: %s" % [hex_node.id, task_id])
+	# Refresh displays to show updated state
+	refresh()
+
 func _on_node_info_slot_tapped(node: HexNode, slot_type: String, slot_index: int) -> void:
 	"""Handle slot tap from NodeInfoPanel - opens GodSelectionPanel"""
 	if not god_selection_panel or not node:
@@ -602,30 +659,27 @@ func _on_node_info_slot_tapped(node: HexNode, slot_type: String, slot_index: int
 	_pending_slot_index = slot_index
 
 	# Get currently assigned god IDs to exclude from selection
-	# Include gods assigned to ANY node, not just the current one
+	# Include gods assigned to ANY node in EITHER role (garrison OR worker)
+	# A god can't be both a garrison defender AND a worker!
 	var excluded_ids: Array[String] = []
 
 	# Get all owned nodes
 	var owned_nodes = _get_all_owned_nodes()
 
-	if slot_type == "garrison":
-		# Collect all garrison god IDs from all nodes
-		for hex_node in owned_nodes:
-			for god_id in hex_node.garrison:
-				if god_id not in excluded_ids:
-					excluded_ids.append(god_id)
-	else:  # worker
-		# Collect all worker god IDs from all nodes
-		for hex_node in owned_nodes:
-			for god_id in hex_node.assigned_workers:
-				if god_id not in excluded_ids:
-					excluded_ids.append(god_id)
+	# Collect ALL assigned gods (both garrison and workers) from all nodes
+	for hex_node in owned_nodes:
+		for god_id in hex_node.garrison:
+			if god_id not in excluded_ids:
+				excluded_ids.append(god_id)
+		for god_id in hex_node.assigned_workers:
+			if god_id not in excluded_ids:
+				excluded_ids.append(god_id)
 
-	# Show GodSelectionPanel with appropriate context
+	# Show GodSelectionPanel with appropriate context (pass node for element matching)
 	if slot_type == "garrison":
-		god_selection_panel.show_for_garrison(excluded_ids)
+		god_selection_panel.show_for_garrison(excluded_ids, node)
 	else:
-		god_selection_panel.show_for_worker(excluded_ids)
+		god_selection_panel.show_for_worker(excluded_ids, node)
 
 func _on_node_info_filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
 	"""Handle filled slot tap from NodeInfoPanel - show confirmation popup to remove god"""
@@ -657,6 +711,15 @@ func _on_worker_assigned(node: HexNode, god_id: String, task_id: String) -> void
 func _on_worker_unassigned(node: HexNode, god_id: String) -> void:
 	"""Handle worker unassignment notification"""
 	print("Worker unassigned: god=%s from node=%s" % [god_id, node.id])
+
+	# If node has no more workers, cancel any active crafts (for forges)
+	if node.assigned_workers.is_empty() and node.type == "forge":
+		var hex_grid_mgr = hex_map_view.hex_grid_manager if hex_map_view else null
+		if hex_grid_mgr:
+			var cancelled = hex_grid_mgr.cancel_all_crafts_for_node(node.id)
+			if cancelled > 0:
+				print("Cancelled %d crafts due to worker removal from forge" % cancelled)
+
 	# Refresh displays
 	refresh()
 
@@ -726,30 +789,27 @@ func _on_overview_slot_tapped(node: HexNode, slot_type: String, slot_index: int)
 	_pending_slot_index = slot_index
 
 	# Get currently assigned god IDs to exclude from selection
-	# Include gods assigned to ANY node, not just the current one
+	# Include gods assigned to ANY node in EITHER role (garrison OR worker)
+	# A god can't be both a garrison defender AND a worker!
 	var excluded_ids: Array[String] = []
 
 	# Get all owned nodes
 	var owned_nodes = _get_all_owned_nodes()
 
-	if slot_type == "garrison":
-		# Collect all garrison god IDs from all nodes
-		for hex_node in owned_nodes:
-			for god_id in hex_node.garrison:
-				if god_id not in excluded_ids:
-					excluded_ids.append(god_id)
-	else:  # worker
-		# Collect all worker god IDs from all nodes
-		for hex_node in owned_nodes:
-			for god_id in hex_node.assigned_workers:
-				if god_id not in excluded_ids:
-					excluded_ids.append(god_id)
+	# Collect ALL assigned gods (both garrison and workers) from all nodes
+	for hex_node in owned_nodes:
+		for god_id in hex_node.garrison:
+			if god_id not in excluded_ids:
+				excluded_ids.append(god_id)
+		for god_id in hex_node.assigned_workers:
+			if god_id not in excluded_ids:
+				excluded_ids.append(god_id)
 
-	# Show GodSelectionPanel with appropriate context
+	# Show GodSelectionPanel with appropriate context (pass node for element matching)
 	if slot_type == "garrison":
-		god_selection_panel.show_for_garrison(excluded_ids)
+		god_selection_panel.show_for_garrison(excluded_ids, node)
 	else:
-		god_selection_panel.show_for_worker(excluded_ids)
+		god_selection_panel.show_for_worker(excluded_ids, node)
 
 func _on_overview_filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
 	"""Handle filled slot tap - show confirmation popup to remove god"""
@@ -963,6 +1023,40 @@ func _on_node_detail_workers_changed(_node: HexNode, _worker_ids: Array) -> void
 # ==============================================================================
 # PANEL MANAGEMENT
 # ==============================================================================
+
+func navigate_to_node(node_id: String, open_crafting: bool = false) -> void:
+	"""Public method to navigate to and open a specific node's info panel.
+	Called externally (e.g., from forge button to open forge node with crafting tab)."""
+	var hex_grid_mgr = SystemRegistry.get_instance().get_system("HexGridManager")
+	if not hex_grid_mgr:
+		return
+
+	var hex_node = hex_grid_mgr.get_node_by_id(node_id)
+	if not hex_node:
+		print("HexTerritoryScreen: Node not found: %s" % node_id)
+		return
+
+	# Center map on node
+	if hex_map_view:
+		hex_map_view.center_on_coord(hex_node.coord)
+		hex_map_view.select_node(hex_node)
+
+	# Set as selected
+	selected_node = hex_node
+
+	# Show info panel
+	_show_node_info(hex_node)
+
+	# Open crafting tab if requested
+	if open_crafting and node_info_panel:
+		# Call deferred to ensure panel is fully shown first
+		call_deferred("_open_crafting_tab_on_node_panel")
+
+func _open_crafting_tab_on_node_panel() -> void:
+	"""Open the crafting tab on the current node info panel"""
+	if node_info_panel and node_info_panel.has_method("show_crafting_tab"):
+		node_info_panel.show_crafting_tab()
+
 func _show_node_info(hex_node: HexNode) -> void:
 	"""Show node info panel with node details"""
 	if not node_info_panel or not hex_node:
@@ -1045,9 +1139,101 @@ func _on_capture_succeeded(hex_node: HexNode) -> void:
 	"""Handle successful node capture from NodeCaptureHandler"""
 	refresh()
 
+	# Show building selection popup for blank buildable tiles
+	if hex_node and hex_node.can_place_building() and building_selection_popup:
+		# Small delay to let battle screen transition complete
+		await get_tree().create_timer(0.5).timeout
+		building_selection_popup.show_for_node(hex_node)
+
 func _on_capture_failed(hex_node: HexNode) -> void:
 	"""Handle failed node capture from NodeCaptureHandler"""
 	refresh()
+
+# ==============================================================================
+# BUILDING SELECTION HANDLERS
+# ==============================================================================
+func _on_building_selected(hex_node: HexNode, building_id: String) -> void:
+	"""Handle building selected from popup - building already placed by popup"""
+	print("HexTerritoryScreen: Building '%s' placed on node '%s'" % [building_id, hex_node.id])
+	refresh()
+
+	# Show success feedback
+	_show_building_placed_feedback(hex_node, building_id)
+
+func _on_building_selection_cancelled(hex_node: HexNode) -> void:
+	"""Handle building selection cancelled - tile remains blank"""
+	print("HexTerritoryScreen: Building selection cancelled for node '%s'" % hex_node.id)
+	# Player can select a building later from node info panel
+
+func _on_building_popup_closed() -> void:
+	"""Handle building popup fully closed"""
+	pass
+
+func _on_select_building_requested(hex_node: HexNode) -> void:
+	"""Handle select building request from node info panel"""
+	if hex_node and building_selection_popup:
+		building_selection_popup.show_for_node(hex_node)
+
+func _show_building_placed_feedback(hex_node: HexNode, building_id: String) -> void:
+	"""Show feedback that a building was placed"""
+	var building_manager = SystemRegistry.get_instance().get_system("BuildingManager")
+	var building_name = building_id.replace("_", " ").capitalize()
+	if building_manager:
+		var building = building_manager.get_building(building_id)
+		building_name = building.get("name", building_name)
+
+	# Create floating feedback panel
+	var feedback = PanelContainer.new()
+	feedback.z_index = 150
+
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.2, 0.4, 0.3, 0.95)
+	style.border_color = Color(0.4, 0.7, 0.5, 1)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	style.content_margin_left = 20
+	style.content_margin_right = 20
+	style.content_margin_top = 12
+	style.content_margin_bottom = 12
+	feedback.add_theme_stylebox_override("panel", style)
+
+	var content = VBoxContainer.new()
+	content.add_theme_constant_override("separation", 4)
+	feedback.add_child(content)
+
+	var title_label = Label.new()
+	title_label.text = "🏗️ Building Placed!"
+	title_label.add_theme_font_size_override("font_size", 16)
+	title_label.add_theme_color_override("font_color", Color(0.9, 1.0, 0.9))
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	content.add_child(title_label)
+
+	var name_label = Label.new()
+	name_label.text = building_name
+	name_label.add_theme_font_size_override("font_size", 14)
+	name_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.7))
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	content.add_child(name_label)
+
+	var node_label = Label.new()
+	node_label.text = "at %s" % hex_node.name
+	node_label.add_theme_font_size_override("font_size", 12)
+	node_label.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9))
+	node_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	content.add_child(node_label)
+
+	# Add to main container
+	main_container.add_child(feedback)
+
+	# Position at center of screen
+	feedback.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	feedback.custom_minimum_size = Vector2(280, 100)
+
+	# Fade out and remove after 2.5 seconds
+	var tween = create_tween()
+	tween.tween_interval(2.0)
+	tween.tween_property(feedback, "modulate:a", 0.0, 0.5)
+	tween.tween_callback(feedback.queue_free)
 
 # ==============================================================================
 # REFRESH

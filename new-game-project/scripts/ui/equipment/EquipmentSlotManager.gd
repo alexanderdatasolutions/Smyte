@@ -62,7 +62,7 @@ func _refresh_equipped_slots():
 func _create_equipment_slot_button(slot_index: int, slot_name: String) -> Control:
 	"""Create an equipment slot card with PNG icon and stats"""
 	var container = Panel.new()
-	container.custom_minimum_size = Vector2(160, 180)  # Mobile-friendly size
+	container.custom_minimum_size = Vector2(110, 145)  # Larger to fit stats properly
 	
 	# Check if there's equipment in this slot
 	var equipped_equipment = _get_equipped_equipment_for_slot(slot_index)
@@ -88,8 +88,9 @@ func _create_equipment_slot_button(slot_index: int, slot_name: String) -> Contro
 	
 	# Layout
 	var vbox = VBoxContainer.new()
-	vbox.anchors_preset = Control.PRESET_FULL_RECT
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	vbox.add_theme_constant_override("separation", 4)
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Let clicks pass through to button
 	container.add_child(vbox)
 	
 	# Slot label at top
@@ -102,9 +103,9 @@ func _create_equipment_slot_button(slot_index: int, slot_name: String) -> Contro
 	
 	# Icon container
 	var icon_container = CenterContainer.new()
-	icon_container.custom_minimum_size = Vector2(80, 80)
+	icon_container.custom_minimum_size = Vector2(48, 48)
 	var texture_rect = TextureRect.new()
-	texture_rect.custom_minimum_size = Vector2(64, 64)
+	texture_rect.custom_minimum_size = Vector2(40, 40)
 	texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	
@@ -149,17 +150,26 @@ func _create_equipment_slot_button(slot_index: int, slot_name: String) -> Contro
 		var name_label = Label.new()
 		name_label.text = equipped_equipment.name
 		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_label.add_theme_font_size_override("font_size", 11)
+		name_label.add_theme_font_size_override("font_size", 10)
 		name_label.add_theme_color_override("font_color", _get_rarity_color(equipped_equipment.rarity))
 		name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		vbox.add_child(name_label)
-		
-		# Enhancement level
+
+		# Main stat (most important info)
+		if equipped_equipment.main_stat_type != "":
+			var stat_label = Label.new()
+			stat_label.text = "%s +%d" % [_get_stat_abbrev(equipped_equipment.main_stat_type), equipped_equipment.main_stat_value]
+			stat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			stat_label.add_theme_font_size_override("font_size", 10)
+			stat_label.add_theme_color_override("font_color", Color.GOLD)
+			vbox.add_child(stat_label)
+
+		# Enhancement level (if enhanced)
 		if equipped_equipment.level > 0:
 			var enhance_label = Label.new()
 			enhance_label.text = "+%d" % equipped_equipment.level
 			enhance_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			enhance_label.add_theme_font_size_override("font_size", 10)
+			enhance_label.add_theme_font_size_override("font_size", 9)
 			enhance_label.add_theme_color_override("font_color", Color.LIME_GREEN)
 			vbox.add_child(enhance_label)
 		
@@ -192,17 +202,42 @@ func _create_equipment_slot_button(slot_index: int, slot_name: String) -> Contro
 		empty_label.add_theme_color_override("font_color", Color.GRAY)
 		vbox.add_child(empty_label)
 	
-	# Touch-friendly button overlay
+	# Touch-friendly button overlay - must cover entire slot
 	var button = Button.new()
-	button.anchors_preset = Control.PRESET_FULL_RECT
+	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	button.flat = true
+	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.pressed.connect(_on_equipment_slot_pressed.bind(slot_index))
 	container.add_child(button)
-	
+
 	# Hover effects for desktop
 	button.mouse_entered.connect(_on_slot_hover_enter.bind(container, equipped_equipment != null))
 	button.mouse_exited.connect(_on_slot_hover_exit.bind(container, equipped_equipment != null))
-	
+
+	# Add red X button for unequipping (only if equipped)
+	if equipped_equipment:
+		var unequip_btn = Button.new()
+		unequip_btn.text = "✕"
+		unequip_btn.custom_minimum_size = Vector2(22, 22)
+		unequip_btn.position = Vector2(container.custom_minimum_size.x - 26, 4)
+		unequip_btn.z_index = 1  # Above the main button
+
+		# Red X styling
+		var x_style = StyleBoxFlat.new()
+		x_style.bg_color = Color(0.7, 0.15, 0.15, 0.9)
+		x_style.set_corner_radius_all(4)
+		unequip_btn.add_theme_stylebox_override("normal", x_style)
+
+		var x_hover = StyleBoxFlat.new()
+		x_hover.bg_color = Color(0.9, 0.2, 0.2, 1.0)
+		x_hover.set_corner_radius_all(4)
+		unequip_btn.add_theme_stylebox_override("hover", x_hover)
+
+		unequip_btn.add_theme_font_size_override("font_size", 12)
+		unequip_btn.add_theme_color_override("font_color", Color.WHITE)
+		unequip_btn.pressed.connect(_on_unequip_button_pressed.bind(slot_index))
+		container.add_child(unequip_btn)
+
 	return container
 
 func _get_equipment_icon_path(equipment: Equipment) -> String:
@@ -230,6 +265,19 @@ func _get_rarity_color(rarity: Equipment.Rarity) -> Color:
 			return Color.RED
 		_:
 			return Color.GRAY
+
+func _get_stat_abbrev(stat_type: String) -> String:
+	"""Get abbreviated stat name for compact display"""
+	match stat_type.to_lower():
+		"hp": return "HP"
+		"attack": return "ATK"
+		"defense": return "DEF"
+		"speed": return "SPD"
+		"crit_rate": return "CR"
+		"crit_damage": return "CD"
+		"resistance": return "RES"
+		"accuracy": return "ACC"
+		_: return stat_type.substr(0, 3).to_upper()
 
 func _count_set_pieces(equipment_set_name: String) -> int:
 	"""Count how many pieces of a set are equipped"""
@@ -288,17 +336,12 @@ func _get_equipped_equipment_for_slot(slot_index: int) -> Equipment:
 	return null
 
 func _on_equipment_slot_pressed(slot_index: int):
-	"""Handle equipment slot button press"""
-	print("EquipmentSlotManager: Selected equipment slot %d" % slot_index)
-	
-	var equipped_equipment = _get_equipped_equipment_for_slot(slot_index)
-	
-	if equipped_equipment:
-		# Equipment is equipped - show context menu or emit unequip signal
-		equipment_unequip_requested.emit(slot_index)
-	else:
-		# Empty slot - emit slot selection for filtering inventory
-		equipment_slot_selected.emit(slot_index)
+	"""Handle equipment slot button press - filters inventory"""
+	equipment_slot_selected.emit(slot_index)
+
+func _on_unequip_button_pressed(slot_index: int):
+	"""Handle unequip X button press"""
+	equipment_unequip_requested.emit(slot_index)
 
 func refresh():
 	"""Refresh the equipment slots display"""

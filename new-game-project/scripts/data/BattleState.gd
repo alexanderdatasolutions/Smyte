@@ -30,12 +30,30 @@ func _init():
 func setup_from_config(config: BattleConfig):
 	battle_type = BattleConfig.BattleType.keys()[config.battle_type]
 	battle_id = config.dungeon_name if not config.dungeon_name.is_empty() else config.territory_id
-	
+
+	# Check for HP overrides (used by Tower mode for persistent HP)
+	var hp_overrides: Dictionary = {}
+	if config.has_meta("hp_overrides"):
+		hp_overrides = config.get_meta("hp_overrides")
+
 	# Create player units from attacker team
 	player_units.clear()
 	for god in config.attacker_team:
 		if god:
 			var unit = BattleUnit.from_god(god)
+
+			# Apply HP override if available (for Tower persistent HP)
+			if hp_overrides.has(god.id):
+				var override_hp = hp_overrides[god.id]
+				if override_hp > 0:
+					unit.current_hp = min(override_hp, unit.max_hp)
+					print("BattleState: Applied HP override for %s: %d/%d" % [unit.display_name, unit.current_hp, unit.max_hp])
+				elif override_hp == 0:
+					# God died in previous floor - keep them dead
+					unit.current_hp = 0
+					unit.is_alive = false
+					print("BattleState: %s is dead from previous floor" % unit.display_name)
+
 			player_units.append(unit)
 			all_units.append(unit)
 	

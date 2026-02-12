@@ -27,19 +27,26 @@ const Z_DEBUG = 500
 @onready var modal_layer: Control
 
 # UI elements
-@onready var resource_display: Control = $ResourceDisplay  # Reference to manually added ResourceDisplay
+var resource_display: Control = null  # Reference to ResourceDisplay (inside GameHeader)
+var game_header: Control = null  # Unified header component
 
 # System references
 var tutorial_manager
 var notification_manager
 
+# Back button callback storage
+var _back_callback: Callable
+
 func _ready():
 	"""Initialize the main UI overlay system"""
 	print("MainUIOverlay: Initializing main UI overlay system...")
-	
+
 	# Set this control to fill the entire screen
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	
+
+	# CRITICAL: Use PASS so children can receive input, but non-interactive areas pass through
+	mouse_filter = Control.MOUSE_FILTER_PASS
+
 	# Ensure this overlay is always on top
 	z_index = Z_TUTORIALS
 	
@@ -75,7 +82,7 @@ func _create_ui_layers():
 	banner_layer.name = "BannerLayer"
 	banner_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	banner_layer.z_index = Z_GAME_UI
-	banner_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	banner_layer.mouse_filter = Control.MOUSE_FILTER_PASS  # Allow children (header) to receive input
 	add_child(banner_layer)
 	
 	# Modal Layer (for popups, dialogs)
@@ -108,68 +115,89 @@ func _connect_to_systems():
 	_setup_persistent_ui()
 
 func _setup_persistent_ui():
-	"""Setup persistent UI elements like resource display"""
-	# Check if ResourceDisplay was manually added to the scene
+	"""Setup persistent UI elements - unified GameHeader with ResourceDisplay"""
+	# Remove old ResourceDisplay if it exists (we'll use the one in GameHeader)
 	if resource_display:
-		print("MainUIOverlay: Found manually added ResourceDisplay, preserving user positioning...")
-		
-		# PRESERVE USER'S EXACT POSITIONING - Don't override manual placement (MYTHOS ARCHITECTURE - user control)
-		print("MainUIOverlay: Current ResourceDisplay position: left=%.1f, top=%.1f, right=%.1f, bottom=%.1f" % 
-			[resource_display.offset_left, resource_display.offset_top, resource_display.offset_right, resource_display.offset_bottom])
-		
-		# Store the user's positioning before moving to banner layer
-		var user_anchor_left = resource_display.anchor_left
-		var user_anchor_top = resource_display.anchor_top  
-		var user_anchor_right = resource_display.anchor_right
-		var user_anchor_bottom = resource_display.anchor_bottom
-		var user_offset_left = resource_display.offset_left
-		var user_offset_top = resource_display.offset_top
-		var user_offset_right = resource_display.offset_right
-		var user_offset_bottom = resource_display.offset_bottom
-		var user_grow_horizontal = resource_display.grow_horizontal
-		var user_grow_vertical = resource_display.grow_vertical
-		
-		# Remove from root and add to banner layer
-		remove_child(resource_display)
-		add_to_banner_layer(resource_display)
-		
-		# RESTORE user's exact positioning (respect manual placement)
-		resource_display.anchor_left = user_anchor_left
-		resource_display.anchor_top = user_anchor_top
-		resource_display.anchor_right = user_anchor_right
-		resource_display.anchor_bottom = user_anchor_bottom
-		resource_display.offset_left = user_offset_left
-		resource_display.offset_top = user_offset_top
-		resource_display.offset_right = user_offset_right
-		resource_display.offset_bottom = user_offset_bottom
-		resource_display.grow_horizontal = user_grow_horizontal
-		resource_display.grow_vertical = user_grow_vertical
-		
-		# Make sure it's visible and updated
-		resource_display.visible = true
-		
-		# Force immediate update of the ResourceDisplay
-		if resource_display.has_method("_update_this_instance"):
-			resource_display.call_deferred("_update_this_instance")
-			print("MainUIOverlay: Triggered ResourceDisplay update")
-		
-		print("MainUIOverlay: Preserved ResourceDisplay at user position in banner layer")
+		resource_display.queue_free()
+		resource_display = null
+
+	# Load and setup the unified GameHeader
+	var header_scene = load("res://scenes/GameHeader.tscn")
+	if header_scene:
+		game_header = header_scene.instantiate()
+		game_header.name = "GameHeader"
+
+		# Add to banner layer first
+		add_to_banner_layer(game_header)
+
+		# Use call_deferred to ensure proper sizing after layout
+		call_deferred("_finalize_header_setup")
+
+		print("MainUIOverlay: GameHeader initialized successfully")
 	else:
-		# Load ResourceDisplay into banner layer so it's always visible
-		var resource_display_scene = load("res://scenes/ResourceDisplay.tscn")
-		if resource_display_scene:
-			var new_resource_display = resource_display_scene.instantiate()
-			resource_display = new_resource_display  # Store reference
-			add_to_banner_layer(resource_display)
-			
-			# ResourceDisplay comes with proper positioning from scene
-			resource_display.visible = true
-			
-			# Force immediate update
-			if resource_display.has_method("_update_this_instance"):
-				resource_display.call_deferred("_update_this_instance")
-			
-			print("MainUIOverlay: Added ResourceDisplay to banner layer with default positioning")
+		push_error("MainUIOverlay: Failed to load GameHeader scene")
+
+func _finalize_header_setup():
+	"""Finalize header setup after layout is ready"""
+	if not game_header:
+		return
+
+	# Force the header to span full width at top using offsets (not anchors)
+	var viewport_size = get_viewport().get_visible_rect().size
+
+	# Clear any anchor-based positioning and use explicit offsets
+	game_header.anchor_left = 0.0
+	game_header.anchor_top = 0.0
+	game_header.anchor_right = 0.0
+	game_header.anchor_bottom = 0.0
+	game_header.offset_left = 0
+	game_header.offset_top = 0
+	game_header.offset_right = viewport_size.x
+	game_header.offset_bottom = 50
+
+	# Store reference to resource display inside header
+	if game_header.get("resource_display"):
+		resource_display = game_header.resource_display
+
+	# Default: hide back button on main screen
+	if game_header.has_method("show_back_button"):
+		game_header.show_back_button(false)
+
+# === UNIFIED HEADER API ===
+# Screens call these methods to control the header
+
+func set_screen_title(title: String):
+	"""Set the current screen title in the header"""
+	if game_header and game_header.has_method("set_title"):
+		game_header.set_title(title)
+
+func show_header_back_button(is_visible: bool):
+	"""Show or hide the header back button"""
+	if game_header and game_header.has_method("show_back_button"):
+		game_header.show_back_button(is_visible)
+
+func connect_header_back_button(callback: Callable):
+	"""Connect a callback to the header back button"""
+	# Disconnect previous callback if any
+	if _back_callback.is_valid() and game_header:
+		if game_header.has_method("disconnect_back_button"):
+			game_header.disconnect_back_button(_back_callback)
+
+	# Connect new callback
+	_back_callback = callback
+	if game_header and game_header.has_method("connect_back_button"):
+		game_header.connect_back_button(callback)
+
+func disconnect_header_back_button():
+	"""Disconnect the current back button callback"""
+	if _back_callback.is_valid() and game_header:
+		if game_header.has_method("disconnect_back_button"):
+			game_header.disconnect_back_button(_back_callback)
+	_back_callback = Callable()
+
+func get_header() -> Control:
+	"""Get reference to the GameHeader"""
+	return game_header
 
 func _on_tutorial_dialog_created(dialog: Control):
 	"""Handle tutorial dialog creation - move it to proper layer"""

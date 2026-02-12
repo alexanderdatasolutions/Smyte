@@ -200,7 +200,8 @@ func _update_god_display():
 	image_rect.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	image_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 
-	var sprite_path = "res://assets/gods/" + selected_god.id + ".png"
+	var god_template = selected_god.template_id if selected_god.template_id else selected_god.id
+	var sprite_path = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		image_rect.texture = load(sprite_path)
 

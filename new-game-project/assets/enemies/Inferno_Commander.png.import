@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cb3iuhdijapnp"
-path="res://.godot/imported/Inferno_Commander.png-aecb53843979e1a493621204518d3554.ctex"
+uid="uid://lq5bvounc4kp"
+path="res://.godot/imported/inferno_commander.png-0feb025efce27198bbe49dd8183a2116.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/enemies/Inferno_Commander.png"
-dest_files=["res://.godot/imported/Inferno_Commander.png-aecb53843979e1a493621204518d3554.ctex"]
+source_file="res://assets/enemies/inferno_commander.png"
+dest_files=["res://.godot/imported/inferno_commander.png-0feb025efce27198bbe49dd8183a2116.ctex"]
 
 [params]
 

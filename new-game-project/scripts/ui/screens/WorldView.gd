@@ -16,9 +16,14 @@ func _get_system_registry():
 @onready var equipment_button = $ContentContainer/ButtonGrid/EquipmentButton
 @onready var shop_button = $ContentContainer/ButtonGrid/ShopButton
 @onready var specialization_button = $ContentContainer/ButtonGrid/SpecializationButton
+@onready var tower_button = $ContentContainer/ButtonGrid/TowerButton
 
 # Feature unlock tracking (MYTHOS ARCHITECTURE)
 var feature_buttons: Dictionary = {}
+
+# Production summary widget
+const ProductionSummaryWidgetScript = preload("res://scripts/ui/components/ProductionSummaryWidget.gd")
+var _production_widget = null
 
 func _setup_fullscreen():
 	"""Make this control fill the entire viewport"""
@@ -33,6 +38,9 @@ func _ready():
 
 	# Style all buttons first
 	_style_buttons()
+
+	# Create production summary widget
+	_create_production_widget()
 
 	# Connect building buttons
 	if summon_button:
@@ -49,8 +57,11 @@ func _ready():
 		equipment_button.pressed.connect(_on_equipment_building_pressed)
 	if shop_button:
 		shop_button.pressed.connect(_on_shop_building_pressed)
+		shop_button.visible = false  # Hide shop for now
 	if specialization_button:
 		specialization_button.pressed.connect(_on_specialization_building_pressed)
+	if tower_button:
+		tower_button.pressed.connect(_on_tower_building_pressed)
 
 	# Setup feature tracking (MYTHOS ARCHITECTURE)
 	_setup_feature_buttons()
@@ -64,6 +75,32 @@ func _ready():
 	# Check if we need to start the first-time tutorial (MYTHOS ARCHITECTURE)
 	call_deferred("_check_tutorial_trigger")
 
+	# Setup unified header for main menu
+	_setup_unified_header()
+
+func _setup_unified_header():
+	"""Configure header for main menu - no back button, no title"""
+	# Connect to visibility changes
+	if not visibility_changed.is_connected(_on_visibility_changed):
+		visibility_changed.connect(_on_visibility_changed)
+
+	# Set up header immediately if visible
+	if visible:
+		_update_header_for_main_menu()
+
+func _on_visibility_changed():
+	"""Update header when main menu becomes visible"""
+	if visible:
+		_update_header_for_main_menu()
+
+func _update_header_for_main_menu():
+	"""Apply main menu header settings - no back button, no title"""
+	var main_ui = get_node_or_null("/root/Main/MainUIOverlay")
+	if main_ui:
+		main_ui.set_screen_title("")
+		main_ui.show_header_back_button(false)
+		main_ui.disconnect_header_back_button()
+
 func _style_buttons():
 	"""Apply dark fantasy styling to navigation buttons"""
 	var buttons_data = [
@@ -74,7 +111,8 @@ func _style_buttons():
 		{"button": dungeon_button, "color": Color(0.3, 0.4, 0.35)},    # Forest green
 		{"button": equipment_button, "color": Color(0.45, 0.4, 0.5)},  # Purple/steel
 		{"button": shop_button, "color": Color(0.3, 0.6, 0.7)},        # Crystal blue - shop
-		{"button": specialization_button, "color": Color(0.5, 0.3, 0.6)}  # Purple - specialization
+		{"button": specialization_button, "color": Color(0.5, 0.3, 0.6)},  # Purple - specialization
+		{"button": tower_button, "color": Color(0.7, 0.4, 0.2)}  # Orange/fire - tower
 	]
 
 	for data in buttons_data:
@@ -140,7 +178,8 @@ func _setup_feature_buttons():
 		"equipment": equipment_button,        # Level 8
 		"dungeons": dungeon_button,          # Level 10
 		"shop": shop_button,                 # Always available
-		"specialization": specialization_button  # Level 20 (god level)
+		"specialization": specialization_button,  # Level 20 (god level)
+		"tower": tower_button                # Infinite tower - always available
 	}
 
 func _connect_to_systems():
@@ -183,6 +222,12 @@ func _update_button_visibility():
 		collection_button.visible = true
 		collection_button.modulate = Color.WHITE
 
+	# Keep shop and specialization hidden for now
+	if shop_button:
+		shop_button.visible = false
+	if specialization_button:
+		specialization_button.visible = false
+
 func _navigate_to_screen(screen_name: String):
 	"""Helper function to navigate to a screen"""
 	var screen_manager = _get_system_registry().get_system("ScreenManager")
@@ -214,6 +259,37 @@ func _on_shop_building_pressed():
 
 func _on_specialization_building_pressed():
 	_navigate_to_screen("specialization")
+
+func _on_tower_building_pressed():
+	_navigate_to_screen("tower")
+
+# ==============================================================================
+# PRODUCTION WIDGET
+# ==============================================================================
+
+func _create_production_widget() -> void:
+	"""Create and add the production summary widget"""
+	_production_widget = ProductionSummaryWidgetScript.new()
+	_production_widget.name = "ProductionSummaryWidget"
+
+	# Add it to ContentContainer, after the Spacer but before ButtonGrid
+	var content_container = $ContentContainer
+	if content_container:
+		var spacer = content_container.get_node_or_null("Spacer")
+		if spacer:
+			var spacer_idx = spacer.get_index()
+			content_container.add_child(_production_widget)
+			content_container.move_child(_production_widget, spacer_idx + 1)
+		else:
+			content_container.add_child(_production_widget)
+
+	# Connect to collection event
+	_production_widget.resources_collected.connect(_on_resources_collected)
+
+func _on_resources_collected(total: Dictionary) -> void:
+	"""Handle resources collected from widget"""
+	print("[WorldView] Collected resources: %s" % str(total))
+	# Resources are already awarded by ProductionSummaryWidget
 
 # ==============================================================================
 # TUTORIAL SYSTEM INTEGRATION (MYTHOS ARCHITECTURE)

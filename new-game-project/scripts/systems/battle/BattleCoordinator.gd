@@ -45,24 +45,51 @@ func _get_event_bus():
 
 ## Start a new battle with the given configuration
 func start_battle(config) -> bool:
-	if is_battle_active:
-		push_warning("BattleCoordinator: Battle already active, ending previous battle")
-		end_battle(BattleResult.create_defeat("Battle interrupted"))
-		return false
-	
+	print("BattleCoordinator.start_battle: Starting new battle...")
+
+	# Force cleanup any stale battle state before starting
+	# This prevents the perma-defeat bug where old state blocks new battles
+	if is_battle_active or battle_state != null or current_battle_config != null:
+		print("BattleCoordinator.start_battle: Found stale state, forcing cleanup")
+		_force_cleanup_stale_battle()
+
 	# Validate battle configuration
 	if not _validate_battle_config(config):
 		push_error("BattleCoordinator: Invalid battle configuration")
 		return false
-	
+
+	# Validate attacker team has valid gods
+	var valid_attackers = config.attacker_team.filter(func(god): return god != null)
+	if valid_attackers.is_empty():
+		push_error("BattleCoordinator: No valid gods in attacker team")
+		return false
+	print("BattleCoordinator.start_battle: %d valid attackers" % valid_attackers.size())
+
 	# Store config and create battle state
 	current_battle_config = config
 	battle_state = BattleState.new()
 	battle_state.setup_from_config(config)
-	
+
+	# Verify player units were created properly
+	var player_units = battle_state.get_player_units()
+	print("BattleCoordinator.start_battle: Created %d player units" % player_units.size())
+	if player_units.is_empty():
+		push_error("BattleCoordinator: Failed to create player units from config")
+		_force_cleanup_stale_battle()
+		return false
+
+	# Verify all player units are alive (fix any stale state from previous battles)
+	# Skip for Tower mode - dead gods stay dead between floors
+	var is_tower_battle = config.battle_type == BattleConfig.BattleType.TOWER
+	for unit in player_units:
+		if not unit.is_alive and not is_tower_battle:
+			push_warning("BattleCoordinator: Unit %s not alive at battle start, fixing" % unit.display_name)
+			unit.is_alive = true
+			unit.current_hp = unit.max_hp
+
 	# Initialize battle systems
 	_initialize_battle_systems()
-	
+
 	# Start the battle
 	is_battle_active = true
 	battle_started.emit(config)
@@ -71,6 +98,26 @@ func start_battle(config) -> bool:
 	_begin_battle_flow.call_deferred()
 
 	return true
+
+## Force cleanup stale battle state without emitting signals
+func _force_cleanup_stale_battle():
+	"""Emergency cleanup for stale battle state - used to fix perma-defeat bug"""
+	print("BattleCoordinator: Force cleaning up stale battle state")
+	auto_battle_enabled = false
+
+	if battle_state:
+		battle_state.cleanup()
+		battle_state = null
+
+	if turn_manager:
+		turn_manager.end_battle()
+
+	if wave_manager:
+		wave_manager.reset()
+
+	current_battle_config = null
+	is_battle_active = false
+	print("BattleCoordinator: Stale battle cleanup complete")
 
 ## End the current battle with the given result
 func end_battle(result: BattleResult):
@@ -83,21 +130,23 @@ func end_battle(result: BattleResult):
 	# Calculate final battle statistics
 	result.duration = battle_state.get_battle_duration()
 	result.battle_type = current_battle_config.get_battle_type_name()
-	
+
 	# Award rewards if victory
 	if result.victory:
 		result.rewards = _calculate_battle_rewards()
 		_award_battle_rewards(result.rewards)
-	
-	# Cleanup battle state
-	_cleanup_battle()
 
-	# Emit events
+	# Emit battle_ended BEFORE cleanup so handlers can access battle_state
+	# (e.g., TowerScreen needs to save HP for next floor)
 	is_battle_active = false
 	battle_ended.emit(result)
 
+	# Cleanup battle state AFTER signal handlers have run
+	_cleanup_battle()
+
 ## Toggle auto-battle mode
 func set_auto_battle(enabled: bool):
+	print("BattleCoordinator.set_auto_battle: Setting auto_battle to ", enabled)
 	auto_battle_enabled = enabled
 	if enabled:
 		_process_auto_battle()
@@ -162,9 +211,14 @@ func _initialize_battle_systems():
 
 func _begin_battle_flow():
 	"""Start the main battle loop"""
+	# Safety check - config might be null if battle ended before deferred call
+	if not current_battle_config:
+		push_warning("BattleCoordinator: _begin_battle_flow called but config is null")
+		return
+
 	print("BattleCoordinator: Beginning battle flow...")
 	# Start first wave if applicable
-	if not current_battle_config.enemy_waves.is_empty():
+	if current_battle_config.enemy_waves and not current_battle_config.enemy_waves.is_empty():
 		print("BattleCoordinator: Starting wave 1...")
 		wave_manager.start_wave(1)
 
@@ -180,24 +234,37 @@ func _begin_battle_flow():
 
 func _process_auto_battle():
 	"""Process auto-battle logic"""
+	print("BattleCoordinator._process_auto_battle: Starting...")
+	print("BattleCoordinator._process_auto_battle: auto_battle_enabled=", auto_battle_enabled, " is_battle_active=", is_battle_active)
+
 	if not auto_battle_enabled or not is_battle_active:
+		print("BattleCoordinator._process_auto_battle: Exiting early - conditions not met")
 		return
-	
+
 	# Get current unit's turn
 	var current_unit = turn_manager.get_current_unit()
 	if not current_unit:
+		print("BattleCoordinator._process_auto_battle: No current unit")
 		return
-	
+
+	print("BattleCoordinator._process_auto_battle: Current unit is ", current_unit.display_name, " is_enemy=", current_unit.is_enemy())
+
 	# Let AI choose action for enemy units, or auto-battle for player units
 	var action: BattleAction
-	
+
 	if current_unit.is_enemy():
 		action = BattleAI.choose_action(current_unit, battle_state)
 	else:
 		action = _choose_auto_battle_action(current_unit)
-	
+
+	print("BattleCoordinator._process_auto_battle: Action created = ", action != null)
+
 	if action:
 		action_processor.execute_action(action, battle_state)
+		# End turn after action (same as enemy turn processing)
+		turn_manager.advance_turn()
+	else:
+		print("BattleCoordinator._process_auto_battle: No action available!")
 
 func _choose_auto_battle_action(unit: BattleUnit) -> BattleAction:
 	"""Choose the best action for auto-battle"""
@@ -219,7 +286,7 @@ func _choose_auto_battle_action(unit: BattleUnit) -> BattleAction:
 func _find_best_targets(skill: Skill, potential_targets: Array) -> Array:
 	"""Find the best targets for a given skill"""
 	# Simple targeting: prioritize lowest HP enemies
-	var valid_targets = potential_targets.filter(func(unit): return unit.is_alive())
+	var valid_targets = potential_targets.filter(func(unit): return unit.is_alive)
 	if valid_targets.is_empty():
 		return []
 	
@@ -239,13 +306,16 @@ func _calculate_battle_rewards() -> Dictionary:
 	"""Calculate rewards based on battle type and performance"""
 	var rewards = {}
 	
-	match current_battle_config.battle_type:
+	var battle_type_name = current_battle_config.get_battle_type_name() if current_battle_config.has_method("get_battle_type_name") else str(current_battle_config.battle_type)
+	match battle_type_name:
 		"dungeon":
 			rewards = _calculate_dungeon_rewards()
 		"territory":
 			rewards = _calculate_territory_rewards()
 		"arena":
 			rewards = _calculate_arena_rewards()
+		"tower":
+			rewards = _calculate_tower_rewards()
 		_:
 			rewards = {"experience": 100, "gold": 50}
 	
@@ -270,21 +340,67 @@ func _calculate_territory_rewards() -> Dictionary:
 	return current_battle_config.base_rewards
 
 func _calculate_arena_rewards() -> Dictionary:
-	return {"arena_tokens": 5, "gold": 1000}
+	return {"gold": 1000, "mana": 500}
+
+func _calculate_tower_rewards() -> Dictionary:
+	"""Calculate tower rewards - delegated to TowerManager"""
+	var tower_manager = SystemRegistry.get_instance().get_system("TowerManager")
+	if tower_manager and tower_manager.is_run_active():
+		# TowerManager handles its own reward calculation
+		return {}
+	return {"mana": 100, "gold": 50}
 
 func _award_battle_rewards(rewards: Dictionary):
 	"""Award the calculated rewards to the player"""
 	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager")
 	if not resource_manager:
 		return
-	
+
+	# Award resource rewards
 	for resource in rewards:
+		# Skip experience - we handle god XP separately
+		if resource == "experience":
+			continue
 		var amount = rewards[resource]
 		resource_manager.add_resource(resource, amount)
 
 		var event_bus = _get_event_bus()
 		if event_bus:
 			event_bus.notification_requested.emit("Gained " + str(amount) + " " + resource, "reward", 2.0)
+
+	# Award XP to participating gods
+	_award_god_experience(rewards)
+
+func _award_god_experience(rewards: Dictionary):
+	"""Award XP to each god that participated in the battle"""
+	if not battle_state:
+		return
+
+	var god_progression = SystemRegistry.get_instance().get_system("GodProgressionManager")
+	if not god_progression:
+		push_warning("BattleCoordinator: GodProgressionManager not found, skipping god XP")
+		return
+
+	# Get base XP from rewards, or calculate based on battle type
+	var base_xp = rewards.get("experience", 100)
+
+	# Bonus XP based on battle difficulty/waves
+	var wave_bonus = battle_state.current_wave * 25
+	var xp_per_god = base_xp + wave_bonus
+
+	# Award XP to each player unit that has a source god
+	var gods_rewarded = 0
+	for unit in battle_state.get_player_units():
+		if unit.source_god:
+			god_progression.add_experience_to_god(unit.source_god, xp_per_god)
+			gods_rewarded += 1
+			print("BattleCoordinator: Awarded %d XP to %s" % [xp_per_god, unit.display_name])
+
+	# Notify player of XP gain
+	if gods_rewarded > 0:
+		var event_bus = _get_event_bus()
+		if event_bus:
+			event_bus.notification_requested.emit("Gods gained %d XP each!" % xp_per_god, "reward", 2.0)
 
 func _cleanup_battle():
 	"""Clean up battle state and systems"""
@@ -354,6 +470,13 @@ func _on_wave_started(wave_number: int):
 		event_bus.wave_started.emit(wave_number)
 	battle_log_message.emit("Wave " + str(wave_number) + " started!")
 
+	# Resume auto-battle after wave transition if enabled
+	if auto_battle_enabled and is_battle_active:
+		print("BattleCoordinator._on_wave_started: Resuming auto-battle for wave ", wave_number)
+		# Small delay to let UI update with new enemies
+		await get_tree().create_timer(0.8).timeout
+		_process_auto_battle()
+
 func _on_wave_completed(wave_number: int):
 	var event_bus = _get_event_bus()
 	if event_bus:
@@ -367,6 +490,10 @@ func _on_all_waves_completed():
 
 func _advance_to_next_wave():
 	"""Advance to the next wave of enemies"""
+	if not current_battle_config or not battle_state:
+		push_warning("BattleCoordinator: _advance_to_next_wave called but config/state is null")
+		return
+
 	print("BattleCoordinator: Advancing to next wave...")
 
 	# Mark current wave as complete
@@ -374,7 +501,7 @@ func _advance_to_next_wave():
 
 	# Get next wave enemies from config
 	var next_wave_index = battle_state.current_wave  # current_wave is 1-indexed, array is 0-indexed
-	if next_wave_index >= current_battle_config.enemy_waves.size():
+	if not current_battle_config.enemy_waves or next_wave_index >= current_battle_config.enemy_waves.size():
 		push_error("BattleCoordinator: No more wave data available")
 		return
 
@@ -391,6 +518,9 @@ func _advance_to_next_wave():
 
 func _check_battle_end_conditions() -> bool:
 	"""Check if battle should end and end it if necessary"""
+	if not battle_state or not current_battle_config:
+		return true  # No valid state, battle should end
+
 	# Check if all player units are defeated
 	var player_units_alive = battle_state.get_player_units().any(func(unit): return unit.is_alive)
 	if not player_units_alive:
@@ -401,7 +531,8 @@ func _check_battle_end_conditions() -> bool:
 	var enemy_units_alive = battle_state.get_enemy_units().any(func(unit): return unit.is_alive)
 	if not enemy_units_alive:
 		# All enemies in current wave are defeated
-		if current_battle_config.enemy_waves.is_empty() or battle_state.current_wave >= battle_state.max_waves:
+		var no_waves = not current_battle_config.enemy_waves or current_battle_config.enemy_waves.is_empty()
+		if no_waves or battle_state.current_wave >= battle_state.max_waves:
 			# No more waves or all waves completed
 			end_battle(BattleResult.create_victory("All enemies defeated"))
 			return true

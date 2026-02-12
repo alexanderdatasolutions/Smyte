@@ -30,6 +30,7 @@ var sorter: CollectionSorter
 
 # Track selected god for visual highlight
 var selected_god: God = null
+var _is_refreshing: bool = false  # Guard against concurrent refreshes
 
 func _ready():
 	# Ensure fullscreen (needed when parent is Node2D)
@@ -37,9 +38,12 @@ func _ready():
 
 	_init_systems()
 
+	# Use unified header for title and back button
+	_setup_unified_header()
+
+	# Hide the old back button (using unified header instead)
 	if back_button:
-		back_button.pressed.connect(_on_back_pressed)
-		_style_back_button()
+		back_button.visible = false
 
 func _setup_fullscreen():
 	"""Make this control fill the entire viewport"""
@@ -47,6 +51,29 @@ func _setup_fullscreen():
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	set_size(viewport_size)
 	position = Vector2.ZERO
+
+func _setup_unified_header():
+	"""Configure the unified header for this screen"""
+	# Connect to visibility changes to update header when screen is shown/hidden
+	if not visibility_changed.is_connected(_on_visibility_changed):
+		visibility_changed.connect(_on_visibility_changed)
+
+	# Set up header immediately if we're visible
+	if visible:
+		_update_header_for_screen()
+
+func _on_visibility_changed():
+	"""Update header when this screen becomes visible or hidden"""
+	if visible:
+		_update_header_for_screen()
+
+func _update_header_for_screen():
+	"""Apply this screen's header settings"""
+	var main_ui = get_node_or_null("/root/Main/MainUIOverlay")
+	if main_ui:
+		main_ui.set_screen_title("GOD COLLECTION")
+		main_ui.show_header_back_button(true)
+		main_ui.connect_header_back_button(_on_back_pressed)
 
 func _style_back_button():
 	"""Style the back button to match dark fantasy theme"""
@@ -138,6 +165,11 @@ func refresh_collection():
 	if not collection_manager:
 		return
 
+	# Guard against concurrent refreshes (due to await)
+	if _is_refreshing:
+		return
+	_is_refreshing = true
+
 	# Get gods from SystemRegistry
 	var gods_data = collection_manager.get_all_gods()
 
@@ -152,6 +184,7 @@ func refresh_collection():
 	await get_tree().process_frame
 
 	if gods_data.is_empty():
+		_is_refreshing = false
 		var no_gods_label = Label.new()
 		no_gods_label.text = "No gods in your collection yet!"
 		no_gods_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -168,6 +201,8 @@ func refresh_collection():
 			var card_style = GodCard.CardStyle.SELECTED if (selected_god and selected_god.id == god.id) else GodCard.CardStyle.NORMAL
 			god_card.setup_god_card(god, card_style)
 			god_card.god_selected.connect(show_god_details)
+
+	_is_refreshing = false
 
 func show_god_details(god: God):
 	"""Show god details in right panel using helper class"""

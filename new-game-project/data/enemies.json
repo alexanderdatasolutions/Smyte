@@ -1,44 +1,63 @@
 {
+  "_metadata": {
+    "version": "2.0.0",
+    "description": "Normalized enemy data - dungeon enemies and territory defenders",
+    "last_updated": "2026-02-10"
+  },
+
   "enemy_types": {
     "fire": {
       "basic": {
-        "Fire Guardian": {
+        "Muspel Ember": {
+          "description": "A fragment of primordial fire from Muspelheim, the Norse realm of flames",
           "abilities": ["flame_strike", "burning_aura"],
           "ai_behavior": "aggressive",
-          "special_traits": ["burn_on_hit"]
+          "special_traits": ["burn_on_hit"],
+          "pantheon": "norse"
         },
-        "Flame Warden": {
+        "Salamander of Agni": {
+          "description": "Sacred fire lizard blessed by the Hindu god of flames",
           "abilities": ["fire_shield", "ember_shot"],
           "ai_behavior": "defensive",
-          "special_traits": ["fire_resistance"]
+          "special_traits": ["fire_resistance"],
+          "pantheon": "hindu"
         },
-        "Ember Spirit": {
+        "Ifrit Spawn": {
+          "description": "Lesser djinn born from smokeless fire in Arabian myth",
           "abilities": ["ignite", "flame_dash"],
           "ai_behavior": "speed",
-          "special_traits": ["evasive"]
+          "special_traits": ["evasive"],
+          "pantheon": "arabian"
         },
-        "Lava Golem": {
+        "Lava Jotun": {
+          "description": "Fire giant from the burning realm, kin to Surtr",
           "abilities": ["molten_slam", "hardened_skin"],
           "ai_behavior": "tank",
-          "special_traits": ["high_defense"]
+          "special_traits": ["high_defense"],
+          "pantheon": "norse"
         }
       },
       "leader": {
-        "Inferno Commander": {
+        "Herald of Surtr": {
+          "description": "Champion of the fire giant destined to burn the world at Ragnarok",
           "abilities": ["rally_flames", "fire_command", "scorching_wave"],
           "ai_behavior": "support",
-          "special_traits": ["buff_allies", "burn_aura"]
+          "special_traits": ["buff_allies", "burn_aura"],
+          "pantheon": "norse"
         }
       },
       "elite": {
-        "Phoenix Lord": {
+        "Bennu, the Burning": {
+          "description": "Egyptian solar bird of rebirth, predecessor to the phoenix myth",
           "abilities": ["rebirth", "phoenix_dive", "flame_tornado", "burning_wings"],
           "ai_behavior": "hybrid",
-          "special_traits": ["resurrect_once", "flying", "burn_trail"]
+          "special_traits": ["resurrect_once", "flying", "burn_trail"],
+          "pantheon": "egyptian"
         }
       },
       "boss": {
-        "Fire Overlord": {
+        "Surtr, Lord of Muspelheim": {
+          "description": "The primordial fire giant who wields a flaming sword and will set the world ablaze at Ragnarok",
           "abilities": ["inferno_domain", "volcanic_eruption", "flame_prison", "apocalypse_flame", "molten_armor"],
           "ai_behavior": "boss_pattern",
           "special_traits": ["phase_transitions", "summon_adds", "rage_mode"],
@@ -46,44 +65,56 @@
             "phase_1": ["inferno_domain", "flame_prison"],
             "phase_2": ["volcanic_eruption", "molten_armor"],
             "phase_3": ["apocalypse_flame", "summon_adds"]
-          }
+          },
+          "pantheon": "norse"
         }
       }
     },
     "water": {
       "basic": {
-        "Water Guardian": {
+        "Nereid of Poseidon": {
+          "description": "Sea nymph daughter of the old sea god Nereus, servant of Poseidon",
           "abilities": ["water_bolt", "tidal_shield"],
           "ai_behavior": "balanced",
-          "special_traits": ["healing_waters"]
+          "special_traits": ["healing_waters"],
+          "pantheon": "greek"
         },
-        "Tidal Warden": {
+        "Kappa": {
+          "description": "Japanese water demon with a dish-shaped head that must stay filled with water",
           "abilities": ["wave_crash", "aqua_barrier"],
           "ai_behavior": "defensive",
-          "special_traits": ["damage_reduction"]
+          "special_traits": ["damage_reduction"],
+          "pantheon": "japanese"
         },
-        "Aqua Spirit": {
+        "Apsara": {
+          "description": "Divine water spirit from Hindu mythology, dancer of the celestial courts",
           "abilities": ["heal_splash", "purify"],
           "ai_behavior": "healer",
-          "special_traits": ["support_focus"]
+          "special_traits": ["support_focus"],
+          "pantheon": "hindu"
         }
       },
       "leader": {
-        "Frost Commander": {
+        "Jotunn of Aegir": {
+          "description": "Frost giant servant of Aegir, Norse god of the sea and storms",
           "abilities": ["ice_shards", "frozen_armor", "blizzard"],
           "ai_behavior": "control",
-          "special_traits": ["freeze_chance", "slow_aura"]
+          "special_traits": ["freeze_chance", "slow_aura"],
+          "pantheon": "norse"
         }
       },
       "elite": {
-        "Leviathan Lord": {
+        "Scylla's Spawn": {
+          "description": "Offspring of the dreaded sea monster that devoured sailors near Charybdis",
           "abilities": ["tsunami", "deep_freeze", "water_prison", "tidal_rage"],
           "ai_behavior": "area_control",
-          "special_traits": ["massive_aoe", "freeze_immune"]
+          "special_traits": ["massive_aoe", "freeze_immune"],
+          "pantheon": "greek"
         }
       },
       "boss": {
-        "Ocean Overlord": {
+        "Tiamat, Mother of Chaos": {
+          "description": "Primordial Babylonian goddess of the salt sea, mother of monsters and dragons",
           "abilities": ["oceanic_wrath", "maelstrom", "frozen_domain", "summon_tide", "absolute_zero"],
           "ai_behavior": "boss_pattern",
           "special_traits": ["phase_transitions", "environmental_effects"],
@@ -91,44 +122,56 @@
             "phase_1": ["oceanic_wrath", "summon_tide"],
             "phase_2": ["maelstrom", "frozen_domain"],
             "phase_3": ["absolute_zero", "tsunami_finale"]
-          }
+          },
+          "pantheon": "mesopotamian"
         }
       }
     },
     "earth": {
       "basic": {
-        "Earth Guardian": {
+        "Earthborn Gigante": {
+          "description": "One of the Giants born from Gaia's blood, eternal enemies of the Olympians",
           "abilities": ["stone_throw", "fortify"],
           "ai_behavior": "tank",
-          "special_traits": ["sturdy"]
+          "special_traits": ["sturdy"],
+          "pantheon": "greek"
         },
-        "Stone Warden": {
+        "Dvergr Smith": {
+          "description": "Norse dwarf craftsman from Svartalfheim, master of stone and metal",
           "abilities": ["earthquake", "stone_skin"],
           "ai_behavior": "defensive",
-          "special_traits": ["immovable"]
+          "special_traits": ["immovable"],
+          "pantheon": "norse"
         },
-        "Terra Spirit": {
+        "Leshy": {
+          "description": "Slavic forest spirit and protector of the woods and wild creatures",
           "abilities": ["nature_heal", "root_snare"],
           "ai_behavior": "support",
-          "special_traits": ["regeneration"]
+          "special_traits": ["regeneration"],
+          "pantheon": "slavic"
         }
       },
       "leader": {
-        "Mountain Commander": {
+        "Antaeus' Champion": {
+          "description": "Warrior blessed by the giant Antaeus who drew strength from touching the earth",
           "abilities": ["landslide", "granite_shield", "rally_earth"],
           "ai_behavior": "defensive_support",
-          "special_traits": ["defense_aura", "taunt"]
+          "special_traits": ["defense_aura", "taunt"],
+          "pantheon": "greek"
         }
       },
       "elite": {
-        "Titan Lord": {
+        "Cyclops Elder": {
+          "description": "Ancient one-eyed giant, forger of Zeus's thunderbolts and builder of mighty walls",
           "abilities": ["colossal_slam", "stone_prison", "earthen_rage", "mountain_call"],
           "ai_behavior": "bruiser",
-          "special_traits": ["unstoppable", "area_stun"]
+          "special_traits": ["unstoppable", "area_stun"],
+          "pantheon": "greek"
         }
       },
       "boss": {
-        "Earth Overlord": {
+        "Atlas, the Enduring": {
+          "description": "The mighty Titan condemned to hold up the celestial spheres for eternity",
           "abilities": ["tectonic_shift", "stone_army", "diamond_skin", "continental_crush", "gaia_wrath"],
           "ai_behavior": "boss_pattern",
           "special_traits": ["summon_golems", "damage_reduction_stacking"],
@@ -136,44 +179,56 @@
             "phase_1": ["tectonic_shift", "stone_army"],
             "phase_2": ["diamond_skin", "continental_crush"],
             "phase_3": ["gaia_wrath", "eternal_stone"]
-          }
+          },
+          "pantheon": "greek"
         }
       }
     },
     "lightning": {
       "basic": {
-        "Storm Guardian": {
+        "Raiju": {
+          "description": "Japanese thunder beast that rides lightning bolts and serves Raijin",
           "abilities": ["lightning_bolt", "static_field"],
           "ai_behavior": "aggressive",
-          "special_traits": ["chain_attacks"]
+          "special_traits": ["chain_attacks"],
+          "pantheon": "japanese"
         },
-        "Lightning Warden": {
+        "Einherjar Stormcaller": {
+          "description": "Fallen warrior of Valhalla blessed with Thor's thunder",
           "abilities": ["thunder_strike", "electric_barrier"],
           "ai_behavior": "burst",
-          "special_traits": ["stun_chance"]
+          "special_traits": ["stun_chance"],
+          "pantheon": "norse"
         },
-        "Volt Spirit": {
+        "Marut": {
+          "description": "Hindu storm deity, one of the Vedic gods of wind and lightning",
           "abilities": ["spark", "energize"],
           "ai_behavior": "speed",
-          "special_traits": ["high_speed"]
+          "special_traits": ["high_speed"],
+          "pantheon": "hindu"
         }
       },
       "leader": {
-        "Thunder Commander": {
+        "Mjolnir Guard": {
+          "description": "Elite warrior wielding a weapon blessed by Thor's legendary hammer",
           "abilities": ["storm_call", "lightning_field", "overcharge"],
           "ai_behavior": "area_damage",
-          "special_traits": ["chain_lightning", "energize_allies"]
+          "special_traits": ["chain_lightning", "energize_allies"],
+          "pantheon": "norse"
         }
       },
       "elite": {
-        "Tempest Lord": {
+        "Thunderbird": {
+          "description": "Great spirit of the Native American sky, whose wings create thunder and lightning",
           "abilities": ["thunder_god_strike", "storm_prison", "electric_domain", "chain_devastation"],
           "ai_behavior": "burst_aoe",
-          "special_traits": ["multi_strike", "paralysis"]
+          "special_traits": ["multi_strike", "paralysis"],
+          "pantheon": "native_american"
         }
       },
       "boss": {
-        "Storm Overlord": {
+        "Typhon, Father of Monsters": {
+          "description": "The most fearsome monster in Greek mythology, who challenged Zeus himself for supremacy",
           "abilities": ["tempest_fury", "lightning_cage", "thunder_realm", "storm_avatar", "apocalypse_storm"],
           "ai_behavior": "boss_pattern",
           "special_traits": ["speed_scaling", "chain_everything"],
@@ -181,44 +236,56 @@
             "phase_1": ["tempest_fury", "lightning_cage"],
             "phase_2": ["thunder_realm", "storm_avatar"],
             "phase_3": ["apocalypse_storm", "infinite_storm"]
-          }
+          },
+          "pantheon": "greek"
         }
       }
     },
     "light": {
       "basic": {
-        "Light Guardian": {
+        "Disciple of Ra": {
+          "description": "Mortal blessed by the Egyptian sun god, wielder of divine radiance",
           "abilities": ["holy_bolt", "blessing"],
           "ai_behavior": "support",
-          "special_traits": ["heal_allies"]
+          "special_traits": ["heal_allies"],
+          "pantheon": "egyptian"
         },
-        "Radiant Warden": {
+        "Deva Guardian": {
+          "description": "Benevolent Hindu celestial being, defender of cosmic order",
           "abilities": ["divine_shield", "purge"],
           "ai_behavior": "defensive",
-          "special_traits": ["cleanse_effects"]
+          "special_traits": ["cleanse_effects"],
+          "pantheon": "hindu"
         },
-        "Divine Spirit": {
+        "Valkyrie": {
+          "description": "Norse chooser of the slain, she decides who lives and who dies in battle",
           "abilities": ["heal_light", "sanctuary"],
           "ai_behavior": "healer",
-          "special_traits": ["resurrection"]
+          "special_traits": ["resurrection"],
+          "pantheon": "norse"
         }
       },
       "leader": {
-        "Celestial Commander": {
+        "Horus Champion": {
+          "description": "Warrior blessed by the falcon-headed god of kingship and the sky",
           "abilities": ["heaven_strike", "divine_protection", "angel_summon"],
           "ai_behavior": "balanced_support",
-          "special_traits": ["buff_holy", "debuff_immunity"]
+          "special_traits": ["buff_holy", "debuff_immunity"],
+          "pantheon": "egyptian"
         }
       },
       "elite": {
-        "Seraph Lord": {
+        "Seraph, the Burning One": {
+          "description": "Six-winged angel that stands in the presence of the divine, burning with holy fire",
           "abilities": ["judgment", "divine_wrath", "holy_nova", "angel_wings"],
           "ai_behavior": "hybrid",
-          "special_traits": ["flying", "blind_enemies", "heal_and_damage"]
+          "special_traits": ["flying", "blind_enemies", "heal_and_damage"],
+          "pantheon": "abrahamic"
         }
       },
       "boss": {
-        "Divine Overlord": {
+        "Aten, the Blinding Sun": {
+          "description": "The disk of the sun itself, worshipped as the one true god during Akhenaten's reign",
           "abilities": ["heaven_gate", "divine_judgment", "celestial_army", "god_rays", "rapture"],
           "ai_behavior": "boss_pattern",
           "special_traits": ["summon_angels", "invulnerability_phases"],
@@ -226,44 +293,56 @@
             "phase_1": ["heaven_gate", "god_rays"],
             "phase_2": ["divine_judgment", "celestial_army"],
             "phase_3": ["rapture", "divine_intervention"]
-          }
+          },
+          "pantheon": "egyptian"
         }
       }
     },
     "dark": {
       "basic": {
-        "Shadow Guardian": {
+        "Shade of Erebus": {
+          "description": "Shadow born from the primordial Greek god of darkness itself",
           "abilities": ["shadow_bolt", "fade"],
           "ai_behavior": "stealth",
-          "special_traits": ["dodge_boost"]
+          "special_traits": ["dodge_boost"],
+          "pantheon": "greek"
         },
-        "Dark Warden": {
+        "Draugr": {
+          "description": "Undead Norse warrior that guards its burial mound with supernatural malice",
           "abilities": ["curse", "dark_shield"],
           "ai_behavior": "debuffer",
-          "special_traits": ["apply_curse"]
+          "special_traits": ["apply_curse"],
+          "pantheon": "norse"
         },
-        "Umbral Spirit": {
+        "Vetala": {
+          "description": "Hindu vampire spirit that possesses corpses and feeds on the living",
           "abilities": ["life_drain", "fear"],
           "ai_behavior": "vampire",
-          "special_traits": ["lifesteal"]
+          "special_traits": ["lifesteal"],
+          "pantheon": "hindu"
         }
       },
       "leader": {
-        "Void Commander": {
+        "Emissary of Hel": {
+          "description": "Servant of the Norse goddess of the dead, ruler of the dishonorable dead",
           "abilities": ["void_call", "shadow_realm", "dark_empowerment"],
           "ai_behavior": "control",
-          "special_traits": ["debuff_aura", "summon_shadows"]
+          "special_traits": ["debuff_aura", "summon_shadows"],
+          "pantheon": "norse"
         }
       },
       "elite": {
-        "Abyssal Lord": {
+        "Cerberus, Hound of Hades": {
+          "description": "The three-headed hellhound that guards the gates to the Greek underworld",
           "abilities": ["void_prison", "nightmare", "shadow_devastation", "dark_metamorphosis"],
           "ai_behavior": "assassin",
-          "special_traits": ["execute_low_hp", "untargetable_phases"]
+          "special_traits": ["execute_low_hp", "untargetable_phases"],
+          "pantheon": "greek"
         }
       },
       "boss": {
-        "Shadow Overlord": {
+        "Nyx, Primordial Night": {
+          "description": "The Greek goddess of night, one of the first beings to emerge from Chaos, feared even by Zeus",
           "abilities": ["eternal_darkness", "void_collapse", "nightmare_realm", "shadow_legion", "oblivion"],
           "ai_behavior": "boss_pattern",
           "special_traits": ["summon_nightmares", "steal_buffs", "dark_mirror"],
@@ -271,7 +350,332 @@
             "phase_1": ["eternal_darkness", "shadow_legion"],
             "phase_2": ["void_collapse", "nightmare_realm"],
             "phase_3": ["oblivion", "final_darkness"]
-          }
+          },
+          "pantheon": "greek"
+        }
+      }
+    }
+  },
+
+  "territory_defenders": {
+    "_description": "Enemies that guard hex territory nodes, organized by tier and node type",
+
+    "tier_1": {
+      "resource_node": {
+        "Kobold Miner": {
+          "element": "earth",
+          "role": "basic",
+          "description": "Germanic folklore creature that dwells in mines and hoards precious metals",
+          "abilities": ["pickaxe_strike", "burrow"],
+          "ai_behavior": "defensive",
+          "pantheon": "germanic"
+        },
+        "Nisse": {
+          "element": "earth",
+          "role": "basic",
+          "description": "Scandinavian house spirit that protects farms and their resources",
+          "abilities": ["harvest_blessing", "small_but_fierce"],
+          "ai_behavior": "balanced",
+          "pantheon": "norse"
+        },
+        "Domovoi": {
+          "element": "neutral",
+          "role": "basic",
+          "description": "Slavic household spirit that guards the home and its treasures",
+          "abilities": ["protective_ward", "hearth_flame"],
+          "ai_behavior": "defensive",
+          "pantheon": "slavic"
+        }
+      },
+      "forge": {
+        "Forge Sprite": {
+          "element": "fire",
+          "role": "basic",
+          "description": "Minor fire spirit born from the heat of ancient forges",
+          "abilities": ["spark_shower", "heat_metal"],
+          "ai_behavior": "aggressive",
+          "pantheon": "elemental"
+        },
+        "Anvil Dwarf": {
+          "element": "fire",
+          "role": "basic",
+          "description": "Apprentice smith from the halls of Svartalfheim",
+          "abilities": ["hammer_strike", "forge_shield"],
+          "ai_behavior": "tank",
+          "pantheon": "norse"
+        }
+      },
+      "shrine": {
+        "Temple Acolyte": {
+          "element": "light",
+          "role": "basic",
+          "description": "Devoted servant of the divine, guardian of sacred spaces",
+          "abilities": ["prayer", "divine_spark"],
+          "ai_behavior": "support",
+          "pantheon": "neutral"
+        },
+        "Spirit Wisp": {
+          "element": "light",
+          "role": "basic",
+          "description": "Fragment of divine essence left behind at holy sites",
+          "abilities": ["holy_light", "guiding_glow"],
+          "ai_behavior": "healer",
+          "pantheon": "elemental"
+        }
+      }
+    },
+
+    "tier_2": {
+      "resource_node": {
+        "Oread": {
+          "element": "earth",
+          "role": "basic",
+          "description": "Greek mountain nymph, protector of hills and precious stones",
+          "abilities": ["stone_throw", "mountain_stance"],
+          "ai_behavior": "defensive",
+          "pantheon": "greek"
+        },
+        "Hulder": {
+          "element": "earth",
+          "role": "basic",
+          "description": "Scandinavian forest spirit with a hollow back and cow's tail",
+          "abilities": ["nature_charm", "root_snare"],
+          "ai_behavior": "control",
+          "pantheon": "norse"
+        },
+        "Yaksha": {
+          "element": "earth",
+          "role": "leader",
+          "description": "Hindu nature spirit, guardian of treasures hidden in the earth",
+          "abilities": ["treasure_guard", "earthen_barrier", "rally_spirits"],
+          "ai_behavior": "defensive_support",
+          "pantheon": "hindu"
+        }
+      },
+      "forge": {
+        "Kabeiroi": {
+          "element": "fire",
+          "role": "basic",
+          "description": "Greek mystic smiths who served Hephaestus in his forge",
+          "abilities": ["sacred_flame", "metal_working"],
+          "ai_behavior": "balanced",
+          "pantheon": "greek"
+        },
+        "Flame Elemental": {
+          "element": "fire",
+          "role": "basic",
+          "description": "Pure embodiment of forge fire, born from eternal flames",
+          "abilities": ["fire_lash", "heat_wave"],
+          "ai_behavior": "aggressive",
+          "pantheon": "elemental"
+        },
+        "Ptah's Servant": {
+          "element": "fire",
+          "role": "leader",
+          "description": "Craftsman blessed by the Egyptian god of creation and artisans",
+          "abilities": ["divine_craft", "flame_blessing", "forge_mastery"],
+          "ai_behavior": "support",
+          "pantheon": "egyptian"
+        }
+      },
+      "shrine": {
+        "Lasa": {
+          "element": "light",
+          "role": "basic",
+          "description": "Etruscan winged goddess, guardian of tombs and sacred places",
+          "abilities": ["divine_light", "sacred_ward"],
+          "ai_behavior": "defensive",
+          "pantheon": "etruscan"
+        },
+        "Kami Spirit": {
+          "element": "light",
+          "role": "basic",
+          "description": "Japanese divine spirit that inhabits sacred natural objects",
+          "abilities": ["purification", "spirit_blessing"],
+          "ai_behavior": "healer",
+          "pantheon": "japanese"
+        },
+        "Muse": {
+          "element": "light",
+          "role": "leader",
+          "description": "Greek goddess of inspiration, daughter of Zeus and Mnemosyne",
+          "abilities": ["inspiring_song", "divine_protection", "artistic_fury"],
+          "ai_behavior": "balanced_support",
+          "pantheon": "greek"
+        }
+      }
+    },
+
+    "tier_3": {
+      "resource_node": {
+        "Telchines": {
+          "element": "water",
+          "role": "elite",
+          "description": "Ancient Greek sea demons and master craftsmen who forged Poseidon's trident",
+          "abilities": ["tidal_magic", "metal_curse", "sea_storm", "forge_destruction"],
+          "ai_behavior": "hybrid",
+          "pantheon": "greek"
+        },
+        "Jord Aspect": {
+          "element": "earth",
+          "role": "elite",
+          "description": "Fragment of the Norse earth goddess, Thor's mother",
+          "abilities": ["earthmother_wrath", "mountain_call", "fertile_ground", "titan_strength"],
+          "ai_behavior": "tank",
+          "pantheon": "norse"
+        },
+        "Geb's Guardian": {
+          "element": "earth",
+          "role": "leader",
+          "description": "Servant of the Egyptian earth god who holds up the sky goddess Nut",
+          "abilities": ["earthquake", "sand_tomb", "desert_wind"],
+          "ai_behavior": "bruiser",
+          "pantheon": "egyptian"
+        }
+      },
+      "forge": {
+        "Cyclops Forgemaster": {
+          "element": "fire",
+          "role": "elite",
+          "description": "One of the legendary one-eyed smiths who forged Zeus's thunderbolts",
+          "abilities": ["divine_forging", "thunder_hammer", "molten_metal", "workshop_mastery"],
+          "ai_behavior": "bruiser",
+          "pantheon": "greek"
+        },
+        "Brokkr's Apprentice": {
+          "element": "fire",
+          "role": "elite",
+          "description": "Student of the dwarf who crafted Mjolnir and other divine treasures",
+          "abilities": ["legendary_craft", "flame_bellows", "unbreakable_steel", "dwarf_resilience"],
+          "ai_behavior": "tank",
+          "pantheon": "norse"
+        },
+        "Agni Avatar": {
+          "element": "fire",
+          "role": "leader",
+          "description": "Manifestation of the Hindu fire god, messenger between mortals and gods",
+          "abilities": ["sacred_fire", "purifying_flame", "divine_messenger"],
+          "ai_behavior": "balanced",
+          "pantheon": "hindu"
+        }
+      },
+      "shrine": {
+        "Oracle of Delphi": {
+          "element": "light",
+          "role": "elite",
+          "description": "Priestess of Apollo granted prophetic visions by the god of light",
+          "abilities": ["prophecy", "apollo_blessing", "divine_foresight", "sun_ray"],
+          "ai_behavior": "support",
+          "pantheon": "greek"
+        },
+        "Sekhmet Priestess": {
+          "element": "fire",
+          "role": "elite",
+          "description": "Servant of the Egyptian lion goddess of war and healing",
+          "abilities": ["lion_fury", "healing_touch", "solar_wrath", "plague_ward"],
+          "ai_behavior": "hybrid",
+          "pantheon": "egyptian"
+        },
+        "Einherjar Priest": {
+          "element": "light",
+          "role": "leader",
+          "description": "Holy warrior of Valhalla, blessed by Odin to serve eternally",
+          "abilities": ["allfather_blessing", "warriors_light", "valhalla_call"],
+          "ai_behavior": "balanced_support",
+          "pantheon": "norse"
+        }
+      }
+    },
+
+    "tier_4": {
+      "resource_node": {
+        "Titan of the Earth": {
+          "element": "earth",
+          "role": "boss",
+          "description": "One of the primordial earth titans, offspring of Gaia herself",
+          "abilities": ["continental_crush", "primordial_quake", "titan_regeneration", "world_shaper", "gaia_wrath"],
+          "ai_behavior": "boss_pattern",
+          "special_traits": ["phase_transitions", "summon_adds"],
+          "phase_abilities": {
+            "phase_1": ["continental_crush", "titan_regeneration"],
+            "phase_2": ["primordial_quake", "world_shaper"],
+            "phase_3": ["gaia_wrath", "final_stand"]
+          },
+          "pantheon": "greek"
+        },
+        "Ymir Fragment": {
+          "element": "water",
+          "role": "boss",
+          "description": "Shard of the primordial frost giant from whose body the world was made",
+          "abilities": ["primordial_ice", "cosmic_frost", "giant_rebirth", "world_freeze", "ragnarok_chill"],
+          "ai_behavior": "boss_pattern",
+          "special_traits": ["phase_transitions", "environmental_effects"],
+          "phase_abilities": {
+            "phase_1": ["primordial_ice", "giant_rebirth"],
+            "phase_2": ["cosmic_frost", "world_freeze"],
+            "phase_3": ["ragnarok_chill", "ymir_awakening"]
+          },
+          "pantheon": "norse"
+        }
+      },
+      "forge": {
+        "Hephaestus Automaton": {
+          "element": "fire",
+          "role": "boss",
+          "description": "Divine mechanical guardian created by the Greek god of the forge himself",
+          "abilities": ["forge_god_fury", "divine_construct", "talos_protocol", "olympian_fire", "automaton_army"],
+          "ai_behavior": "boss_pattern",
+          "special_traits": ["phase_transitions", "summon_minions"],
+          "phase_abilities": {
+            "phase_1": ["forge_god_fury", "divine_construct"],
+            "phase_2": ["talos_protocol", "olympian_fire"],
+            "phase_3": ["automaton_army", "forge_god_wrath"]
+          },
+          "pantheon": "greek"
+        },
+        "Surtr's Ember": {
+          "element": "fire",
+          "role": "boss",
+          "description": "A living fragment of Surtr's eternal flame, harbinger of Ragnarok",
+          "abilities": ["ragnarok_flame", "world_ender", "muspel_wrath", "eternal_burning", "twilight_fire"],
+          "ai_behavior": "boss_pattern",
+          "special_traits": ["phase_transitions", "rage_mode"],
+          "phase_abilities": {
+            "phase_1": ["ragnarok_flame", "muspel_wrath"],
+            "phase_2": ["world_ender", "eternal_burning"],
+            "phase_3": ["twilight_fire", "surtr_awakening"]
+          },
+          "pantheon": "norse"
+        }
+      },
+      "shrine": {
+        "Avatar of Thoth": {
+          "element": "light",
+          "role": "boss",
+          "description": "Manifestation of the Egyptian god of wisdom, magic, and the moon",
+          "abilities": ["divine_knowledge", "lunar_magic", "scribe_of_gods", "judgment_of_souls", "cosmic_wisdom"],
+          "ai_behavior": "boss_pattern",
+          "special_traits": ["phase_transitions", "invulnerability_phases"],
+          "phase_abilities": {
+            "phase_1": ["divine_knowledge", "lunar_magic"],
+            "phase_2": ["scribe_of_gods", "judgment_of_souls"],
+            "phase_3": ["cosmic_wisdom", "thoth_transcendence"]
+          },
+          "pantheon": "egyptian"
+        },
+        "Norns' Champion": {
+          "element": "dark",
+          "role": "boss",
+          "description": "Warrior blessed by the three Norse fates who weave the destiny of gods and men",
+          "abilities": ["fate_weaving", "destiny_chains", "past_present_future", "wyrd_manipulation", "ragnarok_vision"],
+          "ai_behavior": "boss_pattern",
+          "special_traits": ["phase_transitions", "fate_manipulation"],
+          "phase_abilities": {
+            "phase_1": ["fate_weaving", "destiny_chains"],
+            "phase_2": ["past_present_future", "wyrd_manipulation"],
+            "phase_3": ["ragnarok_vision", "final_fate"]
+          },
+          "pantheon": "norse"
         }
       }
     }
@@ -317,7 +721,7 @@
         "ai_priority": "medium"
       }
     },
-    
+
     "boss_abilities": {
       "inferno_domain": {
         "description": "Creates a burning field that damages all enemies each turn",
@@ -357,10 +761,11 @@
       "territory_tier_bonus": {
         "1": 1.0,
         "2": 1.3,
-        "3": 1.6
+        "3": 1.6,
+        "4": 2.0
       }
     },
-    
+
     "base_stats": {
       "hp": 100,
       "attack": 45,
@@ -371,7 +776,7 @@
       "accuracy": 0.85,
       "resistance": 0.15
     },
-    
+
     "per_level_growth": {
       "hp": 6,
       "attack": 2,
@@ -558,6 +963,16 @@
       "target_priority": ["highest_speed", "highest_threat", "no_debuffs"],
       "ability_priority": ["stun", "slow", "silence", "debuff"],
       "disruption_focus": true
+    },
+    "hybrid": {
+      "target_priority": ["situational", "highest_value", "random"],
+      "ability_priority": ["situational", "damage", "buff"],
+      "aggression": 0.6
+    },
+    "balanced": {
+      "target_priority": ["highest_threat", "random"],
+      "ability_priority": ["damage", "shield", "buff"],
+      "aggression": 0.5
     },
     "boss_pattern": {
       "uses_phases": true,

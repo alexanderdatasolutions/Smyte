@@ -7,28 +7,50 @@ static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Sk
 	var base_attack = attacker.attack
 	var defense = target.defense
 	var multiplier = skill.get_damage_multiplier() if skill else 1.0
-	
+
 	# Summoners War damage formula: ATK * Multiplier * (1000 / (1140 + 3.5 * DEF))
-	var raw_damage = base_attack * multiplier * (1000.0 / (1140.0 + 3.5 * defense))
-	
+	var base_damage = base_attack * multiplier * (1000.0 / (1140.0 + 3.5 * defense))
+
 	# Check for critical hit
 	var is_critical = _check_critical_hit(attacker, target)
+	var crit_mult = 1.0
 	if is_critical:
-		raw_damage *= (1.0 + attacker.crit_damage / 100.0)
-	
+		crit_mult = 1.0 + attacker.crit_damage / 100.0
+		base_damage *= crit_mult
+
 	# Check for glancing hit (opposite of critical)
 	var is_glancing = not is_critical and randf() < 0.15  # 15% glancing chance
+	var glancing_mult = 1.0
 	if is_glancing:
-		raw_damage *= 0.7  # Glancing hits do 70% damage
-	
+		glancing_mult = 0.7
+		base_damage *= glancing_mult  # Glancing hits do 70% damage
+
+	# Store raw damage before variance
+	var raw_damage = base_damage
+
 	# Apply random variance (±10%)
 	var variance = randf_range(0.9, 1.1)
-	raw_damage *= variance
-	
+	base_damage *= variance
+
 	# Convert to integer
-	var final_damage = max(1, int(raw_damage))
-	
-	return DamageResult.new(final_damage, is_critical, is_glancing)
+	var final_damage = max(1, int(base_damage))
+
+	# Create result with all details
+	var result = DamageResult.new(final_damage, is_critical, is_glancing)
+
+	# Populate detailed breakdown for tooltips
+	result.attacker_attack = base_attack
+	result.target_defense = defense
+	result.skill_multiplier = multiplier
+	result.crit_multiplier = crit_mult
+	result.glancing_multiplier = glancing_mult
+	result.variance_multiplier = variance
+	result.raw_damage = raw_damage
+	result.attacker_name = attacker.display_name
+	result.target_name = target.display_name
+	result.skill_name = skill.name if skill else ""
+
+	return result
 
 ## Calculate total stats for a god (base + equipment + buffs)
 static func calculate_total_stats(god: God) -> Dictionary:

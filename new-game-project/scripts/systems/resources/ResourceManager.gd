@@ -19,7 +19,6 @@ func _load_resource_limits():
 	# Load default limits - can be overridden by config files
 	resource_limits = {
 		"energy": 100,
-		"arena_tokens": 30,
 		"guild_tokens": 50,
 		"honor_points": 9999,
 		# Unlimited resources use -1
@@ -207,4 +206,3 @@ func debug_add_test_resources():
 	add_resource("mana", 5000)
 	add_resource("crystals", 500)
 	add_resource("energy", 80)
-	add_resource("arena_tokens", 15)

@@ -31,6 +31,31 @@ func _ready():
 	_connect_signals()
 	_style_ui()
 	_show_crystals_tab()
+	_setup_unified_header()
+
+	# Hide old back button (using unified header)
+	if back_button:
+		back_button.visible = false
+
+func _setup_unified_header():
+	"""Configure the unified header for this screen"""
+	if not visibility_changed.is_connected(_on_visibility_changed):
+		visibility_changed.connect(_on_visibility_changed)
+	if visible:
+		_update_header_for_screen()
+
+func _on_visibility_changed():
+	"""Update header when this screen becomes visible"""
+	if visible:
+		_update_header_for_screen()
+
+func _update_header_for_screen():
+	"""Apply this screen's header settings"""
+	var main_ui = get_node_or_null("/root/Main/MainUIOverlay")
+	if main_ui:
+		main_ui.set_screen_title("SHOP")
+		main_ui.show_header_back_button(true)
+		main_ui.connect_header_back_button(_on_back_pressed)
 
 func _setup_fullscreen():
 	var viewport_size = get_viewport().get_visible_rect().size

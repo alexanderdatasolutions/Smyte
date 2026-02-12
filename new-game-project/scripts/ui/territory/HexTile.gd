@@ -33,13 +33,18 @@ var _tooltip_panel: Panel = null
 # Production animation
 var _glow_tween: Tween = null
 
+# Drag detection
+var _press_start_pos: Vector2 = Vector2.ZERO
+var _is_pressed: bool = false
+const DRAG_THRESHOLD: float = 10.0
+
 # ==============================================================================
 # CONSTANTS
 # ==============================================================================
 const HEX_SIZE = Vector2(80, 92)
 
-# State colors - VERY BRIGHT
-const COLOR_NEUTRAL = Color(0.75, 0.75, 0.8, 1.0)
+# State colors
+const COLOR_NEUTRAL = Color(0.35, 0.35, 0.4, 1.0)
 const COLOR_CONTROLLED = Color(0.3, 0.85, 0.4, 1.0)
 const COLOR_ENEMY = Color(0.9, 0.35, 0.35, 1.0)
 const COLOR_CONTESTED = Color(0.95, 0.8, 0.3, 1.0)
@@ -56,15 +61,66 @@ const TIER_COLORS = {
 
 # Node type icons
 const NODE_TYPE_ICONS = {
+	# New simplified v3.0 node types
 	"base": "🏛️",
+	"resource_node": "⛏️",
+	"forge": "🔥",
+	"shrine": "✨",
+	# Legacy node types (for backwards compatibility)
 	"mine": "⛏️",
 	"forest": "🌲",
 	"coast": "🌊",
 	"hunting_ground": "🦌",
-	"forge": "🔨",
 	"library": "📚",
 	"temple": "⛪",
 	"fortress": "🏰"
+}
+
+# Building icons (maps building_id to emoji)
+const BUILDING_ICONS = {
+	# Extraction
+	"mine": "⛏️",
+	"lumber_camp": "🪓",
+	"herbalist_hut": "🌿",
+	"hunting_lodge": "🏹",
+	"deep_mine": "💎",
+	"hardwood_mill": "🪵",
+	"exotic_garden": "🌺",
+	"beast_grounds": "🐉",
+	"arcane_excavation": "🔮",
+	"ancient_grove": "🌳",
+	"mystic_conservatory": "🌸",
+	"crystal_cavern": "💠",
+	# Processing
+	"smelter": "🔥",
+	"sawmill": "🪚",
+	"apothecary": "⚗️",
+	"steel_foundry": "⚒️",
+	"treatment_works": "🧪",
+	"alchemy_lab": "🧫",
+	"prometheum_forge": "🌋",
+	"enchanting_mill": "✨",
+	"bloom_distillery": "🌼",
+	"astral_refinery": "🌟",
+	# Crafting
+	"blacksmith": "🔨",
+	"weapon_forge": "⚔️",
+	"armor_forge": "🛡️",
+	"divine_forge": "⚡",
+	"jeweler": "💍",
+	# Divine
+	"shrine": "🕯️",
+	"mana_well": "💧",
+	"temple": "⛪",
+	"sanctum": "🏛️",
+	"soul_nexus": "👻",
+	# Infrastructure
+	"watchtower": "🗼",
+	"barracks": "🏰",
+	"warehouse": "📦",
+	"trade_post": "🏪",
+	"oracle_tower": "🔭",
+	"fortress": "🏯"
 }
 
 # ==============================================================================
@@ -161,8 +217,17 @@ func _update_background() -> void:
 	_background_panel.add_theme_stylebox_override("panel", style)
 
 func _update_icon() -> void:
-	"""Update node type icon"""
-	var icon_text = NODE_TYPE_ICONS.get(node_data.node_type, "❓")
+	"""Update node type icon - shows building icon if building is placed"""
+	var icon_text = "❓"
+
+	# Priority 1: Show building icon if a building is placed
+	if node_data.placed_building and not node_data.placed_building.is_empty():
+		icon_text = BUILDING_ICONS.get(node_data.placed_building, "🏗️")
+	# Priority 2: Show node type icon for special nodes
+	elif node_data.is_special_node or not node_data.node_type.is_empty():
+		icon_text = NODE_TYPE_ICONS.get(node_data.node_type, "❓")
+	# Priority 3: Blank buildable tile shows "?"
+
 	_icon_label.text = icon_text
 	_icon_label.add_theme_font_size_override("font_size", 32)
 
@@ -189,11 +254,40 @@ func _on_mouse_entered() -> void:
 func _on_mouse_exited() -> void:
 	is_hovered = false
 	hex_unhovered.emit(self)
+	# Cancel press if mouse exits while pressed (drag started)
+	_is_pressed = false
+
+func _notify_parent_drag(event: InputEventMouseMotion) -> void:
+	"""Notify parent HexMapView to start panning"""
+	var parent = get_parent()
+	while parent:
+		if parent is HexMapView:
+			parent.start_pan_from_tile(_press_start_pos, event.global_position)
+			_is_pressed = false  # Transfer control to parent
+			break
+		parent = parent.get_parent()
 
 func _on_gui_input(event: InputEvent) -> void:
+	# Handle click vs drag detection
 	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			hex_clicked.emit(self)
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				_is_pressed = true
+				_press_start_pos = event.global_position
+			else:
+				# Released - check if it was a click (not a drag)
+				if _is_pressed:
+					var distance = event.global_position.distance_to(_press_start_pos)
+					if distance < DRAG_THRESHOLD:
+						hex_clicked.emit(self)
+				_is_pressed = false
+
+	# Track motion while pressed to update drag detection
+	elif event is InputEventMouseMotion and _is_pressed:
+		var distance = event.global_position.distance_to(_press_start_pos)
+		if distance >= DRAG_THRESHOLD:
+			# It's a drag - notify parent to start panning
+			_notify_parent_drag(event)
 
 # ==============================================================================
 # PRODUCTION VISUAL FEEDBACK

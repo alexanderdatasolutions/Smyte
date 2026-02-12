@@ -70,16 +70,18 @@ func create_fallback_resources():
 		"mana": 1000,
 		"divine_crystals": 500,
 		"energy": 80,
+		# Simplified summoning (no element souls - use dungeon favor buffs instead)
 		"common_soul": 10,
 		"rare_soul": 5,
 		"epic_soul": 2,
 		"legendary_soul": 0,
-		"fire_soul": 3,
-		"water_soul": 3,
-		"earth_soul": 3,
-		"lightning_soul": 3,
-		"light_soul": 1,
-		"dark_soul": 1
+		# Starter crafting materials
+		"ore": 50,
+		"wood": 50,
+		"herbs": 30,
+		# Starter enhancement
+		"enhancement_powder": 20,
+		"awakening_essence": 20
 	}
 
 func get_default_amount_for_resource(resource_id: String) -> int:
@@ -99,10 +101,12 @@ func get_default_amount_for_resource(resource_id: String) -> int:
 			return 2
 		"legendary_soul":
 			return 0
-		"fire_soul", "water_soul", "earth_soul", "lightning_soul":
-			return 3
-		"light_soul", "dark_soul":
-			return 1
+		"ore", "wood":
+			return 50
+		"herbs":
+			return 30
+		"enhancement_powder", "awakening_essence":
+			return 20
 		_:
 			# Check resource type for default amounts
 			var rm = get_resource_manager_safe()

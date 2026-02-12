@@ -4,10 +4,11 @@ class_name BattleConfig extends Resource
 
 enum BattleType {
 	ARENA,      # PvP battles
-	DUNGEON,    # PvE dungeon battles  
+	DUNGEON,    # PvE dungeon battles
 	TERRITORY,  # Territory conquest battles
 	RAID,       # Guild raid battles
-	STORY       # Story mode battles
+	STORY,      # Story mode battles
+	TOWER       # Infinite tower mode
 }
 
 # Core battle setup - ONLY properties, NO logic
@@ -46,10 +47,11 @@ enum BattleType {
 func get_battle_type_name() -> String:
 	match battle_type:
 		BattleType.ARENA: return "arena"
-		BattleType.DUNGEON: return "dungeon" 
+		BattleType.DUNGEON: return "dungeon"
 		BattleType.TERRITORY: return "territory"
 		BattleType.RAID: return "raid"
 		BattleType.STORY: return "story"
+		BattleType.TOWER: return "tower"
 		_: return "unknown"
 
 func has_enemy_waves() -> bool:
@@ -59,7 +61,7 @@ func has_defender_team() -> bool:
 	return defender_team.size() > 0
 
 func is_pve_battle() -> bool:
-	return battle_type in [BattleType.DUNGEON, BattleType.TERRITORY, BattleType.STORY]
+	return battle_type in [BattleType.DUNGEON, BattleType.TERRITORY, BattleType.STORY, BattleType.TOWER]
 
 func is_pvp_battle() -> bool:
 	return battle_type in [BattleType.ARENA, BattleType.RAID]

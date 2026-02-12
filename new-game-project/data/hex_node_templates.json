@@ -1,0 +1,182 @@
+{
+  "_metadata": {
+    "version": "4.0.0",
+    "description": "Node templates by type and tier - coordinates are generated programmatically",
+    "last_updated": "2026-02-09",
+    "design_notes": {
+      "layout": "Concentric hex rings - Ring 0: base, Ring 1: T1, Ring 2: T2, etc.",
+      "generation": "HexRingGenerator.gd creates coordinates programmatically",
+      "node_types": "resource_node, forge, shrine - distributed evenly per ring"
+    }
+  },
+
+  "base": {
+    "name": "Divine Sanctum",
+    "type": "base",
+    "tier": 0,
+    "controller": "player",
+    "is_revealed": true,
+    "is_capturable": false,
+    "base_production": {"mana": 100, "gold": 50},
+    "max_garrison": 0,
+    "max_workers": 0,
+    "attack_timer_hours": -1,
+    "description": "Your divine seat of power. Cannot be attacked or lost."
+  },
+
+  "resource_node": {
+    "tier_1": {
+      "names": ["Iron Hills", "Verdant Meadow", "Crystal Brook", "Stone Ridge", "Herb Garden", "Timber Grove"],
+      "base_production": {"ore": 40, "wood": 20, "herbs": 15},
+      "defense_drops": {"monster_parts": {"min": 5, "max": 15}},
+      "max_garrison": 2,
+      "max_workers": 3,
+      "attack_timer_hours": 8,
+      "base_defenders": ["Kobold Miner", "Nisse"],
+      "capture_power_required": 2000,
+      "description": "A resource-rich area awaiting exploitation."
+    },
+    "tier_2": {
+      "names": ["Mythril Vein", "Ancient Grove", "Enchanted Forest", "Deep Quarry", "Sacred Garden", "Old Growth"],
+      "base_production": {"ore": 60, "quality_timber": 25, "rare_herbs": 15},
+      "defense_drops": {"monster_parts": {"min": 10, "max": 25}, "beast_scales": {"min": 3, "max": 8}},
+      "max_garrison": 3,
+      "max_workers": 4,
+      "attack_timer_hours": 6,
+      "base_defenders": ["Oread", "Hulder", "Yaksha"],
+      "capture_power_required": 5000,
+      "description": "An advanced resource node with rare materials."
+    },
+    "tier_3": {
+      "names": ["Crystal Caverns", "Primordial Marsh", "Dragon's Hoard", "Titan's Quarry", "World Tree Root", "Elemental Nexus"],
+      "base_production": {"ore": 80, "quality_timber": 40, "rare_herbs": 30, "magic_crystals": 10},
+      "defense_drops": {"monster_parts": {"min": 20, "max": 40}, "beast_scales": {"min": 8, "max": 18}},
+      "max_garrison": 4,
+      "max_workers": 5,
+      "attack_timer_hours": 4,
+      "base_defenders": ["Telchines", "Jord Aspect", "Geb's Guardian"],
+      "capture_power_required": 12000,
+      "description": "A legendary resource node with magical materials."
+    },
+    "tier_4": {
+      "names": ["Celestial Peaks", "Void Rift Mine", "Star Fragment Field", "Cosmic Quarry"],
+      "is_pvp_territory": true,
+      "base_production": {"celestial_ore": 20, "magic_crystals": 30, "rare_herbs": 50},
+      "defense_drops": {"dragon_parts": {"min": 5, "max": 15}, "beast_scales": {"min": 15, "max": 35}},
+      "max_garrison": 5,
+      "max_workers": 5,
+      "attack_timer_hours": 2,
+      "base_defenders": ["Titan of the Earth", "Ymir Fragment"],
+      "capture_power_required": 30000,
+      "unlock_requirements": {"pvp_expansion": true},
+      "description": "Ultimate resource node. PvP territory."
+    }
+  },
+
+  "forge": {
+    "tier_1": {
+      "names": ["Ember Forge", "Smoldering Pit", "Coal Furnace", "Iron Works", "Flame Anvil", "Heat Pit"],
+      "base_production": {"mana": 50, "ore": 10},
+      "defense_drops": {"monster_parts": {"min": 8, "max": 20}},
+      "max_garrison": 2,
+      "max_workers": 3,
+      "attack_timer_hours": 8,
+      "base_defenders": ["Forge Sprite", "Anvil Dwarf"],
+      "capture_power_required": 2500,
+      "description": "A basic forge for enhancement materials."
+    },
+    "tier_2": {
+      "names": ["Dragon's Forge", "Molten Crucible", "Infernal Anvil", "Magma Works", "Blazing Foundry", "Volcanic Pit"],
+      "base_production": {"refined_metal": 30, "mana": 80, "socket_crystal": 5},
+      "defense_drops": {"monster_parts": {"min": 15, "max": 30}, "beast_scales": {"min": 5, "max": 12}},
+      "max_garrison": 3,
+      "max_workers": 4,
+      "attack_timer_hours": 6,
+      "base_defenders": ["Kabeiroi", "Flame Elemental", "Ptah's Servant"],
+      "capture_power_required": 6000,
+      "description": "An advanced forge with rare crafting capabilities."
+    },
+    "tier_3": {
+      "names": ["Inferno Forge", "Abyssal Furnace", "Titan's Smithy", "Phoenix Pyre", "Hellfire Foundry", "Eternal Flame"],
+      "base_production": {"refined_metal": 50, "forging_flame": 15, "mana": 150, "socket_crystal": 12},
+      "defense_drops": {"monster_parts": {"min": 25, "max": 50}, "beast_scales": {"min": 10, "max": 22}},
+      "max_garrison": 4,
+      "max_workers": 5,
+      "attack_timer_hours": 4,
+      "base_defenders": ["Cyclops Forgemaster", "Brokkr's Apprentice", "Agni Avatar"],
+      "capture_power_required": 15000,
+      "description": "A legendary forge capable of divine crafting."
+    },
+    "tier_4": {
+      "names": ["Godforge", "Creation Crucible", "Divine Anvil", "Cosmic Foundry"],
+      "is_pvp_territory": true,
+      "base_production": {"forging_flame": 40, "refined_metal": 80, "mana": 300, "socket_crystal": 25},
+      "defense_drops": {"dragon_parts": {"min": 8, "max": 20}, "beast_scales": {"min": 20, "max": 45}},
+      "max_garrison": 5,
+      "max_workers": 5,
+      "attack_timer_hours": 2,
+      "base_defenders": ["Hephaestus Automaton", "Surtr's Ember"],
+      "capture_power_required": 35000,
+      "unlock_requirements": {"pvp_expansion": true},
+      "description": "The ultimate forge. PvP territory."
+    }
+  },
+
+  "shrine": {
+    "tier_1": {
+      "names": ["Dawn Shrine", "Twilight Chapel", "Moon Altar", "Sun Temple", "Star Shrine", "Spirit Grove"],
+      "base_production": {"divine_crystals": 400, "mana_crystals": 10, "mana": 50},
+      "defense_drops": {"monster_parts": {"min": 5, "max": 12}},
+      "max_garrison": 2,
+      "max_workers": 3,
+      "attack_timer_hours": 8,
+      "base_defenders": ["Temple Acolyte", "Spirit Wisp"],
+      "capture_power_required": 2500,
+      "description": "Produces 4 summons worth of divine crystals per hour."
+    },
+    "tier_2": {
+      "names": ["Moonlit Temple", "Sunfire Altar", "Eclipse Chapel", "Aurora Shrine", "Starfall Temple", "Celestial Altar"],
+      "base_production": {"divine_crystals": 800, "mana_crystals": 25, "socket_crystal": 8, "mana": 100},
+      "defense_drops": {"monster_parts": {"min": 10, "max": 20}, "beast_scales": {"min": 3, "max": 8}},
+      "max_garrison": 3,
+      "max_workers": 4,
+      "attack_timer_hours": 6,
+      "base_defenders": ["Lasa", "Kami Spirit", "Muse"],
+      "capture_power_required": 6000,
+      "description": "Produces 8 summons worth of divine crystals per hour."
+    },
+    "tier_3": {
+      "names": ["Celestial Sanctum", "Void Sanctum", "Divine Cathedral", "Eternal Chapel", "Astral Temple", "Cosmic Altar"],
+      "base_production": {"divine_crystals": 1600, "mana_crystals": 45, "magic_crystals": 15, "blessed_oil": 5, "mana": 200},
+      "defense_drops": {"monster_parts": {"min": 20, "max": 40}, "beast_scales": {"min": 8, "max": 18}},
+      "max_garrison": 4,
+      "max_workers": 5,
+      "attack_timer_hours": 4,
+      "base_defenders": ["Oracle of Delphi", "Sekhmet Priestess", "Einherjar Priest"],
+      "capture_power_required": 15000,
+      "description": "Produces 16 summons worth of divine crystals per hour."
+    },
+    "tier_4": {
+      "names": ["Temple of Ascension", "God's Throne", "Divine Pinnacle", "Cosmic Cathedral"],
+      "is_pvp_territory": true,
+      "base_production": {"divine_crystals": 3200, "ascension_crystal": 10, "mana_crystals": 80, "blessed_oil": 15, "mana": 500},
+      "defense_drops": {"dragon_parts": {"min": 5, "max": 12}, "beast_scales": {"min": 12, "max": 30}},
+      "max_garrison": 5,
+      "max_workers": 5,
+      "attack_timer_hours": 2,
+      "base_defenders": ["Avatar of Thoth", "Norns' Champion"],
+      "capture_power_required": 35000,
+      "unlock_requirements": {"pvp_expansion": true},
+      "description": "Produces 32 summons worth of divine crystals per hour. PvP territory."
+    }
+  },
+
+  "ring_config": {
+    "description": "Maps tiers to ring distances",
+    "tier_0": {"ring": 0, "count": 1, "note": "Base only"},
+    "tier_1": {"ring": 1, "count": 6, "note": "6 nodes: 2 resource, 2 forge, 2 shrine"},
+    "tier_2": {"ring": 2, "count": 12, "note": "12 nodes: 4 resource, 4 forge, 4 shrine"},
+    "tier_3": {"ring": 3, "count": 18, "note": "18 nodes: 6 resource, 6 forge, 6 shrine"},
+    "tier_4": {"ring": 4, "count": 24, "note": "24 nodes: 8 resource, 8 forge, 8 shrine (PvP)"}
+  }
+}

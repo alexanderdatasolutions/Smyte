@@ -381,12 +381,24 @@ func capture_node(coord) -> bool:
 		return false
 
 	# Capture the node
+	print("[TerritoryManager] BEFORE capture: node.id=%s, node.controller=%s" % [node.id, node.controller])
 	node.controller = "player"
 	node.is_revealed = true
+
+	# Start the attack timer for this node (garrison defense mechanic)
+	_start_attack_timer(node)
+
+	print("[TerritoryManager] AFTER capture: node.id=%s, node.controller=%s" % [node.id, node.controller])
 
 	# Add to controlled territories for backward compatibility
 	if node.id not in controlled_territories:
 		controlled_territories.append(node.id)
+
+	# Reveal adjacent nodes (this is how T2+ nodes become accessible)
+	_reveal_adjacent_nodes(node, hex_grid_manager)
+
+	# Award early game capture rewards (crystals for first territories)
+	_award_capture_rewards(node)
 
 	territory_captured.emit(node.id)
 
@@ -394,6 +406,13 @@ func capture_node(coord) -> bool:
 	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
 	if event_bus:
 		event_bus.emit_signal("territory_captured", node.id)
+
+	# IMMEDIATELY save game when capturing territory (don't rely on event bus)
+	# This prevents progress loss if game is force-closed
+	var save_manager = SystemRegistry.get_instance().get_system("SaveManager") if SystemRegistry.get_instance() else null
+	if save_manager:
+		save_manager.save_game()
+		print("TerritoryManager: Saved game after capturing node %s" % node.id)
 
 	return true
 
@@ -527,6 +546,52 @@ func _calculate_garrison_power(node) -> float:
 
 	return total_power
 
+## Get minimum garrison power required for workers based on node tier
+func get_min_garrison_power_for_tier(tier: int) -> int:
+	"""Workers need garrison protection - higher tier nodes need more power"""
+	# Base requirement scales with tier
+	# Tier 1: 500 (starter gods can handle)
+	# Tier 2: 2000 (need leveled/rare gods)
+	# Tier 3: 5000 (need epic/legendary or strong team)
+	# Tier 4: 15000 (endgame teams)
+	# Tier 5: 40000 (maxed legendary teams)
+	match tier:
+		1: return 500
+		2: return 2000
+		3: return 5000
+		4: return 15000
+		5: return 40000
+		_: return 500
+
+## Check if a node's garrison meets the minimum power requirement for workers
+func can_assign_workers(node) -> bool:
+	"""Check if node garrison meets minimum combat power for workers"""
+	if not node:
+		return false
+	if not node.is_controlled_by_player():
+		return false
+
+	var garrison_power = _calculate_garrison_power(node)
+	var required_power = get_min_garrison_power_for_tier(node.tier)
+	return garrison_power >= required_power
+
+## Get garrison power status for UI display
+func get_garrison_worker_status(node) -> Dictionary:
+	"""Get garrison power and requirement info for worker assignment"""
+	if not node:
+		return {"can_assign": false, "current": 0, "required": 0, "reason": "Invalid node"}
+
+	var garrison_power = int(_calculate_garrison_power(node))
+	var required_power = get_min_garrison_power_for_tier(node.tier)
+	var can_assign = garrison_power >= required_power
+
+	return {
+		"can_assign": can_assign,
+		"current": garrison_power,
+		"required": required_power,
+		"reason": "" if can_assign else "Garrison power too low (%d/%d)" % [garrison_power, required_power]
+	}
+
 ## Get number of connected controlled nodes
 func get_connected_node_count(coord) -> int:
 	"""Get count of adjacent controlled nodes"""
@@ -592,6 +657,12 @@ func update_node_garrison(node_id: String, garrison_ids: Array) -> bool:
 			node.garrison.append(god_id)
 
 	print("TerritoryManager: Updated garrison for node %s: %s" % [node_id, node.garrison])
+
+	# Trigger save after assigning garrison
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	if event_bus:
+		event_bus.save_requested.emit()
+
 	return true
 
 ## Update worker gods for a hex node by node ID
@@ -611,6 +682,12 @@ func update_node_workers(node_id: String, worker_ids: Array) -> bool:
 		push_error("TerritoryManager: Cannot modify workers of uncontrolled node")
 		return false
 
+	# Check garrison power requirement before allowing workers
+	if worker_ids.size() > 0 and not can_assign_workers(node):
+		var status = get_garrison_worker_status(node)
+		push_warning("TerritoryManager: Cannot assign workers - %s" % status.reason)
+		return false
+
 	# Update the assigned workers array
 	node.assigned_workers.clear()
 	for god_id in worker_ids:
@@ -628,6 +705,11 @@ func update_node_workers(node_id: String, worker_ids: Array) -> bool:
 			total_rate += int(new_production_rate[resource_id])
 		production_manager.production_updated.emit(node_id, total_rate)
 		print("TerritoryManager: Emitted production_updated signal for node %s with rate %d" % [node_id, total_rate])
+
+	# Trigger save after assigning workers
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	if event_bus:
+		event_bus.save_requested.emit()
 
 	return true
 
@@ -677,6 +759,11 @@ func upgrade_hex_node(node_id: String) -> bool:
 			total_rate += int(new_production_rate[resource_id])
 		production_manager.production_updated.emit(node_id, total_rate)
 		print("TerritoryManager: Emitted production_updated signal for node %s with new rate %d" % [node_id, total_rate])
+
+	# Trigger save after upgrading node
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	if event_bus:
+		event_bus.save_requested.emit()
 
 	return true
 
@@ -797,3 +884,191 @@ func get_nodes_unlockable_by_dungeon(dungeon_id: String, difficulty: String) -> 
 			unlockable_nodes.append(node)
 
 	return unlockable_nodes
+
+# ==============================================================================
+# CAPTURE REWARDS
+# ==============================================================================
+
+## Award crystal rewards for capturing territories (helps early game progression)
+## Economy: 100 crystals = 1 summon, 900 crystals = 10x multi-summon
+func _award_capture_rewards(node) -> void:
+	"""Give players crystals for capturing territories, especially early ones"""
+	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
+	if not resource_manager:
+		return
+
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	var territories_owned = controlled_territories.size()
+
+	# Early game bonus: First 10 territories give bonus crystals
+	# Goal: ~1000 crystals from first 10 territories (enough for one 10x multi-summon)
+	var early_game_bonus = 0
+	if territories_owned == 1:
+		early_game_bonus = 300  # First territory: Big welcome bonus (3 summons worth)
+	elif territories_owned <= 3:
+		early_game_bonus = 200  # Territories 2-3: 2 summons each
+	elif territories_owned <= 6:
+		early_game_bonus = 100  # Territories 4-6: 1 summon each
+	elif territories_owned <= 10:
+		early_game_bonus = 50   # Territories 7-10: Half summon each
+
+	# Tier-based rewards (higher tier nodes = more crystals)
+	var tier_reward = 0
+	if node and node.tier:
+		match node.tier:
+			1: tier_reward = 10   # Tier 1: 0.1 summons
+			2: tier_reward = 25   # Tier 2: 0.25 summons
+			3: tier_reward = 50   # Tier 3: 0.5 summons
+			4: tier_reward = 100  # Tier 4: 1 summon
+			5: tier_reward = 200  # Tier 5: 2 summons
+			_: tier_reward = 10
+
+	var total_crystals = early_game_bonus + tier_reward
+
+	if total_crystals > 0:
+		resource_manager.add_resource("divine_crystals", total_crystals)
+		print("TerritoryManager: Awarded %d divine crystals for capturing %s (early bonus: %d, tier bonus: %d)" % [
+			total_crystals, node.name if node else "territory", early_game_bonus, tier_reward
+		])
+
+		# Show notification to player
+		if event_bus:
+			var msg = "+%d Divine Crystals" % total_crystals
+			if early_game_bonus > 0:
+				msg += " (Early Capture Bonus!)"
+			event_bus.emit_notification(msg, "reward", 2.5)
+
+## Reveal adjacent nodes when a node is captured
+## This is how T2+ nodes become visible - you need to capture adjacent T1 nodes first
+func _reveal_adjacent_nodes(captured_node, hex_grid_manager) -> void:
+	"""Reveal all adjacent nodes to a newly captured node."""
+	if not hex_grid_manager or not captured_node:
+		return
+
+	var neighbors = hex_grid_manager.get_neighbors(captured_node.coord)
+	var newly_revealed = 0
+
+	for neighbor in neighbors:
+		if neighbor and not neighbor.is_revealed:
+			neighbor.is_revealed = true
+			newly_revealed += 1
+			print("TerritoryManager: Revealed adjacent node '%s' (tier %d)" % [neighbor.name, neighbor.tier])
+
+	if newly_revealed > 0:
+		# Notify that grid has updated (for UI refresh)
+		hex_grid_manager.grid_updated.emit()
+		print("TerritoryManager: Revealed %d new adjacent nodes from capturing '%s'" % [newly_revealed, captured_node.name])
+
+# ==============================================================================
+# ATTACK TIMER SYSTEM
+# ==============================================================================
+
+## Start the attack timer for a newly captured node
+func _start_attack_timer(node) -> void:
+	"""Initialize the attack timer when a node is captured.
+	The timer counts down and when it reaches 0, a defense battle is triggered.
+	"""
+	if not node or not node.is_capturable:
+		return
+
+	# Only start timer for capturable nodes (not base)
+	if node.attack_timer_hours <= 0:
+		node.attack_timer_remaining = -1.0  # No timer for this node
+		return
+
+	# Set timer to full duration (hours -> seconds)
+	var max_seconds = node.attack_timer_hours * 3600.0
+	node.attack_timer_remaining = max_seconds
+	node.last_attack_check_time = int(Time.get_unix_time_from_system())
+
+	print("TerritoryManager: Started attack timer for node '%s' - %.1f hours (%.0f seconds)" % [
+		node.name if node.name else node.id,
+		node.attack_timer_hours,
+		max_seconds
+	])
+
+## Update attack timers for all player-controlled nodes
+## Called periodically (e.g., every 60 seconds from TerritoryProductionManager)
+func update_attack_timers() -> void:
+	"""Decrement attack timers and check for expired timers (defense battles)"""
+	var current_time = int(Time.get_unix_time_from_system())
+
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		return
+
+	var player_nodes = hex_grid_manager.get_player_nodes()
+	var nodes_under_attack: Array = []
+
+	for node in player_nodes:
+		if not node or not node.is_capturable:
+			continue
+
+		# Skip nodes without active timers
+		if node.attack_timer_remaining < 0:
+			continue
+
+		# Calculate time elapsed since last check
+		var time_elapsed = current_time - node.last_attack_check_time
+		if time_elapsed <= 0:
+			continue
+
+		# Decrement the timer
+		node.attack_timer_remaining -= time_elapsed
+		node.last_attack_check_time = current_time
+
+		# Check if timer has expired
+		if node.attack_timer_remaining <= 0:
+			node.attack_timer_remaining = 0.0  # Clamp at 0
+			nodes_under_attack.append(node)
+			print("TerritoryManager: ⚔️ Attack timer EXPIRED for node '%s' - Defense battle needed!" % [
+				node.name if node.name else node.id
+			])
+
+	# Handle expired timers (defense battles)
+	for node in nodes_under_attack:
+		_handle_node_attack(node)
+
+## Handle a node being attacked (timer expired)
+func _handle_node_attack(node) -> void:
+	"""Process an attack on a node when its timer expires.
+	If garrison is empty, node is lost. Otherwise, defense battle can be fought.
+	"""
+	if not node:
+		return
+
+	# Check garrison status
+	if node.garrison.size() == 0:
+		# No garrison = automatic loss
+		print("TerritoryManager: ❌ Node '%s' LOST - no garrison to defend!" % [node.name if node.name else node.id])
+
+		# Emit event for UI notification
+		var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+		if event_bus:
+			event_bus.emit_notification("Territory Lost: %s (No garrison!)" % [node.name if node.name else "Unknown"], "warning", 4.0)
+
+		# Lose the node
+		lose_node(node.coord)
+	else:
+		# Has garrison - defense battle available
+		# The actual battle will be initiated by UI when player clicks on the node
+		print("TerritoryManager: ⚔️ Node '%s' is under attack! Garrison defense available." % [node.name if node.name else node.id])
+
+		# Emit event for UI notification
+		var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+		if event_bus:
+			event_bus.emit_notification("⚔️ Territory Under Attack: %s" % [node.name if node.name else "Unknown"], "danger", 5.0)
+
+## Reset attack timer after successful defense
+func reset_attack_timer(node_id: String) -> void:
+	"""Reset a node's attack timer after a successful defense battle"""
+	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
+	if not hex_grid_manager:
+		return
+
+	var node = hex_grid_manager.get_node_by_id(node_id)
+	if not node:
+		return
+
+	_start_attack_timer(node)
+	print("TerritoryManager: Reset attack timer for node '%s' after successful defense" % [node.name if node.name else node_id])

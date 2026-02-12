@@ -140,21 +140,32 @@ func remove_status_effect(effect_id: String) -> bool:
 	return false
 
 ## Process status effects (called at start of turn)
-func process_status_effects():
+func process_status_effects() -> Dictionary:
 	var effects_to_remove = []
-	
+	var total_results = {"damage": 0, "healing": 0, "messages": []}
+
 	for effect in status_effects:
-		# Apply effect
-		effect.apply_effect(self)
-		
-		# Reduce duration
-		effect.duration -= 1
-		if effect.duration <= 0:
+		# Apply effect (this also reduces duration)
+		var results = effect.apply_turn_effects(self)
+		total_results.damage += results.get("damage", 0)
+		total_results.healing += results.get("healing", 0)
+		total_results.messages.append_array(results.get("messages", []))
+
+		# Check if expired (apply_turn_effects already reduced duration)
+		if effect.is_expired():
 			effects_to_remove.append(effect)
-	
+
+	# Apply damage/healing from effects
+	if total_results.damage > 0:
+		current_hp = max(0, current_hp - total_results.damage)
+	if total_results.healing > 0:
+		current_hp = min(max_hp, current_hp + total_results.healing)
+
 	# Remove expired effects
 	for effect in effects_to_remove:
-		remove_status_effect(effect.effect_id)
+		remove_status_effect(effect.id)
+
+	return total_results
 
 ## Get current turn bar progress percentage
 func get_turn_progress() -> float:
@@ -181,6 +192,22 @@ func get_hp_percentage() -> float:
 ## Check if unit is enemy
 func is_enemy() -> bool:
 	return not is_player_unit
+
+## Check if unit can act (not stunned, frozen, sleeping, etc.)
+func can_act() -> bool:
+	if not is_alive:
+		return false
+	for effect in status_effects:
+		if effect.prevents_action:
+			return false
+	return true
+
+## Get the status effect that prevents action (for logging)
+func get_action_prevention_reason() -> String:
+	for effect in status_effects:
+		if effect.prevents_action:
+			return effect.name
+	return ""
 
 ## Get skill at index
 func get_skill(index: int) -> Skill:

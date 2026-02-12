@@ -11,9 +11,10 @@ const SETTINGS_FILE_PATH = "user://settings.cfg"
 static func serialize_god(god: God) -> Dictionary:
 	if not god:
 		return {}
-	
+
 	return {
-		"id": god.id,
+		"id": god.id,  # Unique instance ID
+		"template_id": god.template_id,  # Base god template for recreation
 		"level": god.level,
 		"experience": god.experience,
 		"skill_levels": god.skill_levels.duplicate(),
@@ -28,11 +29,17 @@ static func serialize_god(god: God) -> Dictionary:
 
 ## Deserialize Dictionary back to God object
 static func deserialize_god(data: Dictionary) -> God:
-	var god = GodFactory.create_from_json(data.get("id", ""))
+	# Use template_id for creation (with fallback to id for legacy saves)
+	var template_id = data.get("template_id", data.get("id", ""))
+	var god = GodFactory.create_from_json(template_id)
 	if not god:
-		push_error("SaveLoadUtility: Could not create god with ID: " + str(data.get("id", "")))
+		push_error("SaveLoadUtility: Could not create god with template ID: " + str(template_id))
 		return null
-	
+
+	# Restore the unique instance ID (or keep the newly generated one for legacy saves)
+	if data.has("id") and data.has("template_id"):
+		god.id = data.get("id")  # Restore the exact instance ID
+
 	god.level = data.get("level", 1)
 	god.experience = data.get("experience", 0)
 	god.skill_levels = data.get("skill_levels", [1, 1, 1]).duplicate()

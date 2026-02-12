@@ -17,16 +17,16 @@ const BattleResultOverlayScene = preload("res://scenes/ui/battle/BattleResultOve
 const WaveRewardEffectScene = preload("res://scenes/ui/battle/WaveRewardEffect.tscn")
 
 # UI Components (following RULE 2: Single responsibility)
-@onready var back_button = $MainContainer/BottomContainer/ButtonContainer/BackButton
+@onready var back_button = $BottomContainer/ButtonContainer/BackButton
+@onready var auto_button = $BottomContainer/ButtonContainer/AutoButton
 @onready var battle_title_label = $MainContainer/HeaderContainer/BattleTitleLabel
 @onready var action_label = $MainContainer/BattleArenaContainer/BattleCenter/ActionDisplay/ActionLabel
-@onready var battle_status_label = $MainContainer/BottomContainer/BattleStatusLabel
 @onready var player_team_container = $MainContainer/BattleArenaContainer/PlayerTeamSide/PlayerTeamContainer
 @onready var enemy_team_container = $MainContainer/BattleArenaContainer/EnemyTeamSide/EnemyTeamContainer
 @onready var wave_indicator = $MainContainer/BattleArenaContainer/BattleCenter/WaveIndicator
 @onready var turn_indicator = $MainContainer/BattleArenaContainer/BattleCenter/TurnIndicator
-@onready var ability_bar = $MainContainer/BottomContainer/AbilityBarContainer/AbilityBar
-@onready var turn_order_bar = $MainContainer/HeaderContainer/TurnOrderContainer/TurnOrderBar
+@onready var ability_bar = $BottomContainer/AbilityBarContainer/AbilityBar
+@onready var turn_order_bar = $BottomContainer/TurnOrderContainer/TurnOrderBar
 @onready var skill_details_panel = $SkillDetailsOverlay
 @onready var skill_name_label = $SkillDetailsOverlay/MarginContainer/VBoxContainer/SkillNameLabel
 @onready var skill_desc_label = $SkillDetailsOverlay/MarginContainer/VBoxContainer/SkillDescLabel
@@ -48,19 +48,28 @@ var current_active_unit: BattleUnit = null
 var selected_skill: Skill = null
 var selected_skill_index: int = -1
 
+# Auto battle state
+var auto_battle_enabled: bool = false
+
 # Battle result overlay
 var battle_result_overlay = null  # BattleResultOverlay instance
 
 # Wave reward particle effect
 var wave_reward_effect = null  # WaveRewardEffect instance
 
-func _ready():
-	# Connect visibility changed to clean up when screen is hidden
-	visibility_changed.connect(_on_visibility_changed)
+# Battle log for combat event tracking
+var battle_log: BattleLog = null
 
-	# Connect back button (RULE 4: UI signals)
+func _ready():
+	# Connect back button (RULE 4: UI signals) - keep as fallback
 	if back_button:
 		back_button.pressed.connect(_on_back_pressed)
+		back_button.visible = false  # Hide old back button, use unified header
+
+	# Connect auto battle button
+	if auto_button:
+		auto_button.pressed.connect(_on_auto_button_pressed)
+		_update_auto_button_text()
 
 	# Connect ability bar signal (RULE 4: UI signals)
 	if ability_bar:
@@ -73,7 +82,24 @@ func _ready():
 	# Create wave reward effect (hidden by default)
 	_create_wave_reward_effect()
 
-	# Get battle coordinator and connect to signals
+	# Create battle log (collapsible combat event log)
+	_create_battle_log()
+
+	# CRITICAL: Connect to battle coordinator signals IMMEDIATELY (not deferred)
+	# This ensures we don't miss the battle_started signal
+	_initialize_battle_connections()
+
+	# Force fullscreen layout (must be deferred for proper sizing)
+	call_deferred("_force_fullscreen_layout")
+
+	# Setup unified header
+	_setup_unified_header()
+
+	# Connect visibility changed to clean up when screen is hidden
+	visibility_changed.connect(_on_visibility_changed)
+
+func _initialize_battle_connections():
+	"""Connect to battle coordinator signals - runs immediately in _ready()"""
 	battle_coordinator = SystemRegistry.get_instance().get_system("BattleCoordinator")
 	if battle_coordinator:
 		if not battle_coordinator.battle_started.is_connected(_on_battle_started):
@@ -101,8 +127,54 @@ func _ready():
 			_populate_battle_ui()
 		else:
 			_show_no_battle_state()
+
+		# Connect battle log to battle signals
+		_connect_battle_log_signals()
 	else:
 		_show_no_battle_state()
+
+	print("BattleScreen: Battle coordinator connections initialized")
+
+func _force_fullscreen_layout():
+	"""Force all layout elements to fill the viewport - runs deferred for proper sizing"""
+	var viewport_size = get_viewport().get_visible_rect().size
+	print("BattleScreen: Forcing fullscreen layout to ", viewport_size)
+
+	# Force this control to fill viewport
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	size = viewport_size
+
+	# Force Background to fill viewport
+	var background = get_node_or_null("Background")
+	if background:
+		background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		background.size = viewport_size
+
+	# Force MainContainer to fill viewport
+	var main_container = get_node_or_null("MainContainer")
+	if main_container:
+		main_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		main_container.size = viewport_size
+
+func _setup_unified_header():
+	"""Configure the unified header for this screen"""
+	if not visibility_changed.is_connected(_on_header_visibility_changed):
+		visibility_changed.connect(_on_header_visibility_changed)
+	if visible:
+		_update_header_for_screen()
+
+func _on_header_visibility_changed():
+	"""Update header when this screen becomes visible"""
+	if visible:
+		_update_header_for_screen()
+
+func _update_header_for_screen():
+	"""Apply this screen's header settings"""
+	var main_ui = get_node_or_null("/root/Main/MainUIOverlay")
+	if main_ui:
+		main_ui.set_screen_title("BATTLE")
+		main_ui.show_header_back_button(true)
+		main_ui.connect_header_back_button(_on_back_pressed)
 
 func _notification(what: int) -> void:
 	"""Handle notifications including visibility changes"""
@@ -151,6 +223,16 @@ func _on_battle_started(config):
 	# Initialize wave indicator for wave-based battles
 	_initialize_wave_indicator(config)
 
+	# Clear and reconnect battle log for new battle
+	if battle_log:
+		battle_log.clear_log()
+	_connect_battle_log_signals()
+
+	# Re-sync auto battle state if it was enabled (e.g., for tower multi-floor)
+	if auto_battle_enabled and battle_coordinator:
+		print("BattleScreen: Re-enabling auto battle for new battle")
+		battle_coordinator.set_auto_battle(true)
+
 func _on_battle_ended(result: BattleResult):
 	"""Handle battle end - RULE 4: UI listens to events"""
 	print("BattleScreen: Battle ended - Victory: ", result.victory)
@@ -167,12 +249,18 @@ func _on_battle_ended(result: BattleResult):
 	# Hide wave indicator when battle ends
 	_hide_wave_indicator()
 
-	# Update UI based on result
-	if battle_status_label:
-		if result.victory:
-			battle_status_label.text = "VICTORY!"
-		else:
-			battle_status_label.text = "DEFEAT!"
+	# Reset auto battle on victory
+	if result.victory:
+		auto_battle_enabled = false
+		_update_auto_button_text()
+		if battle_coordinator:
+			battle_coordinator.set_auto_battle(false)
+		print("BattleScreen: Auto battle reset after victory")
+
+	# Skip showing result overlay for Tower battles - TowerScreen handles the flow
+	if result.battle_type.to_lower() == "tower":
+		print("BattleScreen: Tower battle - skipping result overlay (TowerScreen handles flow)")
+		return
 
 	# Show the battle result overlay with rewards
 	_show_battle_result_overlay(result)
@@ -268,8 +356,6 @@ func _populate_battle_ui():
 		unit_card.unit_clicked.connect(_on_unit_card_clicked)
 
 	# Update status
-	if battle_status_label:
-		battle_status_label.text = "Battle in progress..."
 	if action_label:
 		action_label.text = "Fight!"
 
@@ -296,8 +382,6 @@ func _clear_container(container: Control):
 
 func _show_no_battle_state():
 	"""Show friendly message when no battle is active"""
-	if battle_status_label:
-		battle_status_label.text = "No active battle. Start a battle from Dungeons or Territories."
 	if action_label:
 		action_label.text = "Ready to fight!"
 	if battle_title_label:
@@ -564,12 +648,20 @@ func _on_action_executed(action: BattleAction, result):
 	if ability_bar and current_active_unit:
 		ability_bar.update_cooldowns()
 
+	# Log action to battle log
+	_log_action_to_battle_log(action, result)
+
 func _show_damage_number(target: BattleUnit, damage_result):
-	"""Display a floating damage number above the target unit"""
+	"""Display a floating damage number above the target unit with hover tooltip"""
 	# Find the card for this target
 	var card = _get_unit_card(target)
 	if not card:
 		return
+
+	# Create a container for the damage number that handles mouse events
+	var damage_container = Control.new()
+	damage_container.mouse_filter = Control.MOUSE_FILTER_STOP
+	damage_container.custom_minimum_size = Vector2(100, 40)
 
 	# Create damage number label
 	var damage_label = Label.new()
@@ -588,22 +680,76 @@ func _show_damage_number(target: BattleUnit, damage_result):
 		damage_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3, 1.0))  # Red for normal
 
 	damage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	damage_container.add_child(damage_label)
 
 	# Position above the card
-	damage_label.position = Vector2(
-		card.global_position.x + card.size.x / 2 - 20,
-		card.global_position.y - 10
+	damage_container.position = Vector2(
+		card.global_position.x + card.size.x / 2 - 50,
+		card.global_position.y - 20
 	)
 
-	# Add to scene tree (at root level for proper positioning)
-	get_tree().current_scene.add_child(damage_label)
+	# Create tooltip panel (hidden by default)
+	var tooltip = _create_damage_tooltip(damage_result)
+	tooltip.visible = false
+	damage_container.add_child(tooltip)
 
-	# Animate: float up and fade out
+	# Connect mouse events for tooltip
+	damage_container.mouse_entered.connect(func(): tooltip.visible = true)
+	damage_container.mouse_exited.connect(func(): tooltip.visible = false)
+
+	# Add to scene tree (at root level for proper positioning)
+	get_tree().current_scene.add_child(damage_container)
+
+	# Animate: float up and fade out (longer duration for hover viewing)
 	var tween = create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(damage_label, "position:y", damage_label.position.y - 50, 1.0)
-	tween.tween_property(damage_label, "modulate:a", 0.0, 1.0).set_delay(0.5)
-	tween.chain().tween_callback(damage_label.queue_free)
+	tween.tween_property(damage_container, "position:y", damage_container.position.y - 60, 2.0)
+	tween.tween_property(damage_container, "modulate:a", 0.0, 1.5).set_delay(1.0)
+	tween.chain().tween_callback(damage_container.queue_free)
+
+func _create_damage_tooltip(damage_result) -> PanelContainer:
+	"""Create a tooltip panel showing damage calculation breakdown"""
+	var panel = PanelContainer.new()
+	panel.z_index = 200
+
+	# Style the panel
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.1, 0.08, 0.15, 0.95)
+	style.border_color = Color(0.4, 0.35, 0.5, 0.9)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(4)
+	style.set_content_margin_all(8)
+	panel.add_theme_stylebox_override("panel", style)
+
+	# Content
+	var content = VBoxContainer.new()
+	content.add_theme_constant_override("separation", 2)
+	panel.add_child(content)
+
+	# Get the calculation breakdown
+	var breakdown_text = damage_result.get_calculation_breakdown()
+	var lines = breakdown_text.split("\n")
+
+	for line in lines:
+		var label = Label.new()
+		label.text = line
+		label.add_theme_font_size_override("font_size", 10)
+
+		# Style header lines differently
+		if line.contains("→") or line.contains("Final:"):
+			label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
+			label.add_theme_font_size_override("font_size", 11)
+		elif line.contains("ATK") or line.contains("DEF") or line.contains("Mult"):
+			label.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9))
+		else:
+			label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
+
+		content.add_child(label)
+
+	# Position tooltip to the right of the damage number
+	panel.position = Vector2(60, -20)
+
+	return panel
 
 # =============================================================================
 # TURN ORDER BAR MANAGEMENT
@@ -659,18 +805,33 @@ func _hide_battle_result_overlay():
 		battle_result_overlay.hide_result()
 
 func _on_return_to_map_pressed():
-	"""Handle return to map button - always navigate to WorldView (home)"""
-	print("BattleScreen: Return to map pressed - navigating to WorldView")
+	"""Handle return to map button - navigate based on battle type"""
+	# Get the battle type from the result overlay
+	var return_screen = "WorldView"  # Default
+
+	if battle_result_overlay and battle_result_overlay.battle_result:
+		var battle_type = battle_result_overlay.battle_result.battle_type
+		print("BattleScreen: Return to map pressed - battle_type: ", battle_type)
+
+		# Navigate to appropriate screen based on battle origin
+		match battle_type.to_upper():
+			"TERRITORY":
+				return_screen = "hex_territory"
+			"DUNGEON":
+				return_screen = "dungeon"
+			_:
+				return_screen = "WorldView"
+
+	print("BattleScreen: Navigating to ", return_screen)
 
 	# Hide the overlay
 	_hide_battle_result_overlay()
 
-	# Navigate to WorldView (home) instead of going back
-	# This ensures players always return to home after battle, not DungeonScreen
+	# Navigate to the appropriate screen
 	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
 	if screen_manager:
-		screen_manager.change_screen("WorldView")
-		print("BattleScreen: Navigated to WorldView")
+		screen_manager.change_screen(return_screen)
+		print("BattleScreen: Navigated to ", return_screen)
 	else:
 		# Fallback to back_pressed if ScreenManager not available
 		back_pressed.emit()
@@ -688,6 +849,18 @@ func _on_continue_pressed():
 func _initialize_wave_indicator(config):
 	"""Initialize wave indicator based on battle configuration"""
 	if not wave_indicator:
+		return
+
+	# Check for tower battles - show floor number
+	if config.battle_type == BattleConfig.BattleType.TOWER:
+		var floor_num = config.get_meta("tower_floor", 1) if config.has_meta("tower_floor") else 1
+		var is_boss = config.get_meta("is_boss_floor", false) if config.has_meta("is_boss_floor") else false
+		if is_boss:
+			wave_indicator.text = "BOSS Floor %d" % floor_num
+		else:
+			wave_indicator.text = "Floor %d" % floor_num
+		wave_indicator.visible = true
+		print("BattleScreen: Floor indicator initialized - Floor %d (boss: %s)" % [floor_num, is_boss])
 		return
 
 	# Check if this is a wave-based battle (dungeon) or non-wave battle (arena)
@@ -863,3 +1036,143 @@ func _trigger_wave_reward_particles():
 	# Play particles flying toward resource display
 	wave_reward_effect.play_wave_reward(spawn_pos, mana_target, 5, 3)
 	print("BattleScreen: Wave reward particles triggered from %s to %s" % [spawn_pos, mana_target])
+
+# =============================================================================
+# BATTLE LOG MANAGEMENT
+# =============================================================================
+
+func _create_battle_log():
+	"""Create the battle log component at the bottom of the battle area"""
+	battle_log = BattleLog.new()
+	battle_log.name = "BattleLog"
+
+	# Add to BottomContainer, before the TurnOrderContainer
+	var bottom_container = get_node_or_null("BottomContainer")
+	if bottom_container:
+		bottom_container.add_child(battle_log)
+		# Move it to be first (above turn order bar)
+		bottom_container.move_child(battle_log, 0)
+		# Set size flags for proper layout in VBoxContainer
+		battle_log.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	else:
+		# Fallback: add to self with explicit positioning
+		add_child(battle_log)
+		battle_log.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+		battle_log.offset_top = -150
+		battle_log.offset_bottom = -30
+
+	print("BattleScreen: Battle log created")
+
+func _connect_battle_log_signals():
+	"""Connect battle log to battle system signals"""
+	if not battle_log or not battle_coordinator:
+		return
+
+	# Connect to turn manager for turn events
+	if battle_coordinator.turn_manager:
+		if not battle_coordinator.turn_manager.turn_started.is_connected(_on_battle_log_turn_started):
+			battle_coordinator.turn_manager.turn_started.connect(_on_battle_log_turn_started)
+
+	# Connect to wave manager for wave events
+	if battle_coordinator.wave_manager:
+		if not battle_coordinator.wave_manager.wave_started.is_connected(_on_battle_log_wave_started):
+			battle_coordinator.wave_manager.wave_started.connect(_on_battle_log_wave_started)
+
+	# Connect to battle coordinator for general log messages
+	if not battle_coordinator.battle_log_message.is_connected(_on_battle_log_message):
+		battle_coordinator.battle_log_message.connect(_on_battle_log_message)
+
+	# Connect to battle ended for victory/defeat
+	if not battle_coordinator.battle_ended.is_connected(_on_battle_log_ended):
+		battle_coordinator.battle_ended.connect(_on_battle_log_ended)
+
+	print("BattleScreen: Battle log signals connected")
+
+func _on_battle_log_turn_started(unit: BattleUnit):
+	"""Log turn start event"""
+	if battle_log and unit:
+		battle_log.add_turn_start(unit.display_name, not unit.is_enemy())
+
+		# Check if unit cannot act (stunned, frozen, etc.)
+		if not unit.can_act():
+			var reason = unit.get_action_prevention_reason()
+			battle_log.add_action_skipped(unit.display_name, reason)
+
+func _on_battle_log_wave_started(wave_number: int):
+	"""Log wave start event"""
+	if battle_log and battle_coordinator and battle_coordinator.wave_manager:
+		var total_waves = battle_coordinator.wave_manager.get_wave_count()
+		battle_log.add_wave_start(wave_number, total_waves)
+
+func _on_battle_log_message(message: String):
+	"""Log general battle message"""
+	if battle_log:
+		# Parse message to determine color/type
+		battle_log._add_entry(message, Color(0.8, 0.8, 0.8))
+
+func _on_battle_log_ended(result: BattleResult):
+	"""Log battle end"""
+	if battle_log:
+		battle_log.add_battle_end(result.victory)
+
+func _log_action_to_battle_log(action: BattleAction, result):
+	"""Log action execution details to battle log"""
+	if not battle_log:
+		return
+
+	var caster = action.caster
+
+	# Log the skill/attack use
+	if action.action_type == BattleAction.ActionType.SKILL:
+		battle_log.add_skill_use(caster.display_name, action.skill.name)
+
+	# Log damage to each target
+	for i in range(result.damage_results.size()):
+		var damage_result = result.damage_results[i]
+		var target = action.targets[i] if i < action.targets.size() else null
+		if target:
+			if action.action_type == BattleAction.ActionType.ATTACK:
+				battle_log.add_attack(
+					caster.display_name,
+					target.display_name,
+					damage_result.total,
+					damage_result.is_critical,
+					damage_result.is_glancing,
+					damage_result  # Pass full damage result for hover tooltip
+				)
+			else:
+				battle_log.add_skill_damage(
+					target.display_name,
+					damage_result.total,
+					damage_result.is_critical,
+					damage_result.is_glancing,
+					damage_result  # Pass full damage result for hover tooltip
+				)
+
+			# Check if target was defeated
+			if not target.is_alive:
+				battle_log.add_unit_defeated(target.display_name)
+
+	# Log status effects applied
+	for status_effect in result.status_effects_applied:
+		var target_name = status_effect.target_name if status_effect.target_name else "target"
+		battle_log.add_status_applied(target_name, status_effect.name, status_effect.duration)
+
+# =============================================================================
+# AUTO BATTLE CONTROLS
+# =============================================================================
+
+func _on_auto_button_pressed():
+	"""Handle auto battle button press - toggle auto battle mode"""
+	auto_battle_enabled = not auto_battle_enabled
+	_update_auto_button_text()
+
+	# Send to battle coordinator
+	if battle_coordinator:
+		battle_coordinator.set_auto_battle(auto_battle_enabled)
+		print("BattleScreen: Auto battle toggled to ", auto_battle_enabled)
+
+func _update_auto_button_text():
+	"""Update auto button text based on state"""
+	if auto_button:
+		auto_button.text = "AUTO: ON" if auto_battle_enabled else "AUTO: OFF"

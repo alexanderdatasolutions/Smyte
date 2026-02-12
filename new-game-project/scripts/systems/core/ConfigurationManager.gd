@@ -14,6 +14,8 @@ var battle_config: Dictionary = {}
 var loot_config: Dictionary = {}
 var crafting_recipes_config: Dictionary = {}
 var summon_config: Dictionary = {}
+var pantheons_config: Dictionary = {}
+var team_bonuses_config: Dictionary = {}
 
 var is_loaded: bool = false
 
@@ -33,6 +35,8 @@ func load_all_configurations():
 	_load_loot_config()
 	_load_crafting_recipes_config()
 	_load_summon_config()
+	_load_pantheons_config()
+	_load_team_bonuses_config()
 
 	is_loaded = true
 	all_configurations_loaded.emit()
@@ -90,6 +94,18 @@ func _load_summon_config():
 	summon_config = _load_json_file("res://data/summon_config.json")
 	if not summon_config.is_empty():
 		configuration_loaded.emit("summon")
+
+## Load pantheons configuration
+func _load_pantheons_config():
+	pantheons_config = _load_json_file("res://data/pantheons_config.json")
+	if not pantheons_config.is_empty():
+		configuration_loaded.emit("pantheons")
+
+## Load team bonuses configuration
+func _load_team_bonuses_config():
+	team_bonuses_config = _load_json_file("res://data/team_bonuses.json")
+	if not team_bonuses_config.is_empty():
+		configuration_loaded.emit("team_bonuses")
 
 ## Generic JSON file loader
 func _load_json_file(file_path: String) -> Dictionary:
@@ -166,6 +182,25 @@ func get_crafting_recipes_config() -> Dictionary:
 func get_summon_config() -> Dictionary:
 	return summon_config
 
+## Get pantheons configuration
+func get_pantheons_config() -> Dictionary:
+	return pantheons_config
+
+## Get team bonuses configuration
+func get_team_bonuses_config() -> Dictionary:
+	return team_bonuses_config
+
+## Get list of enabled pantheons
+func get_enabled_pantheons() -> Array:
+	if pantheons_config.has("enabled_pantheons"):
+		return pantheons_config.enabled_pantheons
+	# Default to all if no config
+	return ["greek", "norse", "egyptian", "chinese", "slavic", "hindu", "celtic", "japanese", "mesopotamian"]
+
+## Check if a pantheon is enabled
+func is_pantheon_enabled(pantheon: String) -> bool:
+	return pantheon.to_lower() in get_enabled_pantheons()
+
 func get_territory_roles_config() -> Dictionary:
 	# Load territory roles if not already loaded
 	var territory_roles_path = "res://data/territory_roles.json"
@@ -186,5 +221,7 @@ func reload_configurations():
 	loot_config.clear()
 	crafting_recipes_config.clear()
 	summon_config.clear()
+	pantheons_config.clear()
+	team_bonuses_config.clear()
 
 	load_all_configurations()

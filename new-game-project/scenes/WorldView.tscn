@@ -77,46 +77,52 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/h_separation = 20
-theme_override_constants/v_separation = 20
-columns = 3
+theme_override_constants/h_separation = 15
+theme_override_constants/v_separation = 15
+columns = 4
 
 [node name="SummonButton" type="Button" parent="ContentContainer/ButtonGrid"]
-custom_minimum_size = Vector2(200, 100)
+custom_minimum_size = Vector2(170, 85)
 layout_mode = 2
 text = "SUMMON"
 
 [node name="CollectionButton" type="Button" parent="ContentContainer/ButtonGrid"]
-custom_minimum_size = Vector2(200, 100)
+custom_minimum_size = Vector2(170, 85)
 layout_mode = 2
 text = "COLLECTION"
 
 [node name="TerritoryButton" type="Button" parent="ContentContainer/ButtonGrid"]
-custom_minimum_size = Vector2(200, 100)
+custom_minimum_size = Vector2(170, 85)
 layout_mode = 2
 text = "TERRITORY"
 
 [node name="SacrificeButton" type="Button" parent="ContentContainer/ButtonGrid"]
-custom_minimum_size = Vector2(200, 100)
+custom_minimum_size = Vector2(170, 85)
 layout_mode = 2
 text = "SACRIFICE"
 
 [node name="DungeonButton" type="Button" parent="ContentContainer/ButtonGrid"]
-custom_minimum_size = Vector2(200, 100)
+custom_minimum_size = Vector2(170, 85)
 layout_mode = 2
 text = "DUNGEONS"
 
 [node name="EquipmentButton" type="Button" parent="ContentContainer/ButtonGrid"]
-custom_minimum_size = Vector2(200, 100)
+custom_minimum_size = Vector2(170, 85)
 layout_mode = 2
 text = "EQUIPMENT"
 
 [node name="ShopButton" type="Button" parent="ContentContainer/ButtonGrid"]
-custom_minimum_size = Vector2(200, 100)
+visible = false
+custom_minimum_size = Vector2(170, 85)
 layout_mode = 2
 text = "SHOP"
 
 [node name="SpecializationButton" type="Button" parent="ContentContainer/ButtonGrid"]
-custom_minimum_size = Vector2(200, 100)
+custom_minimum_size = Vector2(170, 85)
 layout_mode = 2
 text = "SPECIALIZE"
+
+[node name="TowerButton" type="Button" parent="ContentContainer/ButtonGrid"]
+custom_minimum_size = Vector2(170, 85)
+layout_mode = 2
+text = "TOWER"

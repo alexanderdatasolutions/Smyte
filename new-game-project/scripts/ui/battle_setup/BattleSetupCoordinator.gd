@@ -1,68 +1,66 @@
 # scripts/ui/battle_setup/BattleSetupCoordinator.gd
-# Single responsibility: Coordinate battle setup screen functionality
+# Coordinates battle setup screen functionality with unified team stats and sorting
+# ALL battle types use the same unified UI with combat power, bonuses, sorting, equipment
 class_name BattleSetupCoordinator
 extends Control
 
 signal battle_setup_complete(context: Dictionary)
 signal setup_cancelled
 
-# Load component scripts
 const TeamSelectionManagerScript = preload("res://scripts/ui/battle_setup/TeamSelectionManager.gd")
-const BattleInfoManagerScript = preload("res://scripts/ui/battle_setup/BattleInfoManager.gd")
 
-var team_manager
-var battle_info_manager
+var team_manager: TeamSelectionManager
 var battle_context: Dictionary = {}
 
 func _ready():
-	# Defer setup to ensure we're in the tree
-	call_deferred("_setup_managers")
+	call_deferred("_setup_unified_ui")
 
-func _setup_managers():
+func _setup_unified_ui():
 	if not is_inside_tree():
-		push_warning("BattleSetupCoordinator: Not in tree, deferring setup")
-		call_deferred("_setup_managers")
+		call_deferred("_setup_unified_ui")
 		return
 
-	# Get the UI nodes from the parent BattleSetupScreen
 	var screen = get_parent()
 	if not screen:
 		push_error("BattleSetupCoordinator: No parent screen found")
 		return
 
-	# Find the UI nodes
-	var team_slots = screen.get_node_or_null("MainContainer/ContentContainer/TeamSelectionContainer/TeamSlotsContainer")
-	var gods_grid = screen.get_node_or_null("MainContainer/ContentContainer/TeamSelectionContainer/AvailableGodsContainer/ScrollContainer/GodsGrid")
-	var start_btn = screen.get_node_or_null("MainContainer/BottomContainer/StartBattleButton")
-	var cancel_btn = screen.get_node_or_null("MainContainer/BottomContainer/CancelButton")
+	# Always use unified code-based UI for consistent experience
+	_create_unified_battle_setup(screen)
 
-	if not team_slots or not gods_grid or not start_btn or not cancel_btn:
-		push_error("BattleSetupCoordinator: Required UI nodes not found")
-		return
+func _create_unified_battle_setup(screen: Control):
+	"""Create unified battle setup UI with stats, bonuses, sorting, and equipment"""
+	# Create background
+	var bg = ColorRect.new()
+	bg.color = Color(0.08, 0.06, 0.12, 1.0)
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	screen.add_child(bg)
 
-	# Create and initialize team manager
+	# Main container with margins
+	var main_container = MarginContainer.new()
+	main_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	main_container.add_theme_constant_override("margin_left", 10)
+	main_container.add_theme_constant_override("margin_right", 10)
+	main_container.add_theme_constant_override("margin_top", 60)  # Leave room for header
+	main_container.add_theme_constant_override("margin_bottom", 10)
+	screen.add_child(main_container)
+
+	# Create team manager with full unified UI
 	team_manager = TeamSelectionManagerScript.new()
 	add_child(team_manager)
-	team_manager.initialize(team_slots, gods_grid, start_btn, cancel_btn)
-
-	# Get battle info panel nodes
-	var enemy_container = screen.get_node_or_null("MainContainer/ContentContainer/BattleInfoPanel/EnemyPreviewContainer")
-	var rewards_container = screen.get_node_or_null("MainContainer/ContentContainer/BattleInfoPanel/RewardsContainer")
-	var title_label = screen.get_node_or_null("MainContainer/HeaderContainer/TitleLabel")
-	var desc_label = screen.get_node_or_null("MainContainer/HeaderContainer/DescriptionLabel")
-
-	# Create and initialize battle info manager
-	battle_info_manager = BattleInfoManagerScript.new()
-	add_child(battle_info_manager)
-	if enemy_container and rewards_container:
-		battle_info_manager.initialize(enemy_container, rewards_container, title_label, desc_label)
+	team_manager.initialize_full(main_container)
 
 	_connect_signals()
 
 func _connect_signals():
-	team_manager.team_changed.connect(_on_team_changed)
-	team_manager.battle_start_requested.connect(_on_battle_start_requested)
-	team_manager.setup_cancelled.connect(_on_setup_cancelled)
+	if team_manager:
+		team_manager.team_changed.connect(_on_team_changed)
+		team_manager.battle_start_requested.connect(_on_battle_start_requested)
+		team_manager.setup_cancelled.connect(_on_setup_cancelled)
+
+# ============================================================================
+# CONTEXT SETUP
+# ============================================================================
 
 func setup_for_territory_battle(territory: Territory, stage: int):
 	battle_context = {
@@ -92,64 +90,100 @@ func setup_for_hex_node_capture(hex_node: HexNode):
 		"type": "hex_capture",
 		"hex_node": hex_node
 	}
-	# Ensure managers are set up before updating context
 	if not team_manager:
 		call_deferred("_update_for_context")
 	else:
 		_update_for_context()
 
+func setup_for_tower(floor_number: int = 1):
+	battle_context = {
+		"type": "tower",
+		"floor": floor_number
+	}
+	_update_for_context()
+
 func _update_for_context():
-	# Double check managers exist
-	if not team_manager or not battle_info_manager:
-		push_warning("BattleSetupCoordinator: Managers not ready, deferring context update")
+	if not team_manager:
 		call_deferred("_update_for_context")
 		return
 
 	team_manager.setup_for_context(battle_context)
-	battle_info_manager.update_for_context(battle_context)
+	_update_header_for_context()
 
-func _on_team_changed(team: Array):
-	battle_info_manager.update_team_preview(team)
+func _update_header_for_context():
+	"""Update the unified header based on battle type"""
+	var main_ui = get_node_or_null("/root/Main/MainUIOverlay")
+	if not main_ui:
+		return
+
+	var title = "BATTLE SETUP"
+	match battle_context.get("type", ""):
+		"territory":
+			var territory = battle_context.get("territory")
+			if territory:
+				title = "TERRITORY: " + territory.name
+		"dungeon":
+			var dungeon_id = battle_context.get("dungeon_id", "")
+			title = "DUNGEON: " + dungeon_id.to_upper()
+		"pvp":
+			title = "PVP BATTLE"
+		"hex_capture":
+			var node = battle_context.get("hex_node")
+			if node:
+				title = "CAPTURE: " + node.name
+		"tower":
+			var floor_num = battle_context.get("floor", 1)
+			title = "TOWER - FLOOR " + str(floor_num)
+
+	main_ui.set_screen_title(title)
+	main_ui.show_header_back_button(true)
+	main_ui.connect_header_back_button(_on_back_pressed)
+
+# ============================================================================
+# SIGNAL HANDLERS
+# ============================================================================
+
+func _on_team_changed(_team: Array):
+	# Team changed - stats update automatically in TeamSelectionManager
+	pass
 
 func _on_battle_start_requested(team: Array):
 	battle_context["selected_team"] = team
-
-	# Emit signal for any listeners
 	battle_setup_complete.emit(battle_context)
 
-	# If no specific context was set (direct navigation), start a test battle
+	# If no specific context was set, start a test battle
 	if not battle_context.has("type") or battle_context.get("type", "") == "":
 		_start_battle_directly(team)
 
 func _on_setup_cancelled():
 	setup_cancelled.emit()
 
+func _on_back_pressed():
+	setup_cancelled.emit()
+	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
+	if screen_manager:
+		screen_manager.go_back()
+
 func _start_battle_directly(team: Array):
-	"""Start a test battle directly when no context is set (for testing)"""
-	# Filter out null entries
+	"""Start a test battle directly when no context is set"""
 	var valid_team = []
 	for god in team:
 		if god != null:
 			valid_team.append(god)
 
 	if valid_team.is_empty():
-		push_error("BattleSetupCoordinator: No valid gods in team")
 		return
 
-	# Get systems
 	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
 	var battle_coordinator = SystemRegistry.get_instance().get_system("BattleCoordinator")
 
 	if not screen_manager or not battle_coordinator:
-		push_error("BattleSetupCoordinator: Required systems not available")
 		return
 
-	# Build test battle config using BattleConfig
 	var battle_config = BattleConfig.new()
 	battle_config.battle_type = BattleConfig.BattleType.DUNGEON
 	battle_config.attacker_team = valid_team
 	battle_config.dungeon_name = "Test Battle"
-	# Create a test enemy wave with a basic enemy
 	battle_config.enemy_waves = [
 		[
 			{"name": "Test Goblin", "level": 5, "hp": 500, "attack": 100, "defense": 50, "speed": 80},
@@ -157,7 +191,6 @@ func _start_battle_directly(team: Array):
 		]
 	]
 
-	# Navigate to battle screen and start battle
 	if screen_manager.change_screen("battle"):
 		var battle_screen = screen_manager.get_current_screen()
 		if battle_screen and battle_screen.has_method("start_battle"):

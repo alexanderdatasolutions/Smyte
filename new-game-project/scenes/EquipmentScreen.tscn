@@ -32,63 +32,55 @@ grow_vertical = 2
 texture = SubResource("GradientTexture2D_bg")
 expand_mode = 1
 
-[node name="BackButton" type="Button" parent="."]
-custom_minimum_size = Vector2(100, 40)
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = -60.0
-offset_right = 120.0
-offset_bottom = -20.0
-grow_vertical = 0
-text = "← Back"
-
 [node name="TopBar" type="HBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 0
+anchors_preset = 10
+anchor_right = 1.0
 offset_left = 20.0
-offset_top = 20.0
-offset_right = 1260.0
-offset_bottom = 80.0
+offset_top = 10.0
+offset_right = -20.0
+offset_bottom = 50.0
+grow_horizontal = 2
+theme_override_constants/separation = 20
 
-[node name="Spacer" type="Control" parent="TopBar"]
+[node name="BackButton" type="Button" parent="TopBar"]
+custom_minimum_size = Vector2(100, 36)
 layout_mode = 2
-size_flags_horizontal = 3
+text = "← Back"
 
 [node name="Title" type="Label" parent="TopBar"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.95, 0.85, 0.6, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 24
 text = "EQUIPMENT FORGE"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Spacer2" type="Control" parent="TopBar"]
-layout_mode = 2
-size_flags_horizontal = 3
-
 [node name="ResourceDisplay" parent="TopBar" instance=ExtResource("2_sj7ji")]
-custom_minimum_size = Vector2(200, 40)
+custom_minimum_size = Vector2(180, 36)
 layout_mode = 2
 
 [node name="MainContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 0
-offset_left = 20.0
-offset_top = 90.0
-offset_right = 1260.0
-offset_bottom = 700.0
-theme_override_constants/separation = 15
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 60.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
 
 [node name="LeftPanel" type="VBoxContainer" parent="MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.25
+size_flags_stretch_ratio = 0.3
 
 [node name="GodContainer" type="VBoxContainer" parent="MainContainer/LeftPanel"]
 layout_mode = 2
@@ -96,7 +88,7 @@ size_flags_vertical = 3
 
 [node name="GodLabel" type="Label" parent="MainContainer/LeftPanel/GodContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "SELECT GOD"
 horizontal_alignment = 1
 
@@ -107,12 +99,14 @@ modulate = Color(0.7, 0.7, 0.7, 1)
 [node name="ScrollContainer" type="ScrollContainer" parent="MainContainer/LeftPanel/GodContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
 [node name="GodGrid" type="GridContainer" parent="MainContainer/LeftPanel/GodContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 8
+size_flags_vertical = 3
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
 columns = 2
 
 [node name="VSeparator" type="VSeparator" parent="MainContainer"]
@@ -122,7 +116,7 @@ modulate = Color(0.4, 0.4, 0.4, 1)
 [node name="CenterPanel" type="VBoxContainer" parent="MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.5
+size_flags_stretch_ratio = 0.4
 
 [node name="SelectedGodPanel" type="Panel" parent="MainContainer/CenterPanel"]
 layout_mode = 2
@@ -133,15 +127,15 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 15.0
-offset_top = 15.0
-offset_right = -15.0
-offset_bottom = -15.0
-theme_override_constants/separation = 10
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+theme_override_constants/separation = 8
 
 [node name="GodNameLabel" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 18
 text = "No God Selected"
 horizontal_alignment = 1
 
@@ -151,70 +145,83 @@ modulate = Color(0.7, 0.7, 0.7, 1)
 
 [node name="StatsContainer" type="VBoxContainer" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox"]
 layout_mode = 2
+size_flags_vertical = 0
 
 [node name="StatsLabel" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
 text = "CURRENT STATS"
 horizontal_alignment = 1
 
 [node name="StatsGrid" type="GridContainer" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer"]
 layout_mode = 2
-theme_override_constants/h_separation = 10
-theme_override_constants/v_separation = 5
-columns = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 3
+columns = 4
 
 [node name="HPLabel" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer/StatsGrid"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 12
 text = "HP:"
 
 [node name="HPValue" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer/StatsGrid"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 12
 text = "0"
 horizontal_alignment = 2
 
 [node name="AttackLabel" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer/StatsGrid"]
 layout_mode = 2
-text = "Attack:"
+theme_override_font_sizes/font_size = 12
+text = "ATK:"
 
 [node name="AttackValue" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer/StatsGrid"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 12
 text = "0"
 horizontal_alignment = 2
 
 [node name="DefenseLabel" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer/StatsGrid"]
 layout_mode = 2
-text = "Defense:"
+theme_override_font_sizes/font_size = 12
+text = "DEF:"
 
 [node name="DefenseValue" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer/StatsGrid"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 12
 text = "0"
 horizontal_alignment = 2
 
 [node name="SpeedLabel" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer/StatsGrid"]
 layout_mode = 2
-text = "Speed:"
+theme_override_font_sizes/font_size = 12
+text = "SPD:"
 
 [node name="SpeedValue" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer/StatsGrid"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 12
 text = "0"
 horizontal_alignment = 2
 
 [node name="CritRateLabel" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer/StatsGrid"]
 layout_mode = 2
-text = "Crit Rate:"
+theme_override_font_sizes/font_size = 12
+text = "CR:"
 
 [node name="CritRateValue" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer/StatsGrid"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 12
 text = "0%"
 horizontal_alignment = 2
 
 [node name="CritDmgLabel" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer/StatsGrid"]
 layout_mode = 2
-text = "Crit Damage:"
+theme_override_font_sizes/font_size = 12
+text = "CD:"
 
 [node name="CritDmgValue" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer/StatsGrid"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 12
 text = "0%"
 horizontal_alignment = 2
 
@@ -228,19 +235,19 @@ size_flags_vertical = 3
 
 [node name="EquipmentLabel" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/EquipmentContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
 text = "EQUIPMENT SLOTS"
 horizontal_alignment = 1
 
 [node name="EquipmentSlotsGrid" type="GridContainer" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/EquipmentContainer"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/h_separation = 10
-theme_override_constants/v_separation = 10
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
 columns = 3
 
 [node name="WeaponSlot" type="Panel" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/EquipmentContainer/EquipmentSlotsGrid"]
-custom_minimum_size = Vector2(80, 80)
+custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -249,16 +256,16 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 3.0
-offset_top = 3.0
-offset_right = -3.0
-offset_bottom = -3.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
 text = "⚔
-WEAPON"
+WPN"
 flat = true
 
 [node name="ArmorSlot" type="Panel" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/EquipmentContainer/EquipmentSlotsGrid"]
-custom_minimum_size = Vector2(80, 80)
+custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -267,16 +274,16 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 3.0
-offset_top = 3.0
-offset_right = -3.0
-offset_bottom = -3.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
 text = "🛡
-ARMOR"
+ARM"
 flat = true
 
 [node name="HelmSlot" type="Panel" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/EquipmentContainer/EquipmentSlotsGrid"]
-custom_minimum_size = Vector2(80, 80)
+custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -285,16 +292,16 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 3.0
-offset_top = 3.0
-offset_right = -3.0
-offset_bottom = -3.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
 text = "🪖
-HELM"
+HLM"
 flat = true
 
 [node name="BootsSlot" type="Panel" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/EquipmentContainer/EquipmentSlotsGrid"]
-custom_minimum_size = Vector2(80, 80)
+custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -303,16 +310,16 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 3.0
-offset_top = 3.0
-offset_right = -3.0
-offset_bottom = -3.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
 text = "👢
-BOOTS"
+BTS"
 flat = true
 
 [node name="AmuletSlot" type="Panel" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/EquipmentContainer/EquipmentSlotsGrid"]
-custom_minimum_size = Vector2(80, 80)
+custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -321,16 +328,16 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 3.0
-offset_top = 3.0
-offset_right = -3.0
-offset_bottom = -3.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
 text = "🔮
-AMULET"
+AMU"
 flat = true
 
 [node name="RingSlot" type="Panel" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/EquipmentContainer/EquipmentSlotsGrid"]
-custom_minimum_size = Vector2(80, 80)
+custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -339,12 +346,12 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 3.0
-offset_top = 3.0
-offset_right = -3.0
-offset_bottom = -3.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
 text = "💍
-RING"
+RNG"
 flat = true
 
 [node name="HSeparator3" type="HSeparator" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox"]
@@ -353,15 +360,17 @@ modulate = Color(0.7, 0.7, 0.7, 1)
 
 [node name="SetBonusContainer" type="VBoxContainer" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox"]
 layout_mode = 2
+size_flags_vertical = 0
 
 [node name="SetBonusLabel" type="Label" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/SetBonusContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
 text = "SET BONUSES"
 horizontal_alignment = 1
 
 [node name="SetBonusList" type="VBoxContainer" parent="MainContainer/CenterPanel/SelectedGodPanel/VBox/SetBonusContainer"]
 layout_mode = 2
+size_flags_vertical = 0
 
 [node name="VSeparator2" type="VSeparator" parent="MainContainer"]
 layout_mode = 2
@@ -370,7 +379,7 @@ modulate = Color(0.4, 0.4, 0.4, 1)
 [node name="RightPanel" type="VBoxContainer" parent="MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.25
+size_flags_stretch_ratio = 0.3
 
 [node name="InventoryPanel" type="VBoxContainer" parent="MainContainer/RightPanel"]
 layout_mode = 2
@@ -382,7 +391,7 @@ size_flags_vertical = 3
 
 [node name="InventoryLabel" type="Label" parent="MainContainer/RightPanel/InventoryPanel/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "INVENTORY"
 horizontal_alignment = 1
 
@@ -403,56 +412,12 @@ text = "All Rarities"
 [node name="ScrollContainer" type="ScrollContainer" parent="MainContainer/RightPanel/InventoryPanel/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
 [node name="InventoryGrid" type="GridContainer" parent="MainContainer/RightPanel/InventoryPanel/VBox/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/h_separation = 5
 theme_override_constants/v_separation = 5
 columns = 2
-
-[node name="HSeparator4" type="HSeparator" parent="MainContainer/RightPanel"]
-layout_mode = 2
-modulate = Color(0.4, 0.4, 0.4, 1)
-
-[node name="EnhancementPanel" type="VBoxContainer" parent="MainContainer/RightPanel"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="EnhancementLabel" type="Label" parent="MainContainer/RightPanel/EnhancementPanel"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "ENHANCEMENT"
-horizontal_alignment = 1
-
-[node name="SelectedEquipmentPanel" type="Panel" parent="MainContainer/RightPanel/EnhancementPanel"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="VBox" type="VBoxContainer" parent="MainContainer/RightPanel/EnhancementPanel/SelectedEquipmentPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
-
-[node name="EquipmentNameLabel" type="Label" parent="MainContainer/RightPanel/EnhancementPanel/SelectedEquipmentPanel/VBox"]
-layout_mode = 2
-text = "No Equipment Selected"
-horizontal_alignment = 1
-
-[node name="EnhancementLevel" type="Label" parent="MainContainer/RightPanel/EnhancementPanel/SelectedEquipmentPanel/VBox"]
-layout_mode = 2
-text = "Level: 0"
-horizontal_alignment = 1
-
-[node name="StatsContainer" type="VBoxContainer" parent="MainContainer/RightPanel/EnhancementPanel/SelectedEquipmentPanel/VBox"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="EnhanceButton" type="Button" parent="MainContainer/RightPanel/EnhancementPanel/SelectedEquipmentPanel/VBox"]
-layout_mode = 2
-text = "Enhance (+1)"

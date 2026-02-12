@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://kjtbrbsms17i"
-path="res://.godot/imported/Lava_Golem.png-ed9f75f7c40289ad384aca1b2f424efa.ctex"
+uid="uid://ce1qvgs2leb6i"
+path="res://.godot/imported/lava_golem.png-3bb4071760f18f310b9d0eaa5b8ba72a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/enemies/Lava_Golem.png"
-dest_files=["res://.godot/imported/Lava_Golem.png-ed9f75f7c40289ad384aca1b2f424efa.ctex"]
+source_file="res://assets/enemies/lava_golem.png"
+dest_files=["res://.godot/imported/lava_golem.png-3bb4071760f18f310b9d0eaa5b8ba72a.ctex"]
 
 [params]
 

@@ -159,11 +159,59 @@ func get_garrison_god_ids() -> Array[String]:
 	return _garrison_god_ids.duplicate()
 
 func get_total_combat_power() -> int:
-	"""Calculate total combat power of garrison"""
+	"""Calculate total combat power of garrison including pantheon bonuses"""
 	var total = 0
 	for god in _garrison_gods:
 		total += _get_god_combat_power(god)
+
+	# Apply pantheon bonus
+	var pantheon_multiplier = _get_pantheon_defense_bonus()
+	total = int(total * (1.0 + pantheon_multiplier))
+
 	return total
+
+func _get_pantheon_defense_bonus() -> float:
+	"""Calculate defense bonus for matching pantheons in garrison
+	Uses team_bonuses.json for configuration
+	"""
+	if _garrison_gods.size() < 2:
+		return 0.0
+
+	# Count pantheons
+	var pantheon_counts: Dictionary = {}
+	for god in _garrison_gods:
+		if god and god.pantheon:
+			var pantheon = god.pantheon.to_lower()
+			pantheon_counts[pantheon] = pantheon_counts.get(pantheon, 0) + 1
+
+	# Find the most common pantheon
+	var max_count = 0
+	for pantheon in pantheon_counts:
+		if pantheon_counts[pantheon] > max_count:
+			max_count = pantheon_counts[pantheon]
+
+	# Load team bonuses from dedicated config
+	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager") if SystemRegistry.get_instance() else null
+	var defense_bonus = 0.0
+
+	if config_manager and config_manager.has_method("get_team_bonuses_config"):
+		var team_bonuses = config_manager.get_team_bonuses_config()
+		var pantheon_bonuses = team_bonuses.get("pantheon_bonuses", {})
+
+		# Full pantheon bonus (all same)
+		if max_count == _garrison_gods.size() and max_count >= 2:
+			var full_bonus = pantheon_bonuses.get("full_match", {}).get("bonuses", {})
+			defense_bonus = full_bonus.get("defense", 0.25)
+		# Majority bonus (3+ same)
+		elif max_count >= 3:
+			var majority_bonus = pantheon_bonuses.get("majority_match", {}).get("bonuses", {})
+			defense_bonus = majority_bonus.get("defense", 0.10)
+		# Duo bonus (2 same)
+		elif max_count >= 2:
+			var duo_bonus = pantheon_bonuses.get("duo_match", {}).get("bonuses", {})
+			defense_bonus = duo_bonus.get("defense", 0.05)
+
+	return defense_bonus
 
 func add_god_to_garrison(god: God) -> void:
 	"""Add a god to the garrison (does not persist - parent should handle data)"""
@@ -333,8 +381,9 @@ func _create_portrait(god: God) -> Control:
 	portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
-	# Try to load portrait
-	var sprite_path = "res://assets/gods/" + god.id + ".png"
+	# Try to load portrait - use template_id for asset path
+	var god_template = god.template_id if god.template_id else god.id
+	var sprite_path = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		portrait.texture = load(sprite_path)
 	else:

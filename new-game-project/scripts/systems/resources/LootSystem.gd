@@ -100,23 +100,27 @@ func generate_loot(table_id: String, multiplier: float = 1.0, element: String = 
 	loot_generated.emit(results)
 	return results
 
-## Resolve loot_item_id to actual resource_id, with element substitution
-func _resolve_resource_id(loot_item_id: String, element: String) -> String:
+## Resolve loot_item_id to actual resource_id
+## Note: v3.0 removed element-specific powders - now uses generic resources
+func _resolve_resource_id(loot_item_id: String, _element: String) -> String:
 	if not loot_items.has(loot_item_id):
 		# If not in loot_items, treat as direct resource_id
 		return loot_item_id
 
 	var item_def = loot_items[loot_item_id]
 
-	# Check for element-based items
+	# Element-based items now resolve to generic resources (v3.0 simplification)
+	# Element dungeons grant Element Favor buff instead of element-specific materials
 	if item_def.get("resource_type", "") == "element_based":
 		var base_resource = item_def.get("base_resource", "")
-		if element != "" and base_resource != "":
-			# Return element-specific resource (e.g., "fire_powder_low" from "powder_low")
-			return element + "_" + base_resource
-		else:
-			# Fallback to generic if no element specified
-			return "magic_" + base_resource
+		# Map old element-based resources to new generic ones
+		match base_resource:
+			"powder_low", "powder_medium", "powder_high":
+				return "enhancement_powder"
+			"essence":
+				return "divine_essence"
+			_:
+				return base_resource if base_resource != "" else loot_item_id
 
 	# Standard resource_id lookup
 	return item_def.get("resource_id", loot_item_id)

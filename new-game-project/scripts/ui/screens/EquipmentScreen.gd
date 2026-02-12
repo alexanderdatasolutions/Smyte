@@ -17,6 +17,7 @@ signal back_pressed
 var selected_god: God = null
 var equipment_manager: EquipmentManager
 var collection_manager: CollectionManager
+var current_filter_slot: int = -1  # Track current filter for toggle behavior
 
 # Split UI Component References
 var god_selector: EquipmentGodSelector
@@ -25,7 +26,7 @@ var inventory_manager: EquipmentInventoryDisplay
 var stats_display: EquipmentStatsDisplay
 
 # UI References from scene - Core Layout
-@onready var back_button = $BackButton
+@onready var back_button = $TopBar/BackButton
 @onready var main_container = $MainContainer
 
 # UI References - Component containers
@@ -33,7 +34,7 @@ var stats_display: EquipmentStatsDisplay
 @onready var god_grid = $MainContainer/LeftPanel/GodContainer/ScrollContainer/GodGrid
 @onready var selected_god_panel = $MainContainer/CenterPanel/SelectedGodPanel
 @onready var god_name_label = $MainContainer/CenterPanel/SelectedGodPanel/VBox/GodNameLabel
-@onready var god_stats_container = $MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer
+@onready var god_stats_container = $MainContainer/CenterPanel/SelectedGodPanel/VBox/StatsContainer/StatsGrid
 @onready var equipment_slots_container = $MainContainer/CenterPanel/SelectedGodPanel/VBox/EquipmentContainer/EquipmentSlotsGrid
 @onready var equipment_panel = $MainContainer/RightPanel/InventoryPanel
 @onready var inventory_grid = $MainContainer/RightPanel/InventoryPanel/VBox/ScrollContainer/InventoryGrid
@@ -44,7 +45,11 @@ func _ready():
 	_initialize_components()
 	_connect_signals()
 	_style_center_panel()
-	_style_back_button()
+	_setup_unified_header()
+
+	# Hide old back button (using unified header)
+	if back_button:
+		back_button.visible = false
 
 func _setup_fullscreen():
 	"""Make this control fill the entire viewport"""
@@ -52,6 +57,26 @@ func _setup_fullscreen():
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	set_size(viewport_size)
 	position = Vector2.ZERO
+
+func _setup_unified_header():
+	"""Configure the unified header for this screen"""
+	if not visibility_changed.is_connected(_on_visibility_changed):
+		visibility_changed.connect(_on_visibility_changed)
+	if visible:
+		_update_header_for_screen()
+
+func _on_visibility_changed():
+	"""Update header when this screen becomes visible"""
+	if visible:
+		_update_header_for_screen()
+
+func _update_header_for_screen():
+	"""Apply this screen's header settings"""
+	var main_ui = get_node_or_null("/root/Main/MainUIOverlay")
+	if main_ui:
+		main_ui.set_screen_title("EQUIPMENT FORGE")
+		main_ui.show_header_back_button(true)
+		main_ui.connect_header_back_button(_on_back_button_pressed)
 
 func _style_back_button():
 	"""Style the back button to match dark fantasy theme"""
@@ -137,20 +162,28 @@ func _connect_signals():
 func _on_god_selected(god: God):
 	"""Handle god selection from god selector component"""
 	selected_god = god
-	
+	current_filter_slot = -1  # Reset filter when changing god
+
 	# Update all components with new god selection
 	if slot_manager:
 		slot_manager.set_selected_god(god)
 	if inventory_manager:
-		inventory_manager.set_selected_god(god)
+		inventory_manager.clear_slot_filter()  # Show all equipment for new god
 	if stats_display:
 		stats_display.set_selected_god(god)
 
 func _on_equipment_slot_selected(slot_index: int):
 	"""Handle equipment slot selection from slot manager"""
-	# Filter inventory to show compatible equipment
+	# Toggle filter: if same slot clicked again, clear filter to show all
 	if inventory_manager:
-		inventory_manager.set_selected_slot(slot_index)
+		if current_filter_slot == slot_index:
+			# Same slot clicked again - clear filter
+			inventory_manager.clear_slot_filter()
+			current_filter_slot = -1
+		else:
+			# Different slot - set filter
+			inventory_manager.set_selected_slot(slot_index)
+			current_filter_slot = slot_index
 
 func _on_equipment_unequip_requested(slot_index: int):
 	"""Handle unequip request from slot manager"""
@@ -160,6 +193,10 @@ func _on_equipment_unequip_requested(slot_index: int):
 	# Unequip using equipment manager
 	var success = equipment_manager.unequip_equipment_from_god(selected_god, slot_index)
 	if success:
+		# Clear slot filter so unequipped item is visible in inventory
+		current_filter_slot = -1
+		if inventory_manager:
+			inventory_manager.clear_slot_filter()
 		_refresh_all_components()
 
 func _on_equipment_selected(equipment: Equipment):
