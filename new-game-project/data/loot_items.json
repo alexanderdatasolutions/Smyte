@@ -202,6 +202,44 @@
           "socket_chance": 0.2
         }
       }
+    },
+
+    "monster_parts": {
+      "id": "monster_parts",
+      "resource_id": "monster_parts",
+      "description": "T1 defense drop - basic crafting material from territory capture",
+      "min_amount": 5,
+      "max_amount": 15
+    },
+    "beast_scales": {
+      "id": "beast_scales",
+      "resource_id": "beast_scales",
+      "description": "T2 defense drop - intermediate crafting material from territory capture",
+      "min_amount": 3,
+      "max_amount": 12
+    },
+    "elemental_cores": {
+      "id": "elemental_cores",
+      "resource_id": "elemental_cores",
+      "description": "T3 defense drop - advanced crafting material from territory capture",
+      "min_amount": 2,
+      "max_amount": 8
+    },
+    "dragon_parts": {
+      "id": "dragon_parts",
+      "resource_id": "dragon_parts",
+      "description": "T4 defense drop - legendary crafting material from territory capture (PvP)",
+      "min_amount": 1,
+      "max_amount": 5
+    },
+
+    "pantheon_token": {
+      "id": "pantheon_token",
+      "resource_type": "pantheon_based",
+      "base_resource": "token",
+      "description": "Resolves to {pantheon}_token based on dungeon pantheon",
+      "min_amount": 1,
+      "max_amount": 1
     }
   }
 }

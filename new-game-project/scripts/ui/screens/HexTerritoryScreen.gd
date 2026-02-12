@@ -32,7 +32,7 @@ const NodeRequirementsPanelScript = preload("res://scripts/ui/territory/NodeRequ
 const NodeCaptureHandlerScript = preload("res://scripts/ui/territory/NodeCaptureHandler.gd")
 const WorkerAssignmentPanelScript = preload("res://scripts/ui/territory/WorkerAssignmentPanel.gd")
 const GarrisonManagementPanelScript = preload("res://scripts/ui/territory/GarrisonManagementPanel.gd")
-const NodeDetailScreenScript = preload("res://scripts/ui/screens/NodeDetailScreen.gd")
+# NodeDetailScreen removed - was dead code with no navigation path
 const GodSelectionPanelScript = preload("res://scripts/ui/territory/GodSelectionPanel.gd")
 const BuildingSelectionPopupScript = preload("res://scripts/ui/territory/BuildingSelectionPopup.gd")
 
@@ -55,7 +55,7 @@ var node_capture_handler: NodeCaptureHandler = null
 var worker_assignment_panel: WorkerAssignmentPanel = null
 var garrison_management_panel: GarrisonManagementPanel = null
 var territory_overview_screen: TerritoryOverviewScreen = null
-var node_detail_screen: NodeDetailScreen = null
+# node_detail_screen removed - was dead code
 var god_selection_panel: GodSelectionPanel = null
 var building_selection_popup = null  # BuildingSelectionPopup instance
 
@@ -63,6 +63,9 @@ var building_selection_popup = null  # BuildingSelectionPopup instance
 var _pending_slot_node: HexNode = null
 var _pending_slot_type: String = ""  # "garrison" or "worker"
 var _pending_slot_index: int = -1
+
+# Track node captured during battle (to show info panel when returning to screen)
+var _pending_captured_node: HexNode = null
 
 # ==============================================================================
 # PROPERTIES
@@ -109,6 +112,8 @@ func _on_visibility_changed():
 	"""Update header when this screen becomes visible"""
 	if visible:
 		_update_header_for_screen()
+		# Check for pending captured node (captured while on battle screen)
+		_handle_pending_captured_node()
 
 func _update_header_for_screen():
 	"""Apply this screen's header settings"""
@@ -314,7 +319,6 @@ func _setup_components() -> void:
 	_setup_worker_assignment_panel()
 	_setup_garrison_management_panel()
 	_setup_territory_overview_screen()
-	_setup_node_detail_screen()
 	_setup_god_selection_panel()
 	_setup_building_selection_popup()
 
@@ -414,13 +418,6 @@ func _setup_territory_overview_screen() -> void:
 	territory_overview_screen.visible = false
 	main_container.add_child(territory_overview_screen)
 
-func _setup_node_detail_screen() -> void:
-	"""Create and setup NodeDetailScreen component"""
-	node_detail_screen = NodeDetailScreenScript.new()
-	node_detail_screen.name = "NodeDetailScreen"
-	node_detail_screen.visible = false
-	main_container.add_child(node_detail_screen)
-
 func _setup_god_selection_panel() -> void:
 	"""Create and setup GodSelectionPanel component (slides from LEFT)"""
 	god_selection_panel = GodSelectionPanelScript.new()
@@ -457,6 +454,7 @@ func _connect_signals() -> void:
 		node_info_panel.filled_slot_tapped.connect(_on_node_info_filled_slot_tapped)
 		node_info_panel.task_started.connect(_on_node_task_started)
 		node_info_panel.select_building_requested.connect(_on_select_building_requested)
+		node_info_panel.demolish_building_requested.connect(_on_demolish_building_requested)
 
 	# Node requirements panel signals
 	if node_requirements_panel:
@@ -477,15 +475,8 @@ func _connect_signals() -> void:
 	# Territory overview screen signals
 	if territory_overview_screen:
 		territory_overview_screen.back_pressed.connect(_on_territory_overview_back)
-		territory_overview_screen.manage_node_requested.connect(_on_overview_manage_node)
 		territory_overview_screen.slot_tapped.connect(_on_overview_slot_tapped)
 		territory_overview_screen.filled_slot_tapped.connect(_on_overview_filled_slot_tapped)
-
-	# Node detail screen signals
-	if node_detail_screen:
-		node_detail_screen.close_requested.connect(_on_node_detail_close)
-		node_detail_screen.garrison_changed.connect(_on_node_detail_garrison_changed)
-		node_detail_screen.workers_changed.connect(_on_node_detail_workers_changed)
 
 	# God selection panel signals (slides from left)
 	if god_selection_panel:
@@ -622,20 +613,6 @@ func _on_capture_requested(hex_node: HexNode) -> void:
 				if not battle_setup_screen.battle_setup_complete.is_connected(_on_battle_setup_complete):
 					battle_setup_screen.battle_setup_complete.connect(_on_battle_setup_complete)
 
-func _on_manage_workers_requested(hex_node: HexNode) -> void:
-	"""Handle manage workers request - use NodeDetailScreen for owned nodes"""
-	if hex_node and hex_node.is_controlled_by_player():
-		_show_node_detail_screen(hex_node)
-	elif worker_assignment_panel:
-		worker_assignment_panel.show_panel(hex_node)
-
-func _on_manage_garrison_requested(hex_node: HexNode) -> void:
-	"""Handle manage garrison request - use NodeDetailScreen for owned nodes"""
-	if hex_node and hex_node.is_controlled_by_player():
-		_show_node_detail_screen(hex_node)
-	elif garrison_management_panel:
-		garrison_management_panel.show_garrison(hex_node)
-
 func _on_node_info_close() -> void:
 	"""Handle node info panel close"""
 	_hide_node_info()
@@ -683,13 +660,54 @@ func _on_node_info_slot_tapped(node: HexNode, slot_type: String, slot_index: int
 
 func _on_node_info_filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
 	"""Handle filled slot tap from NodeInfoPanel - show confirmation popup to remove god"""
-	if not node or not god:
+	if not node:
+		return
+
+	# Handle null god (stale reference from sacrificed god) - remove by index
+	if not god:
+		print("HexTerritoryScreen: Removing stale god at slot %d of %s from %s" % [slot_index, slot_type, node.id])
+		_remove_stale_slot(node, slot_type, slot_index)
 		return
 
 	print("HexTerritoryScreen: NodeInfoPanel filled slot tapped - node: %s, type: %s, god: %s" % [node.id, slot_type, god.name])
 
 	# Show confirmation popup (reuse existing method)
 	_show_remove_god_confirmation(node, slot_type, slot_index, god)
+
+func _remove_stale_slot(node: HexNode, slot_type: String, slot_index: int) -> void:
+	"""Remove a stale god_id at the given slot index (god was sacrificed but ID remained)"""
+	if not territory_manager:
+		return
+
+	var success = false
+	if slot_type == "garrison":
+		# Remove the stale ID at the given index from garrison
+		if slot_index < node.garrison.size():
+			var new_garrison: Array = []
+			for i in range(node.garrison.size()):
+				if i != slot_index:
+					new_garrison.append(node.garrison[i])
+			success = territory_manager.update_node_garrison(node.id, new_garrison)
+			if success:
+				print("HexTerritoryScreen: Removed stale garrison slot %d from %s" % [slot_index, node.id])
+	else:
+		# Remove the stale ID at the given index from workers
+		if slot_index < node.assigned_workers.size():
+			var new_workers: Array = []
+			for i in range(node.assigned_workers.size()):
+				if i != slot_index:
+					new_workers.append(node.assigned_workers[i])
+			success = territory_manager.update_node_workers(node.id, new_workers)
+			if success:
+				print("HexTerritoryScreen: Removed stale worker slot %d from %s" % [slot_index, node.id])
+
+	if success:
+		# Refresh displays
+		if territory_overview_screen and territory_overview_screen.visible:
+			territory_overview_screen._refresh_display()
+		if node_info_panel and node_info_panel.visible:
+			node_info_panel.refresh()
+		refresh()
 
 func _on_requirements_panel_close() -> void:
 	"""Handle requirements panel close"""
@@ -768,14 +786,6 @@ func _on_territory_overview_back() -> void:
 	if zoom_controls:
 		zoom_controls.visible = true
 
-func _on_overview_manage_node(node: HexNode) -> void:
-	"""Handle manage node request from overview screen"""
-	# Close overview
-	_on_territory_overview_back()
-
-	# Show node detail screen for the node
-	_show_node_detail_screen(node)
-
 func _on_overview_slot_tapped(node: HexNode, slot_type: String, slot_index: int) -> void:
 	"""Handle slot tap from TerritoryOverviewScreen - opens GodSelectionPanel"""
 	if not god_selection_panel or not node:
@@ -813,7 +823,13 @@ func _on_overview_slot_tapped(node: HexNode, slot_type: String, slot_index: int)
 
 func _on_overview_filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
 	"""Handle filled slot tap - show confirmation popup to remove god"""
-	if not node or not god:
+	if not node:
+		return
+
+	# Handle null god (stale reference from sacrificed god) - remove by index
+	if not god:
+		print("HexTerritoryScreen: Removing stale god at slot %d of %s from %s (overview)" % [slot_index, slot_type, node.id])
+		_remove_stale_slot(node, slot_type, slot_index)
 		return
 
 	print("HexTerritoryScreen: Filled slot tapped - node: %s, type: %s, god: %s" % [node.id, slot_type, god.name])
@@ -1008,18 +1024,6 @@ func _assign_god_to_worker(node: HexNode, god_id: String, _slot_index: int) -> b
 		print("HexTerritoryScreen: Assigned %s as worker at %s" % [god_id, node.id])
 	return success
 
-func _on_node_detail_close() -> void:
-	"""Handle close from node detail screen"""
-	_hide_node_detail_screen()
-
-func _on_node_detail_garrison_changed(_node: HexNode, _garrison_ids: Array) -> void:
-	"""Handle garrison change notification from node detail screen"""
-	refresh()
-
-func _on_node_detail_workers_changed(_node: HexNode, _worker_ids: Array) -> void:
-	"""Handle workers change notification from node detail screen"""
-	refresh()
-
 # ==============================================================================
 # PANEL MANAGEMENT
 # ==============================================================================
@@ -1099,26 +1103,6 @@ func _hide_requirements_panel() -> void:
 	if node_requirements_panel:
 		node_requirements_panel.hide_panel()
 
-func _show_node_detail_screen(hex_node: HexNode) -> void:
-	"""Show node detail screen for owned node management"""
-	if not node_detail_screen or not hex_node:
-		return
-
-	# Only show detail screen for player-controlled nodes
-	if not hex_node.is_controlled_by_player():
-		return
-
-	# Hide other panels
-	_hide_node_info()
-
-	# Show detail screen
-	node_detail_screen.show_node(hex_node)
-
-func _hide_node_detail_screen() -> void:
-	"""Hide node detail screen"""
-	if node_detail_screen:
-		node_detail_screen.hide_screen()
-
 # ==============================================================================
 # CAPTURE HANDLERS - P6-01
 # ==============================================================================
@@ -1135,18 +1119,46 @@ func _on_battle_setup_complete(context: Dictionary) -> void:
 		# Start the capture battle with the selected team
 		node_capture_handler.initiate_capture_with_team(hex_node, selected_team)
 
-func _on_capture_succeeded(hex_node: HexNode) -> void:
+func _on_capture_succeeded(hex_node: HexNode, _rewards: Dictionary) -> void:
 	"""Handle successful node capture from NodeCaptureHandler"""
+	# Store the captured node - we'll show info panel when screen becomes visible
+	# (we're still on battle screen when this fires)
+	if hex_node:
+		# Get the updated node from hex grid (ensures we have latest state)
+		if hex_map_view and hex_map_view.hex_grid_manager:
+			var grid_node = hex_map_view.hex_grid_manager.get_node_at(hex_node.coord)
+			if grid_node:
+				_pending_captured_node = grid_node
+			else:
+				_pending_captured_node = hex_node
+		else:
+			_pending_captured_node = hex_node
+
+	# Refresh the map (updates node colors/states)
 	refresh()
 
-	# Show building selection popup for blank buildable tiles
-	if hex_node and hex_node.can_place_building() and building_selection_popup:
-		# Small delay to let battle screen transition complete
-		await get_tree().create_timer(0.5).timeout
-		building_selection_popup.show_for_node(hex_node)
+func _handle_pending_captured_node() -> void:
+	"""Show info panel for recently captured node when returning from battle"""
+	if _pending_captured_node:
+		var node_to_show = _pending_captured_node
+		_pending_captured_node = null  # Clear pending
+
+		# Set as selected and show info panel
+		selected_node = node_to_show
+		_show_node_info(node_to_show)
+
+		# Show building selection popup for blank buildable tiles
+		if node_to_show.can_place_building() and building_selection_popup:
+			# Small delay for UI to settle
+			await get_tree().create_timer(0.3).timeout
+			building_selection_popup.show_for_node(node_to_show)
 
 func _on_capture_failed(hex_node: HexNode) -> void:
 	"""Handle failed node capture from NodeCaptureHandler"""
+	# Store as pending so info panel shows when returning from battle
+	if hex_node:
+		_pending_captured_node = hex_node
+
 	refresh()
 
 # ==============================================================================
@@ -1173,6 +1185,38 @@ func _on_select_building_requested(hex_node: HexNode) -> void:
 	"""Handle select building request from node info panel"""
 	if hex_node and building_selection_popup:
 		building_selection_popup.show_for_node(hex_node)
+
+func _on_demolish_building_requested(hex_node: HexNode) -> void:
+	"""Handle demolish building request - remove building and show selection popup"""
+	if not hex_node or not hex_node.has_building():
+		return
+
+	var building_manager = SystemRegistry.get_instance().get_system("BuildingManager") if SystemRegistry.get_instance() else null
+	if not building_manager:
+		push_error("HexTerritoryScreen: BuildingManager not available")
+		return
+
+	var old_building_id = hex_node.placed_building
+
+	# Remove the building (with 0% refund since building selection is free)
+	if building_manager.remove_building(hex_node, 0.0):
+		print("HexTerritoryScreen: Removed building '%s' from node '%s'" % [old_building_id, hex_node.id])
+
+		# Refresh the info panel to show updated state
+		if node_info_panel:
+			node_info_panel.refresh()
+
+		# Refresh the hex map
+		refresh()
+
+		# Trigger save
+		var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+		if event_bus:
+			event_bus.save_requested.emit()
+
+		# Immediately show building selection popup for the now-empty tile
+		if building_selection_popup:
+			building_selection_popup.show_for_node(hex_node)
 
 func _show_building_placed_feedback(hex_node: HexNode, building_id: String) -> void:
 	"""Show feedback that a building was placed"""

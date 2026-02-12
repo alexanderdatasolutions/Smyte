@@ -1,0 +1,224 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "description": "Detailed equipment set bonus information for UI display",
+    "last_updated": "2026-02-11",
+    "design_notes": {
+      "purpose": "Provides detailed descriptions and UI display info for equipment sets",
+      "extends": "equipment_config.json equipment_sets section",
+      "usage": "Used by equipment screen to show detailed bonus breakdowns"
+    }
+  },
+
+  "sets": {
+    "berserker": {
+      "id": "berserker",
+      "name": "Berserker",
+      "description": "Favored by warriors who prefer offense over defense",
+      "color": "#FF4444",
+      "icon": "berserker_set",
+      "bonuses": {
+        "2": {
+          "stats": {"attack": 50},
+          "description": "+50 Attack",
+          "display_name": "Minor Fury"
+        },
+        "4": {
+          "stats": {"attack": 100, "crit_rate": 5},
+          "description": "+100 Attack, +5% Crit Rate",
+          "display_name": "Battle Rage"
+        },
+        "6": {
+          "stats": {"attack": 200, "crit_rate": 10, "crit_damage": 20},
+          "description": "+200 Attack, +10% Crit Rate, +20% Crit Damage",
+          "display_name": "Berserker's Wrath",
+          "special_effect": "Attacks have 15% chance to deal double damage"
+        }
+      }
+    },
+    "guardian": {
+      "id": "guardian",
+      "name": "Guardian",
+      "description": "Worn by those who protect others from harm",
+      "color": "#4488FF",
+      "icon": "guardian_set",
+      "bonuses": {
+        "2": {
+          "stats": {"defense": 75},
+          "description": "+75 Defense",
+          "display_name": "Minor Shield"
+        },
+        "4": {
+          "stats": {"hp": 500, "defense": 50},
+          "description": "+500 HP, +50 Defense",
+          "display_name": "Iron Will"
+        },
+        "6": {
+          "stats": {"hp": 1000, "defense": 150, "resistance": 15},
+          "description": "+1000 HP, +150 Defense, +15% Resistance",
+          "display_name": "Aegis of Protection",
+          "special_effect": "Reduces incoming damage by 10%"
+        }
+      }
+    },
+    "swift": {
+      "id": "swift",
+      "name": "Swift",
+      "description": "Enchanted to grant supernatural speed",
+      "color": "#44FF88",
+      "icon": "swift_set",
+      "bonuses": {
+        "2": {
+          "stats": {"speed": 25},
+          "description": "+25 Speed",
+          "display_name": "Quick Step"
+        },
+        "4": {
+          "stats": {"speed": 50, "accuracy": 10},
+          "description": "+50 Speed, +10% Accuracy",
+          "display_name": "Wind Walker"
+        },
+        "6": {
+          "stats": {"speed": 80, "attack": 100, "accuracy": 20},
+          "description": "+80 Speed, +100 Attack, +20% Accuracy",
+          "display_name": "Lightning Reflexes",
+          "special_effect": "25% chance to take an extra turn"
+        }
+      }
+    },
+    "warrior": {
+      "id": "warrior",
+      "name": "Warrior",
+      "description": "Balanced set for versatile combat",
+      "color": "#FF8844",
+      "icon": "warrior_set",
+      "bonuses": {
+        "2": {
+          "stats": {"attack": 40, "defense": 20},
+          "description": "+40 Attack, +20 Defense",
+          "display_name": "Soldier's Training"
+        },
+        "4": {
+          "stats": {"attack": 80, "defense": 40, "hp": 300},
+          "description": "+80 Attack, +40 Defense, +300 HP",
+          "display_name": "Veteran's Might"
+        },
+        "6": {
+          "stats": {"attack": 150, "defense": 80, "hp": 600},
+          "description": "+150 Attack, +80 Defense, +600 HP",
+          "display_name": "Champion's Glory",
+          "special_effect": "Gain 5% of damage dealt as healing"
+        }
+      }
+    },
+    "sage": {
+      "id": "sage",
+      "name": "Sage",
+      "description": "Ancient wisdom grants longevity in battle",
+      "color": "#AA88FF",
+      "icon": "sage_set",
+      "bonuses": {
+        "2": {
+          "stats": {"hp": 400, "resistance": 10},
+          "description": "+400 HP, +10% Resistance",
+          "display_name": "Scholar's Vitality"
+        },
+        "4": {
+          "stats": {"hp": 700, "defense": 50, "resistance": 15},
+          "description": "+700 HP, +50 Defense, +15% Resistance",
+          "display_name": "Mystic Endurance"
+        },
+        "6": {
+          "stats": {"hp": 1200, "defense": 100, "resistance": 25, "speed": 20},
+          "description": "+1200 HP, +100 Defense, +25% Resistance, +20 Speed",
+          "display_name": "Transcendent Mind",
+          "special_effect": "Recover 5% max HP at end of each turn"
+        }
+      }
+    },
+    "precision": {
+      "id": "precision",
+      "name": "Precision",
+      "description": "Every strike hits its mark with deadly accuracy",
+      "color": "#FFFF44",
+      "icon": "precision_set",
+      "bonuses": {
+        "2": {
+          "stats": {"accuracy": 15, "crit_rate": 5},
+          "description": "+15% Accuracy, +5% Crit Rate",
+          "display_name": "Steady Hand"
+        },
+        "4": {
+          "stats": {"accuracy": 30, "crit_rate": 10, "crit_damage": 15},
+          "description": "+30% Accuracy, +10% Crit Rate, +15% Crit Damage",
+          "display_name": "Marksman's Focus"
+        },
+        "6": {
+          "stats": {"accuracy": 50, "crit_rate": 20, "crit_damage": 40, "attack": 50},
+          "description": "+50% Accuracy, +20% Crit Rate, +40% Crit Damage, +50 Attack",
+          "display_name": "Perfect Execution",
+          "special_effect": "Critical hits ignore 30% of enemy defense"
+        }
+      }
+    },
+    "divine": {
+      "id": "divine",
+      "name": "Divine",
+      "description": "Blessed by the gods themselves",
+      "color": "#FFD700",
+      "icon": "divine_set",
+      "bonuses": {
+        "2": {
+          "stats": {"attack": 30, "defense": 30, "hp": 200},
+          "description": "+30 Attack, +30 Defense, +200 HP",
+          "display_name": "Divine Blessing"
+        },
+        "4": {
+          "stats": {"attack": 70, "defense": 70, "hp": 500, "speed": 15},
+          "description": "+70 Attack/Defense, +500 HP, +15 Speed",
+          "display_name": "Celestial Favor"
+        },
+        "6": {
+          "stats": {"attack": 150, "defense": 150, "hp": 1000, "speed": 30, "crit_rate": 15},
+          "description": "All stats significantly increased",
+          "display_name": "Avatar of Divinity",
+          "special_effect": "Start battle with a shield equal to 20% max HP"
+        }
+      }
+    },
+    "vampire": {
+      "id": "vampire",
+      "name": "Vampire",
+      "description": "Drain life force from your enemies",
+      "color": "#880044",
+      "icon": "vampire_set",
+      "bonuses": {
+        "2": {
+          "stats": {"attack": 35},
+          "description": "+35 Attack, +5% Life Steal",
+          "display_name": "Blood Thirst",
+          "special_effect": "5% of damage dealt heals you"
+        },
+        "4": {
+          "stats": {"attack": 70, "hp": 400},
+          "description": "+70 Attack, +400 HP, +10% Life Steal",
+          "display_name": "Sanguine Power",
+          "special_effect": "10% of damage dealt heals you"
+        },
+        "6": {
+          "stats": {"attack": 120, "hp": 800, "speed": 20},
+          "description": "+120 Attack, +800 HP, +20 Speed, +20% Life Steal",
+          "display_name": "Nosferatu",
+          "special_effect": "20% of damage dealt heals you"
+        }
+      }
+    }
+  },
+
+  "display_settings": {
+    "inactive_color": "#666666",
+    "active_color": "#FFFFFF",
+    "bonus_achieved_color": "#44FF44",
+    "special_effect_color": "#FFD700"
+  }
+}

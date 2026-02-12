@@ -26,9 +26,7 @@ signal grid_updated()
 # ==============================================================================
 # CONSTANTS
 # ==============================================================================
-const HEX_TILES_PATH = "res://data/hex_tiles.json"  # New blank tile + special node system
-const HEX_TEMPLATES_PATH = "res://data/hex_node_templates.json"  # Legacy fallback
-const HEX_NODES_DATA_PATH = "res://data/hex_nodes.json"  # Legacy fallback
+const HEX_TILES_PATH = "res://data/hex_tiles.json"
 
 # Preload the ring generator to ensure it's available
 const HexRingGeneratorScript = preload("res://scripts/systems/territory/HexRingGenerator.gd")
@@ -69,26 +67,14 @@ func _initialize_base_coord() -> void:
 	_base_coord = script.new(0, 0)
 
 func load_nodes_from_json() -> void:
-	"""Load hex nodes using programmatic ring generation + templates"""
-	# Try new blank tile system first (hex_tiles.json)
-	if FileAccess.file_exists(HEX_TILES_PATH):
-		_load_from_hex_tiles()
-		return
-
-	# Fallback to legacy template-based generation
-	if FileAccess.file_exists(HEX_TEMPLATES_PATH):
-		_load_from_templates()
-		return
-
-	# Final fallback to legacy JSON
-	_load_legacy_json()
+	"""Load hex nodes from hex_tiles.json"""
+	_load_from_hex_tiles()
 
 func _load_from_hex_tiles() -> void:
 	"""Generate hex grid from hex_tiles.json (blank tiles + special nodes)"""
 	var file = FileAccess.open(HEX_TILES_PATH, FileAccess.READ)
 	if not file:
-		push_error("HexGridManager: Failed to open hex tiles file")
-		_load_from_templates()
+		push_error("HexGridManager: Failed to open hex tiles file: " + HEX_TILES_PATH)
 		return
 
 	var json_text = file.get_as_text()
@@ -97,7 +83,6 @@ func _load_from_hex_tiles() -> void:
 	var json = JSON.new()
 	if json.parse(json_text) != OK:
 		push_error("HexGridManager: Failed to parse hex tiles JSON: %s" % json.get_error_message())
-		_load_from_templates()
 		return
 
 	var tiles_config = json.get_data()
@@ -292,150 +277,6 @@ func _create_special_node(hex_node_script, template: Dictionary, coord: Vector2i
 	var loaded_node = hex_node_script.from_dict(node_data)
 	if loaded_node:
 		_add_node(loaded_node)
-
-func _load_from_templates() -> void:
-	"""[LEGACY] Generate hex grid programmatically using old templates"""
-	var file = FileAccess.open(HEX_TEMPLATES_PATH, FileAccess.READ)
-	if not file:
-		push_error("HexGridManager: Failed to open templates file")
-		_load_legacy_json()
-		return
-
-	var json_text = file.get_as_text()
-	file.close()
-
-	var json = JSON.new()
-	if json.parse(json_text) != OK:
-		push_error("HexGridManager: Failed to parse templates JSON: " + json.get_error_message())
-		_load_legacy_json()
-		return
-
-	var templates = json.get_data()
-
-	# Validate ring generation algorithm
-	if not HexRingGeneratorScript.validate_all_rings(4):
-		push_error("HexGridManager: Ring generation validation failed!")
-		return
-
-	# Generate nodes for each tier (rings 0-4)
-	var tier_to_ring = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4}
-	var layout = HexRingGeneratorScript.generate_full_layout(tier_to_ring)
-
-	var hex_node_script = load("res://scripts/data/HexNode.gd")
-	var hex_coord_script = load("res://scripts/data/HexCoord.gd")
-
-	for node_layout in layout:
-		var tier = node_layout["tier"]
-		var node_type = node_layout["type"]
-		var coord = node_layout["coord"]
-		var index = node_layout["index"]
-
-		# Get template for this node type and tier
-		var template = _get_node_template(templates, node_type, tier)
-		if template.is_empty():
-			push_warning("HexGridManager: No template for %s tier %d" % [node_type, tier])
-			continue
-
-		# Build node data from template
-		var node_data = template.duplicate(true)
-
-		# Generate unique ID
-		var node_id = _generate_node_id(node_type, tier, index)
-		node_data["id"] = node_id
-
-		# Assign name from template names array
-		node_data["name"] = _get_node_name(template, index)
-
-		# Set type and tier
-		node_data["type"] = node_type
-		node_data["tier"] = tier
-
-		# Set coordinate
-		node_data["coord"] = {"q": coord.x, "r": coord.y}
-
-		# Set defaults if not in template
-		if not node_data.has("controller"):
-			node_data["controller"] = "player" if node_type == "base" else "neutral"
-		if not node_data.has("is_revealed"):
-			node_data["is_revealed"] = tier <= 1  # T0 and T1 revealed by default
-		if not node_data.has("is_capturable"):
-			node_data["is_capturable"] = node_type != "base"
-
-		# Create the HexNode
-		var loaded_node = hex_node_script.from_dict(node_data)
-		if loaded_node:
-			_add_node(loaded_node)
-
-	_is_loaded = true
-	nodes_loaded.emit()
-	print("HexGridManager: Generated %d hex nodes in concentric rings" % [_nodes.size()])
-
-func _get_node_template(templates: Dictionary, node_type: String, tier: int) -> Dictionary:
-	"""Get template for a specific node type and tier"""
-	if node_type == "base":
-		return templates.get("base", {})
-
-	var type_templates = templates.get(node_type, {})
-	var tier_key = "tier_%d" % tier
-	return type_templates.get(tier_key, {})
-
-func _get_node_name(template: Dictionary, index: int) -> String:
-	"""Get node name from template names array"""
-	var names = template.get("names", [])
-	if names.is_empty():
-		return template.get("name", "Unknown Node")
-
-	# Cycle through names if we have more nodes than names
-	var name_index = index % names.size()
-	return names[name_index]
-
-func _generate_node_id(node_type: String, tier: int, index: int) -> String:
-	"""Generate a unique node ID"""
-	if node_type == "base":
-		return "home_base"
-
-	# Convert index to letter suffix (0=a, 1=b, 2=c, etc.)
-	var suffix = char(97 + (index % 26))  # a-z
-	if index >= 26:
-		suffix = char(97 + (index / 26) - 1) + suffix  # aa, ab, etc.
-
-	return "%s_t%d_%s" % [node_type, tier, suffix]
-
-func _load_legacy_json() -> void:
-	"""Fallback: Load from legacy hex_nodes.json with hardcoded coordinates"""
-	if not FileAccess.file_exists(HEX_NODES_DATA_PATH):
-		push_warning("HexGridManager: No hex data files found, starting with empty grid")
-		_is_loaded = true
-		nodes_loaded.emit()
-		return
-
-	var file = FileAccess.open(HEX_NODES_DATA_PATH, FileAccess.READ)
-	if not file:
-		push_error("HexGridManager: Failed to open legacy hex nodes file")
-		return
-
-	var json_text = file.get_as_text()
-	file.close()
-
-	var json = JSON.new()
-	if json.parse(json_text) != OK:
-		push_error("HexGridManager: Failed to parse legacy JSON: " + json.get_error_message())
-		return
-
-	var data = json.get_data()
-
-	if data.has("nodes"):
-		var hex_node_script = load("res://scripts/data/HexNode.gd")
-		for node_id in data.nodes:
-			var node_data = data.nodes[node_id]
-			node_data["id"] = node_id
-			var loaded_node = hex_node_script.from_dict(node_data)
-			if loaded_node:
-				_add_node(loaded_node)
-
-	_is_loaded = true
-	nodes_loaded.emit()
-	print("HexGridManager: Loaded %d hex nodes from legacy JSON" % [_nodes.size()])
 
 func _add_node(node) -> void:
 	"""Internal method to add a node to the grid"""

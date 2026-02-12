@@ -46,16 +46,15 @@ func load_crafting_config():
 	_build_all_recipes()
 
 func _build_all_recipes() -> void:
-	"""Combine conversion_recipes and equipment_recipes into a single dictionary"""
+	"""Load recipes from flattened JSON structure (recipes at top level)"""
 	_all_recipes = {}
-	if crafting_recipes_config.has("conversion_recipes"):
-		for recipe_id in crafting_recipes_config.conversion_recipes:
-			if not recipe_id.begins_with("_"):  # Skip comments
-				_all_recipes[recipe_id] = crafting_recipes_config.conversion_recipes[recipe_id]
-	if crafting_recipes_config.has("equipment_recipes"):
-		for recipe_id in crafting_recipes_config.equipment_recipes:
-			if not recipe_id.begins_with("_"):  # Skip comments
-				_all_recipes[recipe_id] = crafting_recipes_config.equipment_recipes[recipe_id]
+	for recipe_id in crafting_recipes_config.keys():
+		# Skip metadata and comment keys
+		if recipe_id.begins_with("_"):
+			continue
+		var recipe = crafting_recipes_config[recipe_id]
+		if recipe is Dictionary:
+			_all_recipes[recipe_id] = recipe
 
 func _load_configs_directly():
 	"""Fallback method to load configs directly"""
@@ -230,6 +229,11 @@ func craft_equipment(recipe_id: String, crafting_god_id: String = "", territory_
 	
 	# Emit crafting signal
 	equipment_crafted.emit(equipment, recipe_id)
+
+	# Trigger save after successful craft
+	var event_bus = system_registry.get_system("EventBus")
+	if event_bus:
+		event_bus.save_requested.emit()
 
 	return equipment
 

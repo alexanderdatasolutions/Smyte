@@ -555,6 +555,11 @@ func _process_conversion_building(node: HexNode, all_nodes: Array, current_time:
 	if node.assigned_workers.is_empty():
 		return
 
+	# Check garrison power requirement - workers are inactive without sufficient garrison
+	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
+	if territory_manager and not territory_manager.can_assign_workers(node):
+		return  # Workers inactive - no conversion without garrison protection
+
 	# Calculate how much we want to consume this tick (hourly / 60)
 	var consume_this_tick = {}
 	for res_id in consumes:

@@ -208,9 +208,19 @@
         {
           "loot_item_id": "crystals_large",
           "chance": 1.0
+        },
+        {
+          "loot_item_id": "pantheon_token",
+          "chance": 1.0,
+          "pantheon_specific": true
         }
       ],
       "rare_drops": [
+        {
+          "loot_item_id": "pantheon_token",
+          "chance": 0.3,
+          "pantheon_specific": true
+        },
         {
           "loot_item_id": "legendary_soul",
           "chance": 0.4
@@ -250,9 +260,24 @@
         {
           "loot_item_id": "divine_essence",
           "chance": 1.0
+        },
+        {
+          "loot_item_id": "pantheon_token",
+          "chance": 1.0,
+          "pantheon_specific": true
+        },
+        {
+          "loot_item_id": "pantheon_token",
+          "chance": 1.0,
+          "pantheon_specific": true
         }
       ],
       "rare_drops": [
+        {
+          "loot_item_id": "pantheon_token",
+          "chance": 0.5,
+          "pantheon_specific": true
+        },
         {
           "loot_item_id": "divine_essence",
           "chance": 0.5

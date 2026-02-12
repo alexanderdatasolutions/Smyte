@@ -112,6 +112,10 @@ func purchase_crystal_pack(pack_id: String) -> bool:
 	if _event_bus and _event_bus.has_signal("crystals_purchased"):
 		_event_bus.emit_signal("crystals_purchased", pack_id, total)
 
+	# Trigger save after purchase
+	if _event_bus:
+		_event_bus.save_requested.emit()
+
 	return true
 
 # ==============================================================================
@@ -179,6 +183,10 @@ func purchase_special_offer(offer_id: String) -> bool:
 
 	special_offer_purchased.emit(offer_id)
 
+	# Trigger save after purchase
+	if _event_bus:
+		_event_bus.save_requested.emit()
+
 	return true
 
 func is_subscription_active(offer_id: String) -> bool:
@@ -204,6 +212,11 @@ func claim_daily_reward(offer_id: String) -> bool:
 		return false
 
 	_apply_rewards(offer.daily_reward)
+
+	# Trigger save after claiming reward
+	if _event_bus:
+		_event_bus.save_requested.emit()
+
 	return true
 
 # ==============================================================================

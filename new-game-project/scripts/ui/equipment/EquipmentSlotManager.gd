@@ -218,23 +218,35 @@ func _create_equipment_slot_button(slot_index: int, slot_name: String) -> Contro
 	if equipped_equipment:
 		var unequip_btn = Button.new()
 		unequip_btn.text = "✕"
-		unequip_btn.custom_minimum_size = Vector2(22, 22)
-		unequip_btn.position = Vector2(container.custom_minimum_size.x - 26, 4)
-		unequip_btn.z_index = 1  # Above the main button
+		unequip_btn.custom_minimum_size = Vector2(24, 24)
+		unequip_btn.size = Vector2(24, 24)
+		unequip_btn.position = Vector2(container.custom_minimum_size.x - 28, 2)
+		unequip_btn.z_index = 10  # Higher z-index to ensure it's on top
+		unequip_btn.mouse_filter = Control.MOUSE_FILTER_STOP  # Capture clicks
 
-		# Red X styling
+		# Red X styling - more visible
 		var x_style = StyleBoxFlat.new()
-		x_style.bg_color = Color(0.7, 0.15, 0.15, 0.9)
-		x_style.set_corner_radius_all(4)
+		x_style.bg_color = Color(0.8, 0.15, 0.15, 1.0)
+		x_style.set_corner_radius_all(12)  # Circular
+		x_style.set_border_width_all(1)
+		x_style.border_color = Color(1.0, 0.3, 0.3, 1.0)
 		unequip_btn.add_theme_stylebox_override("normal", x_style)
 
 		var x_hover = StyleBoxFlat.new()
-		x_hover.bg_color = Color(0.9, 0.2, 0.2, 1.0)
-		x_hover.set_corner_radius_all(4)
+		x_hover.bg_color = Color(1.0, 0.2, 0.2, 1.0)
+		x_hover.set_corner_radius_all(12)
+		x_hover.set_border_width_all(1)
+		x_hover.border_color = Color(1.0, 0.5, 0.5, 1.0)
 		unequip_btn.add_theme_stylebox_override("hover", x_hover)
 
-		unequip_btn.add_theme_font_size_override("font_size", 12)
+		var x_pressed = StyleBoxFlat.new()
+		x_pressed.bg_color = Color(0.6, 0.1, 0.1, 1.0)
+		x_pressed.set_corner_radius_all(12)
+		unequip_btn.add_theme_stylebox_override("pressed", x_pressed)
+
+		unequip_btn.add_theme_font_size_override("font_size", 14)
 		unequip_btn.add_theme_color_override("font_color", Color.WHITE)
+		unequip_btn.add_theme_color_override("font_hover_color", Color.WHITE)
 		unequip_btn.pressed.connect(_on_unequip_button_pressed.bind(slot_index))
 		container.add_child(unequip_btn)
 

@@ -7,7 +7,7 @@ class_name EquipmentManager
 
 """
 Equipment Management Coordinator
-Coordinates between all equipment subsystems: inventory, crafting, enhancement, and sockets
+Coordinates between all equipment subsystems: inventory, crafting, and sockets
 This is the main entry point for the equipment system (like Summoners War equipment)
 According to prompt.prompt.md: "EquipmentManager - Equipment system (200 lines)"
 """
@@ -15,7 +15,6 @@ According to prompt.prompt.md: "EquipmentManager - Equipment system (200 lines)"
 # Main equipment system signals
 signal equipment_equipped(god: God, equipment: Equipment, slot: int)
 signal equipment_unequipped(god: God, slot: int)
-signal equipment_enhanced(equipment: Equipment, success: bool)
 signal equipment_crafted(equipment: Equipment, recipe_id: String)
 signal socket_unlocked(equipment: Equipment, socket_index: int)
 signal gem_socketed(equipment: Equipment, socket_index: int, gem: Dictionary)
@@ -23,7 +22,6 @@ signal gem_socketed(equipment: Equipment, socket_index: int, gem: Dictionary)
 # Component managers for focused responsibilities
 var inventory_manager: EquipmentInventoryManager
 var crafting_manager: EquipmentCraftingManager
-var enhancement_manager: EquipmentEnhancementManager
 var socket_manager: EquipmentSocketManager
 var stat_calculator
 
@@ -42,11 +40,7 @@ func setup_component_managers():
 	# Create crafting manager
 	crafting_manager = EquipmentCraftingManager.new()
 	add_child(crafting_manager)
-	
-	# Create enhancement manager
-	enhancement_manager = EquipmentEnhancementManager.new()
-	add_child(enhancement_manager)
-	
+
 	# Create socket manager
 	socket_manager = EquipmentSocketManager.new()
 	add_child(socket_manager)
@@ -62,14 +56,10 @@ func connect_component_signals():
 		inventory_manager.equipment_equipped.connect(_on_equipment_equipped)
 		inventory_manager.equipment_unequipped.connect(_on_equipment_unequipped)
 	
-	# Crafting manager signals  
+	# Crafting manager signals
 	if crafting_manager:
 		crafting_manager.equipment_crafted.connect(_on_equipment_crafted)
-	
-	# Enhancement manager signals
-	if enhancement_manager:
-		enhancement_manager.equipment_enhanced.connect(_on_equipment_enhanced)
-	
+
 	# Socket manager signals
 	if socket_manager:
 		socket_manager.socket_unlocked.connect(_on_socket_unlocked)
@@ -176,7 +166,7 @@ func unequip_equipment_from_god(god: God, slot: int) -> bool:
 		return true
 
 func get_equipment_stats(equipment: Equipment) -> Dictionary:
-	"""Calculate equipment stats including enhancement bonuses"""
+	"""Calculate equipment stats"""
 	return stat_calculator.get_equipment_display_info(equipment)
 
 func get_god_total_stats(god: God) -> Dictionary:
@@ -212,26 +202,6 @@ func get_available_recipes(territory_id: String = "") -> Array:
 	if crafting_manager:
 		return crafting_manager.get_available_recipes(territory_id)
 	return []
-
-# === ENHANCEMENT OPERATIONS ===
-
-func enhance_equipment(equipment: Equipment, use_blessed_oil: bool = false) -> bool:
-	"""Enhance equipment - delegate to enhancement manager"""
-	if enhancement_manager:
-		return enhancement_manager.enhance_equipment(equipment, use_blessed_oil)
-	return false
-
-func get_enhancement_preview(equipment: Equipment, use_blessed_oil: bool = false) -> Dictionary:
-	"""Get enhancement preview - delegate to enhancement manager"""
-	if enhancement_manager:
-		return enhancement_manager.get_enhancement_preview(equipment, use_blessed_oil)
-	return {}
-
-func enhance_equipment_bulk(equipment: Equipment, target_level: int, use_blessed_oil: bool = false) -> Dictionary:
-	"""Bulk enhance equipment - delegate to enhancement manager"""
-	if enhancement_manager:
-		return enhancement_manager.enhance_equipment_bulk(equipment, target_level, use_blessed_oil)
-	return {}
 
 # === SOCKET OPERATIONS ===
 
@@ -274,12 +244,6 @@ func _on_equipment_crafted(equipment: Equipment, recipe_id: String):
 	"""Handle equipment crafted event"""
 	equipment_crafted.emit(equipment, recipe_id)
 	_trigger_save()
-
-func _on_equipment_enhanced(equipment: Equipment, success: bool):
-	"""Handle equipment enhanced event"""
-	equipment_enhanced.emit(equipment, success)
-	if success:
-		_trigger_save()
 
 func _on_socket_unlocked(equipment: Equipment, socket_index: int):
 	"""Handle socket unlocked event"""
@@ -367,7 +331,6 @@ func get_equipment_summary() -> Dictionary:
 	var summary = {
 		"inventory": {},
 		"crafting": {},
-		"enhancement": {},
 		"sockets": {}
 	}
 	
@@ -394,7 +357,6 @@ func get_god_equipment_stats(god: God) -> Dictionary:
 	
 	var stats = {
 		"equipped_count": 0,
-		"total_enhancement_level": 0,
 		"socketed_gems": 0,
 		"stat_bonuses": {}
 	}
@@ -409,8 +371,7 @@ func get_god_equipment_stats(god: God) -> Dictionary:
 			for equipment in god_equipment:
 				if equipment:
 					stats.equipped_count += 1
-					stats.total_enhancement_level += equipment.enhancement_level
-					
+
 					# Count socketed gems
 					if socket_manager:
 						var socket_effects = socket_manager.get_gem_effects_on_equipment(equipment)
@@ -469,7 +430,7 @@ func get_public_api() -> Array:
 	"""Get list of public API methods for this system"""
 	return [
 		"add_equipment_to_inventory",
-		"remove_equipment_from_inventory", 
+		"remove_equipment_from_inventory",
 		"get_equipment_by_id",
 		"get_equipment_by_slot_type",
 		"equip_equipment_to_god",
@@ -477,9 +438,6 @@ func get_public_api() -> Array:
 		"can_craft_equipment",
 		"craft_equipment",
 		"get_available_recipes",
-		"enhance_equipment",
-		"get_enhancement_preview",
-		"enhance_equipment_bulk",
 		"unlock_socket",
 		"socket_gem",
 		"unsocket_gem",
@@ -500,9 +458,6 @@ func _exit_tree():
 	
 	if crafting_manager and crafting_manager.equipment_crafted.is_connected(_on_equipment_crafted):
 		crafting_manager.equipment_crafted.disconnect(_on_equipment_crafted)
-	
-	if enhancement_manager and enhancement_manager.equipment_enhanced.is_connected(_on_equipment_enhanced):
-		enhancement_manager.equipment_enhanced.disconnect(_on_equipment_enhanced)
-	
+
 	if socket_manager and socket_manager.socket_unlocked.is_connected(_on_socket_unlocked):
 		socket_manager.socket_unlocked.disconnect(_on_socket_unlocked)

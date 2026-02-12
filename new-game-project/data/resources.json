@@ -619,6 +619,82 @@
     }
   },
 
+  "pantheon_tokens": {
+    "_note": "Pantheon tokens increase weight for summoning gods from specific pantheons.",
+    "greek_token": {
+      "id": "greek_token",
+      "name": "Greek Token",
+      "description": "Focus summons on Greek pantheon gods",
+      "pantheon": "greek",
+      "source": "greek_dungeon",
+      "icon": "greek_token_icon",
+      "category": "pantheon_token"
+    },
+    "norse_token": {
+      "id": "norse_token",
+      "name": "Norse Token",
+      "description": "Focus summons on Norse pantheon gods",
+      "pantheon": "norse",
+      "source": "norse_dungeon",
+      "icon": "norse_token_icon",
+      "category": "pantheon_token"
+    },
+    "egyptian_token": {
+      "id": "egyptian_token",
+      "name": "Egyptian Token",
+      "description": "Focus summons on Egyptian pantheon gods",
+      "pantheon": "egyptian",
+      "source": "egyptian_dungeon",
+      "icon": "egyptian_token_icon",
+      "category": "pantheon_token"
+    },
+    "celtic_token": {
+      "id": "celtic_token",
+      "name": "Celtic Token",
+      "description": "Focus summons on Celtic pantheon gods",
+      "pantheon": "celtic",
+      "source": "celtic_dungeon",
+      "icon": "celtic_token_icon",
+      "category": "pantheon_token"
+    },
+    "japanese_token": {
+      "id": "japanese_token",
+      "name": "Japanese Token",
+      "description": "Focus summons on Japanese pantheon gods",
+      "pantheon": "japanese",
+      "source": "japanese_dungeon",
+      "icon": "japanese_token_icon",
+      "category": "pantheon_token"
+    },
+    "hindu_token": {
+      "id": "hindu_token",
+      "name": "Hindu Token",
+      "description": "Focus summons on Hindu pantheon gods",
+      "pantheon": "hindu",
+      "source": "hindu_dungeon",
+      "icon": "hindu_token_icon",
+      "category": "pantheon_token"
+    },
+    "aztec_token": {
+      "id": "aztec_token",
+      "name": "Aztec Token",
+      "description": "Focus summons on Aztec pantheon gods",
+      "pantheon": "aztec",
+      "source": "aztec_dungeon",
+      "icon": "aztec_token_icon",
+      "category": "pantheon_token"
+    },
+    "slavic_token": {
+      "id": "slavic_token",
+      "name": "Slavic Token",
+      "description": "Focus summons on Slavic pantheon gods",
+      "pantheon": "slavic",
+      "source": "slavic_dungeon",
+      "icon": "slavic_token_icon",
+      "category": "pantheon_token"
+    }
+  },
+
   "resource_groups": {
     "by_tier": {
       "t1_raw": ["ore", "wood", "herbs"],

@@ -1,10 +1,11 @@
 {
   "_metadata": {
-    "version": "3.0.0",
-    "description": "Tiered pyramid crafting - higher tiers require lower tier materials",
-    "last_updated": "2026-02-10",
+    "version": "4.0.0",
+    "description": "Equipment crafting recipes - conversions now handled by refineries automatically",
+    "last_updated": "2026-02-11",
     "design_notes": {
-      "pyramid_economy": "Conversion to higher tier requires EXTRA lower tier raw materials",
+      "structure": "Flat structure - equipment recipes at top level (no nesting)",
+      "conversions_removed": "Resource conversions handled by refineries, not manual crafting",
       "t1_equipment": "Uses T1 processed + monster_parts + basic_flame",
       "t2_equipment": "Uses T2 processed + beast_scales + forging_flame",
       "t3_equipment": "Uses T3 processed + elemental_cores + divine_flame",
@@ -12,557 +13,363 @@
     }
   },
 
-  "conversion_recipes": {
-    "_comment": "=== T1 CONVERSIONS (T1 raw only) ===",
-    "ore_to_refined_metal": {
-      "id": "ore_to_refined_metal",
-      "name": "Refine Ore",
-      "description": "Process raw ore into refined metal",
-      "tier": 1,
-      "recipe_type": "conversion",
-      "materials": {
-        "ore": 50
-      },
-      "output": {
-        "refined_metal": 10
-      },
-      "territory_required": false,
-      "icon": "ore_to_refined_metal"
+  "_comment_t1": "=== T1 EQUIPMENT (Common) ===",
+  "iron_sword": {
+    "id": "iron_sword",
+    "name": "Iron Sword",
+    "description": "A reliable sword forged from refined metal",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 1,
+    "rarity": "common",
+    "level": 1,
+    "materials": {
+      "refined_metal": 15,
+      "quality_timber": 5,
+      "monster_parts": 3,
+      "basic_flame": 1,
+      "mana": 500
     },
-    "wood_to_quality_timber": {
-      "id": "wood_to_quality_timber",
-      "name": "Process Wood",
-      "description": "Process raw wood into quality timber",
-      "tier": 1,
-      "recipe_type": "conversion",
-      "materials": {
-        "wood": 50
-      },
-      "output": {
-        "quality_timber": 10
-      },
-      "territory_required": false,
-      "icon": "wood_to_quality_timber"
+    "territory_required": false,
+    "base_stats": {
+      "attack": 30
     },
-    "herbs_to_rare_herbs": {
-      "id": "herbs_to_rare_herbs",
-      "name": "Refine Herbs",
-      "description": "Process common herbs into rare herbs",
-      "tier": 1,
-      "recipe_type": "conversion",
-      "materials": {
-        "herbs": 50
-      },
-      "output": {
-        "rare_herbs": 10
-      },
-      "territory_required": false,
-      "icon": "herbs_to_rare_herbs"
+    "possible_substats": ["hp", "defense", "crit_rate"],
+    "icon": "iron_sword"
+  },
+  "iron_armor": {
+    "id": "iron_armor",
+    "name": "Iron Armor",
+    "description": "Sturdy armor forged from refined metal",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 1,
+    "rarity": "common",
+    "level": 1,
+    "materials": {
+      "refined_metal": 20,
+      "monster_parts": 8,
+      "basic_flame": 1,
+      "mana": 500
     },
-
-    "_comment2": "=== T2 CONVERSIONS (T2 raw + extra T1 raw) ===",
-    "fine_ore_to_steel_ingot": {
-      "id": "fine_ore_to_steel_ingot",
-      "name": "Forge Steel Ingot",
-      "description": "Combine fine ore with extra ore to create steel ingots",
-      "tier": 2,
-      "recipe_type": "conversion",
-      "materials": {
-        "fine_ore": 30,
-        "ore": 20
-      },
-      "output": {
-        "steel_ingot": 10
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 2,
-      "icon": "fine_ore_to_steel_ingot"
+    "territory_required": false,
+    "base_stats": {
+      "defense": 25,
+      "hp": 200
     },
-    "hardwood_to_treated_lumber": {
-      "id": "hardwood_to_treated_lumber",
-      "name": "Treat Lumber",
-      "description": "Combine hardwood with extra wood to create treated lumber",
-      "tier": 2,
-      "recipe_type": "conversion",
-      "materials": {
-        "hardwood": 30,
-        "wood": 20
-      },
-      "output": {
-        "treated_lumber": 10
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 2,
-      "icon": "hardwood_to_treated_lumber"
+    "possible_substats": ["attack", "speed"],
+    "icon": "iron_armor"
+  },
+  "wooden_bow": {
+    "id": "wooden_bow",
+    "name": "Wooden Bow",
+    "description": "A bow crafted from quality timber",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 1,
+    "rarity": "common",
+    "level": 1,
+    "materials": {
+      "quality_timber": 20,
+      "rare_herbs": 5,
+      "monster_parts": 3,
+      "basic_flame": 1,
+      "mana": 400
     },
-    "exotic_herbs_to_alchemical_extract": {
-      "id": "exotic_herbs_to_alchemical_extract",
-      "name": "Extract Alchemy",
-      "description": "Combine exotic herbs with extra herbs to create alchemical extract",
-      "tier": 2,
-      "recipe_type": "conversion",
-      "materials": {
-        "exotic_herbs": 30,
-        "herbs": 20
-      },
-      "output": {
-        "alchemical_extract": 10
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 2,
-      "icon": "exotic_herbs_to_alchemical_extract"
+    "territory_required": false,
+    "base_stats": {
+      "attack": 25,
+      "speed": 3
     },
-
-    "_comment3": "=== T3 CONVERSIONS (T3 raw + extra T2 raw) ===",
-    "arcane_ore_to_prometheum": {
-      "id": "arcane_ore_to_prometheum",
-      "name": "Forge Prometheum",
-      "description": "Combine arcane ore with extra fine ore to create prometheum",
-      "tier": 3,
-      "recipe_type": "conversion",
-      "materials": {
-        "arcane_ore": 20,
-        "fine_ore": 15
-      },
-      "output": {
-        "prometheum": 5
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 3,
-      "icon": "arcane_ore_to_prometheum"
+    "possible_substats": ["crit_rate", "accuracy"],
+    "icon": "wooden_bow"
+  },
+  "herb_amulet": {
+    "id": "herb_amulet",
+    "name": "Herb Amulet",
+    "description": "An amulet infused with protective herbs",
+    "equipment_type": "accessory",
+    "equipment_slot": 4,
+    "tier": 1,
+    "rarity": "common",
+    "level": 1,
+    "materials": {
+      "rare_herbs": 15,
+      "quality_timber": 8,
+      "monster_parts": 3,
+      "mana": 400
     },
-    "ancient_wood_to_enchanted_wood": {
-      "id": "ancient_wood_to_enchanted_wood",
-      "name": "Enchant Wood",
-      "description": "Combine ancient wood with extra hardwood to create enchanted wood",
-      "tier": 3,
-      "recipe_type": "conversion",
-      "materials": {
-        "ancient_wood": 20,
-        "hardwood": 15
-      },
-      "output": {
-        "enchanted_wood": 5
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 3,
-      "icon": "ancient_wood_to_enchanted_wood"
+    "territory_required": false,
+    "base_stats": {
+      "hp": 150,
+      "defense": 10
     },
-    "mystic_herbs_to_mystic_bloom": {
-      "id": "mystic_herbs_to_mystic_bloom",
-      "name": "Cultivate Mystic Bloom",
-      "description": "Combine mystic herbs with extra exotic herbs to create mystic bloom",
-      "tier": 3,
-      "recipe_type": "conversion",
-      "materials": {
-        "mystic_herbs": 20,
-        "exotic_herbs": 15
-      },
-      "output": {
-        "mystic_bloom": 5
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 3,
-      "icon": "mystic_herbs_to_mystic_bloom"
-    },
-    "magic_crystals_to_astral_shard": {
-      "id": "magic_crystals_to_astral_shard",
-      "name": "Crystallize Astral Shard",
-      "description": "Process magic crystals into astral shards",
-      "tier": 3,
-      "recipe_type": "conversion",
-      "materials": {
-        "magic_crystals": 30
-      },
-      "output": {
-        "astral_shard": 3
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 3,
-      "territory_type_requirement": "shrine",
-      "icon": "magic_crystals_to_astral_shard"
-    },
-
-    "_comment4": "=== T4 CONVERSIONS (T4 raw + extra T3 raw, PvP only) ===",
-    "celestial_ore_to_divine_metal": {
-      "id": "celestial_ore_to_divine_metal",
-      "name": "Forge Divine Metal",
-      "description": "Combine celestial ore with extra arcane ore to create divine metal",
-      "tier": 4,
-      "recipe_type": "conversion",
-      "materials": {
-        "celestial_ore": 15,
-        "arcane_ore": 10
-      },
-      "output": {
-        "divine_metal": 3
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 4,
-      "pvp_required": true,
-      "icon": "celestial_ore_to_divine_metal"
-    }
+    "possible_substats": ["attack", "speed"],
+    "icon": "herb_amulet"
   },
 
-  "equipment_recipes": {
-    "_comment": "=== T1 EQUIPMENT (Common) ===",
-    "iron_sword": {
-      "id": "iron_sword",
-      "name": "Iron Sword",
-      "description": "A reliable sword forged from refined metal",
-      "equipment_type": "weapon",
-      "equipment_slot": 0,
-      "tier": 1,
-      "rarity": "common",
-      "level": 1,
-      "materials": {
-        "refined_metal": 15,
-        "quality_timber": 5,
-        "monster_parts": 3,
-        "basic_flame": 1,
-        "mana": 500
-      },
-      "territory_required": false,
-      "base_stats": {
-        "attack": 30
-      },
-      "possible_substats": ["hp", "defense", "crit_rate"],
-      "icon": "iron_sword"
+  "_comment_t2": "=== T2 EQUIPMENT (Rare) ===",
+  "steel_greatsword": {
+    "id": "steel_greatsword",
+    "name": "Steel Greatsword",
+    "description": "A powerful sword forged from steel ingots",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 2,
+    "rarity": "rare",
+    "level": 20,
+    "materials": {
+      "steel_ingot": 15,
+      "treated_lumber": 5,
+      "beast_scales": 5,
+      "forging_flame": 2,
+      "mana": 5000
     },
-    "iron_armor": {
-      "id": "iron_armor",
-      "name": "Iron Armor",
-      "description": "Sturdy armor forged from refined metal",
-      "equipment_type": "armor",
-      "equipment_slot": 1,
-      "tier": 1,
-      "rarity": "common",
-      "level": 1,
-      "materials": {
-        "refined_metal": 20,
-        "monster_parts": 8,
-        "basic_flame": 1,
-        "mana": 500
-      },
-      "territory_required": false,
-      "base_stats": {
-        "defense": 25,
-        "hp": 200
-      },
-      "possible_substats": ["attack", "speed"],
-      "icon": "iron_armor"
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {
+      "attack": 120
     },
-    "wooden_bow": {
-      "id": "wooden_bow",
-      "name": "Wooden Bow",
-      "description": "A bow crafted from quality timber",
-      "equipment_type": "weapon",
-      "equipment_slot": 0,
-      "tier": 1,
-      "rarity": "common",
-      "level": 1,
-      "materials": {
-        "quality_timber": 20,
-        "rare_herbs": 5,
-        "monster_parts": 3,
-        "basic_flame": 1,
-        "mana": 400
-      },
-      "territory_required": false,
-      "base_stats": {
-        "attack": 25,
-        "speed": 3
-      },
-      "possible_substats": ["crit_rate", "accuracy"],
-      "icon": "wooden_bow"
+    "possible_substats": ["crit_rate", "crit_damage", "hp"],
+    "icon": "steel_greatsword"
+  },
+  "steel_plate_armor": {
+    "id": "steel_plate_armor",
+    "name": "Steel Plate Armor",
+    "description": "Heavy plate armor providing excellent protection",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 2,
+    "rarity": "rare",
+    "level": 20,
+    "materials": {
+      "steel_ingot": 20,
+      "beast_scales": 10,
+      "forging_flame": 2,
+      "mana": 5000
     },
-    "herb_amulet": {
-      "id": "herb_amulet",
-      "name": "Herb Amulet",
-      "description": "An amulet infused with protective herbs",
-      "equipment_type": "accessory",
-      "equipment_slot": 4,
-      "tier": 1,
-      "rarity": "common",
-      "level": 1,
-      "materials": {
-        "rare_herbs": 15,
-        "quality_timber": 8,
-        "monster_parts": 3,
-        "mana": 400
-      },
-      "territory_required": false,
-      "base_stats": {
-        "hp": 150,
-        "defense": 10
-      },
-      "possible_substats": ["attack", "speed"],
-      "icon": "herb_amulet"
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {
+      "defense": 100,
+      "hp": 800
     },
+    "possible_substats": ["attack", "speed", "resistance"],
+    "icon": "steel_plate_armor"
+  },
+  "mystic_ring": {
+    "id": "mystic_ring",
+    "name": "Mystic Ring",
+    "description": "A ring infused with alchemical essence",
+    "equipment_type": "accessory",
+    "equipment_slot": 5,
+    "tier": 2,
+    "rarity": "rare",
+    "level": 20,
+    "materials": {
+      "alchemical_extract": 12,
+      "treated_lumber": 8,
+      "beast_scales": 5,
+      "forging_flame": 1,
+      "mana": 4500
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {
+      "attack": 40,
+      "hp": 400
+    },
+    "possible_substats": ["crit_rate", "accuracy", "speed"],
+    "icon": "mystic_ring"
+  },
+  "reinforced_boots": {
+    "id": "reinforced_boots",
+    "name": "Reinforced Boots",
+    "description": "Steel-reinforced boots for mobility and protection",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 2,
+    "rarity": "rare",
+    "level": 20,
+    "materials": {
+      "steel_ingot": 10,
+      "treated_lumber": 8,
+      "beast_scales": 4,
+      "forging_flame": 1,
+      "mana": 4000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {
+      "defense": 60,
+      "speed": 5
+    },
+    "possible_substats": ["hp", "attack"],
+    "icon": "reinforced_boots"
+  },
 
-    "_comment2": "=== T2 EQUIPMENT (Rare) ===",
-    "steel_greatsword": {
-      "id": "steel_greatsword",
-      "name": "Steel Greatsword",
-      "description": "A powerful sword forged from steel ingots",
-      "equipment_type": "weapon",
-      "equipment_slot": 0,
-      "tier": 2,
-      "rarity": "rare",
-      "level": 20,
-      "materials": {
-        "steel_ingot": 15,
-        "treated_lumber": 5,
-        "beast_scales": 5,
-        "forging_flame": 2,
-        "mana": 5000
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 2,
-      "base_stats": {
-        "attack": 120
-      },
-      "possible_substats": ["crit_rate", "crit_damage", "hp"],
-      "icon": "steel_greatsword"
+  "_comment_t3": "=== T3 EQUIPMENT (Epic) ===",
+  "prometheum_warblade": {
+    "id": "prometheum_warblade",
+    "name": "Prometheum Warblade",
+    "description": "An epic blade forged from divine prometheum",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 3,
+    "rarity": "epic",
+    "level": 35,
+    "materials": {
+      "prometheum": 15,
+      "enchanted_wood": 5,
+      "astral_shard": 3,
+      "elemental_cores": 5,
+      "divine_flame": 3,
+      "mana": 25000
     },
-    "steel_plate_armor": {
-      "id": "steel_plate_armor",
-      "name": "Steel Plate Armor",
-      "description": "Heavy plate armor providing excellent protection",
-      "equipment_type": "armor",
-      "equipment_slot": 1,
-      "tier": 2,
-      "rarity": "rare",
-      "level": 20,
-      "materials": {
-        "steel_ingot": 20,
-        "beast_scales": 10,
-        "forging_flame": 2,
-        "mana": 5000
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 2,
-      "base_stats": {
-        "defense": 100,
-        "hp": 800
-      },
-      "possible_substats": ["attack", "speed", "resistance"],
-      "icon": "steel_plate_armor"
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "territory_type_requirement": "forge",
+    "god_level_requirement": 30,
+    "guaranteed_substats": [
+      { "stat": "attack", "value": 150 },
+      { "stat": "crit_rate", "value": 15 }
+    ],
+    "base_stats": {
+      "attack": 250
     },
-    "mystic_ring": {
-      "id": "mystic_ring",
-      "name": "Mystic Ring",
-      "description": "A ring infused with alchemical essence",
-      "equipment_type": "accessory",
-      "equipment_slot": 5,
-      "tier": 2,
-      "rarity": "rare",
-      "level": 20,
-      "materials": {
-        "alchemical_extract": 12,
-        "treated_lumber": 8,
-        "beast_scales": 5,
-        "forging_flame": 1,
-        "mana": 4500
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 2,
-      "base_stats": {
-        "attack": 40,
-        "hp": 400
-      },
-      "possible_substats": ["crit_rate", "accuracy", "speed"],
-      "icon": "mystic_ring"
+    "possible_substats": ["crit_damage", "hp", "defense"],
+    "icon": "prometheum_warblade"
+  },
+  "enchanted_full_plate": {
+    "id": "enchanted_full_plate",
+    "name": "Enchanted Full Plate",
+    "description": "Complete armor reinforced with magical materials",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 3,
+    "rarity": "epic",
+    "level": 35,
+    "materials": {
+      "prometheum": 12,
+      "enchanted_wood": 8,
+      "elemental_cores": 8,
+      "divine_flame": 2,
+      "mana": 25000
     },
-    "reinforced_boots": {
-      "id": "reinforced_boots",
-      "name": "Reinforced Boots",
-      "description": "Steel-reinforced boots for mobility and protection",
-      "equipment_type": "boots",
-      "equipment_slot": 3,
-      "tier": 2,
-      "rarity": "rare",
-      "level": 20,
-      "materials": {
-        "steel_ingot": 10,
-        "treated_lumber": 8,
-        "beast_scales": 4,
-        "forging_flame": 1,
-        "mana": 4000
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 2,
-      "base_stats": {
-        "defense": 60,
-        "speed": 5
-      },
-      "possible_substats": ["hp", "attack"],
-      "icon": "reinforced_boots"
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "territory_type_requirement": "forge",
+    "god_level_requirement": 30,
+    "guaranteed_substats": [
+      { "stat": "defense", "value": 120 },
+      { "stat": "hp", "value": 500 }
+    ],
+    "base_stats": {
+      "defense": 220,
+      "hp": 1500
     },
+    "possible_substats": ["attack", "speed", "resistance"],
+    "icon": "enchanted_full_plate"
+  },
+  "astral_pendant": {
+    "id": "astral_pendant",
+    "name": "Astral Pendant",
+    "description": "A pendant containing crystallized starlight",
+    "equipment_type": "accessory",
+    "equipment_slot": 4,
+    "tier": 3,
+    "rarity": "epic",
+    "level": 35,
+    "materials": {
+      "astral_shard": 8,
+      "mystic_bloom": 10,
+      "elemental_cores": 5,
+      "mana_crystals": 15,
+      "mana": 22000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "territory_type_requirement": "shrine",
+    "god_level_requirement": 30,
+    "guaranteed_substats": [
+      { "stat": "hp", "value": 600 },
+      { "stat": "defense", "value": 80 }
+    ],
+    "guaranteed_sockets": 1,
+    "base_stats": {
+      "hp": 1000,
+      "defense": 120
+    },
+    "possible_substats": ["attack", "crit_rate", "accuracy"],
+    "icon": "astral_pendant"
+  },
 
-    "_comment3": "=== T3 EQUIPMENT (Epic) ===",
-    "prometheum_warblade": {
-      "id": "prometheum_warblade",
-      "name": "Prometheum Warblade",
-      "description": "An epic blade forged from divine prometheum",
-      "equipment_type": "weapon",
-      "equipment_slot": 0,
-      "tier": 3,
-      "rarity": "epic",
-      "level": 35,
-      "materials": {
-        "prometheum": 15,
-        "enchanted_wood": 5,
-        "astral_shard": 3,
-        "elemental_cores": 5,
-        "divine_flame": 3,
-        "mana": 25000
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 3,
-      "territory_type_requirement": "forge",
-      "god_level_requirement": 30,
-      "guaranteed_substats": [
-        { "stat": "attack", "value": 150 },
-        { "stat": "crit_rate", "value": 15 }
-      ],
-      "base_stats": {
-        "attack": 250
-      },
-      "possible_substats": ["crit_damage", "hp", "defense"],
-      "icon": "prometheum_warblade"
+  "_comment_t4": "=== T4 EQUIPMENT (Legendary, PvP Required) ===",
+  "celestial_blade": {
+    "id": "celestial_blade",
+    "name": "Celestial Blade",
+    "description": "A legendary blade forged from celestial materials - requires PvP territory",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 4,
+    "rarity": "legendary",
+    "level": 50,
+    "materials": {
+      "divine_metal": 20,
+      "prometheum": 10,
+      "dragon_parts": 15,
+      "eternal_flame": 5,
+      "mana": 100000
     },
-    "enchanted_full_plate": {
-      "id": "enchanted_full_plate",
-      "name": "Enchanted Full Plate",
-      "description": "Complete armor reinforced with magical materials",
-      "equipment_type": "armor",
-      "equipment_slot": 1,
-      "tier": 3,
-      "rarity": "epic",
-      "level": 35,
-      "materials": {
-        "prometheum": 12,
-        "enchanted_wood": 8,
-        "elemental_cores": 8,
-        "divine_flame": 2,
-        "mana": 25000
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 3,
-      "territory_type_requirement": "forge",
-      "god_level_requirement": 30,
-      "guaranteed_substats": [
-        { "stat": "defense", "value": 120 },
-        { "stat": "hp", "value": 500 }
-      ],
-      "base_stats": {
-        "defense": 220,
-        "hp": 1500
-      },
-      "possible_substats": ["attack", "speed", "resistance"],
-      "icon": "enchanted_full_plate"
+    "territory_required": true,
+    "territory_tier_requirement": 4,
+    "territory_type_requirement": "forge",
+    "god_level_requirement": 45,
+    "pvp_required": true,
+    "guaranteed_substats": [
+      { "stat": "attack", "value": 300 },
+      { "stat": "crit_rate", "value": 25 },
+      { "stat": "crit_damage", "value": 50 }
+    ],
+    "guaranteed_sockets": 2,
+    "base_stats": {
+      "attack": 500
     },
-    "astral_pendant": {
-      "id": "astral_pendant",
-      "name": "Astral Pendant",
-      "description": "A pendant containing crystallized starlight",
-      "equipment_type": "accessory",
-      "equipment_slot": 4,
-      "tier": 3,
-      "rarity": "epic",
-      "level": 35,
-      "materials": {
-        "astral_shard": 8,
-        "mystic_bloom": 10,
-        "elemental_cores": 5,
-        "mana_crystals": 15,
-        "mana": 22000
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 3,
-      "territory_type_requirement": "shrine",
-      "god_level_requirement": 30,
-      "guaranteed_substats": [
-        { "stat": "hp", "value": 600 },
-        { "stat": "defense", "value": 80 }
-      ],
-      "guaranteed_sockets": 1,
-      "base_stats": {
-        "hp": 1000,
-        "defense": 120
-      },
-      "possible_substats": ["attack", "crit_rate", "accuracy"],
-      "icon": "astral_pendant"
+    "possible_substats": ["hp", "defense", "speed"],
+    "icon": "celestial_blade"
+  },
+  "divine_regalia": {
+    "id": "divine_regalia",
+    "name": "Divine Regalia",
+    "description": "Legendary armor blessed by the gods - requires PvP territory",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 4,
+    "rarity": "legendary",
+    "level": 50,
+    "materials": {
+      "divine_metal": 25,
+      "prometheum": 8,
+      "dragon_parts": 20,
+      "eternal_flame": 4,
+      "mana": 100000
     },
-
-    "_comment4": "=== T4 EQUIPMENT (Legendary, PvP Required) ===",
-    "celestial_blade": {
-      "id": "celestial_blade",
-      "name": "Celestial Blade",
-      "description": "A legendary blade forged from celestial materials - requires PvP territory",
-      "equipment_type": "weapon",
-      "equipment_slot": 0,
-      "tier": 4,
-      "rarity": "legendary",
-      "level": 50,
-      "materials": {
-        "divine_metal": 20,
-        "prometheum": 10,
-        "dragon_parts": 15,
-        "eternal_flame": 5,
-        "mana": 100000
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 4,
-      "territory_type_requirement": "forge",
-      "god_level_requirement": 45,
-      "pvp_required": true,
-      "guaranteed_substats": [
-        { "stat": "attack", "value": 300 },
-        { "stat": "crit_rate", "value": 25 },
-        { "stat": "crit_damage", "value": 50 }
-      ],
-      "guaranteed_sockets": 2,
-      "base_stats": {
-        "attack": 500
-      },
-      "possible_substats": ["hp", "defense", "speed"],
-      "icon": "celestial_blade"
+    "territory_required": true,
+    "territory_tier_requirement": 4,
+    "territory_type_requirement": "forge",
+    "god_level_requirement": 45,
+    "pvp_required": true,
+    "guaranteed_substats": [
+      { "stat": "defense", "value": 250 },
+      { "stat": "hp", "value": 1000 },
+      { "stat": "resistance", "value": 30 }
+    ],
+    "guaranteed_sockets": 2,
+    "base_stats": {
+      "defense": 400,
+      "hp": 3000
     },
-    "divine_regalia": {
-      "id": "divine_regalia",
-      "name": "Divine Regalia",
-      "description": "Legendary armor blessed by the gods - requires PvP territory",
-      "equipment_type": "armor",
-      "equipment_slot": 1,
-      "tier": 4,
-      "rarity": "legendary",
-      "level": 50,
-      "materials": {
-        "divine_metal": 25,
-        "prometheum": 8,
-        "dragon_parts": 20,
-        "eternal_flame": 4,
-        "mana": 100000
-      },
-      "territory_required": true,
-      "territory_tier_requirement": 4,
-      "territory_type_requirement": "forge",
-      "god_level_requirement": 45,
-      "pvp_required": true,
-      "guaranteed_substats": [
-        { "stat": "defense", "value": 250 },
-        { "stat": "hp", "value": 1000 },
-        { "stat": "resistance", "value": 30 }
-      ],
-      "guaranteed_sockets": 2,
-      "base_stats": {
-        "defense": 400,
-        "hp": 3000
-      },
-      "possible_substats": ["attack", "speed"],
-      "icon": "divine_regalia"
-    }
+    "possible_substats": ["attack", "speed"],
+    "icon": "divine_regalia"
   }
 }

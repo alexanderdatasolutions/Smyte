@@ -304,6 +304,10 @@ func _on_select_duplicates():
 	for god in gods:
 		if god == target_god:
 			continue
+		# CRITICAL: Skip gods that are assigned to garrisons or as workers
+		var location = _get_god_location(god)
+		if location != "":
+			continue  # God is in a garrison or assigned as a worker - don't select
 		var template = god.template_id if god.template_id else god.id
 		if not template_counts.has(template):
 			template_counts[template] = 0

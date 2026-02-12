@@ -15,7 +15,8 @@ signal milestone_reward_claimed(milestone_key: String, rewards: Dictionary)
 var pity_counters: Dictionary = {
 	"default": {"rare": 0, "epic": 0, "legendary": 0},
 	"premium": {"rare": 0, "epic": 0, "legendary": 0},
-	"element": {"rare": 0, "epic": 0, "legendary": 0}
+	"element": {"rare": 0, "epic": 0, "legendary": 0},
+	"pantheon": {"rare": 0, "epic": 0, "legendary": 0}
 }
 var last_free_summon_date: String = ""
 var daily_free_used: bool = false
@@ -108,19 +109,40 @@ func summon_basic_with_powder(powder_element: String) -> bool:
 	return _perform_summon(cost, "mana", "default", "", powder_element)
 
 func summon_premium_with_powder(powder_element: String) -> bool:
-	"""Summon with divine crystals + element powder"""
+	"""Summon with divine crystals + element powder (150 crystals + 10 powder per summon_config.json)"""
 	var config = get_config()
-	var crystal_cost = 100
-	var powder_cost = config.get("element_powder_summon", {}).get("cost_per_summon", 10)
+	var crystal_cost = 150  # Per summon_config.json element_summon base_cost
+	var powder_cost = 10    # Per summon_config.json element_summon powder_cost
 	var powder_id = powder_element + "_powder"
 
-	if config.has("summon_configuration"):
-		var costs = config.summon_configuration.get("costs", {}).get("premium_summons", {})
-		if costs.has("divine_crystals_summon") and costs.divine_crystals_summon.has("divine_crystals"):
-			crystal_cost = costs.divine_crystals_summon.divine_crystals
+	# Try to load from summon_types config
+	if config.has("summon_types"):
+		var element_summon = config.summon_types.get("element_summon", {})
+		if element_summon.has("base_cost") and element_summon.base_cost.has("divine_crystals"):
+			crystal_cost = element_summon.base_cost.divine_crystals
+		if element_summon.has("powder_cost"):
+			powder_cost = element_summon.powder_cost
 
 	var cost = {"divine_crystals": crystal_cost, powder_id: powder_cost}
-	return _perform_summon(cost, "divine_crystals", "premium", "", powder_element)
+	return _perform_summon(cost, "divine_crystals", "element", "", powder_element)
+
+func summon_with_pantheon_token(pantheon: String) -> bool:
+	"""Summon with divine crystals + pantheon token (150 crystals + 1 token per summon_config.json)"""
+	var config = get_config()
+	var crystal_cost = 150  # Per summon_config.json pantheon_summon base_cost
+	var token_cost = 1      # Per summon_config.json pantheon_summon token_cost
+	var token_id = pantheon + "_token"
+
+	# Try to load from summon_types config
+	if config.has("summon_types"):
+		var pantheon_summon = config.summon_types.get("pantheon_summon", {})
+		if pantheon_summon.has("base_cost") and pantheon_summon.base_cost.has("divine_crystals"):
+			crystal_cost = pantheon_summon.base_cost.divine_crystals
+		if pantheon_summon.has("token_cost"):
+			token_cost = pantheon_summon.token_cost
+
+	var cost = {"divine_crystals": crystal_cost, token_id: token_cost}
+	return _perform_summon(cost, "divine_crystals", "pantheon", "", "", pantheon)
 
 func get_powder_cost() -> int:
 	"""Get the powder cost per summon from config"""
@@ -142,13 +164,13 @@ func can_afford_powder_summon(soul_type: String, powder_element: String) -> bool
 
 # CORE SUMMON LOGIC
 
-func _perform_summon(cost: Dictionary, summon_type: String, banner_type: String, element_filter: String = "", powder_element: String = "") -> bool:
+func _perform_summon(cost: Dictionary, summon_type: String, banner_type: String, element_filter: String = "", powder_element: String = "", pantheon_filter: String = "") -> bool:
 	if not _can_afford_cost(cost):
 		summon_failed.emit("Cannot afford summon cost")
 		return false
 	_spend_cost(cost)
 
-	var god = _get_random_god(summon_type, banner_type, element_filter, powder_element)
+	var god = _get_random_god(summon_type, banner_type, element_filter, powder_element, pantheon_filter)
 	if not god:
 		summon_failed.emit("Failed to generate god")
 		return false
@@ -160,6 +182,12 @@ func _perform_summon(cost: Dictionary, summon_type: String, banner_type: String,
 	_check_milestone_rewards()
 	_add_to_history(god, summon_type, cost)
 	summon_completed.emit(god)
+
+	# Trigger save after successful summon
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	if event_bus:
+		event_bus.save_requested.emit()
+
 	return true
 
 func _can_afford_cost(cost: Dictionary) -> bool:
@@ -185,11 +213,11 @@ func _spend_cost(cost: Dictionary):
 
 # GOD GENERATION
 
-func _get_random_god(summon_type: String, banner_type: String, element_filter: String = "", powder_element: String = "") -> God:
+func _get_random_god(summon_type: String, banner_type: String, element_filter: String = "", powder_element: String = "", pantheon_filter: String = "") -> God:
 	var rates = _get_summon_rates(summon_type)
 	rates = _apply_pity_system(rates, banner_type)
 	var tier = _get_random_tier(rates)
-	return _create_god_of_tier(tier, element_filter, powder_element)
+	return _create_god_of_tier(tier, element_filter, powder_element, pantheon_filter)
 
 func _get_summon_rates(summon_type: String) -> Dictionary:
 	var config = get_config()
@@ -244,7 +272,7 @@ func _get_random_tier(rates: Dictionary) -> String:
 			return tier
 	return "common"
 
-func _create_god_of_tier(tier: String, element_filter: String = "", powder_element: String = "") -> God:
+func _create_god_of_tier(tier: String, element_filter: String = "", powder_element: String = "", pantheon_filter: String = "") -> God:
 	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager") if SystemRegistry.get_instance() else null
 	if not config_manager:
 		return null
@@ -268,8 +296,19 @@ func _create_god_of_tier(tier: String, element_filter: String = "", powder_eleme
 		element_weight = weights.get("matching_element_weight", 3.0)
 		other_weight = weights.get("other_elements_weight", 1.0)
 
-	# Get powder weight multiplier
-	var powder_multiplier = summon_cfg.get("element_powder_summon", {}).get("weight_multiplier", 2.0)
+	# Get powder/token weight multipliers from config
+	var powder_multiplier = 5.0  # Default per summon_config.json
+	var pantheon_multiplier = 5.0  # Default per summon_config.json
+	if summon_cfg.has("summon_types"):
+		var element_summon = summon_cfg.summon_types.get("element_summon", {})
+		var elements = element_summon.get("elements", {})
+		if not powder_element.is_empty() and elements.has(powder_element):
+			powder_multiplier = elements[powder_element].get("weight_multiplier", 5.0)
+
+		var pantheon_summon = summon_cfg.summon_types.get("pantheon_summon", {})
+		var pantheons = pantheon_summon.get("pantheons", {})
+		if not pantheon_filter.is_empty() and pantheons.has(pantheon_filter):
+			pantheon_multiplier = pantheons[pantheon_filter].get("weight_multiplier", 5.0)
 
 	# Get active element favors (from dungeon completions)
 	var active_favors = _get_active_element_favors()
@@ -294,6 +333,10 @@ func _create_god_of_tier(tier: String, element_filter: String = "", powder_eleme
 			# Apply element powder boost
 			if not powder_element.is_empty() and god_element == powder_element:
 				weight *= powder_multiplier
+
+			# Apply pantheon token boost
+			if not pantheon_filter.is_empty():
+				weight *= pantheon_multiplier if god_pantheon == pantheon_filter else 1.0
 
 			# Apply element favor boost (from dungeon completions)
 			var favor_key = god_element + "_favor"
@@ -345,6 +388,11 @@ func grant_element_favor(element: String, duration_hours: int = 24):
 
 	save_manager.set_player_value("element_favors", {favor_key: expire_time}, true)
 	print("SummonManager: Granted %s for %d hours" % [favor_key, duration_hours])
+
+	# Trigger save after granting favor
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	if event_bus:
+		event_bus.save_requested.emit()
 
 func get_element_favor_status() -> Dictionary:
 	"""Get status of all element favors for UI display"""
@@ -601,6 +649,12 @@ func _perform_multi_summon(cost: Dictionary, summon_type: String, banner_type: S
 			_add_to_history(god, summon_type, entry_cost)
 	_check_milestone_rewards()
 	multi_summon_completed.emit(summoned_gods)
+
+	# Trigger save after multi-summon
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	if event_bus:
+		event_bus.save_requested.emit()
+
 	return summoned_gods.size() > 0
 
 func _has_rare_or_better(gods: Array) -> bool:

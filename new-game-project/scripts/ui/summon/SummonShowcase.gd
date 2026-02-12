@@ -34,6 +34,13 @@ func show_god(god: God, animate: bool = true):
 			god_button.modulate.a = 1.0
 			god_button.scale = Vector2(1.0, 1.0)
 
+## Clears all summons from showcase (called when leaving screen)
+func clear():
+	current_summons.clear()
+	if showcase_content:
+		for child in showcase_content.get_children():
+			child.queue_free()
+
 ## Clears all invisible nodes from showcase (cleanup)
 func clear_invisible_nodes():
 	if not showcase_content:

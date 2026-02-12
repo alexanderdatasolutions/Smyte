@@ -20,7 +20,7 @@ Responsibilities:
 # SIGNALS
 # ==============================================================================
 signal capture_initiated(hex_node: HexNode)
-signal capture_succeeded(hex_node: HexNode)
+signal capture_succeeded(hex_node: HexNode, rewards: Dictionary)
 signal capture_failed(hex_node: HexNode)
 
 # ==============================================================================
@@ -35,6 +35,10 @@ var collection_manager = null
 var battle_coordinator = null
 var screen_manager = null
 var hex_grid_manager = null
+var resource_manager = null
+
+# Last capture rewards (for UI display)
+var last_capture_rewards: Dictionary = {}
 
 # ==============================================================================
 # INITIALIZATION
@@ -51,6 +55,7 @@ func _init_systems() -> void:
 		battle_coordinator = registry.get_system("BattleCoordinator")
 		screen_manager = registry.get_system("ScreenManager")
 		hex_grid_manager = registry.get_system("HexGridManager")
+		resource_manager = registry.get_system("ResourceManager")
 
 # ==============================================================================
 # PUBLIC API
@@ -385,12 +390,18 @@ func _handle_capture_victory(hex_node: HexNode) -> void:
 	# Capture the node in TerritoryManager
 	territory_manager.capture_node(hex_node.coord)
 
+	# Award capture loot from defense_drops
+	last_capture_rewards = _generate_capture_loot(hex_node)
+	if not last_capture_rewards.is_empty():
+		_award_capture_loot(last_capture_rewards)
+		print("Capture Loot: ", last_capture_rewards)
+
 	# Play capture animation
 	if hex_map_view:
 		hex_map_view.play_capture_animation(hex_node)
 
-	# Emit success signal
-	capture_succeeded.emit(hex_node)
+	# Emit success signal with rewards
+	capture_succeeded.emit(hex_node, last_capture_rewards)
 
 	# Log success
 	print("Victory! Node ", hex_node.name, " is now contested. Claim after contest period.")
@@ -401,3 +412,71 @@ func _handle_capture_defeat() -> void:
 		capture_failed.emit(current_capture_node)
 
 	print("Defeat! Failed to capture node.")
+
+# ==============================================================================
+# CAPTURE LOOT SYSTEM
+# ==============================================================================
+func _generate_capture_loot(hex_node: HexNode) -> Dictionary:
+	"""Generate loot from node's defense_drops based on tier"""
+	var loot: Dictionary = {}
+
+	# Get defense_drops from the node (format: {"resource_id": {"min": X, "max": Y}})
+	var defense_drops = hex_node.defense_drops
+	if defense_drops.is_empty():
+		# Fallback: generate default loot based on tier
+		defense_drops = _get_default_defense_drops(hex_node.tier)
+
+	# Roll amounts for each drop
+	for resource_id in defense_drops:
+		var drop_config = defense_drops[resource_id]
+		if drop_config is Dictionary:
+			var min_amount = drop_config.get("min", 1)
+			var max_amount = drop_config.get("max", 1)
+			var amount = randi_range(min_amount, max_amount)
+			if amount > 0:
+				loot[resource_id] = amount
+		elif drop_config is int:
+			# Simple format: {"resource_id": amount}
+			if drop_config > 0:
+				loot[resource_id] = drop_config
+
+	# Add bonus mana based on tier
+	var mana_bonus = hex_node.tier * 200
+	loot["mana"] = loot.get("mana", 0) + mana_bonus
+
+	return loot
+
+func _get_default_defense_drops(tier: int) -> Dictionary:
+	"""Get default defense drops based on tier if none specified"""
+	match tier:
+		1:
+			return {"monster_parts": {"min": 5, "max": 15}}
+		2:
+			return {"monster_parts": {"min": 10, "max": 25}, "beast_scales": {"min": 3, "max": 8}}
+		3:
+			return {"monster_parts": {"min": 20, "max": 40}, "beast_scales": {"min": 8, "max": 18}, "elemental_cores": {"min": 2, "max": 6}}
+		4:
+			return {"dragon_parts": {"min": 5, "max": 15}, "beast_scales": {"min": 15, "max": 35}, "elemental_cores": {"min": 5, "max": 12}}
+		_:
+			return {"monster_parts": {"min": 5, "max": 15}}
+
+func _award_capture_loot(loot: Dictionary) -> void:
+	"""Award loot to player through ResourceManager"""
+	if not resource_manager:
+		# Try to get resource_manager if not initialized
+		var registry = SystemRegistry.get_instance()
+		if registry:
+			resource_manager = registry.get_system("ResourceManager")
+
+	if not resource_manager:
+		push_error("NodeCaptureHandler: ResourceManager not available to award loot")
+		return
+
+	for resource_id in loot:
+		var amount = loot[resource_id]
+		resource_manager.add_resource(resource_id, amount)
+		print("  Awarded: %s x%d" % [resource_id, amount])
+
+func get_last_capture_rewards() -> Dictionary:
+	"""Get rewards from last capture (for UI display)"""
+	return last_capture_rewards

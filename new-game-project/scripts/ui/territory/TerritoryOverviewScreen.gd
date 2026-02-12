@@ -126,16 +126,15 @@ func _load_tasks_data() -> void:
 		return
 
 	var data = json.get_data()
-	# Load from both conversion_recipes and equipment_recipes
+	# Load recipes from flattened structure (recipes at top level)
 	_tasks_data = {}
-	if data.has("conversion_recipes"):
-		for recipe_id in data.conversion_recipes:
-			if not recipe_id.begins_with("_"):  # Skip comments
-				_tasks_data[recipe_id] = data.conversion_recipes[recipe_id]
-	if data.has("equipment_recipes"):
-		for recipe_id in data.equipment_recipes:
-			if not recipe_id.begins_with("_"):  # Skip comments
-				_tasks_data[recipe_id] = data.equipment_recipes[recipe_id]
+	for recipe_id in data.keys():
+		# Skip metadata and comment keys
+		if recipe_id.begins_with("_"):
+			continue
+		var recipe = data[recipe_id]
+		if recipe is Dictionary:
+			_tasks_data[recipe_id] = recipe
 
 # ==============================================================================
 # UI BUILD
@@ -1238,7 +1237,8 @@ func _show_craft_popup(node: HexNode) -> void:
 			task,
 			can_afford,
 			craft_callback,
-			is_conversion  # show auto-repeat for conversions
+			is_conversion,  # show auto-repeat for conversions
+			resource_manager  # pass manager for detailed cost display
 		)
 		recipes_grid.add_child(card)
 

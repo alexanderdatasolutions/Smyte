@@ -1,0 +1,30 @@
+{
+  "_note": "Firebase config for Smyte - API keys are safe to commit (security is via Firebase Rules)",
+
+  "project_id": "smyte-1f475",
+  "api_key": "AIzaSyDCFl8VwwZPnLKJrWgwY6pC5b0lReZEbGg",
+  "auth_domain": "smyte-1f475.firebaseapp.com",
+  "storage_bucket": "smyte-1f475.firebasestorage.app",
+  "messaging_sender_id": "902335582009",
+  "app_id": "1:902335582009:web:ac8cbaec3fdc3a5d61e2e8",
+  "measurement_id": "G-R7E15YZKG8",
+
+  "_setup_remaining": [
+    "1. Enable Authentication > Sign-in method > Google in Firebase Console",
+    "2. Create Firestore Database (test mode for dev)",
+    "3. Install GodotFirebase addon in Godot",
+    "4. Copy these values to addons/godot-firebase/firebase_config.env.tres"
+  ],
+
+  "analytics_settings": {
+    "enabled": true,
+    "batch_size": 25,
+    "batch_interval_seconds": 30,
+    "max_offline_events": 500
+  },
+
+  "firestore_collections": {
+    "analytics_events": "Stores batched analytics events",
+    "user_profiles": "Stores user profile data (optional)"
+  }
+}

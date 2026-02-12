@@ -265,3 +265,8 @@ func register_core_systems():
 	if FileAccess.file_exists("res://scripts/systems/tower/TowerManager.gd"):
 		var tower_manager = preload("res://scripts/systems/tower/TowerManager.gd").new()
 		register_system("TowerManager", tower_manager)
+
+	# Phase 11: Firebase Integration (after all game systems, hooks into EventBus)
+	if FileAccess.file_exists("res://scripts/systems/firebase/FirebaseIntegration.gd"):
+		var firebase_integration = preload("res://scripts/systems/firebase/FirebaseIntegration.gd").new()
+		register_system("FirebaseIntegration", firebase_integration)

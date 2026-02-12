@@ -17,19 +17,75 @@ const RARITY_COLORS = {
 # ==============================================================================
 # RESOURCE NAME MAPPINGS
 # ==============================================================================
+
+## Full resource name lookup - maps resource IDs to their proper display names
+const RESOURCE_FULL_NAMES = {
+	# Currencies
+	"mana": "Mana",
+	"gold": "Gold",
+	"divine_crystals": "Divine Crystals",
+	"energy": "Energy",
+	# T1 Raw
+	"ore": "Ore",
+	"wood": "Wood",
+	"herbs": "Herbs",
+	# T1 Processed
+	"refined_metal": "Refined Metal",
+	"quality_timber": "Quality Timber",
+	"rare_herbs": "Rare Herbs",
+	"monster_parts": "Monster Parts",
+	"basic_flame": "Basic Flame",
+	# T2 Raw
+	"fine_ore": "Fine Ore",
+	"hardwood": "Hardwood",
+	"exotic_herbs": "Exotic Herbs",
+	# T2 Processed
+	"steel_ingot": "Steel Ingot",
+	"treated_lumber": "Treated Lumber",
+	"alchemical_extract": "Alchemical Extract",
+	"beast_scales": "Beast Scales",
+	"forging_flame": "Forging Flame",
+	# T3 Raw
+	"arcane_ore": "Arcane Ore",
+	"ancient_wood": "Ancient Wood",
+	"mystic_herbs": "Mystic Herbs",
+	"magic_crystals": "Magic Crystals",
+	# T3 Processed
+	"prometheum": "Prometheum",
+	"enchanted_wood": "Enchanted Wood",
+	"mystic_bloom": "Mystic Bloom",
+	"astral_shard": "Astral Shard",
+	"elemental_cores": "Elemental Cores",
+	"divine_flame": "Divine Flame",
+	"mana_crystals": "Mana Crystals",
+	# T4
+	"celestial_ore": "Celestial Ore",
+	"divine_metal": "Divine Metal",
+	"divine_essence": "Divine Essence",
+	"dragon_parts": "Dragon Parts",
+	"eternal_flame": "Eternal Flame"
+}
+
+static func get_full_resource_name(resource_id: String) -> String:
+	"""Get full resource name for display (matches resources.json names)"""
+	if RESOURCE_FULL_NAMES.has(resource_id):
+		return RESOURCE_FULL_NAMES[resource_id]
+	# Fallback: capitalize and replace underscores
+	return resource_id.replace("_", " ").capitalize()
+
 static func get_short_resource_name(resource_id: String) -> String:
-	"""Get shortened resource name for compact display"""
+	"""Get shortened resource name for very compact display (use get_full_resource_name for normal display)"""
 	match resource_id:
 		# T1 Raw
 		"ore": return "Ore"
 		"wood": return "Wood"
 		"herbs": return "Herbs"
 		# T1 Processed
-		"refined_metal": return "Metal"
-		"quality_timber": return "Timber"
+		"refined_metal": return "R.Metal"
+		"quality_timber": return "Q.Timber"
 		"rare_herbs": return "R.Herbs"
-		"monster_parts": return "Parts"
-		"basic_flame": return "Flame"
+		"monster_parts": return "M.Parts"
+		"basic_flame": return "B.Flame"
 		# T2 Raw
 		"fine_ore": return "F.Ore"
 		"hardwood": return "Hardwood"
@@ -71,13 +127,13 @@ static func format_conversion_display(costs: Dictionary, output: Dictionary) -> 
 
 	for resource_id in costs.keys():
 		var amount = costs[resource_id]
-		var short_name = get_short_resource_name(resource_id)
-		input_parts.append("%s x%d" % [short_name, amount])
+		var name = get_full_resource_name(resource_id)
+		input_parts.append("%s x%d" % [name, amount])
 
 	for resource_id in output.keys():
 		var amount = output[resource_id]
-		var short_name = get_short_resource_name(resource_id)
-		output_parts.append("%s x%d" % [short_name, amount])
+		var name = get_full_resource_name(resource_id)
+		output_parts.append("%s x%d" % [name, amount])
 
 	var input_str = ", ".join(input_parts) if not input_parts.is_empty() else "?"
 	var output_str = ", ".join(output_parts) if not output_parts.is_empty() else "?"
@@ -85,21 +141,21 @@ static func format_conversion_display(costs: Dictionary, output: Dictionary) -> 
 	return "%s → %s" % [input_str, output_str]
 
 static func format_costs_compact(costs: Dictionary, can_afford: bool) -> String:
-	"""Format costs in compact form with check marks"""
+	"""Format costs in compact form with check marks - uses full resource names"""
 	if costs.is_empty():
 		return "Free"
 
 	var parts: Array = []
 	for resource_id in costs.keys():
 		var amount = costs[resource_id]
-		var short_name = get_short_resource_name(resource_id)
-		parts.append("%s: %d" % [short_name, amount])
+		var name = get_full_resource_name(resource_id)
+		parts.append("%s: %d" % [name, amount])
 
 	var prefix = "✓ " if can_afford else "✗ "
 	return prefix + ", ".join(parts)
 
 static func format_costs_with_check(costs: Dictionary, resource_manager) -> String:
-	"""Format costs with per-resource ✓/✗ indicators"""
+	"""Format costs with per-resource ✓/✗ indicators - uses full resource names"""
 	if costs.is_empty():
 		return "Free"
 
@@ -110,9 +166,9 @@ static func format_costs_with_check(costs: Dictionary, resource_manager) -> Stri
 		if resource_manager:
 			var current = resource_manager.get_resource(resource_id)
 			has_enough = current >= required
-		var short_name = get_short_resource_name(resource_id)
+		var name = get_full_resource_name(resource_id)
 		var indicator = "✓" if has_enough else "✗"
-		parts.append("%s %s: %d" % [indicator, short_name, required])
+		parts.append("%s %s: %d" % [indicator, name, required])
 
 	return ", ".join(parts)
 
@@ -196,7 +252,8 @@ static func create_recipe_card(
 	task: Dictionary,
 	can_afford: bool,
 	on_craft_pressed: Callable = Callable(),
-	show_auto_repeat: bool = false
+	show_auto_repeat: bool = false,
+	resource_manager = null  # Optional: pass to show have/need amounts
 ) -> PanelContainer:
 	var card = PanelContainer.new()
 	card.custom_minimum_size = Vector2(160, 100)
@@ -266,7 +323,11 @@ static func create_recipe_card(
 		info_label.text = format_conversion_display(costs, output)
 		info_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.6) if can_afford else Color(0.4, 0.5, 0.4))
 	else:
-		info_label.text = format_costs_compact(costs, can_afford)
+		# Show detailed have/need when can't afford and resource_manager available
+		if not can_afford and resource_manager:
+			info_label.text = format_costs_with_check(costs, resource_manager)
+		else:
+			info_label.text = format_costs_compact(costs, can_afford)
 		info_label.add_theme_color_override("font_color", Color(0.6, 0.75, 0.9) if can_afford else Color(0.5, 0.5, 0.55))
 	vbox.add_child(info_label)
 

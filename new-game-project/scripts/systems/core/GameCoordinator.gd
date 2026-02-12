@@ -11,11 +11,59 @@ var event_bus  # EventBus
 var is_initialized: bool = false
 var is_paused: bool = false
 var loading_operations: Array = []  # Array[String]
+var _sign_in_shown: bool = false
 
 func _ready():
 	_setup_core_systems()
 	_connect_global_events()
 	_load_game_data()
+	_show_sign_in_screen()
+
+## Show sign-in screen before initializing game
+func _show_sign_in_screen():
+	# Wait for the scene tree to be fully ready
+	await get_tree().process_frame
+
+	_emit_loading("Preparing sign-in...")
+
+	# Load and instance sign-in screen
+	var sign_in_scene = load("res://scenes/SignInScreen.tscn")
+	if not sign_in_scene:
+		push_warning("GameCoordinator: SignInScreen not found, skipping sign-in")
+		_emit_loading_complete("Preparing sign-in...")
+		_initialize_game()
+		return
+
+	var sign_in_screen = sign_in_scene.instantiate()
+	if not sign_in_screen:
+		push_warning("GameCoordinator: Failed to instantiate SignInScreen")
+		_emit_loading_complete("Preparing sign-in...")
+		_initialize_game()
+		return
+
+	# Add to scene tree (deferred to avoid busy parent error)
+	var root = get_tree().root
+	root.call_deferred("add_child", sign_in_screen)
+
+	# Wait for it to be added
+	await sign_in_screen.tree_entered
+
+	_emit_loading_complete("Preparing sign-in...")
+
+	# Wait for sign-in completion
+	var signed_in = await sign_in_screen.sign_in_completed
+
+	_sign_in_shown = true
+
+	# Log analytics event
+	var firebase = system_registry.get_system("FirebaseIntegration")
+	if firebase and firebase.analytics:
+		firebase.analytics.log_event("sign_in_flow_completed", {
+			"signed_in": signed_in,
+			"method": "google" if signed_in else "skipped"
+		})
+
+	# Continue with game initialization
 	_initialize_game()
 
 ## Initialize core systems
@@ -79,9 +127,14 @@ func _initialize_game():
 	
 	# Try to load save game using SaveManager
 	var save_manager = system_registry.get_system("SaveManager")
-	if save_manager and save_manager.has_save_file():
+	var has_save = save_manager.has_save_file() if save_manager else false
+	print("[GameCoordinator] SaveManager found: %s, has_save_file: %s" % [save_manager != null, has_save])
+
+	if save_manager and has_save:
+		print("[GameCoordinator] Loading existing save...")
 		_load_save_game()
 	else:
+		print("[GameCoordinator] No save file, starting new game...")
 		_start_new_game()
 	
 	is_initialized = true
@@ -129,6 +182,7 @@ func _setup_starting_gods():
 	if collection_manager:
 		# Give player a starter god from each element
 		var starter_gods = ["ares", "poseidon", "artemis"]  # Fire, Water, Wind
+		print("[GameCoordinator] Setting up %d starter gods..." % starter_gods.size())
 
 		# Use late binding to avoid parse-time GodFactory class reference
 		var god_factory_script = load("res://scripts/systems/collection/GodFactory.gd")
@@ -136,6 +190,11 @@ func _setup_starting_gods():
 			var god = god_factory_script.create_from_json(god_id)
 			if god:
 				collection_manager.add_god(god)
+				print("[GameCoordinator] Added starter god: %s" % god.name)
+			else:
+				print("[GameCoordinator] ERROR: Failed to create god: %s" % god_id)
+
+		print("[GameCoordinator] Collection now has %d gods" % collection_manager.get_all_gods().size())
 
 ## Setup starting equipment for new players
 func _setup_starting_equipment():

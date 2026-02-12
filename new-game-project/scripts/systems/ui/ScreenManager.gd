@@ -111,14 +111,16 @@ func change_screen(screen_name: String) -> bool:
 
 ## Main screens that back button can navigate to (the 6 home buttons + home itself)
 const MAIN_SCREENS: Array[String] = [
-	"worldview",    # Home
-	"summon",       # Summon screen (browsable, not mid-summon)
-	"collection",   # Collection screen
-	"territory",    # Territory/hex map
-	"sacrifice",    # Sacrifice screen
-	"dungeon",      # Dungeon selection
-	"equipment",    # Equipment screen
-	"shop"          # Shop screen
+	"worldview",      # Home
+	"summon",         # Summon screen (browsable, not mid-summon)
+	"collection",     # Collection screen
+	"territory",      # Territory/hex map
+	"hex_territory",  # Hex territory (same screen, different name)
+	"sacrifice",      # Sacrifice screen
+	"dungeon",        # Dungeon selection
+	"equipment",      # Equipment screen
+	"shop",           # Shop screen
+	"tower"           # Tower screen
 ]
 
 ## Screens that should NEVER be returned to via back button
@@ -128,23 +130,24 @@ const BLOCKED_BACK_SCREENS: Array[String] = [
 	"sacrifice_selection"  # Sub-screen, go to sacrifice instead
 ]
 
-## When leaving certain screens, this defines where back should go
-const BACK_REDIRECT: Dictionary = {
+## When leaving certain screens, this defines the FALLBACK if previous_screen is unknown
+## These are only used when previous_screen is empty or blocked
+const BACK_REDIRECT_FALLBACK: Dictionary = {
 	"specialization": "collection",      # Specialization -> Collection
 	"sacrifice_selection": "sacrifice",  # Sacrifice selection -> Sacrifice
-	"battle_setup": "dungeon",           # Battle setup -> Dungeon
+	"battle_setup": "dungeon",           # Battle setup -> Dungeon (fallback only)
 	"battle": "dungeon"                  # Battle -> Dungeon
 }
 
 func go_back() -> bool:
-	"""Go back to a safe main screen - never returns to battles or transient screens"""
-	# If we have a specific redirect for the current screen, use that
-	if BACK_REDIRECT.has(current_screen_name):
-		return change_screen(BACK_REDIRECT[current_screen_name])
-
-	# If previous screen is a safe main screen, go there
+	"""Go back to a safe main screen - prefers previous_screen if it's a main screen"""
+	# First, try to go back to where we came from if it's a safe main screen
 	if not previous_screen.is_empty() and previous_screen in MAIN_SCREENS:
 		return change_screen(previous_screen)
+
+	# If previous screen is blocked/unknown, use fallback redirect
+	if BACK_REDIRECT_FALLBACK.has(current_screen_name):
+		return change_screen(BACK_REDIRECT_FALLBACK[current_screen_name])
 
 	# Otherwise, go home
 	return change_screen("worldview")

@@ -1,5 +1,5 @@
 # scripts/ui/screens/SummonScreen.gd
-# Overhauled Summon Screen - Divine Crystals + Element Powder Boost
+# Summon Screen - Supports all summon types from summon_config.json
 extends Control
 
 const _SummonShowcaseClass = preload("res://scripts/ui/summon/SummonShowcase.gd")
@@ -10,34 +10,32 @@ const _SummonHistoryPanelClass = preload("res://scripts/ui/summon/SummonHistoryP
 signal back_pressed
 
 # UI Components
-var summon_animation  # SummonAnimation
-var result_overlay  # SummonResultOverlay
-var history_panel  # SummonHistoryPanel
+var summon_animation
+var result_overlay
+var history_panel
 var showcase: SummonShowcase
 var showcase_grid: GridContainer
 
-# Element powder UI
-var selected_powder_element: String = ""  # Empty = no powder boost
-var powder_buttons: Dictionary = {}  # element -> Button
-var powder_cost_label: Label
-var powder_boost_label: Label
+# Tab system
+var tab_buttons: Dictionary = {}  # tab_id -> Button
+var tab_panels: Dictionary = {}   # tab_id -> Control
+var current_tab: String = "crystal"
 
-# Summon buttons
-var single_summon_btn: Button
-var multi_summon_btn: Button
-var free_summon_btn: Button
+# Summon type selections
+var selected_soul_type: String = "common_soul"
+var selected_element: String = "fire"
+var selected_pantheon: String = "greek"
 
 # State
 var is_processing_summon: bool = false
 var pending_summon_results: Array[God] = []
 var current_summon_was_multi: bool = false
 
-# Constants
-const SINGLE_COST = 100
-const MULTI_COST = 900
-const MULTI_COUNT = 10
+# Summon config cache
+var _summon_config: Dictionary = {}
 
 func _ready():
+	_load_summon_config()
 	_setup_fullscreen()
 	await get_tree().process_frame
 	_create_ui()
@@ -46,6 +44,19 @@ func _ready():
 	_setup_history_panel()
 	_connect_signals()
 	_setup_header()
+	_switch_tab("crystal")
+
+func _load_summon_config():
+	var config_mgr = _get_config_manager()
+	if config_mgr:
+		_summon_config = config_mgr.get_summon_config()
+	if _summon_config.is_empty():
+		var file = FileAccess.open("res://data/summon_config.json", FileAccess.READ)
+		if file:
+			var json = JSON.new()
+			if json.parse(file.get_as_text()) == OK:
+				_summon_config = json.get_data()
+			file.close()
 
 func _setup_fullscreen():
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -65,31 +76,60 @@ func _notification(what):
 		_refresh_ui()
 
 func _create_ui():
-	# Dark background
 	var bg = ColorRect.new()
 	bg.color = Color(0.08, 0.06, 0.12, 1.0)
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 
-	# Main HBox layout
-	var main_hbox = HBoxContainer.new()
-	main_hbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	main_hbox.offset_left = 15
-	main_hbox.offset_top = 60
-	main_hbox.offset_right = -15
-	main_hbox.offset_bottom = -15
-	main_hbox.add_theme_constant_override("separation", 20)
-	add_child(main_hbox)
+	var main_vbox = VBoxContainer.new()
+	main_vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	main_vbox.offset_left = 15
+	main_vbox.offset_top = 60
+	main_vbox.offset_right = -15
+	main_vbox.offset_bottom = -15
+	main_vbox.add_theme_constant_override("separation", 10)
+	add_child(main_vbox)
 
-	# Left panel - Summon controls
+	var tab_bar = _create_tab_bar()
+	main_vbox.add_child(tab_bar)
+
+	var content_hbox = HBoxContainer.new()
+	content_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content_hbox.add_theme_constant_override("separation", 15)
+	main_vbox.add_child(content_hbox)
+
 	var left_panel = _create_left_panel()
-	left_panel.custom_minimum_size.x = 380
-	main_hbox.add_child(left_panel)
+	left_panel.custom_minimum_size.x = 400
+	content_hbox.add_child(left_panel)
 
-	# Right panel - Showcase
 	var right_panel = _create_right_panel()
 	right_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	main_hbox.add_child(right_panel)
+	content_hbox.add_child(right_panel)
+
+func _create_tab_bar() -> Control:
+	var hbox = HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox.add_theme_constant_override("separation", 5)
+
+	var tabs = [
+		{"id": "crystal", "label": "Divine", "icon": ""},
+		{"id": "soul", "label": "Soul", "icon": ""},
+		{"id": "element", "label": "Element", "icon": ""},
+		{"id": "pantheon", "label": "Pantheon", "icon": ""},
+		{"id": "free", "label": "Free", "icon": ""},
+		{"id": "mana", "label": "Mana", "icon": ""}
+	]
+
+	for tab in tabs:
+		var btn = Button.new()
+		btn.text = tab.label
+		btn.custom_minimum_size = Vector2(90, 35)
+		btn.pressed.connect(_switch_tab.bind(tab.id))
+		_style_tab_button(btn, false)
+		hbox.add_child(btn)
+		tab_buttons[tab.id] = btn
+
+	return hbox
 
 func _create_left_panel() -> Control:
 	var panel = PanelContainer.new()
@@ -104,121 +144,296 @@ func _create_left_panel() -> Control:
 	margin.add_theme_constant_override("margin_bottom", 15)
 	panel.add_child(margin)
 
+	var container = Control.new()
+	container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.add_child(container)
+
+	tab_panels["crystal"] = _create_crystal_panel()
+	tab_panels["soul"] = _create_soul_panel()
+	tab_panels["element"] = _create_element_panel()
+	tab_panels["pantheon"] = _create_pantheon_panel()
+	tab_panels["free"] = _create_free_panel()
+	tab_panels["mana"] = _create_mana_panel()
+
+	for tab_id in tab_panels:
+		var p = tab_panels[tab_id]
+		p.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		p.visible = false
+		container.add_child(p)
+
+	return panel
+
+func _create_crystal_panel() -> Control:
 	var vbox = VBoxContainer.new()
-	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 15)
-	margin.add_child(vbox)
+	vbox.add_theme_constant_override("separation", 12)
 
-	# Title
-	var title = Label.new()
-	title.text = "DIVINE SUMMONING"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 20)
-	title.add_theme_color_override("font_color", Color.GOLD)
-	vbox.add_child(title)
+	vbox.add_child(_create_title_label("DIVINE SUMMON", "Use Divine Crystals for random gods"))
+	var rates = _get_rates("crystal_summon")
+	vbox.add_child(_create_rates_label(rates))
+	vbox.add_child(HSeparator.new())
 
-	# Rates info
+	var cost_label = Label.new()
+	cost_label.name = "CostLabel"
+	cost_label.text = "Cost: 100 Crystals (x1) | 900 Crystals (x10)"
+	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cost_label.add_theme_font_size_override("font_size", 12)
+	cost_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+	vbox.add_child(cost_label)
+
+	var btn_vbox = VBoxContainer.new()
+	btn_vbox.add_theme_constant_override("separation", 10)
+	vbox.add_child(btn_vbox)
+
+	var single_btn = Button.new()
+	single_btn.name = "SingleBtn"
+	single_btn.text = "SUMMON x1  (100 Crystals)"
+	single_btn.custom_minimum_size = Vector2(0, 50)
+	single_btn.pressed.connect(_on_crystal_single_pressed)
+	_style_button(single_btn, true)
+	btn_vbox.add_child(single_btn)
+
+	var multi_btn = Button.new()
+	multi_btn.name = "MultiBtn"
+	multi_btn.text = "SUMMON x10  (900 Crystals)  10% OFF"
+	multi_btn.custom_minimum_size = Vector2(0, 50)
+	multi_btn.pressed.connect(_on_crystal_multi_pressed)
+	_style_button(multi_btn, true)
+	btn_vbox.add_child(multi_btn)
+
+	var pity_label = Label.new()
+	pity_label.name = "PityLabel"
+	pity_label.text = "Pity: Guaranteed Legendary at 100 summons"
+	pity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	pity_label.add_theme_font_size_override("font_size", 10)
+	pity_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
+	vbox.add_child(pity_label)
+
+	_add_spacer_and_history(vbox)
+	return vbox
+
+func _create_soul_panel() -> Control:
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+
+	vbox.add_child(_create_title_label("SOUL SUMMON", "Use souls for guaranteed rarity"))
+	vbox.add_child(HSeparator.new())
+
+	var soul_label = Label.new()
+	soul_label.text = "SELECT SOUL TYPE:"
+	soul_label.add_theme_font_size_override("font_size", 12)
+	soul_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+	vbox.add_child(soul_label)
+
+	var soul_grid = GridContainer.new()
+	soul_grid.columns = 2
+	soul_grid.add_theme_constant_override("h_separation", 8)
+	soul_grid.add_theme_constant_override("v_separation", 8)
+	vbox.add_child(soul_grid)
+
+	var souls = [
+		{"id": "common_soul", "label": "Common Soul", "color": Color(0.6, 0.6, 0.6), "desc": "Standard rates"},
+		{"id": "rare_soul", "label": "Rare Soul", "color": Color(0.3, 0.6, 1.0), "desc": "Rare+ guaranteed"},
+		{"id": "epic_soul", "label": "Epic Soul", "color": Color(0.7, 0.3, 0.9), "desc": "Epic+ guaranteed"},
+		{"id": "legendary_soul", "label": "Legendary Soul", "color": Color(1.0, 0.8, 0.2), "desc": "Legendary guaranteed"}
+	]
+
+	for soul in souls:
+		var btn = Button.new()
+		btn.name = soul.id + "_btn"
+		btn.text = soul.label
+		btn.tooltip_text = soul.desc
+		btn.custom_minimum_size = Vector2(150, 40)
+		btn.pressed.connect(_on_soul_type_selected.bind(soul.id))
+		_style_soul_button(btn, soul.color, soul.id == selected_soul_type)
+		soul_grid.add_child(btn)
+
 	var rates_label = Label.new()
-	rates_label.text = "Common 50% | Rare 35% | Epic 12% | Legendary 3%"
+	rates_label.name = "SoulRatesLabel"
 	rates_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	rates_label.add_theme_font_size_override("font_size", 10)
+	rates_label.add_theme_font_size_override("font_size", 11)
 	rates_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
 	vbox.add_child(rates_label)
 
+	var summon_btn = Button.new()
+	summon_btn.name = "SoulSummonBtn"
+	summon_btn.text = "SUMMON WITH SOUL"
+	summon_btn.custom_minimum_size = Vector2(0, 50)
+	summon_btn.pressed.connect(_on_soul_summon_pressed)
+	_style_button(summon_btn, true)
+	vbox.add_child(summon_btn)
+
+	_add_spacer_and_history(vbox)
+	return vbox
+
+func _create_element_panel() -> Control:
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+
+	vbox.add_child(_create_title_label("ELEMENT SUMMON", "Focus summons on a specific element"))
+	var rates = _get_rates("element_summon")
+	vbox.add_child(_create_rates_label(rates))
 	vbox.add_child(HSeparator.new())
 
-	# Element Powder Section
-	var powder_header = Label.new()
-	powder_header.text = "ELEMENT BOOST (Optional)"
-	powder_header.add_theme_font_size_override("font_size", 14)
-	powder_header.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
-	vbox.add_child(powder_header)
+	var elem_label = Label.new()
+	elem_label.text = "SELECT ELEMENT:"
+	elem_label.add_theme_font_size_override("font_size", 12)
+	elem_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+	vbox.add_child(elem_label)
 
-	var powder_desc = Label.new()
-	powder_desc.text = "Use element powder for 2x weight on matching gods"
-	powder_desc.add_theme_font_size_override("font_size", 10)
-	powder_desc.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
-	powder_desc.autowrap_mode = TextServer.AUTOWRAP_WORD
-	vbox.add_child(powder_desc)
-
-	# Element buttons row
-	var elements_row = HBoxContainer.new()
-	elements_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	elements_row.add_theme_constant_override("separation", 8)
-	vbox.add_child(elements_row)
+	var elem_row = HBoxContainer.new()
+	elem_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	elem_row.add_theme_constant_override("separation", 8)
+	vbox.add_child(elem_row)
 
 	var elements = [
-		{"id": "fire", "color": Color(1.0, 0.4, 0.3), "icon": "🔥"},
-		{"id": "water", "color": Color(0.3, 0.6, 1.0), "icon": "💧"},
-		{"id": "earth", "color": Color(0.6, 0.4, 0.2), "icon": "🌍"},
-		{"id": "lightning", "color": Color(1.0, 1.0, 0.3), "icon": "⚡"},
-		{"id": "light", "color": Color(1.0, 1.0, 0.8), "icon": "✨"},
-		{"id": "dark", "color": Color(0.5, 0.3, 0.7), "icon": "🌑"}
+		{"id": "fire", "icon": "F", "color": Color(1.0, 0.4, 0.3)},
+		{"id": "water", "icon": "W", "color": Color(0.3, 0.6, 1.0)},
+		{"id": "earth", "icon": "E", "color": Color(0.6, 0.4, 0.2)},
+		{"id": "lightning", "icon": "L", "color": Color(1.0, 1.0, 0.3)},
+		{"id": "light", "icon": "Lt", "color": Color(1.0, 1.0, 0.8)},
+		{"id": "dark", "icon": "D", "color": Color(0.5, 0.3, 0.7)}
 	]
 
 	for elem in elements:
 		var btn = Button.new()
+		btn.name = elem.id + "_elem_btn"
 		btn.text = elem.icon
-		btn.custom_minimum_size = Vector2(45, 40)
-		btn.tooltip_text = elem.id.capitalize() + " Powder"
-		btn.pressed.connect(_on_element_powder_selected.bind(elem.id))
-		_style_element_button(btn, elem.color, false)
-		elements_row.add_child(btn)
-		powder_buttons[elem.id] = btn
+		btn.tooltip_text = elem.id.capitalize() + " Element"
+		btn.custom_minimum_size = Vector2(50, 45)
+		btn.pressed.connect(_on_element_selected.bind(elem.id))
+		_style_element_button(btn, elem.color, elem.id == selected_element)
+		elem_row.add_child(btn)
 
-	# Powder cost/status
-	powder_cost_label = Label.new()
-	powder_cost_label.text = "No element selected"
-	powder_cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	powder_cost_label.add_theme_font_size_override("font_size", 11)
-	powder_cost_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
-	vbox.add_child(powder_cost_label)
+	var cost_label = Label.new()
+	cost_label.name = "ElementCostLabel"
+	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cost_label.add_theme_font_size_override("font_size", 12)
+	cost_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+	vbox.add_child(cost_label)
 
-	# Element Favor status
-	powder_boost_label = Label.new()
-	powder_boost_label.text = ""
-	powder_boost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	powder_boost_label.add_theme_font_size_override("font_size", 10)
-	powder_boost_label.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
-	vbox.add_child(powder_boost_label)
+	var summon_btn = Button.new()
+	summon_btn.name = "ElementSummonBtn"
+	summon_btn.text = "SUMMON (150 Crystals + 10 Powder)"
+	summon_btn.custom_minimum_size = Vector2(0, 50)
+	summon_btn.pressed.connect(_on_element_summon_pressed)
+	_style_button(summon_btn, true)
+	vbox.add_child(summon_btn)
 
+	_add_spacer_and_history(vbox)
+	return vbox
+
+func _create_pantheon_panel() -> Control:
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+
+	vbox.add_child(_create_title_label("PANTHEON SUMMON", "Focus summons on a specific pantheon"))
+	var rates = _get_rates("pantheon_summon")
+	vbox.add_child(_create_rates_label(rates))
 	vbox.add_child(HSeparator.new())
 
-	# Summon Buttons
-	var buttons_vbox = VBoxContainer.new()
-	buttons_vbox.add_theme_constant_override("separation", 12)
-	vbox.add_child(buttons_vbox)
+	var panth_label = Label.new()
+	panth_label.text = "SELECT PANTHEON:"
+	panth_label.add_theme_font_size_override("font_size", 12)
+	panth_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+	vbox.add_child(panth_label)
 
-	# Single summon button
-	single_summon_btn = Button.new()
-	single_summon_btn.text = "SUMMON x1  (100 Crystals)"
-	single_summon_btn.custom_minimum_size = Vector2(0, 50)
-	single_summon_btn.pressed.connect(_on_single_summon_pressed)
-	_style_button(single_summon_btn, true)
-	buttons_vbox.add_child(single_summon_btn)
+	var panth_grid = GridContainer.new()
+	panth_grid.columns = 4
+	panth_grid.add_theme_constant_override("h_separation", 6)
+	panth_grid.add_theme_constant_override("v_separation", 6)
+	vbox.add_child(panth_grid)
 
-	# Multi summon button
-	multi_summon_btn = Button.new()
-	multi_summon_btn.text = "SUMMON x10  (900 Crystals)  10% OFF"
-	multi_summon_btn.custom_minimum_size = Vector2(0, 50)
-	multi_summon_btn.pressed.connect(_on_multi_summon_pressed)
-	_style_button(multi_summon_btn, true)
-	buttons_vbox.add_child(multi_summon_btn)
+	var pantheons = ["greek", "norse", "egyptian", "celtic", "japanese", "hindu", "aztec", "slavic"]
+	var panth_abbr = {"greek": "GRK", "norse": "NRS", "egyptian": "EGY", "celtic": "CLT", "japanese": "JPN", "hindu": "HND", "aztec": "AZT", "slavic": "SLV"}
 
-	# Free daily summon
-	free_summon_btn = Button.new()
-	free_summon_btn.text = "FREE DAILY SUMMON"
-	free_summon_btn.custom_minimum_size = Vector2(0, 45)
-	free_summon_btn.pressed.connect(_on_free_summon_pressed)
-	_style_button(free_summon_btn, false)
-	buttons_vbox.add_child(free_summon_btn)
+	for panth in pantheons:
+		var btn = Button.new()
+		btn.name = panth + "_panth_btn"
+		btn.text = panth_abbr.get(panth, panth.substr(0, 3).to_upper())
+		btn.tooltip_text = panth.capitalize()
+		btn.custom_minimum_size = Vector2(60, 40)
+		btn.pressed.connect(_on_pantheon_selected.bind(panth))
+		_style_pantheon_button(btn, panth == selected_pantheon)
+		panth_grid.add_child(btn)
 
-	# Spacer
+	var cost_label = Label.new()
+	cost_label.name = "PantheonCostLabel"
+	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cost_label.add_theme_font_size_override("font_size", 12)
+	cost_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+	vbox.add_child(cost_label)
+
+	var summon_btn = Button.new()
+	summon_btn.name = "PantheonSummonBtn"
+	summon_btn.text = "SUMMON (150 Crystals + 1 Token)"
+	summon_btn.custom_minimum_size = Vector2(0, 50)
+	summon_btn.pressed.connect(_on_pantheon_summon_pressed)
+	_style_button(summon_btn, true)
+	vbox.add_child(summon_btn)
+
+	_add_spacer_and_history(vbox)
+	return vbox
+
+func _create_free_panel() -> Control:
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+
+	vbox.add_child(_create_title_label("FREE DAILY SUMMON", "One free summon every 24 hours"))
+	var rates = _get_rates("free_daily")
+	vbox.add_child(_create_rates_label(rates))
+	vbox.add_child(HSeparator.new())
+
+	var status_label = Label.new()
+	status_label.name = "FreeStatusLabel"
+	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	status_label.add_theme_font_size_override("font_size", 14)
+	vbox.add_child(status_label)
+
+	var summon_btn = Button.new()
+	summon_btn.name = "FreeSummonBtn"
+	summon_btn.text = "FREE SUMMON"
+	summon_btn.custom_minimum_size = Vector2(0, 60)
+	summon_btn.pressed.connect(_on_free_summon_pressed)
+	_style_button(summon_btn, true)
+	vbox.add_child(summon_btn)
+
+	_add_spacer_and_history(vbox)
+	return vbox
+
+func _create_mana_panel() -> Control:
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+
+	vbox.add_child(_create_title_label("MANA SUMMON", "Spend mana for basic summons - mainly for fodder"))
+	var rates = _get_rates("mana_summon")
+	vbox.add_child(_create_rates_label(rates))
+	vbox.add_child(HSeparator.new())
+
+	var cost_label = Label.new()
+	cost_label.name = "ManaCostLabel"
+	cost_label.text = "Cost: 10,000 Mana per summon"
+	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cost_label.add_theme_font_size_override("font_size", 12)
+	cost_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+	vbox.add_child(cost_label)
+
+	var summon_btn = Button.new()
+	summon_btn.name = "ManaSummonBtn"
+	summon_btn.text = "SUMMON (10,000 Mana)"
+	summon_btn.custom_minimum_size = Vector2(0, 50)
+	summon_btn.pressed.connect(_on_mana_summon_pressed)
+	_style_button(summon_btn, true)
+	vbox.add_child(summon_btn)
+
+	_add_spacer_and_history(vbox)
+	return vbox
+
+func _add_spacer_and_history(vbox: VBoxContainer):
 	var spacer = Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(spacer)
 
-	# History button
 	var history_btn = Button.new()
 	history_btn.text = "Summon History"
 	history_btn.custom_minimum_size = Vector2(0, 35)
@@ -226,7 +441,46 @@ func _create_left_panel() -> Control:
 	_style_button(history_btn, false)
 	vbox.add_child(history_btn)
 
-	return panel
+func _create_title_label(title: String, subtitle: String) -> Control:
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+
+	var title_lbl = Label.new()
+	title_lbl.text = title
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_lbl.add_theme_font_size_override("font_size", 18)
+	title_lbl.add_theme_color_override("font_color", Color.GOLD)
+	vbox.add_child(title_lbl)
+
+	var sub_lbl = Label.new()
+	sub_lbl.text = subtitle
+	sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub_lbl.add_theme_font_size_override("font_size", 11)
+	sub_lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
+	vbox.add_child(sub_lbl)
+
+	return vbox
+
+func _create_rates_label(rates: Dictionary) -> Label:
+	var label = Label.new()
+	var parts = []
+	if rates.has("common"): parts.append("Common %.0f%%" % rates.common)
+	if rates.has("rare"): parts.append("Rare %.0f%%" % rates.rare)
+	if rates.has("epic"): parts.append("Epic %.1f%%" % rates.epic)
+	if rates.has("legendary"): parts.append("Legendary %.1f%%" % rates.legendary)
+	label.text = " | ".join(parts)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 10)
+	label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
+	return label
+
+func _get_rates(summon_type: String) -> Dictionary:
+	var default = {"common": 60.0, "rare": 30.0, "epic": 8.5, "legendary": 1.5}
+	if _summon_config.has("summon_types"):
+		var type_data = _summon_config.summon_types.get(summon_type, {})
+		if type_data.has("rates"):
+			return type_data.rates
+	return default
 
 func _create_right_panel() -> Control:
 	var panel = PanelContainer.new()
@@ -249,14 +503,12 @@ func _create_right_panel() -> Control:
 	vbox.add_theme_constant_override("separation", 10)
 	margin.add_child(vbox)
 
-	# Header
 	var header = Label.new()
 	header.text = "RECENT SUMMONS"
 	header.add_theme_font_size_override("font_size", 14)
 	header.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
 	vbox.add_child(header)
 
-	# Showcase scroll
 	var scroll = ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -271,7 +523,6 @@ func _create_right_panel() -> Control:
 	scroll.add_child(showcase_grid)
 
 	showcase = _SummonShowcaseClass.new(showcase_grid)
-
 	return panel
 
 func _setup_summon_animation():
@@ -317,151 +568,129 @@ func _connect_signals():
 			resource_mgr.resource_changed.disconnect(_on_resource_changed)
 		resource_mgr.resource_changed.connect(_on_resource_changed)
 
-# === ELEMENT POWDER SELECTION ===
-
-func _on_element_powder_selected(element: String):
-	if selected_powder_element == element:
-		# Deselect
-		selected_powder_element = ""
-	else:
-		selected_powder_element = element
-
-	_update_powder_buttons()
-	_update_powder_cost_label()
-
-func _update_powder_buttons():
-	var elements = ["fire", "water", "earth", "lightning", "light", "dark"]
-	var element_colors = {
-		"fire": Color(1.0, 0.4, 0.3),
-		"water": Color(0.3, 0.6, 1.0),
-		"earth": Color(0.6, 0.4, 0.2),
-		"lightning": Color(1.0, 1.0, 0.3),
-		"light": Color(1.0, 1.0, 0.8),
-		"dark": Color(0.5, 0.3, 0.7)
-	}
-
-	for elem in elements:
-		if powder_buttons.has(elem):
-			var is_selected = (elem == selected_powder_element)
-			_style_element_button(powder_buttons[elem], element_colors[elem], is_selected)
-
-func _update_powder_cost_label():
-	if not powder_cost_label:
-		return
-
-	if selected_powder_element.is_empty():
-		powder_cost_label.text = "No element selected"
-		powder_cost_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
-	else:
-		var summon_mgr = _get_summon_manager()
-		var powder_cost = summon_mgr.get_powder_cost() if summon_mgr else 10
-		var powder_id = selected_powder_element + "_powder"
-		var resource_mgr = _get_resource_manager()
-		var owned = resource_mgr.get_resource(powder_id) if resource_mgr else 0
-
-		powder_cost_label.text = "%s Powder: %d cost, %d owned" % [selected_powder_element.capitalize(), powder_cost, owned]
-		if owned >= powder_cost:
-			powder_cost_label.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
-		else:
-			powder_cost_label.add_theme_color_override("font_color", Color(0.8, 0.5, 0.5))
-
-	# Update element favor status
-	_update_favor_label()
-
-func _update_favor_label():
-	if not powder_boost_label:
-		return
-
-	var summon_mgr = _get_summon_manager()
-	if not summon_mgr:
-		powder_boost_label.text = ""
-		return
-
-	var favor_status = summon_mgr.get_element_favor_status()
-	var active_favors = []
-	for element in favor_status:
-		if favor_status[element].active:
-			active_favors.append("%s (%s)" % [element.capitalize(), favor_status[element].time_formatted])
-
-	if active_favors.is_empty():
-		powder_boost_label.text = ""
-	else:
-		powder_boost_label.text = "Active Favors: " + ", ".join(active_favors)
+func _switch_tab(tab_id: String):
+	current_tab = tab_id
+	for id in tab_buttons:
+		_style_tab_button(tab_buttons[id], id == tab_id)
+	for id in tab_panels:
+		tab_panels[id].visible = (id == tab_id)
+	_refresh_ui()
 
 # === SUMMON ACTIONS ===
 
-func _on_single_summon_pressed():
-	if is_processing_summon:
-		return
-
+func _on_crystal_single_pressed():
+	if is_processing_summon: return
 	var summon_mgr = _get_summon_manager()
 	if not summon_mgr:
 		_show_message("Summon system not available")
 		return
-
 	is_processing_summon = true
 	current_summon_was_multi = false
 	pending_summon_results.clear()
-
 	if summon_mgr.has_method("clear_duplicate_tracking"):
 		summon_mgr.clear_duplicate_tracking()
-
-	var success: bool
-	if selected_powder_element.is_empty():
-		success = summon_mgr.summon_premium()
-	else:
-		success = summon_mgr.summon_premium_with_powder(selected_powder_element)
-
-	if not success:
+	if not summon_mgr.summon_premium():
 		is_processing_summon = false
 		_refresh_ui()
 
-func _on_multi_summon_pressed():
-	if is_processing_summon:
-		return
-
+func _on_crystal_multi_pressed():
+	if is_processing_summon: return
 	var summon_mgr = _get_summon_manager()
 	if not summon_mgr:
 		_show_message("Summon system not available")
 		return
-
 	is_processing_summon = true
 	current_summon_was_multi = true
 	pending_summon_results.clear()
-
 	if summon_mgr.has_method("clear_duplicate_tracking"):
 		summon_mgr.clear_duplicate_tracking()
-
-	# Note: multi_summon_premium doesn't support powder yet
-	# TODO: Add multi_summon_premium_with_powder if needed
-	var success = summon_mgr.multi_summon_premium(MULTI_COUNT)
-
-	if not success:
+	if not summon_mgr.multi_summon_premium(10):
 		is_processing_summon = false
 		_refresh_ui()
 
-func _on_free_summon_pressed():
-	if is_processing_summon:
-		return
-
+func _on_soul_summon_pressed():
+	if is_processing_summon: return
 	var summon_mgr = _get_summon_manager()
 	if not summon_mgr:
 		_show_message("Summon system not available")
 		return
-
-	if not summon_mgr.can_use_daily_free_summon():
-		var time_str = summon_mgr.get_time_until_free_summon_formatted()
-		_show_message("Daily summon resets in: " + time_str)
-		return
-
 	is_processing_summon = true
 	current_summon_was_multi = false
 	pending_summon_results.clear()
-
-	var success = summon_mgr.summon_free_daily()
-	if not success:
+	if not summon_mgr.summon_with_soul(selected_soul_type):
 		is_processing_summon = false
 		_refresh_ui()
+
+func _on_element_summon_pressed():
+	if is_processing_summon: return
+	var summon_mgr = _get_summon_manager()
+	if not summon_mgr:
+		_show_message("Summon system not available")
+		return
+	is_processing_summon = true
+	current_summon_was_multi = false
+	pending_summon_results.clear()
+	if not summon_mgr.summon_premium_with_powder(selected_element):
+		is_processing_summon = false
+		_refresh_ui()
+
+func _on_pantheon_summon_pressed():
+	if is_processing_summon: return
+	var summon_mgr = _get_summon_manager()
+	if not summon_mgr:
+		_show_message("Summon system not available")
+		return
+	if summon_mgr.has_method("summon_with_pantheon_token"):
+		is_processing_summon = true
+		current_summon_was_multi = false
+		pending_summon_results.clear()
+		if not summon_mgr.summon_with_pantheon_token(selected_pantheon):
+			is_processing_summon = false
+			_refresh_ui()
+	else:
+		_show_message("Pantheon summon coming soon!")
+
+func _on_free_summon_pressed():
+	if is_processing_summon: return
+	var summon_mgr = _get_summon_manager()
+	if not summon_mgr:
+		_show_message("Summon system not available")
+		return
+	if not summon_mgr.can_use_daily_free_summon():
+		var time_str = summon_mgr.get_time_until_free_summon_formatted()
+		_show_message("Available in: " + time_str)
+		return
+	is_processing_summon = true
+	current_summon_was_multi = false
+	pending_summon_results.clear()
+	if not summon_mgr.summon_free_daily():
+		is_processing_summon = false
+		_refresh_ui()
+
+func _on_mana_summon_pressed():
+	if is_processing_summon: return
+	var summon_mgr = _get_summon_manager()
+	if not summon_mgr:
+		_show_message("Summon system not available")
+		return
+	is_processing_summon = true
+	current_summon_was_multi = false
+	pending_summon_results.clear()
+	if not summon_mgr.summon_basic():
+		is_processing_summon = false
+		_refresh_ui()
+
+func _on_soul_type_selected(soul_type: String):
+	selected_soul_type = soul_type
+	_update_soul_panel()
+
+func _on_element_selected(element: String):
+	selected_element = element
+	_update_element_panel()
+
+func _on_pantheon_selected(pantheon: String):
+	selected_pantheon = pantheon
+	_update_pantheon_panel()
 
 func _on_history_pressed():
 	if history_panel:
@@ -470,21 +699,17 @@ func _on_history_pressed():
 # === SUMMON CALLBACKS ===
 
 func _on_god_summoned(god: God):
-	# Direct showcase - no animation, no popup for single summons
 	_add_to_showcase(god)
 	pending_summon_results.clear()
 	is_processing_summon = false
 	_refresh_ui()
 
 func _on_multi_summon_completed(gods: Array):
-	# Direct showcase - no animation
 	for god in gods:
 		_add_to_showcase(god)
 		pending_summon_results.append(god)
 	is_processing_summon = false
 	_refresh_ui()
-
-	# Show result overlay for multi summon
 	if result_overlay and pending_summon_results.size() > 0:
 		var banner_data = {"id": "premium", "title": "DIVINE SUMMONING"}
 		result_overlay.show_results(pending_summon_results, banner_data)
@@ -506,7 +731,6 @@ func _on_animation_skipped(god: God):
 func _on_all_animations_completed():
 	is_processing_summon = false
 	_refresh_ui()
-
 	if pending_summon_results.size() > 0 and result_overlay:
 		var banner_data = {"id": "premium", "title": "DIVINE SUMMONING"}
 		result_overlay.show_results(pending_summon_results, banner_data)
@@ -521,56 +745,161 @@ func _on_view_collection():
 		screen_mgr.change_screen("collection")
 
 func _on_summon_again():
-	if current_summon_was_multi:
-		_on_multi_summon_pressed()
-	else:
-		_on_single_summon_pressed()
+	match current_tab:
+		"crystal":
+			if current_summon_was_multi: _on_crystal_multi_pressed()
+			else: _on_crystal_single_pressed()
+		"soul": _on_soul_summon_pressed()
+		"element": _on_element_summon_pressed()
+		"pantheon": _on_pantheon_summon_pressed()
+		"free": _on_free_summon_pressed()
+		"mana": _on_mana_summon_pressed()
 
 func _on_result_closed():
 	_refresh_ui()
 
 func _on_back_pressed():
+	if showcase:
+		showcase.clear()
 	back_pressed.emit()
 
-# === HELPERS ===
+# === REFRESH ===
 
 func _add_to_showcase(god: God):
 	if showcase:
 		showcase.show_god(god, false)
 
 func _refresh_ui():
-	_update_powder_cost_label()
-	_update_summon_buttons()
+	match current_tab:
+		"crystal": _update_crystal_panel()
+		"soul": _update_soul_panel()
+		"element": _update_element_panel()
+		"pantheon": _update_pantheon_panel()
+		"free": _update_free_panel()
+		"mana": _update_mana_panel()
 
-func _update_summon_buttons():
+func _update_crystal_panel():
+	var panel = tab_panels.get("crystal")
+	if not panel: return
 	var resource_mgr = _get_resource_manager()
-	var summon_mgr = _get_summon_manager()
 	var crystals = resource_mgr.get_resource("divine_crystals") if resource_mgr else 0
+	var single_btn = panel.find_child("SingleBtn", true, false)
+	if single_btn:
+		single_btn.disabled = crystals < 100 or is_processing_summon
+	var multi_btn = panel.find_child("MultiBtn", true, false)
+	if multi_btn:
+		multi_btn.disabled = crystals < 900 or is_processing_summon
 
-	# Update single button
-	if single_summon_btn:
-		var cost = SINGLE_COST
-		if not selected_powder_element.is_empty() and summon_mgr:
-			cost = SINGLE_COST  # Powder cost is separate
-		single_summon_btn.disabled = crystals < SINGLE_COST or is_processing_summon
-
-	# Update multi button
-	if multi_summon_btn:
-		multi_summon_btn.disabled = crystals < MULTI_COST or is_processing_summon
-
-	# Update free button
-	if free_summon_btn and summon_mgr:
-		var can_use_free = summon_mgr.can_use_daily_free_summon()
-		free_summon_btn.disabled = not can_use_free or is_processing_summon
-		if can_use_free:
-			free_summon_btn.text = "FREE DAILY SUMMON"
-			free_summon_btn.add_theme_color_override("font_color", Color.LIME_GREEN)
+func _update_soul_panel():
+	var panel = tab_panels.get("soul")
+	if not panel: return
+	var resource_mgr = _get_resource_manager()
+	var souls = ["common_soul", "rare_soul", "epic_soul", "legendary_soul"]
+	var soul_colors = {
+		"common_soul": Color(0.6, 0.6, 0.6),
+		"rare_soul": Color(0.3, 0.6, 1.0),
+		"epic_soul": Color(0.7, 0.3, 0.9),
+		"legendary_soul": Color(1.0, 0.8, 0.2)
+	}
+	for soul_type in souls:
+		var btn = panel.find_child(soul_type + "_btn", true, false)
+		if btn:
+			_style_soul_button(btn, soul_colors[soul_type], soul_type == selected_soul_type)
+	var rates_label = panel.find_child("SoulRatesLabel", true, false)
+	if rates_label:
+		var rates = {}
+		if _summon_config.has("summon_types"):
+			var soul_cfg = _summon_config.summon_types.get("soul_summon", {})
+			var variants = soul_cfg.get("variants", {})
+			rates = variants.get(selected_soul_type, {}).get("rates", {})
+		if rates.is_empty():
+			rates_label.text = ""
 		else:
-			free_summon_btn.text = "Free: " + summon_mgr.get_time_until_free_summon_formatted()
-			free_summon_btn.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
+			var parts = []
+			if rates.has("common"): parts.append("Common %.0f%%" % rates.common)
+			if rates.has("rare"): parts.append("Rare %.0f%%" % rates.rare)
+			if rates.has("epic"): parts.append("Epic %.1f%%" % rates.epic)
+			if rates.has("legendary"): parts.append("Legendary %.1f%%" % rates.legendary)
+			rates_label.text = " | ".join(parts)
+	var summon_btn = panel.find_child("SoulSummonBtn", true, false)
+	if summon_btn:
+		var owned = resource_mgr.get_resource(selected_soul_type) if resource_mgr else 0
+		summon_btn.text = "SUMMON WITH %s (%d owned)" % [selected_soul_type.replace("_", " ").capitalize(), owned]
+		summon_btn.disabled = owned < 1 or is_processing_summon
+
+func _update_element_panel():
+	var panel = tab_panels.get("element")
+	if not panel: return
+	var elements = ["fire", "water", "earth", "lightning", "light", "dark"]
+	var elem_colors = {
+		"fire": Color(1.0, 0.4, 0.3), "water": Color(0.3, 0.6, 1.0),
+		"earth": Color(0.6, 0.4, 0.2), "lightning": Color(1.0, 1.0, 0.3),
+		"light": Color(1.0, 1.0, 0.8), "dark": Color(0.5, 0.3, 0.7)
+	}
+	for elem in elements:
+		var btn = panel.find_child(elem + "_elem_btn", true, false)
+		if btn:
+			_style_element_button(btn, elem_colors[elem], elem == selected_element)
+	var resource_mgr = _get_resource_manager()
+	var crystals = resource_mgr.get_resource("divine_crystals") if resource_mgr else 0
+	var powder_id = selected_element + "_powder"
+	var powder = resource_mgr.get_resource(powder_id) if resource_mgr else 0
+	var cost_label = panel.find_child("ElementCostLabel", true, false)
+	if cost_label:
+		cost_label.text = "Cost: 150 Crystals + 10 %s Powder (%d owned)" % [selected_element.capitalize(), powder]
+	var summon_btn = panel.find_child("ElementSummonBtn", true, false)
+	if summon_btn:
+		summon_btn.disabled = crystals < 150 or powder < 10 or is_processing_summon
+
+func _update_pantheon_panel():
+	var panel = tab_panels.get("pantheon")
+	if not panel: return
+	var pantheons = ["greek", "norse", "egyptian", "celtic", "japanese", "hindu", "aztec", "slavic"]
+	for panth in pantheons:
+		var btn = panel.find_child(panth + "_panth_btn", true, false)
+		if btn:
+			_style_pantheon_button(btn, panth == selected_pantheon)
+	var resource_mgr = _get_resource_manager()
+	var crystals = resource_mgr.get_resource("divine_crystals") if resource_mgr else 0
+	var token_id = selected_pantheon + "_token"
+	var tokens = resource_mgr.get_resource(token_id) if resource_mgr else 0
+	var cost_label = panel.find_child("PantheonCostLabel", true, false)
+	if cost_label:
+		cost_label.text = "Cost: 150 Crystals + 1 %s Token (%d owned)" % [selected_pantheon.capitalize(), tokens]
+	var summon_btn = panel.find_child("PantheonSummonBtn", true, false)
+	if summon_btn:
+		summon_btn.disabled = crystals < 150 or tokens < 1 or is_processing_summon
+
+func _update_free_panel():
+	var panel = tab_panels.get("free")
+	if not panel: return
+	var summon_mgr = _get_summon_manager()
+	var can_use = summon_mgr.can_use_daily_free_summon() if summon_mgr else false
+	var status_label = panel.find_child("FreeStatusLabel", true, false)
+	if status_label:
+		if can_use:
+			status_label.text = "Available Now!"
+			status_label.add_theme_color_override("font_color", Color.LIME_GREEN)
+		else:
+			var time_str = summon_mgr.get_time_until_free_summon_formatted() if summon_mgr else "?"
+			status_label.text = "Resets in: " + time_str
+			status_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+	var summon_btn = panel.find_child("FreeSummonBtn", true, false)
+	if summon_btn:
+		summon_btn.disabled = not can_use or is_processing_summon
+
+func _update_mana_panel():
+	var panel = tab_panels.get("mana")
+	if not panel: return
+	var resource_mgr = _get_resource_manager()
+	var mana = resource_mgr.get_resource("mana") if resource_mgr else 0
+	var summon_btn = panel.find_child("ManaSummonBtn", true, false)
+	if summon_btn:
+		summon_btn.disabled = mana < 10000 or is_processing_summon
+
+# === HELPERS ===
 
 func _show_message(text: String):
-	# Simple toast message
 	var label = Label.new()
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -592,6 +921,9 @@ func _get_summon_manager():
 func _get_resource_manager():
 	return SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
 
+func _get_config_manager():
+	return SystemRegistry.get_instance().get_system("ConfigurationManager") if SystemRegistry.get_instance() else null
+
 # === STYLING ===
 
 func _style_panel(panel: PanelContainer):
@@ -601,6 +933,25 @@ func _style_panel(panel: PanelContainer):
 	style.set_border_width_all(1)
 	style.set_corner_radius_all(8)
 	panel.add_theme_stylebox_override("panel", style)
+
+func _style_tab_button(button: Button, is_active: bool):
+	var style = StyleBoxFlat.new()
+	if is_active:
+		style.bg_color = Color(0.25, 0.2, 0.35, 1.0)
+		style.border_color = Color.GOLD
+		style.set_border_width_all(2)
+		button.add_theme_color_override("font_color", Color.GOLD)
+	else:
+		style.bg_color = Color(0.12, 0.1, 0.16, 0.9)
+		style.border_color = Color(0.3, 0.25, 0.4, 0.8)
+		style.set_border_width_all(1)
+		button.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+	style.set_corner_radius_all(6)
+	button.add_theme_stylebox_override("normal", style)
+	var hover = style.duplicate()
+	hover.bg_color = style.bg_color.lightened(0.1)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_font_size_override("font_size", 12)
 
 func _style_button(button: Button, primary: bool = false):
 	var style_normal = StyleBoxFlat.new()
@@ -613,17 +964,31 @@ func _style_button(button: Button, primary: bool = false):
 	style_normal.set_border_width_all(1)
 	style_normal.set_corner_radius_all(6)
 	button.add_theme_stylebox_override("normal", style_normal)
-
 	var style_hover = style_normal.duplicate()
 	style_hover.bg_color = style_normal.bg_color.lightened(0.15)
 	button.add_theme_stylebox_override("hover", style_hover)
-
 	var style_disabled = style_normal.duplicate()
 	style_disabled.bg_color = Color(0.1, 0.08, 0.12, 0.7)
 	style_disabled.border_color = Color(0.2, 0.18, 0.25, 0.5)
 	button.add_theme_stylebox_override("disabled", style_disabled)
-
 	button.add_theme_font_size_override("font_size", 14)
+
+func _style_soul_button(button: Button, color: Color, is_selected: bool):
+	var style = StyleBoxFlat.new()
+	if is_selected:
+		style.bg_color = color.darkened(0.5)
+		style.border_color = color
+		style.set_border_width_all(3)
+	else:
+		style.bg_color = Color(0.15, 0.12, 0.2, 0.9)
+		style.border_color = color.darkened(0.6)
+		style.set_border_width_all(1)
+	style.set_corner_radius_all(6)
+	button.add_theme_stylebox_override("normal", style)
+	var hover = style.duplicate()
+	hover.bg_color = style.bg_color.lightened(0.1)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_font_size_override("font_size", 11)
 
 func _style_element_button(button: Button, element_color: Color, is_selected: bool):
 	var style = StyleBoxFlat.new()
@@ -637,9 +1002,24 @@ func _style_element_button(button: Button, element_color: Color, is_selected: bo
 		style.set_border_width_all(1)
 	style.set_corner_radius_all(6)
 	button.add_theme_stylebox_override("normal", style)
+	var hover = style.duplicate()
+	hover.bg_color = style.bg_color.lightened(0.1)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_font_size_override("font_size", 14)
 
-	var style_hover = style.duplicate()
-	style_hover.bg_color = style.bg_color.lightened(0.1)
-	button.add_theme_stylebox_override("hover", style_hover)
-
-	button.add_theme_font_size_override("font_size", 18)
+func _style_pantheon_button(button: Button, is_selected: bool):
+	var style = StyleBoxFlat.new()
+	if is_selected:
+		style.bg_color = Color(0.3, 0.25, 0.4, 1.0)
+		style.border_color = Color.GOLD
+		style.set_border_width_all(2)
+	else:
+		style.bg_color = Color(0.15, 0.12, 0.2, 0.9)
+		style.border_color = Color(0.3, 0.25, 0.4, 0.8)
+		style.set_border_width_all(1)
+	style.set_corner_radius_all(6)
+	button.add_theme_stylebox_override("normal", style)
+	var hover = style.duplicate()
+	hover.bg_color = style.bg_color.lightened(0.1)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_font_size_override("font_size", 11)

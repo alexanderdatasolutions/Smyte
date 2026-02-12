@@ -5,7 +5,7 @@ class_name ProductionSummaryWidget
 
 """
 ProductionSummaryWidget - Home screen production overview
-Shows: hourly rates, accumulated resources, collect all button, active crafts
+Shows: hourly rates (all resources), refiners, active crafts, accumulated
 Auto-updates every few seconds to show growing resources
 """
 
@@ -13,56 +13,75 @@ signal resources_collected(total: Dictionary)
 signal craft_collected(task_data: Dictionary)
 signal navigate_to_crafting_requested
 
-# Update interval in seconds
+# Colors from UI patterns
+const COLOR_HEADER = Color(0.9, 0.85, 0.7)
+const COLOR_TEXT = Color(0.75, 0.75, 0.8)
+const COLOR_MUTED = Color(0.5, 0.5, 0.55)
+const COLOR_SUCCESS = Color(0.5, 0.8, 0.5)
+const COLOR_GOLD = Color(0.95, 0.85, 0.5)
+const COLOR_REFINER = Color(0.8, 0.65, 0.4)
+
 const UPDATE_INTERVAL: float = 2.0
-const CRAFT_UPDATE_INTERVAL: float = 1.0  # Faster updates for craft progress
+const CRAFT_UPDATE_INTERVAL: float = 1.0
 
 var _update_timer: Timer = null
 var _craft_update_timer: Timer = null
 var _content_container: VBoxContainer = null
-var _header_label: Label = null
-var _production_rates_container: HBoxContainer = null
-var _accumulated_container: HBoxContainer = null
 var _collect_button: Button = null
-var _no_nodes_label: Label = null
 
-# Craft tracker UI
+# Expandable sections
+var _production_section: VBoxContainer = null
+var _production_grid: GridContainer = null
+
+var _refiner_section: VBoxContainer = null
+var _refiner_grid: GridContainer = null
+
 var _craft_section: VBoxContainer = null
-var _craft_header: HBoxContainer = null
 var _craft_list: VBoxContainer = null
-var _no_crafts_container: HBoxContainer = null
 var _craft_button: Button = null
+
+var _accumulated_section: VBoxContainer = null
+var _accumulated_grid: GridContainer = null
 
 # Cached data
 var _cached_rates: Dictionary = {}
+var _cached_conversions: Array = []
 var _cached_accumulated: Dictionary = {}
-var _tasks_data: Dictionary = {}
+var _buildings_data: Dictionary = {}
+
+# Craft popup
+var _craft_popup: Control = null
+var _recipes_data: Dictionary = {}
+var _current_craft_node: HexNode = null
 
 func _ready() -> void:
-	_load_tasks_data()
+	_load_buildings_data()
+	_load_recipes_data()
 	_setup_styling()
 	_create_ui()
 	_start_update_timer()
-
-	# Initial update
 	call_deferred("_update_display")
 
-func _load_tasks_data() -> void:
-	"""Load tasks from JSON file for reward info"""
-	var file_path = "res://data/tasks.json"
-	var file = FileAccess.open(file_path, FileAccess.READ)
-	if not file:
-		return
-	var json_text = file.get_as_text()
-	file.close()
-	var json = JSON.new()
-	if json.parse(json_text) == OK:
-		var data = json.get_data()
-		if data.has("tasks"):
-			_tasks_data = data.tasks
+func _load_buildings_data() -> void:
+	"""Load buildings data for refiner info"""
+	var file = FileAccess.open("res://data/buildings.json", FileAccess.READ)
+	if file:
+		var json = JSON.new()
+		if json.parse(file.get_as_text()) == OK:
+			var data = json.get_data()
+			_buildings_data = data.get("buildings", {})
+		file.close()
+
+func _load_recipes_data() -> void:
+	"""Load crafting recipes data"""
+	var file = FileAccess.open("res://data/crafting_recipes.json", FileAccess.READ)
+	if file:
+		var json = JSON.new()
+		if json.parse(file.get_as_text()) == OK:
+			_recipes_data = json.get_data()
+		file.close()
 
 func _setup_styling() -> void:
-	"""Apply dark fantasy styling to the widget"""
 	var style = StyleBoxFlat.new()
 	style.bg_color = Color(0.08, 0.06, 0.1, 0.95)
 	style.border_color = Color(0.4, 0.35, 0.5, 0.8)
@@ -73,145 +92,169 @@ func _setup_styling() -> void:
 	style.content_margin_top = 8
 	style.content_margin_bottom = 8
 	add_theme_stylebox_override("panel", style)
-
-	custom_minimum_size = Vector2(320, 160)  # Increased for craft section
+	custom_minimum_size = Vector2(600, 160)  # Wide for 3 multi-column layout
 
 func _create_ui() -> void:
-	"""Build the widget UI"""
 	_content_container = VBoxContainer.new()
 	_content_container.add_theme_constant_override("separation", 6)
 	add_child(_content_container)
 
-	# Header with icon
-	var header_hbox = HBoxContainer.new()
-	header_hbox.add_theme_constant_override("separation", 8)
-	_content_container.add_child(header_hbox)
+	# Header row
+	var header = _create_header()
+	_content_container.add_child(header)
 
-	var icon_label = Label.new()
-	icon_label.text = "⚡"
-	icon_label.add_theme_font_size_override("font_size", 16)
-	header_hbox.add_child(icon_label)
+	# Three-column layout for production data
+	var columns_container = HBoxContainer.new()
+	columns_container.add_theme_constant_override("separation", 8)
+	columns_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	columns_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_content_container.add_child(columns_container)
 
-	_header_label = Label.new()
-	_header_label.text = "PRODUCTION"
-	_header_label.add_theme_font_size_override("font_size", 14)
-	_header_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
-	header_hbox.add_child(_header_label)
+	# Column 1: Production rates
+	_production_section = _create_column("PRODUCTION /hr", "production")
+	_production_section.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	columns_container.add_child(_production_section)
 
-	# Spacer to push collect button right
+	# Vertical separator
+	var vsep1 = VSeparator.new()
+	vsep1.add_theme_constant_override("separation", 2)
+	columns_container.add_child(vsep1)
+
+	# Column 2: Refiners
+	_refiner_section = _create_column("REFINERS", "refiner")
+	_refiner_section.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	columns_container.add_child(_refiner_section)
+
+	# Vertical separator
+	var vsep2 = VSeparator.new()
+	vsep2.add_theme_constant_override("separation", 2)
+	columns_container.add_child(vsep2)
+
+	# Column 3: Ready to collect
+	_accumulated_section = _create_column("READY TO COLLECT", "accumulated")
+	_accumulated_section.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	columns_container.add_child(_accumulated_section)
+
+	# Separator before crafting
+	var sep = HSeparator.new()
+	_content_container.add_child(sep)
+
+	# Crafting section
+	_create_craft_section()
+
+func _create_header() -> HBoxContainer:
+	var header = HBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
+
+	var icon = Label.new()
+	icon.text = "⚡"
+	icon.add_theme_font_size_override("font_size", 16)
+	header.add_child(icon)
+
+	var title = Label.new()
+	title.text = "TERRITORY PRODUCTION"
+	title.add_theme_font_size_override("font_size", 14)
+	title.add_theme_color_override("font_color", COLOR_HEADER)
+	header.add_child(title)
+
 	var spacer = Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header_hbox.add_child(spacer)
+	header.add_child(spacer)
 
-	# Collect All button
 	_collect_button = Button.new()
 	_collect_button.text = "Collect All"
 	_collect_button.pressed.connect(_on_collect_all_pressed)
-	_style_collect_button()
-	header_hbox.add_child(_collect_button)
+	_style_button(_collect_button, true)
+	header.add_child(_collect_button)
 
-	# No nodes message (hidden by default)
-	_no_nodes_label = Label.new()
-	_no_nodes_label.text = "Capture territory nodes to start production!"
-	_no_nodes_label.add_theme_font_size_override("font_size", 11)
-	_no_nodes_label.add_theme_color_override("font_color", Color(0.6, 0.55, 0.5))
-	_no_nodes_label.visible = false
-	_content_container.add_child(_no_nodes_label)
+	return header
 
-	# Production rates row
-	var rates_section = HBoxContainer.new()
-	rates_section.add_theme_constant_override("separation", 4)
-	_content_container.add_child(rates_section)
+func _create_column(title: String, section_type: String) -> VBoxContainer:
+	"""Create a column for the 3-column layout"""
+	var column = VBoxContainer.new()
+	column.add_theme_constant_override("separation", 4)
+	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
-	var rates_icon = Label.new()
-	rates_icon.text = "📈"
-	rates_icon.add_theme_font_size_override("font_size", 12)
-	rates_section.add_child(rates_icon)
+	# Column header
+	var header_hbox = HBoxContainer.new()
+	header_hbox.add_theme_constant_override("separation", 4)
 
-	_production_rates_container = HBoxContainer.new()
-	_production_rates_container.add_theme_constant_override("separation", 12)
-	rates_section.add_child(_production_rates_container)
+	var section_icon = Label.new()
+	match section_type:
+		"production":
+			section_icon.text = "📈"
+		"refiner":
+			section_icon.text = "⚙️"
+		"accumulated":
+			section_icon.text = "💎"
+	section_icon.add_theme_font_size_override("font_size", 11)
+	header_hbox.add_child(section_icon)
 
-	# Accumulated resources row
-	var accumulated_section = HBoxContainer.new()
-	accumulated_section.add_theme_constant_override("separation", 4)
-	_content_container.add_child(accumulated_section)
+	var section_title = Label.new()
+	section_title.text = title
+	section_title.add_theme_font_size_override("font_size", 10)
+	match section_type:
+		"production":
+			section_title.add_theme_color_override("font_color", COLOR_SUCCESS)
+		"refiner":
+			section_title.add_theme_color_override("font_color", COLOR_REFINER)
+		"accumulated":
+			section_title.add_theme_color_override("font_color", COLOR_GOLD)
+	header_hbox.add_child(section_title)
 
-	var accumulated_icon = Label.new()
-	accumulated_icon.text = "💎"
-	accumulated_icon.add_theme_font_size_override("font_size", 12)
-	accumulated_section.add_child(accumulated_icon)
+	column.add_child(header_hbox)
 
-	_accumulated_container = HBoxContainer.new()
-	_accumulated_container.add_theme_constant_override("separation", 12)
-	accumulated_section.add_child(_accumulated_container)
+	# Content grid - multiple columns for compact display (icon+value pairs, 3 pairs per row = 6 columns)
+	var grid = GridContainer.new()
+	grid.name = "Grid"
+	grid.columns = 6  # 3 pairs of icon+value per row
+	grid.add_theme_constant_override("h_separation", 4)
+	grid.add_theme_constant_override("v_separation", 2)
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.add_child(grid)
 
-	# Separator before craft section
-	var separator = HSeparator.new()
-	separator.add_theme_constant_override("separation", 4)
-	_content_container.add_child(separator)
+	# Store reference
+	match section_type:
+		"production":
+			_production_grid = grid
+		"refiner":
+			_refiner_grid = grid
+		"accumulated":
+			_accumulated_grid = grid
 
-	# Craft tracker section
-	_create_craft_section()
+	return column
 
-func _style_collect_button() -> void:
-	"""Style the collect all button"""
-	var style_normal = StyleBoxFlat.new()
-	style_normal.bg_color = Color(0.3, 0.5, 0.3, 0.9)
-	style_normal.border_color = Color(0.5, 0.8, 0.5, 0.8)
-	style_normal.set_border_width_all(1)
-	style_normal.set_corner_radius_all(4)
-	style_normal.content_margin_left = 8
-	style_normal.content_margin_right = 8
-	style_normal.content_margin_top = 4
-	style_normal.content_margin_bottom = 4
+func _style_button(button: Button, primary: bool = false) -> void:
+	var style = StyleBoxFlat.new()
+	if primary:
+		style.bg_color = Color(0.3, 0.5, 0.3, 0.9)
+		style.border_color = Color(0.5, 0.8, 0.5, 0.8)
+	else:
+		style.bg_color = Color(0.5, 0.35, 0.2, 0.9)
+		style.border_color = Color(0.7, 0.5, 0.3, 0.8)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(4)
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	button.add_theme_stylebox_override("normal", style)
 
-	var style_hover = StyleBoxFlat.new()
-	style_hover.bg_color = Color(0.35, 0.6, 0.35, 0.95)
-	style_hover.border_color = Color(0.6, 0.9, 0.6, 1.0)
-	style_hover.set_border_width_all(1)
-	style_hover.set_corner_radius_all(4)
-	style_hover.content_margin_left = 8
-	style_hover.content_margin_right = 8
-	style_hover.content_margin_top = 4
-	style_hover.content_margin_bottom = 4
+	var hover = style.duplicate()
+	hover.bg_color = style.bg_color.lightened(0.1)
+	button.add_theme_stylebox_override("hover", hover)
 
-	var style_pressed = StyleBoxFlat.new()
-	style_pressed.bg_color = Color(0.25, 0.4, 0.25, 1.0)
-	style_pressed.border_color = Color(0.4, 0.6, 0.4, 0.8)
-	style_pressed.set_border_width_all(1)
-	style_pressed.set_corner_radius_all(4)
-	style_pressed.content_margin_left = 8
-	style_pressed.content_margin_right = 8
-	style_pressed.content_margin_top = 4
-	style_pressed.content_margin_bottom = 4
-
-	var style_disabled = StyleBoxFlat.new()
-	style_disabled.bg_color = Color(0.2, 0.2, 0.2, 0.5)
-	style_disabled.border_color = Color(0.3, 0.3, 0.3, 0.5)
-	style_disabled.set_border_width_all(1)
-	style_disabled.set_corner_radius_all(4)
-	style_disabled.content_margin_left = 8
-	style_disabled.content_margin_right = 8
-	style_disabled.content_margin_top = 4
-	style_disabled.content_margin_bottom = 4
-
-	_collect_button.add_theme_stylebox_override("normal", style_normal)
-	_collect_button.add_theme_stylebox_override("hover", style_hover)
-	_collect_button.add_theme_stylebox_override("pressed", style_pressed)
-	_collect_button.add_theme_stylebox_override("disabled", style_disabled)
-	_collect_button.add_theme_font_size_override("font_size", 12)
-	_collect_button.add_theme_color_override("font_color", Color(0.9, 0.95, 0.9))
+	button.add_theme_font_size_override("font_size", 11)
+	button.add_theme_color_override("font_color", Color(0.95, 0.95, 0.9))
 
 func _start_update_timer() -> void:
-	"""Start the auto-update timers"""
 	_update_timer = Timer.new()
 	_update_timer.wait_time = UPDATE_INTERVAL
 	_update_timer.timeout.connect(_update_display)
 	_update_timer.autostart = true
 	add_child(_update_timer)
 
-	# Faster timer for craft progress updates
 	_craft_update_timer = Timer.new()
 	_craft_update_timer.wait_time = CRAFT_UPDATE_INTERVAL
 	_craft_update_timer.timeout.connect(_update_craft_display)
@@ -219,7 +262,6 @@ func _start_update_timer() -> void:
 	add_child(_craft_update_timer)
 
 func _update_display() -> void:
-	"""Update all production info"""
 	if not is_visible_in_tree():
 		return
 
@@ -227,101 +269,200 @@ func _update_display() -> void:
 	var hex_grid_manager = _get_hex_grid_manager()
 
 	if not production_manager or not hex_grid_manager:
-		_show_no_nodes_state()
 		return
 
-	# Get production rates
+	# Get production rates and conversions
 	_cached_rates = production_manager.get_all_hex_nodes_production()
-
-	# Get accumulated resources from all player nodes
+	_cached_conversions = _get_refiner_conversions(hex_grid_manager)
 	_cached_accumulated = _get_total_accumulated_resources(hex_grid_manager)
 
-	# Check if we have any production
-	if _cached_rates.is_empty() and _cached_accumulated.is_empty():
-		_show_no_nodes_state()
-		return
-
-	_show_production_state()
-	_update_rates_display()
-	_update_accumulated_display()
+	_update_production_grid()
+	_update_refiner_grid()
+	_update_accumulated_grid()
 	_update_collect_button_state()
 
-func _show_no_nodes_state() -> void:
-	"""Show the 'no nodes' message"""
-	_no_nodes_label.visible = true
-	_production_rates_container.visible = false
-	_accumulated_container.visible = false
-	_collect_button.disabled = true
-	_collect_button.text = "No Resources"
+func _get_refiner_conversions(hex_grid_manager) -> Array:
+	"""Get all active refiner/processing building conversions"""
+	var conversions: Array = []
+	var player_nodes = _get_player_nodes(hex_grid_manager)
 
-func _show_production_state() -> void:
-	"""Show normal production state"""
-	_no_nodes_label.visible = false
-	_production_rates_container.visible = true
-	_accumulated_container.visible = true
+	for node in player_nodes:
+		if not node.placed_building:
+			continue
 
-func _update_rates_display() -> void:
-	"""Update the production rates row"""
-	# Clear existing
-	for child in _production_rates_container.get_children():
+		var building = _buildings_data.get(node.placed_building, {})
+		var consumes = building.get("consumes", {})
+		var production = building.get("production", {})
+
+		if not consumes.is_empty() and not production.is_empty():
+			conversions.append({
+				"name": building.get("name", node.placed_building),
+				"consumes": consumes,
+				"produces": production,
+				"node_name": node.name
+			})
+
+	return conversions
+
+func _update_production_grid() -> void:
+	if not _production_grid:
+		return
+
+	for child in _production_grid.get_children():
 		child.queue_free()
 
 	if _cached_rates.is_empty():
-		var empty_label = Label.new()
-		empty_label.text = "No production"
-		empty_label.add_theme_font_size_override("font_size", 11)
-		empty_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-		_production_rates_container.add_child(empty_label)
+		var empty = Label.new()
+		empty.text = "No production"
+		empty.add_theme_font_size_override("font_size", 10)
+		empty.add_theme_color_override("font_color", COLOR_MUTED)
+		_production_grid.columns = 1
+		_production_grid.add_child(empty)
 		return
 
-	# Show top resources (limit to 4 for space)
-	var count = 0
-	for resource_id in _cached_rates:
-		if count >= 4:
-			break
+	_production_grid.columns = 6  # 3 pairs per row
+
+	# Sort by rate descending
+	var sorted_resources = _cached_rates.keys()
+	sorted_resources.sort_custom(func(a, b): return _cached_rates[a] > _cached_rates[b])
+
+	for resource_id in sorted_resources:
 		var rate = _cached_rates[resource_id]
 		if rate <= 0:
 			continue
 
-		var rate_label = Label.new()
-		rate_label.text = "%s +%s/hr" % [_get_resource_icon(resource_id), _format_number(rate)]
-		rate_label.add_theme_font_size_override("font_size", 11)
-		rate_label.add_theme_color_override("font_color", Color(0.7, 0.85, 0.7))
-		_production_rates_container.add_child(rate_label)
-		count += 1
+		var items = _create_rate_item(resource_id, rate)
+		for item in items:
+			_production_grid.add_child(item)
 
-func _update_accumulated_display() -> void:
-	"""Update the accumulated resources row"""
-	# Clear existing
-	for child in _accumulated_container.get_children():
+func _update_refiner_grid() -> void:
+	if not _refiner_grid:
+		return
+
+	for child in _refiner_grid.get_children():
+		child.queue_free()
+
+	if _cached_conversions.is_empty():
+		var empty = Label.new()
+		empty.text = "No refiners"
+		empty.add_theme_font_size_override("font_size", 10)
+		empty.add_theme_color_override("font_color", COLOR_MUTED)
+		_refiner_grid.columns = 1
+		_refiner_grid.add_child(empty)
+		return
+
+	_refiner_grid.columns = 6  # 3 pairs per row
+
+	for conversion in _cached_conversions:
+		var items = _create_conversion_item(conversion)
+		for item in items:
+			_refiner_grid.add_child(item)
+
+func _update_accumulated_grid() -> void:
+	if not _accumulated_grid:
+		return
+
+	for child in _accumulated_grid.get_children():
 		child.queue_free()
 
 	if _cached_accumulated.is_empty():
-		var empty_label = Label.new()
-		empty_label.text = "Nothing to collect"
-		empty_label.add_theme_font_size_override("font_size", 11)
-		empty_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-		_accumulated_container.add_child(empty_label)
+		var empty = Label.new()
+		empty.text = "Nothing ready"
+		empty.add_theme_font_size_override("font_size", 10)
+		empty.add_theme_color_override("font_color", COLOR_MUTED)
+		_accumulated_grid.columns = 1
+		_accumulated_grid.add_child(empty)
 		return
 
-	# Show accumulated (limit to 4 for space)
-	var count = 0
-	for resource_id in _cached_accumulated:
-		if count >= 4:
-			break
+	_accumulated_grid.columns = 6  # 3 pairs per row
+
+	# Sort by amount descending
+	var sorted_resources = _cached_accumulated.keys()
+	sorted_resources.sort_custom(func(a, b): return _cached_accumulated[a] > _cached_accumulated[b])
+
+	for resource_id in sorted_resources:
 		var amount = _cached_accumulated[resource_id]
-		if amount < 0.1:  # Skip tiny amounts
+		if amount < 0.1:
 			continue
 
-		var amount_label = Label.new()
-		amount_label.text = "%s %s" % [_get_resource_icon(resource_id), _format_number(amount)]
-		amount_label.add_theme_font_size_override("font_size", 11)
-		amount_label.add_theme_color_override("font_color", Color(0.95, 0.85, 0.5))
-		_accumulated_container.add_child(amount_label)
-		count += 1
+		var items = _create_accumulated_item(resource_id, amount)
+		for item in items:
+			_accumulated_grid.add_child(item)
+
+func _create_rate_item(resource_id: String, rate: float) -> Array:
+	"""Returns [icon_label, value_label] for 2-column grid"""
+	var tooltip = "%s: +%.1f per hour" % [resource_id.replace("_", " ").capitalize(), rate]
+
+	var icon = Label.new()
+	icon.text = _get_resource_icon(resource_id)
+	icon.add_theme_font_size_override("font_size", 11)
+	icon.tooltip_text = tooltip
+	icon.mouse_filter = Control.MOUSE_FILTER_PASS
+
+	var rate_label = Label.new()
+	rate_label.text = "+%s" % _format_number(rate)
+	rate_label.add_theme_font_size_override("font_size", 10)
+	rate_label.add_theme_color_override("font_color", COLOR_SUCCESS)
+	rate_label.tooltip_text = tooltip
+	rate_label.mouse_filter = Control.MOUSE_FILTER_PASS
+
+	return [icon, rate_label]
+
+func _create_conversion_item(conversion: Dictionary) -> Array:
+	"""Returns [icon_label, value_label] for 2-column grid"""
+	# Build tooltip
+	var input_str = ""
+	for res_id in conversion.consumes:
+		input_str += "%d %s, " % [conversion.consumes[res_id], res_id.replace("_", " ")]
+	input_str = input_str.trim_suffix(", ")
+
+	var output_str = ""
+	for res_id in conversion.produces:
+		output_str += "%d %s, " % [conversion.produces[res_id], res_id.replace("_", " ")]
+	output_str = output_str.trim_suffix(", ")
+
+	var tooltip = "%s\nConverts: %s/hr\nProduces: %s/hr" % [conversion.name, input_str, output_str]
+
+	# Show compact: input icon -> output icon
+	var first_input = conversion.consumes.keys()[0] if not conversion.consumes.is_empty() else ""
+	var first_output = conversion.produces.keys()[0] if not conversion.produces.is_empty() else ""
+	var output_rate = conversion.produces.get(first_output, 0)
+
+	var icons_label = Label.new()
+	icons_label.text = "%s→%s" % [_get_resource_icon(first_input), _get_resource_icon(first_output)]
+	icons_label.add_theme_font_size_override("font_size", 10)
+	icons_label.tooltip_text = tooltip
+	icons_label.mouse_filter = Control.MOUSE_FILTER_PASS
+
+	var rate_label = Label.new()
+	rate_label.text = "+%s" % _format_number(output_rate)
+	rate_label.add_theme_font_size_override("font_size", 10)
+	rate_label.add_theme_color_override("font_color", COLOR_REFINER)
+	rate_label.tooltip_text = tooltip
+	rate_label.mouse_filter = Control.MOUSE_FILTER_PASS
+
+	return [icons_label, rate_label]
+
+func _create_accumulated_item(resource_id: String, amount: float) -> Array:
+	"""Returns [icon_label, value_label] for 2-column grid"""
+	var tooltip = "%s: %.1f ready to collect" % [resource_id.replace("_", " ").capitalize(), amount]
+
+	var icon = Label.new()
+	icon.text = _get_resource_icon(resource_id)
+	icon.add_theme_font_size_override("font_size", 11)
+	icon.tooltip_text = tooltip
+	icon.mouse_filter = Control.MOUSE_FILTER_PASS
+
+	var amount_label = Label.new()
+	amount_label.text = _format_number(amount)
+	amount_label.add_theme_font_size_override("font_size", 10)
+	amount_label.add_theme_color_override("font_color", COLOR_GOLD)
+	amount_label.tooltip_text = tooltip
+	amount_label.mouse_filter = Control.MOUSE_FILTER_PASS
+
+	return [icon, amount_label]
 
 func _update_collect_button_state() -> void:
-	"""Update collect button based on accumulated resources"""
 	var has_resources = false
 	for resource_id in _cached_accumulated:
 		if _cached_accumulated[resource_id] >= 0.1:
@@ -329,13 +470,9 @@ func _update_collect_button_state() -> void:
 			break
 
 	_collect_button.disabled = not has_resources
-	if has_resources:
-		_collect_button.text = "Collect All"
-	else:
-		_collect_button.text = "Empty"
+	_collect_button.text = "Collect All" if has_resources else "Empty"
 
 func _on_collect_all_pressed() -> void:
-	"""Collect resources from all nodes"""
 	var production_manager = _get_production_manager()
 	var hex_grid_manager = _get_hex_grid_manager()
 
@@ -349,10 +486,7 @@ func _on_collect_all_pressed() -> void:
 		if not node.accumulated_resources or node.accumulated_resources.is_empty():
 			continue
 
-		# Collect from this node
 		var collected = production_manager.collect_node_resources(node.id)
-
-		# Add to total
 		for resource_id in collected:
 			total_collected[resource_id] = total_collected.get(resource_id, 0) + collected[resource_id]
 
@@ -360,31 +494,24 @@ func _on_collect_all_pressed() -> void:
 		resources_collected.emit(total_collected)
 		_show_collection_feedback(total_collected)
 
-	# Immediate update
 	_update_display()
 
 func _show_collection_feedback(collected: Dictionary) -> void:
-	"""Show visual feedback when resources are collected"""
-	# Flash the button green
-	var original_modulate = _collect_button.modulate
+	var original = _collect_button.modulate
 	_collect_button.modulate = Color(0.5, 1.0, 0.5, 1.0)
 
 	var tween = create_tween()
-	tween.tween_property(_collect_button, "modulate", original_modulate, 0.3)
+	tween.tween_property(_collect_button, "modulate", original, 0.3)
 
-	# Temporarily show total collected
 	var total = 0.0
 	for resource_id in collected:
 		total += collected[resource_id]
 
 	_collect_button.text = "+%s!" % _format_number(total)
-
-	# Reset button text after a moment
 	await get_tree().create_timer(1.5).timeout
 	_update_collect_button_state()
 
 func _get_total_accumulated_resources(hex_grid_manager) -> Dictionary:
-	"""Get total accumulated resources across all player nodes"""
 	var total: Dictionary = {}
 	var player_nodes = _get_player_nodes(hex_grid_manager)
 
@@ -400,242 +527,422 @@ func _get_total_accumulated_resources(hex_grid_manager) -> Dictionary:
 	return total
 
 func _get_player_nodes(_hex_grid_manager) -> Array:
-	"""Get all player-controlled nodes from TerritoryManager (same source as production)"""
-	# Use TerritoryManager.get_controlled_nodes() to get the same objects
-	# that TerritoryProductionManager updates
 	var territory_manager = _get_territory_manager()
 	if territory_manager and territory_manager.has_method("get_controlled_nodes"):
 		return territory_manager.get_controlled_nodes()
 	return []
 
-func _get_territory_manager():
-	var registry = _get_system_registry()
-	if registry:
-		return registry.get_system("TerritoryManager")
-	return null
-
-func _get_resource_icon(resource_id: String) -> String:
-	"""Get icon for resource type"""
-	var icons = {
-		"mana": "✦",
-		"gold": "💰",
-		"ore": "🪨",
-		"wood": "🪵",
-		"herbs": "🌿",
-		"monster_parts": "🦴",
-		"enhancement_powder": "✨",
-		"refined_metal": "⚙️",
-		"socket_crystals": "💎",
-		"divine_essence": "🌟",
-		"mana_crystals": "💠",
-		"crystals": "◆",
-		"fire_crystals": "🔥",
-		"water_crystals": "💧",
-		"earth_crystals": "🌍",
-		"lightning_crystals": "⚡",
-		"light_crystals": "☀️",
-		"dark_crystals": "🌑"
-	}
-	return icons.get(resource_id, "📦")
-
-func _format_number(value: float) -> String:
-	"""Format number with K/M suffixes"""
-	if value >= 1000000:
-		return "%.1fM" % (value / 1000000.0)
-	elif value >= 1000:
-		return "%.1fK" % (value / 1000.0)
-	elif value >= 100:
-		return "%d" % int(value)
-	elif value >= 10:
-		return "%.1f" % value
-	else:
-		return "%.2f" % value
-
-# System access helpers
-func _get_production_manager():
-	var registry = _get_system_registry()
-	if registry:
-		return registry.get_system("TerritoryProductionManager")
-	return null
-
-func _get_hex_grid_manager():
-	var registry = _get_system_registry()
-	if registry:
-		return registry.get_system("HexGridManager")
-	return null
-
-func _get_system_registry():
-	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
-	if registry_script and registry_script.has_method("get_instance"):
-		return registry_script.get_instance()
-	return null
-
 # ==============================================================================
 # CRAFT TRACKER SECTION
 # ==============================================================================
 func _create_craft_section() -> void:
-	"""Create the craft tracking section"""
 	_craft_section = VBoxContainer.new()
 	_craft_section.add_theme_constant_override("separation", 4)
 	_content_container.add_child(_craft_section)
 
-	# Header row with title and craft button
-	_craft_header = HBoxContainer.new()
-	_craft_header.add_theme_constant_override("separation", 8)
-	_craft_section.add_child(_craft_header)
+	var header = HBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
+	_craft_section.add_child(header)
 
-	var craft_icon = Label.new()
-	craft_icon.text = "⚒️"
-	craft_icon.add_theme_font_size_override("font_size", 14)
-	_craft_header.add_child(craft_icon)
+	var icon = Label.new()
+	icon.text = "⚒️"
+	icon.add_theme_font_size_override("font_size", 14)
+	header.add_child(icon)
 
-	var craft_title = Label.new()
-	craft_title.text = "CRAFTING"
-	craft_title.add_theme_font_size_override("font_size", 12)
-	craft_title.add_theme_color_override("font_color", Color(0.9, 0.75, 0.5))
-	_craft_header.add_child(craft_title)
+	var title = Label.new()
+	title.text = "CRAFTING"
+	title.add_theme_font_size_override("font_size", 12)
+	title.add_theme_color_override("font_color", Color(0.9, 0.75, 0.5))
+	header.add_child(title)
 
 	var spacer = Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_craft_header.add_child(spacer)
+	header.add_child(spacer)
 
-	# Craft button (always visible, for navigation)
 	_craft_button = Button.new()
-	_craft_button.text = "Forge"
+	_craft_button.text = "Blacksmith"
 	_craft_button.pressed.connect(_on_craft_button_pressed)
-	_style_craft_button()
-	_craft_header.add_child(_craft_button)
+	_style_button(_craft_button, false)
+	header.add_child(_craft_button)
 
-	# No crafts message (shown when idle)
-	_no_crafts_container = HBoxContainer.new()
-	_no_crafts_container.add_theme_constant_override("separation", 8)
-	_craft_section.add_child(_no_crafts_container)
+	# No crafts message
+	var no_crafts = HBoxContainer.new()
+	no_crafts.name = "NoCrafts"
+	_craft_section.add_child(no_crafts)
 
-	var no_crafts_label = Label.new()
-	no_crafts_label.text = "No active crafts"
-	no_crafts_label.add_theme_font_size_override("font_size", 11)
-	no_crafts_label.add_theme_color_override("font_color", Color(0.5, 0.45, 0.4))
-	_no_crafts_container.add_child(no_crafts_label)
+	var no_label = Label.new()
+	no_label.text = "No active crafts"
+	no_label.add_theme_font_size_override("font_size", 11)
+	no_label.add_theme_color_override("font_color", COLOR_MUTED)
+	no_crafts.add_child(no_label)
 
-	# Active craft list
 	_craft_list = VBoxContainer.new()
+	_craft_list.name = "CraftList"
 	_craft_list.add_theme_constant_override("separation", 4)
 	_craft_section.add_child(_craft_list)
 
-func _style_craft_button() -> void:
-	"""Style the craft navigation button"""
-	var style_normal = StyleBoxFlat.new()
-	style_normal.bg_color = Color(0.5, 0.35, 0.2, 0.9)
-	style_normal.border_color = Color(0.7, 0.5, 0.3, 0.8)
-	style_normal.set_border_width_all(1)
-	style_normal.set_corner_radius_all(4)
-	style_normal.content_margin_left = 8
-	style_normal.content_margin_right = 8
-	style_normal.content_margin_top = 3
-	style_normal.content_margin_bottom = 3
-
-	var style_hover = StyleBoxFlat.new()
-	style_hover.bg_color = Color(0.6, 0.45, 0.25, 0.95)
-	style_hover.border_color = Color(0.8, 0.6, 0.4, 1.0)
-	style_hover.set_border_width_all(1)
-	style_hover.set_corner_radius_all(4)
-	style_hover.content_margin_left = 8
-	style_hover.content_margin_right = 8
-	style_hover.content_margin_top = 3
-	style_hover.content_margin_bottom = 3
-
-	_craft_button.add_theme_stylebox_override("normal", style_normal)
-	_craft_button.add_theme_stylebox_override("hover", style_hover)
-	_craft_button.add_theme_font_size_override("font_size", 11)
-	_craft_button.add_theme_color_override("font_color", Color(1.0, 0.95, 0.85))
-
 func _update_craft_display() -> void:
-	"""Update the craft tracker display - simple approach:
-	Just show active crafts from HexGridManager. If none, show 'no crafts'.
-	Don't check forge ownership - if they don't have a forge, they can't craft anyway."""
 	if not is_visible_in_tree():
 		return
 
-	# Always show craft section - it's always relevant info
 	_craft_section.visible = true
 
 	var hex_grid_manager = _get_hex_grid_manager()
 	if not hex_grid_manager:
-		_show_no_crafts_state()
-		_update_forge_button_text(0)
+		_show_no_blacksmiths_state()
 		return
 
-	# Update forge button to show count of player-owned forges
-	var forge_count = _count_player_forges(hex_grid_manager)
-	_update_forge_button_text(forge_count)
+	# Get all player-owned crafting buildings
+	var blacksmith_nodes = _get_player_blacksmith_nodes(hex_grid_manager)
 
-	var active_crafts = hex_grid_manager.get_active_crafts()
-	if active_crafts.is_empty():
-		_show_no_crafts_state()
+	if blacksmith_nodes.is_empty():
+		_show_no_blacksmiths_state()
 		return
 
-	_show_active_crafts_state(active_crafts)
+	# Show each blacksmith on its own line
+	_show_blacksmith_list(blacksmith_nodes, hex_grid_manager)
 
-func _count_player_forges(hex_grid_manager) -> int:
-	"""Count how many forges the player owns"""
-	var count = 0
-	var forge_nodes = hex_grid_manager.get_nodes_by_type("forge")
-	for node in forge_nodes:
-		if node.is_controlled_by_player():
-			count += 1
-	return count
+func _get_player_blacksmith_nodes(hex_grid_manager) -> Array:
+	"""Get all player-owned crafting building nodes"""
+	var nodes: Array = []
+	var crafting_types = ["blacksmith", "weapon_forge", "armor_forge", "divine_forge"]
 
-func _update_forge_button_text(forge_count: int) -> void:
-	"""Update the forge button text to show how many forges player owns"""
-	if not _craft_button:
-		return
-	if forge_count == 0:
-		_craft_button.text = "No Forge"
-		_craft_button.disabled = true
-	elif forge_count == 1:
-		_craft_button.text = "Forge"
-		_craft_button.disabled = false
-	else:
-		_craft_button.text = "Forges (%d)" % forge_count
-		_craft_button.disabled = false
+	# Get all player-controlled nodes and check their placed_building
+	var all_nodes: Array = []
+	if hex_grid_manager.has_method("get_nodes_by_controller"):
+		all_nodes = hex_grid_manager.get_nodes_by_controller("player")
+	elif hex_grid_manager.has_method("get_all_nodes"):
+		all_nodes = hex_grid_manager.get_all_nodes()
 
-func _show_no_crafts_state() -> void:
-	"""Show the idle crafting state"""
-	_no_crafts_container.visible = true
+	for node in all_nodes:
+		if not node.is_controlled_by_player():
+			continue
+		var building = node.placed_building if node.placed_building else ""
+		if building in crafting_types:
+			nodes.append(node)
+
+	return nodes
+
+func _show_no_blacksmiths_state() -> void:
+	var no_crafts = _craft_section.get_node_or_null("NoCrafts")
+	if no_crafts:
+		no_crafts.visible = true
+		# Update the message to say no blacksmiths
+		for child in no_crafts.get_children():
+			if child is Label:
+				child.text = "No blacksmiths owned"
 	_craft_list.visible = false
+	# Hide the header craft button since we show per-node buttons now
+	if _craft_button:
+		_craft_button.visible = false
 
-func _show_active_crafts_state(active_crafts: Dictionary) -> void:
-	"""Show active crafts with progress"""
-	_no_crafts_container.visible = false
+func _show_blacksmith_list(blacksmith_nodes: Array, hex_grid_manager) -> void:
+	var no_crafts = _craft_section.get_node_or_null("NoCrafts")
+	if no_crafts:
+		no_crafts.visible = false
 	_craft_list.visible = true
+	# Hide the header craft button since we show per-node buttons now
+	if _craft_button:
+		_craft_button.visible = false
 
-	# Clear existing
 	for child in _craft_list.get_children():
 		child.queue_free()
 
-	# Add craft progress items (limit to 3 for space)
-	var count = 0
 	var current_time = int(Time.get_unix_time_from_system())
+	var count = 0
 
-	for craft_key in active_crafts:
-		if count >= 3:
+	for node in blacksmith_nodes:
+		if count >= 4:  # Show max 4 blacksmiths
 			break
 
-		var craft_data = active_crafts[craft_key]
-		var craft_item = _create_craft_progress_item(craft_data, current_time)
-		_craft_list.add_child(craft_item)
+		# Check if this node has an active craft
+		var active_crafts_for_node: Array = []
+		if hex_grid_manager.has_method("get_active_crafts_for_node"):
+			active_crafts_for_node = hex_grid_manager.get_active_crafts_for_node(node.id)
+
+		if active_crafts_for_node.is_empty():
+			# No active craft - show idle state with Craft button
+			var item = _create_idle_blacksmith_item(node)
+			_craft_list.add_child(item)
+		else:
+			# Has active craft - show progress
+			var craft_data = active_crafts_for_node[0]  # Show first active craft
+			var item = _create_craft_progress_item(craft_data, current_time, node.name)
+			_craft_list.add_child(item)
+
 		count += 1
 
-	# Show how many more if we have more
-	if active_crafts.size() > 3:
-		var more_label = Label.new()
-		more_label.text = "+%d more..." % (active_crafts.size() - 3)
-		more_label.add_theme_font_size_override("font_size", 10)
-		more_label.add_theme_color_override("font_color", Color(0.6, 0.55, 0.5))
-		_craft_list.add_child(more_label)
+	if blacksmith_nodes.size() > 4:
+		var more = Label.new()
+		more.text = "+%d more smithies..." % (blacksmith_nodes.size() - 4)
+		more.add_theme_font_size_override("font_size", 10)
+		more.add_theme_color_override("font_color", COLOR_MUTED)
+		_craft_list.add_child(more)
 
-func _create_craft_progress_item(craft_data: Dictionary, current_time: int) -> HBoxContainer:
-	"""Create a single craft progress item"""
+func _create_idle_blacksmith_item(node: HexNode) -> HBoxContainer:
+	"""Create a row for a blacksmith with no active craft"""
+	var item = HBoxContainer.new()
+	item.add_theme_constant_override("separation", 8)
+
+	# Node name
+	var node_name = node.name if node.name.length() <= 16 else node.name.substr(0, 14) + ".."
+	var name_label = Label.new()
+	name_label.text = "⚒️ " + node_name
+	name_label.add_theme_font_size_override("font_size", 10)
+	name_label.add_theme_color_override("font_color", COLOR_MUTED)
+	name_label.custom_minimum_size.x = 120
+	item.add_child(name_label)
+
+	# Idle status
+	var status_label = Label.new()
+	status_label.text = "Idle"
+	status_label.add_theme_font_size_override("font_size", 10)
+	status_label.add_theme_color_override("font_color", COLOR_MUTED)
+	status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	item.add_child(status_label)
+
+	# Craft button
+	var craft_btn = Button.new()
+	craft_btn.text = "Craft"
+	craft_btn.custom_minimum_size = Vector2(50, 18)
+	craft_btn.pressed.connect(_on_open_craft_for_node.bind(node))
+
+	var btn_style = StyleBoxFlat.new()
+	btn_style.bg_color = Color(0.5, 0.35, 0.2, 0.9)
+	btn_style.border_color = Color(0.7, 0.5, 0.3, 0.8)
+	btn_style.set_border_width_all(1)
+	btn_style.set_corner_radius_all(3)
+	craft_btn.add_theme_stylebox_override("normal", btn_style)
+
+	var hover_style = btn_style.duplicate()
+	hover_style.bg_color = Color(0.6, 0.45, 0.3, 0.9)
+	craft_btn.add_theme_stylebox_override("hover", hover_style)
+
+	craft_btn.add_theme_font_size_override("font_size", 9)
+	craft_btn.add_theme_color_override("font_color", Color(0.95, 0.95, 0.9))
+	item.add_child(craft_btn)
+
+	return item
+
+func _on_open_craft_for_node(node: HexNode) -> void:
+	"""Open the craft popup for a specific blacksmith node - directly on WorldView"""
+	_current_craft_node = node
+	_show_craft_popup(node)
+
+# ==============================================================================
+# CRAFT POPUP - Opens directly on WorldView
+# ==============================================================================
+
+func _show_craft_popup(node: HexNode) -> void:
+	"""Show the crafting recipe popup for a specific blacksmith node"""
+	# Remove existing popup if any
+	if _craft_popup and is_instance_valid(_craft_popup):
+		_craft_popup.queue_free()
+
+	var available_recipes = _get_available_recipes_for_node(node)
+	if available_recipes.is_empty():
+		return
+
+	# Get viewport size for proper positioning
+	var viewport_size = get_viewport().get_visible_rect().size
+
+	# Create popup container (centered overlay)
+	_craft_popup = Control.new()
+	_craft_popup.name = "CraftPopup"
+	_craft_popup.z_index = 100
+	_craft_popup.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_craft_popup.size = viewport_size
+
+	# Dark background overlay - click to close
+	var bg_overlay = ColorRect.new()
+	bg_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg_overlay.size = viewport_size
+	bg_overlay.color = Color(0, 0, 0, 0.7)
+	bg_overlay.gui_input.connect(_on_popup_bg_clicked)
+	_craft_popup.add_child(bg_overlay)
+
+	# Main popup panel - centered
+	var popup_panel = PanelContainer.new()
+	popup_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	var panel_width = mini(viewport_size.x * 0.9, 680)
+	var panel_height = viewport_size.y * 0.75
+	popup_panel.custom_minimum_size = Vector2(panel_width, panel_height)
+	popup_panel.size = Vector2(panel_width, panel_height)
+	popup_panel.position = Vector2(
+		(viewport_size.x - panel_width) / 2,
+		(viewport_size.y - panel_height) / 2
+	)
+
+	# Panel style
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.12, 0.1, 0.16, 0.98)
+	panel_style.border_color = Color(0.3, 0.25, 0.4, 0.8)
+	panel_style.set_border_width_all(2)
+	panel_style.set_corner_radius_all(10)
+	panel_style.content_margin_left = 12
+	panel_style.content_margin_right = 12
+	panel_style.content_margin_top = 12
+	panel_style.content_margin_bottom = 12
+	popup_panel.add_theme_stylebox_override("panel", panel_style)
+	_craft_popup.add_child(popup_panel)
+
+	# Content container
+	var content = VBoxContainer.new()
+	content.add_theme_constant_override("separation", 8)
+	popup_panel.add_child(content)
+
+	# Header with title and close button
+	var header = HBoxContainer.new()
+	header.add_theme_constant_override("separation", 10)
+	content.add_child(header)
+
+	var title = Label.new()
+	title.text = "⚒️ FORGE: " + node.name
+	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(title)
+
+	var close_btn = Button.new()
+	close_btn.text = "✕"
+	close_btn.custom_minimum_size = Vector2(32, 32)
+	close_btn.pressed.connect(_close_craft_popup)
+	var close_style = StyleBoxFlat.new()
+	close_style.bg_color = Color(0.4, 0.2, 0.2, 0.9)
+	close_style.set_corner_radius_all(4)
+	close_btn.add_theme_stylebox_override("normal", close_style)
+	close_btn.add_theme_font_size_override("font_size", 16)
+	header.add_child(close_btn)
+
+	# Tier info
+	var tier_label = Label.new()
+	tier_label.text = "Tier %d Forge  •  %d recipes available" % [node.tier, available_recipes.size()]
+	tier_label.add_theme_font_size_override("font_size", 11)
+	tier_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
+	content.add_child(tier_label)
+
+	# Separator
+	var sep = HSeparator.new()
+	content.add_child(sep)
+
+	# Recipe scroll container
+	var scroll = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	content.add_child(scroll)
+
+	# GridContainer with 3 columns
+	var grid = CraftingUIUtils.create_recipe_grid(3)
+	scroll.add_child(grid)
+
+	# Add recipe cards
+	var resource_manager = _get_resource_manager()
+	for recipe in available_recipes:
+		var costs = recipe.get("materials", recipe.get("resource_costs", {}))
+		var can_afford = true
+		if resource_manager and not costs.is_empty():
+			can_afford = resource_manager.can_afford(costs)
+
+		var craft_callback = func(task: Dictionary, _auto_repeat): _on_start_craft(task, node)
+		var card = CraftingUIUtils.create_recipe_card(recipe, can_afford, craft_callback, false, resource_manager)
+		grid.add_child(card)
+
+	# Add to main node (above everything)
+	var main_node = get_tree().root.get_node_or_null("Main")
+	if main_node:
+		main_node.add_child(_craft_popup)
+	else:
+		get_tree().root.add_child(_craft_popup)
+
+func _get_available_recipes_for_node(node: HexNode) -> Array:
+	"""Get equipment recipes available for a blacksmith node (flattened JSON structure)"""
+	var available: Array = []
+	var max_tier = node.tier
+
+	# Iterate over top-level keys (flattened structure - no nesting)
+	for recipe_id in _recipes_data.keys():
+		# Skip metadata and comment keys
+		if recipe_id.begins_with("_"):
+			continue
+
+		var recipe = _recipes_data[recipe_id]
+		if not recipe is Dictionary:
+			continue
+
+		# Get recipe tier
+		var recipe_tier = recipe.get("tier", recipe.get("territory_tier_requirement", 1))
+
+		# Must meet tier requirement
+		if recipe_tier > max_tier:
+			continue
+
+		# Add id to recipe for reference
+		var recipe_with_id = recipe.duplicate()
+		recipe_with_id["id"] = recipe_id
+		available.append(recipe_with_id)
+
+	return available
+
+func _on_popup_bg_clicked(event: InputEvent) -> void:
+	"""Close popup when clicking on background"""
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_close_craft_popup()
+
+func _close_craft_popup() -> void:
+	"""Close the craft popup"""
+	if _craft_popup and is_instance_valid(_craft_popup):
+		_craft_popup.queue_free()
+		_craft_popup = null
+	_current_craft_node = null
+
+func _on_start_craft(task: Dictionary, node: HexNode) -> void:
+	"""Handle starting a craft task"""
+	var task_id = task.get("id", "")
+	if task_id.is_empty():
+		return
+
+	var resource_manager = _get_resource_manager()
+	var hex_grid_manager = _get_hex_grid_manager()
+
+	# Check and spend resources
+	var costs = task.get("materials", task.get("resource_costs", {}))
+	if not costs.is_empty():
+		if not resource_manager:
+			return
+		if not resource_manager.can_afford(costs):
+			return
+		if not resource_manager.spend_resources(costs):
+			return
+
+	# Start the craft
+	var craft_started = false
+	if hex_grid_manager:
+		craft_started = hex_grid_manager.start_craft(node.id, task_id, task)
+
+	if not craft_started:
+		# Refund resources
+		if resource_manager:
+			for resource_id in costs:
+				resource_manager.add_resource(resource_id, costs[resource_id])
+		_show_craft_error("Forge busy or no worker assigned")
+		return
+
+	_close_craft_popup()
+	_update_craft_display()
+	_show_craft_success(task.get("name", "Item"))
+
+func _show_craft_error(message: String) -> void:
+	"""Show error feedback"""
+	# Simple feedback - flash the popup border red briefly
+	pass
+
+func _show_craft_success(item_name: String) -> void:
+	"""Show success feedback"""
+	# Brief visual feedback
+	pass
+
+func _create_craft_progress_item(craft_data: Dictionary, current_time: int, node_name: String = "") -> HBoxContainer:
 	var item = HBoxContainer.new()
 	item.add_theme_constant_override("separation", 8)
 
@@ -650,19 +957,19 @@ func _create_craft_progress_item(craft_data: Dictionary, current_time: int) -> H
 	var remaining = maxi(0, end_time - current_time)
 	var is_complete = progress >= 1.0
 
-	# Shorten name if needed
-	if task_name.length() > 18:
-		task_name = task_name.substr(0, 16) + ".."
+	# Node name (blacksmith location)
+	var display_name = node_name if node_name != "" else task_name
+	if display_name.length() > 14:
+		display_name = display_name.substr(0, 12) + ".."
 
-	# Name label
-	var name_label = Label.new()
-	name_label.text = task_name
-	name_label.add_theme_font_size_override("font_size", 10)
-	name_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.7))
-	name_label.custom_minimum_size.x = 100
-	item.add_child(name_label)
+	var node_label = Label.new()
+	node_label.text = "⚒️ " + display_name
+	node_label.add_theme_font_size_override("font_size", 10)
+	node_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.7))
+	node_label.custom_minimum_size.x = 100
+	item.add_child(node_label)
 
-	# Progress bar
+	# Progress bar container
 	var progress_container = Panel.new()
 	progress_container.custom_minimum_size = Vector2(80, 14)
 	progress_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -673,33 +980,29 @@ func _create_craft_progress_item(craft_data: Dictionary, current_time: int) -> H
 	progress_container.add_theme_stylebox_override("panel", prog_style)
 	item.add_child(progress_container)
 
-	# Fill
+	# Progress fill bar
 	var fill = ColorRect.new()
-	if is_complete:
-		fill.color = Color(0.3, 0.7, 0.4)
-	else:
-		fill.color = Color(0.5, 0.4, 0.25)
+	fill.color = Color(0.3, 0.7, 0.4) if is_complete else Color(0.5, 0.4, 0.25)
 	fill.anchor_right = progress
 	fill.anchor_bottom = 1.0
 	fill.offset_left = 1
 	fill.offset_top = 1
-	fill.offset_right = 0
 	fill.offset_bottom = -1
 	progress_container.add_child(fill)
 
-	# Time/status label
+	# Countdown timer / status
 	var status_label = Label.new()
 	if is_complete:
 		status_label.text = "✓ Ready!"
-		status_label.add_theme_color_override("font_color", Color(0.5, 0.9, 0.5))
+		status_label.add_theme_color_override("font_color", COLOR_SUCCESS)
 	else:
 		status_label.text = _format_duration(remaining)
 		status_label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8))
 	status_label.add_theme_font_size_override("font_size", 10)
-	status_label.custom_minimum_size.x = 50
+	status_label.custom_minimum_size.x = 55
 	item.add_child(status_label)
 
-	# Make clickable if complete
+	# Collect button when complete
 	if is_complete:
 		var collect_btn = Button.new()
 		collect_btn.text = "Collect"
@@ -709,127 +1012,156 @@ func _create_craft_progress_item(craft_data: Dictionary, current_time: int) -> H
 		var btn_style = StyleBoxFlat.new()
 		btn_style.bg_color = Color(0.3, 0.5, 0.3, 0.9)
 		btn_style.set_corner_radius_all(3)
-		btn_style.content_margin_left = 4
-		btn_style.content_margin_right = 4
 		collect_btn.add_theme_stylebox_override("normal", btn_style)
 		collect_btn.add_theme_font_size_override("font_size", 9)
+		collect_btn.add_theme_color_override("font_color", Color(0.95, 0.95, 0.9))
 		item.add_child(collect_btn)
 
 	return item
 
 func _format_duration(seconds: int) -> String:
-	"""Format duration in compact format"""
 	if seconds < 60:
 		return "%ds" % seconds
 	elif seconds < 3600:
 		return "%dm %ds" % [seconds / 60, seconds % 60]
 	else:
-		var hours = seconds / 3600
-		var minutes = (seconds % 3600) / 60
-		return "%dh %dm" % [hours, minutes]
+		return "%dh %dm" % [seconds / 3600, (seconds % 3600) / 60]
 
 func _on_craft_button_pressed() -> void:
-	"""Handle craft button press - navigate to forge node in territory with crafting panel open"""
 	navigate_to_crafting_requested.emit()
 
-	# Find a player-owned forge node
 	var hex_grid_manager = _get_hex_grid_manager()
 	if not hex_grid_manager:
 		return
 
-	var forge_nodes = hex_grid_manager.get_nodes_by_type("forge")
-	var player_forge: HexNode = null
-	for node in forge_nodes:
-		if node.is_controlled_by_player():
-			player_forge = node
+	# Find player-owned crafting building
+	var crafting_types = ["blacksmith", "weapon_forge", "armor_forge", "divine_forge"]
+	var player_smithy: HexNode = null
+
+	for building_type in crafting_types:
+		if hex_grid_manager.has_method("get_nodes_by_building"):
+			var nodes = hex_grid_manager.get_nodes_by_building(building_type)
+			for node in nodes:
+				if node.is_controlled_by_player():
+					player_smithy = node
+					break
+		if player_smithy:
 			break
 
-	if not player_forge:
-		print("[ProductionSummaryWidget] No player-owned forge found")
+	if not player_smithy:
 		return
 
-	# Navigate to territory screen
 	var screen_manager = _get_screen_manager()
 	if not screen_manager:
 		return
 
-	# Store the forge node ID for after navigation
-	var forge_id = player_forge.id
-
-	# Connect to screen transition to open node after navigation completes
+	var smithy_id = player_smithy.id
 	if not screen_manager.screen_transition_completed.is_connected(_on_territory_screen_ready):
-		screen_manager.screen_transition_completed.connect(_on_territory_screen_ready.bind(forge_id), CONNECT_ONE_SHOT)
+		screen_manager.screen_transition_completed.connect(_on_territory_screen_ready.bind(smithy_id), CONNECT_ONE_SHOT)
 
 	screen_manager.change_screen("territory")
 
-func _on_territory_screen_ready(screen_name: String, forge_id: String) -> void:
-	"""Called when territory screen is ready - open the forge node with crafting"""
+func _on_territory_screen_ready(screen_name: String, smithy_id: String) -> void:
 	if screen_name != "territory" and screen_name != "hex_territory":
 		return
 
-	# Get the territory screen and navigate to forge node
 	var screen_manager = _get_screen_manager()
 	if not screen_manager:
 		return
 
 	var territory_screen = screen_manager.get_current_screen()
 	if territory_screen and territory_screen.has_method("navigate_to_node"):
-		# Defer to ensure screen is fully initialized
-		territory_screen.call_deferred("navigate_to_node", forge_id, true)
+		territory_screen.call_deferred("navigate_to_node", smithy_id, true)
 
 func _on_collect_craft(craft_data: Dictionary) -> void:
-	"""Handle collecting a completed craft"""
 	var task_data = craft_data.get("task_data", {})
 	var task_id = craft_data.get("task_id", "")
 	var node_id = craft_data.get("node_id", "")
 
-	print("ProductionSummaryWidget: Collecting craft '%s' from node '%s'" % [task_id, node_id])
-	print("ProductionSummaryWidget: task_data keys: %s" % [task_data.keys()])
-
-	# Award rewards
 	_award_craft_rewards(task_data)
 
-	# Remove from tracker
 	var hex_grid_manager = _get_hex_grid_manager()
 	if hex_grid_manager:
 		hex_grid_manager.complete_craft(node_id, task_id)
 
 	craft_collected.emit(task_data)
 	_update_craft_display()
-
-	# Show feedback
 	_show_craft_collected_feedback(task_data)
 
 func _award_craft_rewards(task_data: Dictionary) -> void:
-	"""Award rewards from a completed craft"""
 	var resource_manager = _get_resource_manager()
 	if not resource_manager:
-		push_error("ProductionSummaryWidget: Cannot award craft rewards - no ResourceManager")
 		return
 
-	# Resource rewards - use "output" from crafting_recipes.json (fallback to "resource_rewards")
 	var resources = task_data.get("output", task_data.get("resource_rewards", {}))
-	if resources.is_empty():
-		push_warning("ProductionSummaryWidget: No output resources found in task_data: %s" % task_data.keys())
-		return
-
 	for resource_id in resources.keys():
 		var amount = resources[resource_id]
 		resource_manager.add_resource(resource_id, amount)
-		print("ProductionSummaryWidget: Awarded %d %s" % [amount, resource_id])
 
 func _show_craft_collected_feedback(task_data: Dictionary) -> void:
-	"""Show brief visual feedback when craft collected"""
 	var task_name = task_data.get("name", "Item")
-
-	# Flash the craft button
-	var original_modulate = _craft_button.modulate
+	var original = _craft_button.modulate
 	_craft_button.modulate = Color(0.5, 1.0, 0.5, 1.0)
-	_craft_button.text = "✓ " + task_name.substr(0, 8) if task_name.length() > 8 else "✓ " + task_name
+	_craft_button.text = "✓ " + (task_name.substr(0, 8) if task_name.length() > 8 else task_name)
 
 	var tween = create_tween()
-	tween.tween_property(_craft_button, "modulate", original_modulate, 0.4)
-	tween.tween_callback(func(): _craft_button.text = "Forge")
+	tween.tween_property(_craft_button, "modulate", original, 0.4)
+	tween.tween_callback(func(): _craft_button.text = "Blacksmith")
+
+# ==============================================================================
+# RESOURCE HELPERS
+# ==============================================================================
+func _get_resource_icon(resource_id: String) -> String:
+	var icons = {
+		"mana": "✦", "gold": "💰", "ore": "🪨", "wood": "🪵",
+		"herbs": "🌿", "monster_parts": "🦴", "enhancement_powder": "✨",
+		"refined_metal": "⚙️", "socket_crystals": "💎", "divine_essence": "🌟",
+		"mana_crystals": "💠", "divine_crystals": "✝️", "crystals": "◆",
+		"fire_crystals": "🔥", "water_crystals": "💧", "earth_crystals": "🌍",
+		"lightning_crystals": "⚡", "light_crystals": "☀️", "dark_crystals": "🌑",
+		"fine_ore": "⛏️", "hardwood": "🌳", "exotic_herbs": "🌺",
+		"beast_scales": "🐉", "quality_timber": "📐", "rare_herbs": "💊",
+		"steel_ingot": "🔩", "treated_lumber": "🪓", "alchemical_extract": "⚗️",
+		"arcane_ore": "💜", "ancient_wood": "🌲", "mystic_herbs": "🔮",
+		"magic_crystals": "💎", "prometheum": "🌋", "enchanted_wood": "✨",
+		"mystic_bloom": "🌸", "astral_shard": "⭐", "forging_flame": "🔥",
+		"divine_flame": "🕯️", "socket_crystal": "💠", "common_soul": "👻",
+		"blessed_oil": "🛢️"
+	}
+	return icons.get(resource_id, "📦")
+
+func _format_number(value: float) -> String:
+	if value >= 1000000:
+		return "%.1fM" % (value / 1000000.0)
+	elif value >= 1000:
+		return "%.1fK" % (value / 1000.0)
+	elif value >= 100:
+		return "%d" % int(value)
+	elif value >= 10:
+		return "%.1f" % value
+	else:
+		return "%.2f" % value
+
+# ==============================================================================
+# SYSTEM ACCESS
+# ==============================================================================
+func _get_production_manager():
+	var registry = _get_system_registry()
+	if registry:
+		return registry.get_system("TerritoryProductionManager")
+	return null
+
+func _get_hex_grid_manager():
+	var registry = _get_system_registry()
+	if registry:
+		return registry.get_system("HexGridManager")
+	return null
+
+func _get_territory_manager():
+	var registry = _get_system_registry()
+	if registry:
+		return registry.get_system("TerritoryManager")
+	return null
 
 func _get_screen_manager():
 	var registry = _get_system_registry()
@@ -841,4 +1173,10 @@ func _get_resource_manager():
 	var registry = _get_system_registry()
 	if registry:
 		return registry.get_system("ResourceManager")
+	return null
+
+func _get_system_registry():
+	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+	if registry_script and registry_script.has_method("get_instance"):
+		return registry_script.get_instance()
 	return null

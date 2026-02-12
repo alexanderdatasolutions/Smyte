@@ -24,7 +24,12 @@ static func serialize_god(god: God) -> Dictionary:
 		"awakened": god.is_awakened,  # Use correct property name
 		"primary_role": god.primary_role,
 		"secondary_role": god.secondary_role,
-		"specialization_path": god.specialization_path.duplicate()
+		"specialization_path": god.specialization_path.duplicate(),
+		# Save base stats - these are modified when god levels up
+		"base_hp": god.base_hp,
+		"base_attack": god.base_attack,
+		"base_defense": god.base_defense,
+		"base_speed": god.base_speed
 	}
 
 ## Deserialize Dictionary back to God object
@@ -43,7 +48,19 @@ static func deserialize_god(data: Dictionary) -> God:
 	god.level = data.get("level", 1)
 	god.experience = data.get("experience", 0)
 	god.skill_levels = data.get("skill_levels", [1, 1, 1]).duplicate()
-	
+
+	# Restore base stats if saved (these are modified when god levels up)
+	# Only apply if the save has these fields (for backwards compatibility)
+	if data.has("base_hp"):
+		god.base_hp = data.get("base_hp")
+		god.base_attack = data.get("base_attack", god.base_attack)
+		god.base_defense = data.get("base_defense", god.base_defense)
+		god.base_speed = data.get("base_speed", god.base_speed)
+	elif god.level > 1:
+		# Legacy save without base stats - recalculate from level
+		# This ensures old saves with leveled gods will have correct stats
+		_recalculate_base_stats_for_level(god)
+
 	# Properly deserialize equipment array
 	var equipment_data = data.get("equipment", [null, null, null, null, null, null])
 	god.equipment = []
@@ -242,3 +259,42 @@ static func _calculate_god_max_hp(god: God) -> int:
 	else:
 		# Fallback to base stats if system not available
 		return god.base_hp
+
+## Recalculate base stats for a god based on their level
+## Used for legacy saves that don't have base stats saved
+static func _recalculate_base_stats_for_level(god: God) -> void:
+	# Get the original base stats from the template
+	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager")
+	if not config_manager:
+		return
+
+	var god_data = config_manager.get_god_config(god.template_id)
+	if not god_data:
+		return
+
+	# Get original template stats
+	var base_stats = god_data.get("base_stats", {})
+	var original_hp = base_stats.get("hp", god_data.get("base_hp", 100))
+	var original_attack = base_stats.get("attack", god_data.get("base_attack", 50))
+	var original_defense = base_stats.get("defense", god_data.get("base_defense", 30))
+	var original_speed = base_stats.get("speed", god_data.get("base_speed", 100))
+
+	# Get stat bonuses per level based on tier (must match GodProgressionManager)
+	var stat_bonuses = {
+		1: {"attack": 10, "defense": 8, "hp": 25, "speed": 2},
+		2: {"attack": 12, "defense": 10, "hp": 30, "speed": 2},
+		3: {"attack": 15, "defense": 12, "hp": 40, "speed": 3},
+		4: {"attack": 20, "defense": 15, "hp": 50, "speed": 3},
+		5: {"attack": 25, "defense": 18, "hp": 65, "speed": 4}
+	}
+
+	var tier_bonuses = stat_bonuses.get(god.tier, stat_bonuses[1])
+	var levels_gained = god.level - 1
+
+	# Recalculate base stats
+	god.base_hp = original_hp + (tier_bonuses.hp * levels_gained)
+	god.base_attack = original_attack + (tier_bonuses.attack * levels_gained)
+	god.base_defense = original_defense + (tier_bonuses.defense * levels_gained)
+	god.base_speed = original_speed + (tier_bonuses.speed * levels_gained)
+
+	print("SaveLoadUtility: Recalculated base stats for %s (level %d)" % [god.name, god.level])

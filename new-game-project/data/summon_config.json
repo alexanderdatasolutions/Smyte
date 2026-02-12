@@ -1,142 +1,153 @@
 {
   "_metadata": {
-    "version": "3.0.0",
-    "description": "Simplified summoning - 4 soul types + element favor buffs from dungeons",
-    "last_updated": "2026-02-09",
+    "version": "4.0.0",
+    "description": "Summoning system - single source of truth for all summon types",
+    "last_updated": "2026-02-11",
     "design_notes": {
-      "no_element_souls": "Element dungeons grant Element Favor buff instead of element souls",
-      "element_favor": "Completing element dungeon grants 24h buff that doubles weight for matching element gods"
+      "crystal_summon": "Divine crystals for random gods - main fodder source, crystals from shrine",
+      "soul_summon": "Souls guarantee minimum rarity tier - earned from dungeons",
+      "element_summon": "Element powders focus summons on specific element - earned from element dungeons",
+      "pantheon_summon": "Pantheon tokens focus summons on specific pantheon - earned from events/shop"
     }
   },
 
-  "summon_methods": {
-    "soul_summon": {
-      "description": "Use souls to summon gods",
-      "costs": {
-        "common_soul": {"common_soul": 1},
-        "rare_soul": {"rare_soul": 1},
-        "epic_soul": {"epic_soul": 1},
-        "legendary_soul": {"legendary_soul": 1}
-      }
-    },
-    "premium_summon": {
-      "description": "Use divine crystals for better rates",
+  "summon_types": {
+    "crystal_summon": {
+      "id": "crystal_summon",
+      "name": "Divine Summon",
+      "description": "Use Divine Crystals to summon random gods",
       "cost": {"divine_crystals": 100},
-      "single_cost": {"divine_crystals": 100},
-      "multi_10_cost": {"divine_crystals": 900}
-    },
-    "free_daily": {
-      "description": "One free summon per day",
-      "cooldown_hours": 24,
-      "uses_common_soul_rates": true
-    },
-    "mana_summon": {
-      "description": "Use mana for basic summon",
-      "cost": {"mana": 10000}
-    }
-  },
-
-  "summon_rates": {
-    "common_soul": {
-      "common": 70.0,
-      "rare": 25.0,
-      "epic": 4.5,
-      "legendary": 0.5
-    },
-    "rare_soul": {
-      "common": 0.0,
-      "rare": 75.0,
-      "epic": 22.0,
-      "legendary": 3.0
-    },
-    "epic_soul": {
-      "common": 0.0,
-      "rare": 0.0,
-      "epic": 85.0,
-      "legendary": 15.0
-    },
-    "legendary_soul": {
-      "common": 0.0,
-      "rare": 0.0,
-      "epic": 0.0,
-      "legendary": 100.0
-    },
-    "premium": {
-      "common": 50.0,
-      "rare": 35.0,
-      "epic": 12.0,
-      "legendary": 3.0
-    },
-    "mana": {
-      "common": 75.0,
-      "rare": 20.0,
-      "epic": 4.5,
-      "legendary": 0.5
-    }
-  },
-
-  "element_powder_summon": {
-    "description": "Use element powders to increase odds of summoning matching element gods",
-    "how_it_works": "Spend element powders when summoning to boost weight for that element. 10 powder = 2x weight.",
-    "cost_per_summon": 10,
-    "weight_multiplier": 2.0,
-    "stacks_with_favor": true
-  },
-
-  "element_favor_system": {
-    "description": "Running element dungeons grants a buff that increases odds of matching element gods",
-    "how_it_works": "After completing Fire Sanctum, gain Fire Favor for 24h. Next summons have 2x weight for Fire gods.",
-    "buffs": {
-      "fire_favor": {
-        "element": "fire",
-        "weight_multiplier": 2.0,
-        "duration_hours": 24,
-        "source": "fire_sanctum_dungeon"
+      "cost_10x": {"divine_crystals": 900},
+      "rates": {
+        "common": 60.0,
+        "rare": 30.0,
+        "epic": 8.5,
+        "legendary": 1.5
       },
-      "water_favor": {
-        "element": "water",
-        "weight_multiplier": 2.0,
-        "duration_hours": 24,
-        "source": "water_sanctum_dungeon"
-      },
-      "earth_favor": {
-        "element": "earth",
-        "weight_multiplier": 2.0,
-        "duration_hours": 24,
-        "source": "earth_sanctum_dungeon"
-      },
-      "lightning_favor": {
-        "element": "lightning",
-        "weight_multiplier": 2.0,
-        "duration_hours": 24,
-        "source": "lightning_sanctum_dungeon"
-      },
-      "light_favor": {
-        "element": "light",
-        "weight_multiplier": 2.0,
-        "duration_hours": 24,
-        "source": "light_sanctum_dungeon"
-      },
-      "dark_favor": {
-        "element": "dark",
-        "weight_multiplier": 2.0,
-        "duration_hours": 24,
-        "source": "dark_sanctum_dungeon"
+      "guarantees_10x": {
+        "rare_or_better": 1
       }
     },
-    "stacking": "Multiple element favors can be active at once. Weights stack additively."
-  },
 
-  "pantheon_summon": {
-    "description": "Use pantheon tokens to focus summons on specific pantheons",
-    "pantheons": ["greek", "norse", "egyptian", "celtic", "japanese", "hindu"],
-    "cost": {"divine_crystals": 150},
-    "weight_multiplier": 3.0,
-    "how_to_get_tokens": "Complete pantheon-themed events or buy in shop"
+    "soul_summon": {
+      "id": "soul_summon",
+      "name": "Soul Summon",
+      "description": "Use souls to summon with guaranteed rarity",
+      "variants": {
+        "common_soul": {
+          "cost": {"common_soul": 1},
+          "rates": {
+            "common": 70.0,
+            "rare": 25.0,
+            "epic": 4.5,
+            "legendary": 0.5
+          },
+          "rarity_floor": "none"
+        },
+        "rare_soul": {
+          "cost": {"rare_soul": 1},
+          "rates": {
+            "rare": 75.0,
+            "epic": 22.0,
+            "legendary": 3.0
+          },
+          "rarity_floor": "rare"
+        },
+        "epic_soul": {
+          "cost": {"epic_soul": 1},
+          "rates": {
+            "epic": 85.0,
+            "legendary": 15.0
+          },
+          "rarity_floor": "epic"
+        },
+        "legendary_soul": {
+          "cost": {"legendary_soul": 1},
+          "rates": {
+            "legendary": 100.0
+          },
+          "rarity_floor": "legendary"
+        }
+      }
+    },
+
+    "element_summon": {
+      "id": "element_summon",
+      "name": "Elemental Summon",
+      "description": "Use element powder to summon gods of a specific element",
+      "base_cost": {"divine_crystals": 150},
+      "powder_cost": 10,
+      "elements": {
+        "fire": {"powder": "fire_powder", "weight_multiplier": 5.0},
+        "water": {"powder": "water_powder", "weight_multiplier": 5.0},
+        "earth": {"powder": "earth_powder", "weight_multiplier": 5.0},
+        "lightning": {"powder": "lightning_powder", "weight_multiplier": 5.0},
+        "light": {"powder": "light_powder", "weight_multiplier": 5.0},
+        "dark": {"powder": "dark_powder", "weight_multiplier": 5.0}
+      },
+      "rates": {
+        "common": 55.0,
+        "rare": 32.0,
+        "epic": 11.0,
+        "legendary": 2.0
+      }
+    },
+
+    "pantheon_summon": {
+      "id": "pantheon_summon",
+      "name": "Pantheon Summon",
+      "description": "Use pantheon tokens to summon gods from a specific pantheon",
+      "base_cost": {"divine_crystals": 150},
+      "token_cost": 1,
+      "pantheons": {
+        "greek": {"token": "greek_token", "weight_multiplier": 5.0},
+        "norse": {"token": "norse_token", "weight_multiplier": 5.0},
+        "egyptian": {"token": "egyptian_token", "weight_multiplier": 5.0},
+        "celtic": {"token": "celtic_token", "weight_multiplier": 5.0},
+        "japanese": {"token": "japanese_token", "weight_multiplier": 5.0},
+        "hindu": {"token": "hindu_token", "weight_multiplier": 5.0},
+        "aztec": {"token": "aztec_token", "weight_multiplier": 5.0},
+        "slavic": {"token": "slavic_token", "weight_multiplier": 5.0}
+      },
+      "rates": {
+        "common": 55.0,
+        "rare": 32.0,
+        "epic": 11.0,
+        "legendary": 2.0
+      }
+    },
+
+    "free_daily": {
+      "id": "free_daily",
+      "name": "Daily Free Summon",
+      "description": "One free summon every 24 hours",
+      "cost": {},
+      "cooldown_hours": 24,
+      "rates": {
+        "common": 70.0,
+        "rare": 25.0,
+        "epic": 4.5,
+        "legendary": 0.5
+      }
+    },
+
+    "mana_summon": {
+      "id": "mana_summon",
+      "name": "Mana Summon",
+      "description": "Spend mana for a basic summon - mainly for fodder",
+      "cost": {"mana": 10000},
+      "rates": {
+        "common": 80.0,
+        "rare": 17.0,
+        "epic": 2.8,
+        "legendary": 0.2
+      }
+    }
   },
 
   "pity_system": {
     "enabled": true,
+    "applies_to": ["crystal_summon", "element_summon", "pantheon_summon"],
     "hard_pity": {
       "legendary": 100,
       "epic": 50
@@ -157,13 +168,6 @@
     "resets_on_obtain": true
   },
 
-  "multi_summon_guarantees": {
-    "10_pull": {
-      "guaranteed_rare_or_better": 1,
-      "discount_percent": 10
-    }
-  },
-
   "duplicate_rewards": {
     "legendary": {"mana": 5000, "divine_crystals": 50},
     "epic": {"mana": 2000, "divine_crystals": 20},
@@ -171,16 +175,33 @@
     "common": {"mana": 100}
   },
 
-  "banner_system": {
-    "standard_banner": {
-      "name": "Divine Summoning",
-      "always_available": true,
-      "uses_default_rates": true
+  "resource_sources": {
+    "_note": "Where each summoning resource comes from",
+    "divine_crystals": {
+      "sources": ["shrine_building", "shop_purchase", "achievements", "events"],
+      "shrine_production": "magic_crystals converted at shrine"
     },
-    "rate_up_banner": {
-      "description": "Featured gods have increased rates",
-      "rate_up_multiplier": 5.0,
-      "rotates_weekly": true
+    "souls": {
+      "common_soul": "Dungeon easy difficulty rewards",
+      "rare_soul": "Dungeon normal difficulty rewards",
+      "epic_soul": "Dungeon hard difficulty rewards",
+      "legendary_soul": "Dungeon expert difficulty rewards, rare event drops"
+    },
+    "element_powders": {
+      "fire_powder": "Fire element dungeon",
+      "water_powder": "Water element dungeon",
+      "earth_powder": "Earth element dungeon",
+      "lightning_powder": "Lightning element dungeon",
+      "light_powder": "Light element dungeon",
+      "dark_powder": "Dark element dungeon"
+    },
+    "pantheon_tokens": {
+      "greek_token": "Greek-themed events, shop",
+      "norse_token": "Norse-themed events, shop",
+      "egyptian_token": "Egyptian-themed events, shop",
+      "celtic_token": "Celtic-themed events, shop",
+      "japanese_token": "Japanese-themed events, shop",
+      "hindu_token": "Hindu-themed events, shop"
     }
   }
 }

@@ -27,6 +27,7 @@ signal slot_tapped(node: HexNode, slot_type: String, slot_index: int)
 signal filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God)
 signal task_started(node: HexNode, task_id: String)
 signal select_building_requested(hex_node: HexNode)
+signal demolish_building_requested(hex_node: HexNode)
 
 # ==============================================================================
 # CONSTANTS
@@ -943,6 +944,21 @@ func _update_garrison() -> void:
 	if not current_node:
 		return
 
+	# Check if node is captured - garrison is only available for player-controlled nodes
+	var is_captured = current_node.is_controlled_by_player()
+
+	# Show lock message if not captured
+	if not is_captured:
+		var lock_label = Label.new()
+		lock_label.text = "🔒 Capture this node to assign garrison"
+		lock_label.add_theme_font_size_override("font_size", 11)
+		lock_label.add_theme_color_override("font_color", Color(0.6, 0.5, 0.4))
+		_garrison_container.add_child(lock_label)
+
+	# Clean up stale god_ids (gods that were sacrificed but still in garrison)
+	if is_captured:
+		_cleanup_stale_garrison_ids()
+
 	# Create slot boxes
 	var slots_row = HBoxContainer.new()
 	slots_row.add_theme_constant_override("separation", SLOT_SPACING)
@@ -951,13 +967,16 @@ func _update_garrison() -> void:
 	var garrison_gods: Array = []
 	for i in range(MAX_GARRISON_SLOTS):
 		var slot: Control
-		if i < current_node.garrison.size():
+		if i < current_node.garrison.size() and is_captured:
 			var god = _get_god_by_id(current_node.garrison[i])
 			if god:
 				garrison_gods.append(god)
-			slot = _create_filled_slot(current_node, "garrison", i, god)
+				slot = _create_filled_slot(current_node, "garrison", i, god, not is_captured)
+			else:
+				# This shouldn't happen after cleanup, but as fallback treat as empty
+				slot = _create_empty_slot(current_node, "garrison", i, not is_captured)
 		else:
-			slot = _create_empty_slot(current_node, "garrison", i)
+			slot = _create_empty_slot(current_node, "garrison", i, not is_captured)
 		slots_row.add_child(slot)
 
 	# Show team bonuses if garrison has 2+ gods
@@ -1107,6 +1126,21 @@ func _update_workers() -> void:
 	if not current_node:
 		return
 
+	# Check if node is captured - workers are only available for player-controlled nodes
+	var is_captured = current_node.is_controlled_by_player()
+
+	# Show lock message if not captured
+	if not is_captured:
+		var lock_label = Label.new()
+		lock_label.text = "🔒 Capture this node to assign workers"
+		lock_label.add_theme_font_size_override("font_size", 11)
+		lock_label.add_theme_color_override("font_color", Color(0.6, 0.5, 0.4))
+		_workers_container.add_child(lock_label)
+
+	# Clean up stale god_ids (gods that were sacrificed but still in workers)
+	if is_captured:
+		_cleanup_stale_worker_ids()
+
 	var max_workers = mini(current_node.tier, 5)
 
 	if max_workers == 0:
@@ -1117,10 +1151,10 @@ func _update_workers() -> void:
 		_workers_container.add_child(no_lbl)
 		return
 
-	# Check garrison power requirement for workers
-	var can_use_workers = true
+	# Check garrison power requirement for workers (only matters if captured)
+	var can_use_workers = is_captured
 	var garrison_status: Dictionary = {}
-	if territory_manager:
+	if territory_manager and is_captured:
 		garrison_status = territory_manager.get_garrison_worker_status(current_node)
 		can_use_workers = garrison_status.get("can_assign", true)
 
@@ -1147,8 +1181,12 @@ func _update_workers() -> void:
 		var slot: Control
 		if i < current_node.assigned_workers.size():
 			var god = _get_god_by_id(current_node.assigned_workers[i])
-			# Pass inactive=true for workers when garrison power is too low
-			slot = _create_filled_slot(current_node, "worker", i, god, not can_use_workers)
+			if god:
+				# Pass inactive=true for workers when garrison power is too low
+				slot = _create_filled_slot(current_node, "worker", i, god, not can_use_workers)
+			else:
+				# Null god (shouldn't happen after cleanup) - treat as empty
+				slot = _create_empty_slot(current_node, "worker", i, not can_use_workers)
 		else:
 			slot = _create_empty_slot(current_node, "worker", i, not can_use_workers)
 		slots_row.add_child(slot)
@@ -1229,6 +1267,11 @@ func _update_action_buttons() -> void:
 		var build_btn = _create_button("🏗️ Select Building", Color(0.5, 0.4, 0.2, 1))
 		build_btn.pressed.connect(_on_select_building_pressed)
 		_action_buttons.add_child(build_btn)
+	elif current_node.is_controlled_by_player() and current_node.has_building():
+		# Player-controlled tile WITH building - show change building button
+		var demolish_btn = _create_button("🔄 Change Building", Color(0.6, 0.3, 0.2, 1))
+		demolish_btn.pressed.connect(_on_demolish_pressed)
+		_action_buttons.add_child(demolish_btn)
 
 # ==============================================================================
 # SLOT CREATION METHODS (copied from TerritoryOverviewScreen)
@@ -1362,6 +1405,52 @@ func _get_god_by_id(god_id: String) -> God:
 		return null
 	return collection_manager.get_god_by_id(god_id)
 
+func _cleanup_stale_garrison_ids() -> void:
+	"""Remove god_ids from garrison that no longer exist (were sacrificed)"""
+	if not current_node or not territory_manager:
+		return
+
+	var stale_ids: Array = []
+	for god_id in current_node.garrison:
+		var god = _get_god_by_id(god_id)
+		if god == null:
+			stale_ids.append(god_id)
+			print("NodeInfoPanel: Found stale god_id in garrison: %s (god was sacrificed)" % god_id)
+
+	if stale_ids.size() > 0:
+		# Remove stale IDs from garrison
+		var clean_garrison: Array = []
+		for god_id in current_node.garrison:
+			if not stale_ids.has(god_id):
+				clean_garrison.append(god_id)
+
+		# Update via TerritoryManager to persist the cleanup
+		territory_manager.update_node_garrison(current_node.id, clean_garrison)
+		print("NodeInfoPanel: Cleaned up %d stale god_ids from garrison of node %s" % [stale_ids.size(), current_node.id])
+
+func _cleanup_stale_worker_ids() -> void:
+	"""Remove god_ids from workers that no longer exist (were sacrificed)"""
+	if not current_node or not territory_manager:
+		return
+
+	var stale_ids: Array = []
+	for god_id in current_node.assigned_workers:
+		var god = _get_god_by_id(god_id)
+		if god == null:
+			stale_ids.append(god_id)
+			print("NodeInfoPanel: Found stale god_id in workers: %s (god was sacrificed)" % god_id)
+
+	if stale_ids.size() > 0:
+		# Remove stale IDs from workers
+		var clean_workers: Array = []
+		for god_id in current_node.assigned_workers:
+			if not stale_ids.has(god_id):
+				clean_workers.append(god_id)
+
+		# Update via TerritoryManager to persist the cleanup
+		territory_manager.update_node_workers(current_node.id, clean_workers)
+		print("NodeInfoPanel: Cleaned up %d stale god_ids from workers of node %s" % [stale_ids.size(), current_node.id])
+
 func _create_button(text: String, color: Color) -> Button:
 	"""Create a styled button"""
 	var button = Button.new()
@@ -1415,6 +1504,11 @@ func _on_select_building_pressed() -> void:
 	"""Handle select building button press"""
 	if current_node:
 		select_building_requested.emit(current_node)
+
+func _on_demolish_pressed() -> void:
+	"""Handle demolish/change building button press"""
+	if current_node:
+		demolish_building_requested.emit(current_node)
 
 func _on_close_pressed() -> void:
 	"""Handle close button press"""
@@ -1554,16 +1648,15 @@ func _load_tasks_data() -> void:
 		return
 
 	var data = json.get_data()
-	# Load from both conversion_recipes and equipment_recipes
+	# Load recipes from flattened structure (recipes at top level)
 	_tasks_data = {}
-	if data.has("conversion_recipes"):
-		for recipe_id in data.conversion_recipes:
-			if not recipe_id.begins_with("_"):  # Skip comments
-				_tasks_data[recipe_id] = data.conversion_recipes[recipe_id]
-	if data.has("equipment_recipes"):
-		for recipe_id in data.equipment_recipes:
-			if not recipe_id.begins_with("_"):  # Skip comments
-				_tasks_data[recipe_id] = data.equipment_recipes[recipe_id]
+	for recipe_id in data.keys():
+		# Skip metadata and comment keys
+		if recipe_id.begins_with("_"):
+			continue
+		var recipe = data[recipe_id]
+		if recipe is Dictionary:
+			_tasks_data[recipe_id] = recipe
 
 func _update_tasks() -> void:
 	"""Update tasks/crafting section - shows Craft button for forges with workers"""
@@ -1845,6 +1938,11 @@ func _get_available_recipes(max_tier: int, craft_type: String) -> Array:
 	for recipe_id in _tasks_data.keys():
 		var recipe = _tasks_data[recipe_id]
 
+		# NEVER show conversion recipes - these are handled automatically by refinery buildings
+		var recipe_type = recipe.get("recipe_type", "")
+		if recipe_type == "conversion":
+			continue
+
 		# Get recipe tier (default to 1)
 		var recipe_tier = recipe.get("tier", recipe.get("territory_tier_requirement", 1))
 
@@ -1854,7 +1952,6 @@ func _get_available_recipes(max_tier: int, craft_type: String) -> Array:
 
 		# Filter by craft_type if specified
 		if not craft_type.is_empty():
-			var recipe_type = recipe.get("recipe_type", "")
 			var equipment_type = recipe.get("equipment_type", "")
 
 			match craft_type:
@@ -1871,7 +1968,7 @@ func _get_available_recipes(max_tier: int, craft_type: String) -> Array:
 					if recipe_type != "consumable" and equipment_type != "consumable":
 						continue
 				_:
-					# Unknown type - allow all
+					# Unknown type - allow all equipment recipes
 					pass
 
 		# Add to available (include recipe_id in the data)
@@ -1993,7 +2090,8 @@ func _show_craft_popup() -> void:
 			task,
 			can_afford,
 			_on_start_craft,
-			is_conversion  # show auto-repeat for conversions
+			is_conversion,  # show auto-repeat for conversions
+			resource_manager  # pass manager for detailed cost display
 		)
 		grid.add_child(card)
 

@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 GameCoordinator="*res://scripts/systems/core/GameCoordinator.gd"
 EventBus="*res://scripts/systems/core/EventBus.gd"
 TestHarness="*res://scripts/debug/TestHarness.gd"
+Firebase="*res://addons/godot-firebase/firebase/firebase.tscn"
 
 [debug]
 
@@ -33,6 +34,10 @@ window/size/mode=2
 window/size/resizable=false
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot-firebase/plugin.cfg")
 
 [input_devices]
 

@@ -1,12 +1,15 @@
 # scripts/systems/core/SaveManager.gd
 class_name SaveManager extends Node
 
-# Save/Load system following clean architecture - 200 lines max
+# Save/Load system following clean architecture
+# Supports local saves and cloud saves (Firestore) when signed in
 
 signal save_completed(success: bool)
 signal load_completed(success: bool, data: Dictionary)
 signal save_failed(error: String)
 signal load_failed(error: String)
+signal cloud_sync_completed
+signal cloud_sync_failed(error: String)
 
 const SAVE_FILE_PATH = "user://save_game.dat"  # Match GameCoordinator path
 const SAVE_VERSION = "1.0"
@@ -14,12 +17,16 @@ const SAVE_VERSION = "1.0"
 var auto_save_enabled: bool = true
 var auto_save_interval: float = 60.0  # 1 minute - shorter interval to prevent data loss
 var last_auto_save: float = 0.0
+var cloud_save_enabled: bool = true  # Sync to cloud when signed in
 
 # Player-specific data that doesn't belong to any system
 var player_data: Dictionary = {}
 
+# Firebase integration reference (set during initialization)
+var _firebase_integration = null
+
 func _ready():
-	pass
+	_connect_firebase()
 
 func _process(delta):
 	if auto_save_enabled:
@@ -30,10 +37,12 @@ func _process(delta):
 
 ## Save game data
 func save_game() -> bool:
+	print("[SaveManager] save_game() called")
+
 	var save_data = {}
 	save_data["version"] = SAVE_VERSION
 	save_data["timestamp"] = Time.get_unix_time_from_system()
-	
+
 	# Get data from all systems through SystemRegistry
 	var system_registry = SystemRegistry.get_instance()
 	var resource_manager = system_registry.get_system("ResourceManager") if system_registry else null
@@ -82,34 +91,49 @@ func save_game() -> bool:
 	file.store_string(json_string)
 	file.close()
 
+	print("[SaveManager] Save completed successfully to: %s" % SAVE_FILE_PATH)
+	print("[SaveManager] Save data keys: %s" % str(save_data.keys()))
+
 	save_completed.emit(true)
+
+	# Trigger cloud save if signed in
+	_trigger_cloud_save(save_data)
+
 	return true
 
 ## Load game data
 func load_game() -> bool:
+	print("[SaveManager] load_game() called, checking: %s" % SAVE_FILE_PATH)
+
 	if not FileAccess.file_exists(SAVE_FILE_PATH):
 		var error = "Save file does not exist"
+		print("[SaveManager] ERROR: %s" % error)
 		load_failed.emit(error)
 		return false
-	
+
 	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.READ)
 	if not file:
 		var error = "Failed to open save file for reading"
+		print("[SaveManager] ERROR: %s" % error)
 		load_failed.emit(error)
 		return false
-	
+
 	var json_string = file.get_as_text()
 	file.close()
-	
+
+	print("[SaveManager] Loaded %d bytes from save file" % json_string.length())
+
 	var json = JSON.new()
 	var parse_result = json.parse(json_string)
 	if parse_result != OK:
 		var error = "Failed to parse save file JSON"
+		print("[SaveManager] ERROR: %s" % error)
 		load_failed.emit(error)
 		return false
-	
+
 	var save_data = json.data
-	
+	print("[SaveManager] Parsed save data, keys: %s" % str(save_data.keys()))
+
 	# Validate version
 	var version = save_data.get("version", "")
 	if version != SAVE_VERSION:
@@ -179,7 +203,9 @@ func auto_save():
 
 ## Check if save file exists
 func has_save_file() -> bool:
-	return FileAccess.file_exists(SAVE_FILE_PATH)
+	var exists = FileAccess.file_exists(SAVE_FILE_PATH)
+	print("[SaveManager] has_save_file() checking: %s -> %s" % [SAVE_FILE_PATH, exists])
+	return exists
 
 ## Delete save file
 func delete_save_file() -> bool:
@@ -277,3 +303,176 @@ func _format_rewards_dict(rewards: Dictionary) -> String:
 		parts.append("%s: %.1f" % [resource_id, rewards[resource_id]])
 
 	return "{%s}" % ", ".join(parts)
+
+# ==============================================================================
+# CLOUD SAVE INTEGRATION
+# ==============================================================================
+
+func _connect_firebase():
+	"""Connect to FirebaseIntegration for cloud saves"""
+	# Defer to allow systems to initialize
+	_connect_firebase_deferred.call_deferred()
+
+func _connect_firebase_deferred():
+	"""Deferred connection to Firebase"""
+	var system_registry = SystemRegistry.get_instance()
+	if not system_registry:
+		return
+
+	_firebase_integration = system_registry.get_system("FirebaseIntegration")
+	if _firebase_integration:
+		_firebase_integration.cloud_save_completed.connect(_on_cloud_save_completed)
+		_firebase_integration.cloud_save_failed.connect(_on_cloud_save_failed)
+		_firebase_integration.cloud_load_completed.connect(_on_cloud_load_completed)
+		_firebase_integration.cloud_load_failed.connect(_on_cloud_load_failed)
+		_firebase_integration.cloud_save_not_found.connect(_on_cloud_save_not_found)
+		print("[SaveManager] Connected to FirebaseIntegration for cloud saves")
+
+func _trigger_cloud_save(save_data: Dictionary):
+	"""Trigger cloud save if signed in and enabled"""
+	if not cloud_save_enabled:
+		return
+
+	if not _firebase_integration:
+		return
+
+	if not _firebase_integration.is_signed_in():
+		return
+
+	if not _firebase_integration.is_cloud_save_ready():
+		return
+
+	print("[SaveManager] Triggering cloud save...")
+	_firebase_integration.save_to_cloud(save_data)
+
+func load_from_cloud():
+	"""Manually load save data from cloud"""
+	if not _firebase_integration:
+		cloud_sync_failed.emit("Firebase not available")
+		return
+
+	if not _firebase_integration.is_cloud_save_ready():
+		cloud_sync_failed.emit("Cloud saves not ready")
+		return
+
+	print("[SaveManager] Loading from cloud...")
+	_firebase_integration.load_from_cloud()
+
+func _on_cloud_save_completed():
+	"""Handle successful cloud save"""
+	print("[SaveManager] Cloud save completed")
+	cloud_sync_completed.emit()
+
+func _on_cloud_save_failed(error: String):
+	"""Handle failed cloud save"""
+	print("[SaveManager] Cloud save failed: %s" % error)
+	cloud_sync_failed.emit(error)
+
+func _on_cloud_load_completed(save_data: Dictionary):
+	"""Handle successful cloud load - apply save data to game"""
+	print("[SaveManager] Cloud load completed, checking save data...")
+	print("[SaveManager] Cloud save_data keys: %s" % str(save_data.keys()))
+
+	# Safety check: Don't apply empty or invalid cloud saves
+	# This prevents wiping local data if cloud save is corrupted/empty
+	if save_data.is_empty():
+		print("[SaveManager] WARNING: Cloud save is empty, ignoring")
+		return
+
+	# Check if cloud save has ACTUAL gods/equipment, not just empty arrays
+	var has_gods = false
+	var has_equipment = false
+	if save_data.has("collection"):
+		var collection = save_data.collection
+		print("[SaveManager] Cloud collection keys: %s" % str(collection.keys() if collection is Dictionary else "not a dict"))
+		if collection is Dictionary:
+			var gods_array = collection.get("gods", [])
+			var equip_array = collection.get("equipment", [])
+			has_gods = gods_array is Array and not gods_array.is_empty()
+			has_equipment = equip_array is Array and not equip_array.is_empty()
+			print("[SaveManager] Cloud save has %d gods, %d equipment" % [gods_array.size() if gods_array is Array else 0, equip_array.size() if equip_array is Array else 0])
+
+	if not has_gods and not has_equipment:
+		print("[SaveManager] WARNING: Cloud save has no gods or equipment, IGNORING to prevent data loss")
+		return
+
+	print("[SaveManager] Cloud save valid with gods/equipment, applying data...")
+	_apply_save_data(save_data)
+	cloud_sync_completed.emit()
+
+func _on_cloud_load_failed(error: String):
+	"""Handle failed cloud load"""
+	print("[SaveManager] Cloud load failed: %s" % error)
+	cloud_sync_failed.emit(error)
+
+func _on_cloud_save_not_found():
+	"""Handle case where no cloud save exists - push local save to cloud"""
+	print("[SaveManager] No cloud save found...")
+
+	# Safety check: Only push to cloud if we have a local save with actual data
+	if not has_save_file():
+		print("[SaveManager] No local save file either, nothing to push")
+		return
+
+	# Extra safety: Check if collection has data before pushing
+	var system_registry = SystemRegistry.get_instance()
+	if system_registry:
+		var collection_manager = system_registry.get_system("CollectionManager")
+		if collection_manager:
+			var gods = collection_manager.get_all_gods()
+			if gods.is_empty():
+				print("[SaveManager] Collection is empty, skipping cloud push (game may not be fully initialized)")
+				return
+
+	print("[SaveManager] Pushing local save to cloud...")
+	save_game()  # This will trigger cloud save after local save
+
+func _apply_save_data(save_data: Dictionary):
+	"""Apply loaded save data to all systems"""
+	var system_registry = SystemRegistry.get_instance()
+	if not system_registry:
+		load_failed.emit("SystemRegistry not available")
+		return
+
+	# Apply to all systems (same logic as load_game but with provided data)
+	if save_data.has("resources"):
+		var resource_manager = system_registry.get_system("ResourceManager")
+		if resource_manager and resource_manager.has_method("load_save_data"):
+			resource_manager.load_save_data(save_data.resources)
+
+	if save_data.has("collection"):
+		var collection_manager = system_registry.get_system("CollectionManager")
+		if collection_manager and collection_manager.has_method("load_save_data"):
+			collection_manager.load_save_data(save_data.collection)
+
+	if save_data.has("hex_grid"):
+		var hex_grid_manager = system_registry.get_system("HexGridManager")
+		if hex_grid_manager and hex_grid_manager.has_method("load_save_data"):
+			hex_grid_manager.load_save_data(save_data.hex_grid)
+		_calculate_offline_production_rewards(system_registry, hex_grid_manager)
+
+	if save_data.has("territory"):
+		var territory_manager = system_registry.get_system("TerritoryManager")
+		if territory_manager and territory_manager.has_method("load_save_data"):
+			territory_manager.load_save_data(save_data.territory)
+
+	if save_data.has("dungeon"):
+		var dungeon_manager = system_registry.get_system("DungeonManager")
+		if dungeon_manager and dungeon_manager.has_method("load_save_data"):
+			dungeon_manager.load_save_data(save_data.dungeon)
+
+	if save_data.has("summon"):
+		var summon_manager = system_registry.get_system("SummonManager")
+		if summon_manager and summon_manager.has_method("load_save_data"):
+			summon_manager.load_save_data(save_data.summon)
+
+	if save_data.has("tutorial"):
+		var tutorial_orchestrator = system_registry.get_system("TutorialOrchestrator")
+		if tutorial_orchestrator and tutorial_orchestrator.has_method("load_tutorial_save_data"):
+			tutorial_orchestrator.load_tutorial_save_data(save_data.tutorial)
+
+	if save_data.has("player_data"):
+		player_data = save_data.player_data
+
+	load_completed.emit(true, save_data)
+	print("[SaveManager] Cloud save data applied successfully")

@@ -1,0 +1,317 @@
+# scripts/ui/screens/SignInScreen.gd
+# Sign-in screen shown on game load - Email/Password auth or skip to local save
+class_name SignInScreen extends Control
+
+signal sign_in_completed(signed_in: bool)
+
+var _firebase_integration = null
+var _signing_in: bool = false
+var _is_signup_mode: bool = false
+
+# UI References
+var _email_input: LineEdit
+var _password_input: LineEdit
+var _auth_button: Button
+var _toggle_button: Button
+var _skip_button: Button
+var _status_label: Label
+
+func _ready():
+	_build_ui()
+	_connect_firebase()
+
+func _build_ui():
+	# Full screen dark overlay
+	var bg = ColorRect.new()
+	bg.name = "Background"
+	bg.color = Color(0.08, 0.06, 0.12, 1.0)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(bg)
+
+	# Center container
+	var center = CenterContainer.new()
+	center.name = "CenterContainer"
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(center)
+
+	# Main panel
+	var panel = PanelContainer.new()
+	panel.name = "Panel"
+	panel.custom_minimum_size = Vector2(400, 450)
+
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.12, 0.1, 0.16, 0.98)
+	panel_style.border_color = Color(0.4, 0.35, 0.6, 0.8)
+	panel_style.set_border_width_all(2)
+	panel_style.set_corner_radius_all(12)
+	panel_style.content_margin_left = 30
+	panel_style.content_margin_right = 30
+	panel_style.content_margin_top = 20
+	panel_style.content_margin_bottom = 20
+	panel.add_theme_stylebox_override("panel", panel_style)
+	center.add_child(panel)
+
+	# VBox for content
+	var vbox = VBoxContainer.new()
+	vbox.name = "VBox"
+	vbox.add_theme_constant_override("separation", 15)
+	panel.add_child(vbox)
+
+	# Logo/Title
+	var title = Label.new()
+	title.name = "Title"
+	title.text = "SMYTE"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 48)
+	title.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
+	vbox.add_child(title)
+
+	# Subtitle
+	var subtitle = Label.new()
+	subtitle.name = "Subtitle"
+	subtitle.text = "Battle of the Gods"
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle.add_theme_font_size_override("font_size", 18)
+	subtitle.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
+	vbox.add_child(subtitle)
+
+	# Spacer
+	var spacer1 = Control.new()
+	spacer1.custom_minimum_size = Vector2(0, 10)
+	vbox.add_child(spacer1)
+
+	# Email input
+	var email_label = Label.new()
+	email_label.text = "Email"
+	email_label.add_theme_font_size_override("font_size", 14)
+	email_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+	vbox.add_child(email_label)
+
+	_email_input = LineEdit.new()
+	_email_input.name = "EmailInput"
+	_email_input.placeholder_text = "Enter your email"
+	_email_input.custom_minimum_size = Vector2(0, 40)
+	_style_input(_email_input)
+	vbox.add_child(_email_input)
+
+	# Password input
+	var password_label = Label.new()
+	password_label.text = "Password"
+	password_label.add_theme_font_size_override("font_size", 14)
+	password_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+	vbox.add_child(password_label)
+
+	_password_input = LineEdit.new()
+	_password_input.name = "PasswordInput"
+	_password_input.placeholder_text = "Enter your password"
+	_password_input.secret = true
+	_password_input.custom_minimum_size = Vector2(0, 40)
+	_style_input(_password_input)
+	_password_input.text_submitted.connect(_on_password_submitted)
+	vbox.add_child(_password_input)
+
+	# Spacer
+	var spacer2 = Control.new()
+	spacer2.custom_minimum_size = Vector2(0, 5)
+	vbox.add_child(spacer2)
+
+	# Sign In / Sign Up Button
+	_auth_button = Button.new()
+	_auth_button.name = "AuthButton"
+	_auth_button.text = "Sign In"
+	_auth_button.custom_minimum_size = Vector2(0, 45)
+	_auth_button.add_theme_font_size_override("font_size", 16)
+	_style_primary_button(_auth_button)
+	_auth_button.pressed.connect(_on_auth_pressed)
+	vbox.add_child(_auth_button)
+
+	# Toggle between Sign In / Sign Up
+	_toggle_button = Button.new()
+	_toggle_button.name = "ToggleButton"
+	_toggle_button.text = "Don't have an account? Sign Up"
+	_toggle_button.flat = true
+	_toggle_button.add_theme_font_size_override("font_size", 12)
+	_toggle_button.add_theme_color_override("font_color", Color(0.5, 0.6, 0.8))
+	_toggle_button.pressed.connect(_on_toggle_mode)
+	vbox.add_child(_toggle_button)
+
+	# Status label
+	_status_label = Label.new()
+	_status_label.name = "StatusLabel"
+	_status_label.text = ""
+	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_status_label.add_theme_font_size_override("font_size", 13)
+	_status_label.add_theme_color_override("font_color", Color(0.8, 0.6, 0.6))
+	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(_status_label)
+
+	# Skip Button
+	_skip_button = Button.new()
+	_skip_button.name = "SkipButton"
+	_skip_button.text = "Play Offline (Skip)"
+	_skip_button.custom_minimum_size = Vector2(0, 35)
+	_skip_button.add_theme_font_size_override("font_size", 13)
+	_style_secondary_button(_skip_button)
+	_skip_button.pressed.connect(_on_skip_pressed)
+	vbox.add_child(_skip_button)
+
+func _style_input(input: LineEdit):
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.15, 0.13, 0.2, 1.0)
+	style.border_color = Color(0.3, 0.28, 0.4, 0.8)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(6)
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	input.add_theme_stylebox_override("normal", style)
+
+	var focus_style = style.duplicate()
+	focus_style.border_color = Color(0.4, 0.5, 0.8, 1.0)
+	input.add_theme_stylebox_override("focus", focus_style)
+
+func _style_primary_button(btn: Button):
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.3, 0.5, 0.8, 1.0)
+	style.set_corner_radius_all(8)
+	btn.add_theme_stylebox_override("normal", style)
+
+	var hover = style.duplicate()
+	hover.bg_color = Color(0.35, 0.55, 0.9, 1.0)
+	btn.add_theme_stylebox_override("hover", hover)
+
+	var pressed = style.duplicate()
+	pressed.bg_color = Color(0.25, 0.45, 0.7, 1.0)
+	btn.add_theme_stylebox_override("pressed", pressed)
+
+	var disabled = style.duplicate()
+	disabled.bg_color = Color(0.2, 0.2, 0.25, 0.5)
+	btn.add_theme_stylebox_override("disabled", disabled)
+
+func _style_secondary_button(btn: Button):
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.18, 0.16, 0.22, 0.8)
+	style.set_corner_radius_all(6)
+	btn.add_theme_stylebox_override("normal", style)
+	btn.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
+
+	var hover = style.duplicate()
+	hover.bg_color = Color(0.22, 0.2, 0.28, 0.9)
+	btn.add_theme_stylebox_override("hover", hover)
+
+func _connect_firebase():
+	var system_registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+	if not system_registry_script:
+		return
+
+	var registry = system_registry_script.get_instance()
+	if not registry:
+		return
+
+	_firebase_integration = registry.get_system("FirebaseIntegration")
+	if _firebase_integration:
+		_firebase_integration.sign_in_completed.connect(_on_sign_in_completed)
+		_firebase_integration.sign_in_failed.connect(_on_sign_in_failed)
+
+		# Check if already signed in
+		if _firebase_integration.is_signed_in():
+			_set_status("Already signed in!")
+			await get_tree().create_timer(0.5).timeout
+			sign_in_completed.emit(true)
+			queue_free()
+
+func _on_toggle_mode():
+	_is_signup_mode = not _is_signup_mode
+	if _is_signup_mode:
+		_auth_button.text = "Create Account"
+		_toggle_button.text = "Already have an account? Sign In"
+	else:
+		_auth_button.text = "Sign In"
+		_toggle_button.text = "Don't have an account? Sign Up"
+	_set_status("")
+
+func _on_password_submitted(_text: String):
+	_on_auth_pressed()
+
+func _on_auth_pressed():
+	if _signing_in:
+		return
+
+	var email = _email_input.text.strip_edges()
+	var password = _password_input.text
+
+	if email.is_empty():
+		_set_status("Please enter your email")
+		return
+
+	if password.is_empty():
+		_set_status("Please enter your password")
+		return
+
+	if password.length() < 6:
+		_set_status("Password must be at least 6 characters")
+		return
+
+	if not _firebase_integration:
+		_set_status("Firebase not available")
+		return
+
+	_signing_in = true
+	_set_buttons_enabled(false)
+
+	if _is_signup_mode:
+		_set_status("Creating account...")
+		_firebase_integration.sign_up_with_email(email, password)
+	else:
+		_set_status("Signing in...")
+		_firebase_integration.sign_in_with_email(email, password)
+
+func _on_skip_pressed():
+	if _signing_in:
+		return
+
+	sign_in_completed.emit(false)
+	queue_free()
+
+func _on_sign_in_completed(user_data: Dictionary):
+	_signing_in = false
+	var email = user_data.get("email", "User")
+	_status_label.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
+	_set_status("Welcome!")
+
+	await get_tree().create_timer(0.8).timeout
+	sign_in_completed.emit(true)
+	queue_free()
+
+func _on_sign_in_failed(error: String):
+	_signing_in = false
+	_status_label.add_theme_color_override("font_color", Color(0.8, 0.5, 0.5))
+
+	# Make error messages more user-friendly
+	if "EMAIL_NOT_FOUND" in error or "INVALID_LOGIN_CREDENTIALS" in error:
+		_set_status("Invalid email or password")
+	elif "EMAIL_EXISTS" in error:
+		_set_status("Email already registered. Try signing in.")
+	elif "WEAK_PASSWORD" in error:
+		_set_status("Password too weak (min 6 characters)")
+	elif "INVALID_EMAIL" in error:
+		_set_status("Invalid email format")
+	else:
+		_set_status(error)
+
+	_set_buttons_enabled(true)
+
+func _set_status(text: String):
+	if _status_label:
+		_status_label.text = text
+
+func _set_buttons_enabled(enabled: bool):
+	if _auth_button:
+		_auth_button.disabled = not enabled
+	if _skip_button:
+		_skip_button.disabled = not enabled
+	if _toggle_button:
+		_toggle_button.disabled = not enabled
+	if _email_input:
+		_email_input.editable = enabled
+	if _password_input:
+		_password_input.editable = enabled
