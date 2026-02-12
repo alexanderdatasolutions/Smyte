@@ -1,4 +1,4 @@
-# scripts/ui/NotificationToast.gd
+# scripts/ui/components/NotificationToast.gd
 # Simple notification toast following MYTHOS ARCHITECTURE
 extends Control
 class_name NotificationToast

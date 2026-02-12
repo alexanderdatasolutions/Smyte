@@ -156,3 +156,16 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 ---
 
 <!-- Ralph will append audit completion entries below -->
+
+### 2026-02-12 - Cleanup: Fix NotificationToast.tscn script path
+
+**File(s) Modified:** `scenes/NotificationToast.tscn`, `scripts/ui/components/NotificationToast.gd`
+
+**Changes:**
+- Fixed script path from `res://scripts/ui/NotificationToast.gd` to `res://scripts/ui/components/NotificationToast.gd`
+- Updated UID from `uid://bq3xspq0mdcts` to `uid://gxpv3yh3l120` (correct UID for the actual file)
+- Fixed comment in NotificationToast.gd to reflect correct path
+
+**Verified:** Ran project, no errors related to NotificationToast in debug output
+
+**Commit:** `cleanup: fix broken script path in NotificationToast.tscn`
