@@ -41,9 +41,9 @@ func load_all_configurations():
 	is_loaded = true
 	all_configurations_loaded.emit()
 
-## Load territories configuration
+## Load territories configuration (hex tiles data)
 func _load_territories_config():
-	territories_config = _load_json_file("res://data/territories.json")
+	territories_config = _load_json_file("res://data/hex_tiles.json")
 	if not territories_config.is_empty():
 		configuration_loaded.emit("territories")
 

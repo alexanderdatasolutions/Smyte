@@ -27,8 +27,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/core/ConfigurationManager.gd",
     "line": 46,
     "issue": "References 'territories.json' which does not exist",
-    "action": "Remove reference - use hex_node_templates.json instead",
-    "passes": false
+    "action": "Updated reference to hex_tiles.json (the actual territory data file)",
+    "passes": true
   },
   {
     "file": "scripts/systems/ui/ScreenManager.gd",

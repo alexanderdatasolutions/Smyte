@@ -169,3 +169,16 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors related to NotificationToast in debug output
 
 **Commit:** `cleanup: fix broken script path in NotificationToast.tscn`
+
+### 2026-02-12 - Cleanup: Fix broken territories.json reference in ConfigurationManager
+
+**File(s) Modified:** `scripts/systems/core/ConfigurationManager.gd`
+
+**Changes:**
+- Changed `_load_territories_config()` to load `res://data/hex_tiles.json` instead of non-existent `res://data/territories.json`
+- `hex_tiles.json` is the actual territory/hex data file containing blank tiles and special nodes
+- Updated comment to reflect it loads hex tiles data
+
+**Verified:** Ran project, no errors. The "Could not open territories.json" warning is now gone. Territory production, hex grid, and save loading all work correctly.
+
+**Commit:** `cleanup: fix broken territories.json reference in ConfigurationManager`
