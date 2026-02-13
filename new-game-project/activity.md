@@ -554,3 +554,18 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove dead code from UICardFactory`
+
+### 2026-02-12 - Cleanup: Remove unused functions from JSONDataLoader.gd
+
+**File(s) Modified:** `scripts/utilities/JSONDataLoader.gd`
+
+**Changes:**
+- Removed 6 unused static functions (60 lines): `load_files()`, `load_directory()`, `validate_data()`, `clear_cache()`, `set_cache_enabled()`, `get_cache_stats()`
+- All had zero external callers — verified via codebase-wide grep
+- Kept `load_file()` — preloaded by AwakeningSystem.gd as `GameDataLoader`
+- Kept `_cache` and `_cache_enabled` static vars — used internally by `load_file()`
+- File reduced from 98 to 38 lines (-60 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove dead code from JSONDataLoader`
