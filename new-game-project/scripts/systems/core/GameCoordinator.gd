@@ -86,8 +86,6 @@ func _setup_core_systems():
 ## Connect to global events
 func _connect_global_events():
 	if event_bus:
-		event_bus.game_paused.connect(_on_game_paused)
-		event_bus.game_resumed.connect(_on_game_resumed)
 		event_bus.error_occurred.connect(_on_error_occurred)
 		event_bus.loading_started.connect(_on_loading_started)
 		event_bus.loading_completed.connect(_on_loading_completed)
@@ -266,39 +264,6 @@ func get_system(system_name: String) -> Node:
 		return system_registry.get_system(system_name)
 	return null
 
-## Get system by type (convenience method)
-func get_system_by_type(type: GDScript) -> Node:
-	if system_registry:
-		return system_registry.get_system_by_type(type)
-	return null
-
-## Pause game
-func pause_game():
-	if is_paused:
-		return
-
-	is_paused = true
-	get_tree().paused = true
-	event_bus.game_paused.emit()
-
-## Resume game
-func resume_game():
-	if not is_paused:
-		return
-
-	is_paused = false
-	get_tree().paused = false
-	event_bus.game_resumed.emit()
-
-## Shutdown game cleanly
-func shutdown_game():
-	# Save before shutdown
-	save_game()
-
-	# Shutdown all systems
-	if system_registry:
-		system_registry.shutdown_all_systems()
-
 ## Handle window close and other notifications
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
@@ -314,12 +279,6 @@ func _notification(what):
 # ============================================================================
 # EVENT HANDLERS
 # ============================================================================
-
-func _on_game_paused():
-	pass
-
-func _on_game_resumed():
-	pass
 
 func _on_save_requested():
 	save_game()

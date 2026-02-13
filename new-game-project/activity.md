@@ -290,3 +290,18 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove dead signals and functions from EventBus`
+
+### 2026-02-12 - Cleanup: Remove dead code from GameCoordinator.gd
+
+**File(s) Modified:** `scripts/systems/core/GameCoordinator.gd`
+
+**Changes:**
+- Removed 4 unused functions: `get_system_by_type()`, `pause_game()`, `resume_game()`, `shutdown_game()`
+- Removed 2 empty event handlers: `_on_game_paused()`, `_on_game_resumed()`
+- Removed signal connections for `game_paused` and `game_resumed` (handlers were empty no-ops)
+- Verified all functions had zero external callers via codebase-wide grep
+- File reduced from 402 to 360 lines (-42 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove dead code from GameCoordinator`
