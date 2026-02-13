@@ -628,3 +628,17 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. DebugOverlay shadow warning eliminated. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: fix broken DebugOverlay initialization and button handlers`
+
+### 2026-02-12 - Cleanup: Remove dead code from MainUIOverlay.gd
+
+**File(s) Modified:** `scripts/ui/components/MainUIOverlay.gd`
+
+**Changes:**
+- Removed `clear_all_layers()` (7 lines) — zero external callers, only defined in this file
+- Removed `debug_layer_status()` (18 lines) — zero external callers, debug-only function
+- Corrected CLEANUP_PLAN: `disconnect_header_back_button()` is NOT unused — actively called by WorldView.gd line 102. Kept it.
+- File reduced from 343 to 318 lines (-25 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove dead code from MainUIOverlay`

@@ -315,28 +315,3 @@ func remove_from_modal_layer(node: Control):
 		if modal_layer.get_child_count() == 0:
 			modal_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-func clear_all_layers():
-	"""Clear all overlay content (useful for scene transitions)"""
-	for layer in [tutorial_layer, notification_layer, banner_layer, modal_layer]:
-		if layer:
-			for child in layer.get_children():
-				child.queue_free()
-			layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-func debug_layer_status():
-	"""Debug function to check layer visibility and content"""
-	print("=== MainUIOverlay Layer Status ===")
-	print("Tutorial Layer: visible=%s, children=%d, z_index=%d" % [tutorial_layer.visible, tutorial_layer.get_child_count(), tutorial_layer.z_index])
-	print("Banner Layer: visible=%s, children=%d, z_index=%d" % [banner_layer.visible, banner_layer.get_child_count(), banner_layer.z_index])
-	print("Modal Layer: visible=%s, children=%d, z_index=%d" % [modal_layer.visible, modal_layer.get_child_count(), modal_layer.z_index])
-	print("Notification Layer: visible=%s, children=%d, z_index=%d" % [notification_layer.visible, notification_layer.get_child_count(), notification_layer.z_index])
-	
-	if resource_display:
-		print("ResourceDisplay: visible=%s, position=%s, size=%s" % [resource_display.visible, resource_display.position, resource_display.size])
-		var parent_name = "None"
-		if resource_display.get_parent():
-			parent_name = resource_display.get_parent().name
-		print("ResourceDisplay parent: %s" % parent_name)
-	else:
-		print("ResourceDisplay: null reference")
-	print("=== End Layer Status ===")

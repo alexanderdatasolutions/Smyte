@@ -395,10 +395,10 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
   },
   {
     "file": "scripts/ui/components/MainUIOverlay.gd",
-    "lines": "182-196, 318-342",
-    "issue": "Unused: disconnect_header_back_button(), clear_all_layers(), debug_layer_status()",
-    "action": "Remove functions",
-    "passes": false
+    "lines": "318-342",
+    "issue": "Unused: clear_all_layers(), debug_layer_status(). Note: disconnect_header_back_button() is actively used by WorldView.gd",
+    "action": "Removed 2 unused functions (clear_all_layers, debug_layer_status — 25 lines). Kept disconnect_header_back_button() — actively called by WorldView.gd line 102. File reduced from 343 to 318 lines.",
+    "passes": true
   },
   {
     "file": "scripts/ui/screens/TaskAssignmentScreen.gd",
