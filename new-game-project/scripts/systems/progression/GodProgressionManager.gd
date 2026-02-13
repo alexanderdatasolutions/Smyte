@@ -40,9 +40,7 @@ func _initialize_dependencies():
 	event_bus = system_registry.get_system("EventBus")
 	collection_manager = system_registry.get_system("CollectionManager")
 	
-	# Connect to events if needed
-	if event_bus:
-		event_bus.god_sacrificed.connect(_on_god_sacrificed)
+	# Dependencies initialized - no event connections needed
 
 # ==============================================================================
 # EXPERIENCE MANAGEMENT - Core god progression
@@ -177,12 +175,3 @@ func handle_god_awakening(god: God):
 	if event_bus:
 		event_bus.god_awakened.emit(god.id)
 
-# ==============================================================================
-# EVENT HANDLERS - System integration
-# ==============================================================================
-
-func _on_god_sacrificed(_god_id: String, _xp_gained: int):
-	"""Handle god sacrifice XP events from other systems"""
-	# This is handled by the system performing the sacrifice
-	# We just track the event for analytics/logging
-	pass

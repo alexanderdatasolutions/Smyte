@@ -367,3 +367,16 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove dead code from AwakeningSystem`
+
+### 2026-02-12 - Cleanup: Remove empty handler from GodProgressionManager.gd
+
+**File(s) Modified:** `scripts/systems/progression/GodProgressionManager.gd`
+
+**Changes:**
+- Removed empty `_on_god_sacrificed()` handler (lines 184-188) — function body was just `pass`
+- Removed corresponding `event_bus.god_sacrificed.connect(_on_god_sacrificed)` signal connection from `_initialize_dependencies()`
+- File reduced from 189 to 178 lines
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove empty handler from GodProgressionManager`
