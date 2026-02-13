@@ -216,3 +216,15 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. No new warnings or errors introduced.
 
 **Commit:** `cleanup: fix team size mismatch in dungeon systems`
+
+### 2026-02-12 - Cleanup: Delete empty ProgressionCoordinator.gd
+
+**File(s) Modified:** `scripts/systems/progression/ProgressionCoordinator.gd` (DELETED)
+
+**Changes:**
+- Deleted empty file `ProgressionCoordinator.gd` — contained no implementation (1 blank line)
+- Verified no code references exist (only mentioned in docs/analysis and CLEANUP_PLAN.md)
+
+**Verified:** Ran project, no errors in debug output
+
+**Commit:** `cleanup: delete unused empty ProgressionCoordinator.gd`
