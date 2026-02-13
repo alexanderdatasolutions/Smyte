@@ -273,3 +273,20 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. No new warnings introduced.
 
 **Commit:** `cleanup: delete unused scenes and scripts`
+
+### 2026-02-12 - Cleanup: Remove dead signals and functions from EventBus.gd
+
+**File(s) Modified:** `scripts/systems/core/EventBus.gd`
+
+**Changes:**
+- Removed 14 unused signals: territory_attacked, territory_defended, role_assigned, role_unassigned, quest_started, quest_completed, quest_progress_updated, tutorial_step_completed, boss_encountered, guild_joined, guild_left, friend_added, friend_removed, message_received
+- Removed 3 unused functions: set_debug_mode(), get_event_history(), clear_history()
+- Removed unused convenience method: emit_god_level_up() (never called externally)
+- Kept achievement_unlocked (used in GameState.gd), show_tutorial_requested, loading_started/completed, game_paused/resumed (all actively used)
+- Kept _log_event() and debug vars (used internally by active convenience methods)
+- Added typed Array[Dictionary] for _event_history
+- File reduced from 192 to 147 lines (-45 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove dead signals and functions from EventBus`

@@ -133,9 +133,9 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
   {
     "file": "scripts/systems/core/EventBus.gd",
     "lines": "51-52, 64-67, 74, 92-96, 118-119, 139-150",
-    "issue": "16 signals never emitted, 3 unused functions (set_debug_mode, get_event_history, clear_history)",
-    "action": "Remove dead signals and functions",
-    "passes": false
+    "issue": "14 signals never emitted, 3 unused functions, 1 unused convenience method",
+    "action": "Removed 14 unused signals (territory_attacked/defended, role_assigned/unassigned, quest_started/completed/progress_updated, tutorial_step_completed, boss_encountered, guild_joined/left, friend_added/removed, message_received), 3 unused functions (set_debug_mode, get_event_history, clear_history), and unused emit_god_level_up. Kept achievement_unlocked (used in GameState.gd), show_tutorial_requested, loading_started/completed, game_paused/resumed (all used). File reduced from 192 to 147 lines.",
+    "passes": true
   },
   {
     "file": "scripts/systems/core/StatisticsManager.gd",

@@ -48,10 +48,6 @@ signal collection_updated(collection_type)
 # TERRITORY EVENTS
 # ============================================================================
 signal territory_captured(territory, capturing_guild)
-signal territory_attacked(territory: Dictionary, attacker: String)
-signal territory_defended(territory: Dictionary, defender: String)
-signal role_assigned(god, territory: Dictionary, role: String)  # god: God - untyped for autoload compatibility
-signal role_unassigned(god, territory: Dictionary, role: String)  # god: God - untyped for autoload compatibility
 
 # ============================================================================
 # SPECIALIZATION EVENTS
@@ -59,11 +55,8 @@ signal role_unassigned(god, territory: Dictionary, role: String)  # god: God - u
 signal specialization_unlocked(god_id: String, spec_id: String)
 
 # ============================================================================
-# QUEST & ACHIEVEMENT EVENTS
+# ACHIEVEMENT EVENTS
 # ============================================================================
-signal quest_started(quest_id: String)
-signal quest_completed(quest_id: String, rewards: Dictionary)
-signal quest_progress_updated(quest_id: String, progress: int, target: int)
 signal achievement_unlocked(achievement_id: String)
 
 # ============================================================================
@@ -72,7 +65,6 @@ signal achievement_unlocked(achievement_id: String)
 signal screen_changed(old_screen: String, new_screen: String)
 signal notification_requested(message: String, type: String, duration: float)
 signal popup_requested(popup_type: String, data: Dictionary)
-signal tutorial_step_completed(step_id: String)
 signal show_tutorial_requested(tutorial_data: Dictionary)
 signal loading_started(operation: String)
 signal loading_completed(operation: String)
@@ -83,17 +75,7 @@ signal loading_completed(operation: String)
 signal dungeon_entered(dungeon_id: String)
 signal dungeon_completed(dungeon_id: String, rewards: Array)
 signal dungeon_failed(dungeon_id: String)
-signal boss_encountered(boss_id: String)
 signal loot_obtained(loot: Array, source: String)
-
-# ============================================================================
-# SOCIAL EVENTS
-# ============================================================================
-signal guild_joined(guild_id: String)
-signal guild_left(guild_id: String)
-signal friend_added(friend_id: String)
-signal friend_removed(friend_id: String)
-signal message_received(sender: String, message: String)
 
 # ============================================================================
 # SYSTEM EVENTS
@@ -110,44 +92,26 @@ signal error_occurred(error_message: String, context: String)
 # EVENT BUS MANAGEMENT
 # ============================================================================
 
-var _event_history: Array = []  # Array[Dictionary]
+var _event_history: Array[Dictionary] = []
 var _max_history_size: int = 100
 var _debug_mode: bool = false
 
-## Enable/disable debug logging for events
-func set_debug_mode(enabled: bool):
-	_debug_mode = enabled
-
 ## Log an event to history (for debugging)
-func _log_event(event_name: String, data: Dictionary = {}):
+func _log_event(event_name: String, data: Dictionary = {}) -> void:
 	if not _debug_mode:
 		return
-	
-	var log_entry = {
+
+	var log_entry: Dictionary = {
 		"event": event_name,
 		"timestamp": Time.get_ticks_msec(),
 		"data": data
 	}
-	
+
 	_event_history.append(log_entry)
-	
+
 	# Keep history size manageable
 	while _event_history.size() > _max_history_size:
 		_event_history.pop_front()
-
-## Get recent event history for debugging
-func get_event_history(count: int = 10) -> Array:
-	var recent_events = []
-	var start_index = max(0, _event_history.size() - count)
-	
-	for i in range(start_index, _event_history.size()):
-		recent_events.append(_event_history[i])
-	
-	return recent_events
-
-## Clear event history
-func clear_history():
-	_event_history.clear()
 
 # ============================================================================
 # CONVENIENCE METHODS FOR COMMON EVENTS
@@ -161,15 +125,6 @@ func emit_resource_change(resource_id: String, new_amount: int, delta: int):
 		"delta": delta
 	})
 	resource_changed.emit(resource_id, new_amount, delta)
-
-## Emit a god level up event with proper logging
-func emit_god_level_up(god, new_level: int, old_level: int):  # god: God - untyped for autoload compatibility
-	_log_event("god_level_up", {
-		"god_id": god.id,
-		"new_level": new_level,
-		"old_level": old_level
-	})
-	god_level_up.emit(god, new_level, old_level)
 
 ## Emit battle result with comprehensive data
 func emit_battle_ended(result):  # result: BattleResult - untyped for autoload compatibility
