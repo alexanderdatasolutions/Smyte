@@ -383,8 +383,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/ui/components/ResourceDisplay.gd",
     "lines": "789-941",
     "issue": "Entire materials table system (~150 lines) never called",
-    "action": "Remove _show_materials_table() and related functions",
-    "passes": false
+    "action": "Removed 8 unused functions: _show_materials_table(), _add_table_header(), _populate_materials_table(), _add_material_row(), _create_header_style(), _get_player_resource(), _get_resource_from_manager(), debug_print_resources(). Also removed 2 dead helpers: _add_expanded_resource_row(), _add_material_item() (defined but never called). File reduced from 941 to 742 lines (-199 lines).",
+    "passes": true
   },
   {
     "file": "scripts/ui/components/DebugOverlay.gd",

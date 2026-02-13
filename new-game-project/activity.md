@@ -595,3 +595,18 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove dead code from GodCardFactory`
+
+### 2026-02-12 - Cleanup: Remove dead code from ResourceDisplay.gd
+
+**File(s) Modified:** `scripts/ui/components/ResourceDisplay.gd`
+
+**Changes:**
+- Removed 8 unused functions from the materials table system: `_show_materials_table()`, `_add_table_header()`, `_populate_materials_table()`, `_add_material_row()`, `_create_header_style()`, `_get_player_resource()`, `_get_resource_from_manager()`, `debug_print_resources()`
+- Removed 2 dead helper functions: `_add_expanded_resource_row()` and `_add_material_item()` — defined but never called (replaced by `_add_resource_to_grid()` in the current expanded panel implementation)
+- All functions verified to have zero external callers via codebase-wide grep
+- Kept all active functionality: expanded panel, resource categories, tap-to-expand, description popups
+- File reduced from 941 to 742 lines (-199 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove dead code from ResourceDisplay`
