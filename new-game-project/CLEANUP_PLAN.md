@@ -466,8 +466,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/core/SystemRegistry.gd",
     "lines": "130-273",
     "issue": "register_core_systems() is 144 lines",
-    "action": "Split into _register_phase_1(), _register_phase_2(), etc.",
-    "passes": false
+    "action": "Split into 5 phase functions: _register_core_infrastructure(), _register_collection_and_territory(), _register_battle_and_dungeon(), _register_progression(), _register_ui_equipment_and_meta(). register_core_systems() is now 6 lines. Added := type inference and -> void return types. Registration order preserved exactly.",
+    "passes": true
   },
   {
     "file": "scripts/systems/core/SaveManager.gd",

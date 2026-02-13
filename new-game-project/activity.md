@@ -721,3 +721,23 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: extract constants in God.gd`
+
+### 2026-02-12 - Cleanup: Refactor register_core_systems() in SystemRegistry.gd
+
+**File(s) Modified:** `scripts/systems/core/SystemRegistry.gd`
+
+**Changes:**
+- Split 144-line `register_core_systems()` into 5 focused phase functions:
+  - `_register_core_infrastructure()` — EventBus, SaveManager, ConfigurationManager, ResourceManager, LootSystem
+  - `_register_collection_and_territory()` — CollectionManager + 7 territory systems
+  - `_register_battle_and_dungeon()` — BattleCoordinator, DungeonManager, DungeonCoordinator
+  - `_register_progression()` — PlayerProgressionManager, GodProgressionManager, SacrificeSystem, AwakeningSystem, SacrificeManager, SummonManager
+  - `_register_ui_equipment_and_meta()` — ScreenManager, NotificationManager, TutorialOrchestrator, EquipmentManager, SkinManager, ShopManager, TowerManager, FirebaseIntegration
+- `register_core_systems()` is now 6 lines (5 function calls)
+- Added `:=` type inference to all local variables
+- Added `-> void` return types to all new functions
+- Registration order preserved exactly — no behavioral changes
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: refactor register_core_systems in SystemRegistry`
