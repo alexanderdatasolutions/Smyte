@@ -162,10 +162,10 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
 [
   {
     "file": "scripts/systems/battle/BattleFactory.gd",
-    "lines": "16-87",
-    "issue": "6 unused methods (create_territory_battle, create_dungeon_battle, create_arena_battle, etc.)",
-    "action": "VERIFY first - check if DungeonCoordinator replaced these, then remove if confirmed unused",
-    "passes": false
+    "lines": "1-105",
+    "issue": "Entire file unused - never instantiated, never registered in SystemRegistry, no external callers. DungeonCoordinator uses DungeonManager.get_battle_configuration() instead.",
+    "action": "Deleted entire file (105 lines) - verified zero code references (only docs)",
+    "passes": true
   },
   {
     "file": "scripts/systems/battle/CombatCalculator.gd",

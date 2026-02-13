@@ -305,3 +305,19 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove dead code from GameCoordinator`
+
+### 2026-02-12 - Cleanup: Delete unused BattleFactory.gd
+
+**File(s) Deleted:** `scripts/systems/battle/BattleFactory.gd`
+
+**Changes:**
+- Deleted entire `BattleFactory.gd` (105 lines) — never instantiated, never registered in SystemRegistry, no external callers
+- All 3 public methods (`create_territory_battle`, `create_dungeon_battle`, `create_arena_battle`) had zero callers
+- All 4 private helpers (`_generate_territory_enemies`, `_generate_dungeon_enemies`, `_get_dungeon_waves`, `_create_fallback_enemies`) only called internally
+- DungeonCoordinator uses `DungeonManager.get_battle_configuration()` instead — BattleFactory was a dead alternative
+- References `EnemyFactory` system that doesn't exist (noted in docs/analysis/03_battle.md)
+- Only references were in documentation files (docs/analysis/03_battle.md, docs/MOCs/GameSystems.md)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: delete unused BattleFactory.gd`
