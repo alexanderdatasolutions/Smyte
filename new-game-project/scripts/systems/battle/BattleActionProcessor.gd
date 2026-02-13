@@ -5,6 +5,10 @@ class_name BattleActionProcessor
 
 var battle_state: BattleState
 
+## Cached abilities data — loaded once from abilities.json on first use
+static var _cached_abilities: Dictionary = {}
+static var _abilities_loaded: bool = false
+
 signal action_executed(action: BattleAction, result: ActionResult)
 
 ## Setup battle context
@@ -164,21 +168,29 @@ func _apply_skill_status_effects(skill, caster, target, result: ActionResult):
 				_apply_life_drain(effect_data, caster, target, result)
 
 func _get_ability_data(skill_id: String) -> Dictionary:
-	"""Load ability data from JSON file"""
-	var file = FileAccess.open("res://data/abilities.json", FileAccess.READ)
-	if not file:
-		return {}
+	"""Look up ability data from cached abilities dictionary"""
+	if not _abilities_loaded:
+		_load_abilities_cache()
+	return _cached_abilities.get(skill_id, {})
 
-	var json_text = file.get_as_text()
+static func _load_abilities_cache() -> void:
+	"""Load abilities.json once and cache the result"""
+	_abilities_loaded = true
+	var file := FileAccess.open("res://data/abilities.json", FileAccess.READ)
+	if not file:
+		push_warning("BattleActionProcessor: Could not open abilities.json")
+		return
+
+	var json_text := file.get_as_text()
 	file.close()
 
-	var json = JSON.new()
+	var json := JSON.new()
 	if json.parse(json_text) != OK:
-		return {}
+		push_warning("BattleActionProcessor: Failed to parse abilities.json")
+		return
 
-	var data = json.get_data()
-	var abilities = data.get("abilities", {})
-	return abilities.get(skill_id, {})
+	var data: Dictionary = json.get_data()
+	_cached_abilities = data.get("abilities", {})
 
 func _apply_debuff_effect(effect_data: Dictionary, caster, target, result: ActionResult):
 	"""Apply a debuff status effect to target"""

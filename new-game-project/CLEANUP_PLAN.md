@@ -420,8 +420,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/battle/BattleActionProcessor.gd",
     "line": 168,
     "issue": "FileAccess.open() for abilities.json on EVERY skill use",
-    "action": "Cache ability data at initialization",
-    "passes": false
+    "action": "Added static cache with lazy initialization — abilities.json now loaded once on first skill use via _load_abilities_cache(), subsequent calls use in-memory Dictionary lookup",
+    "passes": true
   }
 ]
 ```

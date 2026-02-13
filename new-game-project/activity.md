@@ -655,3 +655,18 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove empty _process from TaskAssignmentScreen`
+
+### 2026-02-12 - Cleanup: Cache abilities.json in BattleActionProcessor.gd
+
+**File(s) Modified:** `scripts/systems/battle/BattleActionProcessor.gd`
+
+**Changes:**
+- Fixed performance issue: `_get_ability_data()` was calling `FileAccess.open("res://data/abilities.json")` on EVERY skill use during combat
+- Added static `_cached_abilities: Dictionary` and `_abilities_loaded: bool` class variables
+- Added `_load_abilities_cache()` static function that loads and parses abilities.json once
+- `_get_ability_data()` now does a simple dictionary lookup after first lazy load
+- No file I/O during combat after first skill use
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: cache abilities.json in BattleActionProcessor`
