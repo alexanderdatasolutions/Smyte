@@ -22,27 +22,21 @@ func handle_territory_action(territory_id: String, action: String, data: Diction
 			print("TerritoryActionsManager: Unknown territory action: %s" % action)
 
 func _handle_collect_resources(territory_id: String):
-	"""Handle resource collection from territory"""
-	print("TerritoryActionsManager: Collecting resources from territory: %s" % territory_id)
-	
+	"""Handle resource collection from hex node"""
+	print("TerritoryActionsManager: Collecting resources from node: %s" % territory_id)
+
 	var territory_production = SystemRegistry.get_instance().get_system("TerritoryProductionManager")
 	if not territory_production:
 		print("TerritoryActionsManager: ERROR - TerritoryProductionManager not found")
 		return
-	
-	var collection_result = territory_production.collect_territory_resources(territory_id)
-	
-	if collection_result.success:
-		print("TerritoryActionsManager: Successfully collected resources: %s" % collection_result.resources)
-		
-		# Show collection notification
-		var notification_manager = SystemRegistry.get_instance().get_system("NotificationManager")
-		if notification_manager:
-			notification_manager.show_resource_collection(collection_result)
-		
+
+	var collected = territory_production.collect_node_resources(territory_id)
+
+	if not collected.is_empty():
+		print("TerritoryActionsManager: Successfully collected resources: %s" % str(collected))
 		territory_updated.emit()
 	else:
-		print("TerritoryActionsManager: Collection failed: %s" % collection_result.error_message)
+		print("TerritoryActionsManager: No resources to collect from node: %s" % territory_id)
 
 func _handle_manage_gods(territory_id: String):
 	"""Handle opening territory management for god assignments"""

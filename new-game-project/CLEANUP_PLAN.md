@@ -261,10 +261,10 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
 [
   {
     "file": "scripts/systems/territory/TerritoryProductionManager.gd",
-    "lines": "73-209",
+    "lines": "52-209",
     "issue": "8+ legacy Territory class functions - old system mixed with hex",
-    "action": "Remove all legacy Territory code",
-    "passes": false
+    "action": "Removed 9 legacy Territory functions (~185 lines): calculate_territory_production(), _calculate_god_production_bonus(), get_pending_resources(), _distribute_resources_by_type(), _get_element_material_type(), collect_territory_resources(), _generate_territory_resources(), _get_territory_data(), get_total_hourly_production(). Also removed unused generation_timers and last_update_time vars. Simplified _process_all_territory_generation() to just call hex node generation. Fixed TerritoryActionsManager to use collect_node_resources() instead of broken legacy call. File reduced from 846 to 661 lines.",
+    "passes": true
   },
   {
     "file": "scripts/systems/territory/TerritoryManager.gd",

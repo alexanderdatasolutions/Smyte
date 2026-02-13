@@ -412,3 +412,20 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove unused test functions from equipment system`
+
+### 2026-02-12 - Cleanup: Remove legacy Territory code from TerritoryProductionManager
+
+**File(s) Modified:**
+- `scripts/systems/territory/TerritoryProductionManager.gd`
+- `scripts/ui/territory/TerritoryActionsManager.gd`
+
+**Changes:**
+- Removed 9 legacy Territory class functions (~185 lines): `calculate_territory_production()`, `_calculate_god_production_bonus()`, `get_pending_resources()`, `_distribute_resources_by_type()`, `_get_element_material_type()`, `collect_territory_resources()`, `_generate_territory_resources()`, `_get_territory_data()`, `get_total_hourly_production()`
+- Removed unused `generation_timers` and `last_update_time` variables
+- Simplified `_process_all_territory_generation()` to only call hex node generation (legacy Territory loop was dead — `get_territory_by_id()` method doesn't exist on TerritoryManager)
+- Fixed `TerritoryActionsManager._handle_collect_resources()` to use hex system's `collect_node_resources()` instead of broken legacy `collect_territory_resources()` call (was passing String to function expecting Territory object)
+- TerritoryProductionManager.gd reduced from 846 to 661 lines (-185 lines)
+
+**Verified:** Ran project, no errors in debug output. Hex node offline production working correctly. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove legacy Territory code from TerritoryProductionManager`
