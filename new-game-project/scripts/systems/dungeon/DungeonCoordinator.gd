@@ -136,9 +136,6 @@ func _on_battle_completed(result: BattleResult):
 	if not battle_in_progress or current_dungeon_battle.is_empty():
 		return
 
-	var _dungeon_id = current_dungeon_battle.dungeon_id
-	var _difficulty = current_dungeon_battle.difficulty
-
 	if result.victory:
 		_handle_dungeon_victory(result)
 	else:
@@ -297,14 +294,6 @@ func _reset_battle_state():
 	"""Reset battle state after completion"""
 	current_dungeon_battle.clear()
 	battle_in_progress = false
-
-func is_battle_in_progress() -> bool:
-	"""Check if dungeon battle is currently in progress"""
-	return battle_in_progress
-
-func get_current_battle_info() -> Dictionary:
-	"""Get current battle information"""
-	return current_dungeon_battle.duplicate()
 
 # System interface methods
 func initialize():

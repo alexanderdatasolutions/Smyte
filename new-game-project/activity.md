@@ -445,3 +445,16 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove legacy resource stubs from TerritoryManager`
+
+### 2026-02-12 - Cleanup: Remove dead code from DungeonCoordinator.gd
+
+**File(s) Modified:** `scripts/systems/dungeon/DungeonCoordinator.gd`
+
+**Changes:**
+- Removed 2 unused local variables in `_on_battle_completed()`: `_dungeon_id` and `_difficulty` — assigned but never read (both `_handle_dungeon_victory()` and `_handle_dungeon_defeat()` re-extract these from `current_dungeon_battle` directly)
+- Removed 2 unused public functions: `is_battle_in_progress()` and `get_current_battle_info()` — verified zero external callers via codebase-wide grep
+- File reduced from 318 to 307 lines (-11 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove dead code from DungeonCoordinator`
