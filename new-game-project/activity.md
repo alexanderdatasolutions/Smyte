@@ -846,3 +846,22 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: refactor create_recipe_card in CraftingUIUtils`
+
+### 2026-02-13 - Cleanup: Refactor _show_craft_popup() in ProductionSummaryWidget.gd
+
+**File(s) Modified:** `scripts/ui/components/ProductionSummaryWidget.gd`
+
+**Changes:**
+- Extracted 5 helper functions from 121-line `_show_craft_popup()`:
+  - `_create_popup_overlay()` — full-screen Control container with dark ColorRect background (15 lines)
+  - `_create_popup_panel()` — centered PanelContainer with StyleBoxFlat styling (24 lines)
+  - `_add_popup_header()` — title label + close button with styling (22 lines)
+  - `_add_popup_tier_info()` — tier and recipe count info label (6 lines)
+  - `_add_popup_recipe_grid()` — ScrollContainer with recipe grid and CraftingUIUtils cards (20 lines)
+- `_show_craft_popup()` reduced from 121 lines to 29 lines
+- Added `:=` type inference and static typing throughout new functions
+- No behavioral changes — all logic preserved exactly
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: refactor _show_craft_popup in ProductionSummaryWidget`

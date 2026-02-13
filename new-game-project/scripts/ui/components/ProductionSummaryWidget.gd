@@ -735,125 +735,130 @@ func _on_open_craft_for_node(node: HexNode) -> void:
 
 func _show_craft_popup(node: HexNode) -> void:
 	"""Show the crafting recipe popup for a specific blacksmith node"""
-	# Remove existing popup if any
 	if _craft_popup and is_instance_valid(_craft_popup):
 		_craft_popup.queue_free()
 
-	var available_recipes = _get_available_recipes_for_node(node)
+	var available_recipes := _get_available_recipes_for_node(node)
 	if available_recipes.is_empty():
 		return
 
-	# Get viewport size for proper positioning
-	var viewport_size = get_viewport().get_visible_rect().size
+	var viewport_size := get_viewport().get_visible_rect().size
 
-	# Create popup container (centered overlay)
-	_craft_popup = Control.new()
-	_craft_popup.name = "CraftPopup"
-	_craft_popup.z_index = 100
-	_craft_popup.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_craft_popup.size = viewport_size
+	_craft_popup = _create_popup_overlay(viewport_size)
+	var popup_panel := _create_popup_panel(viewport_size)
+	_craft_popup.add_child(popup_panel)
 
-	# Dark background overlay - click to close
-	var bg_overlay = ColorRect.new()
-	bg_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg_overlay.size = viewport_size
-	bg_overlay.color = Color(0, 0, 0, 0.7)
-	bg_overlay.gui_input.connect(_on_popup_bg_clicked)
-	_craft_popup.add_child(bg_overlay)
+	var content := VBoxContainer.new()
+	content.add_theme_constant_override("separation", 8)
+	popup_panel.add_child(content)
 
-	# Main popup panel - centered
-	var popup_panel = PanelContainer.new()
-	popup_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	var panel_width = mini(viewport_size.x * 0.9, 680)
-	var panel_height = viewport_size.y * 0.75
-	popup_panel.custom_minimum_size = Vector2(panel_width, panel_height)
-	popup_panel.size = Vector2(panel_width, panel_height)
-	popup_panel.position = Vector2(
+	_add_popup_header(content, node.name)
+	_add_popup_tier_info(content, node.tier, available_recipes.size())
+	content.add_child(HSeparator.new())
+	_add_popup_recipe_grid(content, available_recipes, node)
+
+	var main_node := get_tree().root.get_node_or_null("Main")
+	if main_node:
+		main_node.add_child(_craft_popup)
+	else:
+		get_tree().root.add_child(_craft_popup)
+
+func _create_popup_overlay(viewport_size: Vector2) -> Control:
+	"""Create the full-screen popup container with dark background"""
+	var overlay := Control.new()
+	overlay.name = "CraftPopup"
+	overlay.z_index = 100
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.size = viewport_size
+
+	var bg := ColorRect.new()
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.size = viewport_size
+	bg.color = Color(0, 0, 0, 0.7)
+	bg.gui_input.connect(_on_popup_bg_clicked)
+	overlay.add_child(bg)
+
+	return overlay
+
+func _create_popup_panel(viewport_size: Vector2) -> PanelContainer:
+	"""Create the centered popup panel with styling"""
+	var panel := PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	var panel_width := mini(viewport_size.x * 0.9, 680)
+	var panel_height := viewport_size.y * 0.75
+	panel.custom_minimum_size = Vector2(panel_width, panel_height)
+	panel.size = Vector2(panel_width, panel_height)
+	panel.position = Vector2(
 		(viewport_size.x - panel_width) / 2,
 		(viewport_size.y - panel_height) / 2
 	)
 
-	# Panel style
-	var panel_style = StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.12, 0.1, 0.16, 0.98)
-	panel_style.border_color = Color(0.3, 0.25, 0.4, 0.8)
-	panel_style.set_border_width_all(2)
-	panel_style.set_corner_radius_all(10)
-	panel_style.content_margin_left = 12
-	panel_style.content_margin_right = 12
-	panel_style.content_margin_top = 12
-	panel_style.content_margin_bottom = 12
-	popup_panel.add_theme_stylebox_override("panel", panel_style)
-	_craft_popup.add_child(popup_panel)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.1, 0.16, 0.98)
+	style.border_color = Color(0.3, 0.25, 0.4, 0.8)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(10)
+	style.content_margin_left = 12
+	style.content_margin_right = 12
+	style.content_margin_top = 12
+	style.content_margin_bottom = 12
+	panel.add_theme_stylebox_override("panel", style)
 
-	# Content container
-	var content = VBoxContainer.new()
-	content.add_theme_constant_override("separation", 8)
-	popup_panel.add_child(content)
+	return panel
 
-	# Header with title and close button
-	var header = HBoxContainer.new()
+func _add_popup_header(content: VBoxContainer, node_name: String) -> void:
+	"""Add title and close button to popup content"""
+	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 10)
 	content.add_child(header)
 
-	var title = Label.new()
-	title.text = "⚒️ FORGE: " + node.name
+	var title := Label.new()
+	title.text = "⚒️ FORGE: " + node_name
 	title.add_theme_font_size_override("font_size", 18)
 	title.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 
-	var close_btn = Button.new()
+	var close_btn := Button.new()
 	close_btn.text = "✕"
 	close_btn.custom_minimum_size = Vector2(32, 32)
 	close_btn.pressed.connect(_close_craft_popup)
-	var close_style = StyleBoxFlat.new()
+	var close_style := StyleBoxFlat.new()
 	close_style.bg_color = Color(0.4, 0.2, 0.2, 0.9)
 	close_style.set_corner_radius_all(4)
 	close_btn.add_theme_stylebox_override("normal", close_style)
 	close_btn.add_theme_font_size_override("font_size", 16)
 	header.add_child(close_btn)
 
-	# Tier info
-	var tier_label = Label.new()
-	tier_label.text = "Tier %d Forge  •  %d recipes available" % [node.tier, available_recipes.size()]
+func _add_popup_tier_info(content: VBoxContainer, tier: int, recipe_count: int) -> void:
+	"""Add tier info label to popup content"""
+	var tier_label := Label.new()
+	tier_label.text = "Tier %d Forge  •  %d recipes available" % [tier, recipe_count]
 	tier_label.add_theme_font_size_override("font_size", 11)
 	tier_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
 	content.add_child(tier_label)
 
-	# Separator
-	var sep = HSeparator.new()
-	content.add_child(sep)
-
-	# Recipe scroll container
-	var scroll = ScrollContainer.new()
+func _add_popup_recipe_grid(content: VBoxContainer, recipes: Array, node: HexNode) -> void:
+	"""Add scrollable recipe grid to popup content"""
+	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	content.add_child(scroll)
 
-	# GridContainer with 3 columns
-	var grid = CraftingUIUtils.create_recipe_grid(3)
+	var grid := CraftingUIUtils.create_recipe_grid(3)
 	scroll.add_child(grid)
 
-	# Add recipe cards
 	var resource_manager = _get_resource_manager()
-	for recipe in available_recipes:
-		var costs = recipe.get("materials", recipe.get("resource_costs", {}))
-		var can_afford = true
+	for recipe in recipes:
+		var costs: Dictionary = recipe.get("materials", recipe.get("resource_costs", {}))
+		var can_afford := true
 		if resource_manager and not costs.is_empty():
 			can_afford = resource_manager.can_afford(costs)
 
-		var craft_callback = func(task: Dictionary, _auto_repeat): _on_start_craft(task, node)
-		var card = CraftingUIUtils.create_recipe_card(recipe, can_afford, craft_callback, false, resource_manager)
+		var craft_callback := func(task: Dictionary, _auto_repeat): _on_start_craft(task, node)
+		var card := CraftingUIUtils.create_recipe_card(recipe, can_afford, craft_callback, false, resource_manager)
 		grid.add_child(card)
-
-	# Add to main node (above everything)
-	var main_node = get_tree().root.get_node_or_null("Main")
-	if main_node:
-		main_node.add_child(_craft_popup)
-	else:
-		get_tree().root.add_child(_craft_popup)
 
 func _get_available_recipes_for_node(node: HexNode) -> Array:
 	"""Get equipment recipes available for a blacksmith node (flattened JSON structure)"""

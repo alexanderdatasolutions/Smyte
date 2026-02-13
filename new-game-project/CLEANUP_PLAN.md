@@ -515,8 +515,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/ui/components/ProductionSummaryWidget.gd",
     "lines": "736-856",
     "issue": "_show_craft_popup() is 120 lines",
-    "action": "Extract popup/header/grid functions",
-    "passes": false
+    "action": "Extracted 5 helper functions: _create_popup_overlay() (full-screen container + dark bg), _create_popup_panel() (centered panel with styling), _add_popup_header() (title + close button), _add_popup_tier_info() (tier label), _add_popup_recipe_grid() (scroll + grid + recipe cards). _show_craft_popup() reduced from 121 to 29 lines. Added := type inference and static typing throughout.",
+    "passes": true
   }
 ]
 ```
