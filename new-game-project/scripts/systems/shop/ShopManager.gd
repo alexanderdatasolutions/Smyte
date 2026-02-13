@@ -19,7 +19,6 @@ var _active_subscriptions: Dictionary = {}  # offer_id -> expiry_timestamp
 # System references
 var _resource_manager: Node = null
 var _event_bus: Node = null
-var _skin_manager: Node = null
 
 func _ready():
 	name = "ShopManagerSystem"
@@ -33,7 +32,6 @@ func _cache_system_references():
 	if registry:
 		_resource_manager = registry.get_system("ResourceManager")
 		_event_bus = registry.get_system("EventBus")
-		_skin_manager = registry.get_system("SkinManager")
 
 func _load_shop_data():
 	var file = FileAccess.open("res://data/shop_items.json", FileAccess.READ)
@@ -72,14 +70,6 @@ func get_crystal_pack(pack_id: String) -> Dictionary:
 			return pack
 	return {}
 
-func get_featured_packs() -> Array:
-	"""Get featured/best value packs"""
-	var featured = []
-	for pack in _crystal_packs:
-		if pack.get("featured", false) or pack.get("best_value", false):
-			featured.append(pack)
-	return featured
-
 func purchase_crystal_pack(pack_id: String) -> bool:
 	"""
 	Purchase a crystal pack.
@@ -108,9 +98,6 @@ func purchase_crystal_pack(pack_id: String) -> bool:
 	})
 
 	crystals_purchased.emit(pack_id, total)
-
-	if _event_bus and _event_bus.has_signal("crystals_purchased"):
-		_event_bus.emit_signal("crystals_purchased", pack_id, total)
 
 	# Trigger save after purchase
 	if _event_bus:
@@ -201,45 +188,6 @@ func get_subscription_days_remaining(offer_id: String) -> int:
 		return 0
 	var remaining = _active_subscriptions[offer_id] - Time.get_unix_time_from_system()
 	return int(remaining / (24 * 60 * 60))
-
-func claim_daily_reward(offer_id: String) -> bool:
-	"""Claim daily reward from an active subscription"""
-	if not is_subscription_active(offer_id):
-		return false
-
-	var offer = get_special_offer(offer_id)
-	if not offer.has("daily_reward"):
-		return false
-
-	_apply_rewards(offer.daily_reward)
-
-	# Trigger save after claiming reward
-	if _event_bus:
-		_event_bus.save_requested.emit()
-
-	return true
-
-# ==============================================================================
-# SKIN SHOP INTEGRATION
-# ==============================================================================
-
-func get_available_skins() -> Array:
-	"""Get all available skins from SkinManager"""
-	if _skin_manager:
-		return _skin_manager.get_all_skins()
-	return []
-
-func get_skins_for_god(god_id: String) -> Array:
-	"""Get skins for a specific god"""
-	if _skin_manager:
-		return _skin_manager.get_skins_for_god(god_id)
-	return []
-
-func purchase_skin(skin_id: String) -> bool:
-	"""Purchase a skin through SkinManager"""
-	if _skin_manager:
-		return _skin_manager.purchase_skin(skin_id)
-	return false
 
 # ==============================================================================
 # HELPER METHODS

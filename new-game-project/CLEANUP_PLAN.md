@@ -323,8 +323,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/shop/ShopManager.gd",
     "lines": "21, 75-81, 198-242",
     "issue": "Unused _event_bus, get_featured_packs(), claim_daily_reward(), skin wrappers",
-    "action": "Remove dead code",
-    "passes": false
+    "action": "Removed get_featured_packs() (7 lines), claim_daily_reward() (16 lines), 3 skin wrapper functions (get_available_skins, get_skins_for_god, purchase_skin — 18 lines), _skin_manager var and its cache line, and dead EventBus crystals_purchased emit (signal doesn't exist on EventBus). Kept _event_bus — actively used for save_requested.emit() in purchase flows. File reduced from 287 to 235 lines (-52 lines).",
+    "passes": true
   },
   {
     "file": "scripts/systems/shop/SkinManager.gd",

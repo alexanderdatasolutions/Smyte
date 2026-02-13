@@ -500,3 +500,20 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove dead debug functions from ResourceManager`
+
+### 2026-02-12 - Cleanup: Remove dead code from ShopManager.gd
+
+**File(s) Modified:** `scripts/systems/shop/ShopManager.gd`
+
+**Changes:**
+- Removed `get_featured_packs()` (7 lines) — zero external callers
+- Removed `claim_daily_reward()` (16 lines) — zero external callers
+- Removed 3 skin wrapper functions: `get_available_skins()`, `get_skins_for_god()`, `purchase_skin()` (18 lines) — zero external callers, ShopScreen.gd calls SkinManager directly
+- Removed `_skin_manager` variable and its cache line in `_cache_system_references()` — only used by removed skin wrappers
+- Removed dead `emit_signal("crystals_purchased")` on EventBus — signal doesn't exist on EventBus
+- Corrected CLEANUP_PLAN: `_event_bus` is NOT unused — actively used for `save_requested.emit()` in purchase flows. Kept it.
+- File reduced from 287 to 235 lines (-52 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove dead code from ShopManager`
