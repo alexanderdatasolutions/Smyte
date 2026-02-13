@@ -105,97 +105,101 @@ func save_game() -> bool:
 func load_game() -> bool:
 	print("[SaveManager] load_game() called, checking: %s" % SAVE_FILE_PATH)
 
+	var save_data: Dictionary = _read_save_file()
+	if save_data.is_empty():
+		return false
+
+	# Validate version
+	var version: String = save_data.get("version", "")
+	if version != SAVE_VERSION:
+		push_warning("SaveManager: Save file version mismatch: " + version + " vs " + SAVE_VERSION)
+
+	# Load data into all systems
+	var system_registry := SystemRegistry.get_instance()
+	_load_systems_from_data(save_data, system_registry)
+
+	load_completed.emit(true, save_data)
+	return true
+
+## Read and parse the local save file, returning the parsed Dictionary (empty on failure)
+func _read_save_file() -> Dictionary:
 	if not FileAccess.file_exists(SAVE_FILE_PATH):
-		var error = "Save file does not exist"
+		var error := "Save file does not exist"
 		print("[SaveManager] ERROR: %s" % error)
 		load_failed.emit(error)
-		return false
+		return {}
 
-	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.READ)
+	var file := FileAccess.open(SAVE_FILE_PATH, FileAccess.READ)
 	if not file:
-		var error = "Failed to open save file for reading"
+		var error := "Failed to open save file for reading"
 		print("[SaveManager] ERROR: %s" % error)
 		load_failed.emit(error)
-		return false
+		return {}
 
-	var json_string = file.get_as_text()
+	var json_string := file.get_as_text()
 	file.close()
 
 	print("[SaveManager] Loaded %d bytes from save file" % json_string.length())
 
-	var json = JSON.new()
-	var parse_result = json.parse(json_string)
+	var json := JSON.new()
+	var parse_result := json.parse(json_string)
 	if parse_result != OK:
-		var error = "Failed to parse save file JSON"
+		var error := "Failed to parse save file JSON"
 		print("[SaveManager] ERROR: %s" % error)
 		load_failed.emit(error)
-		return false
+		return {}
 
-	var save_data = json.data
+	var save_data: Dictionary = json.data
 	print("[SaveManager] Parsed save data, keys: %s" % str(save_data.keys()))
+	return save_data
 
-	# Validate version
-	var version = save_data.get("version", "")
-	if version != SAVE_VERSION:
-		push_warning("SaveManager: Save file version mismatch: " + version + " vs " + SAVE_VERSION)
-	
-	# Load data into systems through SystemRegistry
-	var system_registry = SystemRegistry.get_instance()
-	if save_data.has("resources"):
-		var resource_manager = system_registry.get_system("ResourceManager") if system_registry else null
-		if resource_manager and resource_manager.has_method("load_save_data"):
-			resource_manager.load_save_data(save_data.resources)
-	
-	if save_data.has("collection"):
-		var collection_manager = system_registry.get_system("CollectionManager") if system_registry else null
-		if collection_manager and collection_manager.has_method("load_save_data"):
-			collection_manager.load_save_data(save_data.collection)
+## Load save data into all game systems via SystemRegistry
+func _load_systems_from_data(save_data: Dictionary, system_registry) -> void:
+	if not system_registry:
+		return
 
+	_load_system_data(system_registry, "ResourceManager", "resources", save_data)
+	_load_system_data(system_registry, "CollectionManager", "collection", save_data)
+
+	# Hex grid needs extra logging and offline production calculation
 	if save_data.has("hex_grid"):
 		print("[SaveManager] hex_grid data found in save")
-		var hex_grid_data = save_data.hex_grid
+		var hex_grid_data: Dictionary = save_data.hex_grid
 		if hex_grid_data.has("nodes"):
 			print("[SaveManager] hex_grid has %d nodes in save data" % hex_grid_data.nodes.size())
 		else:
 			print("[SaveManager] WARNING: hex_grid has no 'nodes' key!")
 
-		var hex_grid_manager = system_registry.get_system("HexGridManager") if system_registry else null
+		var hex_grid_manager = system_registry.get_system("HexGridManager")
 		if hex_grid_manager and hex_grid_manager.has_method("load_save_data"):
 			hex_grid_manager.load_save_data(save_data.hex_grid)
 		else:
 			print("[SaveManager] WARNING: HexGridManager not found or no load_save_data method!")
 
-		# Calculate offline production rewards for hex nodes
 		_calculate_offline_production_rewards(system_registry, hex_grid_manager)
 	else:
 		print("[SaveManager] WARNING: No hex_grid data in save file!")
 
-	if save_data.has("territory"):
-		var territory_manager = system_registry.get_system("TerritoryManager") if system_registry else null
-		if territory_manager and territory_manager.has_method("load_save_data"):
-			territory_manager.load_save_data(save_data.territory)
+	_load_system_data(system_registry, "TerritoryManager", "territory", save_data)
+	_load_system_data(system_registry, "DungeonManager", "dungeon", save_data)
+	_load_system_data(system_registry, "SummonManager", "summon", save_data)
 
-	if save_data.has("dungeon"):
-		var dungeon_manager = system_registry.get_system("DungeonManager") if system_registry else null
-		if dungeon_manager and dungeon_manager.has_method("load_save_data"):
-			dungeon_manager.load_save_data(save_data.dungeon)
-
-	if save_data.has("summon"):
-		var summon_manager = system_registry.get_system("SummonManager") if system_registry else null
-		if summon_manager and summon_manager.has_method("load_save_data"):
-			summon_manager.load_save_data(save_data.summon)
-
+	# Tutorial uses a different method name
 	if save_data.has("tutorial"):
-		var tutorial_orchestrator = system_registry.get_system("TutorialOrchestrator") if system_registry else null
+		var tutorial_orchestrator = system_registry.get_system("TutorialOrchestrator")
 		if tutorial_orchestrator and tutorial_orchestrator.has_method("load_tutorial_save_data"):
 			tutorial_orchestrator.load_tutorial_save_data(save_data.tutorial)
 
-	# Load player-specific data (tower best floor, etc.)
 	if save_data.has("player_data"):
 		player_data = save_data.player_data
 
-	load_completed.emit(true, save_data)
-	return true
+## Helper: load a single system's data if present in save_data
+func _load_system_data(system_registry, system_name: String, data_key: String, save_data: Dictionary) -> void:
+	if not save_data.has(data_key):
+		return
+	var system = system_registry.get_system(system_name)
+	if system and system.has_method("load_save_data"):
+		system.load_save_data(save_data[data_key])
 
 ## Auto-save
 func auto_save():
@@ -427,52 +431,12 @@ func _on_cloud_save_not_found():
 	print("[SaveManager] Pushing local save to cloud...")
 	save_game()  # This will trigger cloud save after local save
 
-func _apply_save_data(save_data: Dictionary):
-	"""Apply loaded save data to all systems"""
-	var system_registry = SystemRegistry.get_instance()
+func _apply_save_data(save_data: Dictionary) -> void:
+	var system_registry := SystemRegistry.get_instance()
 	if not system_registry:
 		load_failed.emit("SystemRegistry not available")
 		return
 
-	# Apply to all systems (same logic as load_game but with provided data)
-	if save_data.has("resources"):
-		var resource_manager = system_registry.get_system("ResourceManager")
-		if resource_manager and resource_manager.has_method("load_save_data"):
-			resource_manager.load_save_data(save_data.resources)
-
-	if save_data.has("collection"):
-		var collection_manager = system_registry.get_system("CollectionManager")
-		if collection_manager and collection_manager.has_method("load_save_data"):
-			collection_manager.load_save_data(save_data.collection)
-
-	if save_data.has("hex_grid"):
-		var hex_grid_manager = system_registry.get_system("HexGridManager")
-		if hex_grid_manager and hex_grid_manager.has_method("load_save_data"):
-			hex_grid_manager.load_save_data(save_data.hex_grid)
-		_calculate_offline_production_rewards(system_registry, hex_grid_manager)
-
-	if save_data.has("territory"):
-		var territory_manager = system_registry.get_system("TerritoryManager")
-		if territory_manager and territory_manager.has_method("load_save_data"):
-			territory_manager.load_save_data(save_data.territory)
-
-	if save_data.has("dungeon"):
-		var dungeon_manager = system_registry.get_system("DungeonManager")
-		if dungeon_manager and dungeon_manager.has_method("load_save_data"):
-			dungeon_manager.load_save_data(save_data.dungeon)
-
-	if save_data.has("summon"):
-		var summon_manager = system_registry.get_system("SummonManager")
-		if summon_manager and summon_manager.has_method("load_save_data"):
-			summon_manager.load_save_data(save_data.summon)
-
-	if save_data.has("tutorial"):
-		var tutorial_orchestrator = system_registry.get_system("TutorialOrchestrator")
-		if tutorial_orchestrator and tutorial_orchestrator.has_method("load_tutorial_save_data"):
-			tutorial_orchestrator.load_tutorial_save_data(save_data.tutorial)
-
-	if save_data.has("player_data"):
-		player_data = save_data.player_data
-
+	_load_systems_from_data(save_data, system_registry)
 	load_completed.emit(true, save_data)
 	print("[SaveManager] Cloud save data applied successfully")

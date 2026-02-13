@@ -741,3 +741,20 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: refactor register_core_systems in SystemRegistry`
+
+### 2026-02-12 - Cleanup: Refactor load_game() in SaveManager.gd
+
+**File(s) Modified:** `scripts/systems/core/SaveManager.gd`
+
+**Changes:**
+- Extracted `_read_save_file() -> Dictionary` — handles file I/O, JSON parsing, and error reporting (30 lines)
+- Extracted `_load_systems_from_data()` — loads all game systems from save data, shared between `load_game()` and `_apply_save_data()` (38 lines)
+- Extracted `_load_system_data()` helper — eliminates repetitive if-has/get-system/has-method pattern (6 lines)
+- `load_game()` reduced from 94 lines to 18 lines
+- `_apply_save_data()` reduced from 48 lines to 9 lines — eliminated duplicate system loading logic
+- Added `:=` type inference and typed parameters to new functions
+- File reduced from 479 to 443 lines (-36 lines, with code duplication eliminated)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: refactor load_game in SaveManager`
