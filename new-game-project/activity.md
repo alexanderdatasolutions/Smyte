@@ -610,3 +610,21 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove dead code from ResourceDisplay`
+
+### 2026-02-12 - Cleanup: Fix broken DebugOverlay initialization and button handlers
+
+**File(s) Modified:** `scripts/ui/components/DebugOverlay.gd`
+
+**Changes:**
+- Fixed `_ready()` — was hardcoding `progression_manager = null` and `tutorial_manager = null` instead of fetching from SystemRegistry
+- Added `_ensure_managers()` lazy initialization that fetches PlayerProgressionManager and TutorialOrchestrator from SystemRegistry on first use (F1 toggle)
+- Fixed all progression button handlers — were calling nonexistent `debug_add_experience()` and `debug_set_level()` methods; now use real API (`add_experience()`) and direct state setting for level jumps
+- Fixed `_update_display()` — was calling nonexistent `get_debug_info()` method; now uses real API (`get_player_level()`, `get_player_experience()`, `get_xp_for_next_level()`)
+- Fixed tutorial display — was calling nonexistent `get_debug_info()`; now uses `get_current_tutorial_info()` and `is_tutorial_active()`
+- Added 3 missing button handlers connected in scene: `_on_reset_tutorials_pressed()`, `_on_test_3_gods_pressed()`, `_on_show_god_count_pressed()`
+- Fixed `name` variable shadowing Node.name warning (renamed to `tutorial_name`)
+- Added static typing throughout (return types, parameter types, local variables)
+
+**Verified:** Ran project, no errors in debug output. DebugOverlay shadow warning eliminated. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: fix broken DebugOverlay initialization and button handlers`

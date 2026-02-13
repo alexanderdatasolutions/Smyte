@@ -390,8 +390,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/ui/components/DebugOverlay.gd",
     "lines": "11-12, 82-125",
     "issue": "progression_manager and tutorial_manager always null - debug buttons broken",
-    "action": "Fix initialization or remove non-functional features",
-    "passes": false
+    "action": "Fixed initialization to fetch managers from SystemRegistry via lazy _ensure_managers(). Fixed button handlers to use real API (add_experience instead of nonexistent debug_add_experience, direct state set for level jumps). Added missing handlers (_on_reset_tutorials_pressed, _on_test_3_gods_pressed, _on_show_god_count_pressed) that scene buttons connect to. Fixed name shadowing warning. File reduced from 142 to 169 lines (added missing functionality).",
+    "passes": true
   },
   {
     "file": "scripts/ui/components/MainUIOverlay.gd",
