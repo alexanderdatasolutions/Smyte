@@ -346,8 +346,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/utilities/UICardFactory.gd",
     "lines": "78-217",
     "issue": "9+ unused functions (~150 lines): create_equipment_card, create_territory_card, create_compact_god_card, etc.",
-    "action": "Remove all unused functions",
-    "passes": false
+    "action": "Removed 9 unused public/private functions and 3 unused CardStyle enum values. Kept create_god_card() (used by AwakeningGodList, SacrificeGodList, BattleDisplayManager) with COLLECTION and BATTLE_SETUP styles. File reduced from 218 to 71 lines (-147 lines).",
+    "passes": true
   },
   {
     "file": "scripts/utilities/JSONDataLoader.gd",

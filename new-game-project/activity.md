@@ -536,3 +536,21 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove dead code from SkinManager`
+
+### 2026-02-12 - Cleanup: Remove unused functions from UICardFactory.gd
+
+**File(s) Modified:** `scripts/utilities/UICardFactory.gd`
+
+**Changes:**
+- Removed 9 unused functions: `create_equipment_card()`, `create_territory_card()`, `create_compact_god_card()`, `create_god_grid()`, `create_team_layout()`, `_apply_summon_result_style()`, `_apply_small_icon_style()`, `_apply_detailed_view_style()`, plus 3 equipment style helpers (`_apply_equipment_collection_style`, `_apply_equipment_detailed_style`, `_apply_equipment_icon_style`)
+- Removed 3 unused CardStyle enum values: `SUMMON_RESULT`, `SMALL_ICON`, `DETAILED_VIEW`
+- Removed dead preloaded scene comments
+- Kept `create_god_card()` — actively used by AwakeningGodList.gd, SacrificeGodList.gd, BattleDisplayManager.gd
+- Kept `CardStyle.COLLECTION` and `CardStyle.BATTLE_SETUP` — both used by external callers
+- Kept `_apply_collection_style()` and `_apply_battle_setup_style()` — called by `create_god_card()`
+- Added `:=` type inference to local variables
+- File reduced from 218 to 71 lines (-147 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove dead code from UICardFactory`
