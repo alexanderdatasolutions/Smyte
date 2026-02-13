@@ -241,3 +241,16 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output
 
 **Commit:** `cleanup: delete unused BattleEffectProcessor.gd`
+
+### 2026-02-12 - Cleanup: Delete unused DungeonTab.gd
+
+**File(s) Modified:** `scripts/ui/screens/DungeonTab.gd` (DELETED)
+
+**Changes:**
+- Deleted unused `DungeonTab.gd` (278 lines) — replaced by `DungeonScreen.gd`
+- Verified no code references exist (only mentioned in docs/analysis/10_ui_screens.md)
+- No scene files reference this script
+
+**Verified:** Ran project, no errors in debug output
+
+**Commit:** `cleanup: delete unused DungeonTab.gd`

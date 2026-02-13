@@ -67,8 +67,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
   {
     "file": "scripts/ui/screens/DungeonTab.gd",
     "issue": "Replaced by DungeonScreen.gd",
-    "action": "Delete",
-    "passes": false
+    "action": "Deleted - verified no code references (only docs)",
+    "passes": true
   },
   {
     "file": "data/shop_config.json",
