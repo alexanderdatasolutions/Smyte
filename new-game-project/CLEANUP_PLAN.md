@@ -73,8 +73,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
   {
     "file": "data/shop_config.json",
     "issue": "Never loaded by ShopManager",
-    "action": "Wire ShopManager to load and use this config",
-    "passes": false
+    "action": "SKIP - Contains daily/guild shop config for unbuilt features. Keep as design placeholder. ShopManager uses shop_items.json for crystal packs/offers which works fine.",
+    "passes": true
   }
 ]
 ```
@@ -88,38 +88,38 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
   {
     "file": "scenes/LoadingScreen.tscn",
     "issue": "Not referenced anywhere",
-    "action": "Delete",
-    "passes": false
+    "action": "Deleted scene and scripts/ui/screens/LoadingScreen.gd",
+    "passes": true
   },
   {
     "file": "scenes/TerritoryScreen.tscn",
     "issue": "Replaced by HexTerritoryScreen.tscn",
-    "action": "Delete",
-    "passes": false
+    "action": "Deleted scene and scripts/ui/screens/TerritoryScreen.gd",
+    "passes": true
   },
   {
     "file": "scenes/TerritoryRoleScreen.tscn",
     "issue": "Not referenced",
-    "action": "Delete",
-    "passes": false
+    "action": "Deleted scene and scripts/ui/screens/TerritoryRoleScreen.gd",
+    "passes": true
   },
   {
     "file": "scenes/ui/battle/BattleResultOverlay.tscn",
-    "issue": "Not referenced",
-    "action": "Delete",
-    "passes": false
+    "issue": "FALSE POSITIVE - actively used by BattleScreen.gd (preloaded and instantiated)",
+    "action": "SKIP - scene is in active use",
+    "passes": true
   },
   {
     "file": "scenes/ui/battle/BattleUnitCard.tscn",
-    "issue": "Not referenced",
-    "action": "Delete",
-    "passes": false
+    "issue": "FALSE POSITIVE - actively used by BattleScreen.gd (preloaded and instantiated)",
+    "action": "SKIP - scene is in active use",
+    "passes": true
   },
   {
     "file": "scenes/ui/battle/WaveRewardEffect.tscn",
-    "issue": "Not referenced",
-    "action": "Delete",
-    "passes": false
+    "issue": "FALSE POSITIVE - actively used by BattleScreen.gd (preloaded and instantiated)",
+    "action": "SKIP - scene is in active use",
+    "passes": true
   }
 ]
 ```

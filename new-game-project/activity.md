@@ -254,3 +254,22 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output
 
 **Commit:** `cleanup: delete unused DungeonTab.gd`
+
+### 2026-02-12 - Cleanup: Delete unused scenes and scripts
+
+**File(s) Deleted:**
+- `scenes/LoadingScreen.tscn` + `scripts/ui/screens/LoadingScreen.gd` — not referenced anywhere
+- `scenes/TerritoryScreen.tscn` + `scripts/ui/screens/TerritoryScreen.gd` — replaced by HexTerritoryScreen
+- `scenes/TerritoryRoleScreen.tscn` + `scripts/ui/screens/TerritoryRoleScreen.gd` — not referenced anywhere
+
+**False Positives Corrected:**
+- `scenes/ui/battle/BattleResultOverlay.tscn` — actively used by BattleScreen.gd (preloaded)
+- `scenes/ui/battle/BattleUnitCard.tscn` — actively used by BattleScreen.gd (preloaded)
+- `scenes/ui/battle/WaveRewardEffect.tscn` — actively used by BattleScreen.gd (preloaded)
+
+**Also Updated:**
+- `data/shop_config.json` — marked as SKIP (future daily/guild shop feature, not dead code)
+
+**Verified:** Ran project, no errors in debug output. No new warnings introduced.
+
+**Commit:** `cleanup: delete unused scenes and scripts`
