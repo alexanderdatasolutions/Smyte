@@ -309,8 +309,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/resources/LootSystem.gd",
     "lines": "5-6, 141-172",
     "issue": "Unused signals (loot_generated, loot_awarded) and functions (generate_battle_rewards, generate_dungeon_rewards, can_roll_loot)",
-    "action": "Remove dead code",
-    "passes": false
+    "action": "Removed 2 unused signals (loot_generated, loot_awarded), 3 unused public functions (generate_battle_rewards, generate_dungeon_rewards, can_roll_loot), and 2 dead private helpers (_get_victory_multiplier, _get_difficulty_multiplier). Updated DungeonCoordinator comment. File reduced from 258 to 209 lines.",
+    "passes": true
   },
   {
     "file": "scripts/systems/resources/ResourceManager.gd",

@@ -2,9 +2,6 @@
 # Loot generation system - handles all loot drops and rewards (200 lines max)
 class_name LootSystem extends Node
 
-signal loot_generated(loot_results: Dictionary)
-signal loot_awarded(rewards: Dictionary)
-
 var loot_tables: Dictionary = {}
 var loot_items: Dictionary = {}
 
@@ -97,7 +94,6 @@ func generate_loot(table_id: String, multiplier: float = 1.0, element: String = 
 			if amount > 0:
 				results[item_id] = results.get(item_id, 0) + amount
 
-	loot_generated.emit(results)
 	return results
 
 ## Resolve loot_item_id to actual resource_id
@@ -137,20 +133,6 @@ func _calculate_loot_amount(loot_item_id: String, multiplier: float) -> int:
 
 	return int(base_amount * multiplier)
 
-## Generate battle rewards
-func generate_battle_rewards(stage_level: int, victory_type: String = "normal") -> Dictionary:
-	var base_table = "battle_rewards_stage_" + str(stage_level)
-	var multiplier = _get_victory_multiplier(victory_type)
-	
-	return generate_loot(base_table, multiplier)
-
-## Generate dungeon rewards
-func generate_dungeon_rewards(dungeon_id: String, difficulty: String = "normal") -> Dictionary:
-	var table_id = dungeon_id + "_" + difficulty
-	var multiplier = _get_difficulty_multiplier(difficulty)
-	
-	return generate_loot(table_id, multiplier)
-
 ## Award loot to player through ResourceManager
 func award_loot(loot_results: Dictionary):
 	if loot_results.is_empty():
@@ -165,11 +147,6 @@ func award_loot(loot_results: Dictionary):
 		var amount = loot_results[resource_id]
 		resource_manager.add_resource(resource_id, amount)
 
-	loot_awarded.emit(loot_results)
-
-## Check if player can roll for specific loot
-func can_roll_loot(table_id: String) -> bool:
-	return loot_tables.has(table_id)
 
 ## Get loot table preview (for UI)
 func get_loot_preview(table_id: String) -> Array:
@@ -219,32 +196,6 @@ func _calculate_amount(item_data: Dictionary, multiplier: float) -> int:
 	var base_amount = randi_range(min_amount, max_amount)
 	
 	return int(base_amount * multiplier)
-
-func _get_victory_multiplier(victory_type: String) -> float:
-	match victory_type:
-		"perfect":
-			return 1.5
-		"fast":
-			return 1.2
-		"normal":
-			return 1.0
-		"close":
-			return 0.9
-		_:
-			return 1.0
-
-func _get_difficulty_multiplier(difficulty: String) -> float:
-	match difficulty:
-		"easy":
-			return 0.8
-		"normal":
-			return 1.0
-		"hard":
-			return 1.3
-		"nightmare":
-			return 1.6
-		_:
-			return 1.0
 
 ## For save/load
 func get_save_data() -> Dictionary:

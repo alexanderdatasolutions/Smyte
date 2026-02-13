@@ -194,7 +194,7 @@ func _handle_dungeon_victory(battle_result: BattleResult):
 					"source": "first_clear"
 				})
 
-		# Award all loot through LootSystem (updates ResourceManager and emits loot_awarded)
+		# Award all loot through LootSystem (updates ResourceManager)
 		if not all_rewards.is_empty():
 			loot_system.award_loot(all_rewards)
 			print("DungeonCoordinator: Awarded loot to player: %s" % all_rewards)

@@ -471,3 +471,18 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove unused signals from DungeonManager`
+
+### 2026-02-12 - Cleanup: Remove dead code from LootSystem.gd
+
+**File(s) Modified:** `scripts/systems/resources/LootSystem.gd`, `scripts/systems/dungeon/DungeonCoordinator.gd`
+
+**Changes:**
+- Removed 2 unused signals: `loot_generated` (emitted but never connected to), `loot_awarded` (emitted but never connected to)
+- Removed 3 unused public functions: `generate_battle_rewards()`, `generate_dungeon_rewards()`, `can_roll_loot()` — all had zero external callers
+- Removed 2 dead private helpers: `_get_victory_multiplier()`, `_get_difficulty_multiplier()` — only called by the removed public functions
+- Updated DungeonCoordinator.gd comment referencing `loot_awarded` signal
+- File reduced from 258 to 209 lines (-49 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove dead code from LootSystem`
