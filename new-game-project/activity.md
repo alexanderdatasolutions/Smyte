@@ -702,3 +702,22 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: extract constants in TurnManager`
+
+### 2026-02-12 - Cleanup: Extract magic numbers to constants in God.gd
+
+**File(s) Modified:** `scripts/data/God.gd`, `scripts/systems/collection/GodFactory.gd`
+
+**Changes:**
+- Extracted 6 named constants from magic numbers:
+  - `MAX_LEVEL` (40) — used in `can_level_up()`
+  - `MIN_SPECIALIZATION_LEVEL` (20) — used in `can_specialize()`
+  - `DEFAULT_CRIT_RATE` (15), `DEFAULT_CRIT_DAMAGE` (50), `DEFAULT_RESISTANCE` (15), `DEFAULT_ACCURACY` (0) — Summoners War defaults used in @export var declarations
+- Updated `can_level_up()` to use `MAX_LEVEL` instead of magic `40`
+- Updated `can_specialize()` to use `MIN_SPECIALIZATION_LEVEL` instead of magic `20`
+- Updated `@export var` defaults to use `DEFAULT_*` constants
+- Updated `GodFactory.gd` fallback defaults to reference `God.DEFAULT_*` constants instead of hardcoded values
+- No behavioral changes — all values identical to original magic numbers
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: extract constants in God.gd`

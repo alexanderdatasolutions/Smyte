@@ -450,8 +450,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/data/God.gd",
     "lines": "27-30, 136, 274",
     "issue": "Default stats 15/50/15/0, max level 40, spec level 20",
-    "action": "Create constants",
-    "passes": false
+    "action": "Extracted 6 constants: MAX_LEVEL (40), MIN_SPECIALIZATION_LEVEL (20), DEFAULT_CRIT_RATE (15), DEFAULT_CRIT_DAMAGE (50), DEFAULT_RESISTANCE (15), DEFAULT_ACCURACY (0). Updated @export defaults, can_level_up(), and can_specialize() to use constants. Also updated GodFactory.gd fallback defaults to reference God.DEFAULT_* constants.",
+    "passes": true
   }
 ]
 ```

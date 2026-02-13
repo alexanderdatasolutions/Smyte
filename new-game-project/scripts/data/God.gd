@@ -6,6 +6,16 @@ enum ElementType { FIRE, WATER, EARTH, LIGHTNING, LIGHT, DARK }
 enum TierType { COMMON, RARE, EPIC, LEGENDARY }
 
 # ==============================================================================
+# CONSTANTS
+# ==============================================================================
+const MAX_LEVEL: int = 40
+const MIN_SPECIALIZATION_LEVEL: int = 20
+const DEFAULT_CRIT_RATE: int = 15        # Summoners War default: 15%
+const DEFAULT_CRIT_DAMAGE: int = 50      # Summoners War default: 50%
+const DEFAULT_RESISTANCE: int = 15       # Summoners War default: 15%
+const DEFAULT_ACCURACY: int = 0          # Summoners War default: 0%
+
+# ==============================================================================
 # CORE IDENTITY - Pure data properties only
 # ==============================================================================
 @export var id: String  # Unique instance ID (e.g., "zeus_1707664823_abc123")
@@ -24,10 +34,10 @@ enum TierType { COMMON, RARE, EPIC, LEGENDARY }
 @export var base_attack: int  
 @export var base_defense: int
 @export var base_speed: int
-@export var base_crit_rate: int = 15        # Critical Rate % (SW default: 15%)
-@export var base_crit_damage: int = 50      # Critical Damage % (SW default: 50%)
-@export var base_resistance: int = 15       # Resistance % (SW default: 15%)
-@export var base_accuracy: int = 0          # Accuracy % (SW default: 0%)
+@export var base_crit_rate: int = DEFAULT_CRIT_RATE
+@export var base_crit_damage: int = DEFAULT_CRIT_DAMAGE
+@export var base_resistance: int = DEFAULT_RESISTANCE
+@export var base_accuracy: int = DEFAULT_ACCURACY
 @export var resource_generation: int       # Resources per hour
 
 # ==============================================================================
@@ -133,7 +143,7 @@ func is_valid() -> bool:
 
 func can_level_up() -> bool:
 	"""Simple level cap check - RULE 3 compliant"""
-	return level < 40  # Max level cap
+	return level < MAX_LEVEL
 
 func has_ability(ability_id: String) -> bool:
 	for ability in active_abilities:
@@ -271,8 +281,7 @@ func get_role_ids() -> Array[String]:
 
 func can_specialize() -> bool:
 	"""Check if god meets basic requirements for specialization"""
-	# Must be level 20+ with a primary role
-	return level >= 20 and primary_role != ""
+	return level >= MIN_SPECIALIZATION_LEVEL and primary_role != ""
 
 func has_specialization() -> bool:
 	"""Check if god has any specialization unlocked"""
