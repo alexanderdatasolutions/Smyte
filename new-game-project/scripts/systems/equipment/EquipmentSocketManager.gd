@@ -377,16 +377,3 @@ func get_socket_upgrade_cost_preview(equipment: Equipment) -> Dictionary:
 		preview.total_cost_to_max = total_cost
 	
 	return preview
-
-# === TESTING METHODS ===
-
-func _test_socket_operations():
-	"""Test socket operations"""
-	# Create test equipment
-	var test_equipment = Equipment.create_from_dungeon("test_weapon", "WEAPON", "COMMON", 1)
-	if test_equipment:
-		var _socket_preview = get_socket_upgrade_cost_preview(test_equipment)
-
-		# Test gem inventory
-		add_gem_to_inventory("test_gem", 1)
-		var _gem_count = get_gem_count("test_gem")

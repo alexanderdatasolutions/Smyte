@@ -252,19 +252,3 @@ func find_best_equipment_for_slot(slot: int, _god: God = null) -> Equipment:
 	)
 	
 	return compatible_equipment[0]
-
-# === TESTING METHODS ===
-
-func _test_inventory_operations():
-	"""Test inventory operations"""
-	# Create test equipment
-	var test_equipment = Equipment.create_from_dungeon("test_weapon", "WEAPON", "COMMON", 1)
-
-	# Test adding
-	add_equipment_to_inventory(test_equipment)
-	assert(has_equipment(test_equipment), "Equipment should be in inventory")
-
-	# Test removing
-	var removed = remove_equipment_from_inventory(test_equipment)
-	assert(removed, "Equipment should be removed")
-	assert(not has_equipment(test_equipment), "Equipment should not be in inventory")

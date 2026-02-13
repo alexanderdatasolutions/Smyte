@@ -395,3 +395,20 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove empty handlers from SacrificeManager`
+
+### 2026-02-12 - Cleanup: Remove unused test functions from equipment system
+
+**File(s) Modified:**
+- `scripts/systems/equipment/EquipmentSocketManager.gd`
+- `scripts/systems/equipment/EquipmentInventoryManager.gd`
+- `scripts/systems/equipment/EquipmentCraftingManager.gd`
+
+**Changes:**
+- Removed `_test_socket_operations()` from EquipmentSocketManager.gd (13 lines) — never called, only defined
+- Removed `_test_inventory_operations()` from EquipmentInventoryManager.gd (14 lines) — never called, only defined
+- Removed `_test_crafting_operations()` from EquipmentCraftingManager.gd (7 lines) — never called, only defined
+- All three were inline test stubs with no external callers (verified via codebase-wide grep)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove unused test functions from equipment system`

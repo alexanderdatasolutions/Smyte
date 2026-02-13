@@ -233,22 +233,22 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/equipment/EquipmentSocketManager.gd",
     "lines": "382-393",
     "issue": "_test_socket_operations() never called",
-    "action": "Remove function",
-    "passes": false
+    "action": "Removed unused _test_socket_operations() function and TESTING METHODS section. File reduced from 393 to 380 lines.",
+    "passes": true
   },
   {
     "file": "scripts/systems/equipment/EquipmentInventoryManager.gd",
     "lines": "257-271",
     "issue": "_test_inventory_operations() never called",
-    "action": "Remove function",
-    "passes": false
+    "action": "Removed unused _test_inventory_operations() function and TESTING METHODS section. File reduced from 271 to 255 lines.",
+    "passes": true
   },
   {
     "file": "scripts/systems/equipment/EquipmentCraftingManager.gd",
     "lines": "399-406",
     "issue": "_test_crafting_operations() never called",
-    "action": "Remove function",
-    "passes": false
+    "action": "Removed unused _test_crafting_operations() function and TESTING METHODS section. File reduced from 406 to 397 lines.",
+    "passes": true
   }
 ]
 ```

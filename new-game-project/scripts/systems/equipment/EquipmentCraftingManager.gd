@@ -394,12 +394,3 @@ func unlock_recipe(recipe_id: String):
 	# This would typically be called when certain conditions are met
 	# For now, just emit the signal
 	recipe_unlocked.emit(recipe_id)
-
-# === TESTING METHODS ===
-
-func _test_crafting_operations():
-	"""Test crafting operations"""
-	var test_recipes = get_all_recipes()
-	if test_recipes.size() > 0:
-		var test_recipe = test_recipes[0]
-		var _craft_check = can_craft_equipment(test_recipe)
