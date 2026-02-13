@@ -360,8 +360,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/utilities/GodExperienceCalculator.gd",
     "lines": "70-78",
     "issue": "debug_experience_info() never called",
-    "action": "Remove function",
-    "passes": false
+    "action": "Removed unused debug_experience_info() function (10 lines). Zero external callers verified. File reduced from 79 to 69 lines.",
+    "passes": true
   },
   {
     "file": "scripts/utilities/GodCardFactory.gd",

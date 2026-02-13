@@ -65,14 +65,3 @@ static func get_experience_remaining_to_next_level(god: God) -> int:
 	
 	var next_level_total_xp = get_total_experience_for_level(god.level + 1)
 	return max(0, next_level_total_xp - god.experience)
-
-## Debug function to validate calculations
-static func debug_experience_info(god: God) -> String:
-	var current_level_xp = get_total_experience_for_level(god.level)
-	var next_level_xp = get_total_experience_for_level(god.level + 1)
-	var progress = get_experience_progress(god)
-	var remaining = get_experience_remaining_to_next_level(god)
-	
-	return "God: %s | Level: %d | Total XP: %d | Current Level XP: %d | Next Level XP: %d | Progress: %.1f%% | Remaining: %d" % [
-		god.name, god.level, god.experience, current_level_xp, next_level_xp, progress, remaining
-	]

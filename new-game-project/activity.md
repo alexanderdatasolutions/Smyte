@@ -569,3 +569,15 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove dead code from JSONDataLoader`
+
+### 2026-02-12 - Cleanup: Remove unused debug function from GodExperienceCalculator.gd
+
+**File(s) Modified:** `scripts/utilities/GodExperienceCalculator.gd`
+
+**Changes:**
+- Removed unused `debug_experience_info()` function (10 lines) — zero external callers verified via codebase-wide grep
+- File reduced from 79 to 69 lines
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove dead code from GodExperienceCalculator`
