@@ -404,8 +404,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/ui/screens/TaskAssignmentScreen.gd",
     "lines": "426-430",
     "issue": "Empty _process() wastes CPU",
-    "action": "Remove function",
-    "passes": false
+    "action": "Removed empty _process() function and PROCESS section header. Function body was just `pass` — called every frame for no reason. File reduced from 431 to 420 lines.",
+    "passes": true
   }
 ]
 ```

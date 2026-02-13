@@ -418,13 +418,3 @@ func _get_collection_manager():
 	if registry:
 		return registry.get_system("CollectionManager")
 	return null
-
-# ==============================================================================
-# PROCESS
-# ==============================================================================
-
-func _process(_delta: float) -> void:
-	# Refresh active tasks periodically to update progress bars
-	if visible and _territory_id != "":
-		# Only refresh every second (controlled by task manager)
-		pass

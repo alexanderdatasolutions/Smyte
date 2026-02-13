@@ -642,3 +642,16 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove dead code from MainUIOverlay`
+
+### 2026-02-12 - Cleanup: Remove empty _process() from TaskAssignmentScreen.gd
+
+**File(s) Modified:** `scripts/ui/screens/TaskAssignmentScreen.gd`
+
+**Changes:**
+- Removed empty `_process()` function (lines 426-430) — body was just `pass`, called every frame for no reason
+- Removed PROCESS section header comment
+- File reduced from 431 to 420 lines (-11 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove empty _process from TaskAssignmentScreen`
