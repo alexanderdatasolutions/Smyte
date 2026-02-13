@@ -827,3 +827,22 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: refactor _populate_expanded_panel in ResourceDisplay`
+
+### 2026-02-13 - Cleanup: Refactor create_recipe_card() in CraftingUIUtils.gd
+
+**File(s) Modified:** `scripts/ui/components/CraftingUIUtils.gd`
+
+**Changes:**
+- Extracted 5 helper functions from 131-line `create_recipe_card()`:
+  - `_create_card_container()` — PanelContainer with StyleBoxFlat styling (16 lines)
+  - `_create_header_row()` — icon + name + tier/rarity badge (27 lines)
+  - `_create_info_label()` — conversion display or cost summary (18 lines)
+  - `_create_bottom_row()` — auto-repeat checkbox + craft button orchestration (18 lines)
+  - `_create_craft_button()` — button with afford/disabled styling (26 lines)
+- `create_recipe_card()` reduced from 131 lines to 23 lines
+- Added `:=` type inference and static typing throughout new functions
+- No behavioral changes — all logic preserved exactly
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: refactor create_recipe_card in CraftingUIUtils`

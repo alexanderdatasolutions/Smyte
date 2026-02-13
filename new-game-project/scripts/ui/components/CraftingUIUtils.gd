@@ -255,19 +255,29 @@ static func create_recipe_card(
 	show_auto_repeat: bool = false,
 	resource_manager = null  # Optional: pass to show have/need amounts
 ) -> PanelContainer:
-	var card = PanelContainer.new()
+	var is_conversion := is_conversion_recipe(task)
+	var task_rarity := task.get("rarity", "common") as String
+	var border_color := get_rarity_color(task_rarity) if not is_conversion else Color(0.4, 0.6, 0.5)
+
+	var card := _create_card_container(can_afford, border_color)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+	card.add_child(vbox)
+
+	vbox.add_child(_create_header_row(task, can_afford, is_conversion, task_rarity, border_color))
+	vbox.add_child(_create_info_label(task, can_afford, is_conversion, resource_manager))
+	vbox.add_child(_create_bottom_row(task, can_afford, is_conversion, show_auto_repeat, on_craft_pressed))
+
+	card.set_meta("task", task)
+	card.set_meta("can_afford", can_afford)
+	return card
+
+static func _create_card_container(can_afford: bool, border_color: Color) -> PanelContainer:
+	var card := PanelContainer.new()
 	card.custom_minimum_size = Vector2(160, 100)
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	# Get recipe info
-	var is_conversion = is_conversion_recipe(task)
-	var task_rarity = task.get("rarity", "common")
-	var border_color = get_rarity_color(task_rarity) if not is_conversion else Color(0.4, 0.6, 0.5)
-	var costs = get_recipe_costs(task)
-	var tier = task.get("tier", task.get("territory_tier_requirement", 1))
-
-	# Card style
-	var card_style = StyleBoxFlat.new()
+	var card_style := StyleBoxFlat.new()
 	card_style.bg_color = Color(0.12, 0.1, 0.16, 0.95) if can_afford else Color(0.15, 0.1, 0.1, 0.95)
 	card_style.border_color = border_color if can_afford else border_color.darkened(0.4)
 	card_style.set_border_width_all(2)
@@ -277,32 +287,26 @@ static func create_recipe_card(
 	card_style.content_margin_top = 6
 	card_style.content_margin_bottom = 6
 	card.add_theme_stylebox_override("panel", card_style)
+	return card
 
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 4)
-	card.add_child(vbox)
-
-	# Row 1: Icon + Name + Tier badge
-	var header_row = HBoxContainer.new()
+static func _create_header_row(task: Dictionary, can_afford: bool, is_conversion: bool, task_rarity: String, border_color: Color) -> HBoxContainer:
+	var header_row := HBoxContainer.new()
 	header_row.add_theme_constant_override("separation", 6)
-	vbox.add_child(header_row)
 
-	# Icon
-	var icon_label = Label.new()
+	var icon_label := Label.new()
 	icon_label.text = get_recipe_icon(task)
 	icon_label.add_theme_font_size_override("font_size", 16)
 	header_row.add_child(icon_label)
 
-	# Name
-	var name_label = Label.new()
+	var name_label := Label.new()
 	name_label.text = truncate_name(task.get("name", "Unknown"), 14)
 	name_label.add_theme_font_size_override("font_size", 12)
 	name_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.95) if can_afford else Color(0.5, 0.5, 0.55))
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header_row.add_child(name_label)
 
-	# Tier badge
-	var tier_label = Label.new()
+	var tier := task.get("tier", task.get("territory_tier_requirement", 1)) as int
+	var tier_label := Label.new()
 	if is_conversion:
 		tier_label.text = "T%d" % tier
 		tier_label.add_theme_color_override("font_color", Color(0.5, 0.7, 0.6))
@@ -311,31 +315,31 @@ static func create_recipe_card(
 		tier_label.add_theme_color_override("font_color", border_color)
 	tier_label.add_theme_font_size_override("font_size", 11)
 	header_row.add_child(tier_label)
+	return header_row
 
-	# Row 2: Conversion display OR cost summary
-	var info_label = Label.new()
+static func _create_info_label(task: Dictionary, can_afford: bool, is_conversion: bool, resource_manager) -> Label:
+	var costs := get_recipe_costs(task)
+	var info_label := Label.new()
 	info_label.add_theme_font_size_override("font_size", 10)
 	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 	if is_conversion:
-		var output = task.get("output", {})
+		var output := task.get("output", {}) as Dictionary
 		info_label.text = format_conversion_display(costs, output)
 		info_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.6) if can_afford else Color(0.4, 0.5, 0.4))
 	else:
-		# Show detailed have/need when can't afford and resource_manager available
 		if not can_afford and resource_manager:
 			info_label.text = format_costs_with_check(costs, resource_manager)
 		else:
 			info_label.text = format_costs_compact(costs, can_afford)
 		info_label.add_theme_color_override("font_color", Color(0.6, 0.75, 0.9) if can_afford else Color(0.5, 0.5, 0.55))
-	vbox.add_child(info_label)
+	return info_label
 
-	# Row 3: Auto-repeat (optional) + Craft button
-	var bottom_row = HBoxContainer.new()
+static func _create_bottom_row(task: Dictionary, can_afford: bool, is_conversion: bool, show_auto_repeat: bool, on_craft_pressed: Callable) -> HBoxContainer:
+	var bottom_row := HBoxContainer.new()
 	bottom_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	bottom_row.add_theme_constant_override("separation", 8)
-	vbox.add_child(bottom_row)
 
 	var auto_repeat_check: CheckButton = null
 	if show_auto_repeat and is_conversion and can_afford:
@@ -345,14 +349,20 @@ static func create_recipe_card(
 		auto_repeat_check.add_theme_color_override("font_color", Color(0.6, 0.7, 0.8))
 		bottom_row.add_child(auto_repeat_check)
 
-	# Craft button
-	var craft_btn = Button.new()
+	var craft_btn := _create_craft_button(can_afford)
+	if on_craft_pressed.is_valid() and can_afford:
+		craft_btn.pressed.connect(func(): on_craft_pressed.call(task, auto_repeat_check))
+	bottom_row.add_child(craft_btn)
+	return bottom_row
+
+static func _create_craft_button(can_afford: bool) -> Button:
+	var craft_btn := Button.new()
 	craft_btn.text = "Craft" if can_afford else "✗"
 	craft_btn.custom_minimum_size = Vector2(70, 26)
 	craft_btn.disabled = not can_afford
 	craft_btn.add_theme_font_size_override("font_size", 11)
 
-	var btn_style = StyleBoxFlat.new()
+	var btn_style := StyleBoxFlat.new()
 	if can_afford:
 		btn_style.bg_color = Color(0.25, 0.45, 0.3, 0.95)
 		btn_style.border_color = Color(0.35, 0.6, 0.4, 0.9)
@@ -367,20 +377,10 @@ static func create_recipe_card(
 	craft_btn.add_theme_stylebox_override("disabled", btn_style)
 
 	if can_afford:
-		var btn_hover = btn_style.duplicate()
+		var btn_hover := btn_style.duplicate()
 		btn_hover.bg_color = Color(0.3, 0.55, 0.35, 1)
 		craft_btn.add_theme_stylebox_override("hover", btn_hover)
-
-	if on_craft_pressed.is_valid() and can_afford:
-		craft_btn.pressed.connect(func(): on_craft_pressed.call(task, auto_repeat_check))
-
-	bottom_row.add_child(craft_btn)
-
-	# Store task data on card for reference
-	card.set_meta("task", task)
-	card.set_meta("can_afford", can_afford)
-
-	return card
+	return craft_btn
 
 ## Creates a grid container for recipe cards (3-4 columns based on width)
 static func create_recipe_grid(columns: int = 3) -> GridContainer:

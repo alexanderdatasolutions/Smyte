@@ -508,8 +508,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/ui/components/CraftingUIUtils.gd",
     "lines": "252-383",
     "issue": "create_recipe_card() is 131 lines",
-    "action": "Extract header/info/button creation",
-    "passes": false
+    "action": "Extracted 5 helper functions: _create_card_container() (card + StyleBoxFlat), _create_header_row() (icon + name + tier badge), _create_info_label() (conversion or cost display), _create_bottom_row() (auto-repeat + craft button), _create_craft_button() (button styling). create_recipe_card() reduced from 131 to 23 lines. Added static typing throughout.",
+    "passes": true
   },
   {
     "file": "scripts/ui/components/ProductionSummaryWidget.gd",
