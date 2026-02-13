@@ -40,8 +40,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
   {
     "file": "scripts/systems/dungeon/DungeonCoordinator.gd vs DungeonManager.gd",
     "issue": "Team size 5 in Coordinator (line 118) but 4 in Manager (line 271)",
-    "action": "Reconcile to single constant",
-    "passes": false
+    "action": "Added MAX_TEAM_SIZE = 4 constant to both files, updated validation to use it",
+    "passes": true
   }
 ]
 ```

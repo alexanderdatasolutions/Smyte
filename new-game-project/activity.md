@@ -202,3 +202,17 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, navigated to specialization screen via TestHarness. Screen loads with all 43 gods displayed, no errors in debug output.
 
 **Commit:** `cleanup: create missing GodSpecializationScreen scene and script`
+
+### 2026-02-12 - Cleanup: Fix team size mismatch in dungeon systems
+
+**File(s) Modified:** `scripts/systems/dungeon/DungeonCoordinator.gd`, `scripts/systems/dungeon/DungeonManager.gd`
+
+**Changes:**
+- DungeonCoordinator.gd allowed team size of 5, DungeonManager.gd allowed 4 — UI (TeamSelectionManager) enforces 4
+- Added `const MAX_TEAM_SIZE: int = 4` to both DungeonCoordinator.gd and DungeonManager.gd
+- Updated validation in both files to use the constant instead of magic numbers
+- Both files now consistently enforce max team size of 4
+
+**Verified:** Ran project, no errors in debug output. No new warnings or errors introduced.
+
+**Commit:** `cleanup: fix team size mismatch in dungeon systems`

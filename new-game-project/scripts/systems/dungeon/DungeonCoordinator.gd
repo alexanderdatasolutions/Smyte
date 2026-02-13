@@ -6,6 +6,8 @@
 extends Node
 class_name DungeonCoordinator
 
+const MAX_TEAM_SIZE: int = 4
+
 # Signals for UI communication
 signal dungeon_battle_started(dungeon_id: String, difficulty: String)
 signal dungeon_battle_completed(result: Dictionary)
@@ -115,8 +117,8 @@ func _validate_battle_team(team: Array) -> Dictionary:
 	if team.is_empty():
 		return {"success": false, "error": "Team cannot be empty"}
 	
-	if team.size() > 5:
-		return {"success": false, "error": "Team cannot exceed 5 gods"}
+	if team.size() > MAX_TEAM_SIZE:
+		return {"success": false, "error": "Team cannot exceed %d gods" % MAX_TEAM_SIZE}
 	
 	# Validate each god
 	for god in team:

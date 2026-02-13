@@ -5,6 +5,8 @@
 extends Node
 class_name DungeonManager
 
+const MAX_TEAM_SIZE: int = 4
+
 # Signals for UI communication (RULE 4: No UI in systems)
 signal dungeon_data_loaded
 signal dungeon_unlocked(dungeon_id: String)
@@ -268,8 +270,8 @@ func validate_dungeon_entry(dungeon_id: String, difficulty: String, team: Array)
 		return result
 
 	# Check team
-	if team.is_empty() or team.size() > 4:
-		result.error_message = "Invalid team size (1-4 gods required)"
+	if team.is_empty() or team.size() > MAX_TEAM_SIZE:
+		result.error_message = "Invalid team size (1-%d gods required)" % MAX_TEAM_SIZE
 		validation_completed.emit(result)
 		return result
 
