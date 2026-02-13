@@ -354,3 +354,16 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove dead duplicate tracking from SummonManager`
+
+### 2026-02-12 - Cleanup: Remove unused functions from AwakeningSystem.gd
+
+**File(s) Modified:** `scripts/systems/progression/AwakeningSystem.gd`
+
+**Changes:**
+- Removed 4 unused functions (53 lines): `get_ascension_level_from_string()`, `get_awakened_abilities()`, `get_awakened_leader_skill()`, `get_awakened_passive()`
+- Verified zero external callers via codebase-wide grep (each function only found in its own definition)
+- File reduced from 280 to 227 lines
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove dead code from AwakeningSystem`

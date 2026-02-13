@@ -203,8 +203,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/progression/AwakeningSystem.gd",
     "lines": "228-279",
     "issue": "4 unused: get_ascension_level_from_string(), get_awakened_abilities(), get_awakened_leader_skill(), get_awakened_passive()",
-    "action": "Remove functions",
-    "passes": false
+    "action": "Removed 4 unused functions (53 lines). Verified zero external callers via codebase-wide grep. File reduced from 280 to 227 lines.",
+    "passes": true
   },
   {
     "file": "scripts/systems/progression/GodProgressionManager.gd",
