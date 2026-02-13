@@ -587,8 +587,6 @@ func _on_crystal_single_pressed():
 	is_processing_summon = true
 	current_summon_was_multi = false
 	pending_summon_results.clear()
-	if summon_mgr.has_method("clear_duplicate_tracking"):
-		summon_mgr.clear_duplicate_tracking()
 	if not summon_mgr.summon_premium():
 		is_processing_summon = false
 		_refresh_ui()
@@ -602,8 +600,6 @@ func _on_crystal_multi_pressed():
 	is_processing_summon = true
 	current_summon_was_multi = true
 	pending_summon_results.clear()
-	if summon_mgr.has_method("clear_duplicate_tracking"):
-		summon_mgr.clear_duplicate_tracking()
 	if not summon_mgr.multi_summon_premium(10):
 		is_processing_summon = false
 		_refresh_ui()

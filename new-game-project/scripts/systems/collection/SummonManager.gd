@@ -8,7 +8,6 @@ signal summon_failed(reason)
 signal multi_summon_completed(gods)
 signal pity_milestone_reached(pity_type: String, count: int)
 signal summon_history_updated(history_entry: Dictionary)
-signal duplicate_obtained(god, mana_reward: int)
 signal milestone_reward_claimed(milestone_key: String, rewards: Dictionary)
 
 # Pity counters per banner type for guaranteed drops
@@ -26,7 +25,6 @@ var summon_history: Array = []  # Last 100 summons
 var total_summons: int = 0
 var claimed_milestones: Array = []
 var _summon_config: Dictionary = {}
-var _last_summon_duplicates: Dictionary = {}  # god_id -> bool (true if was duplicate)
 const MAX_HISTORY_SIZE: int = 100
 
 func _ready():
@@ -89,9 +87,7 @@ func summon_with_powder(soul_type: String, powder_element: String) -> bool:
 
 	# Build cost: soul + powder
 	var cost = {soul_type: 1, powder_id: powder_cost}
-	var banner_type = "element" if _is_element_soul(soul_type) else "default"
-
-	return _perform_summon(cost, soul_type, banner_type, "", powder_element)
+	return _perform_summon(cost, soul_type, "default", "", powder_element)
 
 func summon_basic_with_powder(powder_element: String) -> bool:
 	"""Summon with mana + element powder"""
@@ -445,31 +441,11 @@ func _add_god_to_collection(god: God) -> bool:
 	_check_legendary_notification(god)
 	return true
 
-func _get_duplicate_mana_reward(tier: God.TierType) -> int:
-	"""Get mana reward for duplicate god based on tier."""
-	match tier:
-		God.TierType.LEGENDARY:
-			return 5000
-		God.TierType.EPIC:
-			return 2000
-		God.TierType.RARE:
-			return 500
-		_:  # COMMON
-			return 100
-
 func _check_legendary_notification(god: God):
 	var eb = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
 	if not eb or not eb.has_method("emit_notification"): return
 	if god.tier == God.TierType.LEGENDARY: eb.emit_notification("LEGENDARY! %s joined!" % god.name, "legendary", 5.0)
 	elif god.tier == God.TierType.EPIC: eb.emit_notification("Epic! %s obtained!" % god.name, "epic", 3.0)
-
-func was_duplicate(god_id: String) -> bool:
-	"""Check if a recently summoned god was a duplicate. For UI display."""
-	return _last_summon_duplicates.get(god_id, false)
-
-func clear_duplicate_tracking():
-	"""Clear duplicate tracking for new summon session."""
-	_last_summon_duplicates.clear()
 
 # PITY SYSTEM
 
@@ -626,8 +602,7 @@ func multi_summon_premium(count: int = 10) -> bool:
 
 func summon_multi_with_soul(soul_type: String, count: int = 10) -> bool:
 	var total_cost = {soul_type: int(count * 0.9)}
-	var banner_type = "element" if _is_element_soul(soul_type) else "default"
-	return _perform_multi_summon(total_cost, soul_type, banner_type, count, 1)
+	return _perform_multi_summon(total_cost, soul_type, "default", count, 1)
 
 func _perform_multi_summon(cost: Dictionary, summon_type: String, banner_type: String, count: int, unit_cost: int) -> bool:
 	if not _can_afford_cost(cost):
@@ -661,11 +636,6 @@ func _has_rare_or_better(gods: Array) -> bool:
 	for g in gods:
 		if g.tier >= God.TierType.RARE:
 			return true
-	return false
-
-func _is_element_soul(_soul_type: String) -> bool:
-	# Element souls removed in v3.0 - use Element Favor buffs from dungeons instead
-	# TODO: Implement element favor system that applies weight bonuses during summoning
 	return false
 
 # SAVE/LOAD

@@ -187,8 +187,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/collection/SummonManager.gd",
     "lines": "29, 448-472, 666-669",
     "issue": "Dead duplicate tracking: _last_summon_duplicates, _get_duplicate_mana_reward(), was_duplicate(), clear_duplicate_tracking(), _is_element_soul()",
-    "action": "Remove all duplicate tracking code",
-    "passes": false
+    "action": "Removed _last_summon_duplicates var, _get_duplicate_mana_reward(), was_duplicate(), clear_duplicate_tracking(), _is_element_soul(), and duplicate_obtained signal. Also cleaned up callers in SummonResultOverlay.gd (_was_duplicate, duplicate badge/styling branches) and SummonScreen.gd (clear_duplicate_tracking calls). Replaced _is_element_soul() callers with inline 'default' since it always returned false.",
+    "passes": true
   }
 ]
 ```

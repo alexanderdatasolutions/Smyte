@@ -336,3 +336,21 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: integrate element multiplier into CombatCalculator damage formula`
+
+### 2026-02-12 - Cleanup: Remove dead duplicate tracking from SummonManager
+
+**File(s) Modified:** `scripts/systems/collection/SummonManager.gd`, `scripts/ui/summon/SummonResultOverlay.gd`, `scripts/ui/screens/SummonScreen.gd`
+
+**Changes:**
+- Removed `_last_summon_duplicates` variable (never written to, always empty)
+- Removed `_get_duplicate_mana_reward()` (zero callers)
+- Removed `was_duplicate()` and `clear_duplicate_tracking()` (called by UI but functionally dead — dict was never populated)
+- Removed `_is_element_soul()` (always returned false, replaced callers with inline `"default"`)
+- Removed `duplicate_obtained` signal (never emitted)
+- Cleaned up SummonResultOverlay.gd: removed `_was_duplicate()`, dead duplicate badge branch, simplified `_style_god_card()` signature
+- Cleaned up SummonScreen.gd: removed 2 `clear_duplicate_tracking()` calls
+- SummonManager.gd reduced from 702 to 672 lines (~30 lines removed)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove dead duplicate tracking from SummonManager`

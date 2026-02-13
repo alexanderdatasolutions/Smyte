@@ -246,13 +246,10 @@ func _create_god_card(god: God, _collection_mgr) -> PanelContainer:
 	var card = PanelContainer.new()
 	card.custom_minimum_size = CARD_SIZE
 
-	# Determine if this is a new god or duplicate via SummonManager tracking
-	var is_duplicate = _was_duplicate(god.id)
-
 	# Style card based on rarity
 	var tier_string = God.tier_to_string(god.tier).to_lower()
 	var tier_color = RARITY_COLORS.get(tier_string, RARITY_COLORS.common)
-	_style_god_card(card, tier_color, is_duplicate)
+	_style_god_card(card, tier_color)
 
 	# Content container
 	var content = VBoxContainer.new()
@@ -271,14 +268,10 @@ func _create_god_card(god: God, _collection_mgr) -> PanelContainer:
 	inner_vbox.add_theme_constant_override("separation", 4)
 	margin.add_child(inner_vbox)
 
-	# NEW or DUPLICATE badge
+	# NEW badge
 	var badge_label = Label.new()
-	if is_duplicate:
-		badge_label.text = "DUPLICATE"
-		badge_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-	else:
-		badge_label.text = "NEW!"
-		badge_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+	badge_label.text = "NEW!"
+	badge_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
 	badge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	badge_label.add_theme_font_size_override("font_size", 10)
 	inner_vbox.add_child(badge_label)
@@ -336,18 +329,11 @@ func _create_god_card(god: God, _collection_mgr) -> PanelContainer:
 
 	return card
 
-func _style_god_card(card: PanelContainer, tier_color: Color, is_duplicate: bool):
+func _style_god_card(card: PanelContainer, tier_color: Color):
 	var style = StyleBoxFlat.new()
-
-	if is_duplicate:
-		# Muted style for duplicates
-		style.bg_color = Color(0.15, 0.15, 0.18, 0.9)
-		style.border_color = Color(0.4, 0.4, 0.4, 0.7)
-	else:
-		# Highlighted style for new gods
-		style.bg_color = tier_color.darkened(0.7)
-		style.bg_color.a = 0.95
-		style.border_color = tier_color.lightened(0.2)
+	style.bg_color = tier_color.darkened(0.7)
+	style.bg_color.a = 0.95
+	style.border_color = tier_color.lightened(0.2)
 
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(8)
@@ -363,13 +349,6 @@ func _get_god_stats(god: God) -> Dictionary:
 		"defense": god.base_defense,
 		"speed": god.base_speed
 	}
-
-func _was_duplicate(god_id: String) -> bool:
-	"""Check if god was a duplicate by querying SummonManager."""
-	var summon_manager = SystemRegistry.get_instance().get_system("SummonManager") if SystemRegistry.get_instance() else null
-	if summon_manager and summon_manager.has_method("was_duplicate"):
-		return summon_manager.was_duplicate(god_id)
-	return false
 
 func _update_summary():
 	var total = displayed_gods.size()
