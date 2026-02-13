@@ -809,3 +809,21 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: delete unused components/GodSelectionPanel.gd`
+
+### 2026-02-13 - Cleanup: Refactor _populate_expanded_panel() in ResourceDisplay.gd
+
+**File(s) Modified:** `scripts/ui/components/ResourceDisplay.gd`
+
+**Changes:**
+- Extracted 3 helper functions from 126-line `_populate_expanded_panel()`:
+  - `_categorize_resources()` — sorts all non-zero resources into currency/raw/processed/special buckets
+  - `_add_category_section()` — adds a section header + resource grid to the vbox (replaces 4 identical copy-pasted blocks)
+  - `_get_resource_metadata()` — static function returning the display name/icon/category/description dictionary
+- `_populate_expanded_panel()` reduced from 126 lines to 22 lines
+- Added static typing throughout new functions (`: Dictionary`, `: String`, `-> void`, `-> Dictionary`)
+- No behavioral changes — all logic preserved exactly
+- File reduced from 742 to 728 lines (-14 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: refactor _populate_expanded_panel in ResourceDisplay`

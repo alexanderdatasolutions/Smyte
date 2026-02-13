@@ -277,23 +277,72 @@ func _create_expanded_panel():
 	# Add as child of this control so it overlays correctly
 	add_child(expanded_panel)
 
-func _populate_expanded_panel(vbox: VBoxContainer):
+func _populate_expanded_panel(vbox: VBoxContainer) -> void:
 	"""Populate expanded panel with all resources player has (non-zero only)"""
 	var system_registry = _get_system_registry()
 	var resource_mgr = system_registry.get_system("ResourceManager") if system_registry else null
 	if not resource_mgr:
 		return
 
-	var all_resources = resource_mgr.get_all_resources()
+	var all_resources: Dictionary = resource_mgr.get_all_resources()
+	var categories: Dictionary = _categorize_resources(all_resources)
 
-	# Categorize resources
-	var currencies = {}    # gold, mana, crystals, energy, tickets
-	var raw_materials = {} # ore, wood, herbs, monster_parts
-	var processed = {}     # ingots, planks, leather, etc.
-	var special = {}       # elemental crystals, essences, etc.
+	# Add each category section in order
+	var section_order: Array[Array] = [
+		["currency", "CURRENCIES"],
+		["raw", "RAW MATERIALS"],
+		["processed", "PROCESSED"],
+		["special", "SPECIAL"],
+	]
 
-	# Resource metadata for display names, categories, and descriptions
-	var resource_info = {
+	var any_shown := false
+	for entry in section_order:
+		var key: String = entry[0]
+		var header_text: String = entry[1]
+		if categories.has(key) and not categories[key].is_empty():
+			_add_category_section(vbox, header_text, categories[key])
+			any_shown = true
+
+	if not any_shown:
+		var empty_label := Label.new()
+		empty_label.text = "No resources yet"
+		empty_label.add_theme_font_size_override("font_size", 12)
+		empty_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
+		vbox.add_child(empty_label)
+
+func _categorize_resources(all_resources: Dictionary) -> Dictionary:
+	"""Sort resources into category buckets (only non-zero amounts)"""
+	var resource_info: Dictionary = _get_resource_metadata()
+	var result := {"currency": {}, "raw": {}, "processed": {}, "special": {}}
+
+	for resource_id: String in all_resources:
+		var amount: int = all_resources[resource_id]
+		if amount <= 0:
+			continue
+
+		var info: Dictionary = resource_info.get(resource_id, {
+			"name": resource_id.capitalize().replace("_", " "),
+			"icon": "📦",
+			"category": "special"
+		})
+		var category: String = info.get("category", "special")
+		if not result.has(category):
+			category = "special"
+		result[category][resource_id] = {"amount": amount, "info": info}
+
+	return result
+
+func _add_category_section(vbox: VBoxContainer, header_text: String, resources: Dictionary) -> void:
+	"""Add a category header and resource grid to the expanded panel"""
+	vbox.add_child(_create_section_header(header_text))
+	var grid := _create_resource_grid(3)
+	vbox.add_child(grid)
+	for res_id: String in resources:
+		_add_resource_to_grid(grid, res_id, resources[res_id])
+
+static func _get_resource_metadata() -> Dictionary:
+	"""Resource metadata for display names, categories, and descriptions"""
+	return {
 		# Currencies
 		"gold": {"name": "Gold", "icon": "💰", "category": "currency", "desc": "Currency for shop purchases and node upgrades"},
 		"mana": {"name": "Mana", "icon": "✦", "category": "currency", "desc": "Primary currency for leveling, enhancement, and crafting"},
@@ -341,69 +390,6 @@ func _populate_expanded_panel(vbox: VBoxContainer):
 		"light_crystals": {"name": "Light Crystals", "icon": "☀️", "category": "special", "desc": "Elemental gem for crit rate bonus"},
 		"dark_crystals": {"name": "Dark Crystals", "icon": "🌑", "category": "special", "desc": "Elemental gem for accuracy bonus"},
 	}
-
-	# Sort resources into categories (only non-zero)
-	for resource_id in all_resources:
-		var amount = all_resources[resource_id]
-		if amount <= 0:
-			continue
-
-		var info = resource_info.get(resource_id, {"name": resource_id.capitalize().replace("_", " "), "icon": "📦", "category": "special"})
-		var category = info.get("category", "special")
-
-		match category:
-			"currency":
-				currencies[resource_id] = {"amount": amount, "info": info}
-			"raw":
-				raw_materials[resource_id] = {"amount": amount, "info": info}
-			"processed":
-				processed[resource_id] = {"amount": amount, "info": info}
-			_:
-				special[resource_id] = {"amount": amount, "info": info}
-
-	# Add currencies section
-	if not currencies.is_empty():
-		vbox.add_child(_create_section_header("CURRENCIES"))
-		var grid = _create_resource_grid(3)
-		vbox.add_child(grid)
-		for res_id in currencies:
-			var data = currencies[res_id]
-			_add_resource_to_grid(grid, res_id, data)
-
-	# Add raw materials section
-	if not raw_materials.is_empty():
-		vbox.add_child(_create_section_header("RAW MATERIALS"))
-		var grid = _create_resource_grid(3)
-		vbox.add_child(grid)
-		for res_id in raw_materials:
-			var data = raw_materials[res_id]
-			_add_resource_to_grid(grid, res_id, data)
-
-	# Add processed materials section
-	if not processed.is_empty():
-		vbox.add_child(_create_section_header("PROCESSED"))
-		var grid = _create_resource_grid(3)
-		vbox.add_child(grid)
-		for res_id in processed:
-			var data = processed[res_id]
-			_add_resource_to_grid(grid, res_id, data)
-
-	# Add special/enhancement section
-	if not special.is_empty():
-		vbox.add_child(_create_section_header("SPECIAL"))
-		var grid = _create_resource_grid(3)
-		vbox.add_child(grid)
-		for res_id in special:
-			var data = special[res_id]
-			_add_resource_to_grid(grid, res_id, data)
-
-	# If nothing to show
-	if currencies.is_empty() and raw_materials.is_empty() and processed.is_empty() and special.is_empty():
-		var empty_label = Label.new()
-		empty_label.text = "No resources yet"
-		empty_label.add_theme_font_size_override("font_size", 12)
-		empty_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
-		vbox.add_child(empty_label)
 
 func _create_resource_grid(columns: int) -> GridContainer:
 	"""Create a grid for displaying resources"""

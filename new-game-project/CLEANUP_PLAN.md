@@ -501,8 +501,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/ui/components/ResourceDisplay.gd",
     "lines": "280-406",
     "issue": "_populate_expanded_panel() is 126 lines",
-    "action": "Extract category functions",
-    "passes": false
+    "action": "Extracted 3 helper functions: _categorize_resources() (sorts resources into category buckets), _add_category_section() (adds header + grid for one category), _get_resource_metadata() (static dict of display names/icons/descriptions). _populate_expanded_panel() reduced from 126 to 22 lines. File reduced from 742 to 728 lines.",
+    "passes": true
   },
   {
     "file": "scripts/ui/components/CraftingUIUtils.gd",
