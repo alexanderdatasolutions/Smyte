@@ -171,8 +171,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/battle/CombatCalculator.gd",
     "lines": "79-93",
     "issue": "_get_element_multiplier() never called",
-    "action": "Remove or integrate into calculate_damage()",
-    "passes": false
+    "action": "Integrated into calculate_damage() — element advantage/disadvantage now applied during combat. Added _get_unit_element() helper to extract element from BattleUnit source data. DamageResult tooltip updated to show element modifiers.",
+    "passes": true
   }
 ]
 ```

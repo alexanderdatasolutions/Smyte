@@ -321,3 +321,18 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: delete unused BattleFactory.gd`
+
+### 2026-02-12 - Cleanup: Integrate element multiplier into CombatCalculator damage formula
+
+**File(s) Modified:** `scripts/systems/battle/CombatCalculator.gd`, `scripts/data/DamageResult.gd`
+
+**Changes:**
+- Integrated previously-unused `_get_element_multiplier()` into `calculate_damage()` — element advantage/disadvantage now applied during combat
+- Added `_get_unit_element()` helper to extract element type from BattleUnit (from source_god.element or source_enemy["element"])
+- Element triangle: Fire > Earth > Water > Fire (+30% advantage, -15% disadvantage), Light <> Dark (mutual +30%)
+- Updated DamageResult tooltip breakdown to show element advantage/disadvantage percentages
+- DamageResult.element_multiplier field (already existed but was never populated) now correctly set
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: integrate element multiplier into CombatCalculator damage formula`

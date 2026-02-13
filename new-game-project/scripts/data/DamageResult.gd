@@ -71,6 +71,10 @@ func get_calculation_breakdown() -> String:
 		lines.append("Crit Mult: +%.0f%%" % ((crit_multiplier - 1.0) * 100))
 	if is_glancing:
 		lines.append("Glancing: -30%")
+	if element_multiplier > 1.0:
+		lines.append("Element Advantage: +%.0f%%" % ((element_multiplier - 1.0) * 100))
+	elif element_multiplier < 1.0:
+		lines.append("Element Disadvantage: -%.0f%%" % ((1.0 - element_multiplier) * 100))
 
 	lines.append("Variance: %.0f%%" % (variance_multiplier * 100))
 

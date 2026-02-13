@@ -25,6 +25,12 @@ static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Sk
 		glancing_mult = 0.7
 		base_damage *= glancing_mult  # Glancing hits do 70% damage
 
+	# Apply element advantage/disadvantage
+	var attacker_element := _get_unit_element(attacker)
+	var target_element := _get_unit_element(target)
+	var element_mult := _get_element_multiplier(attacker_element, target_element)
+	base_damage *= element_mult
+
 	# Store raw damage before variance
 	var raw_damage = base_damage
 
@@ -44,6 +50,7 @@ static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Sk
 	result.skill_multiplier = multiplier
 	result.crit_multiplier = crit_mult
 	result.glancing_multiplier = glancing_mult
+	result.element_multiplier = element_mult
 	result.variance_multiplier = variance
 	result.raw_damage = raw_damage
 	result.attacker_name = attacker.display_name
@@ -75,9 +82,18 @@ static func calculate_total_stats(god: God) -> Dictionary:
 	# Equipment stats not yet implemented
 	return stats
 
+## Get element type from a BattleUnit (from source god or enemy data)
+static func _get_unit_element(unit: BattleUnit) -> God.ElementType:
+	if unit.source_god:
+		return unit.source_god.element
+	var element_str: String = unit.source_enemy.get("element", "")
+	if not element_str.is_empty() and element_str != "neutral":
+		return God.string_to_element(element_str)
+	return God.ElementType.LIGHT  # Default fallback (neutral)
+
 ## Get element multiplier for damage calculation
+## Fire > Earth > Water > Fire, Lightning neutral, Light <> Dark
 static func _get_element_multiplier(attacker_element: God.ElementType, target_element: God.ElementType) -> float:
-	# Simplified elemental advantage system
 	match attacker_element:
 		God.ElementType.FIRE:
 			return 1.3 if target_element == God.ElementType.EARTH else 0.85 if target_element == God.ElementType.WATER else 1.0
