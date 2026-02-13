@@ -443,8 +443,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/battle/TurnManager.gd",
     "lines": "63, 70, 144",
     "issue": "Turn bar speed 0.07, safety counter 1000",
-    "action": "Create constants",
-    "passes": false
+    "action": "Extracted 3 constants: TURN_BAR_SPEED (0.07), TURN_BAR_THRESHOLD (100.0), MAX_TURN_ITERATIONS (1000). Replaced all 7 magic number usages across get_turn_order_preview(), _fill_turn_queue(), and _count_future_turns(). Added static typing to safety_counter variables.",
+    "passes": true
   },
   {
     "file": "scripts/data/God.gd",

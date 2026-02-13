@@ -688,3 +688,17 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: extract constants in CombatCalculator`
+
+### 2026-02-12 - Cleanup: Extract magic numbers to constants in TurnManager.gd
+
+**File(s) Modified:** `scripts/systems/battle/TurnManager.gd`
+
+**Changes:**
+- Extracted 3 named constants: `TURN_BAR_SPEED` (0.07), `TURN_BAR_THRESHOLD` (100.0), `MAX_TURN_ITERATIONS` (1000)
+- Replaced all 7 magic number usages across `get_turn_order_preview()`, `_fill_turn_queue()`, and `_count_future_turns()`
+- Added static typing to `safety_counter` variables
+- No behavioral changes — all values identical to original magic numbers
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: extract constants in TurnManager`

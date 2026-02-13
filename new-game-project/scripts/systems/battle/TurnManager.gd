@@ -3,6 +3,11 @@
 extends Node
 class_name TurnManager
 
+# Turn bar system constants
+const TURN_BAR_SPEED: float = 0.07  # Multiplied by unit speed each tick
+const TURN_BAR_THRESHOLD: float = 100.0  # Turn bar value needed to act
+const MAX_TURN_ITERATIONS: int = 1000  # Safety limit for turn calculations
+
 var battle_units: Array = []  # Array[BattleUnit]
 var turn_queue: Array = []  # Array[BattleUnit]
 var current_unit_index: int = 0
@@ -59,16 +64,15 @@ func get_turn_order_preview(num_turns: int = 8) -> Array:
 				return preview
 
 	# Simulate future turns
-	var safety_counter = 0
-	var max_iterations = 1000
+	var safety_counter: int = 0
 
-	while preview.size() < num_turns and safety_counter < max_iterations:
+	while preview.size() < num_turns and safety_counter < MAX_TURN_ITERATIONS:
 		# Advance all simulated turn bars
 		var ready_units: Array = []
 
 		for unit in living_units:
-			simulated_bars[unit] += unit.speed * 0.07
-			if simulated_bars[unit] >= 100.0:
+			simulated_bars[unit] += unit.speed * TURN_BAR_SPEED
+			if simulated_bars[unit] >= TURN_BAR_THRESHOLD:
 				ready_units.append(unit)
 
 		# Sort ready units by speed (faster goes first) then by turn bar (higher goes first)
@@ -100,7 +104,7 @@ func _count_in_array(arr: Array, item) -> int:
 
 func _count_future_turns(turn_bar_value: float) -> int:
 	"""Helper to allow same unit appearing multiple times if very fast"""
-	return int(turn_bar_value / 100.0) + 1
+	return int(turn_bar_value / TURN_BAR_THRESHOLD) + 1
 
 ## Add new units to the battle (for wave progression)
 func add_units(new_units: Array):
@@ -140,10 +144,9 @@ func _calculate_initial_turn_order():
 
 func _fill_turn_queue():
 	"""Fill the turn queue by advancing turn bars until someone is ready"""
-	var safety_counter = 0
-	var max_iterations = 1000  # Prevent infinite loops
+	var safety_counter: int = 0
 	
-	while turn_queue.is_empty() and safety_counter < max_iterations:
+	while turn_queue.is_empty() and safety_counter < MAX_TURN_ITERATIONS:
 		# Advance all living units' turn bars
 		var living_units = battle_units.filter(func(unit): return unit.is_alive)
 		
@@ -156,12 +159,12 @@ func _fill_turn_queue():
 		
 		safety_counter += 1
 	
-	if safety_counter >= max_iterations:
+	if safety_counter >= MAX_TURN_ITERATIONS:
 		push_error("TurnManager: Turn calculation exceeded maximum iterations")
 		# Fallback: give turn to first living unit
 		var living_units = battle_units.filter(func(unit): return unit.is_alive)
 		if not living_units.is_empty():
-			living_units[0].current_turn_bar = 100.0
+			living_units[0].current_turn_bar = TURN_BAR_THRESHOLD
 			turn_queue.append(living_units[0])
 	
 	# Sort turn queue by speed if multiple units are ready
