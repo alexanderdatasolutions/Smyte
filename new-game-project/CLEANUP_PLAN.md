@@ -487,8 +487,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/collection/SummonManager.gd",
     "lines": "275-357",
     "issue": "_create_god_of_tier() is 83 lines",
-    "action": "Extract filtering and weight calculation",
-    "passes": false
+    "action": "Extracted _get_summon_weights() (weight config gathering) and _build_weighted_god_pool() (filtering + weight application). _create_god_of_tier() reduced from 83 to 24 lines. Added static typing throughout new functions.",
+    "passes": true
   },
   {
     "file": "scripts/ui/components/GodSelectionPanel.gd",

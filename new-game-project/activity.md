@@ -777,3 +777,19 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: refactor _handle_dungeon_victory in DungeonCoordinator`
+
+### 2026-02-12 - Cleanup: Refactor _create_god_of_tier() in SummonManager.gd
+
+**File(s) Modified:** `scripts/systems/collection/SummonManager.gd`
+
+**Changes:**
+- Split 83-line `_create_god_of_tier()` into 3 focused functions:
+  - `_create_god_of_tier()` — now 24 lines, orchestrates config lookup, pool building, and selection
+  - `_get_summon_weights()` — gathers element/powder/pantheon weight multipliers and active favors from config (20 lines)
+  - `_build_weighted_god_pool()` — filters gods by tier/pantheon and applies all weight multipliers (30 lines)
+- Added static typing throughout new functions (`:Dictionary`, `:Array`, `:String`, `:float`, `:int`, `-> Dictionary`, `-> Array`)
+- No behavioral changes — all logic preserved exactly
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: refactor _create_god_of_tier in SummonManager`

@@ -272,85 +272,97 @@ func _create_god_of_tier(tier: String, element_filter: String = "", powder_eleme
 	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager") if SystemRegistry.get_instance() else null
 	if not config_manager:
 		return null
-	var gods_config = config_manager.get_gods_config()
+	var gods_config: Dictionary = config_manager.get_gods_config()
 	if not gods_config.has("gods"):
 		return null
 
-	var tier_number = {"common": 1, "rare": 2, "epic": 3, "legendary": 4}.get(tier.to_lower(), -1)
+	var tier_number: int = {"common": 1, "rare": 2, "epic": 3, "legendary": 4}.get(tier.to_lower(), -1)
 	if tier_number == -1:
 		return null
 
-	# Get enabled pantheons for filtering
-	var enabled_pantheons = config_manager.get_enabled_pantheons()
-
-	# Get filtering weights from config
-	var summon_cfg = get_config()
-	var element_weight = 3.0
-	var other_weight = 1.0
-	if summon_cfg.has("summon_configuration"):
-		var weights = summon_cfg.summon_configuration.get("filtering_weights", {}).get("element_focus", {})
-		element_weight = weights.get("matching_element_weight", 3.0)
-		other_weight = weights.get("other_elements_weight", 1.0)
-
-	# Get powder/token weight multipliers from config
-	var powder_multiplier = 5.0  # Default per summon_config.json
-	var pantheon_multiplier = 5.0  # Default per summon_config.json
-	if summon_cfg.has("summon_types"):
-		var element_summon = summon_cfg.summon_types.get("element_summon", {})
-		var elements = element_summon.get("elements", {})
-		if not powder_element.is_empty() and elements.has(powder_element):
-			powder_multiplier = elements[powder_element].get("weight_multiplier", 5.0)
-
-		var pantheon_summon = summon_cfg.summon_types.get("pantheon_summon", {})
-		var pantheons = pantheon_summon.get("pantheons", {})
-		if not pantheon_filter.is_empty() and pantheons.has(pantheon_filter):
-			pantheon_multiplier = pantheons[pantheon_filter].get("weight_multiplier", 5.0)
-
-	# Get active element favors (from dungeon completions)
-	var active_favors = _get_active_element_favors()
-	var favor_multiplier = summon_cfg.get("element_favor_system", {}).get("buffs", {})
-
-	# Build weighted pool - only include gods from enabled pantheons
-	var available_gods = []
-	for god_id in gods_config.gods:
-		var god_data = gods_config.gods[god_id]
-		# Filter by pantheon first
-		var god_pantheon = god_data.get("pantheon", "").to_lower()
-		if not god_pantheon in enabled_pantheons:
-			continue
-		if god_data.get("tier", 1) == tier_number:
-			var weight = god_data.get("summon_weight", 1.0)
-			var god_element = _get_element_string(god_data.get("element", 0))
-
-			# Apply element filter weight (from element souls)
-			if not element_filter.is_empty():
-				weight *= element_weight if god_element == element_filter else other_weight
-
-			# Apply element powder boost
-			if not powder_element.is_empty() and god_element == powder_element:
-				weight *= powder_multiplier
-
-			# Apply pantheon token boost
-			if not pantheon_filter.is_empty():
-				weight *= pantheon_multiplier if god_pantheon == pantheon_filter else 1.0
-
-			# Apply element favor boost (from dungeon completions)
-			var favor_key = god_element + "_favor"
-			if favor_key in active_favors:
-				var favor_data = favor_multiplier.get(favor_key, {})
-				weight *= favor_data.get("weight_multiplier", 2.0)
-
-			for i in range(max(1, int(weight))):
-				available_gods.append(god_id)
+	var enabled_pantheons: Array = config_manager.get_enabled_pantheons()
+	var weights: Dictionary = _get_summon_weights(powder_element, pantheon_filter)
+	var available_gods: Array = _build_weighted_god_pool(gods_config.gods, tier_number, enabled_pantheons, element_filter, powder_element, pantheon_filter, weights)
 
 	if available_gods.is_empty():
-		var fallback = God.new()
+		var fallback := God.new()
 		fallback.name = "Random " + tier.capitalize() + " God"
 		fallback.tier = GodFactory.string_to_tier(tier)
 		fallback.level = 1
 		return fallback
 
 	return GodFactory.create_from_json(available_gods[randi() % available_gods.size()])
+
+func _get_summon_weights(powder_element: String, pantheon_filter: String) -> Dictionary:
+	"""Get all weight multipliers from summon config for filtering gods."""
+	var summon_cfg: Dictionary = get_config()
+	var result := {
+		"element_weight": 3.0,
+		"other_weight": 1.0,
+		"powder_multiplier": 5.0,
+		"pantheon_multiplier": 5.0,
+		"favor_buffs": {},
+		"active_favors": _get_active_element_favors()
+	}
+
+	if summon_cfg.has("summon_configuration"):
+		var focus: Dictionary = summon_cfg.summon_configuration.get("filtering_weights", {}).get("element_focus", {})
+		result.element_weight = focus.get("matching_element_weight", 3.0)
+		result.other_weight = focus.get("other_elements_weight", 1.0)
+
+	if summon_cfg.has("summon_types"):
+		var element_summon: Dictionary = summon_cfg.summon_types.get("element_summon", {})
+		var elements: Dictionary = element_summon.get("elements", {})
+		if not powder_element.is_empty() and elements.has(powder_element):
+			result.powder_multiplier = elements[powder_element].get("weight_multiplier", 5.0)
+
+		var pantheon_summon: Dictionary = summon_cfg.summon_types.get("pantheon_summon", {})
+		var pantheons: Dictionary = pantheon_summon.get("pantheons", {})
+		if not pantheon_filter.is_empty() and pantheons.has(pantheon_filter):
+			result.pantheon_multiplier = pantheons[pantheon_filter].get("weight_multiplier", 5.0)
+
+	result.favor_buffs = summon_cfg.get("element_favor_system", {}).get("buffs", {})
+	return result
+
+func _build_weighted_god_pool(gods: Dictionary, tier_number: int, enabled_pantheons: Array, element_filter: String, powder_element: String, pantheon_filter: String, weights: Dictionary) -> Array:
+	"""Build weighted pool of god IDs filtered by tier, pantheon, and boosted by element/powder/favor."""
+	var pool: Array = []
+	var active_favors: Array = weights.active_favors
+	var favor_buffs: Dictionary = weights.favor_buffs
+
+	for god_id: String in gods:
+		var god_data: Dictionary = gods[god_id]
+		var god_pantheon: String = god_data.get("pantheon", "").to_lower()
+		if not god_pantheon in enabled_pantheons:
+			continue
+		if god_data.get("tier", 1) != tier_number:
+			continue
+
+		var weight: float = god_data.get("summon_weight", 1.0)
+		var god_element: String = _get_element_string(god_data.get("element", 0))
+
+		# Apply element filter weight (from element souls)
+		if not element_filter.is_empty():
+			weight *= weights.element_weight if god_element == element_filter else weights.other_weight
+
+		# Apply element powder boost
+		if not powder_element.is_empty() and god_element == powder_element:
+			weight *= weights.powder_multiplier
+
+		# Apply pantheon token boost
+		if not pantheon_filter.is_empty():
+			weight *= weights.pantheon_multiplier if god_pantheon == pantheon_filter else 1.0
+
+		# Apply element favor boost (from dungeon completions)
+		var favor_key: String = god_element + "_favor"
+		if favor_key in active_favors:
+			var favor_data: Dictionary = favor_buffs.get(favor_key, {})
+			weight *= favor_data.get("weight_multiplier", 2.0)
+
+		for i: int in range(max(1, int(weight))):
+			pool.append(god_id)
+
+	return pool
 
 func _get_active_element_favors() -> Array:
 	"""Get list of active element favor buffs from dungeon completions"""
