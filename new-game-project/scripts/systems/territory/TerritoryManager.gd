@@ -241,41 +241,6 @@ func get_territory_resource_rate(territory_id: String) -> int:
 	var territory_info = get_territory_info(territory_id)
 	return territory_info.get("base_resource_rate", 100)
 
-## Get pending resources for territory
-func get_pending_resources(_territory_id: String) -> Dictionary:
-	# For now, return empty - this would be implemented with actual resource generation
-	return {}
-
-## Collect territory resources
-func collect_territory_resources(_territory_id: String) -> Dictionary:
-	# For now, return empty - this would be implemented with actual resource collection
-	return {"total": 0, "resources": {}}
-
-## Collect all resources from controlled territories
-func collect_all_resources() -> Dictionary:
-	var total_collected = {}
-	var territories_collected = 0
-	
-	for territory_id in controlled_territories:
-		var resources = collect_territory_resources(territory_id)
-		if resources.get("total", 0) > 0:
-			territories_collected += 1
-			# Merge resources
-			for resource_type in resources.get("resources", {}):
-				total_collected[resource_type] = total_collected.get(resource_type, 0) + resources["resources"][resource_type]
-	
-	return {
-		"territory_count": territories_collected,
-		"total_collected": _sum_dictionary_values(total_collected),
-		"resources": total_collected
-	}
-
-func _sum_dictionary_values(dict: Dictionary) -> int:
-	var total = 0
-	for value in dict.values():
-		total += value
-	return total
-
 # ==============================================================================
 # TASK INTEGRATION - Territory task slot management
 # ==============================================================================

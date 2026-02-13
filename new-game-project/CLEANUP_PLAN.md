@@ -268,10 +268,10 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
   },
   {
     "file": "scripts/systems/territory/TerritoryManager.gd",
-    "lines": "245-252",
-    "issue": "Stub functions always return empty: get_pending_resources(), collect_territory_resources()",
-    "action": "Implement or remove",
-    "passes": false
+    "lines": "245-277",
+    "issue": "Stub functions always return empty: get_pending_resources(), collect_territory_resources(), collect_all_resources(), _sum_dictionary_values()",
+    "action": "Removed 4 legacy stub functions (~34 lines) — all were from old Territory system, superseded by hex system's TerritoryProductionManager.collect_node_resources(). Also cleaned up dead caller _get_territory_pending_resources() and always-zero total_pending logic in TerritoryHeaderManager.gd.",
+    "passes": true
   }
 ]
 ```

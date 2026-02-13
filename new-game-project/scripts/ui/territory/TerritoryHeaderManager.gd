@@ -158,16 +158,11 @@ func update_header_summary():
 	var controlled_count = 0
 	var total_count = territories.size()
 	var total_rate = 0
-	var total_pending = 0
-	
+
 	for territory in territories:
 		if _is_territory_controlled(territory):
 			controlled_count += 1
 			total_rate += _get_territory_resource_rate(territory)
-			
-			var pending = _get_territory_pending_resources(territory)
-			for amount in pending.values():
-				total_pending += amount
 	
 	# Update controlled territories stat
 	if summary_stats.has("controlled"):
@@ -181,12 +176,6 @@ func update_header_summary():
 		if value_label:
 			value_label.text = "%s/hr" % _format_large_number(total_rate)
 	
-	# Update pending resources stat
-	if summary_stats.has("pending"):
-		var value_label = summary_stats["pending"].get_node_or_null("Value")
-		if value_label:
-			value_label.text = _format_large_number(total_pending)
-
 func show_collection_result(result: Dictionary):
 	"""Show collection results with enhanced popup"""
 	_show_collection_popup(result)
@@ -267,13 +256,6 @@ func _get_territory_resource_rate(territory) -> int:
 		var territory_id = territory.id if territory.has_method("id") else territory.get("id", "")
 		return territory_manager.get_territory_resource_rate(territory_id)
 	return territory.base_resource_rate if territory.has_method("base_resource_rate") else 0
-
-func _get_territory_pending_resources(territory) -> Dictionary:
-	"""Get pending resources for territory"""
-	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
-	if territory_manager and territory_manager.has_method("get_pending_resources"):
-		return territory_manager.get_pending_resources(territory.id)
-	return {}
 
 func _format_large_number(num: int) -> String:
 	"""Format large numbers for display"""

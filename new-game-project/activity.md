@@ -429,3 +429,19 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. Hex node offline production working correctly. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove legacy Territory code from TerritoryProductionManager`
+
+### 2026-02-12 - Cleanup: Remove legacy resource stubs from TerritoryManager
+
+**File(s) Modified:**
+- `scripts/systems/territory/TerritoryManager.gd`
+- `scripts/ui/territory/TerritoryHeaderManager.gd`
+
+**Changes:**
+- Removed 4 legacy stub functions from TerritoryManager.gd (~34 lines): `get_pending_resources()` (always returned `{}`), `collect_territory_resources()` (always returned `{"total": 0, "resources": {}}`), `collect_all_resources()` (wrapper that called collect_territory_resources, zero external callers), `_sum_dictionary_values()` (only used by collect_all_resources)
+- All were old Territory system stubs, superseded by hex system's `TerritoryProductionManager.collect_node_resources()`
+- Cleaned up TerritoryHeaderManager.gd: removed `_get_territory_pending_resources()` function (called the stub, always got `{}`), removed `total_pending` variable and its always-zero update block from `update_header_summary()`
+- Kept the "Pending" stat in header UI — it's still populated by `update_summary_stats()` with a simplified calculation
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove legacy resource stubs from TerritoryManager`
