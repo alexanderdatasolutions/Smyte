@@ -182,3 +182,23 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors. The "Could not open territories.json" warning is now gone. Territory production, hex grid, and save loading all work correctly.
 
 **Commit:** `cleanup: fix broken territories.json reference in ConfigurationManager`
+
+### 2026-02-12 - Cleanup: Create missing GodSpecializationScreen
+
+**File(s) Modified:**
+- `scripts/ui/screens/GodSpecializationScreen.gd` (NEW - 415 lines)
+- `scenes/GodSpecializationScreen.tscn` (NEW)
+
+**Changes:**
+- Created `GodSpecializationScreen.gd` - Full specialization tree screen with 3-panel layout:
+  - Left: God selector grid (3 columns, scrollable, shows name/level/role)
+  - Center: SpecializationTree component (role tabs, tree visualization)
+  - Right: Detail panel (spec name, description, requirements, bonuses, unlock button)
+- Created `scenes/GodSpecializationScreen.tscn` - Minimal scene (matches CollectionScreen pattern)
+- Follows established patterns: SystemRegistry, unified header, dark purple color palette
+- Resolves ScreenManager.gd line 45 reference to non-existent `GodSpecializationScreen.tscn`
+- WorldView "Specialization" button now navigates to a working screen
+
+**Verified:** Ran project, navigated to specialization screen via TestHarness. Screen loads with all 43 gods displayed, no errors in debug output.
+
+**Commit:** `cleanup: create missing GodSpecializationScreen scene and script`
