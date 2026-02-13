@@ -670,3 +670,21 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: cache abilities.json in BattleActionProcessor`
+
+### 2026-02-12 - Cleanup: Extract magic numbers to constants in CombatCalculator.gd
+
+**File(s) Modified:** `scripts/systems/battle/CombatCalculator.gd`
+
+**Changes:**
+- Extracted 15 named constants from magic numbers throughout the file:
+  - Damage formula: `DAMAGE_NUMERATOR` (1000.0), `DAMAGE_DENOMINATOR_BASE` (1140.0), `DAMAGE_DEFENSE_SCALE` (3.5)
+  - Hit types: `GLANCING_HIT_CHANCE` (0.15), `GLANCING_DAMAGE_MULT` (0.7), `DAMAGE_VARIANCE_MIN/MAX` (0.9/1.1)
+  - Elements: `ELEMENT_ADVANTAGE_MULT` (1.3), `ELEMENT_DISADVANTAGE_MULT` (0.85)
+  - Healing: `HEAL_VARIANCE_MIN/MAX` (0.95/1.05)
+  - Stat scaling: `LEVEL_STAT_SCALE` (0.1), `POWER_PER_LEVEL` (50), `POWER_PER_TIER` (500)
+- Added static typing to all local variables across all functions
+- No behavioral changes — all values identical to original magic numbers
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: extract constants in CombatCalculator`

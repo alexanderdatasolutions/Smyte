@@ -436,8 +436,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/battle/CombatCalculator.gd",
     "lines": "12, 22, 25, 32, 70, 82-91",
     "issue": "Core damage formula: 1000.0, 1140.0, 3.5, glancing 0.15/0.7, variance 0.9-1.1, element 1.3/0.85",
-    "action": "Create constants: SW_DAMAGE_NUMERATOR, GLANCING_HIT_CHANCE, etc.",
-    "passes": false
+    "action": "Extracted 15 constants: DAMAGE_NUMERATOR/DENOMINATOR_BASE/DEFENSE_SCALE, GLANCING_HIT_CHANCE/DAMAGE_MULT, DAMAGE_VARIANCE_MIN/MAX, ELEMENT_ADVANTAGE/DISADVANTAGE_MULT, HEAL_VARIANCE_MIN/MAX, LEVEL_STAT_SCALE, POWER_PER_LEVEL/TIER. Added static typing to all local variables.",
+    "passes": true
   },
   {
     "file": "scripts/systems/battle/TurnManager.gd",
