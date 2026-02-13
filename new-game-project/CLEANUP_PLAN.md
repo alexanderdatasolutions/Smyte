@@ -330,8 +330,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/shop/SkinManager.gd",
     "lines": "25-26, 97-107, 163-207",
     "issue": "Unused _collection_manager, _event_bus, and 5+ skin functions",
-    "action": "Remove dead code",
-    "passes": false
+    "action": "Removed _collection_manager and _event_bus variables, removed 7 unused functions (get_skins_for_god, get_owned_skins, get_equipped_skin, get_rarity_color, equip_skin, unequip_skin, get_portrait_path), removed 2 unused signals (skin_equipped, skin_unequipped), removed dead EventBus emit calls in purchase_skin. Kept get_all_skins, is_skin_owned, purchase_skin (used by ShopScreen.gd), can_purchase_skin/get_skin (used internally). File reduced from 228 to 149 lines (-79 lines).",
+    "passes": true
   }
 ]
 ```

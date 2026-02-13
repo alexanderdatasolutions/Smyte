@@ -517,3 +517,22 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove dead code from ShopManager`
+
+### 2026-02-12 - Cleanup: Remove dead code from SkinManager.gd
+
+**File(s) Modified:** `scripts/systems/shop/SkinManager.gd`
+
+**Changes:**
+- Removed `_collection_manager` variable — cached from SystemRegistry but never used anywhere
+- Removed `_event_bus` variable — only used in dead conditional branches (EventBus has no skin signals)
+- Removed 7 unused functions: `get_skins_for_god()`, `get_owned_skins()`, `get_equipped_skin()`, `get_rarity_color()`, `equip_skin()`, `unequip_skin()`, `get_portrait_path()`
+- Removed 2 unused signals: `skin_equipped`, `skin_unequipped` — only emitted by removed functions, never connected to
+- Removed dead `_event_bus.emit_signal()` calls in `purchase_skin()` — EventBus has no `skin_purchased` signal so `has_signal()` always returned false
+- Kept `get_all_skins()`, `is_skin_owned()`, `purchase_skin()` — actively called by ShopScreen.gd
+- Kept `can_purchase_skin()`, `get_skin()` — used internally by `purchase_skin()`
+- Kept `skin_purchased` signal — emitted on purchase (future listeners)
+- File reduced from 228 to 149 lines (-79 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove dead code from SkinManager`
