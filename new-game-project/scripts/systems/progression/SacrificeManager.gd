@@ -28,14 +28,6 @@ func _ready():
 	resource_manager = system_registry.get_system("ResourceManager")
 	collection_manager = system_registry.get_system("CollectionManager")
 	
-	_connect_events()
-
-func _connect_events():
-	"""Connect to system events"""
-	if event_bus:
-		event_bus.god_sacrificed.connect(_on_god_sacrificed)
-		event_bus.god_awakened.connect(_on_god_awakened)
-
 func perform_sacrifice(target_god: God, material_gods: Array[God]) -> Dictionary:
 	"""Perform sacrifice operation with full validation and events"""
 	if not sacrifice_system:
@@ -214,16 +206,6 @@ func get_god_sacrifice_value(god: God) -> int:
 	var awakening_bonus = 500 if god.is_awakened else 0
 	
 	return base_value + level_bonus + tier_bonus + awakening_bonus
-
-func _on_god_sacrificed(_god_id: String, _xp_gained: int):
-	"""Handle god sacrifice events from other systems"""
-	# Could add additional logic here if needed
-	pass
-
-func _on_god_awakened(_god_id: String):
-	"""Handle god awakening events from other systems"""
-	# Could add additional logic here if needed
-	pass
 
 # === SCREEN TRANSITION HELPERS ===
 

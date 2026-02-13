@@ -380,3 +380,18 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove empty handler from GodProgressionManager`
+
+### 2026-02-12 - Cleanup: Remove empty handlers from SacrificeManager.gd
+
+**File(s) Modified:** `scripts/systems/progression/SacrificeManager.gd`
+
+**Changes:**
+- Removed empty `_on_god_sacrificed()` handler (body was just `pass`)
+- Removed empty `_on_god_awakened()` handler (body was just `pass`)
+- Removed their signal connections from `_connect_events()`
+- Removed the now-empty `_connect_events()` function and its call from `_ready()`
+- File reduced from 239 to 221 lines (-18 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove empty handlers from SacrificeManager`

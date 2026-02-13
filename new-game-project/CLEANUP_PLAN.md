@@ -217,8 +217,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/progression/SacrificeManager.gd",
     "lines": "218-226",
     "issue": "Empty handlers: _on_god_sacrificed(), _on_god_awakened()",
-    "action": "Remove functions",
-    "passes": false
+    "action": "Removed 2 empty handlers (_on_god_sacrificed, _on_god_awakened), their signal connections in _connect_events(), and the now-empty _connect_events() function itself. File reduced from 239 to 221 lines.",
+    "passes": true
   }
 ]
 ```
