@@ -758,3 +758,22 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: refactor load_game in SaveManager`
+
+### 2026-02-12 - Cleanup: Refactor _handle_dungeon_victory() in DungeonCoordinator.gd
+
+**File(s) Modified:** `scripts/systems/dungeon/DungeonCoordinator.gd`
+
+**Changes:**
+- Split 87-line `_handle_dungeon_victory()` into 4 focused functions:
+  - `_handle_dungeon_victory()` — now 24 lines, orchestrates victory flow
+  - `_generate_victory_rewards()` — loot table generation, first-clear bonus, LootSystem awarding (35 lines)
+  - `_merge_rewards()` — shared helper to merge rewards into totals and populate BattleResult for UI (11 lines)
+  - `_award_team_experience()` — awards XP to all team gods (8 lines)
+- Added static typing throughout new functions (`:String`, `:Dictionary`, `:Node`, `:float`, `:int`, `-> void`, `-> Dictionary`)
+- Eliminated duplicated reward-merging loop (was copy-pasted for loot_table and first_clear sources)
+- No behavioral changes — all logic preserved exactly
+- File reduced from 307 to 301 lines
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: refactor _handle_dungeon_victory in DungeonCoordinator`

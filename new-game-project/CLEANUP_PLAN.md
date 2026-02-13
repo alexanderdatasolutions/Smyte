@@ -480,8 +480,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/dungeon/DungeonCoordinator.gd",
     "lines": "147-233",
     "issue": "_handle_dungeon_victory() is 87 lines",
-    "action": "Extract loot/rewards functions",
-    "passes": false
+    "action": "Extracted _generate_victory_rewards() (loot generation + first-clear bonus + awarding), _merge_rewards() (shared reward merging + BattleResult population), and _award_team_experience() (team XP). _handle_dungeon_victory() reduced from 87 to 24 lines. Added static typing throughout. File reduced from 307 to 301 lines.",
+    "passes": true
   },
   {
     "file": "scripts/systems/collection/SummonManager.gd",
