@@ -486,3 +486,17 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove dead code from LootSystem`
+
+### 2026-02-12 - Cleanup: Remove dead debug functions from ResourceManager.gd
+
+**File(s) Modified:** `scripts/systems/resources/ResourceManager.gd`
+
+**Changes:**
+- Removed `debug_print_resources()` (lines 198-202) — zero external callers, function body only assigned to unused local vars
+- Removed `debug_add_test_resources()` (lines 204-208) — zero external callers
+- Corrected CLEANUP_PLAN: `award_resources()` is NOT unused — actively called by `TerritoryProductionManager.gd` line 611-612. Kept it.
+- File reduced from 209 to 197 lines (-12 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove dead debug functions from ResourceManager`

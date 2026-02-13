@@ -314,10 +314,10 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
   },
   {
     "file": "scripts/systems/resources/ResourceManager.gd",
-    "lines": "150-166, 198-208",
-    "issue": "Unused: award_resources(), debug_print_resources(), debug_add_test_resources()",
-    "action": "Remove functions",
-    "passes": false
+    "lines": "198-208",
+    "issue": "Unused: debug_print_resources(), debug_add_test_resources(). award_resources() is actively used by TerritoryProductionManager.gd",
+    "action": "Removed 2 unused debug functions (debug_print_resources, debug_add_test_resources). Kept award_resources() — actively called by TerritoryProductionManager. File reduced from 209 to 197 lines.",
+    "passes": true
   },
   {
     "file": "scripts/systems/shop/ShopManager.gd",

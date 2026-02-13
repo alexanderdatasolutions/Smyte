@@ -194,15 +194,3 @@ func initialize_new_game():
 	player_resources["divine_crystals"] = 0
 	player_resources["energy"] = 80
 
-## Debug: Print all resources
-func debug_print_resources():
-	for resource_id in player_resources:
-		var _amount = player_resources[resource_id]
-		var _limit = get_resource_limit(resource_id)
-
-## Debug: Add test resources
-func debug_add_test_resources():
-	add_resource("gold", 50000)
-	add_resource("mana", 5000)
-	add_resource("crystals", 500)
-	add_resource("energy", 80)
