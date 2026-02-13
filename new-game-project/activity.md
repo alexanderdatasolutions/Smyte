@@ -581,3 +581,17 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove dead code from GodExperienceCalculator`
+
+### 2026-02-12 - Cleanup: Remove dead code from GodCardFactory.gd
+
+**File(s) Modified:** `scripts/utilities/GodCardFactory.gd`
+
+**Changes:**
+- Removed unused `populate_god_grid()` function (lines 75-92) — zero external callers (other files have their own local `_populate_god_grid()` methods)
+- Removed 3 unused filter functions: `get_awakening_filter()`, `get_sacrificeable_filter()`, `get_battle_ready_filter()` — designed for use with `populate_god_grid()`, all had zero external callers
+- Kept `create_god_card()` and `_configure_card_for_preset()` — actively used by 7+ files (CollectionScreen, EquipmentGodDisplay, TeamSelectionManager, BattleInfoManager, TowerScreen, etc.)
+- File reduced from 108 to 74 lines (-34 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove dead code from GodCardFactory`

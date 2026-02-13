@@ -72,36 +72,3 @@ static func _configure_card_for_preset(card: Control, preset: CardPreset):
 			card.show_awakening_status = false
 			card.clickable = true
 
-static func populate_god_grid(grid: GridContainer, gods: Array[God], preset: CardPreset, filter_func: Callable = Callable()):
-	"""Populate a grid container with god cards"""
-	# Clear existing cards
-	for child in grid.get_children():
-		child.queue_free()
-	
-	await Engine.get_main_loop().process_frame
-	
-	# Filter gods if filter function provided
-	var filtered_gods = gods
-	if filter_func.is_valid():
-		filtered_gods = gods.filter(filter_func)
-	
-	# Create cards for each god
-	for god in filtered_gods:
-		var card = create_god_card(preset)
-		card.setup_god_card(god)
-		grid.add_child(card)
-
-static func get_awakening_filter() -> Callable:
-	"""Filter for gods that can be awakened (Epic/Legendary at level 40+)"""
-	return func(god: God) -> bool:
-		return god.tier >= God.TierType.EPIC and god.level >= 40
-
-static func get_sacrificeable_filter() -> Callable:
-	"""Filter for gods that can be sacrificed (not max level legendaries)"""
-	return func(god: God) -> bool:
-		return not (god.tier == God.TierType.LEGENDARY and god.level >= 40)
-
-static func get_battle_ready_filter() -> Callable:
-	"""Filter for gods that are battle ready (level 10+)"""
-	return func(god: God) -> bool:
-		return god.level >= 10

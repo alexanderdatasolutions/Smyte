@@ -367,8 +367,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/utilities/GodCardFactory.gd",
     "lines": "75-92",
     "issue": "populate_god_grid() never called",
-    "action": "Remove function",
-    "passes": false
+    "action": "Removed populate_god_grid() and 3 unused filter functions (get_awakening_filter, get_sacrificeable_filter, get_battle_ready_filter) — all had zero external callers. File reduced from 108 to 74 lines (-34 lines).",
+    "passes": true
   }
 ]
 ```
