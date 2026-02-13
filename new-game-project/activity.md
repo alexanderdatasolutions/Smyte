@@ -793,3 +793,19 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: refactor _create_god_of_tier in SummonManager`
+
+### 2026-02-12 - Cleanup: Delete unused scripts/ui/components/GodSelectionPanel.gd
+
+**File(s) Deleted:** `scripts/ui/components/GodSelectionPanel.gd`
+
+**Changes:**
+- Deleted `scripts/ui/components/GodSelectionPanel.gd` (345 lines) — entire file is unused dead code
+- Class `TerritoryGodSelectionHelper` has zero external references (only its own definition)
+- No scene files reference this script
+- Active god selection functionality lives in `scripts/ui/territory/GodSelectionPanel.gd` (class_name `GodSelectionPanel`, used by HexTerritoryScreen.gd)
+- This was originally flagged for refactoring `create_god_selection_item()` (110 lines), but deletion is the correct action since the file is completely dead
+- Updated CLEANUP_PLAN.md to reflect deletion instead of refactoring
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: delete unused components/GodSelectionPanel.gd`

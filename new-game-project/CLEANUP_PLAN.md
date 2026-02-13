@@ -494,8 +494,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/ui/components/GodSelectionPanel.gd",
     "lines": "153-263",
     "issue": "create_god_selection_item() is 110 lines",
-    "action": "Extract panel/info/stats sections",
-    "passes": false
+    "action": "DELETED — entire file is unused dead code. class_name TerritoryGodSelectionHelper has zero external references. Active god selection lives in scripts/ui/territory/GodSelectionPanel.gd (class_name GodSelectionPanel, used by HexTerritoryScreen).",
+    "passes": true
   },
   {
     "file": "scripts/ui/components/ResourceDisplay.gd",
