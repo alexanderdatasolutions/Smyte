@@ -228,3 +228,16 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output
 
 **Commit:** `cleanup: delete unused empty ProgressionCoordinator.gd`
+
+### 2026-02-12 - Cleanup: Delete unused BattleEffectProcessor.gd
+
+**File(s) Modified:** `scripts/systems/battle/BattleEffectProcessor.gd` (DELETED)
+
+**Changes:**
+- Deleted unused `BattleEffectProcessor.gd` (141 lines) — never instantiated or referenced by any code
+- Only references were in documentation files (docs/analysis/03_battle.md, docs/MOCs/GameSystems.md)
+- File had known issues: used deprecated emit_signal() pattern, tried to get static CombatCalculator from SystemRegistry
+
+**Verified:** Ran project, no errors in debug output
+
+**Commit:** `cleanup: delete unused BattleEffectProcessor.gd`

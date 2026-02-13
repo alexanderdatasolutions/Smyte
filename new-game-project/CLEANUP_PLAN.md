@@ -61,8 +61,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
   {
     "file": "scripts/systems/battle/BattleEffectProcessor.gd",
     "issue": "141 lines never instantiated anywhere",
-    "action": "Delete",
-    "passes": false
+    "action": "Deleted - verified no code references (only docs)",
+    "passes": true
   },
   {
     "file": "scripts/ui/screens/DungeonTab.gd",
