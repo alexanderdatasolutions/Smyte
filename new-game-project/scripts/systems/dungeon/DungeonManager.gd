@@ -9,8 +9,6 @@ const MAX_TEAM_SIZE: int = 4
 
 # Signals for UI communication (RULE 4: No UI in systems)
 signal dungeon_data_loaded
-signal dungeon_unlocked(dungeon_id: String)
-signal validation_completed(result: Dictionary)
 
 # Core data
 var dungeon_data: Dictionary = {}
@@ -259,27 +257,23 @@ func validate_dungeon_entry(dungeon_id: String, difficulty: String, team: Array)
 	var dungeon_info = get_dungeon_info(dungeon_id)
 	if dungeon_info.is_empty():
 		result.error_message = "Dungeon not found"
-		validation_completed.emit(result)
 		return result
 
 	# Check difficulty
 	var difficulties = dungeon_info.get("difficulty_levels", {})
 	if not difficulties.has(difficulty):
 		result.error_message = "Invalid difficulty"
-		validation_completed.emit(result)
 		return result
 
 	# Check team
 	if team.is_empty() or team.size() > MAX_TEAM_SIZE:
 		result.error_message = "Invalid team size (1-%d gods required)" % MAX_TEAM_SIZE
-		validation_completed.emit(result)
 		return result
 
 	# Check daily limit
 	if is_daily_limit_reached(dungeon_id):
 		var daily_limit = get_daily_limit(dungeon_id)
 		result.error_message = "Daily limit reached (%d/%d completions today)" % [daily_limit, daily_limit]
-		validation_completed.emit(result)
 		return result
 
 	# Check energy cost
@@ -292,11 +286,9 @@ func validate_dungeon_entry(dungeon_id: String, difficulty: String, team: Array)
 		var current_energy = resource_manager.get_resource("energy")
 		if current_energy < energy_cost:
 			result.error_message = "Not enough energy (%d required, %d available)" % [energy_cost, current_energy]
-			validation_completed.emit(result)
 			return result
 
 	result.success = true
-	validation_completed.emit(result)
 	return result
 
 func get_dungeon_categories() -> Dictionary:

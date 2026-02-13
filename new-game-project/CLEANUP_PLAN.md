@@ -293,8 +293,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/systems/dungeon/DungeonManager.gd",
     "lines": "10-11",
     "issue": "Unused signals: dungeon_unlocked, validation_completed",
-    "action": "Remove signals",
-    "passes": false
+    "action": "Removed dungeon_unlocked signal (never emitted, never connected). Removed validation_completed signal and all 6 emit calls in validate_dungeon_entry() (emitted but never connected to — callers use the return value). File reduced from 774 to 766 lines.",
+    "passes": true
   }
 ]
 ```

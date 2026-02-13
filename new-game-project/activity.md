@@ -458,3 +458,16 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: remove dead code from DungeonCoordinator`
+
+### 2026-02-12 - Cleanup: Remove unused signals from DungeonManager.gd
+
+**File(s) Modified:** `scripts/systems/dungeon/DungeonManager.gd`
+
+**Changes:**
+- Removed `dungeon_unlocked` signal — declared but never emitted and never connected to
+- Removed `validation_completed` signal and all 6 `.emit(result)` calls in `validate_dungeon_entry()` — signal was emitted but no code ever connected to it (callers use the direct return value instead)
+- File reduced from 774 to 766 lines (-8 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: remove unused signals from DungeonManager`
