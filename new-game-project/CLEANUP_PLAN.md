@@ -563,8 +563,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
   {
     "file": "scripts/systems/battle/StatusEffectManager.gd",
     "issue": "7 functions with untyped unit/effect parameters",
-    "action": "Add BattleUnit and StatusEffect types",
-    "passes": false
+    "action": "Added BattleUnit type to all unit/target parameters (process_turn_start_effects, process_turn_end_effects, _process_single_effect, _process_dot_effect, _process_hot_effect, _process_shield_effect, _process_cc_effect, _remove_effect, apply_status_effect, remove_status_effect). Added StatusEffect type to all effect parameters. Added Array[String] return types. Fixed API calls to use actual BattleUnit/StatusEffect properties (display_name, status_effects, damage_per_turn, dot_damage, heal_per_turn, duration). Replaced nonexistent method calls (get_status_effects, get_display_name, set_stunned, should_trigger_on, get_damage_amount, get_heal_amount, reduce_duration) with correct property access. Consolidated _process_poison_effect/_process_burn_effect into unified _process_dot_effect. Added _process_cc_effect for stun/freeze/sleep. File reduced from 164 to 149 lines.",
+    "passes": true
   },
   {
     "file": "scripts/systems/battle/BattleActionProcessor.gd",

@@ -949,3 +949,32 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: add static typing to HexGridManager`
+
+### 2026-02-13 - Cleanup: Add static typing to StatusEffectManager.gd
+
+**File(s) Modified:** `scripts/systems/battle/StatusEffectManager.gd`
+
+**Changes:**
+- Added `BattleUnit` type to all 10 unit/target parameters across all functions
+- Added `StatusEffect` type to all effect parameters
+- Added `Array[String]` return types to `process_turn_start_effects()` and `process_turn_end_effects()`
+- Added `-> void` return type to `_remove_effect()`, `-> bool` to `apply_status_effect()` and `remove_status_effect()`
+- Added `-> Dictionary` return type to all effect processing functions
+- Typed all local variables: `messages: Array[String]`, `result: Dictionary`, `damage: int`, `healing: int`, `msg: String`, `removed: bool`
+- Fixed API calls to use actual BattleUnit/StatusEffect properties instead of nonexistent methods:
+  - `unit.get_status_effects()` → `unit.status_effects` (property access)
+  - `unit.get_display_name()` → `unit.display_name` (property access)
+  - `unit.set_stunned(true)` → removed (BattleUnit.can_act() checks prevents_action)
+  - `effect.should_trigger_on(timing)` → removed (effects always process)
+  - `effect.get_damage_amount()` → inline calc using `effect.damage_per_turn` and `effect.dot_damage`
+  - `effect.get_heal_amount()` → inline calc using `effect.heal_per_turn`
+  - `effect.reduce_duration()` → `effect.duration -= 1` (direct property)
+- Consolidated `_process_poison_effect`/`_process_burn_effect` into unified `_process_dot_effect(label)` that also handles bleed/continuous_damage
+- Added `_process_cc_effect()` for stun/freeze/sleep/immobilize/fear
+- Removed `has_method()` guard checks — functions now properly typed to BattleUnit
+- Matched `effect.id` instead of `effect.effect_type` string for consistency with StatusEffect factory method IDs
+- File reduced from 164 to 149 lines
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: add static typing to StatusEffectManager`
