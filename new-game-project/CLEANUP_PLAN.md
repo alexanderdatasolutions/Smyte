@@ -551,8 +551,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
   {
     "file": "scripts/systems/territory/TerritoryManager.gd",
     "issue": "15+ functions with untyped coord/node parameters",
-    "action": "Add HexCoord and HexNode type hints",
-    "passes": false
+    "action": "Added HexCoord type to 8 coord parameters, HexNode type to 15+ node variables/parameters, God type to god_obj, Node type to all SystemRegistry lookups, typed all local variables (int, float, bool, String, Dictionary, Array). Added -> void return types to 12 functions missing them.",
+    "passes": true
   },
   {
     "file": "scripts/systems/territory/HexGridManager.gd",

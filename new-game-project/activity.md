@@ -913,3 +913,21 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: create DungeonConstants and consolidate duplicated dungeon code`
+
+### 2026-02-13 - Cleanup: Add static typing to TerritoryManager.gd
+
+**File(s) Modified:** `scripts/systems/territory/TerritoryManager.gd`
+
+**Changes:**
+- Added `HexCoord` type to 8 coord parameters: `capture_node`, `lose_node`, `get_node_defense_rating`, `calculate_distance_penalty`, `get_connected_bonus`, `get_connected_node_count`, `is_hex_node_controlled`, `get_hex_node`
+- Added `HexNode` type to 15+ node variables and parameters: `_calculate_garrison_power`, `can_assign_workers`, `get_garrison_worker_status`, `_check_node_dungeon_unlock`, `_award_capture_rewards`, `_reveal_adjacent_nodes`, `_start_attack_timer`, `_handle_node_attack`, and all local node variables from HexGridManager lookups
+- Added `God` type to `god_obj` in `_calculate_garrison_power`
+- Added `Node` type to all SystemRegistry system lookups (~25 variables)
+- Added `-> void` return types to 12 functions: `_ready`, `_load_territory_configuration`, `load_save_data`, `_on_dungeon_completed`, `_connect_to_dungeon_coordinator`, `_deferred_connect_dungeon_coordinator`, `_award_capture_rewards`, `_reveal_adjacent_nodes`, `_start_attack_timer`, `update_attack_timers`, `_handle_node_attack`, `reset_attack_timer`
+- Added `-> HexNode` return type to `get_hex_node`
+- Typed all local variables with explicit types (int, float, bool, String, Dictionary, Array)
+- No behavioral changes — all logic preserved exactly
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: add static typing to TerritoryManager`
