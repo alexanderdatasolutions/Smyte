@@ -44,16 +44,17 @@ const DEFAULT_ACCURACY: int = 0          # Summoners War default: 0%
 # EQUIPMENT SYSTEM - 6 slots like Summoners War
 # ==============================================================================
 # Slots: 1=Weapon, 2=Armor, 3=Helm, 4=Boots, 5=Amulet, 6=Ring
+# Untyped because slots contain Equipment or null (empty slot)
 @export var equipment: Array = [null, null, null, null, null, null]
 
 # ==============================================================================
 # ABILITIES - JSON format data
 # ==============================================================================
-@export var active_abilities: Array = []  # Array of ability dictionaries
-@export var passive_abilities: Array = []  # Array of passive ability dictionaries
+@export var active_abilities: Array = []  # Array[Dictionary] - from JSON, kept untyped for save/load compat
+@export var passive_abilities: Array = []  # Array[Dictionary] - from JSON, kept untyped for save/load compat
 
 # Legacy abilities array for backward compatibility (deprecated)
-@export var abilities: Array = []  # Ability IDs
+@export var abilities: Array = []  # Array[String] - from JSON, kept untyped for save/load compat
 @export var passive_ability: String = ""
 
 # ==============================================================================
@@ -94,7 +95,7 @@ const DEFAULT_ACCURACY: int = 0          # Summoners War default: 0%
 @export var awakened_name: String = ""
 @export var awakened_title: String = ""
 @export var ascension_level: int = 0  # 0=unascended, 1=bronze, 2=silver, 3=gold, 4=diamond, 5=transcendent
-@export var skill_levels: Array = [1, 1, 1, 1]  # Array[int] - Skill levels 1-10 for each skill
+@export var skill_levels: Array = [1, 1, 1, 1]  # Array[int] - from save data, kept untyped for save/load compat
 
 # ==============================================================================
 # COSMETICS SYSTEM
@@ -106,7 +107,7 @@ const DEFAULT_ACCURACY: int = 0          # Summoners War default: 0%
 # BATTLE STATE - Runtime data
 # ==============================================================================
 @export var current_hp: int = 0  # Set during battle preparation
-@export var status_effects: Array = []  # Active status effects
+@export var status_effects: Array[StatusEffect] = []
 @export var position: int = -1  # Battle position (0-3)
 
 # ==============================================================================

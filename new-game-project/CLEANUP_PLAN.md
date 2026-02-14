@@ -585,29 +585,29 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
     "file": "scripts/data/ActionResult.gd",
     "lines": "6-7",
     "issue": "Arrays missing types",
-    "action": "Add Array[DamageResult], Array[StatusEffect]",
-    "passes": false
+    "action": "Added Array[DamageResult] and Array[StatusEffect] typed arrays. Added -> void return types to add_damage_result() and add_status_effect().",
+    "passes": true
   },
   {
     "file": "scripts/data/BattleAction.gd",
     "lines": "13-15",
     "issue": "caster, targets, skill missing types",
-    "action": "Add BattleUnit, Array[BattleUnit], Skill types",
-    "passes": false
+    "action": "Added BattleUnit type to caster and all attacker/defender/p_caster params. Added Array[BattleUnit] to targets and p_targets. Added Skill type to skill. Added := type inference to all BattleAction.new() calls. Typed lambda in get_description().",
+    "passes": true
   },
   {
     "file": "scripts/data/BattleState.gd",
     "lines": "6-8",
     "issue": "Unit arrays missing typed annotations",
-    "action": "Add Array[BattleUnit] types",
-    "passes": false
+    "action": "Added Array[BattleUnit] to player_units, enemy_units, all_units. Typed all return values (-> void, -> bool, -> float, -> Array[BattleUnit], -> Dictionary). Typed all for-loop variables (: BattleUnit, : Dictionary, : God). Typed local variables throughout. Rewrote filter-based getters (get_living_units, get_living_player_units, get_living_enemy_units) as explicit loops to return typed arrays. Added BattleUnit/Skill types to find_valid_targets params. Fixed latent bug: skill.targets_enemies() → skill.targets_enemies (property, not method).",
+    "passes": true
   },
   {
     "file": "scripts/data/God.gd",
     "lines": "37, 42-47, 99",
     "issue": "equipment, ability arrays, status_effects missing types",
-    "action": "Add typed arrays",
-    "passes": false
+    "action": "Added Array[StatusEffect] to status_effects. Kept equipment, active_abilities, passive_abilities, abilities, skill_levels as untyped Array with type comments — Godot 4.5 @export typed arrays reject untyped Array assignment from JSON/save data (causes runtime 'Invalid assignment' error). Added explanatory comments.",
+    "passes": true
   }
 ]
 ```

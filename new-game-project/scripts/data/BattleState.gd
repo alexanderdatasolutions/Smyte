@@ -3,9 +3,9 @@
 class_name BattleState extends RefCounted
 
 # Battle units
-var player_units: Array = []  # Array[BattleUnit]
-var enemy_units: Array = []   # Array[BattleUnit] 
-var all_units: Array = []     # Array[BattleUnit]
+var player_units: Array[BattleUnit] = []
+var enemy_units: Array[BattleUnit] = []
+var all_units: Array[BattleUnit] = []
 
 # Battle flow state
 var current_turn: int = 0
@@ -27,7 +27,7 @@ func _init():
 	battle_start_time = Time.get_ticks_msec()
 
 ## Setup battle state from configuration
-func setup_from_config(config: BattleConfig):
+func setup_from_config(config: BattleConfig) -> void:
 	battle_type = BattleConfig.BattleType.keys()[config.battle_type]
 	battle_id = config.dungeon_name if not config.dungeon_name.is_empty() else config.territory_id
 
@@ -38,13 +38,13 @@ func setup_from_config(config: BattleConfig):
 
 	# Create player units from attacker team
 	player_units.clear()
-	for god in config.attacker_team:
+	for god: God in config.attacker_team:
 		if god:
-			var unit = BattleUnit.from_god(god)
+			var unit: BattleUnit = BattleUnit.from_god(god)
 
 			# Apply HP override if available (for Tower persistent HP)
 			if hp_overrides.has(god.id):
-				var override_hp = hp_overrides[god.id]
+				var override_hp: int = hp_overrides[god.id]
 				if override_hp > 0:
 					unit.current_hp = min(override_hp, unit.max_hp)
 					print("BattleState: Applied HP override for %s: %d/%d" % [unit.display_name, unit.current_hp, unit.max_hp])
@@ -56,14 +56,14 @@ func setup_from_config(config: BattleConfig):
 
 			player_units.append(unit)
 			all_units.append(unit)
-	
+
 	# Create enemy units based on battle type
 	enemy_units.clear()
 	if not config.defender_team.is_empty():
 		# Defender team can contain God objects or Dictionary enemy data
 		for defender in config.defender_team:
 			if defender:
-				var unit
+				var unit: BattleUnit
 				# Check if it's a God object or Dictionary enemy data
 				if defender is God:
 					unit = BattleUnit.from_god(defender)
@@ -83,15 +83,15 @@ func setup_from_config(config: BattleConfig):
 			_setup_wave_enemies(config.enemy_waves[0])  # Start with first wave
 
 ## Setup enemies for a specific wave
-func _setup_wave_enemies(wave_enemies: Array):
+func _setup_wave_enemies(wave_enemies: Array) -> void:
 	# Clear existing enemy units
-	for unit in enemy_units:
+	for unit: BattleUnit in enemy_units:
 		all_units.erase(unit)
 	enemy_units.clear()
-	
+
 	# Create new enemy units for this wave
-	for enemy_data in wave_enemies:
-		var unit = BattleUnit.from_enemy(enemy_data)
+	for enemy_data: Dictionary in wave_enemies:
+		var unit: BattleUnit = BattleUnit.from_enemy(enemy_data)
 		enemy_units.append(unit)
 		all_units.append(unit)
 
@@ -105,27 +105,39 @@ func advance_to_next_wave(next_wave_enemies: Array) -> bool:
 	return true
 
 ## Get all living units
-func get_living_units() -> Array:
-	return all_units.filter(func(unit): return unit.is_alive)
+func get_living_units() -> Array[BattleUnit]:
+	var living: Array[BattleUnit] = []
+	for unit: BattleUnit in all_units:
+		if unit.is_alive:
+			living.append(unit)
+	return living
 
 ## Get all living player units
-func get_living_player_units() -> Array:
-	return player_units.filter(func(unit): return unit.is_alive)
+func get_living_player_units() -> Array[BattleUnit]:
+	var living: Array[BattleUnit] = []
+	for unit: BattleUnit in player_units:
+		if unit.is_alive:
+			living.append(unit)
+	return living
 
 ## Get all living enemy units
-func get_living_enemy_units() -> Array:
-	return enemy_units.filter(func(unit): return unit.is_alive)
+func get_living_enemy_units() -> Array[BattleUnit]:
+	var living: Array[BattleUnit] = []
+	for unit: BattleUnit in enemy_units:
+		if unit.is_alive:
+			living.append(unit)
+	return living
 
 ## Get all player units (alive and dead)
-func get_player_units() -> Array:
+func get_player_units() -> Array[BattleUnit]:
 	return player_units.duplicate()
 
 ## Get all enemy units (alive and dead)
-func get_enemy_units() -> Array:
+func get_enemy_units() -> Array[BattleUnit]:
 	return enemy_units.duplicate()
 
 ## Get all units (alive and dead)
-func get_all_units() -> Array:
+func get_all_units() -> Array[BattleUnit]:
 	return all_units.duplicate()
 
 ## Check if all player units are defeated
@@ -145,31 +157,31 @@ func get_battle_duration() -> float:
 	return (Time.get_ticks_msec() - battle_start_time) / 1000.0
 
 ## Record damage dealt by player units
-func record_damage_dealt(damage: int):
+func record_damage_dealt(damage: int) -> void:
 	total_damage_dealt += damage
 
 ## Record damage received by player units
-func record_damage_received(damage: int):
+func record_damage_received(damage: int) -> void:
 	total_damage_received += damage
 
 ## Record unit defeat
-func record_unit_defeat():
+func record_unit_defeat() -> void:
 	units_defeated += 1
 
 ## Record skill use
-func record_skill_use():
+func record_skill_use() -> void:
 	skills_used += 1
 
 ## Check if any player units have died during battle
 func has_unit_deaths() -> bool:
-	for unit in player_units:
+	for unit: BattleUnit in player_units:
 		if not unit.is_alive:
 			return true
 	return false
 
 ## Get unit by ID
 func get_unit_by_id(unit_id: String) -> BattleUnit:
-	for unit in all_units:
+	for unit: BattleUnit in all_units:
 		if unit.unit_id == unit_id:
 			return unit
 	return null
@@ -190,25 +202,25 @@ func get_battle_statistics() -> Dictionary:
 	}
 
 ## Process end of turn for all units
-func process_end_of_turn():
+func process_end_of_turn() -> void:
 	current_turn += 1
-	
+
 	# Process status effects and cooldowns for all living units
-	for unit in get_living_units():
+	for unit: BattleUnit in get_living_units():
 		unit.process_status_effects()
 		unit.tick_cooldowns()
 
 ## Get units sorted by speed (for turn order)
-func get_units_by_speed() -> Array:
-	var living_units = get_living_units()
-	living_units.sort_custom(func(a, b): return a.speed > b.speed)
+func get_units_by_speed() -> Array[BattleUnit]:
+	var living_units: Array[BattleUnit] = get_living_units()
+	living_units.sort_custom(func(a: BattleUnit, b: BattleUnit) -> bool: return a.speed > b.speed)
 	return living_units
 
 ## Find valid targets for a skill
-func find_valid_targets(caster, skill) -> Array:
-	var valid_targets = []
-	
-	if skill.targets_enemies():
+func find_valid_targets(caster: BattleUnit, skill: Skill) -> Array[BattleUnit]:
+	var valid_targets: Array[BattleUnit] = []
+
+	if skill.targets_enemies:
 		if caster.is_player_unit:
 			valid_targets = get_living_enemy_units()
 		else:
@@ -219,14 +231,11 @@ func find_valid_targets(caster, skill) -> Array:
 			valid_targets = get_living_player_units()
 		else:
 			valid_targets = get_living_enemy_units()
-	
-	# Apply additional targeting restrictions if needed
-	# (e.g., lowest HP, highest HP, random, etc.)
-	
+
 	return valid_targets
 
 ## Clean up battle state
-func cleanup():
+func cleanup() -> void:
 	player_units.clear()
 	enemy_units.clear()
 	all_units.clear()

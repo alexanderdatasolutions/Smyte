@@ -999,3 +999,21 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: add static typing to BattleActionProcessor`
+
+### 2026-02-13 - Cleanup: Add static typing to data classes
+
+**File(s) Modified:**
+- `scripts/data/ActionResult.gd`
+- `scripts/data/BattleAction.gd`
+- `scripts/data/BattleState.gd`
+- `scripts/data/God.gd`
+
+**Changes:**
+- **ActionResult.gd**: Added `Array[DamageResult]` and `Array[StatusEffect]` typed arrays. Added `-> void` return types to `add_damage_result()` and `add_status_effect()`.
+- **BattleAction.gd**: Added `BattleUnit` type to `caster` and all factory method parameters. Added `Array[BattleUnit]` to `targets`. Added `Skill` type to `skill`. Added `:=` type inference. Typed lambda in `get_description()`.
+- **BattleState.gd**: Added `Array[BattleUnit]` to `player_units`, `enemy_units`, `all_units`. Added return types to all functions (`-> void`, `-> bool`, `-> float`, `-> Array[BattleUnit]`, `-> Dictionary`). Typed all for-loop variables and local variables. Rewrote `.filter()`-based getters as explicit loops to return properly typed arrays. Added `BattleUnit`/`Skill` types to `find_valid_targets()` params. Fixed latent bug: `skill.targets_enemies()` → `skill.targets_enemies` (property access, not method call).
+- **God.gd**: Added `Array[StatusEffect]` to `status_effects`. Kept `equipment`, `active_abilities`, `passive_abilities`, `abilities`, `skill_levels` as untyped `Array` with type comments — Godot 4.5 `@export` typed arrays reject untyped Array assignment from JSON/save data at runtime.
+
+**Verified:** Ran project, all 43 gods loaded successfully, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: add static typing to data classes`
