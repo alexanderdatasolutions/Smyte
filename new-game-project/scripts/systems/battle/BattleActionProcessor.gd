@@ -12,7 +12,7 @@ static var _abilities_loaded: bool = false
 signal action_executed(action: BattleAction, result: ActionResult)
 
 ## Setup battle context
-func setup_battle_context(state: BattleState):
+func setup_battle_context(state: BattleState) -> void:
 	battle_state = state
 
 ## Execute a battle action
@@ -20,9 +20,9 @@ func execute_action(action: BattleAction, state: BattleState) -> bool:
 	if not action or not action.caster.is_alive:
 		return false
 	
-	var result = ActionResult.new()
+	var result := ActionResult.new()
 	result.success = true
-	
+
 	match action.action_type:
 		BattleAction.ActionType.ATTACK:
 			_execute_attack(action, result)
@@ -37,9 +37,9 @@ func execute_action(action: BattleAction, state: BattleState) -> bool:
 	# Record statistics
 	if result.success:
 		state.record_skill_use()
-		
+
 		# Record damage
-		for damage_result in result.damage_results:
+		for damage_result: DamageResult in result.damage_results:
 			if action.caster.is_player_unit:
 				state.record_damage_dealt(damage_result.total)
 			else:
@@ -50,19 +50,18 @@ func execute_action(action: BattleAction, state: BattleState) -> bool:
 	
 	return result.success
 
-func _execute_attack(action: BattleAction, result: ActionResult):
-	"""Execute a basic attack"""
-	var attacker = action.caster
-	var target = action.targets[0]
-	
+func _execute_attack(action: BattleAction, result: ActionResult) -> void:
+	var attacker: BattleUnit = action.caster
+	var target: BattleUnit = action.targets[0]
+
 	if not target.is_alive:
 		result.success = false
 		result.message = attacker.display_name + " attacks " + target.display_name + ", but they are already defeated!"
 		return
 	
 	# Use existing CombatCalculator for authentic SW combat
-	var damage_result = CombatCalculator.calculate_damage(attacker, target)
-	var damage_amount = damage_result.total
+	var damage_result: DamageResult = CombatCalculator.calculate_damage(attacker, target)
+	var damage_amount: int = damage_result.total
 	
 	# Apply damage
 	target.take_damage(damage_amount)
@@ -72,18 +71,17 @@ func _execute_attack(action: BattleAction, result: ActionResult):
 		battle_state.record_unit_defeat()
 	
 	# Create damage result for tracking
-	var attack_result = DamageResult.new(damage_amount, damage_result.is_critical, damage_result.is_glancing)
+	var attack_result := DamageResult.new(damage_amount, damage_result.is_critical, damage_result.is_glancing)
 	result.add_damage_result(attack_result)
 	result.message = attacker.display_name + " attacks " + target.display_name + " for " + str(damage_amount) + " damage!"
 
-func _execute_skill(action: BattleAction, result: ActionResult):
-	"""Execute a skill"""
-	var caster = action.caster
-	var skill = action.skill
-	var targets = action.targets
+func _execute_skill(action: BattleAction, result: ActionResult) -> void:
+	var caster: BattleUnit = action.caster
+	var skill: Skill = action.skill
+	var targets: Array = action.targets
 
 	# Check if skill is on cooldown
-	var skill_index = caster.skills.find(skill)
+	var skill_index: int = caster.skills.find(skill)
 	if skill_index >= 0 and not caster.can_use_skill(skill_index):
 		result.success = false
 		result.message = skill.name + " is on cooldown!"
@@ -94,23 +92,23 @@ func _execute_skill(action: BattleAction, result: ActionResult):
 		caster.use_skill(skill_index)
 
 	# Apply skill effects to each target using existing combat system
-	for target in targets:
+	for target: BattleUnit in targets:
 		if not target.is_alive:
 			continue
 
 		if skill.targets_enemies:
 			# Use existing skill damage calculation
-			var skill_result = CombatCalculator.calculate_damage(caster, target, skill)
+			var skill_result: DamageResult = CombatCalculator.calculate_damage(caster, target, skill)
 			target.take_damage(skill_result.total)
 
-			var skill_damage = DamageResult.new(skill_result.total, skill_result.is_critical, skill_result.is_glancing)
+			var skill_damage := DamageResult.new(skill_result.total, skill_result.is_critical, skill_result.is_glancing)
 			result.add_damage_result(skill_damage)
 
 			if not target.is_alive:
 				battle_state.record_unit_defeat()
 		else:
 			# Healing or buff skill
-			var heal_amount = int(caster.attack * skill.damage_multiplier)
+			var heal_amount: int = int(caster.attack * skill.damage_multiplier)
 			target.heal(heal_amount)
 			result.message += target.display_name + " healed for " + str(heal_amount) + "! "
 
@@ -119,29 +117,27 @@ func _execute_skill(action: BattleAction, result: ActionResult):
 
 	result.message = caster.display_name + " uses " + skill.name + "!"
 
-func _execute_defend(action: BattleAction, result: ActionResult):
-	"""Execute defend action"""
-	var defender = action.caster
+func _execute_defend(action: BattleAction, result: ActionResult) -> void:
+	var defender: BattleUnit = action.caster
 
 	# Apply defense buff (simplified)
-	var defense_buff = StatusEffect.new()
-	defense_buff.effect_id = "defend_buff"
+	var defense_buff := StatusEffect.new()
+	defense_buff.id = "defend_buff"
 	defense_buff.name = "Defending"
 	defense_buff.duration = 1
-	defense_buff.stat_modifiers = {"defense": 0.5}  # +50% defense
+	defense_buff.stat_modifier = {"defense": 0.5}  # +50% defense
 
 	defender.add_status_effect(defense_buff)
 	result.message = defender.display_name + " takes a defensive stance!"
 
-func _apply_skill_status_effects(skill, caster, target, result: ActionResult):
-	"""Apply status effects from skill to target"""
+func _apply_skill_status_effects(skill: Skill, caster: BattleUnit, target: BattleUnit, result: ActionResult) -> void:
 	# Load ability data from JSON to get effects
-	var ability_data = _get_ability_data(skill.skill_id)
+	var ability_data: Dictionary = _get_ability_data(skill.skill_id)
 	if ability_data == null or ability_data.is_empty():
 		print("BattleActionProcessor: No ability data found for skill: ", skill.skill_id)
 		return
 
-	var effects = ability_data.get("effects", [])
+	var effects: Array = ability_data.get("effects", [])
 	if effects.is_empty():
 		print("BattleActionProcessor: Skill %s has no effects" % skill.skill_id)
 		return
@@ -149,23 +145,24 @@ func _apply_skill_status_effects(skill, caster, target, result: ActionResult):
 	print("BattleActionProcessor: Processing %d effects for skill %s" % [effects.size(), skill.skill_id])
 
 	# Process each effect in the skill
-	for effect_data in effects:
+	for effect_data: Variant in effects:
 		if not effect_data is Dictionary:
 			continue
 
-		var effect_type = effect_data.get("type", "")
+		var effect_dict: Dictionary = effect_data as Dictionary
+		var effect_type: String = effect_dict.get("type", "")
 
 		match effect_type:
 			"debuff":
-				_apply_debuff_effect(effect_data, caster, target, result)
+				_apply_debuff_effect(effect_dict, caster, target, result)
 			"buff":
-				_apply_buff_effect(effect_data, caster, target, result)
+				_apply_buff_effect(effect_dict, caster, target, result)
 			"atb_decrease":
-				_apply_atb_decrease(effect_data, caster, target, result)
+				_apply_atb_decrease(effect_dict, caster, target, result)
 			"atb_steal":
-				_apply_atb_steal(effect_data, caster, target, result)
+				_apply_atb_steal(effect_dict, caster, target, result)
 			"life_drain":
-				_apply_life_drain(effect_data, caster, target, result)
+				_apply_life_drain(effect_dict, caster, target, result)
 
 func _get_ability_data(skill_id: String) -> Dictionary:
 	"""Look up ability data from cached abilities dictionary"""
@@ -192,16 +189,15 @@ static func _load_abilities_cache() -> void:
 	var data: Dictionary = json.get_data()
 	_cached_abilities = data.get("abilities", {})
 
-func _apply_debuff_effect(effect_data: Dictionary, caster, target, result: ActionResult):
-	"""Apply a debuff status effect to target"""
-	var debuff_type = effect_data.get("debuff", "")
-	var chance = effect_data.get("chance", 100)
-	var duration = effect_data.get("duration", 1)
+func _apply_debuff_effect(effect_data: Dictionary, caster: BattleUnit, target: BattleUnit, result: ActionResult) -> void:
+	var debuff_type: String = effect_data.get("debuff", "")
+	var chance: int = effect_data.get("chance", 100)
+	var duration: int = effect_data.get("duration", 1)
 
 	print("BattleActionProcessor: Attempting to apply %s (chance: %d%%, duration: %d)" % [debuff_type, chance, duration])
 
 	# Roll for chance
-	var roll = randf() * 100
+	var roll: float = randf() * 100
 	if roll > chance:
 		print("BattleActionProcessor: Failed chance roll (%d > %d)" % [roll, chance])
 		return
@@ -209,7 +205,7 @@ func _apply_debuff_effect(effect_data: Dictionary, caster, target, result: Actio
 	print("BattleActionProcessor: Passed chance roll (%d <= %d)" % [roll, chance])
 
 	# Create the appropriate status effect using factory methods
-	var status_effect = null
+	var status_effect: StatusEffect = null
 	match debuff_type:
 		"stun":
 			status_effect = StatusEffect.create_stun(caster, duration)
@@ -258,7 +254,7 @@ func _apply_debuff_effect(effect_data: Dictionary, caster, target, result: Actio
 			return
 
 	# Apply the status effect to target
-	if status_effect and target.has_method("add_status_effect"):
+	if status_effect:
 		print("BattleActionProcessor: Applying status effect to %s: %s" % [target.display_name, status_effect.name])
 		# Set tracking info for battle log
 		status_effect.target_name = target.display_name
@@ -268,21 +264,18 @@ func _apply_debuff_effect(effect_data: Dictionary, caster, target, result: Actio
 		# Track applied status effect in result for logging
 		result.add_status_effect(status_effect)
 		print("BattleActionProcessor: Status effect applied successfully")
-	else:
-		print("BattleActionProcessor: Failed to apply status effect (status_effect=%s, has_method=%s)" % [status_effect != null, target.has_method("add_status_effect")])
 
-func _apply_buff_effect(effect_data: Dictionary, caster, target, result: ActionResult):
-	"""Apply a buff status effect to target"""
-	var buff_type = effect_data.get("buff", "")
-	var chance = effect_data.get("chance", 100)
-	var duration = effect_data.get("duration", 3)
+func _apply_buff_effect(effect_data: Dictionary, caster: BattleUnit, target: BattleUnit, result: ActionResult) -> void:
+	var buff_type: String = effect_data.get("buff", "")
+	var chance: int = effect_data.get("chance", 100)
+	var duration: int = effect_data.get("duration", 3)
 
 	# Roll for chance
 	if randf() * 100 > chance:
 		return
 
 	# Create the appropriate status effect using factory methods
-	var status_effect = null
+	var status_effect: StatusEffect = null
 	match buff_type:
 		"attack_boost", "attack_up", "increase_attack":
 			status_effect = StatusEffect.create_attack_boost(caster, duration)
@@ -317,7 +310,7 @@ func _apply_buff_effect(effect_data: Dictionary, caster, target, result: ActionR
 			return
 
 	# Apply the status effect to target
-	if status_effect and target.has_method("add_status_effect"):
+	if status_effect:
 		# Set tracking info for battle log
 		status_effect.target_name = target.display_name
 		status_effect.caster_name = caster.display_name if caster else ""
@@ -326,41 +319,38 @@ func _apply_buff_effect(effect_data: Dictionary, caster, target, result: ActionR
 		# Track applied status effect in result for logging
 		result.add_status_effect(status_effect)
 
-func _apply_atb_decrease(effect_data: Dictionary, _caster, target, result: ActionResult):
-	"""Decrease target's attack turn bar"""
-	var chance = effect_data.get("chance", 100)
-	var amount = effect_data.get("amount", 30)  # Percentage to decrease
+func _apply_atb_decrease(effect_data: Dictionary, _caster: BattleUnit, target: BattleUnit, result: ActionResult) -> void:
+	var chance: int = effect_data.get("chance", 100)
+	var amount: int = effect_data.get("amount", 30)  # Percentage to decrease
 
 	if randf() * 100 > chance:
 		return
 
-	var decrease_amount = target.current_turn_bar * (amount / 100.0)
+	var decrease_amount: float = target.current_turn_bar * (amount / 100.0)
 	target.current_turn_bar = max(0, target.current_turn_bar - decrease_amount)
 	result.message += " %s's turn bar decreased by %d%%!" % [target.display_name, amount]
 
-func _apply_atb_steal(effect_data: Dictionary, caster, target, result: ActionResult):
-	"""Steal turn bar from target and give to caster"""
-	var chance = effect_data.get("chance", 100)
-	var amount = effect_data.get("amount", 20)  # Percentage to steal
+func _apply_atb_steal(effect_data: Dictionary, caster: BattleUnit, target: BattleUnit, result: ActionResult) -> void:
+	var chance: int = effect_data.get("chance", 100)
+	var amount: int = effect_data.get("amount", 20)  # Percentage to steal
 
 	if randf() * 100 > chance:
 		return
 
-	var steal_amount = target.current_turn_bar * (amount / 100.0)
+	var steal_amount: float = target.current_turn_bar * (amount / 100.0)
 	target.current_turn_bar = max(0, target.current_turn_bar - steal_amount)
 	caster.current_turn_bar = min(100, caster.current_turn_bar + steal_amount)
 	result.message += " %s steals %d%% turn bar from %s!" % [caster.display_name, amount, target.display_name]
 
-func _apply_life_drain(effect_data: Dictionary, caster, _target, result: ActionResult):
-	"""Heal caster based on damage dealt"""
-	var drain_percent = effect_data.get("amount", 30)  # Percentage of damage to heal
+func _apply_life_drain(effect_data: Dictionary, caster: BattleUnit, _target: BattleUnit, result: ActionResult) -> void:
+	var drain_percent: int = effect_data.get("amount", 30)  # Percentage of damage to heal
 
 	# Calculate heal from total damage dealt this action
-	var total_damage = 0
-	for dmg_result in result.damage_results:
+	var total_damage: int = 0
+	for dmg_result: DamageResult in result.damage_results:
 		total_damage += dmg_result.total
 
-	var heal_amount = int(total_damage * (drain_percent / 100.0))
+	var heal_amount: int = int(total_damage * (drain_percent / 100.0))
 	if heal_amount > 0:
 		caster.heal(heal_amount)
 		result.message += " %s drains %d HP!" % [caster.display_name, heal_amount]

@@ -569,8 +569,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
   {
     "file": "scripts/systems/battle/BattleActionProcessor.gd",
     "issue": "6 functions with untyped skill/caster/target parameters",
-    "action": "Add Skill and BattleUnit types",
-    "passes": false
+    "action": "Added BattleUnit type to all 10 caster/target parameters across all functions, Skill type to 2 skill parameters, StatusEffect type to 2 status_effect variables, DamageResult type to 5 damage result variables. Added -> void return types to 8 functions. Typed all local variables (int, float, String, Array, Dictionary). Fixed 2 bugs: effect_id → id, stat_modifiers → stat_modifier (matching StatusEffect property names). Removed unnecessary has_method guards (BattleUnit always has add_status_effect).",
+    "passes": true
   }
 ]
 ```

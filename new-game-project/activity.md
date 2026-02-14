@@ -978,3 +978,24 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: add static typing to StatusEffectManager`
+
+### 2026-02-13 - Cleanup: Add static typing to BattleActionProcessor.gd
+
+**File(s) Modified:** `scripts/systems/battle/BattleActionProcessor.gd`
+
+**Changes:**
+- Added `BattleUnit` type to all 10 caster/target parameters across all functions: `_execute_attack`, `_execute_skill`, `_execute_defend`, `_apply_skill_status_effects`, `_apply_debuff_effect`, `_apply_buff_effect`, `_apply_atb_decrease`, `_apply_atb_steal`, `_apply_life_drain`
+- Added `Skill` type to 2 skill parameters in `_execute_skill` and `_apply_skill_status_effects`
+- Added `StatusEffect` type to 2 status_effect variables in `_apply_debuff_effect` and `_apply_buff_effect`
+- Added `DamageResult` type to 5 damage result variables and loop iterators
+- Added `-> void` return types to 8 functions (all non-bool returning functions)
+- Typed all local variables: `int` (chance, duration, damage amounts), `float` (roll, steal/decrease amounts), `String` (debuff_type, buff_type, effect_type), `Array` (targets, effects), `Dictionary` (ability_data, effect_dict)
+- Used `:=` type inference for `ActionResult.new()`, `StatusEffect.new()`, `DamageResult.new()`, `FileAccess.open()`, `JSON.new()`
+- Fixed 2 property name bugs discovered during typing:
+  - `defense_buff.effect_id` → `defense_buff.id` (StatusEffect has `id`, not `effect_id`)
+  - `defense_buff.stat_modifiers` → `defense_buff.stat_modifier` (StatusEffect has `stat_modifier`, not `stat_modifiers`)
+- Removed unnecessary `has_method("add_status_effect")` guards — BattleUnit is now strongly typed and always has this method
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: add static typing to BattleActionProcessor`
