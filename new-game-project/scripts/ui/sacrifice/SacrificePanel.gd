@@ -380,7 +380,7 @@ func _create_god_item(god: God) -> Control:
 	elif locked_in:
 		style.bg_color = Color(0.3, 0.3, 0.3, 0.5)
 	else:
-		style.bg_color = _get_tier_color(god.tier)
+		style.bg_color = GodUIHelpers.get_subtle_tier_color(god.tier)
 	
 	item.add_theme_stylebox_override("panel", style)
 	
@@ -459,10 +459,3 @@ func _perform_sacrifice():
 	locked_in = false
 	_update_all_displays()
 
-func _get_tier_color(tier: God.TierType) -> Color:
-	match tier:
-		God.TierType.COMMON: return Color(0.25, 0.25, 0.25, 0.7)
-		God.TierType.RARE: return Color(0.2, 0.3, 0.2, 0.7)
-		God.TierType.EPIC: return Color(0.3, 0.2, 0.4, 0.7)
-		God.TierType.LEGENDARY: return Color(0.4, 0.3, 0.1, 0.7)
-		_: return Color(0.2, 0.2, 0.3, 0.7)

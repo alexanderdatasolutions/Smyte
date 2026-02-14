@@ -68,7 +68,7 @@ func _create_god_card(god: God) -> Button:
 	god_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 	# Style with tier color
-	var tier_color = _get_tier_color(god.tier)
+	var tier_color := GodUIHelpers.get_tier_color(god.tier)
 	var god_style = StyleBoxFlat.new()
 	god_style.bg_color = tier_color.darkened(0.2)
 	god_style.bg_color.a = 0.9
@@ -137,7 +137,7 @@ func _create_card_content(god: God, tier_color: Color) -> VBoxContainer:
 	tier_label.text = "⭐ %s %s ⭐" % [God.tier_to_string(god.tier).to_upper(), God.element_to_string(god.element).to_upper()]
 	tier_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tier_label.add_theme_font_size_override("font_size", 11)
-	tier_label.add_theme_color_override("font_color", _get_tier_text_color(god.tier))
+	tier_label.add_theme_color_override("font_color", GodUIHelpers.get_tier_color(god.tier))
 	tier_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content_container.add_child(tier_label)
 
@@ -207,30 +207,3 @@ func _animate_card_entrance(card: Control):
 	tween.tween_property(card, "modulate:a", 1.0, 0.4).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tween.tween_property(card, "scale", Vector2(1.0, 1.0), 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
-## Gets the color for a specific tier
-func _get_tier_color(tier: int) -> Color:
-	match tier:
-		0:  # COMMON
-			return Color.GRAY
-		1:  # RARE
-			return Color.ROYAL_BLUE
-		2:  # EPIC
-			return Color.MEDIUM_PURPLE
-		3:  # LEGENDARY
-			return Color.GOLD
-		_:
-			return Color.WHITE
-
-## Gets the text color for a specific tier
-func _get_tier_text_color(tier: int) -> Color:
-	match tier:
-		0:  # COMMON
-			return Color.LIGHT_GRAY
-		1:  # RARE
-			return Color.DODGER_BLUE
-		2:  # EPIC
-			return Color.MEDIUM_PURPLE
-		3:  # LEGENDARY
-			return Color.GOLD
-		_:
-			return Color.WHITE

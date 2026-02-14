@@ -865,3 +865,31 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: refactor _show_craft_popup in ProductionSummaryWidget`
+
+### 2026-02-13 - Cleanup: Create GodUIHelpers.gd and consolidate duplicated color/name functions
+
+**File(s) Modified:**
+- `scripts/utilities/GodUIHelpers.gd` (NEW — 160 lines)
+- `scripts/ui/components/GodCard.gd` (removed 7 duplicated functions, ~60 lines)
+- `scripts/ui/collection/CollectionDetailsPanel.gd` (removed 5 duplicated functions, ~45 lines)
+- `scripts/ui/collection/GodCollectionList.gd` (removed 5 duplicated functions, ~60 lines)
+- `scripts/ui/collection/GodDetailsPanel.gd` (removed 3 duplicated functions, ~35 lines)
+- `scripts/ui/sacrifice/SacrificePanel.gd` (removed 1 duplicated function, ~7 lines)
+- `scripts/ui/summon/SummonShowcase.gd` (removed 2 duplicated functions, ~25 lines)
+- `scripts/utilities/TeamStatsCalculator.gd` (removed 2 unused duplicate functions, ~20 lines)
+
+**Changes:**
+- Created `GodUIHelpers.gd` — centralized static utility class with canonical implementations:
+  - Element colors: `get_element_color(God.ElementType)`, `get_element_color_from_string(String)`
+  - Element names: `get_element_name()`, `get_element_name_with_emoji()`, `get_element_name_from_int()`, `get_element_emoji()`
+  - Tier colors: `get_tier_color()`, `get_subtle_tier_color()`, `get_tier_border_color()` (all using `God.TierType`)
+  - Tier names: `get_tier_name()`, `get_tier_short_name()`, `get_tier_stars()`, `get_tier_stars_emoji()`, `get_tier_name_with_stars()`
+  - Rarity colors: `get_rarity_color(Equipment.Rarity)`, `get_rarity_color_from_string()`, `get_rarity_color_from_int()`
+- Updated all 6 files from cleanup plan + TeamStatsCalculator to call `GodUIHelpers.*` instead of local implementations
+- Standardized color values across the codebase (previously each file had slightly different RGB values)
+- Handled 1-based tier ints (from JSON dict data) by converting `tier - 1` at call sites in GodCollectionList and GodDetailsPanel
+- Net reduction: ~200 lines of duplicated code removed, +160 lines for the utility (net ~40 lines saved, with huge maintainability improvement)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: create GodUIHelpers and consolidate duplicated color/name functions`

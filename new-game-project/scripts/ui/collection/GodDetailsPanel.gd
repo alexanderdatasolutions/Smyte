@@ -194,7 +194,7 @@ func _build_god_details():
 	else:
 		# Beautiful fallback - create a colored rectangle with tier styling
 		var placeholder = ColorRect.new()
-		placeholder.color = _get_tier_border_color(current_god_data.get("tier", 1))
+		placeholder.color = GodUIHelpers.get_tier_border_color((current_god_data.get("tier", 1) - 1) as God.TierType)
 		placeholder.custom_minimum_size = Vector2(200, 200)
 		content.add_child(placeholder)
 		print("GodDetailsPanel: Added placeholder image")
@@ -207,7 +207,7 @@ func _build_god_details():
 	info_title.text = "═══ " + current_god_data.get("name", "Unknown").to_upper() + " ═══"
 	info_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info_title.add_theme_font_size_override("font_size", 18)
-	info_title.add_theme_color_override("font_color", _get_tier_border_color(current_god_data.get("tier", 1)))
+	info_title.add_theme_color_override("font_color", GodUIHelpers.get_tier_border_color((current_god_data.get("tier", 1) - 1) as God.TierType))
 	info_section.add_child(info_title)
 	
 	var basic_info = Label.new()
@@ -216,8 +216,8 @@ Element: %s
 Tier: %s  
 Level: %d
 Power: %d""" % [
-		current_god_data.get("pantheon", "Unknown"), _get_element_name(current_god_data.get("element", 0)), 
-		_get_tier_name(current_god_data.get("tier", 1)), current_god_data.get("level", 1), current_god_data.get("total_power", 0)
+		current_god_data.get("pantheon", "Unknown"), GodUIHelpers.get_element_name(current_god_data.get("element", 0) as God.ElementType),
+		GodUIHelpers.get_tier_name_with_stars((current_god_data.get("tier", 1) - 1) as God.TierType), current_god_data.get("level", 1), current_god_data.get("total_power", 0)
 	]
 	basic_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info_section.add_child(basic_info)
@@ -527,43 +527,6 @@ func _get_god_sprite(god_id: String) -> Texture2D:
 	
 	# No sprite found
 	return null
-
-func _get_tier_border_color(tier: int) -> Color:
-	"""Get border colors for tiers"""
-	match tier:
-		1:  # COMMON
-			return Color(0.5, 0.5, 0.5, 0.8)     # Gray
-		2:  # RARE
-			return Color(0.4, 0.8, 0.4, 1.0)     # Green
-		3:  # EPIC
-			return Color(0.7, 0.4, 1.0, 1.0)     # Purple
-		4:  # LEGENDARY
-			return Color(1.0, 0.8, 0.2, 1.0)     # Gold
-		_:
-			return Color(0.6, 0.6, 0.6, 0.8)
-
-func _get_element_name(element_id) -> String:
-	"""Convert integer element ID to string name"""
-	if element_id is int:
-		match element_id:
-			0: return "Fire"
-			1: return "Water"
-			2: return "Earth"
-			3: return "Lightning"
-			4: return "Light"
-			5: return "Dark"
-			_: return "Unknown"
-	else:
-		return str(element_id)
-
-func _get_tier_name(tier: int) -> String:
-	"""Get full tier names for display"""
-	match tier:
-		1: return "Common ★"
-		2: return "Rare ★★"  
-		3: return "Epic ★★★"
-		4: return "Legendary ★★★★"
-		_: return "Unknown"
 
 func _get_experience_to_next_level(level: int) -> int:
 	"""Calculate experience needed for next level"""

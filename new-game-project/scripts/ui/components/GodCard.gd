@@ -201,7 +201,7 @@ func _populate_god_data():
 			var placeholder_image = ImageTexture.new()
 			var image = Image.create(100, 100, false, Image.FORMAT_RGB8)
 			# Use element color for placeholder
-			var element_color = _get_element_color(god_data.element)
+			var element_color := GodUIHelpers.get_element_color(god_data.element)
 			image.fill(element_color)
 			placeholder_image.set_image(image)
 			god_image.texture = placeholder_image
@@ -212,8 +212,8 @@ func _populate_god_data():
 	
 	# Set level and tier with better styling
 	if level_tier_label:
-		level_tier_label.text = "Lv.%d %s" % [god_data.level, _get_tier_short_name(god_data.tier)]
-		level_tier_label.modulate = _get_tier_color(god_data.tier)
+		level_tier_label.text = "Lv.%d %s" % [god_data.level, GodUIHelpers.get_tier_short_name(god_data.tier)]
+		level_tier_label.modulate = GodUIHelpers.get_tier_color(god_data.tier)
 	
 	# Set experience bar
 	if experience_bar and god_data:
@@ -235,8 +235,8 @@ func _populate_god_data():
 	# Set info label with enhanced information
 	if info_label:
 		var power = _get_power_rating(god_data)
-		var element = _get_element_name(god_data.element)
-		var tier_stars = _get_tier_stars(god_data.tier)
+		var element := GodUIHelpers.get_element_name_with_emoji(god_data.element)
+		var tier_stars := GodUIHelpers.get_tier_stars_emoji(god_data.tier)
 		
 		# Get current stats through GodCalculator (RULE 3 compliance)
 		var attack = GodCalculator.get_current_attack(god_data)
@@ -275,12 +275,12 @@ func _apply_card_style():
 	
 	match current_style:
 		CardStyle.NORMAL:
-			style.bg_color = _get_subtle_tier_color(god_data.tier if god_data else 0)
-			style.border_color = _get_tier_border_color(god_data.tier if god_data else 0)
-		
+			style.bg_color = GodUIHelpers.get_subtle_tier_color(god_data.tier if god_data else 0)
+			style.border_color = GodUIHelpers.get_tier_border_color(god_data.tier if god_data else 0)
+
 		CardStyle.SELECTED:
 			# Keep tier background color but use yellow border for distinction
-			style.bg_color = _get_subtle_tier_color(god_data.tier if god_data else 0)
+			style.bg_color = GodUIHelpers.get_subtle_tier_color(god_data.tier if god_data else 0)
 			style.border_color = Color(1.0, 0.8, 0.0, 1.0)  # Yellow/gold for clear selection indicator
 		
 		CardStyle.AWAKENING_READY:
@@ -314,67 +314,6 @@ func _on_card_clicked():
 # UTILITY FUNCTIONS - God data helpers
 # =============================================================================
 
-func _get_tier_short_name(tier: God.TierType) -> String:
-	match tier:
-		God.TierType.COMMON: return "Common"
-		God.TierType.RARE: return "Rare"
-		God.TierType.EPIC: return "Epic"
-		God.TierType.LEGENDARY: return "Legend"
-		_: return "Unknown"
-
-func _get_tier_color(tier: God.TierType) -> Color:
-	match tier:
-		God.TierType.COMMON: return Color(0.6, 0.6, 0.6, 1.0)    # Gray
-		God.TierType.RARE: return Color(0.2, 0.6, 0.2, 1.0)      # Green
-		God.TierType.EPIC: return Color(0.5, 0.3, 0.8, 1.0)      # Purple
-		God.TierType.LEGENDARY: return Color(0.9, 0.7, 0.1, 1.0) # Gold
-		_: return Color.WHITE
-
-func _get_subtle_tier_color(tier: God.TierType) -> Color:
-	match tier:
-		God.TierType.COMMON: return Color(0.2, 0.2, 0.2, 0.8)    # Dark gray
-		God.TierType.RARE: return Color(0.1, 0.25, 0.1, 0.8)     # Dark green
-		God.TierType.EPIC: return Color(0.2, 0.1, 0.3, 0.8)      # Dark purple
-		God.TierType.LEGENDARY: return Color(0.3, 0.25, 0.05, 0.8) # Dark gold
-		_: return Color(0.15, 0.15, 0.15, 0.8)
-
-func _get_tier_border_color(tier: God.TierType) -> Color:
-	match tier:
-		God.TierType.COMMON: return Color(0.4, 0.4, 0.4, 1.0)    # Gray
-		God.TierType.RARE: return Color(0.2, 0.6, 0.2, 1.0)      # Green
-		God.TierType.EPIC: return Color(0.5, 0.3, 0.8, 1.0)      # Purple
-		God.TierType.LEGENDARY: return Color(0.9, 0.7, 0.1, 1.0) # Gold
-		_: return Color.GRAY
-
-func _get_element_name(element: God.ElementType) -> String:
-	match element:
-		God.ElementType.FIRE: return "🔥 Fire"
-		God.ElementType.WATER: return "💧 Water"  
-		God.ElementType.EARTH: return "🌍 Earth"
-		God.ElementType.LIGHTNING: return "⚡ Lightning"
-		God.ElementType.LIGHT: return "✨ Light"
-		God.ElementType.DARK: return "🌙 Dark"
-		_: return "⚪ Neutral"
-
-func _get_element_color(element: God.ElementType) -> Color:
-	"""Get color for element"""
-	match element:
-		God.ElementType.FIRE: return Color(1.0, 0.4, 0.2, 1.0)
-		God.ElementType.WATER: return Color(0.2, 0.6, 1.0, 1.0) 
-		God.ElementType.EARTH: return Color(0.6, 0.8, 0.2, 1.0)
-		God.ElementType.LIGHTNING: return Color(1.0, 1.0, 0.2, 1.0)
-		God.ElementType.LIGHT: return Color(1.0, 1.0, 0.8, 1.0)
-		God.ElementType.DARK: return Color(0.4, 0.2, 0.6, 1.0)
-		_: return Color(0.5, 0.5, 0.5, 1.0)
-
-func _get_tier_stars(tier: int) -> String:
-	"""Get star display for god tier (0-based)"""
-	match tier:
-		0: return "⭐"           # Common - 1 star
-		1: return "⭐⭐"         # Rare - 2 stars  
-		2: return "⭐⭐⭐"       # Epic - 3 stars
-		3: return "⭐⭐⭐⭐"     # Legendary - 4 stars
-		_: return "⭐"           # Default to 1 star
 
 func _get_power_rating(god: God) -> int:
 	"""Calculate power rating using GodCalculator - RULE 3 compliance"""

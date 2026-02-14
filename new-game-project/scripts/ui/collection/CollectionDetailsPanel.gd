@@ -120,7 +120,7 @@ static func _create_identity_section(god: God) -> VBoxContainer:
 	name_label.text = god.get_display_name().to_upper()
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.add_theme_font_size_override("font_size", 20)
-	name_label.add_theme_color_override("font_color", _get_tier_color(god.tier))
+	name_label.add_theme_color_override("font_color", GodUIHelpers.get_tier_color(god.tier))
 	section.add_child(name_label)
 
 	# Awakened title if applicable
@@ -142,11 +142,11 @@ static func _create_identity_section(god: God) -> VBoxContainer:
 	info_row.add_child(pantheon_label)
 
 	# Element
-	var element_info = _create_info_chip(_get_element_name(god.element), _get_element_color(god.element))
+	var element_info = _create_info_chip(GodUIHelpers.get_element_name(god.element), GodUIHelpers.get_element_color(god.element))
 	info_row.add_child(element_info)
 
 	# Tier
-	var tier_label = _create_info_chip(_get_tier_stars(god.tier), _get_tier_color(god.tier))
+	var tier_label = _create_info_chip(GodUIHelpers.get_tier_stars(god.tier), GodUIHelpers.get_tier_color(god.tier))
 	info_row.add_child(tier_label)
 
 	section.add_child(info_row)
@@ -342,7 +342,7 @@ static func _create_equipment_section(god: God) -> VBoxContainer:
 			var eq = god.equipment[i]
 			if eq is Equipment:
 				equip_label.text = eq.name
-				equip_label.add_theme_color_override("font_color", _get_rarity_color(eq.rarity))
+				equip_label.add_theme_color_override("font_color", GodUIHelpers.get_rarity_color(eq.rarity))
 				equipped_count += 1
 
 				# Track set
@@ -801,51 +801,6 @@ static func _get_equipment_stat_bonus(god: God, stat_type: String) -> int:
 # =============================================================================
 # UTILITY FUNCTIONS
 # =============================================================================
-
-static func _get_element_name(element_id: int) -> String:
-	match element_id:
-		0: return "Fire"
-		1: return "Water"
-		2: return "Earth"
-		3: return "Lightning"
-		4: return "Light"
-		5: return "Dark"
-		_: return "Unknown"
-
-static func _get_element_color(element_id: int) -> Color:
-	match element_id:
-		0: return Color(1.0, 0.4, 0.3)    # Fire - Red/Orange
-		1: return Color(0.3, 0.6, 1.0)    # Water - Blue
-		2: return Color(0.6, 0.4, 0.2)    # Earth - Brown
-		3: return Color(1.0, 1.0, 0.3)    # Lightning - Yellow
-		4: return Color(1.0, 1.0, 0.8)    # Light - White/Gold
-		5: return Color(0.5, 0.3, 0.7)    # Dark - Purple
-		_: return COLOR_TEXT
-
-static func _get_tier_color(tier: int) -> Color:
-	match tier:
-		0: return Color(0.6, 0.6, 0.6)    # Common - Gray
-		1: return Color(0.4, 0.8, 0.4)    # Rare - Green
-		2: return Color(0.7, 0.4, 1.0)    # Epic - Purple
-		3: return Color(1.0, 0.8, 0.2)    # Legendary - Gold
-		_: return COLOR_TEXT
-
-static func _get_tier_stars(tier: int) -> String:
-	match tier:
-		0: return "★"
-		1: return "★★"
-		2: return "★★★"
-		3: return "★★★★"
-		_: return "?"
-
-static func _get_rarity_color(rarity: int) -> Color:
-	match rarity:
-		0: return Color(0.6, 0.6, 0.6)    # Common
-		1: return Color(0.4, 0.8, 0.4)    # Rare
-		2: return Color(0.6, 0.4, 0.9)    # Epic
-		3: return Color(1.0, 0.8, 0.2)    # Legendary
-		4: return Color(1.0, 0.4, 0.4)    # Mythic
-		_: return COLOR_TEXT
 
 static func _get_slot_icon(slot: int) -> String:
 	match slot:

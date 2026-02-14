@@ -530,8 +530,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
   {
     "files": "GodCard.gd, GodCollectionList.gd, GodDetailsPanel.gd, SacrificePanel.gd, SummonShowcase.gd, CollectionDetailsPanel.gd",
     "issue": "Element/tier color/name functions duplicated (~200 lines)",
-    "action": "Create UIStyleConstants.gd and GodUIHelpers.gd",
-    "passes": false
+    "action": "Created GodUIHelpers.gd (160 lines) with canonical static functions for element colors/names, tier colors/names/stars, and rarity colors. Updated all 6 files + TeamStatsCalculator.gd to use GodUIHelpers instead of local duplicates. Removed ~200 lines of duplicated code across 7 files.",
+    "passes": true
   },
   {
     "files": "DungeonCoordinator.gd, DungeonManager.gd",

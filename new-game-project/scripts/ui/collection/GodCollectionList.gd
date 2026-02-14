@@ -249,15 +249,15 @@ func _create_god_card(god: Dictionary):
 	card.custom_minimum_size = Vector2(120, 140)
 	card.name = "GodCard_" + god.get("id", "")
 	
-	# Beautiful tier-based styling
-	var tier = god.get("tier", 1)
+	# Beautiful tier-based styling (JSON tier is 1-based, enum is 0-based)
+	var tier_enum: God.TierType = (god.get("tier", 1) - 1) as God.TierType
 	var style = StyleBoxFlat.new()
-	style.bg_color = _get_subtle_tier_color(tier)
+	style.bg_color = GodUIHelpers.get_subtle_tier_color(tier_enum)
 	style.border_width_left = 2
 	style.border_width_right = 2
 	style.border_width_top = 2
 	style.border_width_bottom = 2
-	style.border_color = _get_tier_border_color(tier)
+	style.border_color = GodUIHelpers.get_tier_border_color(tier_enum)
 	style.corner_radius_top_left = 8
 	style.corner_radius_top_right = 8
 	style.corner_radius_bottom_left = 8
@@ -292,7 +292,7 @@ func _create_god_card(god: Dictionary):
 	else:
 		# Beautiful placeholder with tier color
 		var placeholder = ColorRect.new()
-		placeholder.color = _get_tier_border_color(tier)
+		placeholder.color = GodUIHelpers.get_tier_border_color(tier_enum)
 		placeholder.custom_minimum_size = Vector2(48, 48)
 		vbox.add_child(placeholder)
 	
@@ -307,7 +307,7 @@ func _create_god_card(god: Dictionary):
 	
 	# Level and tier (compact, SW style)
 	var level_label = Label.new()
-	level_label.text = "Lv.%d %s" % [god.get("level", 1), _get_tier_short_name(tier)]
+	level_label.text = "Lv.%d %s" % [god.get("level", 1), GodUIHelpers.get_tier_stars(tier_enum)]
 	level_label.add_theme_font_size_override("font_size", 10)
 	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	level_label.modulate = Color.CYAN
@@ -317,7 +317,7 @@ func _create_god_card(god: Dictionary):
 	var info_label = Label.new()
 	var element_value = god.get("element", 0)
 	var power_value = god.get("total_power", 0)
-	info_label.text = "%s P:%d" % [_get_element_emoji(element_value), power_value]
+	info_label.text = "%s P:%d" % [GodUIHelpers.get_element_emoji(element_value as God.ElementType), power_value]
 	info_label.add_theme_font_size_override("font_size", 9)
 	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info_label.modulate = Color.LIGHT_GRAY
@@ -368,68 +368,6 @@ func _on_god_card_input(event: InputEvent, god_id: String):
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			print("GodCollectionList: God card right-clicked: ", god_id)
 			god_action_requested.emit("context_menu", god_id, {})
-
-func _get_element_name(element_id) -> String:
-	"""Convert integer element ID to string name"""
-	if element_id is int:
-		match element_id:
-			0: return "fire"
-			1: return "water"
-			2: return "earth"
-			3: return "lightning"
-			4: return "light"
-			5: return "dark"
-			_: return "unknown"
-	else:
-		return str(element_id)
-
-func _get_subtle_tier_color(tier: int) -> Color:
-	"""Get subtle background colors for tiers"""
-	match tier:
-		1:  # COMMON
-			return Color(0.25, 0.25, 0.25, 0.7)  # Dark gray
-		2:  # RARE
-			return Color(0.2, 0.3, 0.2, 0.7)     # Dark green
-		3:  # EPIC
-			return Color(0.3, 0.2, 0.4, 0.7)     # Dark purple
-		4:  # LEGENDARY
-			return Color(0.4, 0.3, 0.1, 0.7)     # Dark gold
-		_:
-			return Color(0.2, 0.2, 0.3, 0.7)
-
-func _get_tier_border_color(tier: int) -> Color:
-	"""Get border colors for tiers"""
-	match tier:
-		1:  # COMMON
-			return Color(0.5, 0.5, 0.5, 0.8)     # Gray
-		2:  # RARE
-			return Color(0.4, 0.8, 0.4, 1.0)     # Green
-		3:  # EPIC
-			return Color(0.7, 0.4, 1.0, 1.0)     # Purple
-		4:  # LEGENDARY
-			return Color(1.0, 0.8, 0.2, 1.0)     # Gold
-		_:
-			return Color(0.6, 0.6, 0.6, 0.8)
-
-func _get_tier_short_name(tier: int) -> String:
-	"""Get short tier names for compact display"""
-	match tier:
-		1: return "★"      # COMMON
-		2: return "★★"     # RARE  
-		3: return "★★★"    # EPIC
-		4: return "★★★★"   # LEGENDARY
-		_: return "?"
-
-func _get_element_emoji(element: int) -> String:
-	"""Get element emojis for compact display"""
-	match element:
-		0: return "🔥"  # FIRE
-		1: return "💧"  # WATER
-		2: return "🌍"  # EARTH
-		3: return "⚡"  # LIGHTNING
-		4: return "☀️"  # LIGHT
-		5: return "🌙"  # DARK
-		_: return "?"
 
 func _get_god_sprite(god_id: String) -> Texture2D:
 	"""Load god sprite texture"""

@@ -382,24 +382,3 @@ static func _get_primary_bonus(bonuses: Dictionary) -> float:
 static func _format_synergy_name(synergy_id: String) -> String:
 	return synergy_id.replace("_", " ").capitalize()
 
-## Get element icon/symbol for display
-static func get_element_icon(element: God.ElementType) -> String:
-	match element:
-		God.ElementType.FIRE: return "🔥"
-		God.ElementType.WATER: return "💧"
-		God.ElementType.EARTH: return "🌍"
-		God.ElementType.LIGHTNING: return "⚡"
-		God.ElementType.LIGHT: return "✨"
-		God.ElementType.DARK: return "🌑"
-		_: return "?"
-
-## Get element color for display
-static func get_element_color(element: God.ElementType) -> Color:
-	match element:
-		God.ElementType.FIRE: return Color(1.0, 0.4, 0.2)
-		God.ElementType.WATER: return Color(0.3, 0.6, 1.0)
-		God.ElementType.EARTH: return Color(0.6, 0.45, 0.2)
-		God.ElementType.LIGHTNING: return Color(1.0, 0.9, 0.3)
-		God.ElementType.LIGHT: return Color(1.0, 1.0, 0.8)
-		God.ElementType.DARK: return Color(0.5, 0.3, 0.6)
-		_: return Color.WHITE
