@@ -931,3 +931,21 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: add static typing to TerritoryManager`
+
+### 2026-02-13 - Cleanup: Add static typing to HexGridManager.gd
+
+**File(s) Modified:** `scripts/systems/territory/HexGridManager.gd`
+
+**Changes:**
+- Added `HexCoord` type to 15+ coordinate parameters: `get_node_at`, `has_node_at`, `get_neighbors`, `get_distance`, `get_distance_from_base`, `get_hex_path`, `get_nodes_within_distance`, `_coord_to_key`, `_get_lowest_f_score_coord`, `_reconstruct_path`
+- Added `HexNode` type to 20+ node variables/parameters/returns: `_add_node`, `get_node_at` (return), `get_node_by_id` (return), `_get_max_crafts_for_node`, and all local node variables from dictionary lookups and loop iterators
+- Added `GDScript` type to all `load()` calls for script files
+- Added `-> HexNode` return type to `get_node_at`, `get_node_by_id`; `-> HexCoord` to `get_base_coord`, `_get_lowest_f_score_coord`; `-> Node` to `_get_resource_manager`
+- Added `Node` type to `resource_manager` parameters and variables
+- Typed all local variables throughout the file: `int`, `float`, `bool`, `String`, `Dictionary`, `Array`, `Array[HexCoord]`, `Array[Vector2i]`
+- Fixed variable name shadowing: `name` → `tile_name` (avoids Node.name shadowing), `craft_key` → `cancel_key`/`disable_key` in different scope blocks
+- No behavioral changes — all logic preserved exactly
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: add static typing to HexGridManager`

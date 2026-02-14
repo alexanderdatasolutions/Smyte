@@ -37,7 +37,7 @@ const HexRingGeneratorScript = preload("res://scripts/systems/territory/HexRingG
 var _nodes: Dictionary = {}  # node_id -> HexNode
 var _coord_to_node: Dictionary = {}  # "q,r" -> HexNode
 var _is_loaded: bool = false
-var _base_coord = null  # Divine Sanctum at (0,0)
+var _base_coord: HexCoord = null  # Divine Sanctum at (0,0)
 
 # Active crafts shared across all UI - {"node_id:task_id": {"node_id", "task_id", "start_time", "end_time", "task_data"}}
 var _active_crafts: Dictionary = {}
@@ -63,8 +63,8 @@ func _process(_delta: float) -> void:
 
 func _initialize_base_coord() -> void:
 	"""Initialize base coordinate at origin"""
-	var script = load("res://scripts/data/HexCoord.gd")
-	_base_coord = script.new(0, 0)
+	var script: GDScript = load("res://scripts/data/HexCoord.gd")
+	_base_coord = script.new(0, 0) as HexCoord
 
 func load_nodes_from_json() -> void:
 	"""Load hex nodes from hex_tiles.json"""
@@ -72,21 +72,21 @@ func load_nodes_from_json() -> void:
 
 func _load_from_hex_tiles() -> void:
 	"""Generate hex grid from hex_tiles.json (blank tiles + special nodes)"""
-	var file = FileAccess.open(HEX_TILES_PATH, FileAccess.READ)
+	var file: FileAccess = FileAccess.open(HEX_TILES_PATH, FileAccess.READ)
 	if not file:
 		push_error("HexGridManager: Failed to open hex tiles file: " + HEX_TILES_PATH)
 		return
 
-	var json_text = file.get_as_text()
+	var json_text: String = file.get_as_text()
 	file.close()
 
-	var json = JSON.new()
+	var json := JSON.new()
 	if json.parse(json_text) != OK:
 		push_error("HexGridManager: Failed to parse hex tiles JSON: %s" % json.get_error_message())
 		return
 
-	var tiles_config = json.get_data()
-	var hex_node_script = load("res://scripts/data/HexNode.gd")
+	var tiles_config: Dictionary = json.get_data()
+	var hex_node_script: GDScript = load("res://scripts/data/HexNode.gd")
 
 	# Validate ring generation algorithm
 	if not HexRingGeneratorScript.validate_all_rings(4):
@@ -94,67 +94,67 @@ func _load_from_hex_tiles() -> void:
 		return
 
 	# Load ring configuration
-	var ring_config = tiles_config.get("ring_config", {})
-	var blank_tiles = tiles_config.get("blank_tiles", {})
-	var special_nodes = tiles_config.get("special_nodes", {})
-	var base_node = tiles_config.get("base_node", {})
+	var ring_config: Dictionary = tiles_config.get("ring_config", {})
+	var blank_tiles: Dictionary = tiles_config.get("blank_tiles", {})
+	var special_nodes: Dictionary = tiles_config.get("special_nodes", {})
+	var base_node: Dictionary = tiles_config.get("base_node", {})
 
 	# Generate Ring 0 - Base
 	_create_base_node(hex_node_script, base_node)
 
 	# Generate Rings 1-4
-	for ring in range(1, 5):
-		var ring_key = "ring_%d" % ring
-		var ring_data = ring_config.get(ring_key, {})
+	for ring: int in range(1, 5):
+		var ring_key: String = "ring_%d" % ring
+		var ring_data: Dictionary = ring_config.get(ring_key, {})
 		if ring_data.is_empty():
 			continue
 
-		var tier = ring_data.get("tier", ring)
-		var distribution = ring_data.get("distribution", {"blank": ring_data.get("count", 6)})
+		var tier: int = ring_data.get("tier", ring)
+		var distribution: Dictionary = ring_data.get("distribution", {"blank": ring_data.get("count", 6)})
 
 		# Get coordinates for this ring
-		var ring_coords = HexRingGeneratorScript.generate_ring(ring)
+		var ring_coords: Array[Vector2i] = HexRingGeneratorScript.generate_ring(ring)
 
 		# Build node list based on distribution
 		var nodes_to_create: Array = []
 
 		# Add blank tiles
-		var blank_count = distribution.get("blank", 0)
-		for i in range(blank_count):
+		var blank_count: int = distribution.get("blank", 0)
+		for i: int in range(blank_count):
 			nodes_to_create.append({"type": "blank", "tier": tier})
 
 		# Add special nodes
-		for special_id in distribution:
+		for special_id: String in distribution:
 			if special_id == "blank":
 				continue
-			var special_count = distribution[special_id]
-			for i in range(special_count):
+			var special_count: int = distribution[special_id]
+			for i: int in range(special_count):
 				nodes_to_create.append({"type": "special", "special_id": special_id, "tier": tier})
 
 		# Shuffle to randomize placement
 		nodes_to_create.shuffle()
 
 		# Create nodes at ring coordinates
-		for i in range(min(nodes_to_create.size(), ring_coords.size())):
-			var coord = ring_coords[i]
-			var node_info = nodes_to_create[i]
+		for i: int in range(min(nodes_to_create.size(), ring_coords.size())):
+			var coord: Vector2i = ring_coords[i]
+			var node_info: Dictionary = nodes_to_create[i]
 
 			if node_info.type == "blank":
 				_create_blank_tile(hex_node_script, blank_tiles, coord, tier, i)
 			else:
-				var special_id = node_info.special_id
-				var special_template = special_nodes.get(special_id, {})
+				var special_id: String = node_info.special_id
+				var special_template: Dictionary = special_nodes.get(special_id, {})
 				_create_special_node(hex_node_script, special_template, coord, special_id, i)
 
 	_is_loaded = true
 	nodes_loaded.emit()
 	print("HexGridManager: Generated %d hex nodes (blank tiles + special nodes)" % _nodes.size())
 
-func _create_base_node(hex_node_script, base_template: Dictionary) -> void:
+func _create_base_node(hex_node_script: GDScript, base_template: Dictionary) -> void:
 	"""Create the player's home base at (0,0)"""
-	var hex_coord_script = load("res://scripts/data/HexCoord.gd")
+	var hex_coord_script: GDScript = load("res://scripts/data/HexCoord.gd")
 
-	var node_data = {
+	var node_data: Dictionary = {
 		"id": "home_base",
 		"name": base_template.get("name", "Divine Sanctum"),
 		"type": "base",
@@ -172,40 +172,40 @@ func _create_base_node(hex_node_script, base_template: Dictionary) -> void:
 		"attack_timer_hours": -1
 	}
 
-	var loaded_node = hex_node_script.from_dict(node_data)
+	var loaded_node: HexNode = hex_node_script.from_dict(node_data)
 	if loaded_node:
 		_add_node(loaded_node)
 
-func _create_blank_tile(hex_node_script, blank_tiles: Dictionary, coord: Vector2i, tier: int, index: int) -> void:
+func _create_blank_tile(hex_node_script: GDScript, blank_tiles: Dictionary, coord: Vector2i, tier: int, index: int) -> void:
 	"""Create a blank buildable tile"""
-	var tier_key = "tier_%d" % tier
-	var template = blank_tiles.get(tier_key, {})
+	var tier_key: String = "tier_%d" % tier
+	var template: Dictionary = blank_tiles.get(tier_key, {})
 	if template.is_empty():
 		push_warning("HexGridManager: No blank tile template for tier %d" % tier)
 		return
 
 	# Pick a name from the names array
-	var names = template.get("names", ["Unknown Tile"])
-	var name = names[index % names.size()]
+	var names: Array = template.get("names", ["Unknown Tile"])
+	var tile_name: String = names[index % names.size()]
 
 	# Generate unique ID
-	var suffix = char(97 + (index % 26))
+	var suffix: String = char(97 + (index % 26))
 	if index >= 26:
 		suffix = char(97 + (index / 26) - 1) + suffix
-	var node_id = "blank_t%d_%s" % [tier, suffix]
+	var node_id: String = "blank_t%d_%s" % [tier, suffix]
 
 	# Handle defender count
-	var defender_count_config = template.get("defender_count", {"min": 1, "max": 2})
-	var defender_names = template.get("base_defenders", [])
+	var defender_count_config: Dictionary = template.get("defender_count", {"min": 1, "max": 2})
+	var defender_names: Array = template.get("base_defenders", [])
 	var actual_defenders: Array[String] = []
-	var num_defenders = randi_range(defender_count_config.get("min", 1), defender_count_config.get("max", 2))
-	for i in range(num_defenders):
+	var num_defenders: int = randi_range(defender_count_config.get("min", 1), defender_count_config.get("max", 2))
+	for i: int in range(num_defenders):
 		if defender_names.size() > 0:
 			actual_defenders.append(defender_names[i % defender_names.size()])
 
-	var node_data = {
+	var node_data: Dictionary = {
 		"id": node_id,
-		"name": name,
+		"name": tile_name,
 		"type": "blank",
 		"tier": tier,
 		"coord": {"q": coord.x, "r": coord.y},
@@ -227,30 +227,30 @@ func _create_blank_tile(hex_node_script, blank_tiles: Dictionary, coord: Vector2
 		"defense_drops": template.get("defense_drops", {})
 	}
 
-	var loaded_node = hex_node_script.from_dict(node_data)
+	var loaded_node: HexNode = hex_node_script.from_dict(node_data)
 	if loaded_node:
 		_add_node(loaded_node)
 
-func _create_special_node(hex_node_script, template: Dictionary, coord: Vector2i, special_id: String, index: int) -> void:
+func _create_special_node(hex_node_script: GDScript, template: Dictionary, coord: Vector2i, special_id: String, index: int) -> void:
 	"""Create a special fixed-production node (PvP objective)"""
 	if template.is_empty():
 		push_warning("HexGridManager: No template for special node %s" % special_id)
 		return
 
-	var node_id = "%s_%d" % [special_id, index]
+	var node_id: String = "%s_%d" % [special_id, index]
 
 	# Handle defender count
-	var defender_count_config = template.get("defender_count", {"min": 3, "max": 5})
-	var defender_names = template.get("base_defenders", [])
+	var defender_count_config: Dictionary = template.get("defender_count", {"min": 3, "max": 5})
+	var defender_names: Array = template.get("base_defenders", [])
 	var actual_defenders: Array[String] = []
-	var num_defenders = randi_range(defender_count_config.get("min", 3), defender_count_config.get("max", 5))
-	for i in range(num_defenders):
+	var num_defenders: int = randi_range(defender_count_config.get("min", 3), defender_count_config.get("max", 5))
+	for i: int in range(num_defenders):
 		if defender_names.size() > 0:
 			actual_defenders.append(defender_names[i % defender_names.size()])
 
-	var fixed_prod = template.get("fixed_production", {})
+	var fixed_prod: Dictionary = template.get("fixed_production", {})
 
-	var node_data = {
+	var node_data: Dictionary = {
 		"id": node_id,
 		"name": template.get("name", special_id.replace("_", " ").capitalize()),
 		"type": "special",
@@ -274,17 +274,17 @@ func _create_special_node(hex_node_script, template: Dictionary, coord: Vector2i
 		"defense_drops": template.get("defense_drops", {})
 	}
 
-	var loaded_node = hex_node_script.from_dict(node_data)
+	var loaded_node: HexNode = hex_node_script.from_dict(node_data)
 	if loaded_node:
 		_add_node(loaded_node)
 
-func _add_node(node) -> void:
+func _add_node(node: HexNode) -> void:
 	"""Internal method to add a node to the grid"""
 	_nodes[node.id] = node
-	var coord_key = _coord_to_key(node.coord)
+	var coord_key: String = _coord_to_key(node.coord)
 	_coord_to_node[coord_key] = node
 
-func _coord_to_key(coord) -> String:
+func _coord_to_key(coord: HexCoord) -> String:
 	"""Convert coordinate to dictionary key"""
 	if coord == null:
 		return "0,0"
@@ -294,44 +294,44 @@ func _coord_to_key(coord) -> String:
 # NODE QUERIES
 # ==============================================================================
 
-func get_node_at(coord):
+func get_node_at(coord: HexCoord) -> HexNode:
 	"""Get the node at a specific coordinate"""
 	if coord == null:
 		return null
-	var coord_key = _coord_to_key(coord)
+	var coord_key: String = _coord_to_key(coord)
 	return _coord_to_node.get(coord_key, null)
 
-func get_node_by_id(node_id: String):
+func get_node_by_id(node_id: String) -> HexNode:
 	"""Get a node by its ID"""
 	return _nodes.get(node_id, null)
 
 func get_all_nodes() -> Array:
 	"""Get all nodes in the grid"""
 	var result: Array = []
-	for node in _nodes.values():
+	for node: HexNode in _nodes.values():
 		result.append(node)
 	return result
 
-func has_node_at(coord) -> bool:
+func has_node_at(coord: HexCoord) -> bool:
 	"""Check if a node exists at coordinate"""
 	if coord == null:
 		return false
-	var coord_key = _coord_to_key(coord)
+	var coord_key: String = _coord_to_key(coord)
 	return _coord_to_node.has(coord_key)
 
 # ==============================================================================
 # SPATIAL QUERIES
 # ==============================================================================
 
-func get_neighbors(coord) -> Array:
+func get_neighbors(coord: HexCoord) -> Array:
 	"""Get all neighboring nodes (up to 6)"""
 	var neighbors: Array = []
 	if coord == null:
 		return neighbors
 
-	var neighbor_coords = coord.get_neighbors()
-	for neighbor_coord in neighbor_coords:
-		var node = get_node_at(neighbor_coord)
+	var neighbor_coords: Array[HexCoord] = coord.get_neighbors()
+	for neighbor_coord: HexCoord in neighbor_coords:
+		var node: HexNode = get_node_at(neighbor_coord)
 		if node:
 			neighbors.append(node)
 
@@ -341,38 +341,38 @@ func get_nodes_in_ring(ring: int) -> Array:
 	"""Get all nodes at a specific ring distance from base"""
 	var result: Array = []
 
-	for node in _nodes.values():
-		var distance = get_distance(_base_coord, node.coord)
+	for node: HexNode in _nodes.values():
+		var distance: int = get_distance(_base_coord, node.coord)
 		if distance == ring:
 			result.append(node)
 
 	return result
 
-func get_nodes_within_distance(center, max_distance: int) -> Array:
+func get_nodes_within_distance(center: HexCoord, max_distance: int) -> Array:
 	"""Get all nodes within a certain distance from center"""
 	var result: Array = []
 
 	if center == null or max_distance < 0:
 		return result
 
-	for node in _nodes.values():
-		var distance = get_distance(center, node.coord)
+	for node: HexNode in _nodes.values():
+		var distance: int = get_distance(center, node.coord)
 		if distance <= max_distance:
 			result.append(node)
 
 	return result
 
-func get_distance(from, to) -> int:
+func get_distance(from: HexCoord, to: HexCoord) -> int:
 	"""Get distance between two coordinates"""
 	if from == null or to == null:
 		return 0
 	return from.distance_to(to)
 
-func get_distance_from_base(coord) -> int:
+func get_distance_from_base(coord: HexCoord) -> int:
 	"""Get distance from base (0,0) to coordinate"""
 	return get_distance(_base_coord, coord)
 
-func get_base_coord():
+func get_base_coord() -> HexCoord:
 	"""Get the base coordinate (Divine Sanctum at 0,0)"""
 	return _base_coord
 
@@ -380,7 +380,7 @@ func get_base_coord():
 # PATHFINDING
 # ==============================================================================
 
-func get_hex_path(from, to) -> Array:
+func get_hex_path(from: HexCoord, to: HexCoord) -> Array:
 	"""Get path from one coordinate to another using A* pathfinding"""
 	if from == null or to == null:
 		return []
@@ -394,14 +394,14 @@ func get_hex_path(from, to) -> Array:
 	var g_score: Dictionary = {}  # coord_key -> int (cost from start)
 	var f_score: Dictionary = {}  # coord_key -> int (estimated total cost)
 
-	var from_key = _coord_to_key(from)
+	var from_key: String = _coord_to_key(from)
 	g_score[from_key] = 0
 	f_score[from_key] = get_distance(from, to)
 
 	while open_set.size() > 0:
 		# Get node with lowest f_score
-		var current = _get_lowest_f_score_coord(open_set, f_score)
-		var current_key = _coord_to_key(current)
+		var current: HexCoord = _get_lowest_f_score_coord(open_set, f_score)
+		var current_key: String = _coord_to_key(current)
 
 		if current.equals(to):
 			return _reconstruct_path(came_from, current)
@@ -409,14 +409,14 @@ func get_hex_path(from, to) -> Array:
 		open_set.erase(current)
 
 		# Check all neighbors
-		var neighbors = current.get_neighbors()
-		for neighbor in neighbors:
+		var neighbors: Array[HexCoord] = current.get_neighbors()
+		for neighbor: HexCoord in neighbors:
 			# Only consider neighbors that have nodes (are passable)
 			if not has_node_at(neighbor):
 				continue
 
-			var neighbor_key = _coord_to_key(neighbor)
-			var tentative_g_score = g_score[current_key] + 1
+			var neighbor_key: String = _coord_to_key(neighbor)
+			var tentative_g_score: int = g_score[current_key] + 1
 
 			if not g_score.has(neighbor_key) or tentative_g_score < g_score[neighbor_key]:
 				came_from[neighbor_key] = current
@@ -429,23 +429,23 @@ func get_hex_path(from, to) -> Array:
 	# No path found
 	return []
 
-func _get_lowest_f_score_coord(coords: Array, f_scores: Dictionary):
+func _get_lowest_f_score_coord(coords: Array, f_scores: Dictionary) -> HexCoord:
 	"""Helper: Get coordinate with lowest f_score"""
-	var lowest_coord = coords[0]
-	var lowest_score = f_scores.get(_coord_to_key(lowest_coord), 999999)
+	var lowest_coord: HexCoord = coords[0]
+	var lowest_score: int = f_scores.get(_coord_to_key(lowest_coord), 999999)
 
-	for coord in coords:
-		var score = f_scores.get(_coord_to_key(coord), 999999)
+	for coord: HexCoord in coords:
+		var score: int = f_scores.get(_coord_to_key(coord), 999999)
 		if score < lowest_score:
 			lowest_score = score
 			lowest_coord = coord
 
 	return lowest_coord
 
-func _reconstruct_path(came_from: Dictionary, current) -> Array:
+func _reconstruct_path(came_from: Dictionary, current: HexCoord) -> Array:
 	"""Helper: Reconstruct path from A* came_from map"""
 	var path: Array = [current]
-	var current_key = _coord_to_key(current)
+	var current_key: String = _coord_to_key(current)
 
 	while came_from.has(current_key):
 		current = came_from[current_key]
@@ -461,7 +461,7 @@ func _reconstruct_path(came_from: Dictionary, current) -> Array:
 func get_nodes_by_type(node_type: String) -> Array:
 	"""Get all nodes of a specific type"""
 	var result: Array = []
-	for node in _nodes.values():
+	for node: HexNode in _nodes.values():
 		if node.node_type == node_type:
 			result.append(node)
 	return result
@@ -469,7 +469,7 @@ func get_nodes_by_type(node_type: String) -> Array:
 func get_nodes_by_tier(tier: int) -> Array:
 	"""Get all nodes of a specific tier"""
 	var result: Array = []
-	for node in _nodes.values():
+	for node: HexNode in _nodes.values():
 		if node.tier == tier:
 			result.append(node)
 	return result
@@ -477,7 +477,7 @@ func get_nodes_by_tier(tier: int) -> Array:
 func get_nodes_by_controller(controller: String) -> Array:
 	"""Get all nodes controlled by a specific controller"""
 	var result: Array = []
-	for node in _nodes.values():
+	for node: HexNode in _nodes.values():
 		if node.controller == controller:
 			result.append(node)
 	return result
@@ -493,7 +493,7 @@ func get_neutral_nodes() -> Array:
 func get_revealed_nodes() -> Array:
 	"""Get all revealed nodes"""
 	var result: Array = []
-	for node in _nodes.values():
+	for node: HexNode in _nodes.values():
 		if node.is_revealed:
 			result.append(node)
 	return result
@@ -508,9 +508,9 @@ func get_node_count() -> int:
 
 func get_max_ring() -> int:
 	"""Get the maximum ring distance in the grid"""
-	var max_ring = 0
-	for node in _nodes.values():
-		var ring = get_distance_from_base(node.coord)
+	var max_ring: int = 0
+	for node: HexNode in _nodes.values():
+		var ring: int = get_distance_from_base(node.coord)
 		if ring > max_ring:
 			max_ring = ring
 	return max_ring
@@ -525,9 +525,9 @@ func is_loaded() -> bool:
 
 func get_save_data() -> Dictionary:
 	"""Get grid state for saving (node states, not definitions)"""
-	var node_states = {}
-	for node_id in _nodes:
-		var node = _nodes[node_id]
+	var node_states: Dictionary = {}
+	for node_id: String in _nodes:
+		var node: HexNode = _nodes[node_id]
 		node_states[node_id] = node.to_dict()
 
 	return {
@@ -542,18 +542,18 @@ func load_save_data(save_data: Dictionary) -> void:
 		print("[HexGridManager] load_save_data: No 'nodes' key in save data!")
 		return
 
-	var saved_nodes = save_data.nodes
+	var saved_nodes: Dictionary = save_data.nodes
 	print("[HexGridManager] load_save_data: Found %d saved nodes, current grid has %d nodes" % [saved_nodes.size(), _nodes.size()])
 
-	var matched_count = 0
-	var player_nodes_loaded = 0
+	var matched_count: int = 0
+	var player_nodes_loaded: int = 0
 
-	for node_id in saved_nodes:
+	for node_id: String in saved_nodes:
 		if _nodes.has(node_id):
 			matched_count += 1
 			# Update existing node with saved state
-			var node = _nodes[node_id]
-			var saved_state = saved_nodes[node_id]
+			var node: HexNode = _nodes[node_id]
+			var saved_state: Dictionary = saved_nodes[node_id]
 
 			# Update dynamic state (not static definitions)
 			node.controller = saved_state.get("controller", "neutral")
@@ -565,11 +565,11 @@ func load_save_data(save_data: Dictionary) -> void:
 				player_nodes_loaded += 1
 
 			# Update typed arrays using .assign()
-			var garrison_data = saved_state.get("garrison", [])
+			var garrison_data: Array = saved_state.get("garrison", [])
 			node.garrison.assign(garrison_data)
-			var workers_data = saved_state.get("assigned_workers", [])
+			var workers_data: Array = saved_state.get("assigned_workers", [])
 			node.assigned_workers.assign(workers_data)
-			var tasks_data = saved_state.get("active_tasks", [])
+			var tasks_data: Array = saved_state.get("active_tasks", [])
 			node.active_tasks.assign(tasks_data)
 
 			node.production_level = saved_state.get("production_level", 1)
@@ -609,12 +609,12 @@ func load_save_data(save_data: Dictionary) -> void:
 func _ensure_adjacent_nodes_revealed() -> void:
 	"""Ensure all nodes adjacent to player-controlled nodes are revealed.
 	Called after loading save data to fix saves from before reveal logic was added."""
-	var player_nodes = get_player_nodes()
-	var newly_revealed = 0
+	var player_nodes: Array = get_player_nodes()
+	var newly_revealed: int = 0
 
-	for node in player_nodes:
-		var neighbors = get_neighbors(node.coord)
-		for neighbor in neighbors:
+	for node: HexNode in player_nodes:
+		var neighbors: Array = get_neighbors(node.coord)
+		for neighbor: HexNode in neighbors:
 			if neighbor and not neighbor.is_revealed:
 				neighbor.is_revealed = true
 				newly_revealed += 1
@@ -629,14 +629,14 @@ func _ensure_adjacent_nodes_revealed() -> void:
 func start_craft(node_id: String, task_id: String, task_data: Dictionary, auto_repeat: bool = false) -> bool:
 	"""Start tracking a craft - called by UI when player starts crafting.
 	Returns true if craft was started, false if node is at craft limit."""
-	var node = get_node_by_id(node_id)
+	var node: HexNode = get_node_by_id(node_id)
 	if not node:
 		push_error("HexGridManager: Cannot start craft - node '%s' not found" % node_id)
 		return false
 
 	# Check craft limit for this node (1 craft per node by default, could be expanded based on tier)
-	var current_crafts = get_active_crafts_for_node(node_id)
-	var max_crafts = _get_max_crafts_for_node(node)
+	var current_crafts: Array = get_active_crafts_for_node(node_id)
+	var max_crafts: int = _get_max_crafts_for_node(node)
 	if current_crafts.size() >= max_crafts:
 		push_warning("HexGridManager: Node '%s' already at craft limit (%d/%d)" % [node_id, current_crafts.size(), max_crafts])
 		return false
@@ -646,9 +646,9 @@ func start_craft(node_id: String, task_id: String, task_data: Dictionary, auto_r
 		push_warning("HexGridManager: Cannot start craft - node '%s' has no assigned workers" % node_id)
 		return false
 
-	var duration_seconds = task_data.get("base_duration_seconds", 60)
-	var current_time = int(Time.get_unix_time_from_system())
-	var craft_key = "%s:%s" % [node_id, task_id]
+	var duration_seconds: int = task_data.get("base_duration_seconds", 60)
+	var current_time: int = int(Time.get_unix_time_from_system())
+	var craft_key: String = "%s:%s" % [node_id, task_id]
 
 	_active_crafts[craft_key] = {
 		"task_id": task_id,
@@ -684,23 +684,23 @@ func get_active_crafts() -> Dictionary:
 func get_active_crafts_for_node(node_id: String) -> Array:
 	"""Get active crafts for a specific node"""
 	var result: Array = []
-	for craft_key in _active_crafts.keys():
-		var craft_data = _active_crafts[craft_key]
+	for craft_key: String in _active_crafts.keys():
+		var craft_data: Dictionary = _active_crafts[craft_key]
 		if craft_data.get("node_id", "") == node_id:
 			result.append(craft_data)
 	return result
 
 func complete_craft(node_id: String, task_id: String) -> Dictionary:
 	"""Complete a craft and return its data, or empty dict if not found"""
-	var craft_key = "%s:%s" % [node_id, task_id]
+	var craft_key: String = "%s:%s" % [node_id, task_id]
 	if not _active_crafts.has(craft_key):
 		return {}
 
-	var craft_data = _active_crafts[craft_key]
+	var craft_data: Dictionary = _active_crafts[craft_key]
 	_active_crafts.erase(craft_key)
 
 	# Remove from node's active_tasks
-	var node = get_node_by_id(node_id)
+	var node: HexNode = get_node_by_id(node_id)
 	if node and node.active_tasks.has(task_id):
 		node.active_tasks.erase(task_id)
 
@@ -711,7 +711,7 @@ func complete_craft(node_id: String, task_id: String) -> Dictionary:
 
 func set_auto_repeat(node_id: String, task_id: String, enabled: bool) -> void:
 	"""Enable or disable auto-repeat for a craft"""
-	var craft_key = "%s:%s" % [node_id, task_id]
+	var craft_key: String = "%s:%s" % [node_id, task_id]
 	if enabled:
 		_auto_repeat_crafts[craft_key] = true
 		# Also update the active craft data if it exists
@@ -724,12 +724,12 @@ func set_auto_repeat(node_id: String, task_id: String, enabled: bool) -> void:
 
 func is_auto_repeat_enabled(node_id: String, task_id: String) -> bool:
 	"""Check if auto-repeat is enabled for a craft"""
-	var craft_key = "%s:%s" % [node_id, task_id]
+	var craft_key: String = "%s:%s" % [node_id, task_id]
 	return _auto_repeat_crafts.has(craft_key)
 
 func cancel_craft(node_id: String, task_id: String) -> bool:
 	"""Cancel a specific craft. Returns true if craft was cancelled."""
-	var craft_key = "%s:%s" % [node_id, task_id]
+	var craft_key: String = "%s:%s" % [node_id, task_id]
 	if not _active_crafts.has(craft_key):
 		return false
 
@@ -737,7 +737,7 @@ func cancel_craft(node_id: String, task_id: String) -> bool:
 	_auto_repeat_crafts.erase(craft_key)
 
 	# Remove from node's active_tasks
-	var node = get_node_by_id(node_id)
+	var node: HexNode = get_node_by_id(node_id)
 	if node and node.active_tasks.has(task_id):
 		node.active_tasks.erase(task_id)
 
@@ -746,17 +746,17 @@ func cancel_craft(node_id: String, task_id: String) -> bool:
 
 func cancel_all_crafts_for_node(node_id: String) -> int:
 	"""Cancel all crafts for a node. Returns number of crafts cancelled."""
-	var cancelled = 0
+	var cancelled: int = 0
 	var crafts_to_cancel: Array = []
 
 	# Find all crafts for this node
-	for craft_key in _active_crafts.keys():
-		var craft_data = _active_crafts[craft_key]
+	for craft_key: String in _active_crafts.keys():
+		var craft_data: Dictionary = _active_crafts[craft_key]
 		if craft_data.get("node_id", "") == node_id:
 			crafts_to_cancel.append(craft_data.get("task_id", ""))
 
 	# Cancel them
-	for task_id in crafts_to_cancel:
+	for task_id: String in crafts_to_cancel:
 		if cancel_craft(node_id, task_id):
 			cancelled += 1
 
@@ -767,17 +767,17 @@ func cancel_all_crafts_for_node(node_id: String) -> int:
 
 func _check_auto_repeat_crafts() -> void:
 	"""Check for completed auto-repeat crafts and restart them"""
-	var current_time = int(Time.get_unix_time_from_system())
+	var current_time: int = int(Time.get_unix_time_from_system())
 	var crafts_to_restart: Array = []
 	var crafts_to_cancel: Array = []
 
-	for craft_key in _active_crafts.keys():
-		var craft_data = _active_crafts[craft_key]
-		var end_time = craft_data.get("end_time", current_time)
-		var node_id = craft_data.get("node_id", "")
+	for craft_key: String in _active_crafts.keys():
+		var craft_data: Dictionary = _active_crafts[craft_key]
+		var end_time: int = craft_data.get("end_time", current_time)
+		var node_id: String = craft_data.get("node_id", "")
 
 		# Check if node still has workers assigned
-		var node = get_node_by_id(node_id)
+		var node: HexNode = get_node_by_id(node_id)
 		if not node or node.assigned_workers.is_empty():
 			# No workers = cancel craft
 			crafts_to_cancel.append(craft_data)
@@ -785,28 +785,28 @@ func _check_auto_repeat_crafts() -> void:
 
 		# Check if craft is complete
 		if current_time >= end_time:
-			var is_auto_repeat = craft_data.get("auto_repeat", false) or _auto_repeat_crafts.has(craft_key)
+			var is_auto_repeat: bool = craft_data.get("auto_repeat", false) or _auto_repeat_crafts.has(craft_key)
 			if is_auto_repeat:
 				crafts_to_restart.append(craft_data)
 
 	# Cancel crafts with no workers
-	for craft_data in crafts_to_cancel:
-		var node_id = craft_data.get("node_id", "")
-		var task_id = craft_data.get("task_id", "")
+	for craft_data: Dictionary in crafts_to_cancel:
+		var node_id: String = craft_data.get("node_id", "")
+		var task_id: String = craft_data.get("task_id", "")
 		cancel_craft(node_id, task_id)
 		print("HexGridManager: Auto-cancelled craft '%s' - no workers assigned" % task_id)
 
 	# Process auto-restarts
-	for craft_data in crafts_to_restart:
-		var node_id = craft_data.get("node_id", "")
-		var task_id = craft_data.get("task_id", "")
-		var task_data = craft_data.get("task_data", {})
+	for craft_data: Dictionary in crafts_to_restart:
+		var node_id: String = craft_data.get("node_id", "")
+		var task_id: String = craft_data.get("task_id", "")
+		var task_data: Dictionary = craft_data.get("task_data", {})
 
 		# Double-check node still has workers (might have been cancelled above)
-		var node = get_node_by_id(node_id)
+		var node: HexNode = get_node_by_id(node_id)
 		if not node or node.assigned_workers.is_empty():
-			var craft_key = "%s:%s" % [node_id, task_id]
-			_auto_repeat_crafts.erase(craft_key)
+			var cancel_key: String = "%s:%s" % [node_id, task_id]
+			_auto_repeat_crafts.erase(cancel_key)
 			continue
 
 		# Check if we can afford the cost
@@ -818,8 +818,8 @@ func _check_auto_repeat_crafts() -> void:
 			_award_craft_rewards(task_data)
 
 			# Restart the craft
-			var duration_seconds = task_data.get("base_duration_seconds", 60)
-			var craft_key = "%s:%s" % [node_id, task_id]
+			var duration_seconds: int = task_data.get("base_duration_seconds", 60)
+			var craft_key: String = "%s:%s" % [node_id, task_id]
 
 			_active_crafts[craft_key] = {
 				"task_id": task_id,
@@ -833,17 +833,17 @@ func _check_auto_repeat_crafts() -> void:
 			craft_auto_restarted.emit(node_id, task_id)
 		else:
 			# Can't afford, disable auto-repeat
-			var craft_key = "%s:%s" % [node_id, task_id]
-			_auto_repeat_crafts.erase(craft_key)
+			var disable_key: String = "%s:%s" % [node_id, task_id]
+			_auto_repeat_crafts.erase(disable_key)
 
 func _can_afford_craft_cost(task_data: Dictionary) -> bool:
 	"""Check if player can afford the craft costs (including accumulated node resources)"""
 	# Use "materials" from crafting_recipes.json (fallback to "resource_costs")
-	var costs = task_data.get("materials", task_data.get("resource_costs", {}))
+	var costs: Dictionary = task_data.get("materials", task_data.get("resource_costs", {}))
 	if costs.is_empty():
 		return true
 
-	var resource_manager = _get_resource_manager()
+	var resource_manager: Node = _get_resource_manager()
 	if not resource_manager:
 		return true
 
@@ -852,28 +852,28 @@ func _can_afford_craft_cost(task_data: Dictionary) -> bool:
 		return true
 
 	# If not, check if accumulated resources on nodes can cover the deficit
-	var total_available = _get_total_available_resources(resource_manager, costs)
-	for resource_id in costs:
-		var needed = costs[resource_id]
-		var available = total_available.get(resource_id, 0)
+	var total_available: Dictionary = _get_total_available_resources(resource_manager, costs)
+	for resource_id: String in costs:
+		var needed: int = costs[resource_id]
+		var available: int = total_available.get(resource_id, 0)
 		if available < needed:
 			return false  # Not enough even with accumulated resources
 
 	return true
 
-func _get_total_available_resources(resource_manager, costs: Dictionary) -> Dictionary:
+func _get_total_available_resources(resource_manager: Node, costs: Dictionary) -> Dictionary:
 	"""Get total resources available (inventory + accumulated on all player nodes)"""
 	var total: Dictionary = {}
 
 	# Add inventory resources
-	for resource_id in costs:
+	for resource_id: String in costs:
 		total[resource_id] = resource_manager.get_resource(resource_id) if resource_manager else 0
 
 	# Add accumulated resources from all player-controlled nodes
-	for node in get_player_nodes():
-		for resource_id in node.accumulated_resources:
+	for node: HexNode in get_player_nodes():
+		for resource_id: String in node.accumulated_resources:
 			if costs.has(resource_id):  # Only count resources we need
-				var amount = node.accumulated_resources.get(resource_id, 0)
+				var amount: int = node.accumulated_resources.get(resource_id, 0)
 				total[resource_id] = total.get(resource_id, 0) + amount
 
 	return total
@@ -881,25 +881,25 @@ func _get_total_available_resources(resource_manager, costs: Dictionary) -> Dict
 func _spend_craft_cost(task_data: Dictionary) -> void:
 	"""Spend the resources for a craft, using accumulated resources if needed"""
 	# Use "materials" from crafting_recipes.json (fallback to "resource_costs")
-	var costs = task_data.get("materials", task_data.get("resource_costs", {}))
+	var costs: Dictionary = task_data.get("materials", task_data.get("resource_costs", {}))
 	if costs.is_empty():
 		return
 
-	var resource_manager = _get_resource_manager()
+	var resource_manager: Node = _get_resource_manager()
 	if not resource_manager:
 		return
 
 	# Try to spend from inventory first, auto-collect from nodes if needed
-	for resource_id in costs:
-		var needed = costs[resource_id]
-		var in_inventory = resource_manager.get_resource(resource_id)
+	for resource_id: String in costs:
+		var needed: int = costs[resource_id]
+		var in_inventory: int = resource_manager.get_resource(resource_id)
 
 		if in_inventory >= needed:
 			# Can afford entirely from inventory
 			resource_manager.spend(resource_id, needed)
 		else:
 			# Need to collect from accumulated resources first
-			var deficit = needed - in_inventory
+			var deficit: int = needed - in_inventory
 
 			# Collect from nodes to cover deficit
 			_auto_collect_resource_from_nodes(resource_id, deficit, resource_manager)
@@ -907,17 +907,17 @@ func _spend_craft_cost(task_data: Dictionary) -> void:
 			# Now spend from inventory (which should have enough after collection)
 			resource_manager.spend(resource_id, needed)
 
-func _auto_collect_resource_from_nodes(resource_id: String, amount_needed: float, resource_manager) -> float:
+func _auto_collect_resource_from_nodes(resource_id: String, amount_needed: float, resource_manager: Node) -> float:
 	"""Auto-collect a specific resource from player nodes to cover craft costs"""
 	var collected: float = 0.0
 
-	for node in get_player_nodes():
+	for node: HexNode in get_player_nodes():
 		if collected >= amount_needed:
 			break
 
-		var available = node.accumulated_resources.get(resource_id, 0)
+		var available: float = node.accumulated_resources.get(resource_id, 0)
 		if available > 0:
-			var to_collect = min(available, amount_needed - collected)
+			var to_collect: float = min(available, amount_needed - collected)
 
 			# Remove from node's accumulated
 			node.accumulated_resources[resource_id] = available - to_collect
@@ -933,27 +933,27 @@ func _auto_collect_resource_from_nodes(resource_id: String, amount_needed: float
 
 func _award_craft_rewards(task_data: Dictionary) -> void:
 	"""Award the rewards from a completed auto-repeat craft"""
-	var resource_manager = _get_resource_manager()
+	var resource_manager: Node = _get_resource_manager()
 	if not resource_manager:
 		push_error("HexGridManager: Cannot award craft rewards - no ResourceManager")
 		return
 
 	# Resource rewards - use "output" from crafting_recipes.json (fallback to "resource_rewards")
-	var resources = task_data.get("output", task_data.get("resource_rewards", {}))
+	var resources: Dictionary = task_data.get("output", task_data.get("resource_rewards", {}))
 	if resources.is_empty():
 		push_warning("HexGridManager: No output resources found in task_data: %s" % task_data.keys())
 		return
 
-	for resource_id in resources.keys():
-		var amount = resources[resource_id]
+	for resource_id: String in resources.keys():
+		var amount: int = resources[resource_id]
 		resource_manager.add_resource(resource_id, amount)
 		print("HexGridManager: Auto-repeat craft awarded %d %s" % [amount, resource_id])
 
-func _get_resource_manager():
+func _get_resource_manager() -> Node:
 	"""Get ResourceManager via SystemRegistry"""
-	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+	var registry_script: GDScript = load("res://scripts/systems/core/SystemRegistry.gd")
 	if registry_script and registry_script.has_method("get_instance"):
-		var registry = registry_script.get_instance()
+		var registry: Node = registry_script.get_instance()
 		if registry:
 			return registry.get_system("ResourceManager")
 	return null

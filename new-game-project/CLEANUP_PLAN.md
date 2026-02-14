@@ -557,8 +557,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
   {
     "file": "scripts/systems/territory/HexGridManager.gd",
     "issue": "10+ functions missing type hints",
-    "action": "Add type hints to all functions",
-    "passes": false
+    "action": "Added HexCoord type to 15+ coord parameters (get_node_at, has_node_at, get_neighbors, get_distance, get_distance_from_base, get_hex_path, get_nodes_within_distance, _coord_to_key, etc.), HexNode type to 20+ node variables and parameters, GDScript type to all script loads, return types to 5 functions missing them (get_node_at, get_node_by_id, get_base_coord, _get_lowest_f_score_coord, _get_resource_manager). Typed all local variables throughout (int, float, bool, String, Dictionary, Array). Fixed variable name shadowing (name → tile_name, craft_key → cancel_key/disable_key).",
+    "passes": true
   },
   {
     "file": "scripts/systems/battle/StatusEffectManager.gd",
