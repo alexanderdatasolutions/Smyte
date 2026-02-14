@@ -6,7 +6,6 @@
 extends Node
 class_name DungeonCoordinator
 
-const MAX_TEAM_SIZE: int = 4
 
 # Signals for UI communication
 signal dungeon_battle_started(dungeon_id: String, difficulty: String)
@@ -117,8 +116,8 @@ func _validate_battle_team(team: Array) -> Dictionary:
 	if team.is_empty():
 		return {"success": false, "error": "Team cannot be empty"}
 	
-	if team.size() > MAX_TEAM_SIZE:
-		return {"success": false, "error": "Team cannot exceed %d gods" % MAX_TEAM_SIZE}
+	if team.size() > DungeonConstants.MAX_TEAM_SIZE:
+		return {"success": false, "error": "Team cannot exceed %d gods" % DungeonConstants.MAX_TEAM_SIZE}
 	
 	# Validate each god
 	for god in team:
@@ -176,7 +175,7 @@ func _generate_victory_rewards(dungeon_id: String, difficulty: String, dungeon_m
 		var loot_table_id: String = dungeon_manager.get_loot_table_name(dungeon_id, difficulty)
 		var dungeon_info: Dictionary = dungeon_manager.get_dungeon_info(dungeon_id)
 		var element: String = dungeon_info.get("element", "")
-		var multiplier: float = _get_difficulty_reward_multiplier(difficulty)
+		var multiplier: float = DungeonConstants.get_difficulty_reward_multiplier(difficulty)
 
 		# Generate loot from table
 		if not loot_table_id.is_empty():
@@ -264,25 +263,6 @@ func _calculate_experience_reward(difficulty: String) -> int:
 
 	return base_exp.get(difficulty, 50)
 
-func _get_difficulty_reward_multiplier(difficulty: String) -> float:
-	"""Get reward multiplier based on difficulty"""
-	match difficulty:
-		"beginner":
-			return 1.0
-		"intermediate":
-			return 1.2
-		"advanced":
-			return 1.5
-		"expert":
-			return 2.0
-		"master":
-			return 2.5
-		"heroic":
-			return 2.0
-		"legendary":
-			return 3.0
-		_:
-			return 1.0
 
 func _reset_battle_state():
 	"""Reset battle state after completion"""

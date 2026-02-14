@@ -893,3 +893,23 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: create GodUIHelpers and consolidate duplicated color/name functions`
+
+### 2026-02-13 - Cleanup: Create DungeonConstants.gd and consolidate duplicated dungeon code
+
+**File(s) Modified:**
+- `scripts/systems/dungeon/DungeonConstants.gd` (NEW — 25 lines)
+- `scripts/systems/dungeon/DungeonCoordinator.gd` (removed duplicated constant + function)
+- `scripts/systems/dungeon/DungeonManager.gd` (removed duplicated constant + function)
+
+**Changes:**
+- Created `DungeonConstants.gd` (extends RefCounted, class_name DungeonConstants) with:
+  - `MAX_TEAM_SIZE` constant (= 4) — previously duplicated in both files
+  - `get_difficulty_reward_multiplier()` static function — previously identical `_get_difficulty_reward_multiplier()` in both files
+- Updated DungeonCoordinator.gd to use `DungeonConstants.MAX_TEAM_SIZE` and `DungeonConstants.get_difficulty_reward_multiplier()`
+- Updated DungeonManager.gd to use `DungeonConstants.MAX_TEAM_SIZE` and `DungeonConstants.get_difficulty_reward_multiplier()`
+- Removed ~40 lines of duplicated code across both files
+- Note: Required opening Godot editor to generate .uid file for the new script (Godot 4.5 requirement)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `cleanup: create DungeonConstants and consolidate duplicated dungeon code`

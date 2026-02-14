@@ -536,8 +536,8 @@ Comprehensive cleanup of **195 GDScript files** and **37 scene files**.
   {
     "files": "DungeonCoordinator.gd, DungeonManager.gd",
     "issue": "Identical _get_difficulty_reward_multiplier()",
-    "action": "Create DungeonConstants.gd",
-    "passes": false
+    "action": "Created DungeonConstants.gd (extends RefCounted, class_name DungeonConstants) with shared MAX_TEAM_SIZE constant and static get_difficulty_reward_multiplier() function. Updated both DungeonCoordinator.gd and DungeonManager.gd to use DungeonConstants.MAX_TEAM_SIZE and DungeonConstants.get_difficulty_reward_multiplier() instead of local duplicates. Removed ~40 lines of duplicated code across both files.",
+    "passes": true
   }
 ]
 ```

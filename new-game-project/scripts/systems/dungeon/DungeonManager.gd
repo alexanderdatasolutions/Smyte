@@ -5,7 +5,6 @@
 extends Node
 class_name DungeonManager
 
-const MAX_TEAM_SIZE: int = 4
 
 # Signals for UI communication (RULE 4: No UI in systems)
 signal dungeon_data_loaded
@@ -266,8 +265,8 @@ func validate_dungeon_entry(dungeon_id: String, difficulty: String, team: Array)
 		return result
 
 	# Check team
-	if team.is_empty() or team.size() > MAX_TEAM_SIZE:
-		result.error_message = "Invalid team size (1-%d gods required)" % MAX_TEAM_SIZE
+	if team.is_empty() or team.size() > DungeonConstants.MAX_TEAM_SIZE:
+		result.error_message = "Invalid team size (1-%d gods required)" % DungeonConstants.MAX_TEAM_SIZE
 		return result
 
 	# Check daily limit
@@ -467,7 +466,7 @@ func get_completion_rewards(dungeon_id: String, difficulty: String) -> Dictionar
 	var element = dungeon_info.get("element", "")
 
 	# Get difficulty multiplier (higher difficulties = more rewards)
-	var multiplier = _get_difficulty_reward_multiplier(difficulty)
+	var multiplier = DungeonConstants.get_difficulty_reward_multiplier(difficulty)
 
 	# Generate loot through LootSystem
 	var loot_system = SystemRegistry.get_instance().get_system("LootSystem") if SystemRegistry.get_instance() else null
@@ -479,25 +478,6 @@ func get_completion_rewards(dungeon_id: String, difficulty: String) -> Dictionar
 		push_warning("DungeonManager: LootSystem not available, returning empty rewards")
 		return {}
 
-func _get_difficulty_reward_multiplier(difficulty: String) -> float:
-	"""Get reward multiplier based on difficulty"""
-	match difficulty:
-		"beginner":
-			return 1.0
-		"intermediate":
-			return 1.2
-		"advanced":
-			return 1.5
-		"expert":
-			return 2.0
-		"master":
-			return 2.5
-		"heroic":
-			return 2.0
-		"legendary":
-			return 3.0
-		_:
-			return 1.0
 
 func record_completion(dungeon_id: String, difficulty: String, completion_time: float) -> bool:
 	"""Record dungeon completion for statistics. Returns true if this was a first clear."""
