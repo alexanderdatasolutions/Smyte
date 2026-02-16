@@ -14,6 +14,7 @@ Following CLAUDE.md architecture:
 - Loads nodes from JSON
 - Provides spatial queries (neighbors, rings, distance)
 - Pathfinding between coordinates
+- Delegates craft tracking to HexCraftManager
 """
 
 # ==============================================================================
@@ -23,6 +24,10 @@ signal nodes_loaded()
 signal node_added(node_id: String)
 signal grid_updated()
 
+# Forwarded from HexCraftManager for external callers
+signal craft_completed(node_id: String, task_id: String, task_data: Dictionary)
+signal craft_auto_restarted(node_id: String, task_id: String)
+
 # ==============================================================================
 # CONSTANTS
 # ==============================================================================
@@ -30,6 +35,7 @@ const HEX_TILES_PATH = "res://data/hex_tiles.json"
 
 # Preload the ring generator to ensure it's available
 const HexRingGeneratorScript = preload("res://scripts/systems/territory/HexRingGenerator.gd")
+const HexCraftManagerScript = preload("res://scripts/systems/territory/HexCraftManager.gd")
 
 # ==============================================================================
 # STATE
@@ -38,28 +44,29 @@ var _nodes: Dictionary = {}  # node_id -> HexNode
 var _coord_to_node: Dictionary = {}  # "q,r" -> HexNode
 var _is_loaded: bool = false
 var _base_coord: HexCoord = null  # Divine Sanctum at (0,0)
-
-# Active crafts shared across all UI - {"node_id:task_id": {"node_id", "task_id", "start_time", "end_time", "task_data"}}
-var _active_crafts: Dictionary = {}
-
-# Auto-repeat settings - {"node_id:task_id": true} for tasks that should auto-repeat
-var _auto_repeat_crafts: Dictionary = {}
-
-# Signals for craft events
-signal craft_completed(node_id: String, task_id: String, task_data: Dictionary)
-signal craft_auto_restarted(node_id: String, task_id: String)
+var _craft_manager: Node = null
 
 # ==============================================================================
 # INITIALIZATION
 # ==============================================================================
 
 func _ready() -> void:
+	_initialize_craft_manager()
 	_initialize_base_coord()
 	load_nodes_from_json()
 
-func _process(_delta: float) -> void:
-	"""Check for completed auto-repeat crafts"""
-	_check_auto_repeat_crafts()
+func _initialize_craft_manager() -> void:
+	"""Create and initialize the craft manager as a child node"""
+	_craft_manager = HexCraftManagerScript.new()
+	_craft_manager.name = "HexCraftManager"
+	add_child(_craft_manager)
+	_craft_manager.initialize(self)
+
+	# Forward craft signals
+	_craft_manager.craft_completed.connect(func(node_id: String, task_id: String, task_data: Dictionary) -> void:
+		craft_completed.emit(node_id, task_id, task_data))
+	_craft_manager.craft_auto_restarted.connect(func(node_id: String, task_id: String) -> void:
+		craft_auto_restarted.emit(node_id, task_id))
 
 func _initialize_base_coord() -> void:
 	"""Initialize base coordinate at origin"""
@@ -262,7 +269,7 @@ func _create_special_node(hex_node_script: GDScript, template: Dictionary, coord
 		"placed_building": "",
 		"building_level": 1,
 		"fixed_production": fixed_prod,
-		"base_production": fixed_prod,  # Special nodes use fixed_production as base
+		"base_production": fixed_prod,
 		"max_garrison": template.get("max_garrison", 5),
 		"max_workers": template.get("max_workers", 5),
 		"base_defenders": actual_defenders,
@@ -527,11 +534,15 @@ func get_save_data() -> Dictionary:
 		var node: HexNode = _nodes[node_id]
 		node_states[node_id] = node.to_dict()
 
-	return {
-		"nodes": node_states,
-		"active_crafts": _active_crafts.duplicate(true),
-		"auto_repeat_crafts": _auto_repeat_crafts.duplicate()
-	}
+	var save: Dictionary = {"nodes": node_states}
+
+	# Include craft data from craft manager
+	if _craft_manager:
+		var craft_save: Dictionary = _craft_manager.get_save_data()
+		save["active_crafts"] = craft_save.get("active_crafts", {})
+		save["auto_repeat_crafts"] = craft_save.get("auto_repeat_crafts", {})
+
+	return save
 
 func load_save_data(save_data: Dictionary) -> void:
 	"""Load grid state from save data"""
@@ -552,7 +563,7 @@ func load_save_data(save_data: Dictionary) -> void:
 			node.is_contested = saved_state.get("is_contested", false)
 			node.contested_until = saved_state.get("contested_until", 0)
 
-				# Update typed arrays using .assign()
+			# Update typed arrays using .assign()
 			var garrison_data: Array = saved_state.get("garrison", [])
 			node.garrison.assign(garrison_data)
 			var workers_data: Array = saved_state.get("assigned_workers", [])
@@ -567,7 +578,7 @@ func load_save_data(save_data: Dictionary) -> void:
 			node.last_production_time = saved_state.get("last_production_time", 0)
 			node.accumulated_resources = saved_state.get("accumulated_resources", {})
 
-			# Building system state (new)
+			# Building system state
 			node.placed_building = saved_state.get("placed_building", "")
 			node.building_level = saved_state.get("building_level", 1)
 
@@ -575,16 +586,11 @@ func load_save_data(save_data: Dictionary) -> void:
 			node.attack_timer_remaining = saved_state.get("attack_timer_remaining", -1.0)
 			node.last_attack_check_time = saved_state.get("last_attack_check_time", 0)
 
-	# Restore active crafts
-	if save_data.has("active_crafts"):
-		_active_crafts = save_data.active_crafts.duplicate(true)
-
-	# Restore auto-repeat settings
-	if save_data.has("auto_repeat_crafts"):
-		_auto_repeat_crafts = save_data.auto_repeat_crafts.duplicate()
+	# Restore craft data via craft manager
+	if _craft_manager:
+		_craft_manager.load_save_data(save_data)
 
 	# Post-load fix: Ensure adjacent nodes to player-controlled nodes are revealed
-	# This handles saves from before the reveal-on-capture logic was added
 	_ensure_adjacent_nodes_revealed()
 
 	grid_updated.emit()
@@ -600,332 +606,40 @@ func _ensure_adjacent_nodes_revealed() -> void:
 				neighbor.is_revealed = true
 
 # ==============================================================================
-# CRAFT TRACKING (Shared across UI screens)
+# CRAFT TRACKING (Delegated to HexCraftManager)
 # ==============================================================================
 
 func start_craft(node_id: String, task_id: String, task_data: Dictionary, auto_repeat: bool = false) -> bool:
-	"""Start tracking a craft - called by UI when player starts crafting.
-	Returns true if craft was started, false if node is at craft limit."""
-	var node: HexNode = get_node_by_id(node_id)
-	if not node:
-		push_error("HexGridManager: Cannot start craft - node '%s' not found" % node_id)
-		return false
-
-	# Check craft limit for this node (1 craft per node by default, could be expanded based on tier)
-	var current_crafts: Array = get_active_crafts_for_node(node_id)
-	var max_crafts: int = _get_max_crafts_for_node(node)
-	if current_crafts.size() >= max_crafts:
-		push_warning("HexGridManager: Node '%s' already at craft limit (%d/%d)" % [node_id, current_crafts.size(), max_crafts])
-		return false
-
-	# Check if node has an assigned worker (required for crafting)
-	if node.assigned_workers.is_empty():
-		push_warning("HexGridManager: Cannot start craft - node '%s' has no assigned workers" % node_id)
-		return false
-
-	var duration_seconds: int = task_data.get("base_duration_seconds", 60)
-	var current_time: int = int(Time.get_unix_time_from_system())
-	var craft_key: String = "%s:%s" % [node_id, task_id]
-
-	_active_crafts[craft_key] = {
-		"task_id": task_id,
-		"node_id": node_id,
-		"start_time": current_time,
-		"end_time": current_time + duration_seconds,
-		"task_data": task_data,
-		"auto_repeat": auto_repeat
-	}
-
-	# Track auto-repeat setting
-	if auto_repeat:
-		_auto_repeat_crafts[craft_key] = true
-	elif _auto_repeat_crafts.has(craft_key):
-		_auto_repeat_crafts.erase(craft_key)
-
-	# Also add to node's active_tasks
-	if not node.active_tasks.has(task_id):
-		node.active_tasks.append(task_id)
-
-	return true
-
-func _get_max_crafts_for_node(node: HexNode) -> int:
-	"""Get maximum concurrent crafts allowed for a node based on tier"""
-	# For now, 1 craft per forge. Could expand to tier-based later.
-	return 1
+	"""Start tracking a craft. Delegated to HexCraftManager."""
+	return _craft_manager.start_craft(node_id, task_id, task_data, auto_repeat)
 
 func get_active_crafts() -> Dictionary:
-	"""Get all active crafts"""
-	return _active_crafts
+	"""Get all active crafts. Delegated to HexCraftManager."""
+	return _craft_manager.get_active_crafts()
 
 func get_active_crafts_for_node(node_id: String) -> Array:
-	"""Get active crafts for a specific node"""
-	var result: Array = []
-	for craft_key: String in _active_crafts.keys():
-		var craft_data: Dictionary = _active_crafts[craft_key]
-		if craft_data.get("node_id", "") == node_id:
-			result.append(craft_data)
-	return result
+	"""Get active crafts for a specific node. Delegated to HexCraftManager."""
+	return _craft_manager.get_active_crafts_for_node(node_id)
 
 func complete_craft(node_id: String, task_id: String) -> Dictionary:
-	"""Complete a craft and return its data, or empty dict if not found"""
-	var craft_key: String = "%s:%s" % [node_id, task_id]
-	if not _active_crafts.has(craft_key):
-		return {}
-
-	var craft_data: Dictionary = _active_crafts[craft_key]
-	_active_crafts.erase(craft_key)
-
-	# Remove from node's active_tasks
-	var node: HexNode = get_node_by_id(node_id)
-	if node and node.active_tasks.has(task_id):
-		node.active_tasks.erase(task_id)
-
-	# Emit completion signal
-	craft_completed.emit(node_id, task_id, craft_data.get("task_data", {}))
-
-	return craft_data
+	"""Complete a craft. Delegated to HexCraftManager."""
+	return _craft_manager.complete_craft(node_id, task_id)
 
 func set_auto_repeat(node_id: String, task_id: String, enabled: bool) -> void:
-	"""Enable or disable auto-repeat for a craft"""
-	var craft_key: String = "%s:%s" % [node_id, task_id]
-	if enabled:
-		_auto_repeat_crafts[craft_key] = true
-		# Also update the active craft data if it exists
-		if _active_crafts.has(craft_key):
-			_active_crafts[craft_key]["auto_repeat"] = true
-	else:
-		_auto_repeat_crafts.erase(craft_key)
-		if _active_crafts.has(craft_key):
-			_active_crafts[craft_key]["auto_repeat"] = false
+	"""Enable or disable auto-repeat. Delegated to HexCraftManager."""
+	_craft_manager.set_auto_repeat(node_id, task_id, enabled)
 
 func is_auto_repeat_enabled(node_id: String, task_id: String) -> bool:
-	"""Check if auto-repeat is enabled for a craft"""
-	var craft_key: String = "%s:%s" % [node_id, task_id]
-	return _auto_repeat_crafts.has(craft_key)
+	"""Check if auto-repeat is enabled. Delegated to HexCraftManager."""
+	return _craft_manager.is_auto_repeat_enabled(node_id, task_id)
 
 func cancel_craft(node_id: String, task_id: String) -> bool:
-	"""Cancel a specific craft. Returns true if craft was cancelled."""
-	var craft_key: String = "%s:%s" % [node_id, task_id]
-	if not _active_crafts.has(craft_key):
-		return false
-
-	_active_crafts.erase(craft_key)
-	_auto_repeat_crafts.erase(craft_key)
-
-	# Remove from node's active_tasks
-	var node: HexNode = get_node_by_id(node_id)
-	if node and node.active_tasks.has(task_id):
-		node.active_tasks.erase(task_id)
-
-	return true
+	"""Cancel a specific craft. Delegated to HexCraftManager."""
+	return _craft_manager.cancel_craft(node_id, task_id)
 
 func cancel_all_crafts_for_node(node_id: String) -> int:
-	"""Cancel all crafts for a node. Returns number of crafts cancelled."""
-	var cancelled: int = 0
-	var crafts_to_cancel: Array = []
-
-	# Find all crafts for this node
-	for craft_key: String in _active_crafts.keys():
-		var craft_data: Dictionary = _active_crafts[craft_key]
-		if craft_data.get("node_id", "") == node_id:
-			crafts_to_cancel.append(craft_data.get("task_id", ""))
-
-	# Cancel them
-	for task_id: String in crafts_to_cancel:
-		if cancel_craft(node_id, task_id):
-			cancelled += 1
-
-	return cancelled
-
-func _check_auto_repeat_crafts() -> void:
-	"""Check for completed auto-repeat crafts and restart them"""
-	var current_time: int = int(Time.get_unix_time_from_system())
-	var crafts_to_restart: Array = []
-	var crafts_to_cancel: Array = []
-
-	for craft_key: String in _active_crafts.keys():
-		var craft_data: Dictionary = _active_crafts[craft_key]
-		var end_time: int = craft_data.get("end_time", current_time)
-		var node_id: String = craft_data.get("node_id", "")
-
-		# Check if node still has workers assigned
-		var node: HexNode = get_node_by_id(node_id)
-		if not node or node.assigned_workers.is_empty():
-			# No workers = cancel craft
-			crafts_to_cancel.append(craft_data)
-			continue
-
-		# Check if craft is complete
-		if current_time >= end_time:
-			var is_auto_repeat: bool = craft_data.get("auto_repeat", false) or _auto_repeat_crafts.has(craft_key)
-			if is_auto_repeat:
-				crafts_to_restart.append(craft_data)
-
-	# Cancel crafts with no workers
-	for craft_data: Dictionary in crafts_to_cancel:
-		var node_id: String = craft_data.get("node_id", "")
-		var task_id: String = craft_data.get("task_id", "")
-		cancel_craft(node_id, task_id)
-
-	# Process auto-restarts
-	for craft_data: Dictionary in crafts_to_restart:
-		var node_id: String = craft_data.get("node_id", "")
-		var task_id: String = craft_data.get("task_id", "")
-		var task_data: Dictionary = craft_data.get("task_data", {})
-
-		# Double-check node still has workers (might have been cancelled above)
-		var node: HexNode = get_node_by_id(node_id)
-		if not node or node.assigned_workers.is_empty():
-			var cancel_key: String = "%s:%s" % [node_id, task_id]
-			_auto_repeat_crafts.erase(cancel_key)
-			continue
-
-		# Check if we can afford the cost
-		if _can_afford_craft_cost(task_data):
-			# Spend the resources
-			_spend_craft_cost(task_data)
-
-			# Award the rewards
-			_award_craft_rewards(task_data)
-
-			# Restart the craft
-			var duration_seconds: int = task_data.get("base_duration_seconds", 60)
-			var craft_key: String = "%s:%s" % [node_id, task_id]
-
-			_active_crafts[craft_key] = {
-				"task_id": task_id,
-				"node_id": node_id,
-				"start_time": current_time,
-				"end_time": current_time + duration_seconds,
-				"task_data": task_data,
-				"auto_repeat": true
-			}
-
-			craft_auto_restarted.emit(node_id, task_id)
-		else:
-			# Can't afford, disable auto-repeat
-			var disable_key: String = "%s:%s" % [node_id, task_id]
-			_auto_repeat_crafts.erase(disable_key)
-
-func _can_afford_craft_cost(task_data: Dictionary) -> bool:
-	"""Check if player can afford the craft costs (including accumulated node resources)"""
-	# Use "materials" from crafting_recipes.json (fallback to "resource_costs")
-	var costs: Dictionary = task_data.get("materials", task_data.get("resource_costs", {}))
-	if costs.is_empty():
-		return true
-
-	var resource_manager: Node = _get_resource_manager()
-	if not resource_manager:
-		return true
-
-	# First check if we can afford directly from inventory
-	if resource_manager.can_afford(costs):
-		return true
-
-	# If not, check if accumulated resources on nodes can cover the deficit
-	var total_available: Dictionary = _get_total_available_resources(resource_manager, costs)
-	for resource_id: String in costs:
-		var needed: int = costs[resource_id]
-		var available: int = total_available.get(resource_id, 0)
-		if available < needed:
-			return false  # Not enough even with accumulated resources
-
-	return true
-
-func _get_total_available_resources(resource_manager: Node, costs: Dictionary) -> Dictionary:
-	"""Get total resources available (inventory + accumulated on all player nodes)"""
-	var total: Dictionary = {}
-
-	# Add inventory resources
-	for resource_id: String in costs:
-		total[resource_id] = resource_manager.get_resource(resource_id) if resource_manager else 0
-
-	# Add accumulated resources from all player-controlled nodes
-	for node: HexNode in get_player_nodes():
-		for resource_id: String in node.accumulated_resources:
-			if costs.has(resource_id):  # Only count resources we need
-				var amount: int = node.accumulated_resources.get(resource_id, 0)
-				total[resource_id] = total.get(resource_id, 0) + amount
-
-	return total
-
-func _spend_craft_cost(task_data: Dictionary) -> void:
-	"""Spend the resources for a craft, using accumulated resources if needed"""
-	# Use "materials" from crafting_recipes.json (fallback to "resource_costs")
-	var costs: Dictionary = task_data.get("materials", task_data.get("resource_costs", {}))
-	if costs.is_empty():
-		return
-
-	var resource_manager: Node = _get_resource_manager()
-	if not resource_manager:
-		return
-
-	# Try to spend from inventory first, auto-collect from nodes if needed
-	for resource_id: String in costs:
-		var needed: int = costs[resource_id]
-		var in_inventory: int = resource_manager.get_resource(resource_id)
-
-		if in_inventory >= needed:
-			# Can afford entirely from inventory
-			resource_manager.spend(resource_id, needed)
-		else:
-			# Need to collect from accumulated resources first
-			var deficit: int = needed - in_inventory
-
-			# Collect from nodes to cover deficit
-			_auto_collect_resource_from_nodes(resource_id, deficit, resource_manager)
-
-			# Now spend from inventory (which should have enough after collection)
-			resource_manager.spend(resource_id, needed)
-
-func _auto_collect_resource_from_nodes(resource_id: String, amount_needed: float, resource_manager: Node) -> float:
-	"""Auto-collect a specific resource from player nodes to cover craft costs"""
-	var collected: float = 0.0
-
-	for node: HexNode in get_player_nodes():
-		if collected >= amount_needed:
-			break
-
-		var available: float = node.accumulated_resources.get(resource_id, 0)
-		if available > 0:
-			var to_collect: float = min(available, amount_needed - collected)
-
-			# Remove from node's accumulated
-			node.accumulated_resources[resource_id] = available - to_collect
-
-			# Add to player inventory
-			if resource_manager:
-				resource_manager.add_resource(resource_id, to_collect)
-
-			collected += to_collect
-
-	return collected
-
-func _award_craft_rewards(task_data: Dictionary) -> void:
-	"""Award the rewards from a completed auto-repeat craft"""
-	var resource_manager: Node = _get_resource_manager()
-	if not resource_manager:
-		push_error("HexGridManager: Cannot award craft rewards - no ResourceManager")
-		return
-
-	# Resource rewards - use "output" from crafting_recipes.json (fallback to "resource_rewards")
-	var resources: Dictionary = task_data.get("output", task_data.get("resource_rewards", {}))
-	if resources.is_empty():
-		push_warning("HexGridManager: No output resources found in task_data: %s" % task_data.keys())
-		return
-
-	for resource_id: String in resources.keys():
-		var amount: int = resources[resource_id]
-		resource_manager.add_resource(resource_id, amount)
-
-func _get_resource_manager() -> Node:
-	"""Get ResourceManager via SystemRegistry"""
-	var registry_script: GDScript = load("res://scripts/systems/core/SystemRegistry.gd")
-	if registry_script and registry_script.has_method("get_instance"):
-		var registry: Node = registry_script.get_instance()
-		if registry:
-			return registry.get_system("ResourceManager")
-	return null
+	"""Cancel all crafts for a node. Delegated to HexCraftManager."""
+	return _craft_manager.cancel_all_crafts_for_node(node_id)
 
 # ==============================================================================
 # DEBUG
@@ -940,5 +654,5 @@ func get_debug_info() -> Dictionary:
 		"neutral_nodes": get_neutral_nodes().size(),
 		"revealed_nodes": get_revealed_nodes().size(),
 		"is_loaded": _is_loaded,
-		"active_crafts": _active_crafts.size()
+		"active_crafts": _craft_manager.get_active_crafts().size() if _craft_manager else 0
 	}

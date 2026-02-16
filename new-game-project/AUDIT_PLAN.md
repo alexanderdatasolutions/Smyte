@@ -636,8 +636,8 @@
     "priority": "high",
     "file": "scripts/systems/territory/HexGridManager.gd",
     "issue": "976 lines (2x limit)",
-    "action": "Split into HexGridManager.gd + HexGridRenderer.gd",
-    "passes": false
+    "action": "Split into HexGridManager.gd (658 lines) + HexCraftManager.gd (385 lines). Extracted all craft tracking logic (start/complete/cancel craft, auto-repeat, resource cost checking, craft rewards) to HexCraftManager as child node. HexGridManager delegates via thin wrapper methods, preserving all external APIs unchanged. Used preload pattern with initialize(grid_manager) for back-reference. Forwarded craft_completed/craft_auto_restarted signals. Save/load passes through to craft manager.",
+    "passes": true
   },
   {
     "priority": "high",

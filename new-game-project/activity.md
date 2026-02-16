@@ -7,6 +7,27 @@
 
 ---
 
+## 2026-02-16 - Audit: Split HexGridManager.gd into two files
+
+**Priority:** High (Code Simplification)
+**File(s) Modified:** `scripts/systems/territory/HexGridManager.gd`, `scripts/systems/territory/HexCraftManager.gd` (new)
+
+**Changes:**
+- Split HexGridManager.gd (945 lines) into two files:
+  - **HexGridManager.gd** (658 lines): Core hex grid logic - loading, node queries, spatial queries, pathfinding, save/load, thin craft delegation wrappers
+  - **HexCraftManager.gd** (385 lines): Craft tracking lifecycle - start/complete/cancel craft, auto-repeat processing, resource cost checking, craft reward awarding
+- HexGridManager creates HexCraftManager as a child node in `_ready()` via preload pattern
+- HexCraftManager receives back-reference via `initialize(grid_manager)` for node lookups
+- All external APIs preserved unchanged via thin delegation methods in HexGridManager
+- Forwarded `craft_completed` and `craft_auto_restarted` signals from craft manager to grid manager
+- Save/load passes craft data through to craft manager's own get_save_data/load_save_data
+- Removed `_process()` from HexGridManager (auto-repeat check now handled by HexCraftManager)
+- Changed `min()` to `minf()` in HexCraftManager for type safety
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings/errors unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Split TerritoryManager.gd into two files
 
 **Priority:** High (Code Simplification)
