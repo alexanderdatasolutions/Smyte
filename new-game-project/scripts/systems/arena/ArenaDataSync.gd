@@ -80,24 +80,23 @@ func fetch_opponents_in_range(min_elo: int, max_elo: int, count: int) -> void:
 
 func _do_fetch_opponents(min_elo: int, max_elo: int, count: int) -> void:
 	"""Async opponent fetch operation"""
-	var collection = _firestore.collection(COLLECTION_ARENA_PLAYERS)
+	var collection = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
+	if not collection:
+		opponents_fetched.emit([])
+		return
 
-	# Query for players in ELO range
-	# Note: GodotFirebase queries - adjust based on addon version
-	var query = collection.query()
-
-	# Firestore requires specific query structure
-	# Fetch more than needed to filter self and randomize
-	var fetch_count = count * 3
+	var query = collection.query() if collection.has_method("query") else null
+	if not query:
+		opponents_fetched.emit([])
+		return
 
 	var result = await query.get()
 
 	if result == null:
-		print("[ArenaDataSync] Opponent fetch returned null")
 		opponents_fetched.emit([])
 		return
 
-	var opponents = _parse_opponent_results(result, min_elo, max_elo, count)
+	var opponents: Array = _parse_opponent_results(result, min_elo, max_elo, count)
 	opponents_fetched.emit(opponents)
 
 func _parse_opponent_results(result, min_elo: int, max_elo: int, count: int) -> Array:
@@ -105,11 +104,10 @@ func _parse_opponent_results(result, min_elo: int, max_elo: int, count: int) -> 
 	var opponents = []
 
 	# Handle different result types from GodotFirebase
-	var docs = []
+	var docs: Array = []
 	if result is Array:
 		docs = result
-	elif result.has_method("keys"):
-		# It's a FirestoreDocument or similar
+	elif result is Object and result.has_method("keys"):
 		docs = [result]
 
 	for doc in docs:
@@ -189,7 +187,12 @@ func upload_defense_team(serialized_team: Array) -> void:
 
 func _do_upload_defense(serialized_team: Array) -> void:
 	"""Async defense upload operation"""
-	var data = {
+	var collection = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
+	if not collection:
+		defense_uploaded.emit(false)
+		return
+
+	var data: Dictionary = {
 		"user_id": _user_id,
 		"display_name": get_display_name(),
 		"defense_team": serialized_team,
@@ -197,16 +200,8 @@ func _do_upload_defense(serialized_team: Array) -> void:
 		"last_defense_update": Time.get_unix_time_from_system()
 	}
 
-	var collection = _firestore.collection(COLLECTION_ARENA_PLAYERS)
 	var result = await collection.add(_user_id, data)
-
-	var success = result != null
-	if success:
-		print("[ArenaDataSync] Defense team uploaded successfully")
-	else:
-		print("[ArenaDataSync] Defense team upload failed")
-
-	defense_uploaded.emit(success)
+	defense_uploaded.emit(result != null)
 
 func _calculate_serialized_team_power(team: Array) -> int:
 	"""Calculate power from serialized god data"""
@@ -233,7 +228,12 @@ func update_player_stats(elo: int, wins: int, losses: int) -> void:
 
 func _do_update_stats(elo: int, wins: int, losses: int) -> void:
 	"""Async stats update operation"""
-	var data = {
+	var collection = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
+	if not collection:
+		player_stats_updated.emit(false)
+		return
+
+	var data: Dictionary = {
 		"user_id": _user_id,
 		"display_name": get_display_name(),
 		"elo": elo,
@@ -243,9 +243,7 @@ func _do_update_stats(elo: int, wins: int, losses: int) -> void:
 		"last_active": Time.get_unix_time_from_system()
 	}
 
-	var collection = _firestore.collection(COLLECTION_ARENA_PLAYERS)
 	var result = await collection.add(_user_id, data)
-
 	player_stats_updated.emit(result != null)
 
 # ==============================================================================
@@ -262,7 +260,12 @@ func record_battle(opponent_uid: String, victory: bool, elo_change: int) -> void
 
 func _do_record_battle(opponent_uid: String, victory: bool, elo_change: int) -> void:
 	"""Async battle recording operation"""
-	var battle_data = {
+	var collection = _firestore.collection(COLLECTION_ARENA_BATTLES) if _firestore else null
+	if not collection:
+		battle_recorded.emit(false)
+		return
+
+	var battle_data: Dictionary = {
 		"attacker_uid": _user_id,
 		"defender_uid": opponent_uid,
 		"winner": "attacker" if victory else "defender",
@@ -270,9 +273,7 @@ func _do_record_battle(opponent_uid: String, victory: bool, elo_change: int) -> 
 		"timestamp": Time.get_unix_time_from_system()
 	}
 
-	var collection = _firestore.collection(COLLECTION_ARENA_BATTLES)
-	var result = await collection.add("", battle_data)  # Auto-generate ID
-
+	var result = await collection.add("", battle_data)
 	battle_recorded.emit(result != null)
 
 # ==============================================================================
@@ -289,28 +290,33 @@ func fetch_leaderboard() -> void:
 
 func _do_fetch_leaderboard() -> void:
 	"""Async leaderboard fetch operation"""
-	var collection = _firestore.collection(COLLECTION_ARENA_PLAYERS)
-	var query = collection.query()
+	var collection = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
+	if not collection:
+		leaderboard_fetched.emit([])
+		return
 
-	# Order by ELO descending, limit to top 100
-	# Note: Query syntax depends on GodotFirebase version
+	var query = collection.query() if collection.has_method("query") else null
+	if not query:
+		leaderboard_fetched.emit([])
+		return
+
 	var result = await query.get()
 
 	if result == null:
 		leaderboard_fetched.emit([])
 		return
 
-	var entries = _parse_leaderboard_results(result)
+	var entries: Array = _parse_leaderboard_results(result)
 	leaderboard_fetched.emit(entries)
 
 func _parse_leaderboard_results(result) -> Array:
 	"""Parse leaderboard results and sort by ELO"""
 	var entries = []
 
-	var docs = []
+	var docs: Array = []
 	if result is Array:
 		docs = result
-	elif result.has_method("keys"):
+	elif result is Object and result.has_method("keys"):
 		docs = [result]
 
 	for doc in docs:

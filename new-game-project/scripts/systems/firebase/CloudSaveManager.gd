@@ -56,23 +56,22 @@ func save_to_cloud(save_data: Dictionary):
 	# Run async save operation
 	_do_save.call_deferred(cloud_data)
 
-func _do_save(cloud_data: Dictionary):
+func _do_save(cloud_data: Dictionary) -> void:
 	"""Perform the actual save operation (async)"""
-	var collection = _firestore.collection(COLLECTION_NAME)
+	var collection = _firestore.collection(COLLECTION_NAME) if _firestore else null
+	if not collection:
+		_save_in_progress = false
+		cloud_save_failed.emit("Firestore collection unavailable")
+		return
 
-	# GodotFirebase's add() is a coroutine - await it directly
 	var result = await collection.add(_user_id, cloud_data)
 
 	_save_in_progress = false
 
-	# FirestoreDocument is a Node - check if we got a valid result
 	if result != null and result is FirestoreDocument:
-		print("CloudSaveManager: Cloud save successful")
 		cloud_save_completed.emit()
 	else:
-		var error_msg = "Save returned null or invalid result"
-		print("CloudSaveManager: Cloud save failed - %s" % error_msg)
-		cloud_save_failed.emit(error_msg)
+		cloud_save_failed.emit("Save returned null or invalid result")
 
 # ==============================================================================
 # LOAD FROM CLOUD
@@ -91,40 +90,39 @@ func load_from_cloud():
 	_load_in_progress = true
 	_do_load.call_deferred()
 
-func _do_load():
+func _do_load() -> void:
 	"""Perform the actual load operation (async)"""
-	var collection = _firestore.collection(COLLECTION_NAME)
+	var collection = _firestore.collection(COLLECTION_NAME) if _firestore else null
+	if not collection:
+		_load_in_progress = false
+		cloud_load_failed.emit("Firestore collection unavailable")
+		return
 
-	# GodotFirebase's get_doc() is a coroutine - await it directly
 	var result = await collection.get_doc(_user_id)
 
 	_load_in_progress = false
 
 	if result == null:
-		print("CloudSaveManager: No cloud save found for user")
 		cloud_save_not_found.emit()
 		return
 
-	# FirestoreDocument is a Node - extract data from it
 	if not result is FirestoreDocument:
-		print("CloudSaveManager: Unexpected result type")
 		cloud_save_not_found.emit()
 		return
 
-	# Extract document data
-	var save_data = _extract_document_data(result)
+	var save_data: Dictionary = _extract_document_data(result)
 
 	if save_data.is_empty():
-		print("CloudSaveManager: Cloud save exists but is empty")
 		cloud_save_not_found.emit()
 		return
 
-	print("CloudSaveManager: Cloud save loaded successfully")
 	cloud_load_completed.emit(save_data)
 
 func _extract_document_data(doc: FirestoreDocument) -> Dictionary:
 	"""Extract plain Dictionary from FirestoreDocument"""
-	var result = {}
+	var result: Dictionary = {}
+	if not doc.has_method("keys") or not doc.has_method("get_value"):
+		return result
 	for key in doc.keys():
 		result[key] = doc.get_value(key)
 	return result

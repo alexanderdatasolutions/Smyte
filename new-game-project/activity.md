@@ -1179,3 +1179,26 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: delete unused StatusEffectManager.gd`
+
+### 2026-02-16 - Audit: Add null checks to Firebase/Firestore operations
+
+**Priority:** Critical
+**File(s) Modified:**
+- `scripts/systems/firebase/CloudSaveManager.gd`
+- `scripts/systems/firebase/FirebaseAnalytics.gd`
+- `scripts/systems/arena/ArenaDataSync.gd`
+
+**Changes:**
+- CloudSaveManager: Added null checks for `_firestore.collection()` in `_do_save()` and `_do_load()` — now emits failure signal instead of crashing on network failure
+- CloudSaveManager: Added `has_method` checks in `_extract_document_data()` before calling `doc.keys()`/`doc.get_value()`
+- FirebaseAnalytics: Added null check for `_firestore.collection()` in `_send_to_firestore()` — re-queues events on failure instead of crashing
+- FirebaseAnalytics: Added max retry limit (10) to `flush_queue()` to prevent infinite loop when Firestore fails repeatedly
+- ArenaDataSync: Added null checks for `_firestore.collection()` in all 4 async operation functions: `_do_fetch_opponents`, `_do_upload_defense`, `_do_update_stats`, `_do_record_battle`, `_do_fetch_leaderboard`
+- ArenaDataSync: Added `collection.has_method("query")` checks before calling `query()`
+- ArenaDataSync: Fixed `result.has_method("keys")` crash risk in `_parse_opponent_results()` and `_parse_leaderboard_results()` — added `result is Object` guard
+- Removed print statements from CloudSaveManager `_do_save`/`_do_load` (replaced with signal-based error reporting)
+- All operations now gracefully emit failure signals instead of crashing
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: add null checks to Firebase/Firestore operations`

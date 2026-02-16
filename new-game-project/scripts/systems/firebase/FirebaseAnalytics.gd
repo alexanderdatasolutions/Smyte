@@ -118,13 +118,12 @@ func _try_send_batch():
 	var events_to_send = _event_queue.dequeue_batch(BATCH_SIZE)
 	_send_to_firestore.call_deferred(events_to_send)
 
-func _send_to_firestore(events: Array):
+func _send_to_firestore(events: Array) -> void:
 	"""Send events batch to Firestore analytics_events collection"""
 	if events.is_empty():
 		return
 
-	# Create batch document
-	var batch_doc = {
+	var batch_doc: Dictionary = {
 		"user_id": _user_id,
 		"session_id": _session_id,
 		"batch_timestamp": Time.get_unix_time_from_system(),
@@ -132,26 +131,30 @@ func _send_to_firestore(events: Array):
 		"events": events
 	}
 
-	# Use GodotFirebase addon's Firestore - await the coroutine directly
-	var collection = _firestore.collection("analytics_events")
+	var collection = _firestore.collection("analytics_events") if _firestore else null
+	if not collection:
+		for event in events:
+			_event_queue.enqueue(event)
+		batch_failed.emit("Firestore collection unavailable")
+		return
+
 	var result = await collection.add("", batch_doc)
 
-	# FirestoreDocument is a Node - check if we got a valid result
 	if result != null and result is FirestoreDocument:
 		batch_sent.emit(events.size())
-		print("FirebaseAnalytics: Sent %d events" % events.size())
 	else:
-		# Re-queue failed events
 		for event in events:
 			_event_queue.enqueue(event)
 		batch_failed.emit("Failed to send analytics batch")
-		print("FirebaseAnalytics: Batch failed, re-queued %d events" % events.size())
 
-func flush_queue():
+func flush_queue() -> void:
 	"""Force send all queued events (call before sign-out or app exit)"""
-	while not _event_queue.is_empty() and _firestore:
+	var max_retries: int = 10
+	var attempts: int = 0
+	while not _event_queue.is_empty() and _firestore and attempts < max_retries:
 		_try_send_batch()
 		await get_tree().create_timer(0.5).timeout
+		attempts += 1
 
 	# Save any remaining events that couldn't be sent
 	_event_queue.save_to_disk()
