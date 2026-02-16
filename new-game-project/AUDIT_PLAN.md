@@ -1023,8 +1023,8 @@
     "priority": "high",
     "file": "scripts/systems/progression/SacrificeSystem.gd",
     "issue": "XP formulas, tier bonuses, same-element bonuses hardcoded",
-    "action": "Create data/sacrifice_config.json with xp_per_tier[], element_bonus, awakened_bonus",
-    "passes": false
+    "action": "Created data/sacrifice_config.json with bonuses (same_god_multiplier, same_element_multiplier), base_value_formula (level_xp_multiplier), tier_base_values (5 tiers), high_level_scaling (thresholds with multipliers), xp_curve (base_xp, exponents by level range, high_level_cost_multipliers), sacrifice_value (base_value, xp_per_level, xp_per_tier, awakening_bonus), awakening_ui (min_tier_for_awakening). Updated SacrificeSystem.gd with static config loading, all values from JSON with fallback defaults, static typing throughout, null checks on SystemRegistry. Updated SacrificeManager.gd with config-driven get_god_sacrifice_value() and _can_awaken_god_ui(), replaced hardcoded 40 with God.get_max_level(), added static typing to all variables/params/returns, added -> void return types.",
+    "passes": true
   },
   {
     "priority": "high",

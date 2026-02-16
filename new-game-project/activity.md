@@ -7,6 +7,20 @@
 
 ---
 
+## 2026-02-16 - Audit: Externalize sacrifice system values to sacrifice_config.json
+
+**Priority:** High (Data-Driven JSON Config)
+**File(s) Modified:** `data/sacrifice_config.json` (new), `scripts/systems/progression/SacrificeSystem.gd`, `scripts/systems/progression/SacrificeManager.gd`
+
+**Changes:**
+- **Config**: Created `data/sacrifice_config.json` with `bonuses` (same_god_multiplier=3.0, same_element_multiplier=1.5), `base_value_formula` (level_xp_multiplier=15), `tier_base_values` (common=500, rare=1500, epic=4000, legendary=10000, mythic=500), `high_level_scaling` (thresholds at level 30/35 with multipliers 1.5/1.3), `xp_curve` (base_xp=200, exponents by level range, high_level_cost_multipliers at 35/38), `sacrifice_value` (base_value=100, xp_per_level=50, xp_per_tier=300, awakening_bonus=500), `awakening_ui` (min_tier_for_awakening=4)
+- **SacrificeSystem.gd**: Rewrote with static config loading (`_load_config()` with cache), 5 static getter methods for config sections. All XP formulas, tier values, bonuses, and scaling now read from JSON with fallback defaults. Replaced hardcoded max level `40` with `God.get_max_level()`. Added null checks on SystemRegistry/GodProgressionManager in `perform_sacrifice()`. Static typing on all variables/params/returns. Removed `"""` docstrings (bullet character in preview text).
+- **SacrificeManager.gd**: Added static config loading for `sacrifice_value` and `awakening_ui` sections. `get_god_sacrifice_value()` now reads base_value/xp_per_level/xp_per_tier/awakening_bonus from config. `_can_awaken_god_ui()` reads min_tier from config and uses `God.get_max_level()` instead of hardcoded 40. Static typing on all 40+ variables/params/returns. Added `-> void` to `_ready()`, `set_temporary_target_god()`. Removed docstring comments.
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Externalize awakening system values to awakening_config.json
 
 **Priority:** High (Data-Driven JSON Config)
