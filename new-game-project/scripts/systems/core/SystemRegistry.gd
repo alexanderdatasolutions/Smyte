@@ -18,14 +18,14 @@ static func get_instance() -> SystemRegistry:
 	return _instance
 
 ## Initialize the singleton instance
-func _init():
+func _init() -> void:
 	if _instance == null:
 		_instance = self
 	else:
 		push_error("SystemRegistry: Multiple instances not allowed. Use get_instance()")
 
 ## Register a system with the registry
-func register_system(system_name: String, system: Node, initialize_immediately: bool = true):
+func register_system(system_name: String, system: Node, initialize_immediately: bool = true) -> void:
 	if _systems.has(system_name):
 		push_warning("SystemRegistry: System '" + system_name + "' is already registered. Replacing.")
 		remove_system(system_name)
@@ -52,16 +52,6 @@ func get_system(system_name: String) -> Node:
 		return null
 	return _systems[system_name]
 
-## Get a system by type (class)
-func get_system_by_type(type: GDScript) -> Node:
-	for system_name in _systems:
-		var system = _systems[system_name]
-		if system.get_script() == type:
-			return system
-	
-	push_error("SystemRegistry: No system found of type " + str(type))
-	return null
-
 ## Check if a system is registered
 func has_system(system_name: String) -> bool:
 	return _systems.has(system_name)
@@ -71,11 +61,11 @@ func remove_system(system_name: String) -> bool:
 	if not _systems.has(system_name):
 		return false
 	
-	var system = _systems[system_name]
+	var system: Node = _systems[system_name]
 	_systems.erase(system_name)
 	_system_types.erase(system_name)
 	_initialization_order.erase(system_name)
-	
+
 	if system and is_instance_valid(system):
 		system.queue_free()
 
@@ -90,32 +80,22 @@ func get_system_count() -> int:
 	return _systems.size()
 
 ## Initialize all systems in registration order
-func initialize_all_systems():
-	for system_name in _initialization_order:
-		var system = _systems[system_name]
+func initialize_all_systems() -> void:
+	for system_name: String in _initialization_order:
+		var system: Node = _systems[system_name]
 		if system and system.has_method("initialize"):
 			system.initialize()
 
-## Shutdown all systems in reverse order
-func shutdown_all_systems():
-	var shutdown_order = _initialization_order.duplicate()
-	shutdown_order.reverse()
-
-	for system_name in shutdown_order:
-		var system = _systems[system_name]
-		if system and system.has_method("shutdown"):
-			system.shutdown()
-
 ## Get system registry statistics for debugging
 func get_debug_info() -> Dictionary:
-	var info = {
+	var info: Dictionary = {
 		"total_systems": _systems.size(),
 		"systems": {},
 		"initialization_order": _initialization_order.duplicate()
 	}
-	
-	for system_name in _systems:
-		var system = _systems[system_name]
+
+	for system_name: String in _systems:
+		var system: Node = _systems[system_name]
 		info.systems[system_name] = {
 			"type": str(_system_types[system_name]),
 			"valid": is_instance_valid(system),

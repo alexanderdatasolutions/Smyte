@@ -223,8 +223,8 @@
     "priority": "high",
     "file": "scripts/systems/core/SystemRegistry.gd",
     "issue": "3 dead functions: get_system_by_type, remove_system, shutdown_all_systems",
-    "action": "remove_system() is NOT dead (called by register_system). get_system_by_type and shutdown_all_systems are dead - to be removed.",
-    "passes": false
+    "action": "Removed get_system_by_type() (9 lines) and shutdown_all_systems() (9 lines). remove_system() confirmed active (called by register_system). Added -> void return types and static typing to remaining functions. File reduced from 282 to 262 lines.",
+    "passes": true
   },
   {
     "priority": "high",

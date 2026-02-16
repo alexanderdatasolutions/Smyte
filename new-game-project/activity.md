@@ -7,6 +7,23 @@
 
 ---
 
+## 2026-02-16 - Audit: Remove dead code from SystemRegistry.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/core/SystemRegistry.gd`
+
+**Changes:**
+- Removed `get_system_by_type()` (9 lines) - never called anywhere in codebase
+- Removed `shutdown_all_systems()` (9 lines) - never called anywhere in codebase
+- Confirmed `remove_system()` is NOT dead (called by `register_system()` line 31)
+- Added `-> void` return types to `_init()`, `register_system()`, `initialize_all_systems()`
+- Added static typing to local variables in `remove_system()`, `get_debug_info()`, `initialize_all_systems()`
+- File reduced from 282 to 262 lines
+
+**Verified:** Ran project, no errors in debug output
+
+---
+
 ## 2026-02-16 - Audit: Remove dead signals and event history from EventBus.gd
 
 **Priority:** High
