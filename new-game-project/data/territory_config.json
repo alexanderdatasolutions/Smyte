@@ -1,0 +1,27 @@
+{
+	"generation_timing": {
+		"tick_interval_seconds": 60.0,
+		"max_storage_hours": 12.0,
+		"manual_collection_bonus": 1.0
+	},
+	"production_bonuses": {
+		"upgrade_bonus_per_level": 0.10,
+		"worker_base_bonus": 0.10,
+		"god_level_bonus_per_level": 0.01
+	},
+	"connected_bonuses": {
+		"2": 0.10,
+		"3": 0.20,
+		"4": 0.30
+	},
+	"node_task_mapping": {
+		"mine": ["mining", "mine_ore", "mine_gems", "deep_mining", "gem_cutting"],
+		"forest": ["logging", "herbalism", "foraging", "plant_cultivation"],
+		"coast": ["fishing", "pearl_diving", "salt_harvesting"],
+		"hunting_ground": ["hunting", "tracking", "monster_hunting", "taming"],
+		"forge": ["smithing", "armor_crafting", "weapon_crafting", "enchanting"],
+		"library": ["research", "scroll_crafting", "training", "skill_learning"],
+		"temple": ["meditation", "blessing", "awakening_ritual", "divine_communion"],
+		"fortress": ["garrison_duty", "war_planning", "combat_training", "defense_building"]
+	}
+}

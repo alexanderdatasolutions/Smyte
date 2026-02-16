@@ -449,10 +449,7 @@ func _update_pending_resources() -> void:
 		time_since_last_production = (current_time - current_node.last_production_time) / 3600.0
 
 	# Get max storage hours from config
-	var max_storage_hours: float = 12.0
-	var balance_config = _load_balance_config()
-	if balance_config and balance_config.has("generation_timing"):
-		max_storage_hours = balance_config.generation_timing.get("max_storage_hours", 12.0)
+	var max_storage_hours: float = TerritoryProductionManager.get_max_storage_hours()
 
 	# Show warning if at or near max storage
 	if time_since_last_production >= max_storage_hours:
@@ -1532,11 +1529,7 @@ func _on_collect_resources_pressed() -> void:
 	if collected.is_empty():
 		_show_collection_feedback("No resources to collect", Color(0.8, 0.6, 0.4))
 	else:
-		# Load balance config to check for manual collection bonus
-		var balance_config: Dictionary = _load_balance_config()
-		var manual_bonus: float = 1.0
-		if balance_config.has("generation_timing") and balance_config.generation_timing.has("manual_collection_bonus"):
-			manual_bonus = balance_config.generation_timing.manual_collection_bonus
+		var manual_bonus: float = TerritoryProductionManager.get_manual_collection_bonus()
 
 		# Format collected resources for display
 		var message: String = "Collected:\n"
@@ -1598,26 +1591,6 @@ func _show_collection_feedback(message: String, color: Color) -> void:
 	await get_tree().create_timer(3.0).timeout
 	if is_instance_valid(feedback_label):
 		feedback_label.queue_free()
-
-func _load_balance_config() -> Dictionary:
-	"""Load territory balance config from JSON file
-	Returns: Dictionary with balance configuration or empty dict on failure
-	"""
-	var file_path: String = "res://data/territory_balance_config.json"
-	var file = FileAccess.open(file_path, FileAccess.READ)
-	if not file:
-		return {}
-
-	var json_text = file.get_as_text()
-	file.close()
-
-	var json: JSON = JSON.new()
-	var parse_result = json.parse(json_text)
-
-	if parse_result != OK:
-		return {}
-
-	return json.get_data()
 
 # ==============================================================================
 # TASKS / CRAFTING SYSTEM

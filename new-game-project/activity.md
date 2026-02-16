@@ -7,6 +7,20 @@
 
 ---
 
+## 2026-02-16 - Audit: Externalize territory production values to territory_config.json
+
+**Priority:** High (Data-Driven JSON Config)
+**File(s) Modified:** `data/territory_config.json` (new), `scripts/systems/territory/TerritoryProductionManager.gd`, `scripts/ui/territory/NodeInfoPanel.gd`
+
+**Changes:**
+- **Config**: Created `data/territory_config.json` with `generation_timing` (tick_interval_seconds=60, max_storage_hours=12, manual_collection_bonus=1.0), `production_bonuses` (upgrade_bonus_per_level=0.10, worker_base_bonus=0.10, god_level_bonus_per_level=0.01), `connected_bonuses` (2=0.10, 3=0.20, 4=0.30), `node_task_mapping` (8 node types mapped to task categories)
+- **TerritoryProductionManager.gd**: Rewrote with static config loading (`_load_config()` with cache), 8 static getter methods (get_tick_interval, get_max_storage_hours, get_manual_collection_bonus, get_upgrade_bonus_per_level, get_worker_base_bonus, get_god_level_bonus_per_level, get_connected_bonuses, get_node_task_mapping). All production rates, bonuses, and mappings now read from JSON with fallback defaults. Removed dead `_load_balance_config()` and `_format_resources_dict()`. Added static typing to all 60+ variables/params/returns. Fixed 3 narrowing conversion warnings (int cast on last_production_time). Changed `min()`/`clamp()` to `minf()`/`clampf()`. File reduced from 607 to 528 lines.
+- **NodeInfoPanel.gd**: Replaced 2 `_load_balance_config()` calls with `TerritoryProductionManager.get_max_storage_hours()` and `TerritoryProductionManager.get_manual_collection_bonus()`. Removed dead `_load_balance_config()` function (19 lines). Both files no longer reference nonexistent `territory_balance_config.json`.
+
+**Verified:** Ran project, no new errors. 3 narrowing conversion warnings from TerritoryProductionManager.gd eliminated.
+
+---
+
 ## 2026-02-16 - Audit: Externalize sacrifice system values to sacrifice_config.json
 
 **Priority:** High (Data-Driven JSON Config)

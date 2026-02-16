@@ -1030,8 +1030,8 @@
     "priority": "high",
     "file": "scripts/systems/territory/TerritoryProductionManager.gd",
     "issue": "Production rates, offline cap, efficiency multipliers hardcoded",
-    "action": "Move to data/territory_config.json with production_rates, offline_settings, bonuses",
-    "passes": false
+    "action": "Created data/territory_config.json with generation_timing (tick_interval_seconds, max_storage_hours, manual_collection_bonus), production_bonuses (upgrade_bonus_per_level, worker_base_bonus, god_level_bonus_per_level), connected_bonuses (2/3/4+ node thresholds), and node_task_mapping. Rewrote TerritoryProductionManager.gd with static config loading (_load_config with cache), 8 static getter methods, all values from JSON with fallback defaults. Updated NodeInfoPanel.gd to use static getters instead of loading nonexistent territory_balance_config.json. Removed dead _load_balance_config() from both files. Added static typing throughout, fixed 3 narrowing conversion warnings. File reduced from 607 to 528 lines.",
+    "passes": true
   },
   {
     "priority": "high",
