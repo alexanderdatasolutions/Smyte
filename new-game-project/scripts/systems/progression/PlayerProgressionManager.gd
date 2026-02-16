@@ -27,86 +27,73 @@ var feature_unlock_levels: Dictionary = {
 
 var current_player_level: int = 1
 var current_experience: int = 0
-var unlocked_features: Array = []
+var unlocked_features: Array[String] = []
 
-func _ready():
+func _ready() -> void:
 	pass
 
 # ==============================================================================
 # EXPERIENCE MANAGEMENT - SystemRegistry Pattern
 # ==============================================================================
 
-func add_experience(amount: int):
-	"""Add experience to player"""
+func add_experience(amount: int) -> void:
 	current_experience += amount
 	experience_gained.emit(amount)
-	
-	var new_level = calculate_level_from_experience(current_experience)
+
+	var new_level: int = calculate_level_from_experience(current_experience)
 	if new_level > current_player_level:
 		_level_up(new_level)
 
 func calculate_level_from_experience(total_xp: int) -> int:
-	"""Calculate level from total experience"""
-	var level = 1
-	var xp_needed = 0
-	
+	var level: int = 1
+	var xp_needed: int = 0
+
 	while level < MAX_PLAYER_LEVEL:
-		var xp_for_next_level = int(XP_BASE_AMOUNT * pow(XP_SCALING_FACTOR, level - 1))
+		var xp_for_next_level: int = int(XP_BASE_AMOUNT * pow(XP_SCALING_FACTOR, level - 1))
 		if total_xp < xp_needed + xp_for_next_level:
 			break
 		xp_needed += xp_for_next_level
 		level += 1
-	
+
 	return level
 
 func get_xp_for_next_level() -> int:
-	"""Get XP needed for next level"""
 	if current_player_level >= MAX_PLAYER_LEVEL:
 		return 0
-	
-	var total_xp_needed = 0
-	for i in range(1, current_player_level + 1):
+
+	var total_xp_needed: int = 0
+	for i: int in range(1, current_player_level + 1):
 		total_xp_needed += int(XP_BASE_AMOUNT * pow(XP_SCALING_FACTOR, i - 1))
-	
+
 	return total_xp_needed - current_experience
 
-func _level_up(new_level: int):
-	"""Handle player level up"""
-	var old_level = current_player_level
+func _level_up(new_level: int) -> void:
+	var old_level: int = current_player_level
 	current_player_level = new_level
-
 	player_leveled_up.emit(old_level, new_level)
-
-	# Check for feature unlocks
 	_check_feature_unlocks(new_level)
 
 # ==============================================================================
 # FEATURE UNLOCKING - Clean separation
 # ==============================================================================
 
-func _check_feature_unlocks(level: int):
-	"""Check and unlock features for new level"""
+func _check_feature_unlocks(level: int) -> void:
 	if feature_unlock_levels.has(level):
-		var feature_name = feature_unlock_levels[level]
+		var feature_name: String = feature_unlock_levels[level]
 		unlock_feature(feature_name)
 
 func unlock_feature(feature_name: String) -> void:
-	"""Unlock a specific feature"""
 	if feature_name in unlocked_features:
 		return
-
 	unlocked_features.append(feature_name)
 
 func is_feature_unlocked(feature_name: String) -> bool:
-	"""Check if feature is unlocked"""
 	return feature_name in unlocked_features
 
 func get_player_level() -> int:
-	"""Get current player level"""
 	return current_player_level
 
 func get_player_experience() -> int:
-	"""Get current player experience"""
 	return current_experience
 
 # ==============================================================================
@@ -114,15 +101,17 @@ func get_player_experience() -> int:
 # ==============================================================================
 
 func get_save_data() -> Dictionary:
-	"""Get progression data for saving"""
 	return {
 		"level": current_player_level,
 		"experience": current_experience,
 		"unlocked_features": unlocked_features
 	}
 
-func load_save_data(data: Dictionary):
-	"""Load progression data from save"""
-	current_player_level = data.get("level", 1)
-	current_experience = data.get("experience", 0)
-	unlocked_features = data.get("unlocked_features", [])
+func load_save_data(data: Dictionary) -> void:
+	current_player_level = int(data.get("level", 1))
+	current_experience = int(data.get("experience", 0))
+	var raw_features: Array = data.get("unlocked_features", [])
+	unlocked_features.clear()
+	for f: Variant in raw_features:
+		if f is String:
+			unlocked_features.append(f)

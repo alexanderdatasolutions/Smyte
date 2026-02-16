@@ -7,6 +7,26 @@
 
 ---
 
+## 2026-02-16 - Audit: Add static typing and cache SystemRegistry in progression files
+
+**Priority:** Medium (Static Typing)
+**File(s) Modified:** `scripts/systems/progression/FeatureUnlockManager.gd`, `scripts/systems/progression/TutorialOrchestrator.gd`, `scripts/systems/progression/PlayerProgressionManager.gd`, `scripts/systems/progression/GodProgressionManager.gd`
+
+**Changes:**
+- Added `-> void` return types to 30+ functions across 4 files
+- Cached SystemRegistry references: FeatureUnlockManager (1 `_save_manager`, eliminated 3 inline lookups), TutorialOrchestrator (3 cached: `_save_manager`, `_event_bus`, `_progression_manager`, eliminated 8 inline lookups), GodProgressionManager (added null check on SystemRegistry)
+- Added static typing to all local variables, parameters, and loop iterators
+- Typed `Array[String]` for `completed_tutorials` and `unlocked_features` (with safe typed array rebuilding in `load_save_data`)
+- Removed 12 Python-style docstrings (`"""..."""`)
+- Removed 1 debug print from FeatureUnlockManager
+- Used `.get()` for safe dict access in `_level_up_god` tier_bonuses
+- Added type validation for JSON parse result in `_load_config`
+- AwakeningSystem, SacrificeSystem, SacrificeManager, AchievementManager already typed in prior audit sessions
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Add null checks and missing methods to ResourceManager.gd
 
 **Priority:** Medium (Error Handling)

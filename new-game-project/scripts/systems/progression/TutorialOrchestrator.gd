@@ -17,7 +17,12 @@ signal feature_unlocked(feature_name: String)
 var current_tutorial: String = ""
 var current_step: int = 0
 var tutorial_active: bool = false
-var completed_tutorials: Array = []
+var completed_tutorials: Array[String] = []
+
+# Cached system references
+var _save_manager: Node = null
+var _event_bus: Node = null
+var _progression_manager: Node = null
 
 # Tutorial definitions - simple and focused
 # NOTE: Feature unlocking is handled by AchievementManager, not tutorials
@@ -39,15 +44,22 @@ var tutorial_steps: Dictionary = {
 	]
 }
 
-func _ready():
-	pass
+func _ready() -> void:
+	_cache_system_references()
+
+func _cache_system_references() -> void:
+	var registry: Node = SystemRegistry.get_instance()
+	if not registry:
+		return
+	_save_manager = registry.get_system("SaveManager")
+	_event_bus = registry.get_system("EventBus")
+	_progression_manager = registry.get_system("PlayerProgressionManager")
 
 # ==============================================================================
 # MAIN TUTORIAL FLOW - SystemRegistry Pattern
 # ==============================================================================
 
 func start_tutorial(tutorial_name: String) -> bool:
-	"""Start a tutorial sequence"""
 	if tutorial_active or tutorial_name in completed_tutorials:
 		return false
 	
@@ -63,7 +75,6 @@ func start_tutorial(tutorial_name: String) -> bool:
 	return true
 
 func advance_tutorial() -> bool:
-	"""Advance to next tutorial step"""
 	if not tutorial_active:
 		return false
 	
@@ -77,10 +88,9 @@ func advance_tutorial() -> bool:
 	_process_current_step()
 	return true
 
-func _process_current_step():
-	"""Process the current tutorial step"""
-	var steps = tutorial_steps[current_tutorial]
-	var step_data = steps[current_step]
+func _process_current_step() -> void:
+	var steps: Array = tutorial_steps[current_tutorial]
+	var step_data: Dictionary = steps[current_step]
 
 	match step_data.type:
 		"welcome":
@@ -100,16 +110,13 @@ func _process_current_step():
 		"spec_unlock_tier2":
 			_show_spec_unlock_tier2_dialog()
 
-func _complete_tutorial():
-	"""Complete the current tutorial"""
+func _complete_tutorial() -> void:
 	completed_tutorials.append(current_tutorial)
 	tutorial_completed.emit(current_tutorial)
-	
-	# Save completion state
-	var save_manager = SystemRegistry.get_instance().get_system("SaveManager")
-	if save_manager:
-		save_manager.save_game()
-	
+
+	if _save_manager:
+		_save_manager.save_game()
+
 	tutorial_active = false
 	current_tutorial = ""
 	current_step = 0
@@ -118,33 +125,26 @@ func _complete_tutorial():
 # FEATURE UNLOCKING - Clean separation
 # ==============================================================================
 
-func _unlock_summon_feature():
-	"""Unlock summon feature"""
-	var progression_mgr = SystemRegistry.get_instance().get_system("PlayerProgressionManager")
-	if progression_mgr:
-		progression_mgr.unlock_feature("summon")
-	
+func _unlock_summon_feature() -> void:
+	if _progression_manager:
+		_progression_manager.unlock_feature("summon")
 	feature_unlocked.emit("summon")
 
-func _unlock_battle_feature():
-	"""Unlock battle feature"""
-	var progression_mgr = SystemRegistry.get_instance().get_system("PlayerProgressionManager")
-	if progression_mgr:
-		progression_mgr.unlock_feature("battle")
-	
+func _unlock_battle_feature() -> void:
+	if _progression_manager:
+		_progression_manager.unlock_feature("battle")
 	feature_unlocked.emit("battle")
 
-func _unlock_sacrifice_feature():
-	"""Unlock sacrifice feature"""
-	var progression_mgr = SystemRegistry.get_instance().get_system("PlayerProgressionManager")
-	if progression_mgr:
-		progression_mgr.unlock_feature("sacrifice")
-	
+func _unlock_sacrifice_feature() -> void:
+	if _progression_manager:
+		_progression_manager.unlock_feature("sacrifice")
 	feature_unlocked.emit("sacrifice")
 
-func _show_welcome_dialog():
-	"""Show welcome dialog through UI system"""
-	var ui_manager = SystemRegistry.get_instance().get_system("UICoordinator")
+func _show_welcome_dialog() -> void:
+	var registry: Node = SystemRegistry.get_instance()
+	if not registry:
+		return
+	var ui_manager: Node = registry.get_system("UICoordinator")
 	if ui_manager:
 		ui_manager.show_tutorial_dialog({
 			"title": "Welcome to the Game!",
@@ -157,15 +157,12 @@ func _show_welcome_dialog():
 # ==============================================================================
 
 func is_tutorial_active() -> bool:
-	"""Check if tutorial is currently active"""
 	return tutorial_active
 
 func is_tutorial_completed(tutorial_name: String) -> bool:
-	"""Check if specific tutorial is completed"""
 	return tutorial_name in completed_tutorials
 
 func get_current_tutorial_info() -> Dictionary:
-	"""Get current tutorial information"""
 	if not tutorial_active:
 		return {}
 	
@@ -176,16 +173,11 @@ func get_current_tutorial_info() -> Dictionary:
 	}
 
 func should_show_tutorial() -> bool:
-	"""Determine if player should see tutorial"""
-	var player_progression = SystemRegistry.get_instance().get_system("PlayerProgressionManager")
-	if not player_progression:
+	if not _progression_manager:
 		return true
-	
-	# Show tutorial for new players (level 1 with no unlocked features)
-	return player_progression.get_player_level() == 1 and not is_tutorial_completed("first_time_user")
+	return _progression_manager.get_player_level() == 1 and not is_tutorial_completed("first_time_user")
 
-func skip_tutorial():
-	"""Skip current tutorial"""
+func skip_tutorial() -> void:
 	if tutorial_active:
 		_complete_tutorial()
 
@@ -193,11 +185,9 @@ func skip_tutorial():
 # HEX TERRITORY TUTORIALS
 # ==============================================================================
 
-func _show_hex_map_intro_dialog():
-	"""Show hex map introduction dialog"""
-	var event_bus = SystemRegistry.get_instance().get_system("EventBus")
-	if event_bus:
-		event_bus.show_tutorial_requested.emit({
+func _show_hex_map_intro_dialog() -> void:
+	if _event_bus:
+		_event_bus.show_tutorial_requested.emit({
 			"title": "Welcome to the Hex Territory Map!",
 			"message": "This is your divine empire. Each hex represents a territory you can conquer.\n\n" +
 			"• Green hexes are yours\n" +
@@ -207,11 +197,9 @@ func _show_hex_map_intro_dialog():
 			"button_text": "Got it!"
 		})
 
-func _show_hex_node_selection_dialog():
-	"""Show hex node selection tutorial"""
-	var event_bus = SystemRegistry.get_instance().get_system("EventBus")
-	if event_bus:
-		event_bus.show_tutorial_requested.emit({
+func _show_hex_node_selection_dialog() -> void:
+	if _event_bus:
+		_event_bus.show_tutorial_requested.emit({
 			"title": "Selecting Territories",
 			"message": "Click any hex to view its details:\n\n" +
 			"• Production resources\n" +
@@ -222,11 +210,9 @@ func _show_hex_node_selection_dialog():
 			"button_text": "Continue"
 		})
 
-func _show_hex_node_capture_dialog():
-	"""Show hex node capture tutorial"""
-	var event_bus = SystemRegistry.get_instance().get_system("EventBus")
-	if event_bus:
-		event_bus.show_tutorial_requested.emit({
+func _show_hex_node_capture_dialog() -> void:
+	if _event_bus:
+		_event_bus.show_tutorial_requested.emit({
 			"title": "Capturing Territories",
 			"message": "To capture a territory, you need:\n\n" +
 			"• Required player level\n" +
@@ -237,11 +223,9 @@ func _show_hex_node_capture_dialog():
 			"button_text": "Let's do this!"
 		})
 
-func _show_spec_unlock_tier2_dialog():
-	"""Show tier 2 specialization unlock tutorial"""
-	var event_bus = SystemRegistry.get_instance().get_system("EventBus")
-	if event_bus:
-		event_bus.show_tutorial_requested.emit({
+func _show_spec_unlock_tier2_dialog() -> void:
+	if _event_bus:
+		_event_bus.show_tutorial_requested.emit({
 			"title": "Specialization Unlocked!",
 			"message": "Congratulations! You've unlocked a Tier 2 specialization.\n\n" +
 			"This allows you to:\n" +
@@ -257,18 +241,21 @@ func _show_spec_unlock_tier2_dialog():
 # ==============================================================================
 
 func get_tutorial_save_data() -> Dictionary:
-	"""Get tutorial data for saving"""
 	return {
 		"completed_tutorials": completed_tutorials,
 		"current_tutorial": current_tutorial if tutorial_active else "",
 		"current_step": current_step if tutorial_active else 0
 	}
 
-func load_tutorial_save_data(data: Dictionary):
-	"""Load tutorial data from save"""
-	completed_tutorials = data.get("completed_tutorials", [])
-	
-	if data.has("current_tutorial") and data.current_tutorial != "":
-		current_tutorial = data.current_tutorial
-		current_step = data.get("current_step", 0)
+func load_tutorial_save_data(data: Dictionary) -> void:
+	var raw_tutorials: Array = data.get("completed_tutorials", [])
+	completed_tutorials.clear()
+	for t: Variant in raw_tutorials:
+		if t is String:
+			completed_tutorials.append(t)
+
+	var saved_tutorial: String = data.get("current_tutorial", "")
+	if not saved_tutorial.is_empty():
+		current_tutorial = saved_tutorial
+		current_step = int(data.get("current_step", 0))
 		tutorial_active = true

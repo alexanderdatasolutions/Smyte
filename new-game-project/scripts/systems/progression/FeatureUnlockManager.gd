@@ -70,55 +70,48 @@ func _ready() -> void:
 	name = "FeatureUnlockManager"
 
 func initialize() -> void:
-	"""Called by SystemRegistry after all systems registered"""
-	pass
+	_cache_system_references()
+
+var _save_manager: Node = null
+
+func _cache_system_references() -> void:
+	var registry: Node = SystemRegistry.get_instance()
+	if not registry:
+		push_error("FeatureUnlockManager: SystemRegistry not available")
+		return
+	_save_manager = registry.get_system("SaveManager")
 
 func unlock_feature(feature_name: String) -> void:
-	"""Unlock a specific feature and show introduction"""
-	var save_manager: Node = SystemRegistry.get_instance().get_system("SaveManager")
-	if not save_manager:
+	if not _save_manager:
 		push_error("FeatureUnlockManager: SaveManager not found")
 		return
 
-	# Get current unlocked features
-	var unlocked_features: Variant = save_manager.get_player_value("unlocked_features", {})
+	var unlocked_features: Variant = _save_manager.get_player_value("unlocked_features", {})
 	if not unlocked_features is Dictionary:
 		unlocked_features = {}
 
-	# Skip if already unlocked
 	if unlocked_features.has(feature_name):
 		return
 
-	# Mark as unlocked and save
 	unlocked_features[feature_name] = true
-	save_manager.set_player_value("unlocked_features", unlocked_features)
-	save_manager.save_game()
+	_save_manager.set_player_value("unlocked_features", unlocked_features)
+	_save_manager.save_game()
 
-	# Get feature data
 	var feature_data: Dictionary = get_feature_data(feature_name)
-
-	# Emit unlock signal
 	feature_unlocked.emit(feature_name, feature_data)
-
-	# Show introduction
 	_show_feature_introduction(feature_name)
 
-	print("FeatureUnlockManager: Feature unlocked - %s" % feature_name)
-
 func is_feature_unlocked(feature_name: String) -> bool:
-	"""Check if a feature is unlocked"""
-	var save_manager: Node = SystemRegistry.get_instance().get_system("SaveManager")
-	if not save_manager:
+	if not _save_manager:
 		return false
 
-	var unlocked_features: Variant = save_manager.get_player_value("unlocked_features", {})
+	var unlocked_features: Variant = _save_manager.get_player_value("unlocked_features", {})
 	if not unlocked_features is Dictionary:
 		return false
 
 	return unlocked_features.has(feature_name)
 
 func get_feature_data(feature_name: String) -> Dictionary:
-	"""Get data for a specific feature"""
 	var intro: Dictionary = feature_introductions.get(feature_name, {})
 	return {
 		"name": feature_name,
@@ -128,11 +121,9 @@ func get_feature_data(feature_name: String) -> Dictionary:
 	}
 
 func get_all_features() -> Array[String]:
-	"""Get list of all features"""
 	return all_features
 
 func get_unlocked_features() -> Array[String]:
-	"""Get list of all unlocked features"""
 	var unlocked: Array[String] = []
 	for feature in all_features:
 		if is_feature_unlocked(feature):
@@ -140,7 +131,6 @@ func get_unlocked_features() -> Array[String]:
 	return unlocked
 
 func get_locked_features() -> Array[String]:
-	"""Get list of features not yet unlocked"""
 	var locked: Array[String] = []
 	for feature in all_features:
 		if not is_feature_unlocked(feature):
@@ -148,18 +138,16 @@ func get_locked_features() -> Array[String]:
 	return locked
 
 func get_unlock_achievement(feature_name: String) -> String:
-	"""Get the achievement ID that unlocks this feature"""
 	var intro: Dictionary = feature_introductions.get(feature_name, {})
 	return intro.get("unlock_source", "")
 
 func _show_feature_introduction(feature_name: String) -> void:
-	"""Show feature introduction using NotificationQueue"""
 	var intro_data: Dictionary = feature_introductions.get(feature_name, {})
 	var title: String = intro_data.get("title", feature_name.capitalize())
 	var message: String = intro_data.get("message", "New feature unlocked!")
 
 	# Use NotificationQueue for stacked notifications
-	var NotificationQueueClass = load("res://scripts/ui/components/NotificationQueue.gd")
+	var NotificationQueueClass: Variant = load("res://scripts/ui/components/NotificationQueue.gd")
 	if NotificationQueueClass:
 		NotificationQueueClass.show_unlock(title, message)
 
@@ -168,12 +156,10 @@ func _show_feature_introduction(feature_name: String) -> void:
 # ==============================================================================
 
 func get_save_data() -> Dictionary:
-	"""Get unlocked features for saving"""
-	var save_manager: Node = SystemRegistry.get_instance().get_system("SaveManager")
-	if not save_manager:
+	if not _save_manager:
 		return {}
 
-	var unlocked_features: Variant = save_manager.get_player_value("unlocked_features", {})
+	var unlocked_features: Variant = _save_manager.get_player_value("unlocked_features", {})
 	if unlocked_features is Dictionary:
 		return unlocked_features
 	return {}

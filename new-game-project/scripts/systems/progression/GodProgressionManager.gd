@@ -30,35 +30,36 @@ var stat_bonuses_per_level: Dictionary = {
 var event_bus: EventBus
 var collection_manager: CollectionManager
 
-func _ready():
+func _ready() -> void:
 	name = "GodProgressionManager"
 	_load_config()
 	_initialize_dependencies()
 
-func _load_config():
-	"""Load progression values from data/progression_config.json"""
-	var file := FileAccess.open("res://data/progression_config.json", FileAccess.READ)
+func _load_config() -> void:
+	var file: FileAccess = FileAccess.open("res://data/progression_config.json", FileAccess.READ)
 	if not file:
 		return
-	var config: Dictionary = JSON.parse_string(file.get_as_text())
-	if not config:
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	if not parsed is Dictionary:
 		return
+	var config: Dictionary = parsed as Dictionary
 
 	var leveling: Dictionary = config.get("god_leveling", {})
-	MAX_GOD_LEVEL = leveling.get("max_god_level", MAX_GOD_LEVEL)
-	AWAKENED_MAX_LEVEL = leveling.get("awakened_max_level", AWAKENED_MAX_LEVEL)
-	XP_BASE_AMOUNT = leveling.get("xp_base_amount", XP_BASE_AMOUNT)
-	XP_SCALING_FACTOR = leveling.get("xp_scaling_factor", XP_SCALING_FACTOR)
+	MAX_GOD_LEVEL = int(leveling.get("max_god_level", MAX_GOD_LEVEL))
+	AWAKENED_MAX_LEVEL = int(leveling.get("awakened_max_level", AWAKENED_MAX_LEVEL))
+	XP_BASE_AMOUNT = int(leveling.get("xp_base_amount", XP_BASE_AMOUNT))
+	XP_SCALING_FACTOR = float(leveling.get("xp_scaling_factor", XP_SCALING_FACTOR))
 
 	var bonuses: Dictionary = config.get("stat_bonuses_per_level", {})
 	if not bonuses.is_empty():
 		stat_bonuses_per_level.clear()
-		for tier_key in bonuses:
+		for tier_key: String in bonuses:
 			stat_bonuses_per_level[int(tier_key)] = bonuses[tier_key]
 
-func _initialize_dependencies():
-	"""Initialize system dependencies through SystemRegistry"""
-	var system_registry = SystemRegistry.get_instance()
+func _initialize_dependencies() -> void:
+	var system_registry: Node = SystemRegistry.get_instance()
+	if not system_registry:
+		return
 	event_bus = system_registry.get_system("EventBus")
 	collection_manager = system_registry.get_system("CollectionManager")
 
@@ -66,41 +67,35 @@ func _initialize_dependencies():
 # EXPERIENCE MANAGEMENT - Core god progression
 # ==============================================================================
 
-func add_experience_to_god(god: God, experience_amount: int):
-	"""Add experience to a god and handle level ups"""
+func add_experience_to_god(god: God, experience_amount: int) -> void:
 	if not god:
 		return
 
 	if experience_amount <= 0:
 		return
 	
-	var old_level = god.level
+	var old_level: int = god.level
 	god.experience += experience_amount
-	
-	# Check for level ups
-	var new_level = calculate_level_from_experience(god.experience, god.is_awakened)
+
+	var new_level: int = calculate_level_from_experience(god.experience, god.is_awakened)
 	if new_level > old_level:
 		_level_up_god(god, old_level, new_level)
 	
-	# Emit experience gained event
 	god_experience_gained.emit(god, experience_amount)
-	
-	# Update god in collection
+
 	if collection_manager:
 		collection_manager.update_god(god)
 	
-	# Trigger save through EventBus when god gains experience
 	if event_bus:
 		event_bus.save_requested.emit()
 
 func calculate_level_from_experience(total_xp: int, is_awakened: bool = false) -> int:
-	"""Calculate level from total experience"""
-	var level = 1
-	var xp_needed = 0
-	var max_level = AWAKENED_MAX_LEVEL if is_awakened else MAX_GOD_LEVEL
+	var level: int = 1
+	var xp_needed: int = 0
+	var max_level: int = AWAKENED_MAX_LEVEL if is_awakened else MAX_GOD_LEVEL
 	
 	while level < max_level:
-		var xp_for_next_level = calculate_xp_for_level(level + 1)
+		var xp_for_next_level: int = calculate_xp_for_level(level + 1)
 		if total_xp < xp_needed + xp_for_next_level:
 			break
 		xp_needed += xp_for_next_level
@@ -109,77 +104,63 @@ func calculate_level_from_experience(total_xp: int, is_awakened: bool = false) -
 	return level
 
 func calculate_xp_for_level(target_level: int) -> int:
-	"""Calculate XP required to reach target level from previous level"""
 	if target_level <= 1:
 		return 0
 	return int(XP_BASE_AMOUNT * pow(XP_SCALING_FACTOR, target_level - 2))
 
 func calculate_total_xp_for_level(target_level: int, _is_awakened: bool = false) -> int:
-	"""Calculate total XP needed to reach a specific level"""
-	var total_xp = 0
-	for level in range(2, target_level + 1):
+	var total_xp: int = 0
+	for level: int in range(2, target_level + 1):
 		total_xp += calculate_xp_for_level(level)
 	return total_xp
 
 func get_xp_to_next_level(god: God) -> int:
-	"""Get XP needed for god to reach next level"""
 	if not god:
 		return 0
 	
-	var max_level = AWAKENED_MAX_LEVEL if god.is_awakened else MAX_GOD_LEVEL
+	var max_level: int = AWAKENED_MAX_LEVEL if god.is_awakened else MAX_GOD_LEVEL
 	if god.level >= max_level:
 		return 0
-	
-	var next_level_total_xp = calculate_total_xp_for_level(god.level + 1, god.is_awakened)
-	
+
+	var next_level_total_xp: int = calculate_total_xp_for_level(god.level + 1, god.is_awakened)
 	return next_level_total_xp - god.experience
 
 # ==============================================================================
 # LEVEL UP SYSTEM - Stat progression and bonuses
 # ==============================================================================
 
-func _level_up_god(god: God, old_level: int, new_level: int):
-	"""Handle god leveling up with stat bonuses"""
+func _level_up_god(god: God, old_level: int, new_level: int) -> void:
 	god.level = new_level
-	
-	# Apply stat bonuses for each level gained
-	var levels_gained = new_level - old_level
-	var tier_bonuses = stat_bonuses_per_level.get(god.tier, stat_bonuses_per_level[1])
-	
-	# Apply stat increases
-	god.base_attack += tier_bonuses.attack * levels_gained
-	god.base_defense += tier_bonuses.defense * levels_gained  
-	god.base_hp += tier_bonuses.hp * levels_gained
-	god.base_speed += tier_bonuses.speed * levels_gained
-	
-	# Heal to full HP on level up
+
+	var levels_gained: int = new_level - old_level
+	var tier_bonuses: Dictionary = stat_bonuses_per_level.get(god.tier, stat_bonuses_per_level[1])
+	god.base_attack += int(tier_bonuses.get("attack", 0)) * levels_gained
+	god.base_defense += int(tier_bonuses.get("defense", 0)) * levels_gained
+	god.base_hp += int(tier_bonuses.get("hp", 0)) * levels_gained
+	god.base_speed += int(tier_bonuses.get("speed", 0)) * levels_gained
+
 	god.current_hp = god.base_hp
-	
-	# Emit level up event
+
 	god_leveled_up.emit(god, new_level, old_level)
 
-	# Emit event bus signal for UI updates
 	if event_bus:
 		event_bus.god_level_up.emit(god.id, new_level, old_level)
 
-	# Show level up notification
 	_show_level_up_notification(god, new_level, levels_gained)
 
 func can_level_up(god: God) -> bool:
-	"""Check if god can level up with current experience"""
 	if not god:
 		return false
 	
-	var max_level = AWAKENED_MAX_LEVEL if god.is_awakened else MAX_GOD_LEVEL
+	var max_level: int = AWAKENED_MAX_LEVEL if god.is_awakened else MAX_GOD_LEVEL
 	if god.level >= max_level:
 		return false
-	
-	var xp_needed = get_xp_to_next_level(god)
+
+	var xp_needed: int = get_xp_to_next_level(god)
 	return xp_needed <= 0
 
 func _show_level_up_notification(god: God, new_level: int, levels_gained: int) -> void:
-	"""Show level up notification using NotificationQueue"""
-	var NotificationQueueClass = load("res://scripts/ui/components/NotificationQueue.gd")
+	var NotificationQueueClass: Variant = load("res://scripts/ui/components/NotificationQueue.gd")
 	if NotificationQueueClass:
 		NotificationQueueClass.show_level_up(god.name, new_level, levels_gained)
 
@@ -187,20 +168,15 @@ func _show_level_up_notification(god: God, new_level: int, levels_gained: int) -
 # AWAKENING SUPPORT - Extended level progression
 # ==============================================================================
 
-func handle_god_awakening(god: God):
-	"""Handle when a god is awakened - extends level cap"""
+func handle_god_awakening(god: God) -> void:
 	if not god:
 		return
-	
+
 	god.is_awakened = true
-	
-	# Emit awakening event
 	god_awakened.emit(god)
-	
-	# Update god in collection
+
 	if collection_manager:
 		collection_manager.update_god(god)
-	
+
 	if event_bus:
 		event_bus.god_awakened.emit(god.id)
-
