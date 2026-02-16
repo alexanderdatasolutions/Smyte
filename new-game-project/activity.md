@@ -3,7 +3,29 @@
 ## Current Status
 **Last Updated:** 2026-02-16
 **Phase:** Pre-Release Audit Execution
-**Current Task:** Executing AUDIT_PLAN.md tasks (74/74 complete)
+**Current Task:** Executing AUDIT_PLAN.md tasks (76/76 complete)
+
+---
+
+## 2026-02-16 - Audit: Remove incomplete features from UIManager.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/ui/UIManager.gd`, `scripts/ui/sacrifice/SacrificeSelectionScreen.gd`
+
+**Changes:**
+- Removed 7 incomplete/stub features from UIManager.gd:
+  - `notification_scene` and `reward_scene` (never-set TODO vars)
+  - `show_notification()` (empty TODO body - notifications handled by NotificationManager)
+  - `_highlight_ui_element()` (empty TODO body)
+  - `_apply_popup_style()` (all branches were `pass`)
+  - `_play_popup_sound()` (empty TODO body)
+  - `debug_show_test_popup()` and `get_debug_info()` (debug/test code)
+  - `audio_manager` var (never used)
+- Removed dead `ui_manager: UIManager` reference from SacrificeSelectionScreen.gd (UIManager not registered in SystemRegistry)
+- WaveManager.gd: Verified 4/5 dead functions already removed in prior audit; `get_wave_count()` has 3+ active callers - NOT dead
+- UIManager reduced from 389 to 218 lines
+
+**Verified:** Ran project, no errors in debug output
 
 ---
 

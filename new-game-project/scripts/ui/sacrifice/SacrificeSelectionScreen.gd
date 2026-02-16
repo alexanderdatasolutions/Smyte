@@ -13,16 +13,14 @@ var title_label: Label
 
 # Systems
 var sacrifice_manager: SacrificeManager
-var ui_manager: UIManager
 
 func _ready():
 	_initialize_systems()
 	_setup_ui()
 
 func _initialize_systems():
-	var system_registry = SystemRegistry.get_instance()
+	var system_registry: SystemRegistry = SystemRegistry.get_instance()
 	sacrifice_manager = system_registry.get_system("SacrificeManager")
-	ui_manager = system_registry.get_system("UIManager")
 
 func _setup_ui():
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

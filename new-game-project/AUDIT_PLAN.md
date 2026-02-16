@@ -188,15 +188,15 @@
     "priority": "high",
     "file": "scripts/systems/battle/WaveManager.gd",
     "issue": "5 dead functions: get_current_wave, get_wave_count, is_final_wave, get_current_wave_enemies, get_next_wave_enemies",
-    "action": "Delete dead functions",
-    "passes": false
+    "action": "4 of 5 functions already removed in prior audit. get_wave_count() has 3+ active callers (BattleScreen.gd, BattleState.gd, BattleConfig.gd) - NOT dead code.",
+    "passes": true
   },
   {
     "priority": "high",
     "file": "scripts/systems/ui/UIManager.gd",
     "issue": "7 incomplete features: notification_scene, reward_scene (never set), show_notification (TODO), _highlight_ui_element (empty), _apply_popup_style (all pass), _play_popup_sound (empty), debug_show_test_popup",
-    "action": "Remove incomplete features or implement them",
-    "passes": false
+    "action": "Removed all 7 incomplete/stub features: notification_scene, reward_scene, show_notification(), _highlight_ui_element(), _apply_popup_style(), _play_popup_sound(), debug_show_test_popup(), get_debug_info(), audio_manager. Also removed dead ui_manager reference from SacrificeSelectionScreen.gd. File reduced from 389 to 218 lines.",
+    "passes": true
   },
   {
     "priority": "high",
