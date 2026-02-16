@@ -8,14 +8,21 @@ class_name GodFactory
 # ==============================================================================
 
 static func create_from_json(god_id: String) -> God:
-	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager")
-	var god_data = config_manager.get_god_config(god_id)
+	var registry: Variant = SystemRegistry.get_instance()
+	if not registry:
+		push_error("SystemRegistry not available")
+		return null
+	var config_manager: Variant = registry.get_system("ConfigurationManager")
+	if not config_manager:
+		push_error("ConfigurationManager not available")
+		return null
+	var god_data: Dictionary = config_manager.get_god_config(god_id)
 
 	if not god_data:
 		push_error("God data not found for ID: " + god_id)
 		return null
 
-	var god = God.new()
+	var god: God = God.new()
 	# Generate unique instance ID while preserving template ID
 	god.template_id = god_id
 	god.id = _generate_unique_id(god_id)
@@ -25,7 +32,7 @@ static func create_from_json(god_id: String) -> God:
 	god.tier = parse_tier(god_data.get("tier", "common"))
 	
 	# Base stats - handle nested base_stats structure
-	var base_stats = god_data.get("base_stats", {})
+	var base_stats: Dictionary = god_data.get("base_stats", {})
 	god.base_hp = base_stats.get("hp", god_data.get("base_hp", 100))
 	god.base_attack = base_stats.get("attack", god_data.get("base_attack", 50))
 	god.base_defense = base_stats.get("defense", god_data.get("base_defense", 30))
@@ -41,7 +48,7 @@ static func create_from_json(god_id: String) -> God:
 	god.passive_abilities = god_data.get("passive_abilities", [])
 
 	# Legacy abilities array - populate from ability_ids for backward compatibility
-	var ability_ids = god_data.get("ability_ids", [])
+	var ability_ids: Array = god_data.get("ability_ids", [])
 	if not ability_ids.is_empty():
 		god.abilities = ability_ids  # BattleUnit still uses this field
 	
@@ -53,21 +60,21 @@ static func create_from_json(god_id: String) -> God:
 	god.equipment = [null, null, null, null, null, null]
 
 	# Initialize traits from god definition
-	var trait_manager = SystemRegistry.get_instance().get_system("TraitManager")
+	var trait_manager: Variant = registry.get_system("TraitManager")
 	if trait_manager:
 		trait_manager.initialize_god_traits(god, god_id)
 
 	# Initialize role from god definition
-	var role_manager = SystemRegistry.get_instance().get_system("RoleManager")
+	var role_manager: Variant = registry.get_system("RoleManager")
 	if role_manager:
 		role_manager.initialize_god_role(god, god_data)
 
 	return god
 
-static func parse_element(element_value) -> God.ElementType:
+static func parse_element(element_value: Variant) -> God.ElementType:
 	# Handle both integer, float, and string formats
 	if element_value is int or element_value is float:
-		var index = int(element_value)
+		var index: int = int(element_value)
 		match index:
 			0:
 				return God.ElementType.FIRE
@@ -90,10 +97,10 @@ static func parse_element(element_value) -> God.ElementType:
 		push_warning("Invalid element type. Expected int/float or String. Defaulting to FIRE.")
 		return God.ElementType.FIRE
 
-static func parse_tier(tier_value) -> God.TierType:
+static func parse_tier(tier_value: Variant) -> God.TierType:
 	# Handle both integer, float, and string formats
 	if tier_value is int or tier_value is float:
-		var index = int(tier_value)
+		var index: int = int(tier_value)
 		match index:
 			1:
 				return God.TierType.COMMON
@@ -175,7 +182,6 @@ static func tier_to_string(tier_type: God.TierType) -> String:
 			return "common"
 
 static func _generate_unique_id(template_id: String) -> String:
-	"""Generate a unique instance ID for a god"""
-	var timestamp = int(Time.get_unix_time_from_system())
-	var random_part = randi() % 100000
+	var timestamp: int = int(Time.get_unix_time_from_system())
+	var random_part: int = randi() % 100000
 	return "%s_%d_%05d" % [template_id, timestamp, random_part]
