@@ -1,11 +1,11 @@
 # Pre-Release Audit Plan
 
 ## Overview
-**Total issues found: 287**
+**Total issues found: 305**
 - Critical: 18
-- High: 72
-- Medium: 112
-- Low: 85
+- High: 84 (+12 data-driven)
+- Medium: 116 (+4 data-driven)
+- Low: 87 (+2 data-driven)
 
 **Audit Date:** 2026-02-15
 **Scope:** Entire codebase (~253 GDScript files, 25 JSON configs, 31 scenes)
@@ -21,7 +21,7 @@
     "file": "scripts/systems/core/SaveManager.gd",
     "issue": "PlayerProgressionManager NOT saved - player level, XP, and unlocked features lost on restart",
     "action": "Add PlayerProgressionManager to save/load chain in SaveManager (get_save_data + load_save_data)",
-    "passes": false
+    "passes": true
   },
   {
     "priority": "critical",
@@ -950,40 +950,155 @@
 ]
 ```
 
-## Magic Numbers (Cross-Cutting)
+## 15. Data-Driven JSON Config (Move Hardcoded Values to JSON)
+
+**Principle:** All game balance, costs, rates, and tunable values should be in JSON configs - NOT hardcoded in GDScript. This allows balance changes without code changes.
 
 ```json
 [
   {
-    "priority": "medium",
+    "priority": "high",
     "file": "scripts/systems/dungeon/DungeonCoordinator.gd",
-    "issue": "Energy costs hardcoded: 8, 10, 12, 15",
-    "action": "Extract to DungeonConstants or config",
+    "issue": "Energy costs hardcoded: 8, 10, 12, 15 per difficulty",
+    "action": "Move to data/dungeons.json under each dungeon's difficulty config",
     "passes": false
   },
   {
-    "priority": "medium",
+    "priority": "high",
     "file": "scripts/systems/arena/ArenaManager.gd",
-    "issue": "ELO thresholds, K-factors, cooldowns hardcoded",
-    "action": "Extract to ArenaConstants",
+    "issue": "ELO system hardcoded: K-factor=32, league thresholds (1200, 1400, 1600, 1800, 2000, 2200), cooldowns",
+    "action": "Create data/arena_config.json with elo_settings, leagues[], cooldowns",
+    "passes": false
+  },
+  {
+    "priority": "high",
+    "file": "scripts/systems/dungeon/DungeonManager.gd",
+    "issue": "Enemy stat scaling hardcoded: 800, 1200, 1000, 1500 base values",
+    "action": "Move to data/battle_config.json under enemy_scaling section",
+    "passes": false
+  },
+  {
+    "priority": "high",
+    "file": "scripts/systems/battle/CombatCalculator.gd",
+    "issue": "Damage formula constants: DAMAGE_NUMERATOR=1000, DAMAGE_DENOMINATOR_BASE=1140, DAMAGE_DEFENSE_SCALE=3.5, crit/glancing rates",
+    "action": "Create data/combat_config.json with damage_formula, hit_types, element_multipliers",
+    "passes": false
+  },
+  {
+    "priority": "high",
+    "file": "scripts/systems/collection/SummonManager.gd",
+    "issue": "Pity system values hardcoded: pity_epic_threshold, pity_legendary_threshold, rate-up percentages",
+    "action": "Move to data/summon_config.json (partially exists, complete it)",
+    "passes": false
+  },
+  {
+    "priority": "high",
+    "file": "scripts/data/Equipment.gd",
+    "issue": "Enhancement rates hardcoded: 0.95 base, 0.05 decay per level, cost multipliers",
+    "action": "Create data/equipment_config.json with enhancement_rates[], costs[], socket_unlock_costs[]",
+    "passes": false
+  },
+  {
+    "priority": "high",
+    "file": "scripts/data/God.gd",
+    "issue": "MAX_LEVEL=40, MIN_SPECIALIZATION_LEVEL=20, DEFAULT_CRIT_RATE=15 hardcoded",
+    "action": "Move to data/god_config.json with level_cap, specialization_unlock_level, default_stats",
+    "passes": false
+  },
+  {
+    "priority": "high",
+    "file": "scripts/systems/battle/TurnManager.gd",
+    "issue": "Turn bar constants: TURN_BAR_SPEED=0.07, TURN_BAR_THRESHOLD=100, MAX_TURN_ITERATIONS=1000",
+    "action": "Move to data/battle_config.json under turn_system section",
+    "passes": false
+  },
+  {
+    "priority": "high",
+    "file": "scripts/systems/progression/AwakeningSystem.gd",
+    "issue": "Awakening costs, requirements, stat bonuses hardcoded",
+    "action": "Move to data/awakening_config.json with costs_by_tier[], requirements[], bonuses[]",
+    "passes": false
+  },
+  {
+    "priority": "high",
+    "file": "scripts/systems/progression/SacrificeSystem.gd",
+    "issue": "XP formulas, tier bonuses, same-element bonuses hardcoded",
+    "action": "Create data/sacrifice_config.json with xp_per_tier[], element_bonus, awakened_bonus",
+    "passes": false
+  },
+  {
+    "priority": "high",
+    "file": "scripts/systems/territory/TerritoryProductionManager.gd",
+    "issue": "Production rates, offline cap, efficiency multipliers hardcoded",
+    "action": "Move to data/territory_config.json with production_rates, offline_settings, bonuses",
+    "passes": false
+  },
+  {
+    "priority": "high",
+    "file": "scripts/systems/territory/TaskAssignmentManager.gd",
+    "issue": "Task durations, reward multipliers, efficiency bonuses hardcoded",
+    "action": "Ensure data/tasks.json has all values, remove hardcoded fallbacks",
     "passes": false
   },
   {
     "priority": "medium",
-    "file": "scripts/systems/dungeon/DungeonManager.gd",
-    "issue": "Stat calc magic numbers: 800, 1200, 1000, 1500",
-    "action": "Extract to constants or battle_config.json",
+    "file": "scripts/systems/shop/ShopManager.gd",
+    "issue": "Crystal pack prices, bonus rates hardcoded",
+    "action": "Ensure data/shop_config.json has all pack definitions with prices",
+    "passes": false
+  },
+  {
+    "priority": "medium",
+    "file": "scripts/systems/progression/PlayerProgressionManager.gd",
+    "issue": "XP requirements per level, feature unlock levels hardcoded",
+    "action": "Create data/player_progression.json with xp_curve[], feature_unlocks[]",
+    "passes": false
+  },
+  {
+    "priority": "medium",
+    "file": "scripts/utilities/GodExperienceCalculator.gd",
+    "issue": "XP curve formula hardcoded: base=100, multiplier=1.15",
+    "action": "Move to data/god_config.json under xp_curve section",
+    "passes": false
+  },
+  {
+    "priority": "medium",
+    "file": "scripts/systems/tower/TowerManager.gd",
+    "issue": "Floor difficulty scaling, rewards per floor hardcoded",
+    "action": "Move to data/tower_config.json with difficulty_curve[], rewards_by_floor[]",
     "passes": false
   },
   {
     "priority": "low",
-    "file": "scripts/data/Equipment.gd",
-    "issue": "Enhancement rates 0.05, multiplier calculations",
-    "action": "Extract to named constants",
+    "file": "scripts/ui/components/ResourceDisplay.gd",
+    "issue": "Resource metadata (names, icons, categories) hardcoded in _get_resource_metadata()",
+    "action": "Already in data/resources.json - refactor to load from JSON",
+    "passes": false
+  },
+  {
+    "priority": "low",
+    "file": "scripts/utilities/GodUIHelpers.gd",
+    "issue": "Element colors, tier colors hardcoded",
+    "action": "Create data/ui_theme.json with color_palettes for elements/tiers",
     "passes": false
   }
 ]
 ```
+
+### JSON Config Files to Create/Expand -- Add more where needed. Think Normalized Database
+
+| File | Contains |
+|------|----------|
+| `data/combat_config.json` | Damage formula, hit types, element multipliers, turn system |
+| `data/arena_config.json` | ELO settings, league thresholds, cooldowns, matchmaking |
+| `data/equipment_config.json` | Enhancement rates, costs, socket unlocks, rarity bonuses |
+| `data/god_config.json` | Level cap, XP curve, default stats, specialization unlock |
+| `data/awakening_config.json` | Costs by tier, requirements, stat bonuses |
+| `data/sacrifice_config.json` | XP formulas, tier/element bonuses |
+| `data/territory_config.json` | Production rates, offline settings, efficiency |
+| `data/player_progression.json` | Player XP curve, feature unlock levels |
+| `data/tower_config.json` | Floor scaling, rewards |
+| `data/ui_theme.json` | Color palettes for elements, tiers, rarities |
 
 ---
 
@@ -994,20 +1109,22 @@
 2. **Equipment Bugs** - Fix undefined properties and wrong property references
 3. **Print Cleanup** - Remove 423+ print statements
 
-### Phase 2: HIGH
-4. **Dead Code** - Remove ~600+ lines of confirmed dead code across 15+ files
-5. **Save Enhancements** - Add save-on-quit, version migration, achievement restore
-6. **File Splitting** - Split 5 files over 700 lines
-7. **Orphaned UIDs** - Delete 11 orphaned .uid files
-8. **Error Handling** - Fix Firebase null checks (30+ instances)
+### Phase 2: HIGH - Data & Architecture
+4. **Data-Driven Configs** - Move hardcoded values to JSON (combat, arena, equipment, god, awakening, sacrifice)
+5. **Dead Code** - Remove ~600+ lines of confirmed dead code across 15+ files
+6. **Save Enhancements** - Add save-on-quit, version migration, achievement restore
+7. **File Splitting** - Split 5 files over 700 lines
+8. **Orphaned UIDs** - Delete 11 orphaned .uid files
+9. **Error Handling** - Fix Firebase null checks (30+ instances)
 
-### Phase 3: MEDIUM
-9. **Static Typing** - Add types to top 15 worst-typed files
-10. **Long Functions** - Break 12+ functions over 50 lines
-11. **UI Consistency** - Extract shared styling/popup patterns
-12. **Magic Numbers** - Extract hardcoded values to constants
+### Phase 3: MEDIUM - Code Quality
+10. **Static Typing** - Add types to top 15 worst-typed files
+11. **Long Functions** - Break 12+ functions over 50 lines
+12. **UI Consistency** - Extract shared styling/popup patterns
 13. **Performance** - Cache SystemRegistry lookups
+14. **Data-Driven (Medium)** - Territory, shop, player progression, tower configs
 
-### Phase 4: LOW
-14. **Code Quality** - Move logic out of data classes
-15. **Remaining typing** - Complete static typing across all files
+### Phase 4: LOW - Polish
+15. **Code Quality** - Move logic out of data classes
+16. **Remaining typing** - Complete static typing across all files
+17. **UI Theme JSON** - Move colors/styling to theme config

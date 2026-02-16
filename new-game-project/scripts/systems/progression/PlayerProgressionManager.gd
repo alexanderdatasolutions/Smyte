@@ -76,18 +76,9 @@ func _level_up(new_level: int):
 	current_player_level = new_level
 
 	player_leveled_up.emit(old_level, new_level)
-	
+
 	# Check for feature unlocks
 	_check_feature_unlocks(new_level)
-	
-	# Save progress
-	var save_manager = SystemRegistry.get_instance().get_system("SaveManager")
-	if save_manager:
-		save_manager.save_player_progress({
-			"level": current_player_level,
-			"experience": current_experience,
-			"unlocked_features": unlocked_features
-		})
 
 # ==============================================================================
 # FEATURE UNLOCKING - Clean separation
@@ -99,17 +90,12 @@ func _check_feature_unlocks(level: int):
 		var feature_name = feature_unlock_levels[level]
 		unlock_feature(feature_name)
 
-func unlock_feature(feature_name: String):
+func unlock_feature(feature_name: String) -> void:
 	"""Unlock a specific feature"""
 	if feature_name in unlocked_features:
 		return
 
 	unlocked_features.append(feature_name)
-
-	# Notify other systems
-	var event_bus = SystemRegistry.get_instance().get_system("EventBus")
-	if event_bus:
-		event_bus.emit_signal("feature_unlocked", feature_name)
 
 func is_feature_unlocked(feature_name: String) -> bool:
 	"""Check if feature is unlocked"""

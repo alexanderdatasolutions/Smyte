@@ -1017,3 +1017,18 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, all 43 gods loaded successfully, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `cleanup: add static typing to data classes`
+
+### 2026-02-15 - Audit: Fix save system for PlayerProgressionManager
+
+**Priority:** Critical
+**File(s) Modified:** `scripts/systems/core/SaveManager.gd`, `scripts/systems/progression/PlayerProgressionManager.gd`
+
+**Changes:**
+- Added PlayerProgressionManager to SaveManager save chain (save_game → get_save_data under "player_progression" key)
+- Added PlayerProgressionManager to SaveManager load chain (_load_systems_from_data → load_save_data)
+- Fixed broken `_level_up()` call to non-existent `save_manager.save_player_progress()` — removed since SaveManager handles periodic saves
+- Removed dead `emit_signal("feature_unlocked", ...)` call on EventBus — EventBus has no such signal (feature_unlocked lives on TutorialOrchestrator/FeatureUnlockManager)
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: fix save system for PlayerProgressionManager`
