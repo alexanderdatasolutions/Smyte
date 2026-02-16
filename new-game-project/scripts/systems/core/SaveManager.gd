@@ -97,6 +97,10 @@ func save_game() -> bool:
 	if skin_manager and skin_manager.has_method("get_save_data"):
 		save_data["skins"] = skin_manager.get_save_data()
 
+	var achievement_manager = system_registry.get_system("AchievementManager") if system_registry else null
+	if achievement_manager and achievement_manager.has_method("get_save_data"):
+		save_data["achievements"] = achievement_manager.get_save_data()
+
 	# Save player-specific data (tower best floor, etc.)
 	save_data["player_data"] = player_data
 
@@ -208,6 +212,15 @@ func _load_systems_from_data(save_data: Dictionary, system_registry) -> void:
 	_load_system_data(system_registry, "EquipmentManager", "equipment", save_data)
 	_load_system_data(system_registry, "ShopManager", "shop", save_data)
 	_load_system_data(system_registry, "SkinManager", "skins", save_data)
+	_load_system_data(system_registry, "AchievementManager", "achievements", save_data)
+
+	# Migrate legacy achievements from player_data if needed
+	if not save_data.has("achievements") and save_data.has("player_data"):
+		var pd: Dictionary = save_data["player_data"]
+		if pd.has("achievements"):
+			var am = system_registry.get_system("AchievementManager")
+			if am and am.has_method("load_save_data"):
+				am.load_save_data(pd["achievements"])
 
 	# After loading arena, restore defense team references
 	var arena_manager = system_registry.get_system("ArenaManager")

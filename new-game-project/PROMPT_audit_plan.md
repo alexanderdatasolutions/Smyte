@@ -49,7 +49,7 @@
     "file": "scripts/systems/progression/AchievementManager.gd",
     "issue": "AchievementManager saves to player_data but _restore_state() not called after SaveManager loads data - achievements may re-trigger",
     "action": "Ensure AchievementManager._restore_state() is called during save load sequence",
-    "passes": false
+    "passes": true
   },
   {
     "priority": "high",

@@ -1080,3 +1080,21 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: fix save system for SkinManager`
+
+### 2026-02-16 - Audit: Fix save system for AchievementManager
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/core/SaveManager.gd`, `scripts/systems/progression/AchievementManager.gd`
+
+**Changes:**
+- Added AchievementManager to SaveManager save chain (`save_data["achievements"]` via `get_save_data()`)
+- Added AchievementManager to SaveManager load chain (`_load_system_data` call with "achievements" key)
+- Added legacy migration: if save has `player_data.achievements` but no top-level `achievements` key, loads from legacy location
+- Fixed timing bug: removed `_restore_state()` call from `initialize()` — it ran before `load_game()` loaded `player_data`, so achievements were always empty on restore
+- Removed dead `_restore_state()` method (no longer called)
+- Updated `_save_state()` to not write to `player_data` bag — achievements now saved through proper save chain
+- Added `_validate_all_achievements()` deferred call after `load_save_data()` for catch-up
+
+**Verified:** Ran project, no new errors in debug output. Achievement restore works correctly — `first_summon` and `five_gods` recognized as completed, `first_territory` triggered and saved.
+
+**Commit:** `audit: fix save system for AchievementManager`

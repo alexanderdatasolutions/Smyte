@@ -43,15 +43,16 @@ func _ready() -> void:
 	_load_achievements()
 
 func initialize() -> void:
-	"""Called by SystemRegistry after all systems registered"""
+	"""Called by SystemRegistry after all systems registered.
+	Note: Achievement state is restored by SaveManager.load_game() calling load_save_data(),
+	NOT here, because player_data is not yet loaded when initialize() runs."""
 	if _is_initialized:
 		return
 	_is_initialized = true
 
 	_connect_to_events()
-	_restore_state()
-	# Check for any achievements that should already be completed
-	call_deferred("_validate_all_achievements")
+	# Achievement state restored via load_save_data() called by SaveManager.load_game()
+	# _validate_all_achievements() is called deferred after load_save_data()
 
 func _load_achievements() -> void:
 	"""Load achievement definitions from JSON"""
@@ -98,16 +99,6 @@ func _connect_to_events() -> void:
 	if building_manager:
 		building_manager.building_placed.connect(_on_building_placed)
 
-func _restore_state() -> void:
-	"""Restore completed achievements from save data"""
-	var save_manager: Node = SystemRegistry.get_instance().get_system("SaveManager")
-	if not save_manager:
-		return
-
-	var achievements_data: Variant = save_manager.get_player_value("achievements", {})
-	if achievements_data is Dictionary:
-		_completed = achievements_data.get("completed", {})
-		print("AchievementManager: Restored %d completed achievements" % _completed.size())
 
 # ==============================================================================
 # EVENT HANDLERS
@@ -519,12 +510,11 @@ func _get_current_value_for_trigger(trigger_type: String) -> int:
 # ==============================================================================
 
 func _save_state() -> void:
-	"""Save achievement state to SaveManager"""
+	"""Save achievement state via SaveManager (achievements included in save chain)"""
 	var save_manager: Node = SystemRegistry.get_instance().get_system("SaveManager")
 	if not save_manager:
 		return
 
-	save_manager.set_player_value("achievements", {"completed": _completed.duplicate()})
 	save_manager.save_game()
 
 func get_save_data() -> Dictionary:
@@ -534,5 +524,7 @@ func get_save_data() -> Dictionary:
 	}
 
 func load_save_data(data: Dictionary) -> void:
-	"""Load achievement data from save"""
+	"""Load achievement data from save - called by SaveManager during load_game()"""
 	_completed = data.get("completed", {})
+	# Re-validate achievements after restore to catch any progress made before save
+	call_deferred("_validate_all_achievements")
