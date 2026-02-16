@@ -489,8 +489,8 @@
     "priority": "high",
     "file": "scripts/systems/arena/ArenaDataSync.gd",
     "issue": "15 untyped variables",
-    "action": "Add static types",
-    "passes": false
+    "action": "Added static types to all 25+ variables, parameters, return types, and loop iterators. Typed _firestore as Variant, all Firestore collection/query/result locals as Variant, all doc iterators as Variant, opponents/entries arrays, power as int, god_data as Dictionary. Added return types to _get_system_registry() -> Variant, _get_doc_value() -> Variant, _parse_opponent_results() -> Array, _parse_leaderboard_results() -> Array. Typed lambda params (a: Dictionary, b: Dictionary) -> bool in sort_custom. Changed min() to mini() for int context.",
+    "passes": true
   },
   {
     "priority": "high",

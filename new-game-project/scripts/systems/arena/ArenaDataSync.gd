@@ -11,13 +11,13 @@ signal battle_recorded(success: bool)
 const COLLECTION_ARENA_PLAYERS = "arena_players"
 const COLLECTION_ARENA_BATTLES = "arena_battles"
 
-var _firestore = null
+var _firestore: Variant = null
 var _user_id: String = ""
 var _display_name: String = ""
 
 # System reference helper
-func _get_system_registry():
-	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+func _get_system_registry() -> Variant:
+	var registry_script: Variant = load("res://scripts/systems/core/SystemRegistry.gd")
 	if registry_script and registry_script.has_method("get_instance"):
 		return registry_script.get_instance()
 	return null
@@ -28,11 +28,11 @@ func _ready() -> void:
 
 func _initialize_firebase() -> void:
 	"""Initialize Firebase connection"""
-	var system_registry = _get_system_registry()
+	var system_registry: Variant = _get_system_registry()
 	if not system_registry:
 		return
 
-	var firebase_integration = system_registry.get_system("FirebaseIntegration")
+	var firebase_integration: Variant = system_registry.get_system("FirebaseIntegration")
 	if not firebase_integration:
 		return
 
@@ -74,17 +74,17 @@ func fetch_opponents_in_range(min_elo: int, max_elo: int, count: int) -> void:
 
 func _do_fetch_opponents(min_elo: int, max_elo: int, count: int) -> void:
 	"""Async opponent fetch operation"""
-	var collection = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
+	var collection: Variant = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
 	if not collection:
 		opponents_fetched.emit([])
 		return
 
-	var query = collection.query() if collection.has_method("query") else null
+	var query: Variant = collection.query() if collection.has_method("query") else null
 	if not query:
 		opponents_fetched.emit([])
 		return
 
-	var result = await query.get()
+	var result: Variant = await query.get()
 
 	if result == null:
 		opponents_fetched.emit([])
@@ -93,9 +93,9 @@ func _do_fetch_opponents(min_elo: int, max_elo: int, count: int) -> void:
 	var opponents: Array = _parse_opponent_results(result, min_elo, max_elo, count)
 	opponents_fetched.emit(opponents)
 
-func _parse_opponent_results(result, min_elo: int, max_elo: int, count: int) -> Array:
+func _parse_opponent_results(result: Variant, min_elo: int, max_elo: int, count: int) -> Array:
 	"""Parse Firestore results into opponent array"""
-	var opponents = []
+	var opponents: Array = []
 
 	# Handle different result types from GodotFirebase
 	var docs: Array = []
@@ -104,14 +104,14 @@ func _parse_opponent_results(result, min_elo: int, max_elo: int, count: int) -> 
 	elif result is Object and result.has_method("keys"):
 		docs = [result]
 
-	for doc in docs:
-		var user_id = _get_doc_value(doc, "user_id")
+	for doc: Variant in docs:
+		var user_id: Variant = _get_doc_value(doc, "user_id")
 
 		# Skip self
 		if user_id == _user_id:
 			continue
 
-		var elo = _get_doc_value(doc, "elo")
+		var elo: Variant = _get_doc_value(doc, "elo")
 		if typeof(elo) != TYPE_INT and typeof(elo) != TYPE_FLOAT:
 			elo = 1000
 
@@ -119,7 +119,7 @@ func _parse_opponent_results(result, min_elo: int, max_elo: int, count: int) -> 
 		if elo < min_elo or elo > max_elo:
 			continue
 
-		var opponent = {
+		var opponent: Dictionary = {
 			"user_id": user_id,
 			"display_name": _get_doc_value(doc, "display_name"),
 			"elo": int(elo),
@@ -140,7 +140,7 @@ func _parse_opponent_results(result, min_elo: int, max_elo: int, count: int) -> 
 	opponents.shuffle()
 	return opponents.slice(0, count)
 
-func _get_doc_value(doc, key: String):
+func _get_doc_value(doc: Variant, key: String) -> Variant:
 	"""Safely get value from FirestoreDocument"""
 	if doc == null:
 		return null
@@ -161,7 +161,7 @@ func _get_league_for_elo(elo: int) -> String:
 		"bronze": 0
 	}
 
-	for league in ["legend", "diamond", "platinum", "gold", "silver", "bronze"]:
+	for league: String in ["legend", "diamond", "platinum", "gold", "silver", "bronze"]:
 		if elo >= THRESHOLDS[league]:
 			return league
 	return "bronze"
@@ -180,7 +180,7 @@ func upload_defense_team(serialized_team: Array) -> void:
 
 func _do_upload_defense(serialized_team: Array) -> void:
 	"""Async defense upload operation"""
-	var collection = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
+	var collection: Variant = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
 	if not collection:
 		defense_uploaded.emit(false)
 		return
@@ -193,13 +193,13 @@ func _do_upload_defense(serialized_team: Array) -> void:
 		"last_defense_update": Time.get_unix_time_from_system()
 	}
 
-	var result = await collection.add(_user_id, data)
+	var result: Variant = await collection.add(_user_id, data)
 	defense_uploaded.emit(result != null)
 
 func _calculate_serialized_team_power(team: Array) -> int:
 	"""Calculate power from serialized god data"""
-	var power = 0
-	for god_data in team:
+	var power: int = 0
+	for god_data: Dictionary in team:
 		power += god_data.get("base_hp", 0) / 10
 		power += god_data.get("base_attack", 0)
 		power += god_data.get("base_defense", 0)
@@ -221,7 +221,7 @@ func update_player_stats(elo: int, wins: int, losses: int) -> void:
 
 func _do_update_stats(elo: int, wins: int, losses: int) -> void:
 	"""Async stats update operation"""
-	var collection = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
+	var collection: Variant = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
 	if not collection:
 		player_stats_updated.emit(false)
 		return
@@ -236,7 +236,7 @@ func _do_update_stats(elo: int, wins: int, losses: int) -> void:
 		"last_active": Time.get_unix_time_from_system()
 	}
 
-	var result = await collection.add(_user_id, data)
+	var result: Variant = await collection.add(_user_id, data)
 	player_stats_updated.emit(result != null)
 
 # ==============================================================================
@@ -253,7 +253,7 @@ func record_battle(opponent_uid: String, victory: bool, elo_change: int) -> void
 
 func _do_record_battle(opponent_uid: String, victory: bool, elo_change: int) -> void:
 	"""Async battle recording operation"""
-	var collection = _firestore.collection(COLLECTION_ARENA_BATTLES) if _firestore else null
+	var collection: Variant = _firestore.collection(COLLECTION_ARENA_BATTLES) if _firestore else null
 	if not collection:
 		battle_recorded.emit(false)
 		return
@@ -266,7 +266,7 @@ func _do_record_battle(opponent_uid: String, victory: bool, elo_change: int) -> 
 		"timestamp": Time.get_unix_time_from_system()
 	}
 
-	var result = await collection.add("", battle_data)
+	var result: Variant = await collection.add("", battle_data)
 	battle_recorded.emit(result != null)
 
 # ==============================================================================
@@ -283,17 +283,17 @@ func fetch_leaderboard() -> void:
 
 func _do_fetch_leaderboard() -> void:
 	"""Async leaderboard fetch operation"""
-	var collection = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
+	var collection: Variant = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
 	if not collection:
 		leaderboard_fetched.emit([])
 		return
 
-	var query = collection.query() if collection.has_method("query") else null
+	var query: Variant = collection.query() if collection.has_method("query") else null
 	if not query:
 		leaderboard_fetched.emit([])
 		return
 
-	var result = await query.get()
+	var result: Variant = await query.get()
 
 	if result == null:
 		leaderboard_fetched.emit([])
@@ -302,9 +302,9 @@ func _do_fetch_leaderboard() -> void:
 	var entries: Array = _parse_leaderboard_results(result)
 	leaderboard_fetched.emit(entries)
 
-func _parse_leaderboard_results(result) -> Array:
+func _parse_leaderboard_results(result: Variant) -> Array:
 	"""Parse leaderboard results and sort by ELO"""
-	var entries = []
+	var entries: Array = []
 
 	var docs: Array = []
 	if result is Array:
@@ -312,8 +312,8 @@ func _parse_leaderboard_results(result) -> Array:
 	elif result is Object and result.has_method("keys"):
 		docs = [result]
 
-	for doc in docs:
-		var elo = _get_doc_value(doc, "elo")
+	for doc: Variant in docs:
+		var elo: Variant = _get_doc_value(doc, "elo")
 		if typeof(elo) != TYPE_INT and typeof(elo) != TYPE_FLOAT:
 			continue
 
@@ -327,10 +327,10 @@ func _parse_leaderboard_results(result) -> Array:
 		})
 
 	# Sort by ELO descending
-	entries.sort_custom(func(a, b): return a.elo > b.elo)
+	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.elo > b.elo)
 
 	# Assign ranks and limit to top 100
-	for i in range(min(100, entries.size())):
+	for i: int in range(mini(100, entries.size())):
 		entries[i]["rank"] = i + 1
 
 	return entries.slice(0, 100)

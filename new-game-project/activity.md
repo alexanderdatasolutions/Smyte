@@ -7,6 +7,23 @@
 
 ---
 
+## 2026-02-16 - Audit: Add static typing to ArenaDataSync.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/arena/ArenaDataSync.gd`
+
+**Changes:**
+- Added static types to all 25+ variables, parameters, return types, and loop iterators
+- Typed `_firestore` as `Variant`, all Firestore collection/query/result locals as `Variant`
+- Typed all doc iterators as `Variant`, opponents/entries arrays as `Array`, power as `int`, god_data as `Dictionary`
+- Added return types: `_get_system_registry() -> Variant`, `_get_doc_value() -> Variant`, `_parse_opponent_results() -> Array`, `_parse_leaderboard_results() -> Array`
+- Typed lambda params `(a: Dictionary, b: Dictionary) -> bool` in `sort_custom()`
+- Changed `min()` to `mini()` for int context
+
+**Verified:** Ran project, no new errors in debug output. Pre-existing Firebase signal errors unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Add static typing to DungeonManager.gd
 
 **Priority:** High
