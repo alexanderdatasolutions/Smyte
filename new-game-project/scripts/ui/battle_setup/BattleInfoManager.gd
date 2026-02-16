@@ -23,10 +23,6 @@ func update_for_context(context: Dictionary):
 	battle_context = context
 	_update_display()
 
-func update_team_preview(_team: Array):
-	# Could show team power preview, element balance, etc.
-	pass
-
 func _update_display():
 	match battle_context.get("type", ""):
 		"territory":

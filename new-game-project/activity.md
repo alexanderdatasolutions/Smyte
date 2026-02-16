@@ -7,6 +7,19 @@
 
 ---
 
+## 2026-02-16 - Audit: Remove empty stub functions from battle setup files
+
+**Priority:** Medium (Dead Code)
+**File(s) Modified:** `scripts/ui/battle_setup/BattleInfoManager.gd`, `scripts/ui/battle_setup/BattleSetupCoordinator.gd`
+
+**Changes:**
+- **BattleInfoManager.gd**: Removed dead `update_team_preview(_team: Array)` function - never called anywhere in codebase. Was a stub with just `pass`.
+- **BattleSetupCoordinator.gd**: Removed empty `_on_team_changed(_team: Array)` handler (just `pass`) and its signal connection (`team_manager.team_changed.connect(_on_team_changed)`). Stats already update automatically in TeamSelectionManager, making this no-op handler unnecessary.
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings/errors unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Extract ArenaManager mock data to ArenaMockData.gd
 
 **Priority:** Medium (Dead Code / Code Simplification)

@@ -263,17 +263,17 @@
   },
   {
     "priority": "medium",
-    "file": "scripts/ui/battle_setup/TeamSelectionManager.gd:26",
+    "file": "scripts/ui/battle_setup/BattleInfoManager.gd:26",
     "issue": "Empty function update_team_preview() - just pass",
-    "action": "Implement or remove",
-    "passes": false
+    "action": "Removed dead function update_team_preview() from BattleInfoManager.gd - never called anywhere in codebase.",
+    "passes": true
   },
   {
     "priority": "medium",
-    "file": "scripts/ui/battle_setup/BattleSetupCoordinator.gd:184",
+    "file": "scripts/ui/battle_setup/BattleSetupCoordinator.gd:182",
     "issue": "Empty function _on_team_changed() - just pass",
-    "action": "Implement or remove",
-    "passes": false
+    "action": "Removed empty _on_team_changed() handler and its signal connection (team_manager.team_changed). Stats update automatically in TeamSelectionManager, so this no-op handler was unnecessary.",
+    "passes": true
   },
   {
     "priority": "medium",

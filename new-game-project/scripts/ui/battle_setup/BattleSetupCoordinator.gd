@@ -54,7 +54,6 @@ func _create_unified_battle_setup(screen: Control):
 
 func _connect_signals():
 	if team_manager:
-		team_manager.team_changed.connect(_on_team_changed)
 		team_manager.battle_start_requested.connect(_on_battle_start_requested)
 		team_manager.setup_cancelled.connect(_on_setup_cancelled)
 
@@ -178,10 +177,6 @@ func _update_header_for_context():
 # ============================================================================
 # SIGNAL HANDLERS
 # ============================================================================
-
-func _on_team_changed(_team: Array):
-	# Team changed - stats update automatically in TeamSelectionManager
-	pass
 
 func _on_battle_start_requested(team: Array):
 	battle_context["selected_team"] = team
