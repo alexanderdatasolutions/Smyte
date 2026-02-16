@@ -12,8 +12,8 @@ class_name PlayerData
 @export var resources: Dictionary = {}
 
 # Collections
-@export var gods: Array = []
-@export var controlled_territories: Array = []
+@export var gods: Array = []  # Array[God]
+@export var controlled_territories: Array[String] = []
 
 # Progression tracking
 @export var total_summons: int = 0
@@ -22,49 +22,49 @@ class_name PlayerData
 @export var last_save_time: float = 0
 
 # Resource system integration
-var resource_manager
+var resource_manager: Variant
 
-func _init():
+func _init() -> void:
 	# Initialize with default resources - will be loaded from ResourceManager
 	initialize_default_resources()
 
-func initialize_default_resources():
+func initialize_default_resources() -> void:
 	"""Initialize default resources using ResourceManager definitions"""
 	# Get ResourceManager instance
 	resource_manager = get_resource_manager()
 	if not resource_manager:
 		create_fallback_resources()
 		return
-	
+
 	# Initialize all currency resources
-	var currencies = resource_manager.get_resources_by_category("currency")
-	for currency_id in currencies:
+	var currencies: Array = resource_manager.get_resources_by_category("currency")
+	for currency_id: String in currencies:
 		if not resources.has(currency_id):
 			resources[currency_id] = get_default_amount_for_resource(currency_id)
-	
-	# Initialize all premium currencies  
-	var premium_currencies = resource_manager.get_resources_by_category("premium_currency")
-	for currency_id in premium_currencies:
+
+	# Initialize all premium currencies
+	var premium_currencies: Array = resource_manager.get_resources_by_category("premium_currency")
+	for currency_id: String in premium_currencies:
 		if not resources.has(currency_id):
 			resources[currency_id] = get_default_amount_for_resource(currency_id)
-	
+
 	# Initialize all summoning materials
-	var summoning_materials = resource_manager.get_resources_by_category("summoning_material")
-	for material_id in summoning_materials:
+	var summoning_materials: Array = resource_manager.get_resources_by_category("summoning_material")
+	for material_id: String in summoning_materials:
 		if not resources.has(material_id):
 			resources[material_id] = get_default_amount_for_resource(material_id)
-	
+
 	# Initialize all awakening materials
-	var awakening_materials = resource_manager.get_resources_by_category("awakening_material")
-	for material_id in awakening_materials:
+	var awakening_materials: Array = resource_manager.get_resources_by_category("awakening_material")
+	for material_id: String in awakening_materials:
 		if not resources.has(material_id):
 			resources[material_id] = get_default_amount_for_resource(material_id)
-	
+
 	# Ensure energy is properly initialized
 	if not resources.has("energy"):
 		resources["energy"] = get_default_amount_for_resource("energy")
 
-func create_fallback_resources():
+func create_fallback_resources() -> void:
 	"""Create fallback resources if ResourceManager isn't available"""
 	resources = {
 		"mana": 1000,
@@ -109,9 +109,9 @@ func get_default_amount_for_resource(resource_id: String) -> int:
 			return 20
 		_:
 			# Check resource type for default amounts
-			var rm = get_resource_manager_safe()
+			var rm: Variant = get_resource_manager_safe()
 			if rm:
-				var resource_info = rm.get_resource_info(resource_id)
+				var resource_info: Variant = rm.get_resource_info(resource_id)
 				if resource_info and resource_info.has("category"):
 					match resource_info.category:
 						"awakening_material":
@@ -124,27 +124,27 @@ func get_default_amount_for_resource(resource_id: String) -> int:
 							return 0
 			return 0
 
-func get_resource_manager():
+func get_resource_manager() -> Variant:
 	"""Get ResourceManager instance from SystemRegistry"""
-	var registry = _get_system_registry()
+	var registry: Variant = _get_system_registry()
 	if registry:
 		return registry.get_system("ResourceManager")
 	# Fallback: try to find ResourceManager in scene tree
-	var tree = Engine.get_main_loop() as SceneTree
+	var tree: SceneTree = Engine.get_main_loop() as SceneTree
 	if tree and tree.current_scene:
 		return tree.current_scene.get_node_or_null("/root/ResourceManager")
 	return null
 
-func get_resource_manager_safe():
+func get_resource_manager_safe() -> Variant:
 	"""Safe getter that doesn't print warnings"""
-	var registry = _get_system_registry()
+	var registry: Variant = _get_system_registry()
 	if registry:
 		return registry.get_system("ResourceManager")
 	return null
 
 # Helper to get SystemRegistry without parse-time dependency
-func _get_system_registry():
-	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+func _get_system_registry() -> Variant:
+	var registry_script: Variant = load("res://scripts/systems/core/SystemRegistry.gd")
 	if registry_script and registry_script.has_method("get_instance"):
 		return registry_script.get_instance()
 	return null
@@ -169,30 +169,30 @@ func spend_resource(resource_id: String, amount: int) -> bool:
 	resources[resource_id] = resources.get(resource_id, 0) - amount
 	return true
 
-func add_resource(resource_id: String, amount: int):
+func add_resource(resource_id: String, amount: int) -> void:
 	"""Add resource to player's inventory"""
-	var current_amount = resources.get(resource_id, 0)
-	var max_storage = get_max_storage(resource_id)
-	
+	var current_amount: int = resources.get(resource_id, 0)
+	var max_storage: int = get_max_storage(resource_id)
+
 	# Apply max storage limit if it exists
 	if max_storage > 0:
-		resources[resource_id] = min(current_amount + amount, max_storage)
+		resources[resource_id] = mini(current_amount + amount, max_storage)
 	else:
 		resources[resource_id] = current_amount + amount
-	
+
 	# Emit resource update signal if EventBus is available
-	var registry = _get_system_registry()
+	var registry: Variant = _get_system_registry()
 	if registry:
-		var event_bus = registry.get_system("EventBus")
+		var event_bus: Variant = registry.get_system("EventBus")
 		if event_bus and event_bus.has_signal("resources_updated"):
 			event_bus.resources_updated.emit()
 
 func get_max_storage(resource_id: String) -> int:
 	"""Get maximum storage for a resource"""
-	var rm = get_resource_manager_safe()
+	var rm: Variant = get_resource_manager_safe()
 	if rm:
-		var resource_info = rm.get_resource_info(resource_id)
-		var max_storage = resource_info.get("max_storage", 0)
+		var resource_info: Variant = rm.get_resource_info(resource_id)
+		var max_storage: int = resource_info.get("max_storage", 0)
 		if max_storage > 0:
 			return max_storage
 	
@@ -209,8 +209,8 @@ func get_max_storage(resource_id: String) -> int:
 
 func can_afford_cost(cost: Dictionary) -> bool:
 	"""Check if player can afford a cost dictionary"""
-	for resource_id in cost:
-		var required_amount = cost[resource_id]
+	for resource_id: String in cost:
+		var required_amount: int = cost[resource_id]
 		if not has_resource(resource_id, required_amount):
 			return false
 	return true
@@ -220,12 +220,12 @@ func spend_cost(cost: Dictionary) -> bool:
 	# First check if we can afford everything
 	if not can_afford_cost(cost):
 		return false
-	
+
 	# Spend all resources
-	for resource_id in cost:
-		var amount = cost[resource_id]
+	for resource_id: String in cost:
+		var amount: int = cost[resource_id]
 		spend_resource(resource_id, amount)
-	
+
 	return true
 
 # ==============================================================================
@@ -260,9 +260,9 @@ var last_energy_update: float = 0.0
 
 var crystals: Dictionary:
 	get:
-		var crystal_dict = {}
-		var elements = ["fire", "water", "earth", "lightning", "light", "dark"]
-		for element in elements:
+		var crystal_dict: Dictionary = {}
+		var elements: Array[String] = ["fire", "water", "earth", "lightning", "light", "dark"]
+		for element: String in elements:
 			crystal_dict[element] = get_resource(element + "_crystal")
 		return crystal_dict
 
@@ -270,52 +270,50 @@ var awakening_stones: int:
 	get:
 		return get_resource("awakening_stone")
 	set(value):
-				resources["awakening_stone"] = value
-
-
+		resources["awakening_stone"] = value
 
 # ==============================================================================
 # GOD COLLECTION METHODS
 # ==============================================================================
 
-func add_god(god):
+func add_god(god: God) -> void:
 	if god:
 		gods.append(god)
 
-func remove_god(god):
+func remove_god(god: God) -> void:
 	if gods.has(god):
 		gods.erase(god)
 
-func get_god_by_id(god_id: String):
-	for god in gods:
+func get_god_by_id(god_id: String) -> Variant:
+	for god: God in gods:
 		if god.id == god_id:
 			return god
 	return null
 
 func get_total_power() -> int:
-	var total = 0
-	for god in gods:
+	var total: int = 0
+	for god: God in gods:
 		total += GodCalculator.get_power_rating(god)
 	return total
 
 func get_gods_by_element(element: int) -> Array:
 	var result: Array = []
-	for god in gods:
+	for god: God in gods:
 		if god.element == element:
 			result.append(god)
 	return result
 
 func get_gods_by_tier(tier: int) -> Array:
 	var result: Array = []
-	for god in gods:
+	for god: God in gods:
 		if god.tier == tier:
 			result.append(god)
 	return result
 
 # Helper function to check for specific gods for ascension
 func get_god_count(god_id: String) -> int:
-	var count = 0
-	for god in gods:
+	var count: int = 0
+	for god: God in gods:
 		if god.id == god_id:
 			count += 1
 	return count
@@ -327,25 +325,25 @@ func has_god(god_id: String) -> bool:
 # ENERGY MANAGEMENT FUNCTIONS  
 # ==============================================================================
 
-func update_energy():
+func update_energy() -> void:
 	"""Update energy based on time passed - call regularly"""
-	var current_time = Time.get_unix_time_from_system()
-	
+	var current_time: float = Time.get_unix_time_from_system()
+
 	# Initialize last_energy_update if it's 0 (first run)
 	if last_energy_update <= 0:
 		last_energy_update = current_time
 		return
-	
-	var time_passed = current_time - last_energy_update
-	var minutes_passed = time_passed / 60.0
-	
+
+	var time_passed: float = current_time - last_energy_update
+	var minutes_passed: float = time_passed / 60.0
+
 	# Regenerate energy (1 energy per 5 minutes = 0.2 energy per minute)
-	var energy_to_add = int(minutes_passed * 0.2)
-	
+	var energy_to_add: int = int(minutes_passed * 0.2)
+
 	if energy_to_add > 0:
-		var current_energy = get_resource("energy")
-		var max_energy_val = get_max_storage("energy")
-		var new_energy = min(current_energy + energy_to_add, max_energy_val)
+		var current_energy: int = get_resource("energy")
+		var max_energy_val: int = get_max_storage("energy")
+		var new_energy: int = mini(current_energy + energy_to_add, max_energy_val)
 		resources["energy"] = new_energy
 		last_energy_update = current_time
 
@@ -357,22 +355,22 @@ func can_afford_energy(cost: int) -> bool:
 func spend_energy(cost: int) -> bool:
 	"""Spend energy if available"""
 	update_energy()  # Make sure energy is current
-	
+
 	if has_resource("energy", cost):
-		var current_energy = get_resource("energy")
+		var current_energy: int = get_resource("energy")
 		resources["energy"] = current_energy - cost
 		return true
 	else:
 		return false
 
-func add_energy(amount: int):
+func add_energy(amount: int) -> void:
 	"""Add energy (from items, crystal refreshes, etc.)"""
 	add_resource("energy", amount)
 
 func refresh_energy_with_crystals() -> bool:
 	"""Refresh energy using premium crystals (30 crystals = 90 energy)"""
-	var crystal_cost = 30
-	var energy_gained = 90
+	var crystal_cost: int = 30
+	var energy_gained: int = 90
 	
 	if spend_resource("premium_crystals", crystal_cost):
 		add_resource("energy", energy_gained)
@@ -383,8 +381,8 @@ func refresh_energy_with_crystals() -> bool:
 func get_energy_status() -> Dictionary:
 	"""Get current energy status"""
 	update_energy()
-	var current_energy = get_resource("energy")
-	var max_energy_val = get_max_storage("energy")
+	var current_energy: int = get_resource("energy")
+	var max_energy_val: int = get_max_storage("energy")
 	return {
 		"current": current_energy,
 		"max": max_energy_val,
@@ -397,13 +395,13 @@ func get_energy_status() -> Dictionary:
 # TERRITORY MANAGEMENT FUNCTIONS  
 # ==============================================================================
 
-func control_territory(territory_id: String):
+func control_territory(territory_id: String) -> void:
 	if not controlled_territories.has(territory_id):
 		controlled_territories.append(territory_id)
 
-func lose_territory_control(territory_id: String):
+func lose_territory_control(territory_id: String) -> void:
 	if controlled_territories.has(territory_id):
 		controlled_territories.erase(territory_id)
 
-func update_last_save_time():
+func update_last_save_time() -> void:
 	last_save_time = Time.get_unix_time_from_system()

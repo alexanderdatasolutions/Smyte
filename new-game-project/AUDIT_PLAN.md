@@ -503,8 +503,8 @@
     "priority": "high",
     "file": "scripts/data/PlayerData.gd",
     "issue": "9 untyped arrays",
-    "action": "Type all arrays: Array[God], Array[String], etc.",
-    "passes": false
+    "action": "Added static types to all 40+ variables, parameters, return types, and loop iterators. Typed controlled_territories as Array[String], resource_manager as Variant, all SystemRegistry/ResourceManager locals as Variant, all loop iterators (currency_id: String, material_id: String, god: God, resource_id: String, element: String). Added -> void to 12 functions, -> Variant to 4 functions. Typed all local variables (current_amount: int, max_storage: int, crystal_cost: int, etc.). Changed min() to mini() for int contexts. Fixed indentation on awakening_stones setter.",
+    "passes": true
   },
   {
     "priority": "high",

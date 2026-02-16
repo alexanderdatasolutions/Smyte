@@ -7,6 +7,26 @@
 
 ---
 
+## 2026-02-16 - Audit: Add static typing to PlayerData.gd
+
+**Priority:** High (Static Typing)
+**File(s) Modified:** `scripts/data/PlayerData.gd`
+
+**Changes:**
+- Added static types to all 40+ variables, parameters, return types, and loop iterators
+- Typed `controlled_territories` as `Array[String]`, `resource_manager` as `Variant`
+- Typed all SystemRegistry/ResourceManager locals as `Variant`
+- Typed all loop iterators (`currency_id: String`, `material_id: String`, `god: God`, `resource_id: String`, `element: String`)
+- Added `-> void` return type to 12 functions (`_init`, `initialize_default_resources`, `create_fallback_resources`, `add_resource`, `add_god`, `remove_god`, `update_energy`, `add_energy`, `control_territory`, `lose_territory_control`, `update_last_save_time`)
+- Added `-> Variant` return type to 4 functions (`get_resource_manager`, `get_resource_manager_safe`, `_get_system_registry`, `get_god_by_id`)
+- Typed all local variables (`current_amount: int`, `max_storage: int`, `crystal_cost: int`, `energy_gained: int`, `time_passed: float`, etc.)
+- Changed `min()` to `mini()` for int contexts (2 locations)
+- Fixed over-indentation on `awakening_stones` setter
+
+**Verified:** Ran project, no new errors in debug output. Pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Add static typing to PvP territory system
 
 **Priority:** High (Static Typing)
