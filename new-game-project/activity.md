@@ -1220,3 +1220,25 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: add save corruption detection to SaveManager`
+
+### 2026-02-16 - Audit: Delete unused GameState.gd
+
+**Priority:** High
+**File(s) Modified:**
+- `scripts/data/GameState.gd` (DELETED — 321 lines)
+- `scripts/data/GameState.gd.uid` (DELETED)
+- `scripts/systems/core/GameCoordinator.gd`
+
+**Changes:**
+- Deleted entire `GameState.gd` (321 lines) — dead "god object" that duplicated functionality of individual managers
+- GameState was instantiated in GameCoordinator but data stored via `store_game_data()` was never read back (`get_game_data()` had zero callers)
+- `initialize_new_game()` reset internal state that was never accessed — actual resources, gods, equipment managed by their respective system managers
+- Removed `var game_state` declaration from GameCoordinator.gd
+- Removed `GameState.gd` script load and instantiation from `_setup_core_systems()`
+- Removed all `game_state.store_game_data()` calls from `_load_game_data()` — ConfigurationManager already holds this data
+- Removed `game_state.initialize_new_game()` from `_start_new_game()` — starting resources/gods handled by dedicated setup functions
+- Removed `game_state_valid` from `get_debug_info()`
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: delete unused GameState.gd`

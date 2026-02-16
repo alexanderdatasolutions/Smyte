@@ -3,7 +3,6 @@
 extends Node
 
 # Core components - untyped to avoid parse-time class_name resolution issues
-var game_state  # GameState
 var system_registry  # SystemRegistry
 var event_bus  # EventBus
 
@@ -79,10 +78,6 @@ func _setup_core_systems():
 	# Get EventBus reference
 	event_bus = system_registry.get_system("EventBus")
 
-	# Create game state (late binding)
-	var game_state_script = load("res://scripts/data/GameState.gd")
-	game_state = game_state_script.new()
-
 ## Connect to global events
 func _connect_global_events():
 	if event_bus:
@@ -96,24 +91,14 @@ func _connect_global_events():
 ## Load game data from JSON files
 func _load_game_data():
 	_emit_loading("Loading game data...")
-	
-	# Load core game data through ConfigurationManager (RULE 5 - proper layering)
-	
-	# Use local system_registry instance (avoid parse-time SystemRegistry class reference)
+
 	var config_manager = system_registry.get_system("ConfigurationManager")
 	if not config_manager:
 		push_error("GameCoordinator: ConfigurationManager system not found in registry")
 		return
-		
-	# Store configuration data in game state (ConfigurationManager already loaded all data)
-	game_state.store_game_data("gods", config_manager.gods_config)
-	game_state.store_game_data("awakened_gods", {})  # Empty initially
-	game_state.store_game_data("enemies", {})  # Load from battle config
-	game_state.store_game_data("dungeons", {})  # Load from dungeon config  
-	game_state.store_game_data("territories", config_manager.territories_config)
-	game_state.store_game_data("equipment", config_manager.equipment_config)
-	game_state.store_game_data("loot", config_manager.loot_config)
-	
+
+	# ConfigurationManager loads all JSON configs in its _ready() — no further action needed
+
 	_emit_loading_complete("Loading game data...")
 
 ## Initialize game systems and start game
@@ -156,9 +141,6 @@ func _load_save_game():
 
 ## Start a new game
 func _start_new_game():
-	# Initialize default game state
-	game_state.initialize_new_game()
-
 	# Give player starting resources and gods
 	_setup_starting_resources()
 	_setup_starting_gods()
@@ -355,6 +337,5 @@ func get_debug_info() -> Dictionary:
 		"initialized": is_initialized,
 		"paused": is_paused,
 		"loading_operations": loading_operations.duplicate(),
-		"system_registry": system_registry.get_debug_info() if system_registry else {},
-		"game_state_valid": game_state != null
+		"system_registry": system_registry.get_debug_info() if system_registry else {}
 	}

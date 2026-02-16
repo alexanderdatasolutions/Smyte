@@ -105,7 +105,7 @@
     "file": "scripts/data/GameState.gd",
     "issue": "GameState class (320 lines) potentially never instantiated - GameState.new() returns 0 matches",
     "action": "Verify usage or delete entire file",
-    "passes": false
+    "passes": true
   },
   {
     "priority": "high",
