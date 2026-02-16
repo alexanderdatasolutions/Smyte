@@ -175,16 +175,14 @@ func get_all_materials() -> Dictionary:
 
 # SAVE/LOAD SYSTEM
 
-func save_inventory_data() -> Dictionary:
-	"""Save inventory data for game save"""
+func get_save_data() -> Dictionary:
 	return {
 		"consumables": consumables.duplicate(),
 		"materials": materials.duplicate(),
 		"quest_items": quest_items.duplicate()
 	}
 
-func load_inventory_data(data: Dictionary):
-	"""Load inventory data from game save"""
+func load_save_data(data: Dictionary) -> void:
 	consumables = data.get("consumables", {})
 	materials = data.get("materials", {})
 	quest_items = data.get("quest_items", {})

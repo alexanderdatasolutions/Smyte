@@ -115,6 +115,10 @@ func save_game() -> bool:
 	if tower_manager and tower_manager.has_method("get_save_data"):
 		save_data["tower"] = tower_manager.get_save_data()
 
+	var inventory_manager = system_registry.get_system("InventoryManager") if system_registry else null
+	if inventory_manager and inventory_manager.has_method("get_save_data"):
+		save_data["inventory"] = inventory_manager.get_save_data()
+
 	# Save player-specific data
 	save_data["player_data"] = player_data
 
@@ -216,7 +220,7 @@ func _validate_save_data(save_data: Dictionary) -> bool:
 	var dict_sections: Array[String] = [
 		"resources", "collection", "battle", "hex_grid", "territory",
 		"dungeon", "summon", "tutorial", "arena", "player_progression",
-		"equipment", "shop", "skins", "achievements", "statistics", "tower", "player_data",
+		"equipment", "shop", "skins", "achievements", "statistics", "tower", "inventory", "player_data",
 	]
 	for key: String in dict_sections:
 		if save_data.has(key) and not save_data[key] is Dictionary:
@@ -270,6 +274,7 @@ func _load_systems_from_data(save_data: Dictionary, system_registry) -> void:
 	_load_system_data(system_registry, "AchievementManager", "achievements", save_data)
 	_load_system_data(system_registry, "StatisticsManager", "statistics", save_data)
 	_load_system_data(system_registry, "TowerManager", "tower", save_data)
+	_load_system_data(system_registry, "InventoryManager", "inventory", save_data)
 
 	# Migrate legacy tower data from player_data bag if present
 	if not save_data.has("tower") and save_data.has("player_data"):

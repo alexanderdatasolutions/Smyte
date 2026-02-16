@@ -25,6 +25,19 @@
 
 **Verification:** Project runs clean, no errors related to save system changes
 
+### Wire InventoryManager into SaveManager (Critical)
+**Files modified:** `scripts/systems/collection/InventoryManager.gd`, `scripts/systems/core/SaveManager.gd`
+
+**Problem:** InventoryManager had `save_inventory_data()`/`load_inventory_data()` methods (non-standard names) that were never called by SaveManager. Consumables, materials, and quest items were not being persisted.
+
+**Fix:**
+- Renamed methods to standard `get_save_data()` / `load_save_data()` pattern
+- Added InventoryManager to SaveManager save chain (writes `save_data["inventory"]`)
+- Added InventoryManager to SaveManager load chain via `_load_system_data()`
+- Added "inventory" to save data validation section list
+
+**Verification:** Project runs clean, no errors
+
 ### Remove dead save stubs from LootSystem (Critical → resolved)
 **Files modified:** `scripts/systems/resources/LootSystem.gd`
 
