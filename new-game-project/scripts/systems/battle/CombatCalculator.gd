@@ -2,34 +2,57 @@
 # Consolidated damage calculation and stat computation - replaces multiple scattered implementations
 class_name CombatCalculator extends RefCounted
 
-# --- Damage Formula Constants (Summoners War style) ---
-const DAMAGE_NUMERATOR: float = 1000.0
-const DAMAGE_DENOMINATOR_BASE: float = 1140.0
-const DAMAGE_DEFENSE_SCALE: float = 3.5
+# --- Cached config from battle_config.json ---
+static var _config: Dictionary = {}
+static var _config_loaded: bool = false
 
-# --- Hit Type Constants ---
-const GLANCING_HIT_CHANCE: float = 0.15
-const GLANCING_DAMAGE_MULT: float = 0.7
-const DAMAGE_VARIANCE_MIN: float = 0.9
-const DAMAGE_VARIANCE_MAX: float = 1.1
+# --- Load config from battle_config.json (cached after first load) ---
+static func _ensure_config_loaded() -> void:
+	if _config_loaded:
+		return
+	_config_loaded = true
+	var file := FileAccess.open("res://data/battle_config.json", FileAccess.READ)
+	if file:
+		var json_text: String = file.get_as_text()
+		file.close()
+		var parsed: Variant = JSON.parse_string(json_text)
+		if parsed is Dictionary:
+			_config = parsed.get("battle_config", {})
+		else:
+			push_warning("CombatCalculator: battle_config.json parse failed, using defaults")
+	else:
+		push_warning("CombatCalculator: battle_config.json not found, using defaults")
 
-# --- Element Constants ---
-const ELEMENT_ADVANTAGE_MULT: float = 1.3
-const ELEMENT_DISADVANTAGE_MULT: float = 0.85
+# --- Config accessors with fallback defaults ---
+static func _get_damage_formula() -> Dictionary:
+	_ensure_config_loaded()
+	return _config.get("damage_formula", {"numerator": 1000.0, "denominator_base": 1140.0, "defense_scale": 3.5})
 
-# --- Stat Scaling Constants ---
-const LEVEL_STAT_SCALE: float = 0.1  # +10% per level
-const POWER_PER_LEVEL: int = 50
-const POWER_PER_TIER: int = 500
+static func _get_hit_types() -> Dictionary:
+	_ensure_config_loaded()
+	return _config.get("hit_types", {"glancing_chance": 0.15, "glancing_damage_mult": 0.7, "damage_variance_min": 0.9, "damage_variance_max": 1.1})
+
+static func _get_element_multipliers() -> Dictionary:
+	_ensure_config_loaded()
+	return _config.get("element_multipliers", {"advantage": 1.3, "disadvantage": 0.85})
+
+static func _get_stat_scaling() -> Dictionary:
+	_ensure_config_loaded()
+	return _config.get("stat_scaling", {"level_stat_scale": 0.1, "power_per_level": 50, "power_per_tier": 500})
 
 ## Calculate damage between attacker and target
 static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Skill = null) -> DamageResult:
+	var formula: Dictionary = _get_damage_formula()
+	var hit_config: Dictionary = _get_hit_types()
 	var base_attack: int = attacker.attack
 	var defense: int = target.defense
 	var multiplier: float = skill.get_damage_multiplier() if skill else 1.0
 
 	# Summoners War damage formula: ATK * Multiplier * (NUM / (BASE + SCALE * DEF))
-	var base_damage: float = base_attack * multiplier * (DAMAGE_NUMERATOR / (DAMAGE_DENOMINATOR_BASE + DAMAGE_DEFENSE_SCALE * defense))
+	var dmg_numerator: float = formula.get("numerator", 1000.0)
+	var dmg_denom_base: float = formula.get("denominator_base", 1140.0)
+	var dmg_def_scale: float = formula.get("defense_scale", 3.5)
+	var base_damage: float = base_attack * multiplier * (dmg_numerator / (dmg_denom_base + dmg_def_scale * defense))
 
 	# Check for critical hit
 	var is_critical: bool = _check_critical_hit(attacker, target)
@@ -39,10 +62,11 @@ static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Sk
 		base_damage *= crit_mult
 
 	# Check for glancing hit (opposite of critical)
-	var is_glancing: bool = not is_critical and randf() < GLANCING_HIT_CHANCE
+	var glancing_chance: float = hit_config.get("glancing_chance", 0.15)
+	var is_glancing: bool = not is_critical and randf() < glancing_chance
 	var glancing_mult: float = 1.0
 	if is_glancing:
-		glancing_mult = GLANCING_DAMAGE_MULT
+		glancing_mult = hit_config.get("glancing_damage_mult", 0.7)
 		base_damage *= glancing_mult
 
 	# Apply element advantage/disadvantage
@@ -55,7 +79,9 @@ static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Sk
 	var raw_damage: float = base_damage
 
 	# Apply random variance
-	var variance: float = randf_range(DAMAGE_VARIANCE_MIN, DAMAGE_VARIANCE_MAX)
+	var variance_min: float = hit_config.get("damage_variance_min", 0.9)
+	var variance_max: float = hit_config.get("damage_variance_max", 1.1)
+	var variance: float = randf_range(variance_min, variance_max)
 	base_damage *= variance
 
 	# Convert to integer
@@ -91,17 +117,21 @@ static func _get_unit_element(unit: BattleUnit) -> God.ElementType:
 ## Get element multiplier for damage calculation
 ## Fire > Earth > Water > Fire, Lightning neutral, Light <> Dark
 static func _get_element_multiplier(attacker_element: God.ElementType, target_element: God.ElementType) -> float:
+	var elem_config: Dictionary = _get_element_multipliers()
+	var advantage: float = elem_config.get("advantage", 1.3)
+	var disadvantage: float = elem_config.get("disadvantage", 0.85)
+
 	match attacker_element:
 		God.ElementType.FIRE:
-			return ELEMENT_ADVANTAGE_MULT if target_element == God.ElementType.EARTH else ELEMENT_DISADVANTAGE_MULT if target_element == God.ElementType.WATER else 1.0
+			return advantage if target_element == God.ElementType.EARTH else disadvantage if target_element == God.ElementType.WATER else 1.0
 		God.ElementType.WATER:
-			return ELEMENT_ADVANTAGE_MULT if target_element == God.ElementType.FIRE else ELEMENT_DISADVANTAGE_MULT if target_element == God.ElementType.EARTH else 1.0
+			return advantage if target_element == God.ElementType.FIRE else disadvantage if target_element == God.ElementType.EARTH else 1.0
 		God.ElementType.EARTH:
-			return ELEMENT_ADVANTAGE_MULT if target_element == God.ElementType.WATER else ELEMENT_DISADVANTAGE_MULT if target_element == God.ElementType.FIRE else 1.0
+			return advantage if target_element == God.ElementType.WATER else disadvantage if target_element == God.ElementType.FIRE else 1.0
 		God.ElementType.LIGHT:
-			return ELEMENT_ADVANTAGE_MULT if target_element == God.ElementType.DARK else 1.0
+			return advantage if target_element == God.ElementType.DARK else 1.0
 		God.ElementType.DARK:
-			return ELEMENT_ADVANTAGE_MULT if target_element == God.ElementType.LIGHT else 1.0
+			return advantage if target_element == God.ElementType.LIGHT else 1.0
 		_:
 			return 1.0
 
@@ -113,11 +143,13 @@ static func _check_critical_hit(attacker: BattleUnit, _target: BattleUnit) -> bo
 
 ## Get detailed attack breakdown for UI/debugging
 static func get_detailed_attack_breakdown(god: God) -> Dictionary:
+	var scaling: Dictionary = _get_stat_scaling()
+	var level_scale: float = scaling.get("level_stat_scale", 0.1)
 	var base_attack: int = god.base_attack
-	var level_bonus: int = int(base_attack * (god.level - 1) * LEVEL_STAT_SCALE)
+	var level_bonus: int = int(base_attack * (god.level - 1) * level_scale)
 	var equipment_bonus: int = 0  # Not implemented
 	var buff_bonus: int = 0  # Not implemented
-	
+
 	return {
 		"base_value": base_attack,
 		"level_bonus": level_bonus,
@@ -128,11 +160,13 @@ static func get_detailed_attack_breakdown(god: God) -> Dictionary:
 
 ## Get detailed defense breakdown for UI/debugging
 static func get_detailed_defense_breakdown(god: God) -> Dictionary:
+	var scaling: Dictionary = _get_stat_scaling()
+	var level_scale: float = scaling.get("level_stat_scale", 0.1)
 	var base_defense: int = god.base_defense
-	var level_bonus: int = int(base_defense * (god.level - 1) * LEVEL_STAT_SCALE)
+	var level_bonus: int = int(base_defense * (god.level - 1) * level_scale)
 	var equipment_bonus: int = 0  # Not implemented
 	var buff_bonus: int = 0  # Not implemented
-	
+
 	return {
 		"base_value": base_defense,
 		"level_bonus": level_bonus,
@@ -143,11 +177,13 @@ static func get_detailed_defense_breakdown(god: God) -> Dictionary:
 
 ## Get detailed HP breakdown for UI/debugging
 static func get_detailed_hp_breakdown(god: God) -> Dictionary:
+	var scaling: Dictionary = _get_stat_scaling()
+	var level_scale: float = scaling.get("level_stat_scale", 0.1)
 	var base_hp: int = god.base_hp
-	var level_bonus: int = int(base_hp * (god.level - 1) * LEVEL_STAT_SCALE)
+	var level_bonus: int = int(base_hp * (god.level - 1) * level_scale)
 	var equipment_bonus: int = 0  # Not implemented
 	var buff_bonus: int = 0  # Not implemented
-	
+
 	return {
 		"base_value": base_hp,
 		"level_bonus": level_bonus,
@@ -162,7 +198,7 @@ static func get_detailed_speed_breakdown(god: God) -> Dictionary:
 	var level_bonus: int = 0  # Speed typically doesn't scale with level in SW
 	var equipment_bonus: int = 0  # Not implemented
 	var buff_bonus: int = 0  # Not implemented
-	
+
 	return {
 		"base_value": base_speed,
 		"level_bonus": level_bonus,
@@ -173,9 +209,12 @@ static func get_detailed_speed_breakdown(god: God) -> Dictionary:
 
 ## Calculate total power rating for a god (RULE 3 compliance - logic in calculator, not data class)
 static func calculate_total_power(god: God) -> int:
+	var scaling: Dictionary = _get_stat_scaling()
+	var power_per_level: int = int(scaling.get("power_per_level", 50))
+	var power_per_tier: int = int(scaling.get("power_per_tier", 500))
 	var base_power: float = (god.base_hp + god.base_attack + god.base_defense) / 3.0
-	var level_bonus: int = god.level * POWER_PER_LEVEL
-	var tier_bonus: int = god.tier * POWER_PER_TIER
+	var level_bonus: int = god.level * power_per_level
+	var tier_bonus: int = god.tier * power_per_tier
 	var total_power: float = base_power + level_bonus + tier_bonus
 
 	return int(total_power)

@@ -981,8 +981,8 @@
     "priority": "high",
     "file": "scripts/systems/battle/CombatCalculator.gd",
     "issue": "Damage formula constants: DAMAGE_NUMERATOR=1000, DAMAGE_DENOMINATOR_BASE=1140, DAMAGE_DEFENSE_SCALE=3.5, crit/glancing rates",
-    "action": "Create data/combat_config.json with damage_formula, hit_types, element_multipliers",
-    "passes": false
+    "action": "Added damage_formula, hit_types, element_multipliers, and stat_scaling sections to battle_config.json (replacing placeholder damage_calculation section). Updated CombatCalculator.gd to load all constants from JSON with static cached config and fallback defaults. Removed all hardcoded const values.",
+    "passes": true
   },
   {
     "priority": "high",

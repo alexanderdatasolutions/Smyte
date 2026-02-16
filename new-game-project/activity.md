@@ -7,6 +7,25 @@
 
 ---
 
+## 2026-02-16 - Audit: Move combat formula to battle_config.json
+
+**Priority:** High (Data-Driven JSON Config)
+**File(s) Modified:** `scripts/systems/battle/CombatCalculator.gd`, `data/battle_config.json`
+
+**Changes:**
+- Replaced placeholder `damage_calculation` section in `battle_config.json` with actual values from CombatCalculator: `damage_formula` (numerator, denominator_base, defense_scale), `hit_types` (glancing_chance, glancing_damage_mult, variance min/max), `element_multipliers` (advantage 1.3, disadvantage 0.85), `stat_scaling` (level_stat_scale 0.1, power_per_level 50, power_per_tier 500)
+- Removed all 11 hardcoded `const` values from CombatCalculator.gd
+- Added static cached config loading (`_config`, `_config_loaded`, `_ensure_config_loaded()`)
+- Added config accessor functions with fallback defaults: `_get_damage_formula()`, `_get_hit_types()`, `_get_element_multipliers()`, `_get_stat_scaling()`
+- Updated `calculate_damage()` to read formula/hit values from config
+- Updated `_get_element_multiplier()` to read advantage/disadvantage from config
+- Updated `get_detailed_*_breakdown()` functions to read level_stat_scale from config
+- Updated `calculate_total_power()` to read power_per_level/power_per_tier from config
+
+**Verified:** Ran project, no new errors in debug output. Pre-existing Firebase signal errors unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Add null checks to ArenaManager.gd
 
 **Priority:** High (Error Handling)
