@@ -12,12 +12,23 @@ signal dungeon_data_loaded
 var dungeon_data: Dictionary = {}
 var dungeon_waves: Dictionary = {}
 var player_progress: Dictionary = {}
+var _enemy_scaling: Dictionary = {}
 
 func _ready():
 	"""Initialize dungeon manager"""
+	_load_enemy_scaling_config()
 	load_dungeon_data()
 	load_dungeon_waves()
 	initialize_player_progress()
+
+func _load_enemy_scaling_config() -> void:
+	"""Load enemy scaling values from battle_config.json"""
+	var file := FileAccess.open("res://data/battle_config.json", FileAccess.READ)
+	if not file:
+		return
+	var config: Variant = JSON.parse_string(file.get_as_text())
+	if config is Dictionary:
+		_enemy_scaling = config.get("enemy_scaling", {})
 
 func load_dungeon_data():
 	"""Load dungeon definitions from JSON - RULE 5: Data-driven approach"""
@@ -421,31 +432,25 @@ func _convert_wave_data_to_battle_config(wave_data: Array) -> Array:
 	return enemy_waves
 
 func _calculate_enemy_stats(level: int, tier: String) -> Dictionary:
-	"""Calculate enemy stats based on level and tier - BALANCED for god stats"""
-	# Base stats at level 1 - matched to god power levels
-	# Average god at level 1: ~110 HP, ~55 ATK, ~70 DEF, ~60 SPD
-	var base_hp: int = 120  # Slightly tankier than gods
-	var base_attack: int = 50  # Slightly weaker than gods
-	var base_defense: int = 60  # Similar to gods
-	var base_speed: int = 55  # Similar to gods
+	"""Calculate enemy stats based on level and tier - values from battle_config.json"""
+	var base_stats: Dictionary = _enemy_scaling.get("base_stats", {})
+	var base_hp: int = base_stats.get("hp", 120)
+	var base_attack: int = base_stats.get("attack", 50)
+	var base_defense: int = base_stats.get("defense", 60)
+	var base_speed: int = base_stats.get("speed", 55)
 
-	# Tier multipliers - REDUCED from previous values
-	var tier_multipliers = {
-		"basic": 1.0,    # 1v1 fair fight
-		"leader": 1.4,   # Reduced from 1.5 - mini-boss
-		"elite": 1.8,    # Reduced from 2.0 - challenging
-		"boss": 2.5      # Reduced from 3.0 - team effort required
-	}
-	var tier_mult = tier_multipliers.get(tier, 1.0)
+	var tier_multipliers: Dictionary = _enemy_scaling.get("tier_multipliers", {})
+	var tier_mult: float = tier_multipliers.get(tier, 1.0)
 
-	# Level scaling: stats grow by ~10% per level (same as gods)
-	var level_mult = 1.0 + (level - 1) * 0.1
+	var level_scale: float = _enemy_scaling.get("level_scaling_per_level", 0.1)
+	var speed_per_level: int = _enemy_scaling.get("speed_per_level", 2)
+	var level_mult: float = 1.0 + (level - 1) * level_scale
 
 	return {
-		"hp": int(base_hp * level_mult * tier_mult),  # REMOVED x10 multiplier!
+		"hp": int(base_hp * level_mult * tier_mult),
 		"attack": int(base_attack * level_mult * tier_mult),
 		"defense": int(base_defense * level_mult * tier_mult),
-		"speed": int(base_speed + level * 2)  # Speed grows linearly
+		"speed": int(base_speed + level * speed_per_level)
 	}
 
 func get_completion_rewards(dungeon_id: String, difficulty: String) -> Dictionary:
@@ -618,44 +623,21 @@ func _enhance_dungeon_info(info: Dictionary):
 		difficulty_info["boss_power"] = int(enemy_power * 1.5)  # Boss is 50% stronger
 
 func _calculate_enemy_power(dungeon_info: Dictionary, difficulty: String) -> int:
-	"""Calculate estimated enemy power based on dungeon category and difficulty"""
-	var base_power: int = 1000
-	
-	# Adjust base power by dungeon category
-	var category = dungeon_info.get("category", "elemental")
-	match category:
-		"elemental":
-			base_power = 800
-		"pantheon":
-			base_power = 1200
-		"equipment":
-			base_power = 1000
-		"special":
-			base_power = 1500
-	
-	# Apply difficulty multiplier
-	var difficulty_multiplier: float = 1.0
-	match difficulty:
-		"beginner":
-			difficulty_multiplier = 1.0
-		"intermediate":
-			difficulty_multiplier = 1.5
-		"advanced":
-			difficulty_multiplier = 2.2
-		"expert":
-			difficulty_multiplier = 3.0
-		"master":
-			difficulty_multiplier = 4.0
-		"heroic":
-			difficulty_multiplier = 2.5
-		"legendary":
-			difficulty_multiplier = 4.0
-	
+	"""Calculate estimated enemy power based on dungeon category and difficulty - values from battle_config.json"""
+	var category_powers: Dictionary = _enemy_scaling.get("category_base_power", {})
+	var difficulty_mults: Dictionary = _enemy_scaling.get("difficulty_multipliers", {})
+
+	var category: String = dungeon_info.get("category", "elemental")
+	var base_power: int = category_powers.get(category, 1000)
+	var difficulty_multiplier: float = difficulty_mults.get(difficulty, 1.0)
+
 	# Apply level scaling from dungeon data if available
-	var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
-	var recommended_level = difficulty_info.get("recommended_level", 10)
-	var level_multiplier = 1.0 + (recommended_level - 10) * 0.1
-	
+	var difficulty_info: Dictionary = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
+	var recommended_level: int = difficulty_info.get("recommended_level", 10)
+	var level_base: int = _enemy_scaling.get("power_level_base", 10)
+	var level_scale: float = _enemy_scaling.get("power_level_scaling", 0.1)
+	var level_multiplier: float = 1.0 + (recommended_level - level_base) * level_scale
+
 	return int(base_power * difficulty_multiplier * level_multiplier)
 
 func _get_difficulty_color(difficulty: String) -> Color:

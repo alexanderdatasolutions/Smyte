@@ -38,6 +38,39 @@
       "defeat_conditions": ["all_gods_defeated", "turn_limit_exceeded"]
     }
   },
+  "enemy_scaling": {
+    "base_stats": {
+      "hp": 120,
+      "attack": 50,
+      "defense": 60,
+      "speed": 55
+    },
+    "tier_multipliers": {
+      "basic": 1.0,
+      "leader": 1.4,
+      "elite": 1.8,
+      "boss": 2.5
+    },
+    "level_scaling_per_level": 0.1,
+    "speed_per_level": 2,
+    "category_base_power": {
+      "elemental": 800,
+      "pantheon": 1200,
+      "equipment": 1000,
+      "special": 1500
+    },
+    "difficulty_multipliers": {
+      "beginner": 1.0,
+      "intermediate": 1.5,
+      "advanced": 2.2,
+      "expert": 3.0,
+      "master": 4.0,
+      "heroic": 2.5,
+      "legendary": 4.0
+    },
+    "power_level_base": 10,
+    "power_level_scaling": 0.1
+  },
   "elemental_relationships": {
     "fire": {
       "strong_against": ["earth", "light"],

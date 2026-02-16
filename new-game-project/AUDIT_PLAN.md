@@ -967,15 +967,15 @@
     "priority": "high",
     "file": "scripts/systems/arena/ArenaManager.gd",
     "issue": "ELO system hardcoded: K-factor=32, league thresholds (1200, 1400, 1600, 1800, 2000, 2200), cooldowns",
-    "action": "Create data/arena_config.json with elo_settings, leagues[], cooldowns",
-    "passes": false
+    "action": "Already implemented: data/arena_config.json created with elo, cooldowns, leagues (thresholds+colors), rewards. ArenaManager._load_arena_config() reads all values with fallback defaults. _calculate_pvp_rewards() also reads from config.",
+    "passes": true
   },
   {
     "priority": "high",
     "file": "scripts/systems/dungeon/DungeonManager.gd",
     "issue": "Enemy stat scaling hardcoded: 800, 1200, 1000, 1500 base values",
-    "action": "Move to data/battle_config.json under enemy_scaling section",
-    "passes": false
+    "action": "Added enemy_scaling section to battle_config.json with base_stats, tier_multipliers, level_scaling, category_base_power, and difficulty_multipliers. Updated DungeonManager._calculate_enemy_stats() and _calculate_enemy_power() to read from config with fallback defaults.",
+    "passes": true
   },
   {
     "priority": "high",

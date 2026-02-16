@@ -7,6 +7,23 @@
 
 ---
 
+## 2026-02-16 - Audit: Move DungeonManager enemy scaling to battle_config.json
+
+**Priority:** High (Data-Driven Config)
+**File(s) Modified:** `scripts/systems/dungeon/DungeonManager.gd`, `data/battle_config.json`
+
+**Changes:**
+- Added `enemy_scaling` section to `data/battle_config.json` with: base_stats (hp/attack/defense/speed), tier_multipliers (basic/leader/elite/boss), level_scaling_per_level, speed_per_level, category_base_power (elemental/pantheon/equipment/special), difficulty_multipliers (beginner through legendary), power_level_base, power_level_scaling
+- Added `_enemy_scaling: Dictionary` member variable to DungeonManager
+- Added `_load_enemy_scaling_config()` to load from battle_config.json on _ready()
+- Refactored `_calculate_enemy_stats()` to read base stats, tier multipliers, and level scaling from config with fallback defaults
+- Refactored `_calculate_enemy_power()` to read category base powers, difficulty multipliers, and level scaling from config with fallback defaults
+- Also marked ArenaManager ELO config task as already completed (arena_config.json + _load_arena_config() already existed)
+
+**Verified:** Ran project, no new errors in debug output. Pre-existing Firebase signal errors unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Add static typing to ArenaManager.gd
 
 **Priority:** High
