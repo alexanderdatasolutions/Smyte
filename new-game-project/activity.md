@@ -7,6 +7,24 @@
 
 ---
 
+## 2026-02-16 - Audit: Cache SystemRegistry lookups in AchievementManager
+
+**Priority:** High (Performance + Achievements)
+**File(s) Modified:** `scripts/systems/progression/AchievementManager.gd`
+
+**Changes:**
+- Added 7 cached system reference member variables (_event_bus, _collection_manager, _statistics_manager, _hex_grid_manager, _resource_manager, _save_manager, _feature_unlock_manager)
+- Added `_cache_system_references()` method called from `initialize()` - single point of SystemRegistry access
+- Replaced all 23 `SystemRegistry.get_instance().get_system()` calls throughout the file with cached member variable access
+- Only 2 SystemRegistry calls remain: one in `_cache_system_references()` itself, one for BuildingManager (one-time signal connection, not cached since only used once)
+- Fixed 4 unused parameter warnings: `god` -> `_god`, `god_id` -> `_god_id`, `banner_id` -> `_banner_id`, `results` -> `_results`
+- Added typed loop iterators (`for node_id: String`, `for dungeon_id: String`, `for resource_id: String`, `for achievement_id: String`)
+- Verified no print statements exist in file (Section 10 medium issue already resolved)
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings/errors unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Remove empty stub functions from battle setup files
 
 **Priority:** Medium (Dead Code)
