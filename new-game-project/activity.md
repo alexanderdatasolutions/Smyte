@@ -7,6 +7,34 @@
 
 ---
 
+## 2026-02-16 - Audit: Add static typing to ArenaManager.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/arena/ArenaManager.gd`
+
+**Changes:**
+- Typed member variables: `defense_team` as `Array[God]`, `cached_opponents` as `Array[Dictionary]`, `_data_sync` as `Node`
+- Added `-> Node` return type to `_get_system_registry()`, typed its local `registry_script` as `GDScript`
+- Typed all local variables in `process_battle_result()`: `opponent_elo: int`, `elo_change: int`, `old_elo: int`, `old_league: String`, `registry: Node`, `event_bus: Node`, `direction: String`, `rewards: Dictionary`, `result: Dictionary`
+- Typed `_calculate_elo_change()` locals: `expected: float`, `actual: float`, `k_factor: int`, `change: int`
+- Typed `_calculate_pvp_rewards()` locals: `league_index: int`
+- Typed `_award_rewards()` locals: `system_registry: Node`, `resource_manager: Node`
+- Changed `_serialize_defense_team()` signature to `Array[God] -> Array[Dictionary]`, typed `serialized`
+- Typed `_serialize_god_for_pvp()` locals: `system_registry: Node`, `equipment_manager: Node`, `equipped: Dictionary`, `god_equipment: Dictionary`, `eq: Equipment`
+- Typed `deserialize_god_for_battle()` locals: `god: God`, `traits_data: Array`, `spec_data: Array`, `equipment_data: Dictionary`, `eq_data: Dictionary`
+- Typed `_apply_equipment_stats_to_god()` locals: `main_stat: String`, `main_value: int`, `substats: Array`
+- Typed all mock data generation: `Array[String]`, `Array[Dictionary]`, `Array[int]` for all local arrays
+- Typed all loop iterators: `for god: God`, `for resource_id: String`, `for slot_key: String`, `for league: String`, `for i: int`, etc.
+- Changed `_generate_mock_defense_team()` return to `Array[Dictionary]`, `_get_mock_substats()` to `Array[Dictionary]`
+- Replaced `if _data_sync and` with `if _data_sync != null and` (5 occurrences)
+- Replaced `SystemRegistry.get_instance()` direct call with `_get_system_registry()` helper in `process_battle_result()`
+- Typed `restore_defense_team_from_ids()` locals: `system_registry: Node`, `collection_manager: Node`, `god: God`
+- Typed `load_save_data()` locals: `loaded_ids: Array`, `id: Variant`
+
+**Verified:** Ran project, no new errors in debug output. Pre-existing Firebase signal errors unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Add static typing to FirebaseIntegration.gd
 
 **Priority:** High

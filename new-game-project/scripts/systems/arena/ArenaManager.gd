@@ -42,9 +42,9 @@ var _arena_config: Dictionary = {}
 var player_elo: int = BASE_ELO
 var player_rank: int = 0
 var player_league: String = "bronze"
-var defense_team: Array = []  # Array[God]
+var defense_team: Array[God] = []
 var defense_team_ids: Array[String] = []  # Persist these for save/load
-var cached_opponents: Array = []
+var cached_opponents: Array[Dictionary] = []
 var attack_cooldowns: Dictionary = {}  # {opponent_uid: unix_timestamp}
 var total_games: int = 0
 var wins: int = 0
@@ -53,11 +53,11 @@ var defense_wins: int = 0
 var defense_losses: int = 0
 
 # Firebase sync
-var _data_sync = null  # ArenaDataSync instance
+var _data_sync: Node = null  # ArenaDataSync instance
 
 # System reference helper
-func _get_system_registry():
-	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+func _get_system_registry() -> Node:
+	var registry_script: GDScript = load("res://scripts/systems/core/SystemRegistry.gd")
 	if registry_script and registry_script.has_method("get_instance"):
 		return registry_script.get_instance()
 	return null
@@ -98,13 +98,13 @@ func _load_arena_config() -> void:
 	if not thresholds.is_empty():
 		LEAGUE_THRESHOLDS = thresholds
 	var colors: Dictionary = leagues.get("colors", {})
-	for league_name in colors:
+	for league_name: String in colors:
 		var c: Array = colors[league_name]
 		if c.size() >= 3:
 			LEAGUE_COLORS[league_name] = Color(c[0], c[1], c[2])
 
 func _connect_signals() -> void:
-	if _data_sync:
+	if _data_sync != null:
 		_data_sync.opponents_fetched.connect(_on_opponents_fetched)
 		_data_sync.defense_uploaded.connect(_on_defense_uploaded)
 		_data_sync.leaderboard_fetched.connect(_on_leaderboard_fetched)
@@ -116,7 +116,7 @@ func _connect_signals() -> void:
 
 func fetch_opponents() -> void:
 	"""Fetch opponents within ELO range from Firebase"""
-	if _data_sync and _data_sync.is_ready():
+	if _data_sync != null and _data_sync.is_ready():
 		_data_sync.fetch_opponents_in_range(
 			player_elo - MAX_ELO_RANGE,
 			player_elo + MAX_ELO_RANGE,
@@ -128,18 +128,20 @@ func fetch_opponents() -> void:
 
 func update_defense_team(team: Array) -> void:
 	"""Update the player's defense team"""
-	defense_team = team.duplicate()
+	defense_team.clear()
+	for god: God in team:
+		defense_team.append(god)
 	defense_team_ids.clear()
-	for god in team:
+	for god: God in team:
 		if god != null:
 			defense_team_ids.append(god.id)
 
-	if _data_sync and _data_sync.is_ready():
-		_data_sync.upload_defense_team(_serialize_defense_team(team))
+	if _data_sync != null and _data_sync.is_ready():
+		_data_sync.upload_defense_team(_serialize_defense_team(defense_team))
 	else:
 		defense_updated.emit(true)
 
-func get_defense_team() -> Array:
+func get_defense_team() -> Array[God]:
 	"""Get the current defense team"""
 	return defense_team
 
@@ -149,7 +151,7 @@ func post_defense_to_firebase() -> void:
 		push_warning("[ArenaManager] No defense team to post")
 		return
 
-	if _data_sync and _data_sync.is_ready():
+	if _data_sync != null and _data_sync.is_ready():
 		_data_sync.upload_defense_team(_serialize_defense_team(defense_team))
 	else:
 		push_warning("[ArenaManager] DataSync not ready, defense not posted")
@@ -159,14 +161,14 @@ func can_attack_opponent(opponent_uid: String) -> bool:
 	"""Check if attack cooldown has expired for this opponent"""
 	if not attack_cooldowns.has(opponent_uid):
 		return true
-	var elapsed = Time.get_unix_time_from_system() - attack_cooldowns[opponent_uid]
+	var elapsed: float = Time.get_unix_time_from_system() - attack_cooldowns[opponent_uid]
 	return elapsed > ATTACK_COOLDOWN
 
 func get_attack_cooldown_remaining(opponent_uid: String) -> float:
 	"""Get remaining cooldown time in seconds"""
 	if not attack_cooldowns.has(opponent_uid):
 		return 0.0
-	var elapsed = Time.get_unix_time_from_system() - attack_cooldowns[opponent_uid]
+	var elapsed: float = Time.get_unix_time_from_system() - attack_cooldowns[opponent_uid]
 	return max(0.0, ATTACK_COOLDOWN - elapsed)
 
 func start_pvp_battle(opponent_data: Dictionary) -> Dictionary:
@@ -182,10 +184,10 @@ func start_pvp_battle(opponent_data: Dictionary) -> Dictionary:
 
 func process_battle_result(victory: bool, opponent_data: Dictionary) -> Dictionary:
 	"""Process battle result, update ELO, return rewards"""
-	var opponent_elo = opponent_data.get("elo", BASE_ELO)
-	var elo_change = _calculate_elo_change(player_elo, opponent_elo, victory)
+	var opponent_elo: int = opponent_data.get("elo", BASE_ELO)
+	var elo_change: int = _calculate_elo_change(player_elo, opponent_elo, victory)
 
-	var old_elo = player_elo
+	var old_elo: int = player_elo
 	player_elo = max(0, player_elo + elo_change)
 	total_games += 1
 
@@ -194,18 +196,19 @@ func process_battle_result(victory: bool, opponent_data: Dictionary) -> Dictiona
 	else:
 		losses += 1
 
-	var old_league = player_league
+	var old_league: String = player_league
 	_update_league()
 
 	# Sync to Firebase
-	if _data_sync and _data_sync.is_ready():
+	if _data_sync != null and _data_sync.is_ready():
 		_data_sync.update_player_stats(player_elo, wins, losses)
 		_data_sync.record_battle(opponent_data.get("user_id", ""), victory, elo_change)
 
 	elo_changed.emit(old_elo, player_elo, elo_change)
 
 	# Emit to EventBus for analytics
-	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	var registry: Node = _get_system_registry()
+	var event_bus: Node = registry.get_system("EventBus") if registry else null
 	if event_bus:
 		event_bus.arena_battle_completed.emit({
 			"victory": victory,
@@ -219,7 +222,7 @@ func process_battle_result(victory: bool, opponent_data: Dictionary) -> Dictiona
 		})
 		# Emit league change if applicable
 		if old_league != player_league:
-			var direction = "promoted" if LEAGUE_THRESHOLDS[player_league] > LEAGUE_THRESHOLDS[old_league] else "demoted"
+			var direction: String = "promoted" if LEAGUE_THRESHOLDS[player_league] > LEAGUE_THRESHOLDS[old_league] else "demoted"
 			event_bus.league_changed.emit({
 				"old_league": old_league,
 				"new_league": player_league,
@@ -227,10 +230,10 @@ func process_battle_result(victory: bool, opponent_data: Dictionary) -> Dictiona
 				"direction": direction
 			})
 
-	var rewards = _calculate_pvp_rewards(victory, opponent_elo)
+	var rewards: Dictionary = _calculate_pvp_rewards(victory, opponent_elo)
 	_award_rewards(rewards)
 
-	var result = {
+	var result: Dictionary = {
 		"victory": victory,
 		"elo_change": elo_change,
 		"old_elo": old_elo,
@@ -246,7 +249,7 @@ func process_battle_result(victory: bool, opponent_data: Dictionary) -> Dictiona
 
 func fetch_leaderboard() -> void:
 	"""Fetch top players leaderboard"""
-	if _data_sync and _data_sync.is_ready():
+	if _data_sync != null and _data_sync.is_ready():
 		_data_sync.fetch_leaderboard()
 	else:
 		_generate_mock_leaderboard()
@@ -273,7 +276,7 @@ func get_league_color(league: String) -> Color:
 
 func get_league_for_elo(elo: int) -> String:
 	"""Determine league from ELO"""
-	for league in ["legend", "diamond", "platinum", "gold", "silver", "bronze"]:
+	for league: String in ["legend", "diamond", "platinum", "gold", "silver", "bronze"]:
 		if elo >= LEAGUE_THRESHOLDS[league]:
 			return league
 	return "bronze"
@@ -285,17 +288,17 @@ func get_league_for_elo(elo: int) -> String:
 func _calculate_elo_change(p_elo: int, opp_elo: int, victory: bool) -> int:
 	"""Standard ELO formula with adjustments"""
 	# Expected score
-	var expected = 1.0 / (1.0 + pow(10.0, (opp_elo - p_elo) / 400.0))
-	var actual = 1.0 if victory else 0.0
+	var expected: float = 1.0 / (1.0 + pow(10.0, (opp_elo - p_elo) / 400.0))
+	var actual: float = 1.0 if victory else 0.0
 
 	# K-factor adjustment
-	var k_factor = K_FACTOR_NEW_PLAYER if total_games < NEW_PLAYER_GAMES else K_FACTOR_BASE
+	var k_factor: int = K_FACTOR_NEW_PLAYER if total_games < NEW_PLAYER_GAMES else K_FACTOR_BASE
 
 	# Reduce K at high ELO for stability
 	if p_elo > LEAGUE_THRESHOLDS["diamond"]:
 		k_factor = int(k_factor * HIGH_ELO_K_FACTOR_MULT)
 
-	var change = int(k_factor * (actual - expected))
+	var change: int = int(k_factor * (actual - expected))
 
 	# Minimum change to feel meaningful
 	if change > 0:
@@ -340,16 +343,16 @@ func _calculate_pvp_rewards(victory: bool, opponent_elo: int) -> Dictionary:
 
 func _award_rewards(rewards: Dictionary) -> void:
 	"""Award resources to player"""
-	var system_registry = _get_system_registry()
+	var system_registry: Node = _get_system_registry()
 	if not system_registry:
 		return
 
-	var resource_manager = system_registry.get_system("ResourceManager")
+	var resource_manager: Node = system_registry.get_system("ResourceManager")
 	if resource_manager:
-		for resource_id in rewards:
+		for resource_id: String in rewards:
 			resource_manager.add_resource(resource_id, rewards[resource_id])
 
-func _calculate_team_power(team: Array) -> int:
+func _calculate_team_power(team: Array[God]) -> int:
 	"""Calculate total team combat power"""
 	return TeamStatsCalculator.calculate_team_power(team)
 
@@ -357,10 +360,10 @@ func _calculate_team_power(team: Array) -> int:
 # SERIALIZATION
 # ==============================================================================
 
-func _serialize_defense_team(team: Array) -> Array:
+func _serialize_defense_team(team: Array[God]) -> Array[Dictionary]:
 	"""Serialize defense team for Firebase storage"""
-	var serialized = []
-	for god in team:
+	var serialized: Array[Dictionary] = []
+	for god: God in team:
 		if god == null:
 			continue
 		serialized.append(_serialize_god_for_pvp(god))
@@ -368,15 +371,15 @@ func _serialize_defense_team(team: Array) -> Array:
 
 func _serialize_god_for_pvp(god: God) -> Dictionary:
 	"""Serialize a god with all data needed to recreate in battle"""
-	var system_registry = _get_system_registry()
-	var equipment_manager = system_registry.get_system("EquipmentManager") if system_registry else null
+	var system_registry: Node = _get_system_registry()
+	var equipment_manager: Node = system_registry.get_system("EquipmentManager") if system_registry else null
 
 	# Get equipped items
-	var equipped = {}
+	var equipped: Dictionary = {}
 	if equipment_manager and equipment_manager.has_method("get_equipped_items_for_god"):
-		var god_equipment = equipment_manager.get_equipped_items_for_god(god.id)
-		for slot_idx in god_equipment:
-			var eq = god_equipment[slot_idx]
+		var god_equipment: Dictionary = equipment_manager.get_equipped_items_for_god(god.id)
+		for slot_idx: Variant in god_equipment:
+			var eq: Equipment = god_equipment[slot_idx]
 			if eq != null:
 				equipped[str(slot_idx)] = _serialize_equipment(eq)
 
@@ -422,7 +425,7 @@ func _serialize_equipment(eq: Equipment) -> Dictionary:
 
 func deserialize_god_for_battle(data: Dictionary) -> God:
 	"""Create a God object from serialized PvP data"""
-	var god = God.new()
+	var god: God = God.new()
 	god.id = data.get("god_id", "pvp_" + str(randi()))
 	god.template_id = data.get("template_id", "")
 	god.name = data.get("name", "Opponent God")
@@ -445,11 +448,11 @@ func deserialize_god_for_battle(data: Dictionary) -> God:
 	god.passive_abilities = data.get("passive_abilities", [])
 
 	# Handle typed arrays - must assign element by element
-	var traits_data = data.get("innate_traits", [])
-	for trait_id in traits_data:
+	var traits_data: Array = data.get("innate_traits", [])
+	for trait_id: Variant in traits_data:
 		god.innate_traits.append(str(trait_id))
 
-	var spec_data = data.get("specialization_path", ["", "", ""])
+	var spec_data: Array = data.get("specialization_path", ["", "", ""])
 	if spec_data.size() >= 3:
 		god.specialization_path[0] = str(spec_data[0])
 		god.specialization_path[1] = str(spec_data[1])
@@ -457,26 +460,26 @@ func deserialize_god_for_battle(data: Dictionary) -> God:
 
 	# Equipment stats are baked into base stats for PvP opponents
 	# This ensures equipment effects apply even though we can't reconstruct Equipment objects
-	var equipment_data = data.get("equipment", {})
-	for slot_key in equipment_data:
-		var eq_data = equipment_data[slot_key]
+	var equipment_data: Dictionary = data.get("equipment", {})
+	for slot_key: String in equipment_data:
+		var eq_data: Dictionary = equipment_data[slot_key]
 		_apply_equipment_stats_to_god(god, eq_data)
 
 	return god
 
 func _apply_equipment_stats_to_god(god: God, eq_data: Dictionary) -> void:
 	"""Apply equipment stat bonuses directly to god base stats"""
-	var main_stat = eq_data.get("main_stat_type", "")
-	var main_value = eq_data.get("main_stat_value", 0)
+	var main_stat: String = eq_data.get("main_stat_type", "")
+	var main_value: int = eq_data.get("main_stat_value", 0)
 
 	# Apply main stat
 	_apply_stat_to_god(god, main_stat, main_value)
 
 	# Apply substats
-	var substats = eq_data.get("substats", [])
-	for substat in substats:
-		var stat_type = substat.get("type", "")
-		var stat_value = substat.get("value", 0)
+	var substats: Array = eq_data.get("substats", [])
+	for substat: Dictionary in substats:
+		var stat_type: String = substat.get("type", "")
+		var stat_value: int = substat.get("value", 0)
 		_apply_stat_to_god(god, stat_type, stat_value)
 
 func _apply_stat_to_god(god: God, stat_type: String, value: int) -> void:
@@ -505,12 +508,12 @@ func _apply_stat_to_god(god: God, stat_type: String, value: int) -> void:
 
 func _generate_mock_opponents() -> void:
 	"""Generate mock opponents for testing"""
-	var mock_names = ["TestPlayer1", "ArenaKing", "GodSlayer", "Mythic_Mike", "DivineFury", "SkyGod99", "ElementalX", "TierLord", "BattleMage", "StormBringer"]
-	var opponents = []
+	var mock_names: Array[String] = ["TestPlayer1", "ArenaKing", "GodSlayer", "Mythic_Mike", "DivineFury", "SkyGod99", "ElementalX", "TierLord", "BattleMage", "StormBringer"]
+	var opponents: Array[Dictionary] = []
 
-	for i in range(min(OPPONENTS_TO_FETCH, mock_names.size())):
-		var elo_variance = randi_range(-200, 200)
-		var mock_elo = max(0, player_elo + elo_variance)
+	for i: int in range(min(OPPONENTS_TO_FETCH, mock_names.size())):
+		var elo_variance: int = randi_range(-200, 200)
+		var mock_elo: int = max(0, player_elo + elo_variance)
 
 		opponents.append({
 			"user_id": "mock_" + str(i),
@@ -526,27 +529,27 @@ func _generate_mock_opponents() -> void:
 	cached_opponents = opponents
 	opponents_loaded.emit(opponents)
 
-func _generate_mock_defense_team() -> Array:
+func _generate_mock_defense_team() -> Array[Dictionary]:
 	"""Generate mock defense team data"""
-	var team = []
-	var god_names = ["Zeus", "Athena", "Poseidon", "Hades", "Thor", "Odin", "Ra", "Anubis"]
-	var elements = [0, 1, 2, 3, 4, 5]  # FIRE, WATER, EARTH, LIGHTNING, LIGHT, DARK
-	var set_names = ["warrior", "guardian", "swift", "vampire", "rage", "focus", "blade", "endure"]
-	var slot_types = ["weapon", "armor", "helm", "boots", "amulet", "ring"]
+	var team: Array[Dictionary] = []
+	var god_names: Array[String] = ["Zeus", "Athena", "Poseidon", "Hades", "Thor", "Odin", "Ra", "Anubis"]
+	var elements: Array[int] = [0, 1, 2, 3, 4, 5]  # FIRE, WATER, EARTH, LIGHTNING, LIGHT, DARK
+	var set_names: Array[String] = ["warrior", "guardian", "swift", "vampire", "rage", "focus", "blade", "endure"]
+	var slot_types: Array[String] = ["weapon", "armor", "helm", "boots", "amulet", "ring"]
 
-	var team_size = randi_range(2, 4)
-	for i in range(team_size):
+	var team_size: int = randi_range(2, 4)
+	for i: int in range(team_size):
 		# Generate equipment for this god
-		var equipment = {}
+		var equipment: Dictionary = {}
 		# Pick 1-2 sets for this god to have pieces from
-		var primary_set = set_names[randi() % set_names.size()]
-		var secondary_set = set_names[randi() % set_names.size()]
+		var primary_set: String = set_names[randi() % set_names.size()]
+		var secondary_set: String = set_names[randi() % set_names.size()]
 
-		for slot in slot_types:
+		for slot: String in slot_types:
 			# 70% chance to have equipment in each slot
 			if randf() < 0.7:
 				# 60% primary set, 40% secondary set
-				var eq_set = primary_set
+				var eq_set: String = primary_set
 				if randf() >= 0.6:
 					eq_set = secondary_set
 				equipment[slot] = {
@@ -589,19 +592,19 @@ func _get_mock_main_stat(slot: String) -> Dictionary:
 		"boots":
 			return {"stat": "speed", "value": randi_range(10, 30)}
 		"amulet":
-			var stats = ["attack%", "defense%", "hp%", "crit_rate"]
+			var stats: Array[String] = ["attack%", "defense%", "hp%", "crit_rate"]
 			return {"stat": stats[randi() % stats.size()], "value": randi_range(10, 40)}
 		"ring":
-			var stats = ["crit_damage", "accuracy", "resistance"]
+			var stats: Array[String] = ["crit_damage", "accuracy", "resistance"]
 			return {"stat": stats[randi() % stats.size()], "value": randi_range(10, 50)}
 	return {"stat": "attack", "value": 50}
 
-func _get_mock_substats() -> Array:
+func _get_mock_substats() -> Array[Dictionary]:
 	"""Generate 2-4 random substats"""
-	var possible = ["attack", "defense", "hp", "speed", "crit_rate", "crit_damage", "accuracy", "resistance"]
-	var count = randi_range(2, 4)
-	var substats = []
-	for j in range(count):
+	var possible: Array[String] = ["attack", "defense", "hp", "speed", "crit_rate", "crit_damage", "accuracy", "resistance"]
+	var count: int = randi_range(2, 4)
+	var substats: Array[Dictionary] = []
+	for j: int in range(count):
 		substats.append({
 			"stat": possible[randi() % possible.size()],
 			"value": randi_range(5, 25)
@@ -610,11 +613,11 @@ func _get_mock_substats() -> Array:
 
 func _generate_mock_leaderboard() -> void:
 	"""Generate mock leaderboard data"""
-	var entries = []
-	var names = ["#1_Champion", "EliteWarrior", "TopTierGod", "MythicPlayer", "ArenaLegend", "DivineMaster", "GodKiller99", "ProGamer", "ArenaKing", "BattleLord"]
+	var entries: Array[Dictionary] = []
+	var names: Array[String] = ["#1_Champion", "EliteWarrior", "TopTierGod", "MythicPlayer", "ArenaLegend", "DivineMaster", "GodKiller99", "ProGamer", "ArenaKing", "BattleLord"]
 
-	for i in range(10):
-		var elo = 2500 - (i * 100) + randi_range(-20, 20)
+	for i: int in range(10):
+		var elo: int = 2500 - (i * 100) + randi_range(-20, 20)
 		entries.append({
 			"rank": i + 1,
 			"user_id": "leader_" + str(i),
@@ -675,9 +678,9 @@ func load_save_data(data: Dictionary) -> void:
 	defense_losses = data.get("defense_losses", 0)
 	total_games = data.get("total_games", 0)
 	# Properly convert loaded array to typed array
-	var loaded_ids = data.get("defense_team_ids", [])
+	var loaded_ids: Array = data.get("defense_team_ids", [])
 	defense_team_ids.clear()
-	for id in loaded_ids:
+	for id: Variant in loaded_ids:
 		defense_team_ids.append(str(id))
 	attack_cooldowns = data.get("attack_cooldowns", {})
 
@@ -685,16 +688,16 @@ func load_save_data(data: Dictionary) -> void:
 
 func restore_defense_team_from_ids() -> void:
 	"""Restore defense team references from saved god IDs"""
-	var system_registry = _get_system_registry()
+	var system_registry: Node = _get_system_registry()
 	if not system_registry:
 		return
 
-	var collection_manager = system_registry.get_system("CollectionManager")
+	var collection_manager: Node = system_registry.get_system("CollectionManager")
 	if not collection_manager:
 		return
 
 	defense_team.clear()
-	for god_id in defense_team_ids:
-		var god = collection_manager.get_god_by_id(god_id)
+	for god_id: String in defense_team_ids:
+		var god: God = collection_manager.get_god_by_id(god_id)
 		if god != null:
 			defense_team.append(god)
