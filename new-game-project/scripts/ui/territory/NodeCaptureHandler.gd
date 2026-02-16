@@ -10,6 +10,7 @@ RULE 1: Under 500 lines
 RULE 5: Uses SystemRegistry for all system access
 
 Responsibilities:
+	pass
 - Initiate capture battles
 - Create battle configs for territory capture
 - Handle battle results (victory/defeat)
@@ -339,7 +340,6 @@ func _create_default_defender(hex_node: HexNode) -> Dictionary:
 	var def = 70 + (hex_node.tier * 10)  # Tier 1: 80, Tier 2: 90, Tier 3: 100
 	var spd = 50 + (hex_node.tier * 5)  # Tier 1: 55, Tier 2: 60, Tier 3: 65
 
-	print("NodeCaptureHandler: Creating Territory Guardian (Tier %d): HP=%d, ATK=%d, DEF=%d, SPD=%d" % [hex_node.tier, hp, atk, def, spd])
 
 	var defender = {
 		"id": "default_defender_" + hex_node.id,
@@ -394,7 +394,6 @@ func _handle_capture_victory(hex_node: HexNode) -> void:
 	last_capture_rewards = _generate_capture_loot(hex_node)
 	if not last_capture_rewards.is_empty():
 		_award_capture_loot(last_capture_rewards)
-		print("Capture Loot: ", last_capture_rewards)
 
 	# Play capture animation
 	if hex_map_view:
@@ -407,14 +406,12 @@ func _handle_capture_victory(hex_node: HexNode) -> void:
 	_show_capture_notification(hex_node, last_capture_rewards)
 
 	# Log success
-	print("Victory! Node ", hex_node.name, " is now contested. Claim after contest period.")
 
 func _handle_capture_defeat() -> void:
 	"""Handle failed capture attempt"""
 	if current_capture_node:
 		capture_failed.emit(current_capture_node)
 
-	print("Defeat! Failed to capture node.")
 
 func _show_capture_notification(hex_node: HexNode, rewards: Dictionary) -> void:
 	"""Show territory capture notification using NotificationQueue"""
@@ -484,7 +481,6 @@ func _award_capture_loot(loot: Dictionary) -> void:
 	for resource_id in loot:
 		var amount = loot[resource_id]
 		resource_manager.add_resource(resource_id, amount)
-		print("  Awarded: %s x%d" % [resource_id, amount])
 
 func get_last_capture_rewards() -> Dictionary:
 	"""Get rewards from last capture (for UI display)"""

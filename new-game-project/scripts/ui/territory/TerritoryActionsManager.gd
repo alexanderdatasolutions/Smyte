@@ -7,7 +7,6 @@ signal territory_updated
 
 func handle_territory_action(territory_id: String, action: String, data: Dictionary):
 	"""Handle territory actions using SystemRegistry systems"""
-	print("TerritoryActionsManager: Handling action '%s' for territory '%s'" % [action, territory_id])
 
 	match action:
 		"collect_resources":
@@ -19,28 +18,22 @@ func handle_territory_action(territory_id: String, action: String, data: Diction
 		"attack":
 			_handle_attack_territory(territory_id, data)
 		_:
-			print("TerritoryActionsManager: Unknown territory action: %s" % action)
+			pass
 
 func _handle_collect_resources(territory_id: String):
 	"""Handle resource collection from hex node"""
-	print("TerritoryActionsManager: Collecting resources from node: %s" % territory_id)
 
 	var territory_production = SystemRegistry.get_instance().get_system("TerritoryProductionManager")
 	if not territory_production:
-		print("TerritoryActionsManager: ERROR - TerritoryProductionManager not found")
 		return
 
 	var collected = territory_production.collect_node_resources(territory_id)
 
 	if not collected.is_empty():
-		print("TerritoryActionsManager: Successfully collected resources: %s" % str(collected))
 		territory_updated.emit()
-	else:
-		print("TerritoryActionsManager: No resources to collect from node: %s" % territory_id)
 
 func _handle_manage_gods(territory_id: String):
 	"""Handle opening territory management for god assignments"""
-	print("TerritoryActionsManager: Opening territory management for: %s" % territory_id)
 
 	# Navigate to territory role screen (this screen exists)
 	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
@@ -48,12 +41,9 @@ func _handle_manage_gods(territory_id: String):
 		# Store territory context for the role screen
 		screen_manager.set_screen_context("territory_role", {"territory_id": territory_id})
 		screen_manager.change_screen("territory_role")
-	else:
-		print("TerritoryActionsManager: ERROR - ScreenManager not found")
 
 func _handle_manage_tasks(territory_id: String):
 	"""Handle opening task assignment screen for territory"""
-	print("TerritoryActionsManager: Opening task management for: %s" % territory_id)
 
 	# Navigate to task assignment screen
 	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
@@ -61,23 +51,18 @@ func _handle_manage_tasks(territory_id: String):
 		# Store territory context for the task screen
 		screen_manager.set_screen_context("task_assignment", {"territory_id": territory_id})
 		screen_manager.change_screen("task_assignment")
-	else:
-		print("TerritoryActionsManager: ERROR - ScreenManager not found")
 
 func _handle_attack_territory(territory_id: String, _data: Dictionary):
 	"""Handle territory attack setup"""
-	print("TerritoryActionsManager: Setting up attack for territory: %s" % territory_id)
 	
 	# Get player power for validation
 	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager")
 	if not collection_manager:
-		print("TerritoryActionsManager: ERROR - CollectionManager not found")
 		return
 	
 	# Get territory configuration for power requirement
 	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager")
 	if not config_manager:
-		print("TerritoryActionsManager: ERROR - ConfigurationManager not found")
 		return
 	
 	var territories_config = config_manager.get_territories_config()
@@ -91,7 +76,6 @@ func _handle_attack_territory(territory_id: String, _data: Dictionary):
 				break
 	
 	if not territory_data:
-		print("TerritoryActionsManager: ERROR - Territory data not found for: %s" % territory_id)
 		return
 	
 	# Check power requirement
@@ -99,7 +83,6 @@ func _handle_attack_territory(territory_id: String, _data: Dictionary):
 	var player_power = collection_manager.get_total_player_power()
 	
 	if player_power < required_power:
-		print("TerritoryActionsManager: Insufficient power - need %d, have %d" % [required_power, player_power])
 		
 		var notification_manager = SystemRegistry.get_instance().get_system("NotificationManager")
 		if notification_manager:
@@ -117,5 +100,3 @@ func _handle_attack_territory(territory_id: String, _data: Dictionary):
 			"required_power": required_power
 		})
 		screen_manager.change_screen("battle_setup")
-	else:
-		print("TerritoryActionsManager: ERROR - ScreenManager not found")

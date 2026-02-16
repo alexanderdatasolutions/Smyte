@@ -15,7 +15,6 @@ signal notification_completed()
 func _ready():
 	"""Initialize notification toast"""
 	modulate = Color.TRANSPARENT
-	print("NotificationToast: Initialized")
 
 func show_notification(config: Dictionary):
 	"""Show notification with configuration"""

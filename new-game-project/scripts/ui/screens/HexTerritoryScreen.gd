@@ -11,6 +11,7 @@ RULE 4: No data modification - delegates to systems
 RULE 5: Uses SystemRegistry for all system access
 
 Layout:
+	pass
 - Top: Resource bar, back button
 - Center: HexMapView (hex grid with pan/zoom)
 - Bottom/Side: NodeInfoPanel (slides in on node selection)
@@ -619,7 +620,6 @@ func _on_node_info_close() -> void:
 
 func _on_node_task_started(hex_node: HexNode, task_id: String) -> void:
 	"""Handle task started from NodeInfoPanel crafting"""
-	print("HexTerritoryScreen: Task started - node: %s, task: %s" % [hex_node.id, task_id])
 	# Refresh displays to show updated state
 	refresh()
 
@@ -628,7 +628,6 @@ func _on_node_info_slot_tapped(node: HexNode, slot_type: String, slot_index: int
 	if not god_selection_panel or not node:
 		return
 
-	print("HexTerritoryScreen: NodeInfoPanel slot tapped - node: %s, type: %s, index: %d" % [node.id, slot_type, slot_index])
 
 	# Store context for when god is selected
 	_pending_slot_node = node
@@ -665,11 +664,9 @@ func _on_node_info_filled_slot_tapped(node: HexNode, slot_type: String, slot_ind
 
 	# Handle null god (stale reference from sacrificed god) - remove by index
 	if not god:
-		print("HexTerritoryScreen: Removing stale god at slot %d of %s from %s" % [slot_index, slot_type, node.id])
 		_remove_stale_slot(node, slot_type, slot_index)
 		return
 
-	print("HexTerritoryScreen: NodeInfoPanel filled slot tapped - node: %s, type: %s, god: %s" % [node.id, slot_type, god.name])
 
 	# Show confirmation popup (reuse existing method)
 	_show_remove_god_confirmation(node, slot_type, slot_index, god)
@@ -689,7 +686,7 @@ func _remove_stale_slot(node: HexNode, slot_type: String, slot_index: int) -> vo
 					new_garrison.append(node.garrison[i])
 			success = territory_manager.update_node_garrison(node.id, new_garrison)
 			if success:
-				print("HexTerritoryScreen: Removed stale garrison slot %d from %s" % [slot_index, node.id])
+				pass
 	else:
 		# Remove the stale ID at the given index from workers
 		if slot_index < node.assigned_workers.size():
@@ -699,7 +696,7 @@ func _remove_stale_slot(node: HexNode, slot_type: String, slot_index: int) -> vo
 					new_workers.append(node.assigned_workers[i])
 			success = territory_manager.update_node_workers(node.id, new_workers)
 			if success:
-				print("HexTerritoryScreen: Removed stale worker slot %d from %s" % [slot_index, node.id])
+				pass
 
 	if success:
 		# Refresh displays
@@ -722,13 +719,11 @@ func _on_worker_panel_close() -> void:
 
 func _on_worker_assigned(node: HexNode, god_id: String, task_id: String) -> void:
 	"""Handle worker assignment notification"""
-	print("Worker assigned: god=%s task=%s at node=%s" % [god_id, task_id, node.id])
 	# Refresh displays
 	refresh()
 
 func _on_worker_unassigned(node: HexNode, god_id: String) -> void:
 	"""Handle worker unassignment notification"""
-	print("Worker unassigned: god=%s from node=%s" % [god_id, node.id])
 
 	# If node has no more workers, cancel any active crafts (for forges)
 	if node.assigned_workers.is_empty() and node.type == "forge":
@@ -736,7 +731,7 @@ func _on_worker_unassigned(node: HexNode, god_id: String) -> void:
 		if hex_grid_mgr:
 			var cancelled = hex_grid_mgr.cancel_all_crafts_for_node(node.id)
 			if cancelled > 0:
-				print("Cancelled %d crafts due to worker removal from forge" % cancelled)
+				pass
 
 	# Refresh displays
 	refresh()
@@ -750,13 +745,11 @@ func _on_garrison_panel_close() -> void:
 
 func _on_garrison_assigned(node: HexNode, god_id: String) -> void:
 	"""Handle garrison assignment notification"""
-	print("Garrison assigned: god=%s at node=%s" % [god_id, node.id])
 	# Refresh displays
 	refresh()
 
 func _on_garrison_unassigned(node: HexNode, god_id: String) -> void:
 	"""Handle garrison unassignment notification"""
-	print("Garrison unassigned: god=%s from node=%s" % [god_id, node.id])
 	# Refresh displays
 	refresh()
 
@@ -791,7 +784,6 @@ func _on_overview_slot_tapped(node: HexNode, slot_type: String, slot_index: int)
 	if not god_selection_panel or not node:
 		return
 
-	print("HexTerritoryScreen: Slot tapped - node: %s, type: %s, index: %d" % [node.id, slot_type, slot_index])
 
 	# Store context for when god is selected
 	_pending_slot_node = node
@@ -828,11 +820,9 @@ func _on_overview_filled_slot_tapped(node: HexNode, slot_type: String, slot_inde
 
 	# Handle null god (stale reference from sacrificed god) - remove by index
 	if not god:
-		print("HexTerritoryScreen: Removing stale god at slot %d of %s from %s (overview)" % [slot_index, slot_type, node.id])
 		_remove_stale_slot(node, slot_type, slot_index)
 		return
 
-	print("HexTerritoryScreen: Filled slot tapped - node: %s, type: %s, god: %s" % [node.id, slot_type, god.name])
 
 	# Show confirmation popup
 	_show_remove_god_confirmation(node, slot_type, slot_index, god)
@@ -867,7 +857,6 @@ func _show_remove_god_confirmation(node: HexNode, slot_type: String, slot_index:
 
 func _on_remove_god_confirmed(node: HexNode, slot_type: String, _slot_index: int, god_id: String) -> void:
 	"""Handle confirmed god removal from slot"""
-	print("HexTerritoryScreen: Removing %s from %s of %s" % [god_id, slot_type, node.id])
 
 	var success = false
 	if slot_type == "garrison":
@@ -899,7 +888,7 @@ func _remove_god_from_garrison(node: HexNode, god_id: String) -> bool:
 	# Update via TerritoryManager
 	var success = territory_manager.update_node_garrison(node.id, new_garrison)
 	if success:
-		print("HexTerritoryScreen: Removed %s from garrison of %s" % [god_id, node.id])
+		pass
 	return success
 
 func _remove_god_from_workers(node: HexNode, god_id: String) -> bool:
@@ -917,7 +906,7 @@ func _remove_god_from_workers(node: HexNode, god_id: String) -> bool:
 	# Update via TerritoryManager
 	var success = territory_manager.update_node_workers(node.id, new_workers)
 	if success:
-		print("HexTerritoryScreen: Removed %s from workers of %s" % [god_id, node.id])
+		pass
 	return success
 
 func _on_god_selection_panel_selected(god: God) -> void:
@@ -926,9 +915,6 @@ func _on_god_selection_panel_selected(god: God) -> void:
 		_clear_pending_slot()
 		return
 
-	print("HexTerritoryScreen: God selected - %s for %s slot %d on %s" % [
-		god.name, _pending_slot_type, _pending_slot_index, _pending_slot_node.id
-	])
 
 	# Assign god to the appropriate slot
 	var success = false
@@ -950,7 +936,6 @@ func _on_god_selection_panel_selected(god: God) -> void:
 
 func _on_god_selection_panel_cancelled() -> void:
 	"""Handle god selection cancelled"""
-	print("HexTerritoryScreen: God selection cancelled")
 	_clear_pending_slot()
 
 func _on_god_selection_panel_closed() -> void:
@@ -994,7 +979,7 @@ func _assign_god_to_garrison(node: HexNode, god_id: String, _slot_index: int) ->
 	# Update via TerritoryManager
 	var success = territory_manager.update_node_garrison(node.id, new_garrison)
 	if success:
-		print("HexTerritoryScreen: Assigned %s to garrison of %s" % [god_id, node.id])
+		pass
 	return success
 
 func _assign_god_to_worker(node: HexNode, god_id: String, _slot_index: int) -> bool:
@@ -1021,7 +1006,7 @@ func _assign_god_to_worker(node: HexNode, god_id: String, _slot_index: int) -> b
 	# Update via TerritoryManager
 	var success = territory_manager.update_node_workers(node.id, new_workers)
 	if success:
-		print("HexTerritoryScreen: Assigned %s as worker at %s" % [god_id, node.id])
+		pass
 	return success
 
 # ==============================================================================
@@ -1037,7 +1022,6 @@ func navigate_to_node(node_id: String, open_crafting: bool = false) -> void:
 
 	var hex_node = hex_grid_mgr.get_node_by_id(node_id)
 	if not hex_node:
-		print("HexTerritoryScreen: Node not found: %s" % node_id)
 		return
 
 	# Center map on node
@@ -1166,7 +1150,6 @@ func _on_capture_failed(hex_node: HexNode) -> void:
 # ==============================================================================
 func _on_building_selected(hex_node: HexNode, building_id: String) -> void:
 	"""Handle building selected from popup - building already placed by popup"""
-	print("HexTerritoryScreen: Building '%s' placed on node '%s'" % [building_id, hex_node.id])
 	refresh()
 
 	# Show success feedback
@@ -1174,7 +1157,6 @@ func _on_building_selected(hex_node: HexNode, building_id: String) -> void:
 
 func _on_building_selection_cancelled(hex_node: HexNode) -> void:
 	"""Handle building selection cancelled - tile remains blank"""
-	print("HexTerritoryScreen: Building selection cancelled for node '%s'" % hex_node.id)
 	# Player can select a building later from node info panel
 
 func _on_building_popup_closed() -> void:
@@ -1200,7 +1182,6 @@ func _on_demolish_building_requested(hex_node: HexNode) -> void:
 
 	# Remove the building (with 0% refund since building selection is free)
 	if building_manager.remove_building(hex_node, 0.0):
-		print("HexTerritoryScreen: Removed building '%s' from node '%s'" % [old_building_id, hex_node.id])
 
 		# Refresh the info panel to show updated state
 		if node_info_panel:

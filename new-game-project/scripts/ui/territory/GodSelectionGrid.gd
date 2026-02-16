@@ -208,7 +208,6 @@ func refresh_display() -> void:
 	# Show empty state if no gods match filter
 	if filtered_gods.is_empty():
 		_show_empty_state()
-		print("GodSelectionGrid: No gods match current filter")
 		return
 
 	# Sort by element for nice visual grouping
@@ -222,7 +221,6 @@ func refresh_display() -> void:
 		var card = _create_god_card(god)
 		_god_grid.add_child(card)
 
-	print("GodSelectionGrid: Displayed %d gods (filter: %s)" % [filtered_gods.size(), FilterMode.keys()[_current_filter]])
 
 # =============================================================================
 # INTERNAL HELPERS
@@ -424,9 +422,7 @@ func _on_god_card_pressed(god: God) -> void:
 	"""Handle god card tap - emit signal"""
 	# Don't allow selecting already-assigned gods
 	if god.id in _excluded_god_ids:
-		print("GodSelectionGrid: %s is already assigned, cannot select" % god.name)
 		return
-	print("GodSelectionGrid: God selected - %s (Lv.%d)" % [god.name, god.level])
 	god_selected.emit(god)
 
 func _on_close_pressed() -> void:

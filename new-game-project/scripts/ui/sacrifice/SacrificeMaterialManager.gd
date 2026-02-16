@@ -29,7 +29,6 @@ func initialize(grid_container: Control, section_container: Control):
 	material_grid = grid_container
 	material_section = section_container
 	setup_sorting_ui()
-	print("SacrificeMaterialManager: Initialized")
 
 func set_max_materials(count: int):
 	"""Change the maximum number of materials allowed"""
@@ -372,8 +371,6 @@ func create_god_selection_card(god: God) -> Control:
 	var sprite_path = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		god_image.texture = load(sprite_path)
-	else:
-		print("SacrificeMaterialManager: God sprite not found: ", sprite_path)
 	
 	vbox.add_child(god_image)
 	
@@ -460,7 +457,6 @@ func _on_select_duplicates_pressed():
 		return
 	
 	# This would need CollectionManager to identify duplicates
-	print("SacrificeMaterialManager: Select duplicates feature needs CollectionManager implementation")
 
 func _on_clear_selection_pressed():
 	"""Clear all selected materials"""

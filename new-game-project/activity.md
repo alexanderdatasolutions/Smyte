@@ -3,7 +3,7 @@
 ## Current Status
 **Last Updated:** 2026-02-16
 **Phase:** Pre-Release Audit Execution
-**Current Task:** Executing AUDIT_PLAN.md tasks (30/73 complete)
+**Current Task:** Executing AUDIT_PLAN.md tasks (47/73 complete)
 
 ---
 
@@ -114,6 +114,13 @@
 - **ArenaDataSync.gd:** 6 prints
 
 **Total:** ~203 print statements removed from system files, plus orphaned variables and empty blocks cleaned up.
+**Verification:** Project runs clean, no parse errors
+
+### Debug Print Cleanup — UI Files + Data Classes (High)
+**Files modified:** 43 UI files + 2 data files (45 total).
+
+**Summary:** Removed 316 print statements across all UI and data files using multi-line-aware parser. Key files: BattleScreen(56), BattleUnitCard(29), HexTerritoryScreen(25), GodDetailsPanel(20), CollectionScreenCoordinator(18), NodeInfoPanel(18), TerritoryActionsManager(16), GodCollectionList(11), WorldView(10), EquipmentInventoryManager(10), CollectionFilterPanel(9), and 34 smaller files.
+
 **Verification:** Project runs clean, no parse errors
 
 ---

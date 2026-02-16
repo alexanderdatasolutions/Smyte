@@ -120,8 +120,6 @@ func create_territory_production_info() -> Control:
 		if territory_manager:
 			base_generation = territory_manager.get_base_territory_generation(current_territory)
 			total_generation = territory_manager.calculate_territory_passive_generation(current_territory)
-		else:
-			print("TerritoryInfoDisplayManager: TerritoryManager not found in SystemRegistry")
 	
 	# Fallback values if system not available
 	if base_generation.is_empty():

@@ -10,6 +10,7 @@ RULE 1: Under 500 lines
 RULE 5: Uses SystemRegistry for all system access
 
 Follows popup pattern from UI_DESIGN_PATTERNS.md:
+	pass
 - z_index = 100 overlay
 - Click overlay to close
 - Dark purple color palette
@@ -521,13 +522,11 @@ func _on_building_selected(building_id: String) -> void:
 		hide_popup()
 		return
 
-	print("BuildingSelectionPopup: Selected building '%s' for node '%s'" % [building_id, current_node.id])
 
 	# Attempt to place the building
 	var success = building_manager.place_building(current_node, building_id)
 
 	if success:
-		print("BuildingSelectionPopup: Building placed successfully!")
 		building_selected.emit(current_node, building_id)
 	else:
 		push_error("BuildingSelectionPopup: Failed to place building")

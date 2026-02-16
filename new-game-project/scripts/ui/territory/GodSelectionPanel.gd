@@ -521,7 +521,6 @@ func _show_panel() -> void:
 	_slide_tween.parallel().tween_property(_panel_container, "offset_right", PANEL_WIDTH, SLIDE_DURATION)
 	_slide_tween.parallel().tween_property(_overlay_bg, "color:a", 0.5, SLIDE_DURATION)
 
-	print("GodSelectionPanel: Showing panel (context: %s)" % SelectionContext.keys()[_current_context])
 
 func _refresh_god_grid() -> void:
 	"""Refresh the god grid with current filters"""
@@ -546,7 +545,6 @@ func _refresh_god_grid() -> void:
 		return
 
 	var all_gods = collection_manager.get_all_gods()
-	print("GodSelectionPanel: Collection has %d total gods" % (all_gods.size() if all_gods else 0))
 	if all_gods == null or all_gods.is_empty():
 		_add_empty_label(grid, "No gods available")
 		return
@@ -554,11 +552,9 @@ func _refresh_god_grid() -> void:
 	# Debug: print first few god details
 	for i in range(mini(all_gods.size(), 5)):
 		var g = all_gods[i]
-		print("  God %d: %s (id=%s, stationed=%s, working=%s)" % [i, g.name, g.id, g.stationed_territory, g.is_working_on_task() if g.has_method("is_working_on_task") else "N/A"])
 
 	# Filter gods
 	var filtered_gods = _filter_gods(all_gods)
-	print("GodSelectionPanel: After filter: %d gods" % filtered_gods.size())
 
 	if filtered_gods.is_empty():
 		_add_empty_label(grid, "No gods match filters")
@@ -572,7 +568,6 @@ func _refresh_god_grid() -> void:
 		var card = _create_god_card(god)
 		grid.add_child(card)
 
-	print("GodSelectionPanel: Displaying %d gods" % sorted_gods.size())
 
 func _sort_gods(gods: Array) -> Array:
 	"""Sort gods based on current sort settings"""
@@ -887,9 +882,7 @@ func _on_god_card_pressed(god: God) -> void:
 	"""Handle god card tap"""
 	# Don't allow selecting already-assigned gods
 	if god.id in _excluded_god_ids:
-		print("GodSelectionPanel: %s is already assigned, cannot select" % god.name)
 		return
-	print("GodSelectionPanel: Selected %s (Lv.%d)" % [god.name, god.level])
 	god_selected.emit(god)
 	hide_panel()
 

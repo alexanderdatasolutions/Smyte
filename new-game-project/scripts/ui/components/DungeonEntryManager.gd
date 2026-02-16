@@ -79,7 +79,6 @@ func start_dungeon_battle(dungeon_id: String, difficulty: String):
 	"""Start the dungeon battle - RULE 5: Use SystemRegistry"""
 	var system_registry = SystemRegistry.get_instance()
 	if not system_registry:
-		print("DungeonEntryManager: SystemRegistry not available")
 		return
 	
 	# Get necessary systems
@@ -87,7 +86,6 @@ func start_dungeon_battle(dungeon_id: String, difficulty: String):
 	var collection_manager = system_registry.get_system("CollectionManager")
 	
 	if not dungeon_manager or not collection_manager:
-		print("DungeonEntryManager: Required systems not found")
 		return
 	
 	# Prepare player team (simplified - first 5 gods)

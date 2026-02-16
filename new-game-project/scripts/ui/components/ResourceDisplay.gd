@@ -117,14 +117,12 @@ func _connect_to_resource_manager():
 	if res_mgr and res_mgr.has_signal("resource_changed"):
 		if not res_mgr.resource_changed.is_connected(_on_resource_changed):
 			res_mgr.resource_changed.connect(_on_resource_changed)
-			print("[ResourceDisplay] Connected to ResourceManager.resource_changed signal")
 	else:
 		# ResourceManager not ready yet, retry after a short delay
 		get_tree().create_timer(0.1).timeout.connect(_connect_to_resource_manager)
 
 func _on_resource_changed(resource_id: String, new_amount: int, delta: int):
 	"""Handle resource change - update all displays"""
-	print("[ResourceDisplay] Resource changed: %s = %d (delta: %d)" % [resource_id, new_amount, delta])
 	_update_all_instances()
 
 func _setup_progression_signals():

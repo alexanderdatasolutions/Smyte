@@ -71,7 +71,6 @@ func _clear_grid():
 func _populate_gods():
 	"""Populate the god grid with available gods"""
 	if not sacrifice_manager:
-		print("SacrificeGodList: SacrificeManager not available")
 		return
 	
 	var available_gods = sacrifice_manager.get_available_sacrifice_gods()

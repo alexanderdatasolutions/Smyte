@@ -397,8 +397,6 @@ func _create_god_item(god: God) -> Control:
 	var sprite_path = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		image.texture = load(sprite_path)
-	else:
-		print("SacrificePanel: God sprite not found: ", sprite_path)
 	
 	vbox.add_child(image)
 	

@@ -1285,7 +1285,6 @@ func _on_start_craft(task: Dictionary, node: HexNode) -> void:
 		if not resource_manager.spend_resources(costs):
 			return
 
-	print("TerritoryOverviewScreen: Starting craft '%s' at node '%s'" % [task_id, node.id])
 
 	# Track the craft using shared tracker
 	var craft_started = false
@@ -1296,7 +1295,6 @@ func _on_start_craft(task: Dictionary, node: HexNode) -> void:
 		# Refund the resources
 		for resource_id in costs:
 			resource_manager.add_resource(resource_id, costs[resource_id])
-		print("TerritoryOverviewScreen: Craft failed to start - resources refunded")
 		_show_craft_error_feedback("Forge already busy or no worker assigned")
 		return
 
@@ -1341,7 +1339,6 @@ func _on_craft_complete_clicked(craft_data: Dictionary) -> void:
 	var task_id = craft_data.get("task_id", "")
 	var node_id = craft_data.get("node_id", "")
 
-	print("TerritoryOverviewScreen: Collecting craft '%s'" % task_id)
 
 	# Award rewards
 	_award_craft_rewards(task_data)
@@ -1368,7 +1365,6 @@ func _award_craft_rewards(task_data: Dictionary) -> void:
 	for resource_id in resources.keys():
 		var amount = resources[resource_id]
 		resource_manager.add_resource(resource_id, amount)
-		print("TerritoryOverviewScreen: Awarded %d %s" % [amount, resource_id])
 
 	var items = task_data.get("item_rewards", [])
 	for item in items:
@@ -1377,7 +1373,6 @@ func _award_craft_rewards(task_data: Dictionary) -> void:
 			if randf() <= chance:
 				var item_id = item.get("id", "")
 				var item_rarity = item.get("rarity", "common")
-				print("TerritoryOverviewScreen: Would award item '%s' (%s)" % [item_id, item_rarity])
 
 func _show_craft_started_feedback(task: Dictionary) -> void:
 	"""Show feedback when craft starts"""

@@ -8,6 +8,7 @@ RULE 4: No logic in UI - just displays BattleResult data
 RULE 5: Uses SystemRegistry for navigation
 
 Shows:
+	pass
 - Victory/Defeat banner with rating
 - Rewards earned (resources, experience, loot)
 - Battle statistics summary
@@ -559,7 +560,6 @@ func _animate_show_with_rewards():
 func _on_reveal_complete():
 	"""Called when reward reveal animation is complete"""
 	_is_animating = false
-	print("BattleResultOverlay: Loot reveal animation complete")
 
 func hide_result():
 	"""Hide the overlay with animation"""

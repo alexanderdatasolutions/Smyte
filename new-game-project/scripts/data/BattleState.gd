@@ -47,12 +47,10 @@ func setup_from_config(config: BattleConfig) -> void:
 				var override_hp: int = hp_overrides[god.id]
 				if override_hp > 0:
 					unit.current_hp = min(override_hp, unit.max_hp)
-					print("BattleState: Applied HP override for %s: %d/%d" % [unit.display_name, unit.current_hp, unit.max_hp])
 				elif override_hp == 0:
 					# God died in previous floor - keep them dead
 					unit.current_hp = 0
 					unit.is_alive = false
-					print("BattleState: %s is dead from previous floor" % unit.display_name)
 
 			player_units.append(unit)
 			all_units.append(unit)

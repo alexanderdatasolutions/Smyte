@@ -157,4 +157,3 @@ func _clear_displays(displays: Dictionary, container: Control):
 
 func _on_unit_clicked(unit):
 	"""Handle unit clicked for targeting"""
-	print("Unit clicked: ", unit.name if unit is God else unit.get("name", "Unknown"))

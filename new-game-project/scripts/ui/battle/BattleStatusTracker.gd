@@ -45,7 +45,6 @@ func update_unit_hp(unit):
 		
 		# Log HP change
 		var unit_name = unit.name if unit is God else unit.get("name", "Unknown")
-		print("HP Update: %s - %d/%d" % [unit_name, current_hp, tracked_data.max_hp])
 
 func _get_unit_hp(unit) -> int:
 	"""Get current HP of a unit"""

@@ -945,11 +945,9 @@ func _update_slot_display(slot_index: int):
 func _load_available_gods():
 	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager")
 	if not collection_manager:
-		print("TeamSelectionManager: No CollectionManager!")
 		return
 
 	var all_gods = collection_manager.get_all_gods()
-	print("TeamSelectionManager: Collection has %d total gods" % all_gods.size())
 
 	available_gods.clear()
 	unavailable_gods.clear()
@@ -961,7 +959,6 @@ func _load_available_gods():
 		else:
 			unavailable_gods.append({"god": god, "assignment": assignment})
 
-	print("TeamSelectionManager: %d available, %d unavailable (assigned to nodes)" % [available_gods.size(), unavailable_gods.size()])
 	_refresh_gods_grid()
 
 func _refresh_gods_grid():

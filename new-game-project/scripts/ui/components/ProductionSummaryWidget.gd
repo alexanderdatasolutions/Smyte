@@ -1155,14 +1155,12 @@ func _award_equipment_craft(task_data: Dictionary) -> void:
 	var equipment_manager = registry.get_system("EquipmentManager")
 	if equipment_manager:
 		equipment_manager.add_equipment_to_inventory(equipment)
-		print("[ProductionSummaryWidget] Added crafted equipment to inventory: %s" % equipment.name)
 	else:
 		push_error("[ProductionSummaryWidget] EquipmentManager not found")
 
 	var collection_manager = registry.get_system("CollectionManager")
 	if collection_manager:
 		collection_manager.add_equipment(equipment)
-		print("[ProductionSummaryWidget] Added crafted equipment to CollectionManager: %s" % equipment.name)
 	else:
 		push_error("[ProductionSummaryWidget] CollectionManager not found")
 

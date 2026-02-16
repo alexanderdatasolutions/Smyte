@@ -6,6 +6,7 @@ Main UI overlay system that sits above all other UI elements.
 This handles tutorials, notifications, banners, and other persistent UI.
 
 Following MYTHOS ARCHITECTURE:
+	pass
 - Clean separation of UI layers
 - Modular overlay management 
 - Proper Z-index layering
@@ -39,7 +40,6 @@ var _back_callback: Callable
 
 func _ready():
 	"""Initialize the main UI overlay system"""
-	print("MainUIOverlay: Initializing main UI overlay system...")
 
 	# Set this control to fill the entire screen
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -56,7 +56,6 @@ func _ready():
 	# Connect to systems
 	_connect_to_systems()
 	
-	print("MainUIOverlay: Main UI overlay system ready")
 
 func _create_ui_layers():
 	"""Create separate layers for different types of UI"""
@@ -93,7 +92,6 @@ func _create_ui_layers():
 	modal_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(modal_layer)
 	
-	print("MainUIOverlay: Created UI layer hierarchy")
 
 func _connect_to_systems():
 	"""Connect to game systems that need overlay access"""
@@ -133,7 +131,6 @@ func _setup_persistent_ui():
 		# Use call_deferred to ensure proper sizing after layout
 		call_deferred("_finalize_header_setup")
 
-		print("MainUIOverlay: GameHeader initialized successfully")
 	else:
 		push_error("MainUIOverlay: Failed to load GameHeader scene")
 
@@ -202,7 +199,6 @@ func get_header() -> Control:
 func _on_tutorial_dialog_created(dialog: Control):
 	"""Handle tutorial dialog creation - move it to proper layer"""
 	if dialog and tutorial_layer:
-		print("MainUIOverlay: Moving tutorial dialog to tutorial layer")
 		
 		# Remove from current parent and add to tutorial layer
 		if dialog.get_parent():
@@ -220,11 +216,9 @@ func _on_tutorial_dialog_created(dialog: Control):
 		if dialog.has_signal("dialog_completed"):
 			dialog.dialog_completed.connect(_on_tutorial_dialog_completed)
 		
-		print("MainUIOverlay: Tutorial dialog added with proper input handling")
 
 func _on_tutorial_dialog_completed():
 	"""Handle tutorial dialog completion"""
-	print("MainUIOverlay: Tutorial dialog completed, resetting layer")
 	tutorial_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _on_notification_shown(type: String, message: String):

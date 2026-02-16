@@ -567,7 +567,6 @@ func _on_battle_setup_complete(context: Dictionary):
 			# Create default enemy wave if none defined
 			waves = [[{"name": "Dungeon Monster", "level": 5, "hp": 500, "attack": 100, "defense": 50, "speed": 80}]]
 		battle_config.enemy_waves = waves
-		print("DungeonScreen: Loaded ", waves.size(), " waves with enemies: ", waves)
 
 	# Navigate to battle screen first
 	if screen_manager.change_screen("battle"):

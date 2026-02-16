@@ -12,12 +12,10 @@ var parent_screen: Control
 func initialize(screen_parent: Control):
 	"""Initialize with parent screen for dialog management"""
 	parent_screen = screen_parent
-	print("SacrificeConfirmationManager: Initialized")
 
 func show_sacrifice_confirmation(target_god: God, selected_materials: Array):
 	"""Show confirmation dialog for sacrifice - RULE 4: UI display only"""
 	if not target_god or selected_materials.is_empty():
-		print("SacrificeConfirmationManager: Invalid sacrifice data")
 		return
 	
 	# Calculate sacrifice preview through SystemRegistry - RULE 5 compliance
@@ -44,8 +42,6 @@ func calculate_sacrifice_preview(target_god: God, materials: Array) -> Dictionar
 			preview_data.total_xp = sacrifice_manager.calculate_sacrifice_xp(materials)
 			preview_data.levels_gained = sacrifice_manager.calculate_levels_gained(target_god, preview_data.total_xp)
 			preview_data.final_level = min(target_god.level + preview_data.levels_gained, 40)
-		else:
-			print("SacrificeConfirmationManager: SacrificeManager not found in SystemRegistry")
 	
 	return preview_data
 
@@ -112,7 +108,6 @@ func show_confirmation_dialog(title: String, message: String, confirm_callback: 
 
 func _perform_sacrifice(target_god: God, materials: Array):
 	"""Actually perform the sacrifice through SystemRegistry - RULE 5 compliance"""
-	print("SacrificeConfirmationManager: Performing sacrifice for %s with %d materials" % [target_god.name, materials.size()])
 	
 	var system_registry = SystemRegistry.get_instance()
 	if not system_registry:

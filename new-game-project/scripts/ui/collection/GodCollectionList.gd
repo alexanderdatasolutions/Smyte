@@ -9,6 +9,7 @@ RULE 4: Read-only display - no data modification
 RULE 5: SystemRegistry for all system access
 
 Features:
+	pass
 - Rich god cards with stats preview
 - Multiple sorting options (power, level, tier, element, name)
 - Advanced filtering (tier, element, role, owned status)
@@ -39,7 +40,6 @@ var sort_buttons: Array = []
 var direction_button: Button
 
 func _ready():
-	print("GodCollectionList: Initializing god collection list...")
 	_init_systems()
 	_setup_ui()
 	# Wait a frame for UI to be fully set up before refreshing
@@ -129,14 +129,12 @@ func _setup_god_list():
 
 func refresh_display():
 	"""Refresh the god list display - RULE 4: Read-only data access"""
-	print("GodCollectionList: Refreshing display...")
 	
 	if not collection_manager:
 		return
 	
 	# Make sure UI is ready
 	if not god_grid:
-		print("GodCollectionList: god_grid not ready yet, skipping refresh")
 		return
 	
 	# Clear existing cards
@@ -146,7 +144,6 @@ func refresh_display():
 	# Get gods from collection manager
 	var gods_result = collection_manager.get_owned_gods()
 	if not gods_result.success:
-		print("GodCollectionList: Failed to get owned gods: ", gods_result.error)
 		return
 	
 	var gods = gods_result.data
@@ -163,11 +160,9 @@ func refresh_display():
 		if card:
 			god_grid.add_child(card)
 	
-	print("GodCollectionList: Displayed ", gods.size(), " gods")
 
 func apply_filters(filters: Dictionary):
 	"""Apply new filters and refresh display"""
-	print("GodCollectionList: Applying filters: ", filters)
 	current_filters = filters
 	refresh_display()
 
@@ -337,7 +332,6 @@ func _on_sort_type_toggled(button_pressed: bool, sort_type: SortType):
 	if not button_pressed:
 		return  # Ignore button release
 		
-	print("GodCollectionList: Sort type changed to: ", sort_type)
 	current_sort = sort_type
 	
 	# Update button states - only this button should be pressed
@@ -356,17 +350,14 @@ func _on_sort_direction_pressed():
 	"""Handle sort direction button press"""
 	sort_ascending = not sort_ascending
 	direction_button.text = "↓" if not sort_ascending else "↑"
-	print("GodCollectionList: Sort direction changed to: ", "ascending" if sort_ascending else "descending")
 	refresh_display()
 
 func _on_god_card_input(event: InputEvent, god_id: String):
 	"""Handle god card input events"""
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT:
-			print("GodCollectionList: God card clicked: ", god_id)
 			god_selected.emit(god_id)
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			print("GodCollectionList: God card right-clicked: ", god_id)
 			god_action_requested.emit("context_menu", god_id, {})
 
 func _get_god_sprite(god_id: String) -> Texture2D:
@@ -386,5 +377,4 @@ func _get_god_sprite(god_id: String) -> Texture2D:
 
 func _on_god_card_clicked(god_id: String):
 	"""Handle god card click"""
-	print("GodCollectionList: God card clicked: ", god_id)
 	god_selected.emit(god_id)

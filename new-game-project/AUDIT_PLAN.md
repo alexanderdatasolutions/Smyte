@@ -53,25 +53,25 @@
 
 ### Debug Print Cleanup — UI (430 statements)
 
-- [ ] **Remove debug prints from BattleScreen.gd** — 56 print statements. `{"file": "scripts/ui/screens/BattleScreen.gd", "passes": false}`
-- [ ] **Remove debug prints from HexTerritoryScreen.gd** — 35 print statements. `{"file": "scripts/ui/screens/HexTerritoryScreen.gd", "passes": false}`
-- [ ] **Remove debug prints from BattleUnitCard.gd** — 29 print statements. `{"file": "scripts/ui/battle/BattleUnitCard.gd", "passes": false}`
-- [ ] **Remove debug prints from NodeInfoPanel.gd** — 23 print statements. `{"file": "scripts/ui/territory/NodeInfoPanel.gd", "passes": false}`
-- [ ] **Remove debug prints from GodDetailsPanel.gd** — 23 print statements. `{"file": "scripts/ui/collection/GodDetailsPanel.gd", "passes": false}`
-- [ ] **Remove debug prints from CollectionScreenCoordinator.gd** — 22 print statements. `{"file": "scripts/ui/collection/CollectionScreenCoordinator.gd", "passes": false}`
-- [ ] **Remove debug prints from TerritoryActionsManager.gd** — 16 print statements. `{"file": "scripts/ui/territory/TerritoryActionsManager.gd", "passes": false}`
-- [ ] **Remove debug prints from GodCollectionList.gd** — 14 print statements. `{"file": "scripts/ui/collection/GodCollectionList.gd", "passes": false}`
-- [ ] **Remove debug prints from WorldView.gd** — 12 print statements. `{"file": "scripts/ui/screens/WorldView.gd", "passes": false}`
-- [ ] **Remove debug prints from EquipmentInventoryManager UI** — 12 print statements. `{"file": "scripts/ui/equipment/EquipmentInventoryManager.gd", "passes": false}`
-- [ ] **Remove debug prints from CollectionFilterPanel.gd** — 12 print statements. `{"file": "scripts/ui/collection/CollectionFilterPanel.gd", "passes": false}`
-- [ ] **Remove debug prints from NodeCaptureHandler.gd** — 12 print statements. `{"file": "scripts/ui/territory/NodeCaptureHandler.gd", "passes": false}`
-- [ ] **Remove debug prints from DungeonScreen.gd** — 10 print statements. `{"file": "scripts/ui/screens/DungeonScreen.gd", "passes": false}`
-- [ ] **Remove debug prints from TerritoryOverviewScreen.gd** — 9 print statements. `{"file": "scripts/ui/territory/TerritoryOverviewScreen.gd", "passes": false}`
-- [ ] **Remove debug prints from remaining UI files** — WorkerSlotDisplay(8), GodSelectionPanel(8), MainUIOverlay(8), WorkerAssignmentPanel(7), GodSelectionGrid(7), ArenaScreen(7), SacrificeScreenCoordinator(7), SummonScreen(5+), ShopScreen(5+), others. `{"file": "scripts/ui/", "passes": false}`
+- [x] **Remove debug prints from BattleScreen.gd** — Removed 56 print statements. `{"file": "scripts/ui/screens/BattleScreen.gd", "passes": true}`
+- [x] **Remove debug prints from HexTerritoryScreen.gd** — Removed 25 print statements. `{"file": "scripts/ui/screens/HexTerritoryScreen.gd", "passes": true}`
+- [x] **Remove debug prints from BattleUnitCard.gd** — Removed 29 print statements. `{"file": "scripts/ui/battle/BattleUnitCard.gd", "passes": true}`
+- [x] **Remove debug prints from NodeInfoPanel.gd** — Removed 18 print statements. `{"file": "scripts/ui/territory/NodeInfoPanel.gd", "passes": true}`
+- [x] **Remove debug prints from GodDetailsPanel.gd** — Removed 20 print statements. `{"file": "scripts/ui/collection/GodDetailsPanel.gd", "passes": true}`
+- [x] **Remove debug prints from CollectionScreenCoordinator.gd** — Removed 18 print statements. `{"file": "scripts/ui/collection/CollectionScreenCoordinator.gd", "passes": true}`
+- [x] **Remove debug prints from TerritoryActionsManager.gd** — Removed 16 print statements. `{"file": "scripts/ui/territory/TerritoryActionsManager.gd", "passes": true}`
+- [x] **Remove debug prints from GodCollectionList.gd** — Removed 11 print statements. `{"file": "scripts/ui/collection/GodCollectionList.gd", "passes": true}`
+- [x] **Remove debug prints from WorldView.gd** — Removed 10 print statements. `{"file": "scripts/ui/screens/WorldView.gd", "passes": true}`
+- [x] **Remove debug prints from EquipmentInventoryManager UI** — Removed 10 print statements. `{"file": "scripts/ui/equipment/EquipmentInventoryManager.gd", "passes": true}`
+- [x] **Remove debug prints from CollectionFilterPanel.gd** — Removed 9 print statements. `{"file": "scripts/ui/collection/CollectionFilterPanel.gd", "passes": true}`
+- [x] **Remove debug prints from NodeCaptureHandler.gd** — Removed 5 print statements. `{"file": "scripts/ui/territory/NodeCaptureHandler.gd", "passes": true}`
+- [x] **Remove debug prints from DungeonScreen.gd** — Removed 1 print statement. `{"file": "scripts/ui/screens/DungeonScreen.gd", "passes": true}`
+- [x] **Remove debug prints from TerritoryOverviewScreen.gd** — Removed 5 print statements. `{"file": "scripts/ui/territory/TerritoryOverviewScreen.gd", "passes": true}`
+- [x] **Remove debug prints from remaining UI files** — Removed prints from 29 additional files (GodSelectionPanel, MainUIOverlay, SacrificeScreenCoordinator, StatusEffectIcon, GodSelectionGrid, SacrificeConfirmationManager, DungeonInfoDisplayManager, WorkerSlotDisplay, GarrisonDisplay, and 20 others). `{"file": "scripts/ui/", "passes": true}`
 
 ### Debug Print Cleanup — Data & Utilities (23 statements)
 
-- [ ] **Remove debug prints from data classes and utilities** — BattleState(3), BattleUnit(2), SaveLoadUtility(7), TeamStatsCalculator(2), JSONDataLoader(2), UICardFactory(1), others. `{"file": "scripts/data/", "passes": false}`
+- [x] **Remove debug prints from data classes and utilities** — Removed 4 print statements from BattleState(2), BattleUnit(2). Other data files already clean. `{"file": "scripts/data/", "passes": true}`
 
 ---
 

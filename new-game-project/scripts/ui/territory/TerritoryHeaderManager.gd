@@ -277,7 +277,6 @@ func _get_resource_icon(resource_type: String) -> String:
 
 func update_summary_stats(territory_count: int, controlled_count: int):
 	"""Update header summary statistics from territory list"""
-	print("TerritoryHeaderManager: Updating summary - %d controlled / %d total" % [controlled_count, territory_count])
 	
 	# Update controlled territories stat
 	if summary_stats.has("controlled"):

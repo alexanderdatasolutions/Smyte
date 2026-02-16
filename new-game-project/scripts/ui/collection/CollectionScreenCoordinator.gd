@@ -9,6 +9,7 @@ RULE 4: No data modification - uses systems for all god management
 RULE 5: SystemRegistry for all system access
 
 Architecture:
+	pass
 - Coordinates god list, sorting, filtering, and details components
 - Rich interface with advanced sorting and filtering options
 - Detailed god information panels with equipment and role management
@@ -35,7 +36,6 @@ var main_container: HSplitContainer
 var back_button: Button
 
 func _ready():
-	print("CollectionScreenCoordinator: Initializing enhanced collection interface...")
 	_init_systems()
 	_setup_ui()
 	_connect_signals()
@@ -82,7 +82,6 @@ func _setup_ui():
 	# Set split ratio - ensure right panel has adequate space
 	main_container.split_offset = 600  # Give more space for left panel, ensure right panel is visible
 	
-	print("CollectionScreenCoordinator: Main container setup - split at ", main_container.split_offset)
 
 func _create_back_button():
 	"""Create and position the back button"""
@@ -127,7 +126,6 @@ func _setup_right_panel():
 	details_panel.modulate = Color.WHITE
 	
 	main_container.add_child(details_panel)
-	print("CollectionScreenCoordinator: Details panel setup with size: ", details_panel.custom_minimum_size)
 
 func _connect_signals():
 	"""Connect all component signals"""
@@ -153,24 +151,20 @@ func _connect_signals():
 
 func _on_back_pressed():
 	"""Handle back button press"""
-	print("CollectionScreenCoordinator: Back pressed")
 	back_pressed.emit()
 
 func _on_god_selected(god_id: String):
 	"""Handle god selection from list"""
-	print("CollectionScreenCoordinator: God selected: ", god_id)
 	if details_panel:
 		details_panel.display_god(god_id)
 
 func _on_filter_changed(filters: Dictionary):
 	"""Handle filter changes from filter panel"""
-	print("CollectionScreenCoordinator: Filters changed: ", filters)
 	if god_list:
 		god_list.apply_filters(filters)
 
 func _on_god_action_requested(action: String, god_id: String, data: Dictionary = {}):
 	"""Handle god actions from any component - RULE 4: Delegate to systems"""
-	print("CollectionScreenCoordinator: Action requested: ", action, " for god: ", god_id)
 	
 	match action:
 		"assign_role":
@@ -186,7 +180,7 @@ func _on_god_action_requested(action: String, god_id: String, data: Dictionary =
 		"view_details":
 			_on_god_selected(god_id)
 		_:
-			print("CollectionScreenCoordinator: Unknown action: ", action)
+			pass
 
 func _handle_role_assignment(god_id: String, role: String):
 	"""Handle role assignment through systems - RULE 4: No direct data modification"""
@@ -195,10 +189,7 @@ func _handle_role_assignment(god_id: String, role: String):
 	
 	var result = collection_manager.assign_god_role(god_id, role)
 	if result.success:
-		print("CollectionScreenCoordinator: Role assigned successfully")
 		_refresh_god_details(god_id)
-	else:
-		print("CollectionScreenCoordinator: Role assignment failed: ", result.error)
 
 func _handle_equipment_change(god_id: String, slot: String, equipment_id: String):
 	"""Handle equipment changes through systems - RULE 4: No direct data modification"""
@@ -207,10 +198,7 @@ func _handle_equipment_change(god_id: String, slot: String, equipment_id: String
 	
 	var result = equipment_manager.equip_item_to_god(god_id, equipment_id, slot)
 	if result.success:
-		print("CollectionScreenCoordinator: Equipment changed successfully")
 		_refresh_god_details(god_id)
-	else:
-		print("CollectionScreenCoordinator: Equipment change failed: ", result.error)
 
 func _handle_level_up(god_id: String):
 	"""Handle god level up through systems - RULE 4: No direct data modification"""
@@ -219,11 +207,8 @@ func _handle_level_up(god_id: String):
 	
 	var result = god_manager.level_up_god(god_id)
 	if result.success:
-		print("CollectionScreenCoordinator: God leveled up successfully")
 		_refresh_god_details(god_id)
 		_refresh_god_list()
-	else:
-		print("CollectionScreenCoordinator: Level up failed: ", result.error)
 
 func _handle_evolution(god_id: String):
 	"""Handle god evolution through systems - RULE 4: No direct data modification"""
@@ -232,11 +217,8 @@ func _handle_evolution(god_id: String):
 	
 	var result = god_manager.evolve_god(god_id)
 	if result.success:
-		print("CollectionScreenCoordinator: God evolved successfully")
 		_refresh_god_details(god_id)
 		_refresh_god_list()
-	else:
-		print("CollectionScreenCoordinator: Evolution failed: ", result.error)
 
 func _handle_sacrifice(god_id: String):
 	"""Handle god sacrifice through systems - RULE 4: No direct data modification"""
@@ -246,13 +228,10 @@ func _handle_sacrifice(god_id: String):
 	# This would typically show a confirmation dialog first
 	var result = god_manager.sacrifice_god(god_id)
 	if result.success:
-		print("CollectionScreenCoordinator: God sacrificed successfully")
 		_refresh_god_list()
 		# Clear details if this god was selected
 		if details_panel:
 			details_panel.clear_display()
-	else:
-		print("CollectionScreenCoordinator: Sacrifice failed: ", result.error)
 
 func _refresh_god_list():
 	"""Refresh the god list display"""

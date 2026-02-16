@@ -41,7 +41,6 @@ func _populate_territories():
 	# Get territories through TerritoryManager's enhanced method
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
 	if not territory_manager:
-		print("TerritoryListManager: ERROR - TerritoryManager not found")
 		return
 	
 	# Use TerritoryManager's filter method

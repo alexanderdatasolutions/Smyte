@@ -9,6 +9,7 @@ RULE 4: UI-only component - emits filter changes
 RULE 5: SystemRegistry for accessing data definitions
 
 Features:
+	pass
 - Filter by tier (1-6 stars)
 - Filter by element (Fire, Water, Wind, etc.)
 - Filter by role assignment status
@@ -34,7 +35,6 @@ var clear_button: Button
 var current_filters: Dictionary = {}
 
 func _ready():
-	print("CollectionFilterPanel: Initializing collection filter panel...")
 	_init_systems()
 	_setup_ui()
 	_load_filter_options()
@@ -163,7 +163,6 @@ func _load_element_options():
 	
 	var gods_data = data_loader.get_gods_config()
 	if gods_data.is_empty():
-		print("CollectionFilterPanel: Failed to load gods data for elements")
 		return
 	
 	var elements = {}
@@ -217,7 +216,6 @@ func _load_role_options():
 	
 	var roles_data = data_loader.get_territory_roles_config()
 	if roles_data.is_empty():
-		print("CollectionFilterPanel: Failed to load territory roles data")
 		return
 	
 	# Get the territory_roles section
@@ -236,7 +234,6 @@ func _on_tier_filter_changed(index: int):
 	else:
 		current_filters["tier"] = str(index)
 	
-	print("CollectionFilterPanel: Tier filter changed to: ", current_filters.get("tier", "All"))
 	_emit_filter_change()
 
 func _on_element_filter_changed(index: int):
@@ -247,7 +244,6 @@ func _on_element_filter_changed(index: int):
 		var element_text = element_option.get_item_text(index)
 		current_filters["element"] = element_text
 	
-	print("CollectionFilterPanel: Element filter changed to: ", current_filters.get("element", "All"))
 	_emit_filter_change()
 
 func _on_role_filter_changed(index: int):
@@ -260,7 +256,6 @@ func _on_role_filter_changed(index: int):
 		var role_text = role_option.get_item_text(index)
 		current_filters["role"] = role_text
 	
-	print("CollectionFilterPanel: Role filter changed to: ", current_filters.get("role", "All"))
 	_emit_filter_change()
 
 func _on_awakening_filter_changed(index: int):
@@ -273,12 +268,10 @@ func _on_awakening_filter_changed(index: int):
 		2:  # "Unawakened"
 			current_filters["awakened"] = "unawakened"
 	
-	print("CollectionFilterPanel: Awakening filter changed to: ", current_filters.get("awakened", "All"))
 	_emit_filter_change()
 
 func _on_clear_filters_pressed():
 	"""Handle clear filters button press"""
-	print("CollectionFilterPanel: Clearing all filters")
 	
 	# Reset all dropdowns to "All" (index 0)
 	tier_option.selected = 0
@@ -293,7 +286,6 @@ func _on_clear_filters_pressed():
 
 func _emit_filter_change():
 	"""Emit the filter change signal"""
-	print("CollectionFilterPanel: Emitting filter change: ", current_filters)
 	filter_changed.emit(current_filters)
 
 func get_current_filters() -> Dictionary:

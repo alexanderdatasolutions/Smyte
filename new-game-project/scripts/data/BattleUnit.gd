@@ -121,7 +121,6 @@ func add_status_effect(effect: StatusEffect):
 		if existing_effect.id == effect.id:
 			if effect.can_stack:
 				existing_effect.stacks += 1
-				print("BattleUnit.add_status_effect: Stacked %s on %s (now %d stacks)" % [effect.name, display_name, existing_effect.stacks])
 				return
 			else:
 				# Replace with new effect
@@ -129,7 +128,6 @@ func add_status_effect(effect: StatusEffect):
 				break
 
 	status_effects.append(effect)
-	print("BattleUnit.add_status_effect: Added %s to %s (total effects: %d)" % [effect.name, display_name, status_effects.size()])
 
 ## Remove a status effect
 func remove_status_effect(effect_id: String) -> bool:

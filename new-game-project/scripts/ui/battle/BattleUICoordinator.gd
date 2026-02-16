@@ -38,7 +38,6 @@ func _connect_to_systems():
 	battle_coordinator = system_registry.get_system("BattleCoordinator") 
 	wave_manager = system_registry.get_system("WaveManager")
 	
-	print("BattleUICoordinator: Connected to systems")
 
 func _create_ui_components():
 	"""Create focused UI component managers"""
@@ -61,7 +60,6 @@ func _create_ui_components():
 	add_child(log_manager)
 	add_child(controls_ui)
 	
-	print("BattleUICoordinator: UI components created")
 
 func _setup_event_listeners():
 	"""Listen to battle events through EventBus"""
@@ -79,7 +77,6 @@ func _setup_event_listeners():
 	controls_ui.back_pressed.connect(_on_back_pressed)
 	controls_ui.auto_battle_toggled.connect(_on_auto_battle_toggled)
 	
-	print("BattleUICoordinator: Event listeners setup")
 
 ## Public interface for starting battles
 

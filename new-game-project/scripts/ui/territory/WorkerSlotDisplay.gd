@@ -193,9 +193,6 @@ func refresh_display() -> void:
 	_clear_slots()
 	_create_worker_slots()
 
-	print("WorkerSlotDisplay: Showing %d/%d worker slots (node type: %s, tier: %d)" % [
-		_assigned_workers.size(), _max_slots, _node_type, _node_tier
-	])
 
 # =============================================================================
 # INTERNAL HELPERS
@@ -496,11 +493,9 @@ func _create_affinity_bonus_indicator(god: God) -> Control:
 
 func _on_empty_slot_pressed(slot_index: int) -> void:
 	"""Handle tap on empty slot"""
-	print("WorkerSlotDisplay: Empty slot %d tapped" % slot_index)
 	empty_slot_tapped.emit(slot_index)
 	assign_worker_requested.emit(slot_index)
 
 func _on_filled_slot_pressed(slot_index: int, god: God) -> void:
 	"""Handle tap on filled slot"""
-	print("WorkerSlotDisplay: Filled slot %d tapped (god: %s)" % [slot_index, god.name])
 	filled_slot_tapped.emit(slot_index, god)

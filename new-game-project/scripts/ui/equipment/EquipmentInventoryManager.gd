@@ -52,7 +52,6 @@ func refresh_equipment_inventory():
 	if not inventory_grid or not equipment_manager or not selected_god:
 		return
 	
-	print("EquipmentInventoryManager: _refresh_equipment_inventory called")
 	
 	# Clear existing children
 	for child in inventory_grid.get_children():
@@ -61,23 +60,19 @@ func refresh_equipment_inventory():
 	
 	# Get unequipped equipment
 	var unequipped = equipment_manager.get_unequipped_equipment()
-	print("EquipmentInventoryManager: Got %d unequipped equipment pieces" % unequipped.size())
 	
 	# Filter by selected slot if applicable
 	var filtered_equipment = unequipped
 	if selected_slot >= 0:
 		filtered_equipment = unequipped.filter(func(eq): return eq.slot == selected_slot)
-		print("EquipmentInventoryManager: After slot filter: %d equipment pieces" % filtered_equipment.size())
 	
 	# Create buttons for filtered equipment
 	for equipment in filtered_equipment:
-		print("EquipmentInventoryManager: Creating button for %s" % equipment.name)
 		var button = _create_equipment_button(equipment)
 		inventory_grid.add_child(button)
 
 func _create_equipment_button(equipment: Equipment) -> Control:
 	"""Create equipment card with PNG icon, stats, and set bonus indicators"""
-	print("EquipmentInventoryManager: _create_equipment_button called for %s" % equipment.name)
 	
 	# Main container panel
 	var container = Panel.new()
@@ -117,11 +112,7 @@ func _create_equipment_button(equipment: Equipment) -> Control:
 		var texture = load(icon_path)
 		if texture:
 			texture_rect.texture = texture
-			print("EquipmentInventoryManager: Loaded PNG icon: %s" % icon_path)
-		else:
-			print("EquipmentInventoryManager: Failed to load PNG: %s" % icon_path)
 	else:
-		print("EquipmentInventoryManager: PNG file not found: %s" % icon_path)
 		# Fallback colored rectangle
 		var fallback_style = StyleBoxFlat.new()
 		fallback_style.bg_color = _get_rarity_color(equipment.rarity)
@@ -176,7 +167,6 @@ func _create_equipment_button(equipment: Equipment) -> Control:
 	button.mouse_entered.connect(_on_equipment_hover_enter.bind(container))
 	button.mouse_exited.connect(_on_equipment_hover_exit.bind(container))
 	
-	print("EquipmentInventoryManager: Created equipment card for %s" % equipment.name)
 	return container
 
 func _get_equipment_icon_path(equipment: Equipment) -> String:
@@ -219,7 +209,6 @@ func _on_equipment_hover_exit(container: Panel):
 
 func _on_equipment_button_pressed(equipment: Equipment):
 	"""Handle equipment button press"""
-	print("EquipmentInventoryManager: Equipment button pressed for %s" % equipment.name)
 	equipment_selected.emit(equipment)
 
 func clear_inventory():

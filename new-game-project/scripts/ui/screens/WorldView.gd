@@ -210,12 +210,10 @@ func _connect_to_systems():
 
 func _on_feature_unlocked(_feature_name: String, _feature_data: Dictionary):
 	"""Handle feature unlock"""
-	print("[WorldView] Feature unlocked: %s" % _feature_name)
 	_update_button_visibility()
 
 func _on_achievement_completed(_achievement_id: String, _achievement_data: Dictionary):
 	"""Handle achievement completion - may unlock features"""
-	print("[WorldView] Achievement completed: %s" % _achievement_id)
 	_update_button_visibility()
 
 func _update_button_visibility():
@@ -236,43 +234,36 @@ func _update_button_visibility():
 	if territory_button:
 		var territory_unlocked = feature_manager and feature_manager.is_feature_unlocked("territory")
 		territory_button.visible = territory_unlocked
-		print("[WorldView] Territory button visible: %s" % territory_unlocked)
 
 	# Sacrifice - unlocked by first_territory achievement
 	if sacrifice_button:
 		var sacrifice_unlocked = feature_manager and feature_manager.is_feature_unlocked("sacrifice")
 		sacrifice_button.visible = sacrifice_unlocked
-		print("[WorldView] Sacrifice button visible: %s" % sacrifice_unlocked)
 
 	# Dungeon - unlocked by tier2_territory achievement
 	if dungeon_button:
 		var dungeon_unlocked = feature_manager and feature_manager.is_feature_unlocked("dungeon")
 		dungeon_button.visible = dungeon_unlocked
-		print("[WorldView] Dungeon button visible: %s" % dungeon_unlocked)
 
 	# Equipment - unlocked by tier2_territory achievement
 	if equipment_button:
 		var equipment_unlocked = feature_manager and feature_manager.is_feature_unlocked("equipment")
 		equipment_button.visible = equipment_unlocked
-		print("[WorldView] Equipment button visible: %s" % equipment_unlocked)
 
 	# Tower - unlocked by tier3_territory achievement
 	if tower_button:
 		var tower_unlocked = feature_manager and feature_manager.is_feature_unlocked("tower")
 		tower_button.visible = tower_unlocked
-		print("[WorldView] Tower button visible: %s" % tower_unlocked)
 
 	# PvP Territory - unlocked by tier4_territory achievement
 	if pvp_territory_button:
 		var pvp_unlocked = feature_manager and feature_manager.is_feature_unlocked("pvp")
 		pvp_territory_button.visible = pvp_unlocked
-		print("[WorldView] PvP button visible: %s" % pvp_unlocked)
 
 	# Arena - unlocked by tier3_territory achievement
 	if arena_button:
 		var arena_unlocked = feature_manager and feature_manager.is_feature_unlocked("arena")
 		arena_button.visible = arena_unlocked
-		print("[WorldView] Arena button visible: %s" % arena_unlocked)
 
 	# Keep shop and specialization hidden for now
 	if shop_button:
@@ -346,7 +337,6 @@ func _create_production_widget() -> void:
 
 func _on_resources_collected(total: Dictionary) -> void:
 	"""Handle resources collected from widget"""
-	print("[WorldView] Collected resources: %s" % str(total))
 	# Resources are already awarded by ProductionSummaryWidget
 
 # ==============================================================================

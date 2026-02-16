@@ -8,6 +8,7 @@ RULE 4: No logic in UI - delegates to systems through SystemRegistry
 RULE 5: Uses SystemRegistry for all system access
 
 Following prompt.prompt.md architecture:
+	pass
 - UI LAYER: Only display, no data modification
 - Coordinates battle UI components (BattleUICoordinator, etc.)
 """
@@ -133,12 +134,10 @@ func _initialize_battle_connections():
 	else:
 		_show_no_battle_state()
 
-	print("BattleScreen: Battle coordinator connections initialized")
 
 func _force_fullscreen_layout():
 	"""Force all layout elements to fill the viewport - runs deferred for proper sizing"""
 	var viewport_size = get_viewport().get_visible_rect().size
-	print("BattleScreen: Forcing fullscreen layout to ", viewport_size)
 
 	# Force this control to fill viewport
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -182,30 +181,25 @@ func _notification(what: int) -> void:
 		# Clean up stale battle result overlay when screen becomes visible
 		if visible and battle_result_overlay and battle_result_overlay.visible:
 			_hide_battle_result_overlay()
-			print("BattleScreen: Became visible with stale overlay, cleaned up")
 		elif not visible and battle_result_overlay:
 			_hide_battle_result_overlay()
-			print("BattleScreen: Became hidden, cleaned up overlay")
 
 func _on_visibility_changed():
 	"""Handle visibility change - clean up battle result overlay when screen is hidden OR shown"""
 	if not visible and battle_result_overlay:
 		# Screen is being hidden, hide the battle result overlay
 		_hide_battle_result_overlay()
-		print("BattleScreen: Screen hidden, cleaned up battle result overlay")
 	elif visible and battle_result_overlay and battle_result_overlay.visible:
 		# Screen is being shown but battle result overlay is still visible from previous battle
 		# This happens when user navigates back to battle screen after returning to map
 		# Hide it to prevent showing stale results
 		_hide_battle_result_overlay()
-		print("BattleScreen: Screen shown with stale overlay, cleaned up")
 
 func _on_back_pressed():
 	"""Handle back button press - RULE 4: UI signals"""
 	# Hide battle result overlay if it's showing (prevents it from reappearing when returning to this screen)
 	if battle_result_overlay and battle_result_overlay.visible:
 		_hide_battle_result_overlay()
-		print("BattleScreen: Back pressed, cleaned up battle result overlay")
 
 	back_pressed.emit()
 
@@ -217,7 +211,6 @@ func start_battle(battle_config):
 
 func _on_battle_started(config):
 	"""Handle battle start event - populate UI with units"""
-	print("BattleScreen: Battle started, populating UI")
 	_populate_battle_ui()
 
 	# Initialize wave indicator for wave-based battles
@@ -230,12 +223,10 @@ func _on_battle_started(config):
 
 	# Re-sync auto battle state if it was enabled (e.g., for tower multi-floor)
 	if auto_battle_enabled and battle_coordinator:
-		print("BattleScreen: Re-enabling auto battle for new battle")
 		battle_coordinator.set_auto_battle(true)
 
 func _on_battle_ended(result: BattleResult):
 	"""Handle battle end - RULE 4: UI listens to events"""
-	print("BattleScreen: Battle ended - Victory: ", result.victory)
 	# Clear active unit highlighting
 	_clear_active_highlight()
 	current_active_unit = null
@@ -255,11 +246,9 @@ func _on_battle_ended(result: BattleResult):
 		_update_auto_button_text()
 		if battle_coordinator:
 			battle_coordinator.set_auto_battle(false)
-		print("BattleScreen: Auto battle reset after victory")
 
 	# Skip showing result overlay for Tower battles - TowerScreen handles the flow
 	if result.battle_type.to_lower() == "tower":
-		print("BattleScreen: Tower battle - skipping result overlay (TowerScreen handles flow)")
 		return
 
 	# Show the battle result overlay with rewards
@@ -267,7 +256,6 @@ func _on_battle_ended(result: BattleResult):
 
 func _on_turn_changed(unit: BattleUnit):
 	"""Handle turn change - highlight active unit's card and show/hide ability bar"""
-	print("BattleScreen: Turn changed to ", unit.display_name if unit else "null")
 
 	# Clear previous highlight
 	_clear_active_highlight()
@@ -323,7 +311,6 @@ func _update_all_unit_cards():
 func _populate_battle_ui():
 	"""Populate the battle UI with units from battle state using BattleUnitCard"""
 	if not battle_coordinator or not battle_coordinator.battle_state:
-		print("BattleScreen: No battle state available")
 		return
 
 	var battle_state = battle_coordinator.battle_state
@@ -337,7 +324,6 @@ func _populate_battle_ui():
 
 	# Populate player team with BattleUnitCard
 	var player_units = battle_state.get_player_units()
-	print("BattleScreen: Creating ", player_units.size(), " player unit cards")
 	for unit in player_units:
 		var unit_card = _create_battle_unit_card(unit)
 		player_team_container.add_child(unit_card)
@@ -347,7 +333,6 @@ func _populate_battle_ui():
 
 	# Populate enemy team with BattleUnitCard
 	var enemy_units = battle_state.get_enemy_units()
-	print("BattleScreen: Creating ", enemy_units.size(), " enemy unit cards")
 	for unit in enemy_units:
 		var unit_card = _create_battle_unit_card(unit)
 		enemy_team_container.add_child(unit_card)
@@ -361,12 +346,9 @@ func _populate_battle_ui():
 
 func _create_battle_unit_card(unit: BattleUnit):
 	"""Create a BattleUnitCard for a battle unit"""
-	print("BattleScreen: Creating unit card for: ", unit.display_name)
 	var unit_card = BattleUnitCardScene.instantiate()
-	print("BattleScreen: Unit card instantiated, calling setup_unit...")
 	# CardStyle is an enum in the class, not instance - use BattleUnitCard.CardStyle
 	unit_card.setup_unit(unit, BattleUnitCard.CardStyle.NORMAL)
-	print("BattleScreen: Unit card setup complete")
 	return unit_card
 
 func _on_unit_card_clicked(unit: BattleUnit):
@@ -406,11 +388,9 @@ func _update_ability_bar_for_turn(unit: BattleUnit):
 	if unit and not unit.is_enemy():
 		# Player unit's turn - show and populate ability bar
 		ability_bar.setup_unit(unit)
-		print("BattleScreen: Showing ability bar for player unit: ", unit.display_name)
 	else:
 		# Enemy unit's turn - hide ability bar
 		_hide_ability_bar()
-		print("BattleScreen: Hiding ability bar (enemy turn)")
 
 func _hide_ability_bar():
 	"""Hide and clear the ability bar"""
@@ -420,22 +400,17 @@ func _hide_ability_bar():
 func _on_ability_selected(skill_index: int):
 	"""Handle ability selection from AbilityBar - Mobile two-tap flow: select skill, then tap target"""
 	if not current_active_unit:
-		print("BattleScreen: No active unit for ability selection")
 		return
 
 	if not battle_coordinator or not battle_coordinator.is_in_battle():
-		print("BattleScreen: No active battle for ability execution")
 		return
 
-	print("BattleScreen: Ability selected - index: ", skill_index, " by ", current_active_unit.display_name)
 
 	# Get the skill from the active unit
 	if skill_index >= current_active_unit.skills.size():
-		print("BattleScreen: Invalid skill index: ", skill_index)
 		return
 
 	var skill = current_active_unit.skills[skill_index]
-	print("BattleScreen: Skill selected for targeting: ", skill.name)
 
 	# Store selected skill
 	selected_skill = skill
@@ -478,7 +453,6 @@ func _highlight_valid_targets(skill: Skill):
 
 func _on_unit_clicked(unit: BattleUnit):
 	"""Handle unit card click - execute selected skill on this target"""
-	print("BattleScreen: Unit clicked - ", unit.display_name)
 
 	# If no skill selected, ignore click
 	if not selected_skill:
@@ -486,7 +460,6 @@ func _on_unit_clicked(unit: BattleUnit):
 
 	# Check if this is a valid target
 	if not _is_valid_target(unit, selected_skill):
-		print("BattleScreen: Invalid target for skill")
 		if action_label:
 			action_label.text = "Invalid target!"
 		return
@@ -524,7 +497,6 @@ func _execute_skill_on_target(skill: Skill, target: BattleUnit):
 	if not current_active_unit or not battle_coordinator:
 		return
 
-	print("BattleScreen: Executing %s on %s" % [skill.name, target.display_name])
 
 	# Update action label
 	if action_label:
@@ -550,9 +522,8 @@ func _execute_skill_on_target(skill: Skill, target: BattleUnit):
 	var success = battle_coordinator.execute_action(action)
 
 	if success:
-		print("BattleScreen: Action executed successfully")
+		pass
 	else:
-		print("BattleScreen: Action execution failed")
 		if action_label:
 			action_label.text = "Action failed!"
 
@@ -633,7 +604,6 @@ func _find_skill_targets(skill: Skill) -> Array:
 
 func _on_action_executed(action: BattleAction, result):
 	"""Handle action execution - update UI with results"""
-	print("BattleScreen: Action executed - ", action.get_description())
 
 	# Update all unit cards to reflect HP/status changes
 	_update_all_unit_cards()
@@ -770,7 +740,6 @@ func _update_turn_order_bar(active_unit: BattleUnit):
 
 	# Update the turn order bar
 	turn_order_bar.update_turn_order(turn_order, active_unit)
-	print("BattleScreen: Updated turn order bar with ", turn_order.size(), " upcoming turns")
 
 func _clear_turn_order_bar():
 	"""Clear the turn order bar"""
@@ -790,7 +759,6 @@ func _create_battle_result_overlay():
 	battle_result_overlay.return_to_map_pressed.connect(_on_return_to_map_pressed)
 	battle_result_overlay.continue_pressed.connect(_on_continue_pressed)
 
-	print("BattleScreen: Battle result overlay created")
 
 func _show_battle_result_overlay(result: BattleResult):
 	"""Show the battle result overlay with rewards"""
@@ -799,7 +767,6 @@ func _show_battle_result_overlay(result: BattleResult):
 
 	# Show the overlay with the result
 	battle_result_overlay.show_result(result)
-	print("BattleScreen: Showing battle result overlay")
 
 func _hide_battle_result_overlay():
 	"""Hide the battle result overlay"""
@@ -813,7 +780,6 @@ func _on_return_to_map_pressed():
 
 	if battle_result_overlay and battle_result_overlay.battle_result:
 		var battle_type = battle_result_overlay.battle_result.battle_type
-		print("BattleScreen: Return to map pressed - battle_type: ", battle_type)
 
 		# Navigate to appropriate screen based on battle origin
 		match battle_type.to_upper():
@@ -824,7 +790,6 @@ func _on_return_to_map_pressed():
 			_:
 				return_screen = "WorldView"
 
-	print("BattleScreen: Navigating to ", return_screen)
 
 	# Hide the overlay
 	_hide_battle_result_overlay()
@@ -833,15 +798,12 @@ func _on_return_to_map_pressed():
 	var screen_manager = SystemRegistry.get_instance().get_system("ScreenManager")
 	if screen_manager:
 		screen_manager.change_screen(return_screen)
-		print("BattleScreen: Navigated to ", return_screen)
 	else:
 		# Fallback to back_pressed if ScreenManager not available
 		back_pressed.emit()
-		print("BattleScreen: ScreenManager not found, falling back to back_pressed")
 
 func _on_continue_pressed():
 	"""Handle continue button - for multi-stage battles or replaying"""
-	print("BattleScreen: Continue pressed")
 	_hide_battle_result_overlay()
 
 # =============================================================================
@@ -862,7 +824,6 @@ func _initialize_wave_indicator(config):
 		else:
 			wave_indicator.text = "Floor %d" % floor_num
 		wave_indicator.visible = true
-		print("BattleScreen: Floor indicator initialized - Floor %d (boss: %s)" % [floor_num, is_boss])
 		return
 
 	# Check if this is a wave-based battle (dungeon) or non-wave battle (arena)
@@ -873,11 +834,9 @@ func _initialize_wave_indicator(config):
 		var total_waves = config.enemy_waves.size()
 		_update_wave_indicator(1, total_waves)
 		wave_indicator.visible = true
-		print("BattleScreen: Wave indicator initialized - 1/%d waves" % total_waves)
 	else:
 		# Hide for non-wave battles (arena, single wave)
 		wave_indicator.visible = false
-		print("BattleScreen: Wave indicator hidden (non-wave battle)")
 
 func _update_wave_indicator(current_wave: int, total_waves: int):
 	"""Update wave indicator display"""
@@ -886,14 +845,12 @@ func _update_wave_indicator(current_wave: int, total_waves: int):
 
 func _on_wave_started(wave_number: int):
 	"""Handle wave started signal - update wave indicator and refresh enemy cards"""
-	print("BattleScreen: Wave %d started" % wave_number)
 
 	# Update wave indicator
 	if wave_indicator and wave_indicator.visible:
 		if battle_coordinator and battle_coordinator.wave_manager:
 			var total_waves = battle_coordinator.wave_manager.get_wave_count()
 			_update_wave_indicator(wave_number, total_waves)
-			print("BattleScreen: Wave indicator updated to %d/%d" % [wave_number, total_waves])
 
 	# Refresh enemy unit cards for new wave (wave 2+)
 	if wave_number > 1:
@@ -920,10 +877,8 @@ func _on_wave_completed(wave_number: int):
 
 	# Don't show transition after final wave (victory screen will show instead)
 	if wave_number >= total_waves:
-		print("BattleScreen: Final wave completed, skipping transition (victory will show)")
 		return
 
-	print("BattleScreen: Wave %d completed, showing transition animation" % wave_number)
 	_show_wave_transition(wave_number, total_waves)
 
 	# Trigger wave reward particle effect
@@ -968,13 +923,11 @@ func _show_wave_transition(completed_wave: int, _total_waves: int):
 	tween.chain()
 	tween.tween_callback(_hide_wave_transition)
 
-	print("BattleScreen: Wave transition animation started")
 
 func _hide_wave_transition():
 	"""Hide the wave transition overlay"""
 	if wave_transition_overlay:
 		wave_transition_overlay.visible = false
-	print("BattleScreen: Wave transition animation completed")
 
 func _refresh_enemy_cards_with_animation():
 	"""Refresh enemy unit cards with fade-in animation for new wave"""
@@ -987,7 +940,6 @@ func _refresh_enemy_cards_with_animation():
 
 	# Get new enemy units from battle state
 	var enemy_units = battle_coordinator.battle_state.get_enemy_units()
-	print("BattleScreen: Refreshing enemy cards for new wave - %d enemies" % enemy_units.size())
 
 	# Create new enemy cards with animation
 	for i in range(enemy_units.size()):
@@ -1010,7 +962,6 @@ func _refresh_enemy_cards_with_animation():
 		tween.tween_property(unit_card, "modulate:a", 1.0, 0.3).set_delay(delay)
 		tween.tween_property(unit_card, "position:x", unit_card.position.x - 50, 0.3).set_delay(delay).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
 
-	print("BattleScreen: Enemy cards refreshed with fade-in animation")
 
 # =============================================================================
 # WAVE REWARD PARTICLE EFFECTS
@@ -1020,7 +971,6 @@ func _create_wave_reward_effect():
 	"""Create the wave reward particle effect (hidden by default)"""
 	wave_reward_effect = WaveRewardEffectScene.instantiate()
 	add_child(wave_reward_effect)
-	print("BattleScreen: Wave reward effect created")
 
 func _trigger_wave_reward_particles():
 	"""Trigger wave reward particle effect - particles fly toward resource display"""
@@ -1037,7 +987,6 @@ func _trigger_wave_reward_particles():
 
 	# Play particles flying toward resource display
 	wave_reward_effect.play_wave_reward(spawn_pos, mana_target, 5, 3)
-	print("BattleScreen: Wave reward particles triggered from %s to %s" % [spawn_pos, mana_target])
 
 # =============================================================================
 # BATTLE LOG MANAGEMENT
@@ -1063,7 +1012,6 @@ func _create_battle_log():
 		battle_log.offset_top = -150
 		battle_log.offset_bottom = -30
 
-	print("BattleScreen: Battle log created")
 
 func _connect_battle_log_signals():
 	"""Connect battle log to battle system signals"""
@@ -1088,7 +1036,6 @@ func _connect_battle_log_signals():
 	if not battle_coordinator.battle_ended.is_connected(_on_battle_log_ended):
 		battle_coordinator.battle_ended.connect(_on_battle_log_ended)
 
-	print("BattleScreen: Battle log signals connected")
 
 func _on_battle_log_turn_started(unit: BattleUnit):
 	"""Log turn start event"""
@@ -1172,7 +1119,6 @@ func _on_auto_button_pressed():
 	# Send to battle coordinator
 	if battle_coordinator:
 		battle_coordinator.set_auto_battle(auto_battle_enabled)
-		print("BattleScreen: Auto battle toggled to ", auto_battle_enabled)
 
 func _update_auto_button_text():
 	"""Update auto button text based on state"""

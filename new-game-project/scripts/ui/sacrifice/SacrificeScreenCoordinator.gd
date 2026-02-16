@@ -36,7 +36,6 @@ func _initialize_systems():
 func _setup_ui_components():
 	"""Setup and initialize UI components"""
 	if not tab_container:
-		print("SacrificeScreenCoordinator: TabContainer not found!")
 		return
 	
 	# Create Sacrifice tab with components
@@ -136,14 +135,11 @@ func _on_sacrifice_god_material_selected(god: God):
 func _on_sacrifice_requested(target_god: God, material_gods: Array[God]):
 	"""Handle sacrifice request from sacrifice panel"""
 	if not sacrifice_manager:
-		print("SacrificeScreenCoordinator: SacrificeManager not available")
 		return
 	
 	var result = sacrifice_manager.perform_sacrifice(target_god, material_gods)
 	if result.success:
-		print("Sacrifice successful! XP gained: %d" % result.xp_gained)
-	else:
-		print("Sacrifice failed: %s" % result.error)
+		pass
 
 # === AWAKENING TAB HANDLERS ===
 
@@ -156,14 +152,11 @@ func _on_awakening_god_selected(god: God):
 func _on_awakening_requested(god: God):
 	"""Handle awakening request from awakening panel"""
 	if not sacrifice_manager:
-		print("SacrificeScreenCoordinator: SacrificeManager not available")
 		return
 	
 	var result = sacrifice_manager.attempt_awakening(god)
 	if result.success:
-		print("Awakening successful for %s!" % god.name)
-	else:
-		print("Awakening failed: %s" % result.error)
+		pass
 
 # === SYSTEM EVENT HANDLERS ===
 

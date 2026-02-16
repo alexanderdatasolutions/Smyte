@@ -19,7 +19,6 @@ func initialize(target_container: Control, xp_container: Control):
 	"""Initialize with the target display containers"""
 	target_god_container = target_container
 	xp_bar_container = xp_container
-	print("SacrificeTargetDisplayManager: Initialized")
 
 func set_target_god(god: God):
 	"""Set the target god for sacrifice - FOLLOWING RULE 4: UI display only"""
@@ -44,8 +43,6 @@ func preview_sacrifice_result(selected_materials: Array):
 			if sacrifice_manager:
 				preview_xp = sacrifice_manager.calculate_sacrifice_xp(selected_materials)
 				levels_gained = sacrifice_manager.calculate_levels_gained(current_target_god, preview_xp)
-			else:
-				print("SacrificeTargetDisplayManager: SacrificeManager not found in SystemRegistry")
 	
 	update_xp_bar_with_preview(preview_xp, levels_gained)
 	xp_preview_changed.emit(preview_xp, levels_gained)
@@ -123,8 +120,6 @@ func setup_target_display():
 	var sprite_path = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		god_image.texture = load(sprite_path)
-	else:
-		print("SacrificeTargetDisplayManager: God sprite not found: ", sprite_path)
 	
 	image_container.add_child(god_image)
 	hbox.add_child(image_container)

@@ -244,7 +244,6 @@ func refresh_display() -> void:
 		_show_garrison_cards()
 
 	_update_combat_power()
-	print("GarrisonDisplay: Showing %d garrison gods, total power: %d" % [_garrison_gods.size(), get_total_combat_power()])
 
 # =============================================================================
 # INTERNAL HELPERS
@@ -425,12 +424,10 @@ func _update_combat_power() -> void:
 
 func _on_set_garrison_pressed() -> void:
 	"""Handle Set Garrison button press"""
-	print("GarrisonDisplay: Set Garrison button pressed")
 	set_garrison_requested.emit()
 
 func _on_garrison_god_tapped(god: God) -> void:
 	"""Handle tap on garrison god card"""
-	print("GarrisonDisplay: Garrison god tapped - %s" % god.name)
 	garrison_god_tapped.emit(god)
 
 func _style_action_button(button: Button) -> void:

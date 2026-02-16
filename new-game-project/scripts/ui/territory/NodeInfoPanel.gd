@@ -9,6 +9,7 @@ RULE 2: Single responsibility - ONLY displays node information with interactive 
 RULE 1: Under 500 lines
 
 Shows:
+	pass
 - Node name, type, tier
 - Production rates
 - Garrison with slot boxes (60x60px tap targets)
@@ -376,7 +377,6 @@ func show_crafting_tab() -> void:
 
 	# Only show crafting for forge-type nodes
 	if current_node.node_type != "forge":
-		print("NodeInfoPanel: show_crafting_tab called on non-forge node")
 		return
 
 	# Open the crafting popup
@@ -1416,7 +1416,6 @@ func _cleanup_stale_garrison_ids() -> void:
 		var god = _get_god_by_id(god_id)
 		if god == null:
 			stale_ids.append(god_id)
-			print("NodeInfoPanel: Found stale god_id in garrison: %s (god was sacrificed)" % god_id)
 
 	if stale_ids.size() > 0:
 		# Remove stale IDs from garrison
@@ -1427,7 +1426,6 @@ func _cleanup_stale_garrison_ids() -> void:
 
 		# Update via TerritoryManager to persist the cleanup
 		territory_manager.update_node_garrison(current_node.id, clean_garrison)
-		print("NodeInfoPanel: Cleaned up %d stale god_ids from garrison of node %s" % [stale_ids.size(), current_node.id])
 
 func _cleanup_stale_worker_ids() -> void:
 	"""Remove god_ids from workers that no longer exist (were sacrificed)"""
@@ -1439,7 +1437,6 @@ func _cleanup_stale_worker_ids() -> void:
 		var god = _get_god_by_id(god_id)
 		if god == null:
 			stale_ids.append(god_id)
-			print("NodeInfoPanel: Found stale god_id in workers: %s (god was sacrificed)" % god_id)
 
 	if stale_ids.size() > 0:
 		# Remove stale IDs from workers
@@ -1450,7 +1447,6 @@ func _cleanup_stale_worker_ids() -> void:
 
 		# Update via TerritoryManager to persist the cleanup
 		territory_manager.update_node_workers(current_node.id, clean_workers)
-		print("NodeInfoPanel: Cleaned up %d stale god_ids from workers of node %s" % [stale_ids.size(), current_node.id])
 
 func _create_button(text: String, color: Color) -> Button:
 	"""Create a styled button"""
@@ -1519,25 +1515,21 @@ func _on_close_pressed() -> void:
 
 func _on_slot_tapped(node: HexNode, slot_type: String, slot_index: int) -> void:
 	"""Handle empty slot tap - emit signal for parent to open god selection"""
-	print("NodeInfoPanel: Empty slot tapped - node: %s, type: %s, index: %d" % [node.id, slot_type, slot_index])
 	slot_tapped.emit(node, slot_type, slot_index)
 
 func _on_filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
 	"""Handle filled slot tap - emit signal for parent to show remove confirmation"""
-	print("NodeInfoPanel: Filled slot tapped - node: %s, type: %s, index: %d, god: %s" % [node.id, slot_type, slot_index, god.name if god else "null"])
 	filled_slot_tapped.emit(node, slot_type, slot_index, god)
 
 func _on_collect_resources_pressed() -> void:
 	"""Handle collect resources button press"""
 	if not current_node or not production_manager:
-		print("NodeInfoPanel: Cannot collect - missing node or production manager")
 		return
 
 	# Call production manager to collect resources
 	var collected = production_manager.collect_node_resources(current_node.id)
 
 	if collected.is_empty():
-		print("NodeInfoPanel: No resources collected from node %s" % current_node.id)
 		_show_collection_feedback("No resources to collect", Color(0.8, 0.6, 0.4))
 	else:
 		# Load balance config to check for manual collection bonus
@@ -1562,7 +1554,6 @@ func _on_collect_resources_pressed() -> void:
 			var bonus_percent = int((manual_bonus - 1.0) * 100)
 			message += "\n✨ +%d%% Manual Collection Bonus" % bonus_percent
 
-		print("NodeInfoPanel: Collected resources from node %s: %s" % [current_node.id, str(collected)])
 		_show_collection_feedback(message, Color(0.3, 0.9, 0.4))
 
 		# Trigger visual collection effect on the hex tile
@@ -1839,7 +1830,6 @@ func _on_craft_complete_clicked(craft_data: Dictionary) -> void:
 	var task_id = craft_data.get("task_id", "")
 	var node_id = craft_data.get("node_id", "")
 
-	print("NodeInfoPanel: Collecting completed craft '%s'" % task_id)
 
 	# Award rewards
 	_award_craft_rewards(task_data)
@@ -1869,7 +1859,6 @@ func _award_craft_rewards(task_data: Dictionary) -> void:
 	for resource_id in resources.keys():
 		var amount = resources[resource_id]
 		resource_manager.add_resource(resource_id, amount)
-		print("NodeInfoPanel: Awarded %d %s" % [amount, resource_id])
 
 	# Item rewards (would need InventoryManager)
 	var items = task_data.get("item_rewards", [])
@@ -1879,7 +1868,6 @@ func _award_craft_rewards(task_data: Dictionary) -> void:
 			if randf() <= chance:
 				var item_id = item.get("id", "")
 				var item_rarity = item.get("rarity", "common")
-				print("NodeInfoPanel: Would award item '%s' (%s)" % [item_id, item_rarity])
 				# TODO: Add to inventory when InventoryManager is integrated
 
 func _show_craft_collected_feedback(task_data: Dictionary) -> void:
@@ -2133,17 +2121,13 @@ func _on_start_craft(task: Dictionary, auto_repeat_check = null) -> void:
 	var costs = task.get("materials", task.get("resource_costs", {}))
 	if not costs.is_empty():
 		if not resource_manager:
-			print("NodeInfoPanel: No ResourceManager - cannot spend resources")
 			return
 		if not resource_manager.can_afford(costs):
-			print("NodeInfoPanel: Cannot afford craft costs")
 			return
 		# Spend the resources
 		if not resource_manager.spend_resources(costs):
-			print("NodeInfoPanel: Failed to spend resources")
 			return
 
-	print("NodeInfoPanel: Starting craft task '%s' at node '%s' (auto-repeat: %s)" % [task_id, current_node.id, auto_repeat])
 
 	# Track the craft using shared tracker in HexGridManager
 	var craft_started = false
@@ -2154,7 +2138,6 @@ func _on_start_craft(task: Dictionary, auto_repeat_check = null) -> void:
 		# Refund the resources
 		for resource_id in costs:
 			resource_manager.add_resource(resource_id, costs[resource_id])
-		print("NodeInfoPanel: Craft failed to start - resources refunded")
 		_show_craft_error_feedback("Cannot start craft - forge already busy or no worker assigned")
 		return
 

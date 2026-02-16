@@ -1282,7 +1282,6 @@ func _on_fight_pressed(opponent: Dictionary) -> void:
 
 	var opp_uid = opponent.get("user_id", "")
 	if not arena_manager.can_attack_opponent(opp_uid):
-		print("[ArenaScreen] Opponent on cooldown")
 		return
 
 	# Start PvP battle flow
@@ -2513,7 +2512,6 @@ func _on_defense_updated(success: bool) -> void:
 	if success:
 		_update_defense_display()
 		_update_player_stats()
-		print("[ArenaScreen] Defense team updated successfully")
 
 func _on_leaderboard_loaded(entries: Array) -> void:
 	if not leaderboard_popup or not is_instance_valid(leaderboard_popup):

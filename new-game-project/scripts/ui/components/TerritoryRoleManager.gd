@@ -43,8 +43,6 @@ func refresh_roles_display(territory: Territory):
 		var territory_manager = system_registry.get_system("TerritoryManager")
 		if territory_manager:
 			territory_roles = territory_manager.get_available_territory_roles(current_territory)
-		else:
-			print("TerritoryRoleManager: TerritoryManager not found in SystemRegistry")
 	
 	# Fallback if system not available
 	if territory_roles.is_empty():
@@ -231,8 +229,6 @@ func _on_remove_god_pressed(role_name: String, slot_index: int):
 		if territory_manager:
 			territory_manager.unassign_god_from_role(current_territory.id, role_name, slot_index)
 			refresh_single_role_slots(role_name)
-		else:
-			print("TerritoryRoleManager: TerritoryManager not found in SystemRegistry")
 
 func refresh_single_role_slots(role_name: String):
 	"""Refresh slots for a specific role"""
@@ -265,8 +261,6 @@ func get_assigned_god_for_slot(role_name: String, slot_index: int):
 		var territory_manager = system_registry.get_system("TerritoryManager")
 		if territory_manager:
 			return territory_manager.get_assigned_god_for_role(current_territory.id, role_name, slot_index)
-		else:
-			print("TerritoryRoleManager: TerritoryManager not found in SystemRegistry")
 	
 	return null
 

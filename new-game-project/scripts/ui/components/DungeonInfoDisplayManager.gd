@@ -19,7 +19,6 @@ func initialize(info_container: Control, difficulty_container: Control, rewards_
 	dungeon_info_container = info_container
 	difficulty_buttons_container = difficulty_container
 	rewards_container = rewards_display
-	print("DungeonInfoDisplayManager: Initialized")
 
 func show_dungeon_info(dungeon_id: String, dungeon_data: Dictionary):
 	"""Show dungeon information and setup difficulty selection - RULE 4: UI display only"""
@@ -164,7 +163,6 @@ func _on_difficulty_button_toggled(difficulty: String, pressed: bool):
 	"""Handle difficulty button toggle"""
 	if pressed:
 		current_difficulty = difficulty
-		print("DungeonInfoDisplayManager: Difficulty selected - %s" % difficulty)
 		update_rewards_display(current_dungeon_id, difficulty)
 		difficulty_selected.emit(current_dungeon_id, difficulty)
 
@@ -188,12 +186,10 @@ func get_rewards_from_system(dungeon_id: String, difficulty: String) -> Array:
 	"""Get reward preview through SystemRegistry - RULE 5 compliance"""
 	var system_registry = SystemRegistry.get_instance()
 	if not system_registry:
-		print("DungeonInfoDisplayManager: SystemRegistry not available")
 		return []
 	
 	var loot_system = system_registry.get_system("LootSystem")
 	if not loot_system:
-		print("DungeonInfoDisplayManager: LootSystem not found")
 		return []
 	
 	# Convert dungeon ID to loot table name

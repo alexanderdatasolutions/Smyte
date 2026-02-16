@@ -9,6 +9,7 @@ RULE 4: Read-only display with system delegation for actions
 RULE 5: SystemRegistry for all system access
 
 Features:
+	pass
 - Comprehensive god stats and information
 - Equipment display and management interface
 - Role assignment controls
@@ -33,7 +34,6 @@ var current_god_id: String = ""
 var current_god_data: Dictionary = {}
 
 func _ready():
-	print("GodDetailsPanel: Initializing god details panel...")
 	_init_systems()
 	_setup_ui()
 	_show_no_selection()
@@ -81,10 +81,8 @@ func _setup_ui():
 
 func display_god(god_id: String):
 	"""Display detailed information for a specific god - RULE 4: Read-only data access"""
-	print("GodDetailsPanel: Displaying god: ", god_id)
 	
 	if not god_manager:
-		print("GodDetailsPanel: No god_manager available!")
 		return
 	
 	current_god_id = god_id
@@ -92,7 +90,6 @@ func display_god(god_id: String):
 	# Get god data
 	var god = god_manager.get_god_by_id(god_id)
 	if not god:
-		print("GodDetailsPanel: Failed to get god data for id: ", god_id)
 		_show_error("Failed to load god data")
 		return
 	
@@ -113,7 +110,6 @@ func display_god(god_id: String):
 		"stationed_territory": god.stationed_territory,
 		"abilities": god.active_abilities if god.has_meta("active_abilities") else []
 	}
-	print("GodDetailsPanel: God data prepared: ", current_god_data.keys())
 	_build_god_details()
 
 func clear_display():
@@ -156,16 +152,12 @@ func _clear_content():
 
 func _build_god_details():
 	"""Build the detailed god information display with beautiful styling"""
-	print("GodDetailsPanel: Starting to build god details")
-	print("GodDetailsPanel: Current god data: ", current_god_data)
-	print("GodDetailsPanel: Content container valid: ", content_container != null)
 	
 	_clear_content()
 	
 	# Wait a frame for cleanup
 	await get_tree().process_frame
 	
-	print("GodDetailsPanel: Creating scrollable content")
 	
 	# Create scrollable content container for beautiful detailed view
 	var details_scroll = ScrollContainer.new()
@@ -177,7 +169,6 @@ func _build_god_details():
 	content.add_theme_constant_override("separation", 10)
 	details_scroll.add_child(content)
 	
-	print("GodDetailsPanel: Creating god image section")
 	
 	# God Image with beautiful styling
 	var image_container = TextureRect.new()
@@ -190,16 +181,13 @@ func _build_god_details():
 	if god_texture:
 		image_container.texture = god_texture
 		content.add_child(image_container)
-		print("GodDetailsPanel: Added god image")
 	else:
 		# Beautiful fallback - create a colored rectangle with tier styling
 		var placeholder = ColorRect.new()
 		placeholder.color = GodUIHelpers.get_tier_border_color((current_god_data.get("tier", 1) - 1) as God.TierType)
 		placeholder.custom_minimum_size = Vector2(200, 200)
 		content.add_child(placeholder)
-		print("GodDetailsPanel: Added placeholder image")
 	
-	print("GodDetailsPanel: Creating basic info section")
 	
 	# Basic Info Section with tier-colored header
 	var info_section = VBoxContainer.new()
@@ -314,10 +302,7 @@ Territory: %s""" % [
 			abilities_section.add_child(ability_container)
 		
 		content.add_child(abilities_section)
-		print("GodDetailsPanel: Added abilities section with ", current_god_data.abilities.size(), " abilities")
 	
-	print("GodDetailsPanel: God details build completed successfully!")
-	print("GodDetailsPanel: Final content children count: ", content.get_child_count())
 
 func _create_god_header():
 	"""Create the god header with name and basic info"""
@@ -494,22 +479,18 @@ func _create_actions_section():
 
 func _on_equipment_slot_pressed(slot: String):
 	"""Handle equipment slot button press - RULE 4: Delegate to systems"""
-	print("GodDetailsPanel: Equipment slot pressed: ", slot)
 	god_action_requested.emit("change_equipment", current_god_id, {"slot": slot})
 
 func _on_level_up_pressed():
 	"""Handle level up button press - RULE 4: Delegate to systems"""
-	print("GodDetailsPanel: Level up requested for: ", current_god_id)
 	god_action_requested.emit("level_up", current_god_id, {})
 
 func _on_evolve_pressed():
 	"""Handle evolve button press - RULE 4: Delegate to systems"""
-	print("GodDetailsPanel: Evolution requested for: ", current_god_id)
 	god_action_requested.emit("evolve", current_god_id, {})
 
 func _on_awaken_pressed():
 	"""Handle awaken button press - RULE 4: Delegate to systems"""
-	print("GodDetailsPanel: Awakening requested for: ", current_god_id)
 	god_action_requested.emit("awaken", current_god_id, {})
 
 # Helper functions for beautiful styling
