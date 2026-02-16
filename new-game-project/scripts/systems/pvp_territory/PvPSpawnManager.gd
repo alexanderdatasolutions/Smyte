@@ -222,12 +222,12 @@ static func _find_best_respawn_coord(
 
 	# Find position with maximum minimum distance to any spawn
 	var best_coord: Vector2i = available[0]
-	var best_min_distance := 0
+	var best_min_distance: int = 0
 
 	for coord: Vector2i in available:
-		var min_distance := 999
+		var min_distance: int = 999
 		for spawn: Vector2i in spawn_coords:
-			var distance := HexRingGenerator.get_ring_distance(coord - spawn)
+			var distance: int = HexRingGenerator.get_ring_distance(coord - spawn)
 			if distance < min_distance:
 				min_distance = distance
 		if min_distance > best_min_distance:

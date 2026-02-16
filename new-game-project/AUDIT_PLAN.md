@@ -496,8 +496,8 @@
     "priority": "high",
     "file": "scripts/systems/pvp_territory/ (all 5 files)",
     "issue": "60+ untyped variables across PvP territory system",
-    "action": "Add static types to all PvP territory files",
-    "passes": false
+    "action": "Added static types to all 100+ variables, parameters, return types, and loop iterators across all 5 PvP territory files. Typed _firestore as Variant, all SystemRegistry/Firebase locals as Variant, all Firestore collection/query/result locals as Variant, all hex/node locals as PvPHexNode, all coordinate arrays as Array[Vector2i], all lambda params with types. Typed _get_system_registry() -> Variant, _get_doc_value() -> Variant, _doc_to_dict() -> Dictionary, _parse_map_results() -> Array. Removed 4 debug print statements from PvPTerritoryDataSync.gd. Also fixed unused parameter warning (player_uid -> _player_uid) in PvPTerritoryManager.gd.",
+    "passes": true
   },
   {
     "priority": "high",

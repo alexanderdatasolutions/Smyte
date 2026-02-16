@@ -51,8 +51,8 @@ var _player_attack_cooldowns: Dictionary = {}  # {defender_uid: unix_timestamp}
 # INITIALIZATION
 # ==============================================================================
 
-func _get_system_registry():
-	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+func _get_system_registry() -> Variant:
+	var registry_script: Variant = load("res://scripts/systems/core/SystemRegistry.gd")
 	if registry_script and registry_script.has_method("get_instance"):
 		return registry_script.get_instance()
 	return null
@@ -151,7 +151,7 @@ func start_attack(hex: PvPHexNode) -> bool:
 
 	Returns true if attack can proceed.
 	"""
-	var validation := can_attack_hex(hex)
+	var validation: Dictionary = can_attack_hex(hex)
 	if not validation["can_attack"]:
 		return false
 
@@ -184,7 +184,7 @@ func process_attack_result(hex_id: String, victory: bool) -> void:
 		hex_id: The hex that was attacked
 		victory: True if attacker won
 	"""
-	var hex := _map_instance.get_hex(hex_id)
+	var hex: PvPHexNode = _map_instance.get_hex(hex_id)
 	if hex == null:
 		return
 
@@ -199,7 +199,7 @@ func process_attack_result(hex_id: String, victory: bool) -> void:
 
 func _process_capture(hex: PvPHexNode) -> void:
 	"""Process successful hex capture"""
-	var old_owner := hex.controller_uid
+	var old_owner: String = hex.controller_uid
 
 	# Update local state
 	_map_instance.process_capture(hex.id, _current_user_uid, _current_user_name)
@@ -231,13 +231,13 @@ func get_defense_team_for_hex(hex: PvPHexNode) -> Array:
 	return _get_player_arena_defense(hex.controller_uid)
 
 
-func _get_player_arena_defense(player_uid: String) -> Array:
+func _get_player_arena_defense(_player_uid: String) -> Array:
 	"""Get a player's arena defense team as fallback"""
-	var system_registry = _get_system_registry()
+	var system_registry: Variant = _get_system_registry()
 	if not system_registry:
 		return []
 
-	var arena_manager = system_registry.get_system("ArenaManager")
+	var arena_manager: Variant = system_registry.get_system("ArenaManager")
 	if not arena_manager:
 		return []
 
@@ -253,7 +253,7 @@ func update_hex_defense(hex_id: String, team: Array) -> void:
 		hex_id: The hex to update
 		team: Array of God objects to serialize
 	"""
-	var hex := _map_instance.get_hex(hex_id)
+	var hex: PvPHexNode = _map_instance.get_hex(hex_id)
 	if hex == null:
 		return
 
@@ -263,8 +263,8 @@ func update_hex_defense(hex_id: String, team: Array) -> void:
 		return
 
 	# Serialize team
-	var serialized_team := _serialize_defense_team(team)
-	var defense_power := _calculate_team_power(serialized_team)
+	var serialized_team: Array = _serialize_defense_team(team)
+	var defense_power: int = _calculate_team_power(serialized_team)
 
 	# Update local state
 	hex.defense_team_serialized = serialized_team
@@ -286,21 +286,21 @@ func _serialize_defense_team(team: Array) -> Array:
 
 	Uses ArenaManager's serialization format for compatibility.
 	"""
-	var system_registry = _get_system_registry()
+	var system_registry: Variant = _get_system_registry()
 	if not system_registry:
 		return []
 
-	var arena_manager = system_registry.get_system("ArenaManager")
+	var arena_manager: Variant = system_registry.get_system("ArenaManager")
 	if arena_manager and arena_manager.has_method("_serialize_god_for_pvp"):
-		var serialized := []
-		for god in team:
+		var serialized: Array = []
+		for god: Variant in team:
 			if god:
 				serialized.append(arena_manager._serialize_god_for_pvp(god))
 		return serialized
 
 	# Fallback: basic serialization
-	var serialized := []
-	for god in team:
+	var serialized: Array = []
+	for god: Variant in team:
 		if god:
 			serialized.append({
 				"god_id": god.id,
@@ -316,7 +316,7 @@ func _serialize_defense_team(team: Array) -> Array:
 
 func _calculate_team_power(serialized_team: Array) -> int:
 	"""Calculate combat power from serialized team"""
-	var power := 0
+	var power: int = 0
 	for god_data: Dictionary in serialized_team:
 		power += god_data.get("base_hp", 0) / 10
 		power += god_data.get("base_attack", 0)
@@ -338,11 +338,11 @@ func _on_player_eliminated(player_uid: String) -> void:
 
 func _trigger_respawn() -> void:
 	"""Trigger respawn for current user"""
-	var hexes := {}
+	var hexes: Dictionary = {}
 	for hex: PvPHexNode in _map_instance.get_all_hexes():
 		hexes[hex.id] = hex
 
-	var respawn_result := PvPSpawnManager.execute_respawn(
+	var respawn_result: Dictionary = PvPSpawnManager.execute_respawn(
 		_current_user_uid,
 		_current_user_name,
 		hexes,
@@ -377,7 +377,7 @@ func get_attackable_hexes() -> Array[PvPHexNode]:
 	var result: Array[PvPHexNode] = []
 
 	for hex: PvPHexNode in _map_instance.get_all_hexes():
-		var validation := can_attack_hex(hex)
+		var validation: Dictionary = can_attack_hex(hex)
 		if validation["can_attack"]:
 			result.append(hex)
 

@@ -54,7 +54,7 @@ func initialize(map_data: Dictionary, user_uid: String) -> void:
 	# Load hexes
 	var hex_data: Dictionary = map_data.get("hexes", {})
 	for hex_id: String in hex_data:
-		var hex = hex_data[hex_id]
+		var hex: Variant = hex_data[hex_id]
 		if hex is PvPHexNode:
 			hexes[hex_id] = hex
 		elif hex is Dictionary:
@@ -171,9 +171,12 @@ func get_player_data(player_uid: String) -> Dictionary:
 	return players.get(player_uid, {})
 
 
-func get_all_players() -> Array:
+func get_all_players() -> Array[Dictionary]:
 	"""Get all player data as array"""
-	return players.values()
+	var result: Array[Dictionary] = []
+	for player_data: Dictionary in players.values():
+		result.append(player_data)
+	return result
 
 
 func get_player_count() -> int:
@@ -222,7 +225,7 @@ func get_leaderboard() -> Array[Dictionary]:
 		})
 
 	# Sort by total score descending
-	entries.sort_custom(func(a, b): return a["total_score"] > b["total_score"])
+	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["total_score"] > b["total_score"])
 
 	# Assign ranks
 	for i in range(entries.size()):
@@ -246,7 +249,7 @@ func get_my_rank() -> int:
 
 func update_hex(hex: PvPHexNode) -> void:
 	"""Update a hex in local state"""
-	var old_hex = hexes.get(hex.id)
+	var old_hex: PvPHexNode = hexes.get(hex.id)
 	var old_owner: String = old_hex.controller_uid if old_hex else ""
 
 	hexes[hex.id] = hex
@@ -270,7 +273,7 @@ func add_hex(hex: PvPHexNode) -> void:
 
 func update_player(player_uid: String, data: Dictionary) -> void:
 	"""Update player data"""
-	var is_new := not players.has(player_uid)
+	var is_new: bool = not players.has(player_uid)
 	players[player_uid] = data
 
 	if is_new:
@@ -280,11 +283,11 @@ func update_player(player_uid: String, data: Dictionary) -> void:
 
 func process_capture(hex_id: String, new_owner_uid: String, new_owner_name: String) -> void:
 	"""Process a hex capture"""
-	var hex := get_hex(hex_id)
+	var hex: PvPHexNode = get_hex(hex_id)
 	if hex == null:
 		return
 
-	var old_owner := hex.controller_uid
+	var old_owner: String = hex.controller_uid
 
 	hex.controller_uid = new_owner_uid
 	hex.controller_display_name = new_owner_name
@@ -328,14 +331,14 @@ func get_time_until_reset() -> int:
 
 func get_reset_time_string() -> String:
 	"""Get human-readable time until reset"""
-	var seconds := get_time_until_reset()
+	var seconds: int = get_time_until_reset()
 
 	if seconds <= 0:
 		return "Reset imminent"
 
-	var days := seconds / 86400
-	var hours := (seconds % 86400) / 3600
-	var minutes := (seconds % 3600) / 60
+	var days: int = seconds / 86400
+	var hours: int = (seconds % 86400) / 3600
+	var minutes: int = (seconds % 3600) / 60
 
 	if days > 0:
 		return "%dd %dh" % [days, hours]

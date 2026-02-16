@@ -7,6 +7,24 @@
 
 ---
 
+## 2026-02-16 - Audit: Add static typing to PvP territory system
+
+**Priority:** High (Static Typing)
+**File(s) Modified:** `scripts/systems/pvp_territory/PvPSpawnManager.gd`, `scripts/systems/pvp_territory/PvPTerritoryManager.gd`, `scripts/systems/pvp_territory/PvPMapInstance.gd`, `scripts/systems/pvp_territory/PvPMapGenerator.gd`, `scripts/systems/pvp_territory/PvPTerritoryDataSync.gd`
+
+**Changes:**
+- Added static types to 100+ variables, parameters, return types, and loop iterators across all 5 files
+- PvPSpawnManager: Typed `best_min_distance`, `min_distance`, `distance` as int
+- PvPTerritoryManager: Typed `_get_system_registry() -> Variant`, all system lookups as Variant, hex locals as PvPHexNode, validation/serialized/power vars, lambda god params as Variant
+- PvPMapInstance: Typed hex var as Variant, old_hex as PvPHexNode, lambda params (a/b: Dictionary), time vars as int, get_all_players() returns Array[Dictionary]
+- PvPMapGenerator: Typed all ring_coords as Array[Vector2i], all node locals as PvPHexNode, names as Array[String], all loop iterators (ring: int, i: int, offset: int), spacing/index/count/score/total as int
+- PvPTerritoryDataSync: Typed _firestore as Variant, all 30+ Firestore collection/query/result/doc locals as Variant, all path strings, all hex/map data as Dictionary, all lambda params, removed 4 debug print statements
+- Fixed unused parameter warning: `player_uid` -> `_player_uid` in `_get_player_arena_defense()`
+
+**Verified:** Ran project, no new errors in debug output. Pre-existing Firebase signal errors unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Move combat formula to battle_config.json
 
 **Priority:** High (Data-Driven JSON Config)

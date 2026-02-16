@@ -107,15 +107,15 @@ static func generate_initial_map() -> Dictionary:
 
 	# ==== TIER 5: PvP-EXCLUSIVE CENTER (Rings 0-3) ====
 	# Ring 0: Legendary center objective
-	var center_node := _create_center_objective()
+	var center_node: PvPHexNode = _create_center_objective()
 	hexes[center_node.id] = center_node
 
 	# Ring 1: 6 high-value tier 5 objectives
-	var ring_1_coords := HexRingGenerator.generate_ring(1)
+	var ring_1_coords: Array[Vector2i] = HexRingGenerator.generate_ring(1)
 	for i in range(ring_1_coords.size()):
 		var coord: Vector2i = ring_1_coords[i]
 		var template: Dictionary = RING_1_OBJECTIVES[i % RING_1_OBJECTIVES.size()]
-		var node := PvPHexNode.create_objective_node(
+		var node: PvPHexNode = PvPHexNode.create_objective_node(
 			coord.x, coord.y,
 			template["name"],
 			template["value"],
@@ -125,11 +125,11 @@ static func generate_initial_map() -> Dictionary:
 		hexes[node.id] = node
 
 	# Ring 2: 12 tier 5 objectives
-	var ring_2_coords := HexRingGenerator.generate_ring(2)
+	var ring_2_coords: Array[Vector2i] = HexRingGenerator.generate_ring(2)
 	for i in range(ring_2_coords.size()):
 		var coord: Vector2i = ring_2_coords[i]
 		var template: Dictionary = RING_2_OBJECTIVES[i % RING_2_OBJECTIVES.size()]
-		var node := PvPHexNode.create_objective_node(
+		var node: PvPHexNode = PvPHexNode.create_objective_node(
 			coord.x, coord.y,
 			template["name"],
 			template["value"],
@@ -139,12 +139,12 @@ static func generate_initial_map() -> Dictionary:
 		hexes[node.id] = node
 
 	# Ring 3: 18 tier 5 territories (contested approaches to center)
-	var ring_3_coords := HexRingGenerator.generate_ring(3)
+	var ring_3_coords: Array[Vector2i] = HexRingGenerator.generate_ring(3)
 	for i in range(ring_3_coords.size()):
 		var coord: Vector2i = ring_3_coords[i]
 		if i % 3 == 0:  # Every 3rd is an objective
 			var template: Dictionary = OUTER_OBJECTIVES[i % OUTER_OBJECTIVES.size()]
-			var node := PvPHexNode.create_objective_node(
+			var node: PvPHexNode = PvPHexNode.create_objective_node(
 				coord.x, coord.y,
 				template["name"] + " Prime",
 				template["value"] * 2,
@@ -153,17 +153,17 @@ static func generate_initial_map() -> Dictionary:
 			node.tier = 5
 			hexes[node.id] = node
 		else:
-			var node := _create_named_territory(coord.x, coord.y, 5, name_counters)
+			var node: PvPHexNode = _create_named_territory(coord.x, coord.y, 5, name_counters)
 			hexes[node.id] = node
 
 	# ==== TIER 4: SECONDARY CONTESTED (Rings 4-6) ====
-	for ring in range(4, 7):
-		var ring_coords := HexRingGenerator.generate_ring(ring)
+	for ring: int in range(4, 7):
+		var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(ring)
 		for i in range(ring_coords.size()):
 			var coord: Vector2i = ring_coords[i]
 			if i % 5 == 0:  # Occasional objectives
 				var template: Dictionary = OUTER_OBJECTIVES[i % OUTER_OBJECTIVES.size()]
-				var node := PvPHexNode.create_objective_node(
+				var node: PvPHexNode = PvPHexNode.create_objective_node(
 					coord.x, coord.y,
 					template["name"],
 					template["value"],
@@ -172,17 +172,17 @@ static func generate_initial_map() -> Dictionary:
 				node.tier = 4
 				hexes[node.id] = node
 			else:
-				var node := _create_named_territory(coord.x, coord.y, 4, name_counters)
+				var node: PvPHexNode = _create_named_territory(coord.x, coord.y, 4, name_counters)
 				hexes[node.id] = node
 
 	# ==== TIER 3: CONTESTED MIDDLE (Rings 7-9) - Expand INWARD from spawn ====
-	for ring in range(7, 10):
-		var ring_coords := HexRingGenerator.generate_ring(ring)
+	for ring: int in range(7, 10):
+		var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(ring)
 		for i in range(ring_coords.size()):
 			var coord: Vector2i = ring_coords[i]
 			if i % 8 == 0:  # Rare objectives
 				var template: Dictionary = OUTER_OBJECTIVES[i % OUTER_OBJECTIVES.size()]
-				var node := PvPHexNode.create_objective_node(
+				var node: PvPHexNode = PvPHexNode.create_objective_node(
 					coord.x, coord.y,
 					template["name"],
 					int(template["value"] * 0.7),
@@ -191,28 +191,28 @@ static func generate_initial_map() -> Dictionary:
 				node.tier = 3
 				hexes[node.id] = node
 			else:
-				var node := _create_named_territory(coord.x, coord.y, 3, name_counters)
+				var node: PvPHexNode = _create_named_territory(coord.x, coord.y, 3, name_counters)
 				hexes[node.id] = node
 
 	# ==== TIER 2: SPAWN BUFFER ZONE (Rings 10-11) - Where players start ====
-	for ring in range(10, 12):
-		var ring_coords := HexRingGenerator.generate_ring(ring)
+	for ring: int in range(10, 12):
+		var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(ring)
 		for coord: Vector2i in ring_coords:
-			var node := _create_named_territory(coord.x, coord.y, 2, name_counters)
+			var node: PvPHexNode = _create_named_territory(coord.x, coord.y, 2, name_counters)
 			hexes[node.id] = node
 
 	# ==== TIER 2: OUTWARD EXPANSION (Rings 12-14) ====
-	for ring in range(12, 15):
-		var ring_coords := HexRingGenerator.generate_ring(ring)
+	for ring: int in range(12, 15):
+		var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(ring)
 		for coord: Vector2i in ring_coords:
-			var node := _create_named_territory(coord.x, coord.y, 2, name_counters)
+			var node: PvPHexNode = _create_named_territory(coord.x, coord.y, 2, name_counters)
 			hexes[node.id] = node
 
 	# ==== TIER 1: OUTER FRONTIER (Rings 15-16) ====
-	for ring in range(15, 17):
-		var ring_coords := HexRingGenerator.generate_ring(ring)
+	for ring: int in range(15, 17):
+		var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(ring)
 		for coord: Vector2i in ring_coords:
-			var node := _create_named_territory(coord.x, coord.y, 1, name_counters)
+			var node: PvPHexNode = _create_named_territory(coord.x, coord.y, 1, name_counters)
 			hexes[node.id] = node
 
 	var config := {
@@ -242,7 +242,10 @@ static func _create_center_objective() -> PvPHexNode:
 
 static func _create_named_territory(q: int, r: int, tier: int, name_counters: Dictionary) -> PvPHexNode:
 	"""Create a territory with a procedural name"""
-	var names: Array = TERRITORY_NAMES.get(tier, TERRITORY_NAMES[1])
+	var names: Array[String] = []
+	var raw_names: Array = TERRITORY_NAMES.get(tier, TERRITORY_NAMES[1])
+	for n: String in raw_names:
+		names.append(n)
 	var base_name: String = names[randi() % names.size()]
 
 	# Add a unique suffix
@@ -250,11 +253,11 @@ static func _create_named_territory(q: int, r: int, tier: int, name_counters: Di
 		name_counters[base_name] = 0
 	name_counters[base_name] += 1
 
-	var full_name := base_name
+	var full_name: String = base_name
 	if name_counters[base_name] > 1:
 		full_name = "%s %s" % [base_name, _number_to_roman(name_counters[base_name])]
 
-	var node := PvPHexNode.create_blank_node(q, r, tier)
+	var node: PvPHexNode = PvPHexNode.create_blank_node(q, r, tier)
 	node.name = full_name
 	return node
 
@@ -294,15 +297,15 @@ static func _calculate_spawn_positions(num_players: int) -> Array[Vector2i]:
 	All spawn positions are at the same ring distance from center,
 	evenly distributed around the ring.
 	"""
-	var spawn_ring := SPAWN_RING_OFFSET
-	var ring_coords := HexRingGenerator.generate_ring(spawn_ring)
+	var spawn_ring: int = SPAWN_RING_OFFSET
+	var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(spawn_ring)
 	var positions: Array[Vector2i] = []
 
 	# Calculate spacing to distribute players evenly
-	var spacing := ring_coords.size() / num_players
+	var spacing: int = ring_coords.size() / num_players
 
-	for i in range(num_players):
-		var index := int(i * spacing) % ring_coords.size()
+	for i: int in range(num_players):
+		var index: int = int(i * spacing) % ring_coords.size()
 		positions.append(ring_coords[index])
 
 	return positions
@@ -318,18 +321,18 @@ static func get_spawn_position_for_player(player_index: int, existing_spawns: Ar
 	Returns:
 		Vector2i coordinate for the player's spawn
 	"""
-	var spawn_ring := SPAWN_RING_OFFSET
-	var ring_coords := HexRingGenerator.generate_ring(spawn_ring)
-	var spacing := ring_coords.size() / MAX_PLAYERS
+	var spawn_ring: int = SPAWN_RING_OFFSET
+	var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(spawn_ring)
+	var spacing: int = ring_coords.size() / MAX_PLAYERS
 
 	# Get the ideal position for this player index
-	var ideal_index := int(player_index * spacing) % ring_coords.size()
+	var ideal_index: int = int(player_index * spacing) % ring_coords.size()
 	var position: Vector2i = ring_coords[ideal_index]
 
 	# If position is taken, find nearest available
 	if position in existing_spawns:
-		for offset in range(1, ring_coords.size()):
-			var check_idx := (ideal_index + offset) % ring_coords.size()
+		for offset: int in range(1, ring_coords.size()):
+			var check_idx: int = (ideal_index + offset) % ring_coords.size()
 			var check_pos: Vector2i = ring_coords[check_idx]
 			if check_pos not in existing_spawns:
 				return check_pos
@@ -361,15 +364,15 @@ static func generate_spawn_hexes_for_player(
 	var new_hexes: Dictionary = {}
 
 	# Create the spawn node (protected) - replaces existing hex at this coord
-	var spawn_node := PvPHexNode.create_spawn_node(
+	var spawn_node: PvPHexNode = PvPHexNode.create_spawn_node(
 		spawn_coord.x, spawn_coord.y,
 		player_uid, player_name
 	)
 	new_hexes[spawn_node.id] = spawn_node
 
 	# Claim existing hexes adjacent to spawn (ring 1 from spawn)
-	var neighbors := HexRingGenerator.get_neighbors(spawn_coord)
-	var starter_count := 0
+	var neighbors: Array[Vector2i] = HexRingGenerator.get_neighbors(spawn_coord)
+	var starter_count: int = 0
 
 	for neighbor: Vector2i in neighbors:
 		if starter_count >= STARTER_HEXES:
@@ -387,8 +390,8 @@ static func generate_spawn_hexes_for_player(
 				starter_count += 1
 
 	# Also claim some ring 2 hexes around spawn
-	var ring_2 := _generate_ring_at(spawn_coord, 2)
-	var ring_2_count := 0
+	var ring_2: Array[Vector2i] = _generate_ring_at(spawn_coord, 2)
+	var ring_2_count: int = 0
 	for coord: Vector2i in ring_2:
 		if ring_2_count >= 4:  # Give 4 ring-2 hexes
 			break
@@ -426,17 +429,17 @@ static func expand_map_for_new_player(
 		Dictionary of new hexes to add (not including spawn hexes)
 	"""
 	var new_hexes: Dictionary = {}
-	var spawn_ring := SPAWN_RING_OFFSET
+	var spawn_ring: int = SPAWN_RING_OFFSET
 
 	# If spawn ring doesn't exist yet, create it and intermediate rings
 	if current_max_ring < spawn_ring:
-		for ring in range(current_max_ring + 1, spawn_ring + 1):
-			var ring_coords := HexRingGenerator.generate_ring(ring)
-			var tier := clampi(3 - (ring - current_max_ring), 1, 2)  # Lower tiers for outer rings
+		for ring: int in range(current_max_ring + 1, spawn_ring + 1):
+			var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(ring)
+			var tier: int = clampi(3 - (ring - current_max_ring), 1, 2)  # Lower tiers for outer rings
 			for coord: Vector2i in ring_coords:
 				var hex_id := PvPHexNode.coord_to_id(coord.x, coord.y)
 				if not current_hexes.has(hex_id) and not new_hexes.has(hex_id):
-					var node := PvPHexNode.create_blank_node(coord.x, coord.y, tier)
+					var node: PvPHexNode = PvPHexNode.create_blank_node(coord.x, coord.y, tier)
 					new_hexes[hex_id] = node
 
 	return new_hexes
@@ -464,8 +467,8 @@ static func find_respawn_position(
 		Vector2i coordinate for respawn, or Vector2i.ZERO if none found
 	"""
 	# Look for empty positions at the edge ring
-	var edge_ring := current_max_ring
-	var ring_coords := HexRingGenerator.generate_ring(edge_ring)
+	var edge_ring: int = current_max_ring
+	var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(edge_ring)
 
 	# Find positions that aren't owned by anyone
 	var available: Array[Vector2i] = []
@@ -478,8 +481,8 @@ static func find_respawn_position(
 
 	if available.is_empty():
 		# Expand to new ring
-		var new_ring := edge_ring + 1
-		var new_ring_coords := HexRingGenerator.generate_ring(new_ring)
+		var new_ring: int = edge_ring + 1
+		var new_ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(new_ring)
 		if not new_ring_coords.is_empty():
 			return new_ring_coords[0]
 		return Vector2i.ZERO
@@ -494,7 +497,7 @@ static func find_respawn_position(
 
 static func _generate_ring_at(center: Vector2i, ring_distance: int) -> Array[Vector2i]:
 	"""Generate ring coordinates around a specific center point (not origin)"""
-	var ring := HexRingGenerator.generate_ring(ring_distance)
+	var ring: Array[Vector2i] = HexRingGenerator.generate_ring(ring_distance)
 	var result: Array[Vector2i] = []
 	for coord: Vector2i in ring:
 		result.append(coord + center)
@@ -513,7 +516,7 @@ static func get_adjacent_player_hexes(
 ) -> Array[PvPHexNode]:
 	"""Get adjacent hexes controlled by a specific player"""
 	var result: Array[PvPHexNode] = []
-	var neighbors := HexRingGenerator.get_neighbors(coord)
+	var neighbors: Array[Vector2i] = HexRingGenerator.get_neighbors(coord)
 
 	for neighbor: Vector2i in neighbors:
 		var hex_id := PvPHexNode.coord_to_id(neighbor.x, neighbor.y)
@@ -527,7 +530,7 @@ static func get_adjacent_player_hexes(
 
 static func count_player_hexes(player_uid: String, hexes: Dictionary) -> int:
 	"""Count total hexes controlled by a player"""
-	var count := 0
+	var count: int = 0
 	for hex: PvPHexNode in hexes.values():
 		if hex.controller_uid == player_uid:
 			count += 1
@@ -536,7 +539,7 @@ static func count_player_hexes(player_uid: String, hexes: Dictionary) -> int:
 
 static func get_player_objective_score(player_uid: String, hexes: Dictionary) -> int:
 	"""Calculate total objective value for a player"""
-	var score := 0
+	var score: int = 0
 	for hex: PvPHexNode in hexes.values():
 		if hex.controller_uid == player_uid and hex.is_objective:
 			score += hex.objective_value
@@ -549,8 +552,8 @@ static func get_total_hex_count() -> int:
 	# Ring n: 6*n hexes
 	# Rings 0-16: 1 + 6 + 12 + ... + 96 = 817 hexes
 	# This gives ~100 hexes per player for 8-player battles
-	var total := 1  # center
-	for ring in range(1, INITIAL_RINGS + 1):
+	var total: int = 1  # center
+	for ring: int in range(1, INITIAL_RINGS + 1):
 		total += 6 * ring
 	return total
 

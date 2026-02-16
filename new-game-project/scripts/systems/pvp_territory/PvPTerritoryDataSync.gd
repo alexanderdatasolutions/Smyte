@@ -43,7 +43,7 @@ const MAP_RESET_DAYS := 7  # Weekly reset
 # STATE
 # ==============================================================================
 
-var _firestore = null
+var _firestore: Variant = null
 var _user_id: String = ""
 var _display_name: String = ""
 var _current_map_id: String = ""
@@ -54,8 +54,8 @@ var _is_listening: bool = false
 # INITIALIZATION
 # ==============================================================================
 
-func _get_system_registry():
-	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+func _get_system_registry() -> Variant:
+	var registry_script: Variant = load("res://scripts/systems/core/SystemRegistry.gd")
 	if registry_script and registry_script.has_method("get_instance"):
 		return registry_script.get_instance()
 	return null
@@ -67,14 +67,12 @@ func _ready() -> void:
 
 func _initialize_firebase() -> void:
 	"""Initialize Firebase connection"""
-	var system_registry = _get_system_registry()
+	var system_registry: Variant = _get_system_registry()
 	if not system_registry:
-		print("[PvPTerritoryDataSync] SystemRegistry not available")
 		return
 
-	var firebase_integration = system_registry.get_system("FirebaseIntegration")
+	var firebase_integration: Variant = system_registry.get_system("FirebaseIntegration")
 	if not firebase_integration:
-		print("[PvPTerritoryDataSync] FirebaseIntegration not available - offline mode")
 		return
 
 	if firebase_integration.has_method("get_firestore"):
@@ -85,11 +83,6 @@ func _initialize_firebase() -> void:
 
 	if firebase_integration.has_method("get_user_display_name"):
 		_display_name = firebase_integration.get_user_display_name()
-
-	if is_ready():
-		print("[PvPTerritoryDataSync] Initialized with user: %s" % _user_id)
-	else:
-		print("[PvPTerritoryDataSync] Offline mode - using mock data")
 
 
 func is_ready() -> bool:
@@ -127,30 +120,30 @@ func fetch_available_maps() -> void:
 
 func _do_fetch_maps() -> void:
 	"""Async map fetch operation"""
-	var collection = _firestore.collection(COLLECTION_PVP_MAPS)
-	var query = collection.query()
-	var result = await query.get()
+	var collection: Variant = _firestore.collection(COLLECTION_PVP_MAPS)
+	var query: Variant = collection.query()
+	var result: Variant = await query.get()
 
 	if result == null:
 		maps_fetched.emit([])
 		return
 
-	var maps := _parse_map_results(result)
+	var maps: Array = _parse_map_results(result)
 	maps_fetched.emit(maps)
 
 
-func _parse_map_results(result) -> Array:
+func _parse_map_results(result: Variant) -> Array:
 	"""Parse Firestore results into map list"""
-	var maps := []
+	var maps: Array = []
 
-	var docs := []
+	var docs: Array = []
 	if result is Array:
 		docs = result
 	elif result.has_method("keys"):
 		docs = [result]
 
-	for doc in docs:
-		var status = _get_doc_value(doc, "status")
+	for doc: Variant in docs:
+		var status: Variant = _get_doc_value(doc, "status")
 		if status != "active":
 			continue
 
@@ -167,7 +160,7 @@ func _parse_map_results(result) -> Array:
 		})
 
 	# Sort by player count (join maps with more players first for activity)
-	maps.sort_custom(func(a, b): return a["player_count"] > b["player_count"])
+	maps.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["player_count"] > b["player_count"])
 	return maps
 
 
@@ -192,7 +185,7 @@ func create_new_map() -> void:
 	"""Create a new PvP map instance"""
 	if not is_ready():
 		# Create mock map for offline
-		var mock_id := "mock_map_%d" % Time.get_unix_time_from_system()
+		var mock_id: String = "mock_map_%d" % Time.get_unix_time_from_system()
 		map_created.emit(mock_id, true)
 		return
 
@@ -201,8 +194,8 @@ func create_new_map() -> void:
 
 func _do_create_map() -> void:
 	"""Async map creation operation"""
-	var map_id := "pvp_%d_%s" % [Time.get_unix_time_from_system(), _user_id.substr(0, 6)]
-	var now := Time.get_unix_time_from_system()
+	var map_id: String = "pvp_%d_%s" % [Time.get_unix_time_from_system(), _user_id.substr(0, 6)]
+	var now: int = Time.get_unix_time_from_system()
 
 	var map_data := {
 		"map_id": map_id,
@@ -215,12 +208,12 @@ func _do_create_map() -> void:
 		"creator_uid": _user_id
 	}
 
-	var collection = _firestore.collection(COLLECTION_PVP_MAPS)
-	var result = await collection.add(map_id, map_data)
+	var collection: Variant = _firestore.collection(COLLECTION_PVP_MAPS)
+	var result: Variant = await collection.add(map_id, map_data)
 
 	if result != null:
 		# Initialize map hexes
-		var initial_map := PvPMapGenerator.generate_initial_map()
+		var initial_map: Dictionary = PvPMapGenerator.generate_initial_map()
 		await _upload_initial_hexes(map_id, initial_map["hexes"])
 		map_created.emit(map_id, true)
 	else:
@@ -229,8 +222,8 @@ func _do_create_map() -> void:
 
 func _upload_initial_hexes(map_id: String, hexes: Dictionary) -> void:
 	"""Upload initial hex state for a new map"""
-	var hex_collection_path := "%s/%s/%s" % [COLLECTION_PVP_MAPS, map_id, SUBCOLLECTION_HEXES]
-	var collection = _firestore.collection(hex_collection_path)
+	var hex_collection_path: String = "%s/%s/%s" % [COLLECTION_PVP_MAPS, map_id, SUBCOLLECTION_HEXES]
+	var collection: Variant = _firestore.collection(hex_collection_path)
 
 	for hex_id: String in hexes:
 		var hex: PvPHexNode = hexes[hex_id]
@@ -254,8 +247,8 @@ func join_map(map_id: String) -> void:
 func _do_join_map(map_id: String) -> void:
 	"""Async map join operation"""
 	# First, fetch current map state
-	var map_collection = _firestore.collection(COLLECTION_PVP_MAPS)
-	var map_doc = await map_collection.get_doc(map_id)
+	var map_collection: Variant = _firestore.collection(COLLECTION_PVP_MAPS)
+	var map_doc: Variant = await map_collection.get_doc(map_id)
 
 	if map_doc == null:
 		map_joined.emit({}, false)
@@ -268,19 +261,19 @@ func _do_join_map(map_id: String) -> void:
 		return
 
 	# Check if already in this map
-	var players_path := "%s/%s/%s" % [COLLECTION_PVP_MAPS, map_id, SUBCOLLECTION_PLAYERS]
-	var players_collection = _firestore.collection(players_path)
-	var existing_player = await players_collection.get_doc(_user_id)
+	var players_path: String = "%s/%s/%s" % [COLLECTION_PVP_MAPS, map_id, SUBCOLLECTION_PLAYERS]
+	var players_collection: Variant = _firestore.collection(players_path)
+	var existing_player: Variant = await players_collection.get_doc(_user_id)
 
 	if existing_player != null:
 		# Already in map, just load state
 		_current_map_id = map_id
-		var existing_state := await _fetch_full_map_state(map_id)
+		var existing_state: Dictionary = await _fetch_full_map_state(map_id)
 		map_joined.emit(existing_state, true)
 		return
 
 	# Add player to map
-	var spawn_result := await _spawn_player_in_map(map_id, player_count)
+	var spawn_result: Dictionary = await _spawn_player_in_map(map_id, player_count)
 	if not spawn_result["success"]:
 		map_joined.emit({"error": spawn_result.get("error", "Spawn failed")}, false)
 		return
@@ -291,20 +284,20 @@ func _do_join_map(map_id: String) -> void:
 	})
 
 	_current_map_id = map_id
-	var new_state := await _fetch_full_map_state(map_id)
+	var new_state: Dictionary = await _fetch_full_map_state(map_id)
 	map_joined.emit(new_state, true)
 
 
 func _spawn_player_in_map(map_id: String, player_index: int) -> Dictionary:
 	"""Spawn a new player in the map"""
 	# Fetch current hex state
-	var hexes := await _fetch_hexes(map_id)
+	var hexes: Dictionary = await _fetch_hexes(map_id)
 
 	# Get existing players
-	var players := await _fetch_players(map_id)
+	var players: Array = await _fetch_players(map_id)
 
 	# Allocate spawn
-	var spawn_result := PvPSpawnManager.allocate_spawn(
+	var spawn_result: Dictionary = PvPSpawnManager.allocate_spawn(
 		_user_id, get_display_name(),
 		players, hexes
 	)
@@ -313,8 +306,8 @@ func _spawn_player_in_map(map_id: String, player_index: int) -> Dictionary:
 		return spawn_result
 
 	# Upload player data
-	var players_path := "%s/%s/%s" % [COLLECTION_PVP_MAPS, map_id, SUBCOLLECTION_PLAYERS]
-	var players_collection = _firestore.collection(players_path)
+	var players_path: String = "%s/%s/%s" % [COLLECTION_PVP_MAPS, map_id, SUBCOLLECTION_PLAYERS]
+	var players_collection: Variant = _firestore.collection(players_path)
 
 	var player_data := {
 		"player_uid": _user_id,
@@ -328,8 +321,8 @@ func _spawn_player_in_map(map_id: String, player_index: int) -> Dictionary:
 	await players_collection.add(_user_id, player_data)
 
 	# Upload spawn and starter hexes
-	var hex_path := "%s/%s/%s" % [COLLECTION_PVP_MAPS, map_id, SUBCOLLECTION_HEXES]
-	var hex_collection = _firestore.collection(hex_path)
+	var hex_path: String = "%s/%s/%s" % [COLLECTION_PVP_MAPS, map_id, SUBCOLLECTION_HEXES]
+	var hex_collection: Variant = _firestore.collection(hex_path)
 
 	var spawn_node: PvPHexNode = spawn_result["spawn_node"]
 	await hex_collection.add(spawn_node.id, spawn_node.to_dict())
@@ -342,8 +335,8 @@ func _spawn_player_in_map(map_id: String, player_index: int) -> Dictionary:
 
 func _fetch_full_map_state(map_id: String) -> Dictionary:
 	"""Fetch complete map state (hexes and players)"""
-	var hexes := await _fetch_hexes(map_id)
-	var players := await _fetch_players(map_id)
+	var hexes: Dictionary = await _fetch_hexes(map_id)
+	var players: Array = await _fetch_players(map_id)
 
 	return {
 		"map_id": map_id,
@@ -354,18 +347,18 @@ func _fetch_full_map_state(map_id: String) -> Dictionary:
 
 func _fetch_hexes(map_id: String) -> Dictionary:
 	"""Fetch all hexes for a map"""
-	var hex_path := "%s/%s/%s" % [COLLECTION_PVP_MAPS, map_id, SUBCOLLECTION_HEXES]
-	var collection = _firestore.collection(hex_path)
-	var result = await collection.query().get()
+	var hex_path: String = "%s/%s/%s" % [COLLECTION_PVP_MAPS, map_id, SUBCOLLECTION_HEXES]
+	var collection: Variant = _firestore.collection(hex_path)
+	var result: Variant = await collection.query().get()
 
-	var hexes := {}
+	var hexes: Dictionary = {}
 	if result == null:
 		return hexes
 
-	var docs = result if result is Array else [result]
-	for doc in docs:
-		var hex_data = _doc_to_dict(doc)
-		var hex := PvPHexNode.from_dict(hex_data)
+	var docs: Array = result if result is Array else [result]
+	for doc: Variant in docs:
+		var hex_data: Dictionary = _doc_to_dict(doc)
+		var hex: PvPHexNode = PvPHexNode.from_dict(hex_data)
 		hexes[hex.id] = hex
 
 	return hexes
@@ -373,16 +366,16 @@ func _fetch_hexes(map_id: String) -> Dictionary:
 
 func _fetch_players(map_id: String) -> Array:
 	"""Fetch all players in a map"""
-	var players_path := "%s/%s/%s" % [COLLECTION_PVP_MAPS, map_id, SUBCOLLECTION_PLAYERS]
-	var collection = _firestore.collection(players_path)
-	var result = await collection.query().get()
+	var players_path: String = "%s/%s/%s" % [COLLECTION_PVP_MAPS, map_id, SUBCOLLECTION_PLAYERS]
+	var collection: Variant = _firestore.collection(players_path)
+	var result: Variant = await collection.query().get()
 
-	var players := []
+	var players: Array = []
 	if result == null:
 		return players
 
-	var docs = result if result is Array else [result]
-	for doc in docs:
+	var docs: Array = result if result is Array else [result]
+	for doc: Variant in docs:
 		players.append(_doc_to_dict(doc))
 
 	return players
@@ -390,7 +383,7 @@ func _fetch_players(map_id: String) -> Array:
 
 func _generate_mock_map_data() -> Dictionary:
 	"""Generate mock map data for offline testing with 8 players"""
-	var initial := PvPMapGenerator.generate_initial_map()
+	var initial: Dictionary = PvPMapGenerator.generate_initial_map()
 	var hexes: Dictionary = initial["hexes"]
 	var players: Array = []
 
@@ -413,7 +406,7 @@ func _generate_mock_map_data() -> Dictionary:
 		mock_players[0]["name"] = _display_name
 
 	# Get spawn positions for 8 players
-	var spawn_positions := PvPMapGenerator._calculate_spawn_positions(8)
+	var spawn_positions: Array[Vector2i] = PvPMapGenerator._calculate_spawn_positions(8)
 
 	# Spawn each player
 	for i in range(mock_players.size()):
@@ -421,7 +414,7 @@ func _generate_mock_map_data() -> Dictionary:
 		var spawn_coord: Vector2i = spawn_positions[i]
 
 		# Generate spawn hexes for this player
-		var spawn_hexes := PvPMapGenerator.generate_spawn_hexes_for_player(
+		var spawn_hexes: Dictionary = PvPMapGenerator.generate_spawn_hexes_for_player(
 			spawn_coord,
 			player_info["uid"],
 			player_info["name"],
@@ -459,8 +452,8 @@ func _assign_mock_territory(hexes: Dictionary, player_info: Dictionary, spawn_co
 	var uid: String = player_info["uid"]
 	var player_name: String = player_info["name"]
 
-	var max_claims := 20  # Each player gets ~20 hexes beyond spawn
-	var claimed := 0
+	var max_claims: int = 20  # Each player gets ~20 hexes beyond spawn
+	var claimed: int = 0
 
 	# Start from spawn and expand via BFS (breadth-first) to ensure connectivity
 	var frontier: Array[Vector2i] = [spawn_coord]
@@ -468,7 +461,7 @@ func _assign_mock_territory(hexes: Dictionary, player_info: Dictionary, spawn_co
 
 	while claimed < max_claims and not frontier.is_empty():
 		var current: Vector2i = frontier.pop_front()
-		var neighbors := HexRingGenerator.get_neighbors(current)
+		var neighbors: Array[Vector2i] = HexRingGenerator.get_neighbors(current)
 
 		# Shuffle neighbors for variety
 		neighbors.shuffle()
@@ -477,7 +470,7 @@ func _assign_mock_territory(hexes: Dictionary, player_info: Dictionary, spawn_co
 			if claimed >= max_claims:
 				break
 
-			var key := "%d,%d" % [neighbor.x, neighbor.y]
+			var key: String = "%d,%d" % [neighbor.x, neighbor.y]
 			if visited.has(key):
 				continue
 			visited[key] = true
@@ -510,16 +503,16 @@ func update_hex_capture(hex_id: String, new_owner_uid: String, new_owner_name: S
 
 func _do_update_capture(hex_id: String, new_owner_uid: String, new_owner_name: String) -> void:
 	"""Async capture update operation"""
-	var hex_path := "%s/%s/%s" % [COLLECTION_PVP_MAPS, _current_map_id, SUBCOLLECTION_HEXES]
-	var collection = _firestore.collection(hex_path)
+	var hex_path: String = "%s/%s/%s" % [COLLECTION_PVP_MAPS, _current_map_id, SUBCOLLECTION_HEXES]
+	var collection: Variant = _firestore.collection(hex_path)
 
-	var update_data := {
+	var update_data: Dictionary = {
 		"controller_uid": new_owner_uid,
 		"controller_display_name": new_owner_name,
 		"last_captured_at": Time.get_unix_time_from_system()
 	}
 
-	var result = await collection.add(hex_id, update_data)
+	var result: Variant = await collection.add(hex_id, update_data)
 	capture_recorded.emit(hex_id, result != null)
 
 	# Record battle in history
@@ -528,10 +521,10 @@ func _do_update_capture(hex_id: String, new_owner_uid: String, new_owner_name: S
 
 func _record_capture_battle(hex_id: String, attacker_uid: String) -> void:
 	"""Record capture in battle history"""
-	var battles_path := "%s/%s/%s" % [COLLECTION_PVP_MAPS, _current_map_id, SUBCOLLECTION_BATTLES]
-	var collection = _firestore.collection(battles_path)
+	var battles_path: String = "%s/%s/%s" % [COLLECTION_PVP_MAPS, _current_map_id, SUBCOLLECTION_BATTLES]
+	var collection: Variant = _firestore.collection(battles_path)
 
-	var battle_data := {
+	var battle_data: Dictionary = {
 		"hex_id": hex_id,
 		"attacker_uid": attacker_uid,
 		"timestamp": Time.get_unix_time_from_system(),
@@ -552,15 +545,15 @@ func update_hex_defense(hex_id: String, defense_team: Array, defense_power: int)
 
 func _do_update_defense(hex_id: String, defense_team: Array, defense_power: int) -> void:
 	"""Async defense update operation"""
-	var hex_path := "%s/%s/%s" % [COLLECTION_PVP_MAPS, _current_map_id, SUBCOLLECTION_HEXES]
-	var collection = _firestore.collection(hex_path)
+	var hex_path: String = "%s/%s/%s" % [COLLECTION_PVP_MAPS, _current_map_id, SUBCOLLECTION_HEXES]
+	var collection: Variant = _firestore.collection(hex_path)
 
-	var update_data := {
+	var update_data: Dictionary = {
 		"defense_team_serialized": defense_team,
 		"defense_power": defense_power
 	}
 
-	var result = await collection.add(hex_id, update_data)
+	var result: Variant = await collection.add(hex_id, update_data)
 	defense_updated.emit(hex_id, result != null)
 
 
@@ -568,7 +561,7 @@ func _do_update_defense(hex_id: String, defense_team: Array, defense_power: int)
 # UTILITIES
 # ==============================================================================
 
-func _get_doc_value(doc, key: String):
+func _get_doc_value(doc: Variant, key: String) -> Variant:
 	"""Safely get value from FirestoreDocument"""
 	if doc == null:
 		return null
@@ -579,13 +572,13 @@ func _get_doc_value(doc, key: String):
 	return null
 
 
-func _doc_to_dict(doc) -> Dictionary:
+func _doc_to_dict(doc: Variant) -> Dictionary:
 	"""Convert FirestoreDocument to Dictionary"""
 	if doc is Dictionary:
 		return doc
 	if doc.has_method("keys"):
-		var result := {}
-		for key in doc.keys():
+		var result: Dictionary = {}
+		for key: String in doc.keys():
 			result[key] = _get_doc_value(doc, key)
 		return result
 	return {}
