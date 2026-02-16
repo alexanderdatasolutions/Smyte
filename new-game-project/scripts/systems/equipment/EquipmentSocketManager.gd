@@ -14,8 +14,6 @@ Part of the equipment system (like Summoners War gems/equipment socketing)
 # Signals for socket events
 signal socket_unlocked(equipment: Equipment, socket_index: int)
 signal gem_socketed(equipment: Equipment, socket_index: int, gem: Dictionary)
-signal gem_unsocketed(equipment: Equipment, socket_index: int, gem: Dictionary)
-signal socket_upgrade_failed(equipment: Equipment, socket_index: int, reason: String)
 
 # Gem inventory
 var gems_inventory: Array = []  # Array[Dictionary]
@@ -64,17 +62,14 @@ func unlock_socket(equipment: Equipment, socket_index: int) -> bool:
 		return false
 	
 	if not equipment.can_unlock_socket(socket_index):
-		socket_upgrade_failed.emit(equipment, socket_index, "cannot_unlock")
 		return false
-	
+
 	var unlock_cost = equipment.get_socket_unlock_cost(socket_index)
 	if not _can_afford_socket_cost(unlock_cost):
-		socket_upgrade_failed.emit(equipment, socket_index, "insufficient_resources")
 		return false
-	
+
 	# Pay cost and unlock socket
 	if not _pay_socket_cost(unlock_cost):
-		socket_upgrade_failed.emit(equipment, socket_index, "payment_failed")
 		return false
 	
 	# Add new socket to equipment
@@ -153,7 +148,6 @@ func unsocket_gem(equipment: Equipment, socket_index: int) -> Dictionary:
 	# Clear socket
 	socket.gem = {}
 	
-	gem_unsocketed.emit(equipment, socket_index, gem)
 	return gem
 
 # === GEM INVENTORY MANAGEMENT ===
@@ -206,24 +200,6 @@ func get_gem_inventory() -> Array:
 	"""Get all gems in inventory"""
 	return gems_inventory.duplicate()
 
-func get_gem_count(gem_id: String) -> int:
-	"""Get count of specific gem in inventory"""
-	var count = 0
-	
-	# Count in gem inventory
-	for gem in gems_inventory:
-		if gem.get("id", "") == gem_id:
-			count += 1
-	
-	# Check resource manager
-	var system_registry = SystemRegistry.get_instance()
-	if system_registry:
-		var resource_manager = system_registry.get_system("ResourceManager")
-		if resource_manager:
-			count += resource_manager.get_resource(gem_id)
-	
-	return count
-
 # === GEM COMPATIBILITY ===
 
 func _is_gem_compatible_with_socket(gem_id: String, socket_type: String) -> bool:
@@ -239,33 +215,6 @@ func _is_gem_compatible_with_socket(gem_id: String, socket_type: String) -> bool
 	var compatible_sockets = gem_config.get("compatible_sockets", ["universal"])
 	
 	return socket_type in compatible_sockets or "universal" in compatible_sockets
-
-func get_compatible_gems_for_socket(socket_type: String) -> Array:
-	"""Get list of gems compatible with socket type"""
-	var compatible: Array = []
-	
-	var socket_system = equipment_config.get("socket_system", {})
-	var gemstone_effects = socket_system.get("gemstone_effects", {})
-	
-	for gem_id in gemstone_effects:
-		if _is_gem_compatible_with_socket(gem_id, socket_type):
-			compatible.append(gem_id)
-	
-	return compatible
-
-func get_socket_info(equipment: Equipment, socket_index: int) -> Dictionary:
-	"""Get detailed information about a socket"""
-	if equipment == null or socket_index >= equipment.socket_slots.size():
-		return {}
-	
-	var socket = equipment.socket_slots[socket_index]
-	
-	return {
-		"unlocked": socket.get("unlocked", false),
-		"type": socket.get("type", "universal"),
-		"gem": socket.get("gem", {}),
-		"compatible_gems": get_compatible_gems_for_socket(socket.get("type", "universal"))
-	}
 
 # === COST MANAGEMENT ===
 
@@ -330,50 +279,3 @@ func _get_gem_data(gem_id: String) -> Dictionary:
 		"compatible_sockets": ["universal"]
 	}
 
-func get_gem_effects_on_equipment(equipment: Equipment) -> Dictionary:
-	"""Get total gem effects applied to equipment"""
-	var total_effects = {}
-	
-	if equipment == null:
-		return total_effects
-	
-	for socket in equipment.socket_slots:
-		var gem = socket.get("gem", {})
-		if not gem.is_empty():
-			var effects = gem.get("effects", {})
-			for effect_type in effects:
-				if not total_effects.has(effect_type):
-					total_effects[effect_type] = 0
-				total_effects[effect_type] += effects[effect_type]
-	
-	return total_effects
-
-func get_socket_upgrade_cost_preview(equipment: Equipment) -> Dictionary:
-	"""Get preview of socket upgrade costs"""
-	if equipment == null:
-		return {}
-	
-	var preview = {
-		"current_sockets": equipment.socket_slots.size(),
-		"max_sockets": equipment.max_sockets,
-		"can_unlock": false,
-		"next_socket_cost": {},
-		"total_cost_to_max": {}
-	}
-	
-	if preview.current_sockets < preview.max_sockets:
-		preview.can_unlock = true
-		preview.next_socket_cost = equipment.get_socket_unlock_cost(preview.current_sockets)
-		
-		# Calculate total cost to max sockets
-		var total_cost = {}
-		for socket_index in range(preview.current_sockets, preview.max_sockets):
-			var cost = equipment.get_socket_unlock_cost(socket_index)
-			for resource_id in cost:
-				if not total_cost.has(resource_id):
-					total_cost[resource_id] = 0
-				total_cost[resource_id] += cost[resource_id]
-		
-		preview.total_cost_to_max = total_cost
-	
-	return preview

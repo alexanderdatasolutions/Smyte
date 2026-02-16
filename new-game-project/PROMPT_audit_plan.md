@@ -174,8 +174,8 @@
     "priority": "high",
     "file": "scripts/systems/equipment/EquipmentSocketManager.gd",
     "issue": "4 dead functions never called externally",
-    "action": "Delete dead functions",
-    "passes": false
+    "action": "Removed 5 dead public functions (get_gem_count, get_compatible_gems_for_socket, get_socket_info, get_gem_effects_on_equipment, get_socket_upgrade_cost_preview), 2 unused signals (gem_unsocketed, socket_upgrade_failed), and 3 dead signal emit calls. File reduced from 380 to 282 lines.",
+    "passes": true
   },
   {
     "priority": "high",

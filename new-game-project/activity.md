@@ -1355,3 +1355,20 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: remove dead code from EquipmentManager`
+
+### 2026-02-16 - Audit: Remove dead code from EquipmentSocketManager.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/equipment/EquipmentSocketManager.gd`
+
+**Changes:**
+- Removed 5 dead public functions with zero external callers: `get_gem_count()`, `get_compatible_gems_for_socket()`, `get_socket_info()`, `get_gem_effects_on_equipment()`, `get_socket_upgrade_cost_preview()`
+- Removed 2 unused signals: `gem_unsocketed` (emitted but never connected to), `socket_upgrade_failed` (emitted but never connected to)
+- Removed 3 dead `socket_upgrade_failed.emit()` calls from `unlock_socket()` and 1 dead `gem_unsocketed.emit()` call from `unsocket_gem()`
+- Kept all actively-used functions: `unlock_socket()`, `socket_gem()`, `unsocket_gem()`, `add_gem_to_inventory()`, `get_gem_inventory()` — all called by EquipmentManager.gd
+- Kept actively-used signals: `socket_unlocked` (connected by EquipmentManager), `gem_socketed` (connected by EquipmentManager)
+- File reduced from 380 to 282 lines (-98 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: remove dead code from EquipmentSocketManager`
