@@ -167,21 +167,22 @@ func process_status_effects() -> Dictionary:
 
 ## Get current turn bar progress percentage
 func get_turn_progress() -> float:
-	return current_turn_bar / 100.0
+	return current_turn_bar / TurnManager.get_turn_bar_threshold()
 
 ## Increase turn bar based on speed
-func advance_turn_bar():
-	# Ensure minimum increment to prevent infinite loops with low/zero speed
-	var increment = max(speed * 0.07, 1.0)  # Minimum 1.0 per tick
+func advance_turn_bar() -> void:
+	var bar_speed: float = TurnManager.get_turn_bar_speed()
+	var min_increment: float = TurnManager.get_min_turn_bar_increment()
+	var increment: float = maxf(speed * bar_speed, min_increment)
 	current_turn_bar += increment
 
 ## Reset turn bar after taking a turn
-func reset_turn_bar():
+func reset_turn_bar() -> void:
 	current_turn_bar = 0.0
 
 ## Check if unit is ready to take turn
 func is_ready_for_turn() -> bool:
-	return current_turn_bar >= 100.0 and is_alive
+	return current_turn_bar >= TurnManager.get_turn_bar_threshold() and is_alive
 
 ## Get unit's current HP percentage
 func get_hp_percentage() -> float:

@@ -1,5 +1,11 @@
 {
   "battle_config": {
+    "turn_system": {
+      "turn_bar_speed": 0.07,
+      "turn_bar_threshold": 100.0,
+      "max_turn_iterations": 1000,
+      "min_turn_bar_increment": 1.0
+    },
     "turn_order": {
       "speed_variance": 0.1,
       "min_speed": 50,

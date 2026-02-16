@@ -1009,8 +1009,8 @@
     "priority": "high",
     "file": "scripts/systems/battle/TurnManager.gd",
     "issue": "Turn bar constants: TURN_BAR_SPEED=0.07, TURN_BAR_THRESHOLD=100, MAX_TURN_ITERATIONS=1000",
-    "action": "Move to data/battle_config.json under turn_system section",
-    "passes": false
+    "action": "Added turn_system section to battle_config.json with turn_bar_speed, turn_bar_threshold, max_turn_iterations, min_turn_bar_increment. Updated TurnManager.gd with static config loading, instance _apply_config(), and 3 static getter methods. Updated BattleUnit.gd advance_turn_bar/is_ready_for_turn/get_turn_progress to use TurnManager static getters. Updated BattleActionProcessor.gd ATB steal to use config threshold. Updated BattleUnitCard.gd turn bar max_value. Added -> void return types to all TurnManager functions.",
+    "passes": true
   },
   {
     "priority": "high",

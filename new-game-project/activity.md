@@ -7,6 +7,22 @@
 
 ---
 
+## 2026-02-16 - Audit: Move turn bar constants to battle_config.json
+
+**Priority:** High (Data-Driven JSON Config)
+**File(s) Modified:** `data/battle_config.json`, `scripts/systems/battle/TurnManager.gd`, `scripts/data/BattleUnit.gd`, `scripts/systems/battle/BattleActionProcessor.gd`, `scripts/ui/battle/BattleUnitCard.gd`
+
+**Changes:**
+- **Config**: Added `turn_system` section to `battle_config.json` with `turn_bar_speed` (0.07), `turn_bar_threshold` (100.0), `max_turn_iterations` (1000), `min_turn_bar_increment` (1.0)
+- **TurnManager.gd**: Replaced 3 hardcoded `const` values with instance vars loaded from JSON config. Added static `_load_config()` with cached parse, `_apply_config()` for instance setup, and 3 static getters (`get_turn_bar_speed()`, `get_turn_bar_threshold()`, `get_min_turn_bar_increment()`) for cross-file access. Added `-> void` return types to all 10 functions. Added static typing to `count` var.
+- **BattleUnit.gd**: Updated `advance_turn_bar()`, `is_ready_for_turn()`, and `get_turn_progress()` to use `TurnManager.get_turn_bar_speed/threshold/min_increment()` instead of hardcoded 0.07/100.0/1.0. Added `-> void` to advance_turn_bar/reset_turn_bar. Used `maxf()` for type safety.
+- **BattleActionProcessor.gd**: Updated ATB steal cap from hardcoded `100` to `TurnManager.get_turn_bar_threshold()`, used `minf()` for type safety.
+- **BattleUnitCard.gd**: Updated turn bar `max_value` from hardcoded `100.0` to `TurnManager.get_turn_bar_threshold()`.
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Move God constants and XP curve to god_config.json
 
 **Priority:** High (Data-Driven JSON Config)

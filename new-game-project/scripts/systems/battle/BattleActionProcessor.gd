@@ -328,7 +328,8 @@ func _apply_atb_steal(effect_data: Dictionary, caster: BattleUnit, target: Battl
 
 	var steal_amount: float = target.current_turn_bar * (amount / 100.0)
 	target.current_turn_bar = max(0, target.current_turn_bar - steal_amount)
-	caster.current_turn_bar = min(100, caster.current_turn_bar + steal_amount)
+	var threshold: float = TurnManager.get_turn_bar_threshold()
+	caster.current_turn_bar = minf(threshold, caster.current_turn_bar + steal_amount)
 	result.message += " %s steals %d%% turn bar from %s!" % [caster.display_name, amount, target.display_name]
 
 func _apply_life_drain(effect_data: Dictionary, caster: BattleUnit, _target: BattleUnit, result: ActionResult) -> void:

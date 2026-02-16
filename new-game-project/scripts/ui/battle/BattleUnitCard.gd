@@ -163,7 +163,7 @@ func _setup_card_structure():
 	turn_bar.custom_minimum_size = Vector2(0, 6)
 	turn_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	turn_bar.min_value = 0.0
-	turn_bar.max_value = 100.0
+	turn_bar.max_value = TurnManager.get_turn_bar_threshold()
 	turn_bar.show_percentage = false
 	turn_container.add_child(turn_bar)
 	_style_turn_bar()
