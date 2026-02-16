@@ -118,8 +118,8 @@
     "priority": "medium",
     "file": "data/dungeons.json",
     "issue": "Missing dungeon waves for 5 pantheon trials: aztec_trials, celtic_trials, hindu_trials, japanese_trials, slavic_trials",
-    "action": "Add wave configurations if these dungeons should be playable, or mark as intentionally incomplete",
-    "passes": false
+    "action": "Added wave configurations for all 5 missing pantheon trials (hindu_trials, japanese_trials, celtic_trials, aztec_trials, slavic_trials) to dungeon_waves.json following existing pattern (heroic: 3 waves with elites + boss, legendary: 4 waves with bosses). Added all 5 to category_map in DungeonManager.gd. Each trial uses thematically appropriate deity names and element types.",
+    "passes": true
   }
 ]
 ```

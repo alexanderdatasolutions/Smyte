@@ -7,6 +7,26 @@
 
 ---
 
+## 2026-02-16 - Audit: Add missing dungeon waves for 5 pantheon trials
+
+**Priority:** Medium (Core Gameplay Loop)
+**File(s) Modified:** `data/dungeon_waves.json`, `scripts/systems/dungeon/DungeonManager.gd`
+
+**Changes:**
+- Added wave configurations for 5 missing pantheon trials to `dungeon_waves.json`:
+  - **hindu_trials**: Agni/Kali/Surya elites, Shiva Avatar boss (heroic); Agni/Kali/Vishnu/Brahma bosses (legendary)
+  - **japanese_trials**: Amaterasu/Susanoo/Tsukuyomi elites, Amaterasu Avatar boss (heroic); Susanoo/Tsukuyomi/Izanagi/Amaterasu bosses (legendary)
+  - **celtic_trials**: Ancient Druid/Morrigan/Cernunnos elites, Dagda Avatar boss (heroic); Cernunnos/Morrigan/Lugh/Dagda bosses (legendary)
+  - **aztec_trials**: Sun Warrior/Tezcatlipoca/Tlaloc elites, Quetzalcoatl Avatar boss (heroic); Huitzilopochtli/Tezcatlipoca/Tlaloc/Quetzalcoatl bosses (legendary)
+  - **slavic_trials**: Perun/Veles/Mokosh elites, Perun Avatar boss (heroic); Perun/Veles/Svarog/Rod bosses (legendary)
+- All follow existing pattern: heroic = 3 waves (2 elite + 1 boss), legendary = 4 waves (all bosses)
+- Added 5 missing entries to `category_map` in `DungeonManager._get_wave_data()` so wave lookups work
+- Previously these dungeons were visible in UI but would start battles with 0 enemies
+
+**Verified:** Ran project, no new errors in debug output. JSON validated.
+
+---
+
 ## 2026-02-16 - Audit: Externalize territory production values to territory_config.json
 
 **Priority:** High (Data-Driven JSON Config)

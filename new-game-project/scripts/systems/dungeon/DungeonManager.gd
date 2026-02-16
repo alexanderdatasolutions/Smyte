@@ -383,7 +383,12 @@ func _get_wave_data(dungeon_id: String, difficulty: String) -> Array:
 		"oracle_sanctum": "equipment_dungeons",
 		"greek_trials": "pantheon_trials",
 		"norse_trials": "pantheon_trials",
-		"egyptian_trials": "pantheon_trials"
+		"egyptian_trials": "pantheon_trials",
+		"hindu_trials": "pantheon_trials",
+		"japanese_trials": "pantheon_trials",
+		"celtic_trials": "pantheon_trials",
+		"aztec_trials": "pantheon_trials",
+		"slavic_trials": "pantheon_trials"
 	}
 
 	var category: String = category_map.get(dungeon_id, "")

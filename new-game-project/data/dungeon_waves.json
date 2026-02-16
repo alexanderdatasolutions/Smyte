@@ -961,6 +961,276 @@
           }
         ]
       }
+    },
+
+    "hindu_trials": {
+      "heroic": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "fire", "tier": "elite", "name": "Agni Devotee", "level": 30, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "dark", "tier": "elite", "name": "Kali Servant", "level": 32, "count": 1},
+              {"type": "light", "tier": "elite", "name": "Surya Guardian", "level": 32, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Shiva Avatar", "level": 35, "count": 1}
+            ]
+          }
+        ]
+      },
+      "legendary": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "fire", "tier": "boss", "name": "Agni Ascended", "level": 50, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "dark", "tier": "boss", "name": "Kali Unleashed", "level": 52, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Vishnu Preserver", "level": 54, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 4,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Brahma True Form", "level": 60, "count": 1}
+            ]
+          }
+        ]
+      }
+    },
+
+    "japanese_trials": {
+      "heroic": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "light", "tier": "elite", "name": "Amaterasu Shrine Guard", "level": 30, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "water", "tier": "elite", "name": "Susanoo Tempest", "level": 32, "count": 1},
+              {"type": "dark", "tier": "elite", "name": "Tsukuyomi Shadow", "level": 32, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Amaterasu Avatar", "level": 35, "count": 1}
+            ]
+          }
+        ]
+      },
+      "legendary": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "water", "tier": "boss", "name": "Susanoo Unleashed", "level": 50, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "dark", "tier": "boss", "name": "Tsukuyomi Eclipse", "level": 52, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Izanagi Reborn", "level": 54, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 4,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Amaterasu True Form", "level": 60, "count": 1}
+            ]
+          }
+        ]
+      }
+    },
+
+    "celtic_trials": {
+      "heroic": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "earth", "tier": "elite", "name": "Ancient Druid", "level": 30, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "water", "tier": "elite", "name": "Morrigan Phantom", "level": 32, "count": 1},
+              {"type": "earth", "tier": "elite", "name": "Cernunnos Beast", "level": 32, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Dagda Avatar", "level": 35, "count": 1}
+            ]
+          }
+        ]
+      },
+      "legendary": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "earth", "tier": "boss", "name": "Cernunnos Wild Hunt", "level": 50, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "dark", "tier": "boss", "name": "Morrigan War Form", "level": 52, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Lugh Radiant", "level": 54, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 4,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Dagda True Form", "level": 60, "count": 1}
+            ]
+          }
+        ]
+      }
+    },
+
+    "aztec_trials": {
+      "heroic": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "fire", "tier": "elite", "name": "Sun Warrior", "level": 30, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "dark", "tier": "elite", "name": "Tezcatlipoca Shade", "level": 32, "count": 1},
+              {"type": "lightning", "tier": "elite", "name": "Tlaloc Stormcaller", "level": 32, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Quetzalcoatl Avatar", "level": 35, "count": 1}
+            ]
+          }
+        ]
+      },
+      "legendary": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "fire", "tier": "boss", "name": "Huitzilopochtli Blazing", "level": 50, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "dark", "tier": "boss", "name": "Tezcatlipoca Obsidian", "level": 52, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Tlaloc Deluge", "level": 54, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 4,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Quetzalcoatl True Form", "level": 60, "count": 1}
+            ]
+          }
+        ]
+      }
+    },
+
+    "slavic_trials": {
+      "heroic": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "lightning", "tier": "elite", "name": "Perun Thunderguard", "level": 30, "count": 2}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "dark", "tier": "elite", "name": "Veles Serpent", "level": 32, "count": 1},
+              {"type": "earth", "tier": "elite", "name": "Mokosh Earthmother", "level": 32, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Perun Avatar", "level": 35, "count": 1}
+            ]
+          }
+        ]
+      },
+      "legendary": {
+        "waves": [
+          {
+            "wave_number": 1,
+            "enemies": [
+              {"type": "lightning", "tier": "boss", "name": "Perun Stormfather", "level": 50, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 2,
+            "enemies": [
+              {"type": "dark", "tier": "boss", "name": "Veles Underworld", "level": 52, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 3,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Svarog Forgemaster", "level": 54, "count": 1}
+            ]
+          },
+          {
+            "wave_number": 4,
+            "enemies": [
+              {"type": "neutral", "tier": "boss", "name": "Rod True Form", "level": 60, "count": 1}
+            ]
+          }
+        ]
+      }
     }
   },
 
