@@ -1242,3 +1242,18 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: delete unused GameState.gd`
+
+### 2026-02-16 - Audit: Add cache clearing to Skill.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/data/Skill.gd`
+
+**Changes:**
+- Added `clear_cache()` static method to allow clearing the `_abilities_cache` dictionary during scene transitions or memory pressure
+- Added `:=` type inference to all local variables in `_load_abilities_data()`, `load_from_id()`, `create_basic_attack()`
+- Added explicit `Dictionary` types to `ability_dict` and `data` variables
+- Extracted duplicate `data.get("targets", "single")` call into typed `targets_str` variable
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: add cache clearing to Skill.gd`

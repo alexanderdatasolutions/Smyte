@@ -14,20 +14,25 @@ class_name Skill extends Resource
 # Cache for abilities data
 static var _abilities_cache: Dictionary = {}
 
+## Clear the static abilities cache to free memory.
+## Call during scene transitions or when memory pressure is high.
+static func clear_cache() -> void:
+	_abilities_cache = {}
+
 ## Load abilities data from JSON file
 static func _load_abilities_data() -> Dictionary:
 	if not _abilities_cache.is_empty():
 		return _abilities_cache
 
-	var file = FileAccess.open("res://data/abilities.json", FileAccess.READ)
+	var file := FileAccess.open("res://data/abilities.json", FileAccess.READ)
 	if not file:
 		push_warning("Skill: Could not open abilities.json")
 		return {}
 
-	var json_text = file.get_as_text()
+	var json_text := file.get_as_text()
 	file.close()
 
-	var json = JSON.new()
+	var json := JSON.new()
 	if json.parse(json_text) != OK:
 		push_error("Skill: Error parsing abilities.json")
 		return {}
@@ -37,23 +42,23 @@ static func _load_abilities_data() -> Dictionary:
 
 ## Load skill from ID using abilities.json data
 static func load_from_id(id: String) -> Skill:
-	var skill = Skill.new()
+	var skill := Skill.new()
 	skill.skill_id = id
 
-	var abilities_data = _load_abilities_data()
-	var ability_dict = abilities_data.get("abilities", {})
+	var abilities_data := _load_abilities_data()
+	var ability_dict: Dictionary = abilities_data.get("abilities", {})
 
 	if ability_dict.has(id):
-		var data = ability_dict[id]
+		var data: Dictionary = ability_dict[id]
 		skill.name = data.get("name", id.capitalize())
 		skill.description = data.get("description", "A skill")
 		skill.icon_path = data.get("icon_path", "")
 		skill.cooldown = data.get("cooldown", 0)
 		skill.damage_multiplier = data.get("damage_multiplier", 1.0)
-		skill.targets_enemies = _parse_targets_enemies(data.get("targets", "single"))
-		skill.target_count = _parse_target_count(data.get("targets", "single"))
+		var targets_str: String = data.get("targets", "single")
+		skill.targets_enemies = _parse_targets_enemies(targets_str)
+		skill.target_count = _parse_target_count(targets_str)
 	else:
-		# Fallback for unknown skills
 		skill.name = id.capitalize()
 		skill.description = "A skill"
 
@@ -77,7 +82,7 @@ static func _parse_target_count(targets: String) -> int:
 
 ## Create a basic attack skill
 static func create_basic_attack() -> Skill:
-	var skill = Skill.new()
+	var skill := Skill.new()
 	skill.skill_id = "basic_attack"
 	skill.name = "Basic Attack"
 	skill.description = "A simple attack"

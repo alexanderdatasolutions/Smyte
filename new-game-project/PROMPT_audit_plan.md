@@ -112,7 +112,7 @@
     "file": "scripts/data/Skill.gd:15",
     "issue": "Static _abilities_cache dictionary never cleared - memory leak in long sessions",
     "action": "Add cache clearing method or document cache lifetime strategy",
-    "passes": false
+    "passes": true
   },
   {
     "priority": "medium",
