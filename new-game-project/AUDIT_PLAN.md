@@ -629,8 +629,8 @@
     "priority": "high",
     "file": "scripts/systems/territory/TerritoryManager.gd",
     "issue": "1055 lines (2x the 500-line limit)",
-    "action": "Split into TerritoryManager.gd + TerritoryStateManager.gd",
-    "passes": false
+    "action": "Split into TerritoryManager.gd (469 lines) + TerritoryDefenseManager.gd (345 lines). Extracted garrison power calculation, defense rating, distance penalty, connected bonuses, attack timer system, capture rewards, node reveal, and dungeon completion integration. TerritoryManager delegates via thin wrapper methods, preserving all external APIs unchanged. Used preload pattern to avoid class_name discovery issues.",
+    "passes": true
   },
   {
     "priority": "high",

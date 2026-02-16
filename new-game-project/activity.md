@@ -7,6 +7,25 @@
 
 ---
 
+## 2026-02-16 - Audit: Split TerritoryManager.gd into two files
+
+**Priority:** High (Code Simplification)
+**File(s) Modified:** `scripts/systems/territory/TerritoryManager.gd`, `scripts/systems/territory/TerritoryDefenseManager.gd` (new)
+
+**Changes:**
+- Split TerritoryManager.gd (831 lines) into two files both under 500 lines:
+  - **TerritoryManager.gd** (469 lines): Core territory control, save/load, UI filtering, task integration, capture/lose node, garrison/worker management, node upgrades
+  - **TerritoryDefenseManager.gd** (345 lines): Garrison power calculation, defense rating, distance penalty, connected bonuses, attack timer system, capture rewards, node reveal, dungeon completion integration
+- TerritoryManager creates TerritoryDefenseManager as a child node in `_ready()` via preload pattern
+- All external APIs preserved unchanged via thin delegation methods in TerritoryManager
+- Forwarded `node_unlocked` signal from defense manager to territory manager
+- Consolidated duplicate SystemRegistry lookups into shared `_get_hex_grid_manager()` and `_get_event_bus()` helpers in both files
+- Removed emoji from "Territory Under Attack" notification message
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings/errors unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Cache SystemRegistry lookups in AchievementManager
 
 **Priority:** High (Performance + Achievements)
