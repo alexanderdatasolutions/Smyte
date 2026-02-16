@@ -1303,3 +1303,22 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: remove dead code from TerritoryManager`
+
+### 2026-02-16 - Audit: Remove dead code from BuildingManager.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/territory/BuildingManager.gd`
+
+**Changes:**
+- Removed 14 dead public functions (zero external callers): `get_all_buildings()`, `get_buildings_by_category()`, `get_category()`, `get_all_categories()`, `is_loaded()`, `get_building_consumption()`, `get_building_effects()`, `get_net_production()`, `get_upgrade_cost()`, `get_build_time()`, `get_max_level()`, `can_upgrade_building()`, `upgrade_building()`, `get_debug_info()`
+- Removed 3 unused signals: `building_removed` (emitted but never connected), `building_upgraded` (emitter also dead), `buildings_loaded` (emitted but never connected)
+- Removed 2 dead private helper functions: `_can_afford()`, `_spend_resources()` (only called by dead upgrade path)
+- Removed 5 print statements (debug logging)
+- Added static typing throughout remaining code (`:=`, `: Dictionary`, `: String`, `: int`, `: float`, `-> Node`)
+- Kept all actively-used functions: `get_building()` (5 callers), `get_buildings_by_tier()` (internal), `get_available_buildings_for_tile()` (BuildingSelectionPopup), `get_building_production()` (TerritoryProductionManager), `get_build_cost()` (BuildingSelectionPopup), `get_max_workers()` (internal), `can_place_building()` (internal), `place_building()` (BuildingSelectionPopup), `remove_building()` (HexTerritoryScreen)
+- Kept `building_placed` signal (connected by AchievementManager)
+- File reduced from 436 to 231 lines (-205 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: remove dead code from BuildingManager`

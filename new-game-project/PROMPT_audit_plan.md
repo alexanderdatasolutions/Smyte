@@ -147,7 +147,7 @@
     "file": "scripts/systems/territory/BuildingManager.gd",
     "issue": "12 dead methods and 3 unused signals",
     "action": "Delete unused methods and signals",
-    "passes": false
+    "passes": true
   },
   {
     "priority": "high",
