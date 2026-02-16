@@ -140,7 +140,7 @@
     "file": "scripts/systems/territory/TerritoryManager.gd",
     "issue": "~140 lines of old territory dead code - functions never called externally",
     "action": "Delete dead functions after verifying no callers",
-    "passes": false
+    "passes": true
   },
   {
     "priority": "high",

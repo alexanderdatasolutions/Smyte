@@ -4,7 +4,6 @@ class_name TerritoryManager extends Node
 
 signal territory_captured(territory_id: String)
 signal territory_lost(territory_id: String)
-signal territory_upgraded(territory_id: String, new_level: int)
 signal node_unlocked(node_id: String, unlock_source: String)  # Emitted when dungeon completion unlocks a node
 
 var controlled_territories: Array[String] = []
@@ -20,120 +19,13 @@ func _load_territory_configuration() -> void:
 	if config_manager:
 		territory_data = config_manager.get_territories_config()
 
-## Capture a territory
-func capture_territory(territory_id: String) -> bool:
-	if territory_id in controlled_territories:
-		return false
-
-	if not territory_data.has(territory_id):
-		push_error("TerritoryManager: Unknown territory: " + territory_id)
-		return false
-
-	controlled_territories.append(territory_id)
-	territory_captured.emit(territory_id)
-
-	# Notify other systems
-	var event_bus: Node = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
-	if event_bus:
-		event_bus.emit_signal("territory_captured", territory_id)
-
-	return true
-
-## Lose a territory
-func lose_territory(territory_id: String) -> bool:
-	if territory_id not in controlled_territories:
-		return false
-
-	controlled_territories.erase(territory_id)
-	territory_lost.emit(territory_id)
-
-	# Notify other systems
-	var event_bus: Node = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
-	if event_bus:
-		event_bus.emit_signal("territory_lost", territory_id)
-
-	return true
-
 ## Check if territory is controlled
 func is_territory_controlled(territory_id: String) -> bool:
 	return territory_id in controlled_territories
 
-## Get all controlled territories
-func get_controlled_territories() -> Array[String]:
-	return controlled_territories.duplicate()
-
 ## Get territory information
 func get_territory_info(territory_id: String) -> Dictionary:
 	return territory_data.get(territory_id, {})
-
-## Upgrade territory
-func upgrade_territory(territory_id: String) -> bool:
-	if territory_id not in controlled_territories:
-		push_error("TerritoryManager: Cannot upgrade uncontrolled territory: " + territory_id)
-		return false
-	
-	var territory_info: Dictionary = get_territory_info(territory_id)
-	if territory_info.is_empty():
-		return false
-
-	var current_level: int = territory_info.get("level", 1)
-	var max_level: int = territory_info.get("max_level", 10)
-
-	if current_level >= max_level:
-		return false
-	
-	# Check upgrade cost through ResourceManager
-	var upgrade_cost: Dictionary = _get_upgrade_cost(territory_id, current_level + 1)
-	var resource_manager: Node = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
-
-	if not resource_manager or not resource_manager.can_afford(upgrade_cost):
-		return false
-	
-	# Spend resources and upgrade
-	resource_manager.spend_resources(upgrade_cost)
-	territory_data[territory_id]["level"] = current_level + 1
-
-	territory_upgraded.emit(territory_id, current_level + 1)
-	return true
-
-## Get territory upgrade cost
-func _get_upgrade_cost(_territory_id: String, target_level: int) -> Dictionary:
-	var base_cost: int = 1000
-	var level_multiplier: float = pow(1.5, target_level - 1)
-	
-	return {
-		"mana": int(base_cost * level_multiplier),
-		"materials": int(base_cost * 0.1 * level_multiplier)
-	}
-
-## Get territory count
-func get_territory_count() -> int:
-	return controlled_territories.size()
-
-## Get territory by type
-func get_territories_by_type(territory_type: String) -> Array[String]:
-	var matching_territories: Array[String] = []
-
-	for territory_id: String in controlled_territories:
-		var territory_info: Dictionary = get_territory_info(territory_id)
-		if territory_info.get("type", "") == territory_type:
-			matching_territories.append(territory_id)
-	
-	return matching_territories
-
-## Check if can capture more territories
-func can_capture_more_territories() -> bool:
-	# Get player level from progression system
-	var progression_manager: Node = SystemRegistry.get_instance().get_system("PlayerProgressionManager") if SystemRegistry.get_instance() else null
-	var player_level: int = progression_manager.get_player_level() if progression_manager else 1
-
-	var max_territories: int = _calculate_max_territories(player_level)
-	return controlled_territories.size() < max_territories
-
-func _calculate_max_territories(player_level: int) -> int:
-	# Base: 3 territories, +1 every 5 levels
-	@warning_ignore("integer_division")
-	return 3 + (player_level - 1) / 5
 
 ## For save/load
 func get_save_data() -> Dictionary:
@@ -261,11 +153,6 @@ func get_territory_level(territory_id: String) -> int:
 	var territory_info: Dictionary = get_territory_info(territory_id)
 	return territory_info.get("level", 1)
 
-## Check if territory has a specific building
-func has_building(territory_id: String, building_id: String) -> bool:
-	"""Check if a territory has a specific building"""
-	return building_id in get_territory_buildings(territory_id)
-
 ## Get max task worker slots for territory
 func get_max_task_slots(territory_id: String) -> int:
 	"""Get maximum number of gods that can work on tasks in this territory"""
@@ -283,32 +170,6 @@ func get_working_gods(territory_id: String) -> Array[String]:
 	if task_manager:
 		return task_manager.get_gods_working_in_territory(territory_id)
 	return []
-
-## Check if territory has available task slots
-func has_available_task_slots(territory_id: String) -> bool:
-	"""Check if more gods can be assigned to tasks in this territory"""
-	if not is_territory_controlled(territory_id):
-		return false
-	var working_count: int = get_working_gods(territory_id).size()
-	return working_count < get_max_task_slots(territory_id)
-
-## Add building to territory (unlocks new tasks)
-func add_building(territory_id: String, building_id: String) -> bool:
-	"""Add a building to a territory"""
-	if not is_territory_controlled(territory_id):
-		return false
-
-	if not territory_data.has(territory_id):
-		return false
-
-	if not territory_data[territory_id].has("buildings"):
-		territory_data[territory_id]["buildings"] = []
-
-	if building_id in territory_data[territory_id]["buildings"]:
-		return false
-
-	territory_data[territory_id]["buildings"].append(building_id)
-	return true
 
 ## Get available tasks for a territory based on level and buildings
 func get_available_tasks(territory_id: String) -> Array:
@@ -814,56 +675,6 @@ func _check_node_dungeon_unlock(node: HexNode, dungeon_id: String, difficulty: S
 			return true
 
 	return false
-
-## Check if a node is unlocked based on dungeon completion progress
-func is_node_unlocked_by_dungeons(node_id: String) -> bool:
-	"""Check if all dungeon requirements are met for a node"""
-	var hex_grid_manager: Node = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
-	if not hex_grid_manager:
-		return true  # Default to unlocked if can't check
-
-	var node: HexNode = hex_grid_manager.get_node_by_id(node_id)
-	if not node:
-		return true
-
-	var dungeon_clears: Array = node.unlock_requirements.get("dungeon_clears", [])
-	if dungeon_clears.is_empty():
-		return true  # No dungeon requirements
-
-	var dungeon_manager: Node = SystemRegistry.get_instance().get_system("DungeonManager") if SystemRegistry.get_instance() else null
-	if not dungeon_manager:
-		return false  # Can't verify
-
-	# Check all dungeon requirements
-	for requirement: Variant in dungeon_clears:
-		var req_dungeon: String = requirement.get("dungeon_id", "")
-		var req_difficulty: String = requirement.get("difficulty", "")
-
-		if not dungeon_manager.is_first_clear(req_dungeon, req_difficulty):
-			# is_first_clear returns false if the dungeon HAS been cleared
-			# So NOT is_first_clear means it has been cleared
-			continue
-		else:
-			# Still first clear available = not yet completed
-			return false
-
-	return true
-
-## Get list of nodes that would be unlocked by completing a specific dungeon
-func get_nodes_unlockable_by_dungeon(dungeon_id: String, difficulty: String) -> Array:
-	"""Get all nodes that have this dungeon as an unlock requirement"""
-	var unlockable_nodes: Array = []
-
-	var hex_grid_manager: Node = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
-	if not hex_grid_manager:
-		return unlockable_nodes
-
-	var all_nodes: Array = hex_grid_manager.get_all_nodes()
-	for node: HexNode in all_nodes:
-		if _check_node_dungeon_unlock(node, dungeon_id, difficulty):
-			unlockable_nodes.append(node)
-
-	return unlockable_nodes
 
 # ==============================================================================
 # CAPTURE REWARDS

@@ -1284,3 +1284,22 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: remove dead code from StatisticsManager and wire into save/EventBus`
+
+### 2026-02-16 - Audit: Remove dead code from TerritoryManager.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/territory/TerritoryManager.gd`
+
+**Changes:**
+- Removed 14 dead functions (~189 lines) with zero external callers:
+  - Old string-based territory system: `capture_territory()`, `lose_territory()`, `get_controlled_territories()`, `upgrade_territory()`, `_get_upgrade_cost()`, `get_territory_count()`, `get_territories_by_type()`, `can_capture_more_territories()`, `_calculate_max_territories()`
+  - Unused task/building helpers: `has_building()`, `has_available_task_slots()`, `add_building()`
+  - Unused dungeon-unlock functions: `is_node_unlocked_by_dungeons()`, `get_nodes_unlockable_by_dungeon()`
+- Removed unused `territory_upgraded` signal (only emitter was deleted `upgrade_territory()`)
+- All removals verified via codebase-wide grep — zero external callers for each function
+- Kept all functions with external callers: `is_territory_controlled()` (TerritoryCardBuilder, TerritoryListManager), `get_territories_by_filter()` (TerritoryListManager), `get_all_territories()` (TerritoryHeaderManager), `get_territory_resource_rate()` (TerritoryHeaderManager), `get_territory_buildings/level/max_task_slots/working_gods/available_tasks()` (TaskAssignmentScreen)
+- File reduced from 1055 to 866 lines (-189 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: remove dead code from TerritoryManager`
