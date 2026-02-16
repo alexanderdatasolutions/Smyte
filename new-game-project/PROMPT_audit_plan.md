@@ -28,7 +28,7 @@
     "file": "scripts/systems/equipment/EquipmentManager.gd",
     "issue": "EquipmentManager has NO get_save_data/load_save_data methods - gem inventory, socket unlocks, crafting state lost",
     "action": "Add save/load methods to EquipmentManager and wire into SaveManager",
-    "passes": false
+    "passes": true
   },
   {
     "priority": "critical",

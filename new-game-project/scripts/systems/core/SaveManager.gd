@@ -85,6 +85,10 @@ func save_game() -> bool:
 	if player_progression and player_progression.has_method("get_save_data"):
 		save_data["player_progression"] = player_progression.get_save_data()
 
+	var equipment_manager = system_registry.get_system("EquipmentManager") if system_registry else null
+	if equipment_manager and equipment_manager.has_method("get_save_data"):
+		save_data["equipment"] = equipment_manager.get_save_data()
+
 	# Save player-specific data (tower best floor, etc.)
 	save_data["player_data"] = player_data
 
@@ -193,6 +197,7 @@ func _load_systems_from_data(save_data: Dictionary, system_registry) -> void:
 	_load_system_data(system_registry, "SummonManager", "summon", save_data)
 	_load_system_data(system_registry, "ArenaManager", "arena", save_data)
 	_load_system_data(system_registry, "PlayerProgressionManager", "player_progression", save_data)
+	_load_system_data(system_registry, "EquipmentManager", "equipment", save_data)
 
 	# After loading arena, restore defense team references
 	var arena_manager = system_registry.get_system("ArenaManager")

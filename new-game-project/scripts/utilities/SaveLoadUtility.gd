@@ -118,28 +118,50 @@ static func deserialize_god(data: Dictionary) -> God:
 static func serialize_equipment(equipment: Equipment) -> Dictionary:
 	if not equipment:
 		return {}
-	
+
 	return {
 		"id": equipment.id,
+		"name": equipment.name,
+		"type": equipment.type,
+		"rarity": equipment.rarity,
+		"level": equipment.level,
 		"slot": equipment.slot,
 		"equipment_set_name": equipment.equipment_set_name,
+		"equipment_set_type": equipment.equipment_set_type,
 		"main_stat_type": equipment.main_stat_type,
 		"main_stat_value": equipment.main_stat_value,
+		"main_stat_base": equipment.main_stat_base,
 		"substats": equipment.substats.duplicate(),
-		"level": equipment.level
+		"sockets": equipment.sockets.duplicate(true),
+		"max_sockets": equipment.max_sockets,
+		"equipped_by_god_id": equipment.equipped_by_god_id,
+		"is_destroyed": equipment.is_destroyed,
+		"origin_dungeon": equipment.origin_dungeon,
+		"lore_text": equipment.lore_text,
 	}
 
 ## Deserialize Dictionary back to Equipment object
 static func deserialize_equipment(data: Dictionary) -> Equipment:
-	var equipment = Equipment.new()
+	var equipment := Equipment.new()
 	equipment.id = data.get("id", "")
+	equipment.name = data.get("name", "")
+	equipment.type = data.get("type", 0)
+	equipment.rarity = data.get("rarity", 0)
+	equipment.level = data.get("level", 0)
 	equipment.slot = data.get("slot", 1)
 	equipment.equipment_set_name = data.get("equipment_set_name", "")
+	equipment.equipment_set_type = data.get("equipment_set_type", "")
 	equipment.main_stat_type = data.get("main_stat_type", "")
 	equipment.main_stat_value = data.get("main_stat_value", 0)
+	equipment.main_stat_base = data.get("main_stat_base", 0)
 	equipment.substats = data.get("substats", []).duplicate()
-	equipment.level = data.get("level", 0)
-	
+	equipment.sockets = data.get("sockets", []).duplicate(true)
+	equipment.max_sockets = data.get("max_sockets", 0)
+	equipment.equipped_by_god_id = data.get("equipped_by_god_id", "")
+	equipment.is_destroyed = data.get("is_destroyed", false)
+	equipment.origin_dungeon = data.get("origin_dungeon", "")
+	equipment.lore_text = data.get("lore_text", "")
+
 	return equipment
 
 ## Serialize complete game state

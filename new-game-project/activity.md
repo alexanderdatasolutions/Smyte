@@ -1032,3 +1032,21 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: fix save system for PlayerProgressionManager`
+
+### 2026-02-15 - Audit: Fix save system for EquipmentManager
+
+**Priority:** Critical
+**File(s) Modified:** `scripts/systems/equipment/EquipmentManager.gd`, `scripts/systems/core/SaveManager.gd`, `scripts/utilities/SaveLoadUtility.gd`
+
+**Changes:**
+- Replaced `save_equipment_data()`/`load_equipment_data()` with standard `get_save_data()`/`load_save_data()` methods on EquipmentManager
+- `get_save_data()` serializes equipment inventory via SaveLoadUtility and gem inventory as dictionaries
+- `load_save_data()` deserializes equipment inventory via SaveLoadUtility and restores gem inventory
+- Added EquipmentManager to SaveManager save chain (`save_data["equipment"]`)
+- Added EquipmentManager to SaveManager load chain (`_load_system_data` call)
+- Fixed SaveLoadUtility `serialize_equipment()` to include all Equipment fields: name, type, rarity, max_sockets, sockets, equipped_by_god_id, equipment_set_type, main_stat_base, origin_dungeon, is_destroyed, lore_text (previously only saved 7 of 18 fields)
+- Fixed SaveLoadUtility `deserialize_equipment()` to restore all Equipment fields (matching serialization)
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: fix save system for EquipmentManager`

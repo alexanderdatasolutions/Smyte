@@ -385,32 +385,37 @@ func get_god_equipment_stats(god: God) -> Dictionary:
 
 # === SAVE/LOAD INTEGRATION ===
 
-func save_equipment_data() -> Dictionary:
-	"""Save all equipment data"""
-	var data = {
+func get_save_data() -> Dictionary:
+	"""Save all equipment data for SaveManager"""
+	var data: Dictionary = {
 		"inventory": [],
 		"gems": []
 	}
-	
+
 	if inventory_manager:
-		data.inventory = inventory_manager.get_all_equipment()
-	
+		for eq in inventory_manager.get_all_equipment():
+			data.inventory.append(SaveLoadUtility.serialize_equipment(eq))
+
 	if socket_manager:
-		data.gems = socket_manager.get_gem_inventory()
-	
+		data.gems = socket_manager.get_gem_inventory().duplicate(true)
+
 	return data
 
-func load_equipment_data(data: Dictionary):
-	"""Load all equipment data"""
+func load_save_data(data: Dictionary) -> void:
+	"""Load all equipment data from SaveManager"""
 	if data.has("inventory") and inventory_manager:
 		inventory_manager.clear_inventory()
-		for equipment_data in data.inventory:
-			if equipment_data is Equipment:
-				inventory_manager.add_equipment_to_inventory(equipment_data)
-	
+		for eq_data in data.inventory:
+			if eq_data is Dictionary:
+				var eq: Equipment = SaveLoadUtility.deserialize_equipment(eq_data)
+				if eq:
+					inventory_manager.add_equipment_to_inventory(eq)
+
 	if data.has("gems") and socket_manager:
-		# Load gems would need to be implemented in socket manager
-		pass
+		socket_manager.gems_inventory.clear()
+		for gem_data in data.gems:
+			if gem_data is Dictionary:
+				socket_manager.gems_inventory.append(gem_data.duplicate())
 
 # === INTEGRATION METHODS ===
 
