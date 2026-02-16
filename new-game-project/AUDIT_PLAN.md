@@ -587,8 +587,8 @@
     "priority": "high",
     "file": "scripts/systems/pvp_territory/ (all files)",
     "issue": "25+ missing checks: SystemRegistry, array bounds, async timeouts",
-    "action": "Add comprehensive null and bounds checking",
-    "passes": false
+    "action": "Added 25+ null/bounds checks across all 5 PvP territory files: PvPTerritoryManager (_map_instance null guards on 6 methods, .get() for dict access), PvPMapInstance (null param checks on update_hex/add_hex, safe int cast on timestamp), PvPMapGenerator (division-by-zero guards with maxi(1,...), empty ring_coords guards), PvPSpawnManager (.get() with defaults for position_result dict access), PvPTerritoryDataSync (null guards on _firestore and collection at all 10+ Firestore call sites, safe Variant type checks with 'is Object' before has_method, null-safe int casts for doc values, early returns with proper signal emissions on failure).",
+    "passes": true
   },
   {
     "priority": "high",

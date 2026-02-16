@@ -297,12 +297,17 @@ static func _calculate_spawn_positions(num_players: int) -> Array[Vector2i]:
 	All spawn positions are at the same ring distance from center,
 	evenly distributed around the ring.
 	"""
+	var positions: Array[Vector2i] = []
+	if num_players <= 0:
+		return positions
+
 	var spawn_ring: int = SPAWN_RING_OFFSET
 	var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(spawn_ring)
-	var positions: Array[Vector2i] = []
+	if ring_coords.is_empty():
+		return positions
 
 	# Calculate spacing to distribute players evenly
-	var spacing: int = ring_coords.size() / num_players
+	var spacing: int = maxi(1, ring_coords.size() / num_players)
 
 	for i: int in range(num_players):
 		var index: int = int(i * spacing) % ring_coords.size()
@@ -323,7 +328,10 @@ static func get_spawn_position_for_player(player_index: int, existing_spawns: Ar
 	"""
 	var spawn_ring: int = SPAWN_RING_OFFSET
 	var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(spawn_ring)
-	var spacing: int = ring_coords.size() / MAX_PLAYERS
+	if ring_coords.is_empty():
+		return Vector2i.ZERO
+
+	var spacing: int = maxi(1, ring_coords.size() / MAX_PLAYERS)
 
 	# Get the ideal position for this player index
 	var ideal_index: int = int(player_index * spacing) % ring_coords.size()

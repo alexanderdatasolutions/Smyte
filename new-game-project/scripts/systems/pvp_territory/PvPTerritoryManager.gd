@@ -116,7 +116,7 @@ func can_attack_hex(hex: PvPHexNode) -> Dictionary:
 			}
 
 	# Must have adjacent hex to attack (expansion rule)
-	if not _map_instance.has_adjacent_controlled_hex(hex, _current_user_uid):
+	if not _map_instance or not _map_instance.has_adjacent_controlled_hex(hex, _current_user_uid):
 		return {"can_attack": false, "reason": "Must expand from adjacent territory"}
 
 	return {"can_attack": true, "reason": ""}
@@ -184,6 +184,8 @@ func process_attack_result(hex_id: String, victory: bool) -> void:
 		hex_id: The hex that was attacked
 		victory: True if attacker won
 	"""
+	if not _map_instance:
+		return
 	var hex: PvPHexNode = _map_instance.get_hex(hex_id)
 	if hex == null:
 		return
@@ -253,6 +255,8 @@ func update_hex_defense(hex_id: String, team: Array) -> void:
 		hex_id: The hex to update
 		team: Array of God objects to serialize
 	"""
+	if not _map_instance:
+		return
 	var hex: PvPHexNode = _map_instance.get_hex(hex_id)
 	if hex == null:
 		return
@@ -338,6 +342,9 @@ func _on_player_eliminated(player_uid: String) -> void:
 
 func _trigger_respawn() -> void:
 	"""Trigger respawn for current user"""
+	if not _map_instance:
+		return
+
 	var hexes: Dictionary = {}
 	for hex: PvPHexNode in _map_instance.get_all_hexes():
 		hexes[hex.id] = hex
@@ -349,23 +356,29 @@ func _trigger_respawn() -> void:
 		_map_instance.current_max_ring
 	)
 
-	if respawn_result["success"]:
-		var spawn_node: PvPHexNode = respawn_result["spawn_node"]
-		var starter_hexes: Array = respawn_result["starter_hexes"]
-		var expansion_hexes: Array = respawn_result["expansion_hexes"]
+	if not respawn_result.get("success", false):
+		return
 
-		# Update local state
-		_map_instance.process_respawn(_current_user_uid, spawn_node, starter_hexes)
+	var spawn_node: PvPHexNode = respawn_result.get("spawn_node")
+	var starter_hexes: Array = respawn_result.get("starter_hexes", [])
+	var expansion_hexes: Array = respawn_result.get("expansion_hexes", [])
 
-		# Add any expansion hexes
-		for hex: PvPHexNode in expansion_hexes:
-			_map_instance.add_hex(hex)
+	if not spawn_node:
+		return
 
-		# Update max ring if expanded
-		if respawn_result["new_max_ring"] > _map_instance.current_max_ring:
-			_map_instance.current_max_ring = respawn_result["new_max_ring"]
+	# Update local state
+	_map_instance.process_respawn(_current_user_uid, spawn_node, starter_hexes)
 
-		respawn_triggered.emit(_current_user_uid)
+	# Add any expansion hexes
+	for hex: PvPHexNode in expansion_hexes:
+		_map_instance.add_hex(hex)
+
+	# Update max ring if expanded
+	var new_max_ring: int = respawn_result.get("new_max_ring", _map_instance.current_max_ring)
+	if new_max_ring > _map_instance.current_max_ring:
+		_map_instance.current_max_ring = new_max_ring
+
+	respawn_triggered.emit(_current_user_uid)
 
 
 # ==============================================================================
@@ -375,10 +388,12 @@ func _trigger_respawn() -> void:
 func get_attackable_hexes() -> Array[PvPHexNode]:
 	"""Get all hexes the current user can attack"""
 	var result: Array[PvPHexNode] = []
+	if not _map_instance:
+		return result
 
 	for hex: PvPHexNode in _map_instance.get_all_hexes():
 		var validation: Dictionary = can_attack_hex(hex)
-		if validation["can_attack"]:
+		if validation.get("can_attack", false):
 			result.append(hex)
 
 	return result
@@ -387,6 +402,8 @@ func get_attackable_hexes() -> Array[PvPHexNode]:
 func get_my_hexes_needing_defense() -> Array[PvPHexNode]:
 	"""Get player's hexes without defense teams set"""
 	var result: Array[PvPHexNode] = []
+	if not _map_instance:
+		return result
 
 	for hex: PvPHexNode in _map_instance.get_player_hexes(_current_user_uid):
 		if not hex.has_defense_team() and hex.is_capturable:

@@ -262,9 +262,9 @@ static func execute_respawn(
 	"""
 	# Find respawn position
 	var position_result := calculate_respawn_position(player_uid, hexes, current_max_ring)
-	var spawn_coord: Vector2i = position_result["coord"]
-	var needs_expansion: bool = position_result["needs_expansion"]
-	var new_max_ring: int = position_result["new_ring"]
+	var spawn_coord: Vector2i = position_result.get("coord", Vector2i.ZERO)
+	var needs_expansion: bool = position_result.get("needs_expansion", false)
+	var new_max_ring: int = position_result.get("new_ring", current_max_ring)
 
 	var expansion_hexes: Array[PvPHexNode] = []
 

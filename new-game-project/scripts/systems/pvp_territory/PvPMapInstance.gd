@@ -249,6 +249,8 @@ func get_my_rank() -> int:
 
 func update_hex(hex: PvPHexNode) -> void:
 	"""Update a hex in local state"""
+	if hex == null:
+		return
 	var old_hex: PvPHexNode = hexes.get(hex.id)
 	var old_owner: String = old_hex.controller_uid if old_hex else ""
 
@@ -267,6 +269,8 @@ func update_hex(hex: PvPHexNode) -> void:
 
 func add_hex(hex: PvPHexNode) -> void:
 	"""Add a new hex to the map (expansion)"""
+	if hex == null:
+		return
 	hexes[hex.id] = hex
 	hex_updated.emit(hex.id, hex)
 
@@ -291,7 +295,7 @@ func process_capture(hex_id: String, new_owner_uid: String, new_owner_name: Stri
 
 	hex.controller_uid = new_owner_uid
 	hex.controller_display_name = new_owner_name
-	hex.last_captured_at = Time.get_unix_time_from_system()
+	hex.last_captured_at = int(Time.get_unix_time_from_system())
 	hex.total_captures += 1
 	hex.defense_team_serialized = []  # Clear old defense
 	hex.defense_power = 0
@@ -301,7 +305,7 @@ func process_capture(hex_id: String, new_owner_uid: String, new_owner_name: Stri
 	leaderboard_changed.emit()
 
 	# Check if old owner was eliminated
-	if not old_owner.is_empty():
+	if not old_owner.is_empty() and not hexes.is_empty():
 		if PvPSpawnManager.check_needs_respawn(old_owner, hexes):
 			player_eliminated.emit(old_owner)
 

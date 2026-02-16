@@ -7,6 +7,22 @@
 
 ---
 
+## 2026-02-16 - Audit: Add null/bounds checks to PvP territory system (5 files)
+
+**Priority:** High (Error Handling)
+**File(s) Modified:** `scripts/systems/pvp_territory/PvPTerritoryManager.gd`, `scripts/systems/pvp_territory/PvPMapInstance.gd`, `scripts/systems/pvp_territory/PvPMapGenerator.gd`, `scripts/systems/pvp_territory/PvPSpawnManager.gd`, `scripts/systems/pvp_territory/PvPTerritoryDataSync.gd`
+
+**Changes:**
+- **PvPTerritoryManager.gd**: Added `_map_instance` null guards on 6 methods (can_attack_hex, process_attack_result, _trigger_respawn, update_hex_defense, get_attackable_hexes, get_my_hexes_needing_defense). Used `.get()` with defaults for respawn_result dict access instead of direct bracket access.
+- **PvPMapInstance.gd**: Added null parameter checks on `update_hex()` and `add_hex()`. Cast `Time.get_unix_time_from_system()` to int in process_capture. Added empty hexes guard before elimination check.
+- **PvPMapGenerator.gd**: Added division-by-zero guards with `maxi(1, ...)` in `_calculate_spawn_positions()` and `get_spawn_position_for_player()`. Added empty `ring_coords` early return guards.
+- **PvPSpawnManager.gd**: Changed `execute_respawn()` to use `.get()` with defaults for position_result dict access.
+- **PvPTerritoryDataSync.gd**: Added null guards on `_firestore` and `collection` at all 10+ Firestore call sites. Used `is Object` check before `has_method()` in `_doc_to_dict()` and `_parse_map_results()`. Safe int casts for `_get_doc_value()` returns that could be null. Early returns with proper signal emissions on failure paths.
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Add null checks and static typing to StatusEffect.gd
 
 **Priority:** High (Error Handling)
