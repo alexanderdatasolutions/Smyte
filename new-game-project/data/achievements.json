@@ -1,0 +1,126 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "description": "Achievement definitions with triggers, rewards, and feature unlocks",
+    "last_updated": "2026-02-15"
+  },
+
+  "achievements": {
+    "first_summon": {
+      "name": "First Summon",
+      "description": "Summon your first god",
+      "trigger": { "type": "god_count", "target": 1 },
+      "rewards": { "gold": 500, "divine_crystals": 100 },
+      "unlocks": "territory"
+    },
+    "first_territory": {
+      "name": "Landowner",
+      "description": "Capture your first territory",
+      "trigger": { "type": "territory_count", "target": 1 },
+      "rewards": { "gold": 1000 },
+      "unlocks": "sacrifice"
+    },
+    "tier2_territory": {
+      "name": "Expanding Influence",
+      "description": "Capture a Tier 2 territory",
+      "trigger": { "type": "max_territory_tier", "target": 2 },
+      "rewards": { "divine_crystals": 300 },
+      "unlocks": ["dungeon", "equipment"]
+    },
+    "tier3_territory": {
+      "name": "Rising Power",
+      "description": "Capture a Tier 3 territory",
+      "trigger": { "type": "max_territory_tier", "target": 3 },
+      "rewards": { "divine_crystals": 500 },
+      "unlocks": ["tower", "arena"]
+    },
+    "tier4_territory": {
+      "name": "Domain Master",
+      "description": "Capture a Tier 4 territory",
+      "trigger": { "type": "max_territory_tier", "target": 4 },
+      "rewards": { "divine_crystals": 1000 },
+      "unlocks": "pvp"
+    },
+    "god_level_30": {
+      "name": "Awakening Potential",
+      "description": "Level a god to 30",
+      "trigger": { "type": "max_god_level", "target": 30 },
+      "rewards": { "mana": 5000 },
+      "unlocks": "awakening"
+    },
+    "first_building": {
+      "name": "Builder",
+      "description": "Place your first building",
+      "trigger": { "type": "building_count", "target": 1 },
+      "rewards": { "gold": 500 },
+      "unlocks": null
+    },
+    "first_dungeon_clear": {
+      "name": "Dungeon Delver",
+      "description": "Clear your first dungeon",
+      "trigger": { "type": "dungeon_clears", "target": 1 },
+      "rewards": { "divine_crystals": 200 },
+      "unlocks": null
+    },
+    "five_gods": {
+      "name": "Pantheon Starter",
+      "description": "Collect 5 gods",
+      "trigger": { "type": "god_count", "target": 5 },
+      "rewards": { "gold": 2000 },
+      "unlocks": null
+    },
+    "ten_gods": {
+      "name": "Divine Assembly",
+      "description": "Collect 10 gods",
+      "trigger": { "type": "god_count", "target": 10 },
+      "rewards": { "divine_crystals": 500 },
+      "unlocks": null
+    },
+    "ten_territories": {
+      "name": "Empire Builder",
+      "description": "Control 10 territories",
+      "trigger": { "type": "territory_count", "target": 10 },
+      "rewards": { "divine_crystals": 1000 },
+      "unlocks": null
+    },
+    "first_battle_win": {
+      "name": "Victor",
+      "description": "Win your first battle",
+      "trigger": { "type": "battle_wins", "target": 1 },
+      "rewards": { "gold": 300 },
+      "unlocks": null
+    },
+    "ten_battles": {
+      "name": "Seasoned Warrior",
+      "description": "Win 10 battles",
+      "trigger": { "type": "battle_wins", "target": 10 },
+      "rewards": { "divine_crystals": 300 },
+      "unlocks": null
+    },
+    "god_level_10": {
+      "name": "Rising Star",
+      "description": "Level a god to 10",
+      "trigger": { "type": "max_god_level", "target": 10 },
+      "rewards": { "gold": 1000 },
+      "unlocks": null
+    },
+    "god_level_20": {
+      "name": "Power Growing",
+      "description": "Level a god to 20",
+      "trigger": { "type": "max_god_level", "target": 20 },
+      "rewards": { "mana": 2000 },
+      "unlocks": null
+    }
+  },
+
+  "trigger_types": {
+    "god_count": "Number of gods in collection",
+    "territory_count": "Number of controlled territories",
+    "max_territory_tier": "Highest tier territory captured",
+    "max_god_level": "Highest level reached by any god",
+    "building_count": "Number of buildings placed",
+    "dungeon_clears": "Total dungeons completed",
+    "battle_wins": "Total battles won",
+    "summon_count": "Total summons performed"
+  }
+}

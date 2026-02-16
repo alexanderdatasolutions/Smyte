@@ -77,6 +77,10 @@ func save_game() -> bool:
 	if tutorial_orchestrator and tutorial_orchestrator.has_method("get_tutorial_save_data"):
 		save_data["tutorial"] = tutorial_orchestrator.get_tutorial_save_data()
 
+	var arena_manager = system_registry.get_system("ArenaManager") if system_registry else null
+	if arena_manager and arena_manager.has_method("get_save_data"):
+		save_data["arena"] = arena_manager.get_save_data()
+
 	# Save player-specific data (tower best floor, etc.)
 	save_data["player_data"] = player_data
 
@@ -183,6 +187,12 @@ func _load_systems_from_data(save_data: Dictionary, system_registry) -> void:
 	_load_system_data(system_registry, "TerritoryManager", "territory", save_data)
 	_load_system_data(system_registry, "DungeonManager", "dungeon", save_data)
 	_load_system_data(system_registry, "SummonManager", "summon", save_data)
+	_load_system_data(system_registry, "ArenaManager", "arena", save_data)
+
+	# After loading arena, restore defense team references
+	var arena_manager = system_registry.get_system("ArenaManager")
+	if arena_manager and arena_manager.has_method("restore_defense_team_from_ids"):
+		arena_manager.restore_defense_team_from_ids()
 
 	# Tutorial uses a different method name
 	if save_data.has("tutorial"):

@@ -530,18 +530,20 @@ func _execute_skill_on_target(skill: Skill, target: BattleUnit):
 	if action_label:
 		action_label.text = "%s uses %s on %s!" % [current_active_unit.display_name, skill.name, target.display_name]
 
-	# Create target array based on skill
-	var targets: Array = []
+	# Create target array based on skill (must be typed for BattleAction)
+	var targets: Array[BattleUnit] = []
 	if skill.target_count >= 99:
 		# AoE skill - get all valid targets
 		var battle_state = battle_coordinator.battle_state
 		if skill.targets_enemies:
-			targets = battle_state.get_living_enemy_units()
+			for unit: BattleUnit in battle_state.get_living_enemy_units():
+				targets.append(unit)
 		else:
-			targets = battle_state.get_living_player_units()
+			for unit: BattleUnit in battle_state.get_living_player_units():
+				targets.append(unit)
 	else:
 		# Single or multi-target - for now just use the clicked target
-		targets = [target]
+		targets.append(target)
 
 	# Create and execute action
 	var action = BattleAction.create_skill_action(current_active_unit, skill, targets)

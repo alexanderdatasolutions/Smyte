@@ -137,10 +137,13 @@ func _level_up_god(god: God, old_level: int, new_level: int):
 	
 	# Emit level up event
 	god_leveled_up.emit(god, new_level, old_level)
-	
+
 	# Emit event bus signal for UI updates
 	if event_bus:
 		event_bus.god_level_up.emit(god.id, new_level, old_level)
+
+	# Show level up notification
+	_show_level_up_notification(god, new_level, levels_gained)
 
 func can_level_up(god: God) -> bool:
 	"""Check if god can level up with current experience"""
@@ -153,6 +156,12 @@ func can_level_up(god: God) -> bool:
 	
 	var xp_needed = get_xp_to_next_level(god)
 	return xp_needed <= 0
+
+func _show_level_up_notification(god: God, new_level: int, levels_gained: int) -> void:
+	"""Show level up notification using NotificationQueue"""
+	var NotificationQueueClass = load("res://scripts/ui/components/NotificationQueue.gd")
+	if NotificationQueueClass:
+		NotificationQueueClass.show_level_up(god.name, new_level, levels_gained)
 
 # ==============================================================================
 # AWAKENING SUPPORT - Extended level progression

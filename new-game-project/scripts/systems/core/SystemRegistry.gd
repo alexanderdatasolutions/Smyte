@@ -202,6 +202,10 @@ func _register_battle_and_dungeon() -> void:
 		var dungeon_coordinator := preload("res://scripts/systems/dungeon/DungeonCoordinator.gd").new()
 		register_system("DungeonCoordinator", dungeon_coordinator)
 
+	if FileAccess.file_exists("res://scripts/systems/arena/ArenaManager.gd"):
+		var arena_manager := preload("res://scripts/systems/arena/ArenaManager.gd").new()
+		register_system("ArenaManager", arena_manager)
+
 ## Phase 5: Progression and summoning systems
 func _register_progression() -> void:
 	if FileAccess.file_exists("res://scripts/systems/progression/PlayerProgressionManager.gd"):
@@ -227,6 +231,18 @@ func _register_progression() -> void:
 	if FileAccess.file_exists("res://scripts/systems/collection/SummonManager.gd"):
 		var summon_manager := preload("res://scripts/systems/collection/SummonManager.gd").new()
 		register_system("SummonManager", summon_manager)
+
+	if FileAccess.file_exists("res://scripts/systems/core/StatisticsManager.gd"):
+		var statistics_manager := preload("res://scripts/systems/core/StatisticsManager.gd").new()
+		register_system("StatisticsManager", statistics_manager)
+
+	if FileAccess.file_exists("res://scripts/systems/progression/FeatureUnlockManager.gd"):
+		var feature_unlock_manager := preload("res://scripts/systems/progression/FeatureUnlockManager.gd").new()
+		register_system("FeatureUnlockManager", feature_unlock_manager)
+
+	if FileAccess.file_exists("res://scripts/systems/progression/AchievementManager.gd"):
+		var achievement_manager := preload("res://scripts/systems/progression/AchievementManager.gd").new()
+		register_system("AchievementManager", achievement_manager)
 
 ## Phase 6-11: UI, equipment, shop, tower, and firebase systems
 func _register_ui_equipment_and_meta() -> void:

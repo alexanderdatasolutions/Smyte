@@ -49,16 +49,32 @@ func perform_sacrifice(target_god: God, material_gods: Array[God]) -> Dictionary
 	
 	if success:
 		sacrifice_completed.emit(target_god, material_gods, sacrifice_result.total_xp)
-		
+
 		# Emit events for UI updates
+		var levels_gained = sacrifice_system.calculate_levels_gained(target_god, sacrifice_result.total_xp)
 		if event_bus:
 			event_bus.god_sacrificed.emit(target_god.id, sacrifice_result.total_xp)
 			event_bus.collection_updated.emit()
-		
+			# Emit detailed analytics event
+			var material_ids: Array = []
+			for mat_god in material_gods:
+				material_ids.append(mat_god.id)
+			event_bus.god_sacrifice_completed.emit({
+				"target_god_id": target_god.id,
+				"target_tier": target_god.tier,
+				"material_count": material_gods.size(),
+				"material_ids": material_ids,
+				"total_xp": sacrifice_result.total_xp,
+				"levels_gained": levels_gained
+			})
+
+		# Show sacrifice notification
+		_show_sacrifice_notification(target_god, sacrifice_result.total_xp, levels_gained)
+
 		return {
 			"success": true,
 			"xp_gained": sacrifice_result.total_xp,
-			"levels_gained": sacrifice_system.calculate_levels_gained(target_god, sacrifice_result.total_xp)
+			"levels_gained": levels_gained
 		}
 	else:
 		var error = "Sacrifice operation failed"
@@ -94,12 +110,20 @@ func attempt_awakening(god: God) -> Dictionary:
 	
 	if success:
 		awakening_completed.emit(god)
-		
+
 		# Emit events for UI updates
 		if event_bus:
 			event_bus.god_awakened.emit(god.id)
 			event_bus.collection_updated.emit()
-		
+			# Emit detailed analytics event
+			event_bus.god_awakening_completed.emit({
+				"god_id": god.id,
+				"god_name": god.name,
+				"element": GodFactory.element_to_string(god.element) if god.element else "unknown",
+				"old_tier": god.tier - 1,  # Tier before awakening
+				"new_tier": god.tier
+			})
+
 		return {"success": true}
 	else:
 		var error = "Awakening operation failed"
@@ -206,6 +230,15 @@ func get_god_sacrifice_value(god: God) -> int:
 	var awakening_bonus = 500 if god.is_awakened else 0
 	
 	return base_value + level_bonus + tier_bonus + awakening_bonus
+
+func _show_sacrifice_notification(target_god: God, xp_gained: int, levels_gained: int) -> void:
+	"""Show sacrifice completion notification using NotificationQueue"""
+	var NotificationQueueClass = load("res://scripts/ui/components/NotificationQueue.gd")
+	if NotificationQueueClass:
+		var msg = "%s gained %d XP" % [target_god.name, xp_gained]
+		if levels_gained > 0:
+			msg += " (+%d levels!)" % levels_gained
+		NotificationQueueClass.show_reward("Sacrifice Complete!", msg)
 
 # === SCREEN TRANSITION HELPERS ===
 

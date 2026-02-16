@@ -178,9 +178,9 @@ func refresh_awakening_god_list():
 	for child in awakening_god_grid.get_children():
 		child.queue_free()
 
-	# Get gods that can be awakened using factory filter
+	# Get gods that can be awakened (Epic/Legendary at max level, not already awakened)
 	var gods = collection_manager.get_all_gods()
-	var awakenable_gods = gods.filter(CardFactory.get_awakening_filter())
+	var awakenable_gods = gods.filter(func(god): return awakening_system.can_awaken_god(god))
 
 	# Sort by tier then level
 	awakenable_gods.sort_custom(func(a, b):

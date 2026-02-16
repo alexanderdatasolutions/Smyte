@@ -17,6 +17,8 @@ func _get_system_registry():
 @onready var shop_button = $ContentContainer/ButtonGrid/ShopButton
 @onready var specialization_button = $ContentContainer/ButtonGrid/SpecializationButton
 @onready var tower_button = $ContentContainer/ButtonGrid/TowerButton
+@onready var arena_button = $ContentContainer/ButtonGrid/ArenaButton
+@onready var pvp_territory_button = $ContentContainer/ButtonGrid/PvPTerritoryButton
 
 # Feature unlock tracking (MYTHOS ARCHITECTURE)
 var feature_buttons: Dictionary = {}
@@ -62,6 +64,10 @@ func _ready():
 		specialization_button.pressed.connect(_on_specialization_building_pressed)
 	if tower_button:
 		tower_button.pressed.connect(_on_tower_building_pressed)
+	if arena_button:
+		arena_button.pressed.connect(_on_arena_building_pressed)
+	if pvp_territory_button:
+		pvp_territory_button.pressed.connect(_on_pvp_territory_building_pressed)
 
 	# Setup feature tracking (MYTHOS ARCHITECTURE)
 	_setup_feature_buttons()
@@ -112,7 +118,9 @@ func _style_buttons():
 		{"button": equipment_button, "color": Color(0.45, 0.4, 0.5)},  # Purple/steel
 		{"button": shop_button, "color": Color(0.3, 0.6, 0.7)},        # Crystal blue - shop
 		{"button": specialization_button, "color": Color(0.5, 0.3, 0.6)},  # Purple - specialization
-		{"button": tower_button, "color": Color(0.7, 0.4, 0.2)}  # Orange/fire - tower
+		{"button": tower_button, "color": Color(0.7, 0.4, 0.2)},  # Orange/fire - tower
+		{"button": arena_button, "color": Color(0.6, 0.2, 0.2)},   # Red - PvP arena
+		{"button": pvp_territory_button, "color": Color(0.7, 0.3, 0.5)}  # Magenta - PvP territory
 	]
 
 	for data in buttons_data:
@@ -179,7 +187,8 @@ func _setup_feature_buttons():
 		"dungeons": dungeon_button,          # Level 10
 		"shop": shop_button,                 # Always available
 		"specialization": specialization_button,  # Level 20 (god level)
-		"tower": tower_button                # Infinite tower - always available
+		"tower": tower_button,               # Infinite tower - always available
+		"arena": arena_button                # PvP Arena - Level 15
 	}
 
 func _connect_to_systems():
@@ -189,12 +198,24 @@ func _connect_to_systems():
 		push_warning("WorldView: SystemRegistry not available")
 		return
 
-	var progression_manager = system_registry.get_system("PlayerProgressionManager")
-	if progression_manager and progression_manager.has_signal("feature_unlocked"):
-		progression_manager.feature_unlocked.connect(_on_feature_unlocked)
+	# Connect to FeatureUnlockManager for feature unlocks
+	var feature_manager = system_registry.get_system("FeatureUnlockManager")
+	if feature_manager and feature_manager.has_signal("feature_unlocked"):
+		feature_manager.feature_unlocked.connect(_on_feature_unlocked)
+
+	# Connect to AchievementManager for achievement unlocks
+	var achievement_manager = system_registry.get_system("AchievementManager")
+	if achievement_manager and achievement_manager.has_signal("achievement_completed"):
+		achievement_manager.achievement_completed.connect(_on_achievement_completed)
 
 func _on_feature_unlocked(_feature_name: String, _feature_data: Dictionary):
 	"""Handle feature unlock"""
+	print("[WorldView] Feature unlocked: %s" % _feature_name)
+	_update_button_visibility()
+
+func _on_achievement_completed(_achievement_id: String, _achievement_data: Dictionary):
+	"""Handle achievement completion - may unlock features"""
+	print("[WorldView] Achievement completed: %s" % _achievement_id)
 	_update_button_visibility()
 
 func _update_button_visibility():
@@ -203,24 +224,55 @@ func _update_button_visibility():
 	if not system_registry:
 		return
 
-	var progression_manager = system_registry.get_system("PlayerProgressionManager")
-	if not progression_manager:
-		return
+	var feature_manager = system_registry.get_system("FeatureUnlockManager")
 
-	# All buttons visible for development - feature unlocking not implemented yet
-	for feature_name in feature_buttons:
-		var button = feature_buttons[feature_name]
-		if button:
-			button.visible = true
-			button.modulate = Color.WHITE
-
-	# Territory and Collection are always available (level 1)
-	if territory_button:
-		territory_button.visible = true
-		territory_button.modulate = Color.WHITE
+	# Summon and Collection are always available
+	if summon_button:
+		summon_button.visible = true
 	if collection_button:
 		collection_button.visible = true
-		collection_button.modulate = Color.WHITE
+
+	# Territory - unlocked by first_summon achievement
+	if territory_button:
+		var territory_unlocked = feature_manager and feature_manager.is_feature_unlocked("territory")
+		territory_button.visible = territory_unlocked
+		print("[WorldView] Territory button visible: %s" % territory_unlocked)
+
+	# Sacrifice - unlocked by first_territory achievement
+	if sacrifice_button:
+		var sacrifice_unlocked = feature_manager and feature_manager.is_feature_unlocked("sacrifice")
+		sacrifice_button.visible = sacrifice_unlocked
+		print("[WorldView] Sacrifice button visible: %s" % sacrifice_unlocked)
+
+	# Dungeon - unlocked by tier2_territory achievement
+	if dungeon_button:
+		var dungeon_unlocked = feature_manager and feature_manager.is_feature_unlocked("dungeon")
+		dungeon_button.visible = dungeon_unlocked
+		print("[WorldView] Dungeon button visible: %s" % dungeon_unlocked)
+
+	# Equipment - unlocked by tier2_territory achievement
+	if equipment_button:
+		var equipment_unlocked = feature_manager and feature_manager.is_feature_unlocked("equipment")
+		equipment_button.visible = equipment_unlocked
+		print("[WorldView] Equipment button visible: %s" % equipment_unlocked)
+
+	# Tower - unlocked by tier3_territory achievement
+	if tower_button:
+		var tower_unlocked = feature_manager and feature_manager.is_feature_unlocked("tower")
+		tower_button.visible = tower_unlocked
+		print("[WorldView] Tower button visible: %s" % tower_unlocked)
+
+	# PvP Territory - unlocked by tier4_territory achievement
+	if pvp_territory_button:
+		var pvp_unlocked = feature_manager and feature_manager.is_feature_unlocked("pvp")
+		pvp_territory_button.visible = pvp_unlocked
+		print("[WorldView] PvP button visible: %s" % pvp_unlocked)
+
+	# Arena - unlocked by tier3_territory achievement
+	if arena_button:
+		var arena_unlocked = feature_manager and feature_manager.is_feature_unlocked("arena")
+		arena_button.visible = arena_unlocked
+		print("[WorldView] Arena button visible: %s" % arena_unlocked)
 
 	# Keep shop and specialization hidden for now
 	if shop_button:
@@ -262,6 +314,12 @@ func _on_specialization_building_pressed():
 
 func _on_tower_building_pressed():
 	_navigate_to_screen("tower")
+
+func _on_arena_building_pressed():
+	_navigate_to_screen("arena")
+
+func _on_pvp_territory_building_pressed():
+	_navigate_to_screen("pvp_territory")
 
 # ==============================================================================
 # PRODUCTION WIDGET

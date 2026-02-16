@@ -24,6 +24,10 @@ var cloud_save_manager: CloudSaveManager
 var _firebase_available: bool = false
 var _event_bus = null
 
+# Throttling for high-frequency events
+var _last_resource_log_time: float = 0.0
+const RESOURCE_LOG_COOLDOWN: float = 5.0  # seconds between resource logs
+
 func _ready():
 	name = "FirebaseIntegration"
 
@@ -124,6 +128,20 @@ func _connect_event_bus():
 	_safe_connect(_event_bus, "territory_captured", _on_territory_captured)
 	_safe_connect(_event_bus, "screen_changed", _on_screen_changed)
 	_safe_connect(_event_bus, "error_occurred", _on_error_occurred)
+
+	# Extended analytics signals
+	_safe_connect(_event_bus, "summon_completed_detailed", _on_summon_detailed)
+	_safe_connect(_event_bus, "god_sacrifice_completed", _on_sacrifice)
+	_safe_connect(_event_bus, "god_awakening_completed", _on_awakening)
+	_safe_connect(_event_bus, "battle_team_entered", _on_battle_team)
+	_safe_connect(_event_bus, "garrison_updated", _on_garrison)
+	_safe_connect(_event_bus, "workers_updated", _on_workers)
+	_safe_connect(_event_bus, "achievement_unlocked", _on_achievement)
+	_safe_connect(_event_bus, "arena_battle_completed", _on_arena_battle)
+	_safe_connect(_event_bus, "league_changed", _on_league_change)
+	_safe_connect(_event_bus, "specialization_unlocked", _on_specialization)
+	_safe_connect(_event_bus, "equipment_equipped", _on_equipment_equipped)
+	_safe_connect(_event_bus, "equipment_unequipped", _on_equipment_unequipped)
 
 	print("FirebaseIntegration: Connected to EventBus signals")
 
@@ -428,9 +446,15 @@ func _on_dungeon_completed(dungeon_id: String, rewards = null):
 	analytics.log_dungeon_completed(dungeon_id, "normal", rewards_dict)
 
 func _on_resource_changed(resource_id: String, new_amount: int, delta: int):
-	"""Log significant resource changes (filter noise)"""
+	"""Log significant resource changes (filter noise + throttle)"""
+	# Throttle to prevent spam
+	var now = Time.get_unix_time_from_system()
+	if now - _last_resource_log_time < RESOURCE_LOG_COOLDOWN:
+		return
+
 	# Only log significant changes to avoid spam
 	if abs(delta) >= 100 or resource_id in ["divine_crystals", "legendary_soul", "epic_soul"]:
+		_last_resource_log_time = now
 		var source = "gained" if delta > 0 else "spent"
 		analytics.log_resource_transaction(resource_id, delta, source)
 
@@ -458,6 +482,72 @@ func _on_error_occurred(error_message: String, context = null):
 	elif context:
 		context_dict = {"context": str(context)}
 	analytics.log_error("game_error", error_message, context_dict)
+
+# ==============================================================================
+# EXTENDED ANALYTICS HANDLERS
+# ==============================================================================
+
+func _on_summon_detailed(summon_data: Dictionary):
+	"""Log detailed summon event"""
+	analytics.log_summon_detailed(summon_data)
+
+func _on_sacrifice(sacrifice_data: Dictionary):
+	"""Log god sacrifice"""
+	analytics.log_sacrifice(sacrifice_data)
+
+func _on_awakening(awakening_data: Dictionary):
+	"""Log god awakening"""
+	analytics.log_awakening(awakening_data)
+
+func _on_battle_team(team_data: Dictionary):
+	"""Log battle team composition"""
+	analytics.log_battle_team(team_data)
+
+func _on_garrison(garrison_data: Dictionary):
+	"""Log garrison assignment"""
+	analytics.log_garrison(garrison_data)
+
+func _on_workers(worker_data: Dictionary):
+	"""Log worker assignment"""
+	analytics.log_workers(worker_data)
+
+func _on_achievement(achievement_id: String):
+	"""Log achievement unlock"""
+	analytics.log_achievement(achievement_id, {})
+
+func _on_arena_battle(arena_data: Dictionary):
+	"""Log arena battle result"""
+	analytics.log_arena_battle(arena_data)
+
+func _on_league_change(league_data: Dictionary):
+	"""Log league promotion/demotion"""
+	analytics.log_league_change(league_data)
+
+func _on_specialization(god_id: String, spec_id: String):
+	"""Log specialization unlock"""
+	analytics.log_specialization({"god_id": god_id, "spec_id": spec_id})
+
+func _on_equipment_equipped(god, equipment, slot: int):
+	"""Log equipment equip"""
+	if not god or not equipment:
+		return
+	analytics.log_equipment_change({
+		"action": "equip",
+		"god_id": god.id if "id" in god else str(god),
+		"slot": slot,
+		"equipment_id": equipment.id if "id" in equipment else str(equipment)
+	})
+
+func _on_equipment_unequipped(god, equipment, slot: int):
+	"""Log equipment unequip"""
+	if not god:
+		return
+	analytics.log_equipment_change({
+		"action": "unequip",
+		"god_id": god.id if "id" in god else str(god),
+		"slot": slot,
+		"equipment_id": equipment.id if equipment and "id" in equipment else ""
+	})
 
 # ==============================================================================
 # SHUTDOWN

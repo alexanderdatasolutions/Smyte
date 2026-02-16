@@ -90,6 +90,7 @@ var _defense_label: Label = null
 var _requirements_container: VBoxContainer = null
 var _tasks_container: VBoxContainer = null
 var _craft_popup: Control = null
+var _crafting_screen_manager: CraftingScreenManager = null
 var _action_buttons: HBoxContainer = null
 
 # Cached task data
@@ -1983,124 +1984,32 @@ func _on_craft_button_pressed() -> void:
 	_show_craft_popup()
 
 func _show_craft_popup() -> void:
-	"""Show the crafting recipe popup with 3-column grid layout"""
-	# Remove existing popup if any
-	if _craft_popup and is_instance_valid(_craft_popup):
-		_craft_popup.queue_free()
+	"""Show the new crafting screen with left/right panel layout"""
+	# Create new crafting screen manager if needed
+	_crafting_screen_manager = CraftingScreenManager.new()
 
-	# Get viewport size for proper positioning
-	var viewport_size = get_viewport().get_visible_rect().size
+	# Connect signals
+	_crafting_screen_manager.craft_started.connect(_on_craft_started_from_screen)
+	_crafting_screen_manager.popup_closed.connect(_on_crafting_screen_closed)
 
-	# Create popup container (centered overlay) - follows memory popup pattern
-	_craft_popup = Control.new()
-	_craft_popup.name = "CraftPopup"
-	_craft_popup.z_index = 100
-	_craft_popup.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_craft_popup.size = viewport_size
-
-	# Dark background overlay - click to close
-	var bg_overlay = ColorRect.new()
-	bg_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg_overlay.size = viewport_size
-	bg_overlay.color = Color(0, 0, 0, 0.7)
-	bg_overlay.gui_input.connect(_on_popup_bg_clicked)
-	_craft_popup.add_child(bg_overlay)
-
-	# Main popup panel - centered, mouse_filter=STOP to block clicks
-	var popup_panel = PanelContainer.new()
-	popup_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	var panel_width = mini(viewport_size.x * 0.9, 680)  # Bigger for larger cards
-	var panel_height = viewport_size.y * 0.85
-	popup_panel.custom_minimum_size = Vector2(panel_width, panel_height)
-	popup_panel.size = Vector2(panel_width, panel_height)
-	popup_panel.position = Vector2(
-		(viewport_size.x - panel_width) / 2,
-		(viewport_size.y - panel_height) / 2
+	# Show the crafting screen
+	_crafting_screen_manager.show_crafting_screen(
+		current_node,
+		_available_tasks,
+		hex_grid_manager,
+		resource_manager,
+		self
 	)
 
-	# Panel style - dark purple from memory palette
-	var panel_style = StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.12, 0.1, 0.16, 0.98)
-	panel_style.border_color = Color(0.3, 0.25, 0.4, 0.8)
-	panel_style.set_border_width_all(2)
-	panel_style.set_corner_radius_all(10)
-	panel_style.content_margin_left = 12
-	panel_style.content_margin_right = 12
-	panel_style.content_margin_top = 12
-	panel_style.content_margin_bottom = 12
-	popup_panel.add_theme_stylebox_override("panel", panel_style)
-	_craft_popup.add_child(popup_panel)
+func _on_craft_started_from_screen(node: HexNode, task_id: String) -> void:
+	"""Handle craft started from new crafting screen"""
+	task_started.emit(node, task_id)
+	_update_tasks()
 
-	# Content container
-	var content = VBoxContainer.new()
-	content.add_theme_constant_override("separation", 8)
-	popup_panel.add_child(content)
-
-	# Header with title and close button
-	var header = HBoxContainer.new()
-	header.add_theme_constant_override("separation", 10)
-	content.add_child(header)
-
-	var title = Label.new()
-	title.text = "⚒️ FORGE RECIPES"
-	title.add_theme_font_size_override("font_size", 18)
-	title.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))  # Header color from memory
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(title)
-
-	var close_btn = Button.new()
-	close_btn.text = "✕"
-	close_btn.custom_minimum_size = Vector2(32, 32)
-	close_btn.pressed.connect(_close_craft_popup)
-	var close_style = StyleBoxFlat.new()
-	close_style.bg_color = Color(0.4, 0.2, 0.2, 0.9)
-	close_style.set_corner_radius_all(4)
-	close_btn.add_theme_stylebox_override("normal", close_style)
-	close_btn.add_theme_font_size_override("font_size", 16)
-	header.add_child(close_btn)
-
-	# Tier info - muted text
-	var tier_label = Label.new()
-	tier_label.text = "Tier %d Forge  •  %d recipes" % [current_node.tier, _available_tasks.size()]
-	tier_label.add_theme_font_size_override("font_size", 11)
-	tier_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
-	content.add_child(tier_label)
-
-	# Separator
-	var sep = HSeparator.new()
-	content.add_child(sep)
-
-	# Recipe scroll container
-	var scroll = ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	content.add_child(scroll)
-
-	# GridContainer with 3 columns - like god cards pattern
-	var grid = CraftingUIUtils.create_recipe_grid(3)
-	scroll.add_child(grid)
-
-	# Add recipe cards in grid using unified component
-	for task in _available_tasks:
-		var costs = CraftingUIUtils.get_recipe_costs(task)
-		var can_afford = _can_afford_craft(costs)
-		var is_conversion = CraftingUIUtils.is_conversion_recipe(task)
-		var card = CraftingUIUtils.create_recipe_card(
-			task,
-			can_afford,
-			_on_start_craft,
-			is_conversion,  # show auto-repeat for conversions
-			resource_manager  # pass manager for detailed cost display
-		)
-		grid.add_child(card)
-
-	# Add popup to the main scene tree
-	var main_node = get_tree().root.get_node_or_null("Main")
-	if main_node:
-		main_node.add_child(_craft_popup)
-	else:
-		add_child(_craft_popup)
+func _on_crafting_screen_closed() -> void:
+	"""Handle crafting screen closed"""
+	_crafting_screen_manager = null
+	_update_tasks()
 
 func _can_afford_craft(costs: Dictionary) -> bool:
 	"""Check if player can afford the craft costs"""
@@ -2195,7 +2104,13 @@ func _on_popup_bg_clicked(event: InputEvent) -> void:
 		_close_craft_popup()
 
 func _close_craft_popup() -> void:
-	"""Close the crafting popup"""
+	"""Close the crafting popup/screen"""
+	# Close new crafting screen manager
+	if _crafting_screen_manager:
+		_crafting_screen_manager.close()
+		_crafting_screen_manager = null
+
+	# Close old popup if it exists
 	if _craft_popup and is_instance_valid(_craft_popup):
 		_craft_popup.queue_free()
 		_craft_popup = null

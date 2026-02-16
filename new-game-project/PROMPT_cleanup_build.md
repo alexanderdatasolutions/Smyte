@@ -141,8 +141,15 @@ Do NOT push. Do NOT change remotes.
 
 ## Completion
 
-Work on exactly ONE task.
+Work on exactly ONE task per iteration.
 
-When ALL tasks in `CLEANUP_PLAN.md` have `"passes": true`, output exactly:
+**CRITICAL: After completing ONE task, do NOT output the completion promise.**
 
-<promise>COMPLETE</promise>
+Only output `<promise>COMPLETE</promise>` when you have:
+1. Searched CLEANUP_PLAN.md for ANY remaining `"passes": false`
+2. Found ZERO tasks with `"passes": false`
+3. ALL sections have ALL tasks marked `"passes": true`
+
+If there are ANY tasks remaining with `"passes": false`, just finish your current task, commit, and end your turn. The script will start a new iteration.
+
+**DO NOT output `<promise>COMPLETE</promise>` until every single task is done.**

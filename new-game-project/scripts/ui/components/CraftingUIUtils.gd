@@ -390,3 +390,201 @@ static func create_recipe_grid(columns: int = 3) -> GridContainer:
 	grid.add_theme_constant_override("v_separation", 10)
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return grid
+
+# ==============================================================================
+# STAT NAME FORMATTING
+# ==============================================================================
+const STAT_SHORT_NAMES = {
+	"attack": "ATK",
+	"defense": "DEF",
+	"hp": "HP",
+	"speed": "SPD",
+	"crit_rate": "CRIT%",
+	"crit_damage": "CDMG",
+	"accuracy": "ACC",
+	"resistance": "RES",
+	"lifesteal": "LSTL"
+}
+
+static func format_stat_name(stat_id: String) -> String:
+	"""Convert stat ID to short display name"""
+	return STAT_SHORT_NAMES.get(stat_id, stat_id.to_upper().substr(0, 4))
+
+# ==============================================================================
+# ENHANCED RECIPE CARD (WITH STATS)
+# ==============================================================================
+
+## Creates an enhanced recipe card with stats display for the new crafting screen
+## Layout:
+##   ┌─────────────────────────┐
+##   │ ⚔️ Blade of Wrath [R]T1 │
+##   │ Set: Wrath               │
+##   │ STATS                    │
+##   │  ATK: +35   SPD: +10     │
+##   │ MATERIALS                │
+##   │ ✓ R.Metal:20 ✗ M.Parts:5 │
+##   │       [Craft]            │
+##   └─────────────────────────┘
+static func create_enhanced_recipe_card(
+	task: Dictionary,
+	can_afford: bool,
+	on_craft_pressed: Callable = Callable(),
+	resource_manager = null
+) -> PanelContainer:
+	var task_rarity := task.get("rarity", "common") as String
+	var border_color := get_rarity_color(task_rarity)
+
+	var card := _create_enhanced_card_container(can_afford, border_color)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 2)
+	card.add_child(vbox)
+
+	# Header row: icon + name + rarity + tier
+	vbox.add_child(_create_enhanced_header_row(task, can_afford, task_rarity, border_color))
+
+	# Set name row
+	var equipment_set := task.get("equipment_set", "") as String
+	if equipment_set != "":
+		var set_label := Label.new()
+		set_label.text = "Set: %s" % equipment_set.capitalize()
+		set_label.add_theme_font_size_override("font_size", 9)
+		set_label.add_theme_color_override("font_color", border_color.lightened(0.2))
+		vbox.add_child(set_label)
+
+	# Stats section
+	var base_stats := task.get("base_stats", {}) as Dictionary
+	if not base_stats.is_empty():
+		vbox.add_child(_create_stats_section(base_stats, can_afford))
+
+	# Materials section
+	var costs := get_recipe_costs(task)
+	if not costs.is_empty():
+		vbox.add_child(_create_materials_section(costs, can_afford, resource_manager))
+
+	# Craft button
+	vbox.add_child(_create_enhanced_bottom_row(task, can_afford, on_craft_pressed))
+
+	card.set_meta("task", task)
+	card.set_meta("can_afford", can_afford)
+	return card
+
+static func _create_enhanced_card_container(can_afford: bool, border_color: Color) -> PanelContainer:
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(200, 150)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var card_style := StyleBoxFlat.new()
+	card_style.bg_color = Color(0.12, 0.1, 0.16, 0.95) if can_afford else Color(0.15, 0.1, 0.1, 0.95)
+	card_style.border_color = border_color if can_afford else border_color.darkened(0.4)
+	card_style.set_border_width_all(2)
+	card_style.set_corner_radius_all(6)
+	card_style.content_margin_left = 8
+	card_style.content_margin_right = 8
+	card_style.content_margin_top = 6
+	card_style.content_margin_bottom = 6
+	card.add_theme_stylebox_override("panel", card_style)
+	return card
+
+static func _create_enhanced_header_row(task: Dictionary, can_afford: bool, task_rarity: String, border_color: Color) -> HBoxContainer:
+	var header_row := HBoxContainer.new()
+	header_row.add_theme_constant_override("separation", 4)
+
+	# Icon
+	var icon_label := Label.new()
+	icon_label.text = get_recipe_icon(task)
+	icon_label.add_theme_font_size_override("font_size", 14)
+	header_row.add_child(icon_label)
+
+	# Name - full width on its own row for longer names
+	var name_label := Label.new()
+	name_label.text = task.get("name", "Unknown")
+	name_label.add_theme_font_size_override("font_size", 11)
+	name_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.95) if can_afford else Color(0.5, 0.5, 0.55))
+	name_label.clip_text = true
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_row.add_child(name_label)
+
+	# Tier + Rarity combined
+	var tier := task.get("tier", 1) as int
+	var tier_rarity_label := Label.new()
+	tier_rarity_label.text = "T%d %s" % [tier, get_rarity_short(task_rarity)]
+	tier_rarity_label.add_theme_font_size_override("font_size", 10)
+	tier_rarity_label.add_theme_color_override("font_color", border_color)
+	header_row.add_child(tier_rarity_label)
+
+	return header_row
+
+static func _create_stats_section(base_stats: Dictionary, can_afford: bool) -> VBoxContainer:
+	var section := VBoxContainer.new()
+	section.add_theme_constant_override("separation", 1)
+
+	# Section header
+	var header := Label.new()
+	header.text = "STATS"
+	header.add_theme_font_size_override("font_size", 8)
+	header.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
+	section.add_child(header)
+
+	# Stats in 2-column grid
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 0)
+	section.add_child(grid)
+
+	var stat_color := Color.GOLD if can_afford else Color(0.6, 0.5, 0.3)
+	for stat_id in base_stats:
+		var value = base_stats[stat_id]
+		var stat_label := Label.new()
+		stat_label.text = "%s: +%s" % [format_stat_name(stat_id), str(value)]
+		stat_label.add_theme_font_size_override("font_size", 10)
+		stat_label.add_theme_color_override("font_color", stat_color)
+		grid.add_child(stat_label)
+
+	return section
+
+static func _create_materials_section(costs: Dictionary, _can_afford: bool, resource_manager) -> VBoxContainer:
+	var section := VBoxContainer.new()
+	section.add_theme_constant_override("separation", 1)
+
+	# Section header
+	var header := Label.new()
+	header.text = "MATERIALS"
+	header.add_theme_font_size_override("font_size", 8)
+	header.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
+	section.add_child(header)
+
+	# Materials in 2-column grid with ✓/✗
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 0)
+	section.add_child(grid)
+
+	for resource_id in costs:
+		var required = costs[resource_id]
+		var has_enough := true
+		if resource_manager:
+			var current = resource_manager.get_resource(resource_id)
+			has_enough = current >= required
+
+		var mat_label := Label.new()
+		var short_name := get_short_resource_name(resource_id)
+		var indicator := "✓" if has_enough else "✗"
+		mat_label.text = "%s %s:%d" % [indicator, short_name, required]
+		mat_label.add_theme_font_size_override("font_size", 9)
+		mat_label.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5) if has_enough else Color(0.8, 0.4, 0.4))
+		grid.add_child(mat_label)
+
+	return section
+
+static func _create_enhanced_bottom_row(task: Dictionary, can_afford: bool, on_craft_pressed: Callable) -> HBoxContainer:
+	var bottom_row := HBoxContainer.new()
+	bottom_row.alignment = BoxContainer.ALIGNMENT_CENTER
+
+	var craft_btn := _create_craft_button(can_afford)
+	if on_craft_pressed.is_valid() and can_afford:
+		craft_btn.pressed.connect(func(): on_craft_pressed.call(task, null))
+	bottom_row.add_child(craft_btn)
+
+	return bottom_row

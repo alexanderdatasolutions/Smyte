@@ -1,173 +1,789 @@
 {
   "_metadata": {
-    "version": "4.0.0",
-    "description": "Equipment crafting recipes - conversions now handled by refineries automatically",
-    "last_updated": "2026-02-11",
+    "version": "5.1.0",
+    "description": "Equipment crafting recipes with mythological set bonuses",
+    "last_updated": "2026-02-15",
     "design_notes": {
-      "structure": "Flat structure - equipment recipes at top level (no nesting)",
-      "conversions_removed": "Resource conversions handled by refineries, not manual crafting",
+      "structure": "Flat structure - equipment recipes at top level",
+      "set_bonuses": "2-piece and 4-piece bonuses for complete sets",
       "t1_equipment": "Uses T1 processed + monster_parts + basic_flame",
       "t2_equipment": "Uses T2 processed + beast_scales + forging_flame",
       "t3_equipment": "Uses T3 processed + elemental_cores + divine_flame",
-      "t4_equipment": "Uses T4 processed + dragon_parts + eternal_flame (PvP only)"
+      "t4_equipment": "Uses T4 processed + dragon_parts + eternal_flame (PvP only)",
+      "naming_theme": "Smyte mythological flavor - gods, titans, divine powers"
+    },
+    "set_bonus_reference": {
+      "wrath": {"2pc": "+15% ATK", "4pc": "+30% ATK"},
+      "aegis": {"2pc": "+15% DEF", "4pc": "+30% DEF, +15% HP"},
+      "zephyr": {"2pc": "+25 SPD", "4pc": "+50 SPD"},
+      "titan": {"2pc": "+15% HP", "4pc": "+30% HP"},
+      "precision": {"2pc": "+12% Crit Rate", "4pc": "+25% Crit Rate"},
+      "fury": {"2pc": "+20% Crit Damage", "4pc": "+40% Crit Damage"},
+      "oracle": {"2pc": "+20% Accuracy", "4pc": "+40% Accuracy"},
+      "fortitude": {"2pc": "+20% Resistance", "4pc": "+40% Resistance"},
+      "siphon": {"2pc": "+10% Lifesteal", "4pc": "+25% Lifesteal"},
+      "thunderstrike": {"2pc": "+15% Stun Chance", "4pc": "+25% Stun Chance"},
+      "relentless": {"2pc": "+10% Extra Turn", "4pc": "+22% Extra Turn"},
+      "nemesis": {"2pc": "+15% Counter", "4pc": "+30% Counter"},
+      "resolve": {"2pc": "+1 turn immunity", "4pc": "+2 turn immunity at battle start"},
+      "conquest": {"2pc": "+20% ATK in PvP", "4pc": "+40% ATK in PvP, ignore 15% DEF"},
+      "eternal": {"2pc": "+20% DEF in PvP", "4pc": "+40% DEF in PvP, +25% HP"}
     }
   },
 
-  "_comment_t1": "=== T1 EQUIPMENT (Common) ===",
-  "iron_sword": {
-    "id": "iron_sword",
-    "name": "Iron Sword",
-    "description": "A reliable sword forged from refined metal",
+  "_comment_t1_wrath": "=== T1 WRATH SET (ATK focused) ===",
+  "wrath_blade": {
+    "id": "wrath_blade",
+    "name": "Blade of Wrath",
+    "description": "A divine sword forged in the flames of godly fury",
     "equipment_type": "weapon",
     "equipment_slot": 0,
     "tier": 1,
     "rarity": "common",
-    "level": 1,
-    "materials": {
-      "refined_metal": 15,
-      "quality_timber": 5,
-      "monster_parts": 3,
-      "basic_flame": 1,
-      "mana": 500
-    },
-    "territory_required": false,
-    "base_stats": {
-      "attack": 30
-    },
-    "possible_substats": ["hp", "defense", "crit_rate"],
-    "icon": "iron_sword"
-  },
-  "iron_armor": {
-    "id": "iron_armor",
-    "name": "Iron Armor",
-    "description": "Sturdy armor forged from refined metal",
-    "equipment_type": "armor",
-    "equipment_slot": 1,
-    "tier": 1,
-    "rarity": "common",
+    "equipment_set": "wrath",
     "level": 1,
     "materials": {
       "refined_metal": 20,
+      "quality_timber": 5,
+      "monster_parts": 5,
+      "basic_flame": 1,
+      "mana": 600
+    },
+    "territory_required": false,
+    "base_stats": {"attack": 35},
+    "possible_substats": ["hp", "defense", "crit_rate", "speed"],
+    "icon": "wrath_blade"
+  },
+  "wrath_armor": {
+    "id": "wrath_armor",
+    "name": "Wrath Chestplate",
+    "description": "Armor imbued with the anger of fallen warriors",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "wrath",
+    "level": 1,
+    "materials": {
+      "refined_metal": 18,
       "monster_parts": 8,
+      "basic_flame": 1,
+      "mana": 550
+    },
+    "territory_required": false,
+    "base_stats": {"defense": 20, "attack": 10},
+    "possible_substats": ["hp", "speed", "crit_rate"],
+    "icon": "wrath_armor"
+  },
+  "wrath_helm": {
+    "id": "wrath_helm",
+    "name": "Helm of Wrath",
+    "description": "A helm that channels aggressive divine energy",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "wrath",
+    "level": 1,
+    "materials": {
+      "refined_metal": 12,
+      "monster_parts": 6,
+      "basic_flame": 1,
+      "mana": 450
+    },
+    "territory_required": false,
+    "base_stats": {"hp": 150, "attack": 8},
+    "possible_substats": ["defense", "speed", "crit_rate"],
+    "icon": "wrath_helm"
+  },
+  "wrath_boots": {
+    "id": "wrath_boots",
+    "name": "Greaves of Wrath",
+    "description": "Swift greaves blessed for charging into battle",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "wrath",
+    "level": 1,
+    "materials": {
+      "refined_metal": 10,
+      "quality_timber": 8,
+      "monster_parts": 4,
+      "basic_flame": 1,
+      "mana": 400
+    },
+    "territory_required": false,
+    "base_stats": {"speed": 10, "attack": 5},
+    "possible_substats": ["hp", "defense", "crit_rate"],
+    "icon": "wrath_boots"
+  },
+
+  "_comment_t1_aegis": "=== T1 AEGIS SET (DEF focused) ===",
+  "aegis_shield": {
+    "id": "aegis_shield",
+    "name": "Shield of Aegis",
+    "description": "The legendary shield that protected the gods",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "aegis",
+    "level": 1,
+    "materials": {
+      "refined_metal": 25,
+      "monster_parts": 8,
+      "basic_flame": 1,
+      "mana": 600
+    },
+    "territory_required": false,
+    "base_stats": {"defense": 25, "hp": 100},
+    "possible_substats": ["attack", "speed", "resistance"],
+    "icon": "aegis_shield"
+  },
+  "aegis_plate": {
+    "id": "aegis_plate",
+    "name": "Aegis Plate",
+    "description": "Divine plate armor blessed by protector deities",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "aegis",
+    "level": 1,
+    "materials": {
+      "refined_metal": 25,
+      "monster_parts": 10,
+      "basic_flame": 2,
+      "mana": 650
+    },
+    "territory_required": false,
+    "base_stats": {"defense": 35, "hp": 200},
+    "possible_substats": ["attack", "speed", "resistance"],
+    "icon": "aegis_plate"
+  },
+  "aegis_helm": {
+    "id": "aegis_helm",
+    "name": "Aegis Greathelm",
+    "description": "Full-face helm of divine protection",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "aegis",
+    "level": 1,
+    "materials": {
+      "refined_metal": 15,
+      "monster_parts": 6,
       "basic_flame": 1,
       "mana": 500
     },
     "territory_required": false,
-    "base_stats": {
-      "defense": 25,
-      "hp": 200
-    },
-    "possible_substats": ["attack", "speed"],
-    "icon": "iron_armor"
+    "base_stats": {"defense": 20, "hp": 180},
+    "possible_substats": ["attack", "speed", "resistance"],
+    "icon": "aegis_helm"
   },
-  "wooden_bow": {
-    "id": "wooden_bow",
-    "name": "Wooden Bow",
-    "description": "A bow crafted from quality timber",
+  "aegis_boots": {
+    "id": "aegis_boots",
+    "name": "Aegis Sabatons",
+    "description": "Heavy boots that keep you grounded against divine forces",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "aegis",
+    "level": 1,
+    "materials": {
+      "refined_metal": 14,
+      "monster_parts": 5,
+      "basic_flame": 1,
+      "mana": 450
+    },
+    "territory_required": false,
+    "base_stats": {"defense": 15, "hp": 120},
+    "possible_substats": ["attack", "speed", "resistance"],
+    "icon": "aegis_boots"
+  },
+
+  "_comment_t1_zephyr": "=== T1 ZEPHYR SET (SPD focused) ===",
+  "zephyr_dagger": {
+    "id": "zephyr_dagger",
+    "name": "Zephyr Fang",
+    "description": "A blade blessed by the wind god's swiftness",
     "equipment_type": "weapon",
     "equipment_slot": 0,
     "tier": 1,
     "rarity": "common",
+    "equipment_set": "zephyr",
     "level": 1,
     "materials": {
-      "quality_timber": 20,
+      "refined_metal": 12,
+      "quality_timber": 10,
+      "monster_parts": 4,
+      "basic_flame": 1,
+      "mana": 500
+    },
+    "territory_required": false,
+    "base_stats": {"attack": 22, "speed": 8},
+    "possible_substats": ["crit_rate", "crit_damage", "accuracy"],
+    "icon": "zephyr_dagger"
+  },
+  "zephyr_tunic": {
+    "id": "zephyr_tunic",
+    "name": "Zephyr Vestments",
+    "description": "Light cloth woven from wind spirits",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "zephyr",
+    "level": 1,
+    "materials": {
+      "quality_timber": 15,
+      "rare_herbs": 10,
+      "monster_parts": 5,
+      "mana": 450
+    },
+    "territory_required": false,
+    "base_stats": {"defense": 12, "speed": 12},
+    "possible_substats": ["hp", "attack", "accuracy"],
+    "icon": "zephyr_tunic"
+  },
+  "zephyr_hood": {
+    "id": "zephyr_hood",
+    "name": "Zephyr Hood",
+    "description": "A hood that sharpens reflexes like the wind",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "zephyr",
+    "level": 1,
+    "materials": {
+      "quality_timber": 12,
+      "rare_herbs": 8,
+      "monster_parts": 4,
+      "mana": 400
+    },
+    "territory_required": false,
+    "base_stats": {"hp": 100, "speed": 10},
+    "possible_substats": ["attack", "crit_rate", "accuracy"],
+    "icon": "zephyr_hood"
+  },
+  "zephyr_boots": {
+    "id": "zephyr_boots",
+    "name": "Zephyr Striders",
+    "description": "Featherlight boots blessed by wind spirits",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "zephyr",
+    "level": 1,
+    "materials": {
+      "quality_timber": 15,
       "rare_herbs": 5,
       "monster_parts": 3,
       "basic_flame": 1,
-      "mana": 400
+      "mana": 450
     },
     "territory_required": false,
-    "base_stats": {
-      "attack": 25,
-      "speed": 3
-    },
-    "possible_substats": ["crit_rate", "accuracy"],
-    "icon": "wooden_bow"
+    "base_stats": {"speed": 18},
+    "possible_substats": ["hp", "attack", "crit_rate"],
+    "icon": "zephyr_boots"
   },
-  "herb_amulet": {
-    "id": "herb_amulet",
-    "name": "Herb Amulet",
-    "description": "An amulet infused with protective herbs",
-    "equipment_type": "accessory",
-    "equipment_slot": 4,
+
+  "_comment_t1_titan": "=== T1 TITAN SET (HP focused) ===",
+  "titan_staff": {
+    "id": "titan_staff",
+    "name": "Titan's Staff",
+    "description": "A staff pulsing with primordial titan energy",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
     "tier": 1,
     "rarity": "common",
+    "equipment_set": "titan",
+    "level": 1,
+    "materials": {
+      "quality_timber": 18,
+      "rare_herbs": 12,
+      "monster_parts": 5,
+      "mana": 550
+    },
+    "territory_required": false,
+    "base_stats": {"attack": 20, "hp": 150},
+    "possible_substats": ["defense", "speed", "resistance"],
+    "icon": "titan_staff"
+  },
+  "titan_robe": {
+    "id": "titan_robe",
+    "name": "Titan's Robe",
+    "description": "Robes woven with essence of the ancient titans",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "titan",
+    "level": 1,
+    "materials": {
+      "rare_herbs": 20,
+      "quality_timber": 10,
+      "monster_parts": 6,
+      "mana": 500
+    },
+    "territory_required": false,
+    "base_stats": {"hp": 300, "defense": 15},
+    "possible_substats": ["attack", "speed", "resistance"],
+    "icon": "titan_robe"
+  },
+  "titan_circlet": {
+    "id": "titan_circlet",
+    "name": "Titan's Crown",
+    "description": "A circlet infused with titan vitality",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "titan",
     "level": 1,
     "materials": {
       "rare_herbs": 15,
-      "quality_timber": 8,
-      "monster_parts": 3,
+      "refined_metal": 8,
+      "monster_parts": 4,
       "mana": 400
     },
     "territory_required": false,
-    "base_stats": {
-      "hp": 150,
-      "defense": 10
+    "base_stats": {"hp": 250},
+    "possible_substats": ["defense", "speed", "attack"],
+    "icon": "titan_circlet"
+  },
+  "titan_sandals": {
+    "id": "titan_sandals",
+    "name": "Titan's Treads",
+    "description": "Sandals that invigorate with primordial power",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "titan",
+    "level": 1,
+    "materials": {
+      "rare_herbs": 12,
+      "quality_timber": 10,
+      "monster_parts": 3,
+      "mana": 380
     },
-    "possible_substats": ["attack", "speed"],
-    "icon": "herb_amulet"
+    "territory_required": false,
+    "base_stats": {"hp": 180, "speed": 5},
+    "possible_substats": ["defense", "attack", "resistance"],
+    "icon": "titan_sandals"
+  },
+
+  "_comment_t1_precision": "=== T1 PRECISION SET (Crit Rate focused) ===",
+  "precision_katana": {
+    "id": "precision_katana",
+    "name": "Precision Blade",
+    "description": "A blade honed to strike vital points",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "precision",
+    "level": 1,
+    "materials": {
+      "refined_metal": 22,
+      "quality_timber": 8,
+      "monster_parts": 6,
+      "basic_flame": 2,
+      "mana": 650
+    },
+    "territory_required": false,
+    "base_stats": {"attack": 28, "crit_rate": 8},
+    "possible_substats": ["crit_damage", "speed", "accuracy"],
+    "icon": "precision_katana"
+  },
+  "precision_vest": {
+    "id": "precision_vest",
+    "name": "Assassin's Precision Vest",
+    "description": "Dark leather designed for lethal precision",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "precision",
+    "level": 1,
+    "materials": {
+      "quality_timber": 18,
+      "monster_parts": 10,
+      "basic_flame": 1,
+      "mana": 550
+    },
+    "territory_required": false,
+    "base_stats": {"defense": 18, "crit_rate": 5},
+    "possible_substats": ["attack", "speed", "crit_damage"],
+    "icon": "precision_vest"
+  },
+
+  "_comment_t1_accessories": "=== T1 ACCESSORY PIECES ===",
+  "wrath_amulet": {
+    "id": "wrath_amulet",
+    "name": "Pendant of Wrath",
+    "description": "Amulet that channels divine battle fury",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "wrath",
+    "level": 1,
+    "materials": {
+      "refined_metal": 8,
+      "rare_herbs": 10,
+      "monster_parts": 5,
+      "mana": 400
+    },
+    "territory_required": false,
+    "base_stats": {"attack": 15, "hp": 80},
+    "possible_substats": ["crit_rate", "speed", "defense"],
+    "icon": "wrath_amulet"
+  },
+  "aegis_ring": {
+    "id": "aegis_ring",
+    "name": "Aegis Ring",
+    "description": "Ring blessed with divine protective magic",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "aegis",
+    "level": 1,
+    "materials": {
+      "refined_metal": 10,
+      "rare_herbs": 8,
+      "monster_parts": 4,
+      "mana": 380
+    },
+    "territory_required": false,
+    "base_stats": {"defense": 12, "resistance": 8},
+    "possible_substats": ["hp", "speed", "attack"],
+    "icon": "aegis_ring"
+  },
+  "zephyr_ring": {
+    "id": "zephyr_ring",
+    "name": "Ring of Zephyr",
+    "description": "A ring that quickens all actions like the wind",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "zephyr",
+    "level": 1,
+    "materials": {
+      "rare_herbs": 12,
+      "quality_timber": 8,
+      "monster_parts": 4,
+      "mana": 400
+    },
+    "territory_required": false,
+    "base_stats": {"speed": 12, "accuracy": 5},
+    "possible_substats": ["attack", "crit_rate", "hp"],
+    "icon": "zephyr_ring"
   },
 
   "_comment_t2": "=== T2 EQUIPMENT (Rare) ===",
-  "steel_greatsword": {
-    "id": "steel_greatsword",
-    "name": "Steel Greatsword",
-    "description": "A powerful sword forged from steel ingots",
+
+  "_comment_t2_fury": "=== T2 FURY SET (Crit Damage focused) ===",
+  "fury_greatsword": {
+    "id": "fury_greatsword",
+    "name": "Fury's Greatsword",
+    "description": "A massive blade forged from divine rage",
     "equipment_type": "weapon",
     "equipment_slot": 0,
     "tier": 2,
     "rarity": "rare",
+    "equipment_set": "fury",
     "level": 20,
     "materials": {
-      "steel_ingot": 15,
-      "treated_lumber": 5,
-      "beast_scales": 5,
+      "steel_ingot": 18,
+      "treated_lumber": 8,
+      "beast_scales": 8,
       "forging_flame": 2,
-      "mana": 5000
+      "mana": 5500
     },
     "territory_required": true,
     "territory_tier_requirement": 2,
-    "base_stats": {
-      "attack": 120
-    },
-    "possible_substats": ["crit_rate", "crit_damage", "hp"],
-    "icon": "steel_greatsword"
+    "base_stats": {"attack": 130, "crit_damage": 20},
+    "possible_substats": ["crit_rate", "hp", "speed"],
+    "icon": "fury_greatsword"
   },
-  "steel_plate_armor": {
-    "id": "steel_plate_armor",
-    "name": "Steel Plate Armor",
-    "description": "Heavy plate armor providing excellent protection",
+  "fury_armor": {
+    "id": "fury_armor",
+    "name": "Fury's Harness",
+    "description": "Armor that channels divine fury into devastating power",
     "equipment_type": "armor",
     "equipment_slot": 1,
     "tier": 2,
     "rarity": "rare",
+    "equipment_set": "fury",
     "level": 20,
     "materials": {
       "steel_ingot": 20,
-      "beast_scales": 10,
+      "beast_scales": 12,
       "forging_flame": 2,
       "mana": 5000
     },
     "territory_required": true,
     "territory_tier_requirement": 2,
-    "base_stats": {
-      "defense": 100,
-      "hp": 800
-    },
-    "possible_substats": ["attack", "speed", "resistance"],
-    "icon": "steel_plate_armor"
+    "base_stats": {"defense": 80, "crit_damage": 15, "attack": 40},
+    "possible_substats": ["crit_rate", "hp", "speed"],
+    "icon": "fury_armor"
   },
-  "mystic_ring": {
-    "id": "mystic_ring",
-    "name": "Mystic Ring",
-    "description": "A ring infused with alchemical essence",
-    "equipment_type": "accessory",
+  "fury_helm": {
+    "id": "fury_helm",
+    "name": "Fury's Visage",
+    "description": "A fearsome mask that incites divine bloodlust",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "fury",
+    "level": 20,
+    "materials": {
+      "steel_ingot": 12,
+      "beast_scales": 8,
+      "forging_flame": 1,
+      "mana": 4500
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"hp": 600, "crit_damage": 12},
+    "possible_substats": ["attack", "crit_rate", "defense"],
+    "icon": "fury_helm"
+  },
+  "fury_boots": {
+    "id": "fury_boots",
+    "name": "Fury's Treads",
+    "description": "Boots that propel you toward enemies with wrathful speed",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "fury",
+    "level": 20,
+    "materials": {
+      "steel_ingot": 10,
+      "treated_lumber": 10,
+      "beast_scales": 6,
+      "forging_flame": 1,
+      "mana": 4200
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"speed": 15, "crit_damage": 10},
+    "possible_substats": ["attack", "crit_rate", "hp"],
+    "icon": "fury_boots"
+  },
+
+  "_comment_t2_oracle": "=== T2 ORACLE SET (Accuracy focused) ===",
+  "oracle_bow": {
+    "id": "oracle_bow",
+    "name": "Oracle's Longbow",
+    "description": "A bow blessed with prophetic precision",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "oracle",
+    "level": 20,
+    "materials": {
+      "treated_lumber": 20,
+      "alchemical_extract": 8,
+      "beast_scales": 6,
+      "forging_flame": 1,
+      "mana": 5000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"attack": 110, "accuracy": 20},
+    "possible_substats": ["crit_rate", "speed", "crit_damage"],
+    "icon": "oracle_bow"
+  },
+  "oracle_armor": {
+    "id": "oracle_armor",
+    "name": "Oracle's Vestment",
+    "description": "Light armor woven with threads of foresight",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "oracle",
+    "level": 20,
+    "materials": {
+      "treated_lumber": 15,
+      "alchemical_extract": 10,
+      "beast_scales": 8,
+      "forging_flame": 1,
+      "mana": 4800
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"defense": 70, "accuracy": 15},
+    "possible_substats": ["attack", "speed", "hp"],
+    "icon": "oracle_armor"
+  },
+  "oracle_helm": {
+    "id": "oracle_helm",
+    "name": "Oracle's Third Eye",
+    "description": "Enhances vision with prophetic sight",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "oracle",
+    "level": 20,
+    "materials": {
+      "steel_ingot": 8,
+      "alchemical_extract": 12,
+      "beast_scales": 5,
+      "forging_flame": 1,
+      "mana": 4300
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"hp": 500, "accuracy": 18},
+    "possible_substats": ["attack", "speed", "crit_rate"],
+    "icon": "oracle_helm"
+  },
+
+  "_comment_t2_siphon": "=== T2 SIPHON SET (Lifesteal focused) ===",
+  "siphon_scythe": {
+    "id": "siphon_scythe",
+    "name": "Siphon Scythe",
+    "description": "A cursed weapon that drains divine essence",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "siphon",
+    "level": 20,
+    "materials": {
+      "steel_ingot": 15,
+      "alchemical_extract": 15,
+      "beast_scales": 10,
+      "forging_flame": 2,
+      "mana": 6000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"attack": 125},
+    "possible_substats": ["hp", "crit_rate", "speed"],
+    "icon": "siphon_scythe"
+  },
+  "siphon_cloak": {
+    "id": "siphon_cloak",
+    "name": "Siphon Cloak",
+    "description": "A dark cloak that absorbs life force",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "siphon",
+    "level": 20,
+    "materials": {
+      "alchemical_extract": 18,
+      "treated_lumber": 10,
+      "beast_scales": 12,
+      "forging_flame": 2,
+      "mana": 5500
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"hp": 900, "defense": 65},
+    "possible_substats": ["attack", "speed", "crit_rate"],
+    "icon": "siphon_cloak"
+  },
+  "siphon_ring": {
+    "id": "siphon_ring",
+    "name": "Ring of Siphoning",
+    "description": "A ring that thirsts for divine essence",
+    "equipment_type": "ring",
     "equipment_slot": 5,
     "tier": 2,
     "rarity": "rare",
+    "equipment_set": "siphon",
     "level": 20,
     "materials": {
       "alchemical_extract": 12,
+      "steel_ingot": 6,
+      "beast_scales": 5,
+      "forging_flame": 1,
+      "mana": 4000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"attack": 50, "hp": 350},
+    "possible_substats": ["crit_rate", "speed", "defense"],
+    "icon": "siphon_ring"
+  },
+
+  "_comment_t2_fortitude": "=== T2 FORTITUDE SET (Resistance focused) ===",
+  "fortitude_mace": {
+    "id": "fortitude_mace",
+    "name": "Mace of Fortitude",
+    "description": "A holy weapon that resists all divine ailments",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "fortitude",
+    "level": 20,
+    "materials": {
+      "steel_ingot": 18,
+      "alchemical_extract": 10,
+      "beast_scales": 6,
+      "forging_flame": 2,
+      "mana": 5200
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"attack": 100, "resistance": 15},
+    "possible_substats": ["hp", "defense", "speed"],
+    "icon": "fortitude_mace"
+  },
+  "fortitude_armor": {
+    "id": "fortitude_armor",
+    "name": "Fortitude Plate",
+    "description": "Armor blessed against all curses",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "fortitude",
+    "level": 20,
+    "materials": {
+      "steel_ingot": 22,
+      "alchemical_extract": 8,
+      "beast_scales": 10,
+      "forging_flame": 2,
+      "mana": 5500
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"defense": 110, "resistance": 20, "hp": 600},
+    "possible_substats": ["attack", "speed"],
+    "icon": "fortitude_armor"
+  },
+  "fortitude_amulet": {
+    "id": "fortitude_amulet",
+    "name": "Amulet of Fortitude",
+    "description": "Purifies curses and divine afflictions",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "fortitude",
+    "level": 20,
+    "materials": {
+      "alchemical_extract": 15,
       "treated_lumber": 8,
       "beast_scales": 5,
       "forging_flame": 1,
@@ -175,201 +791,385 @@
     },
     "territory_required": true,
     "territory_tier_requirement": 2,
-    "base_stats": {
-      "attack": 40,
-      "hp": 400
-    },
-    "possible_substats": ["crit_rate", "accuracy", "speed"],
-    "icon": "mystic_ring"
-  },
-  "reinforced_boots": {
-    "id": "reinforced_boots",
-    "name": "Reinforced Boots",
-    "description": "Steel-reinforced boots for mobility and protection",
-    "equipment_type": "boots",
-    "equipment_slot": 3,
-    "tier": 2,
-    "rarity": "rare",
-    "level": 20,
-    "materials": {
-      "steel_ingot": 10,
-      "treated_lumber": 8,
-      "beast_scales": 4,
-      "forging_flame": 1,
-      "mana": 4000
-    },
-    "territory_required": true,
-    "territory_tier_requirement": 2,
-    "base_stats": {
-      "defense": 60,
-      "speed": 5
-    },
-    "possible_substats": ["hp", "attack"],
-    "icon": "reinforced_boots"
+    "base_stats": {"hp": 500, "resistance": 25},
+    "possible_substats": ["defense", "speed", "attack"],
+    "icon": "fortitude_amulet"
   },
 
   "_comment_t3": "=== T3 EQUIPMENT (Epic) ===",
-  "prometheum_warblade": {
-    "id": "prometheum_warblade",
-    "name": "Prometheum Warblade",
-    "description": "An epic blade forged from divine prometheum",
+
+  "_comment_t3_relentless": "=== T3 RELENTLESS SET (Extra Turn focused) ===",
+  "relentless_blade": {
+    "id": "relentless_blade",
+    "name": "Blade of the Relentless",
+    "description": "A legendary blade that grants unstoppable momentum",
     "equipment_type": "weapon",
     "equipment_slot": 0,
     "tier": 3,
     "rarity": "epic",
+    "equipment_set": "relentless",
     "level": 35,
     "materials": {
-      "prometheum": 15,
-      "enchanted_wood": 5,
-      "astral_shard": 3,
-      "elemental_cores": 5,
+      "prometheum": 18,
+      "enchanted_wood": 8,
+      "astral_shard": 5,
+      "elemental_cores": 8,
       "divine_flame": 3,
-      "mana": 25000
+      "mana": 28000
     },
     "territory_required": true,
     "territory_tier_requirement": 3,
-    "territory_type_requirement": "forge",
     "god_level_requirement": 30,
+    "base_stats": {"attack": 260},
     "guaranteed_substats": [
-      { "stat": "attack", "value": 150 },
-      { "stat": "crit_rate", "value": 15 }
+      {"stat": "speed", "value": 15}
     ],
-    "base_stats": {
-      "attack": 250
-    },
-    "possible_substats": ["crit_damage", "hp", "defense"],
-    "icon": "prometheum_warblade"
+    "possible_substats": ["crit_rate", "crit_damage", "hp"],
+    "icon": "relentless_blade"
   },
-  "enchanted_full_plate": {
-    "id": "enchanted_full_plate",
-    "name": "Enchanted Full Plate",
-    "description": "Complete armor reinforced with magical materials",
+  "relentless_armor": {
+    "id": "relentless_armor",
+    "name": "Armor of the Relentless",
+    "description": "Armor infused with unstoppable divine energy",
     "equipment_type": "armor",
     "equipment_slot": 1,
     "tier": 3,
     "rarity": "epic",
+    "equipment_set": "relentless",
     "level": 35,
     "materials": {
-      "prometheum": 12,
-      "enchanted_wood": 8,
+      "prometheum": 15,
+      "enchanted_wood": 10,
+      "elemental_cores": 10,
+      "divine_flame": 3,
+      "mana": 26000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"defense": 200, "hp": 1200},
+    "guaranteed_substats": [
+      {"stat": "speed", "value": 12}
+    ],
+    "possible_substats": ["attack", "crit_rate", "resistance"],
+    "icon": "relentless_armor"
+  },
+  "relentless_boots": {
+    "id": "relentless_boots",
+    "name": "Striders of the Relentless",
+    "description": "Boots blessed with perpetual motion",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "relentless",
+    "level": 35,
+    "materials": {
+      "enchanted_wood": 15,
+      "astral_shard": 6,
+      "elemental_cores": 6,
+      "divine_flame": 2,
+      "mana": 22000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"speed": 30},
+    "guaranteed_substats": [
+      {"stat": "hp", "value": 400}
+    ],
+    "possible_substats": ["attack", "defense", "crit_rate"],
+    "icon": "relentless_boots"
+  },
+
+  "_comment_t3_thunderstrike": "=== T3 THUNDERSTRIKE SET (Stun Chance focused) ===",
+  "thunderstrike_staff": {
+    "id": "thunderstrike_staff",
+    "name": "Thunderstrike Staff",
+    "description": "A staff crackling with paralyzing divine lightning",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "thunderstrike",
+    "level": 35,
+    "materials": {
+      "enchanted_wood": 20,
+      "mystic_bloom": 12,
+      "astral_shard": 6,
+      "elemental_cores": 7,
+      "divine_flame": 2,
+      "mana": 27000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"attack": 240, "accuracy": 25},
+    "guaranteed_substats": [
+      {"stat": "hp", "value": 500}
+    ],
+    "possible_substats": ["speed", "crit_rate", "defense"],
+    "icon": "thunderstrike_staff"
+  },
+  "thunderstrike_robe": {
+    "id": "thunderstrike_robe",
+    "name": "Thunderstrike Vestments",
+    "description": "Dark robes that crackle with storm energy",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "thunderstrike",
+    "level": 35,
+    "materials": {
+      "mystic_bloom": 18,
+      "enchanted_wood": 12,
       "elemental_cores": 8,
       "divine_flame": 2,
       "mana": 25000
     },
     "territory_required": true,
     "territory_tier_requirement": 3,
-    "territory_type_requirement": "forge",
     "god_level_requirement": 30,
-    "guaranteed_substats": [
-      { "stat": "defense", "value": 120 },
-      { "stat": "hp", "value": 500 }
-    ],
-    "base_stats": {
-      "defense": 220,
-      "hp": 1500
-    },
+    "base_stats": {"defense": 180, "hp": 1400, "accuracy": 15},
     "possible_substats": ["attack", "speed", "resistance"],
-    "icon": "enchanted_full_plate"
+    "icon": "thunderstrike_robe"
   },
-  "astral_pendant": {
-    "id": "astral_pendant",
-    "name": "Astral Pendant",
-    "description": "A pendant containing crystallized starlight",
-    "equipment_type": "accessory",
-    "equipment_slot": 4,
+
+  "_comment_t3_nemesis": "=== T3 NEMESIS SET (Counter focused) ===",
+  "nemesis_axe": {
+    "id": "nemesis_axe",
+    "name": "Axe of Nemesis",
+    "description": "An axe blessed by the goddess of retribution",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
     "tier": 3,
     "rarity": "epic",
+    "equipment_set": "nemesis",
     "level": 35,
     "materials": {
-      "astral_shard": 8,
-      "mystic_bloom": 10,
-      "elemental_cores": 5,
-      "mana_crystals": 15,
-      "mana": 22000
+      "prometheum": 20,
+      "enchanted_wood": 10,
+      "elemental_cores": 10,
+      "divine_flame": 3,
+      "mana": 28000
     },
     "territory_required": true,
     "territory_tier_requirement": 3,
-    "territory_type_requirement": "shrine",
     "god_level_requirement": 30,
+    "base_stats": {"attack": 280},
     "guaranteed_substats": [
-      { "stat": "hp", "value": 600 },
-      { "stat": "defense", "value": 80 }
+      {"stat": "defense", "value": 80}
     ],
-    "guaranteed_sockets": 1,
-    "base_stats": {
-      "hp": 1000,
-      "defense": 120
+    "possible_substats": ["hp", "crit_rate", "crit_damage"],
+    "icon": "nemesis_axe"
+  },
+  "nemesis_shield": {
+    "id": "nemesis_shield",
+    "name": "Bulwark of Nemesis",
+    "description": "A shield that reflects divine aggression",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "nemesis",
+    "level": 35,
+    "materials": {
+      "prometheum": 18,
+      "elemental_cores": 12,
+      "divine_flame": 3,
+      "mana": 27000
     },
-    "possible_substats": ["attack", "crit_rate", "accuracy"],
-    "icon": "astral_pendant"
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"defense": 250, "hp": 1100},
+    "guaranteed_substats": [
+      {"stat": "attack", "value": 80}
+    ],
+    "possible_substats": ["speed", "crit_rate", "resistance"],
+    "icon": "nemesis_shield"
+  },
+
+  "_comment_t3_resolve": "=== T3 RESOLVE SET (Immunity focused) ===",
+  "resolve_scepter": {
+    "id": "resolve_scepter",
+    "name": "Scepter of Resolve",
+    "description": "Grants divine immunity at battle's dawn",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "resolve",
+    "level": 35,
+    "materials": {
+      "astral_shard": 15,
+      "mystic_bloom": 10,
+      "elemental_cores": 8,
+      "divine_flame": 3,
+      "mana": 30000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"attack": 220, "hp": 600},
+    "guaranteed_substats": [
+      {"stat": "resistance", "value": 20}
+    ],
+    "possible_substats": ["defense", "speed", "accuracy"],
+    "icon": "resolve_scepter"
+  },
+  "resolve_amulet": {
+    "id": "resolve_amulet",
+    "name": "Amulet of Resolve",
+    "description": "Shields the bearer from all afflictions",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "resolve",
+    "level": 35,
+    "materials": {
+      "astral_shard": 12,
+      "mystic_bloom": 8,
+      "elemental_cores": 5,
+      "divine_flame": 2,
+      "mana": 24000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"hp": 800, "resistance": 30},
+    "guaranteed_substats": [
+      {"stat": "defense", "value": 60}
+    ],
+    "possible_substats": ["speed", "attack"],
+    "icon": "resolve_amulet"
   },
 
   "_comment_t4": "=== T4 EQUIPMENT (Legendary, PvP Required) ===",
-  "celestial_blade": {
-    "id": "celestial_blade",
-    "name": "Celestial Blade",
-    "description": "A legendary blade forged from celestial materials - requires PvP territory",
+
+  "_comment_t4_conquest": "=== T4 CONQUEST SET (Ultimate PvP Offense) ===",
+  "conquest_blade": {
+    "id": "conquest_blade",
+    "name": "Blade of Conquest",
+    "description": "A legendary blade forged for domination in the arena",
     "equipment_type": "weapon",
     "equipment_slot": 0,
     "tier": 4,
     "rarity": "legendary",
+    "equipment_set": "conquest",
     "level": 50,
     "materials": {
-      "divine_metal": 20,
-      "prometheum": 10,
-      "dragon_parts": 15,
+      "divine_metal": 25,
+      "prometheum": 15,
+      "dragon_parts": 20,
       "eternal_flame": 5,
-      "mana": 100000
+      "mana": 120000
     },
     "territory_required": true,
     "territory_tier_requirement": 4,
-    "territory_type_requirement": "forge",
     "god_level_requirement": 45,
     "pvp_required": true,
+    "base_stats": {"attack": 550},
     "guaranteed_substats": [
-      { "stat": "attack", "value": 300 },
-      { "stat": "crit_rate", "value": 25 },
-      { "stat": "crit_damage", "value": 50 }
+      {"stat": "crit_rate", "value": 30},
+      {"stat": "crit_damage", "value": 60},
+      {"stat": "attack", "value": 200}
     ],
     "guaranteed_sockets": 2,
-    "base_stats": {
-      "attack": 500
-    },
-    "possible_substats": ["hp", "defense", "speed"],
-    "icon": "celestial_blade"
+    "possible_substats": ["hp", "speed"],
+    "icon": "conquest_blade"
   },
-  "divine_regalia": {
-    "id": "divine_regalia",
-    "name": "Divine Regalia",
-    "description": "Legendary armor blessed by the gods - requires PvP territory",
+  "conquest_armor": {
+    "id": "conquest_armor",
+    "name": "Armor of Conquest",
+    "description": "Armor forged for champions of the arena",
     "equipment_type": "armor",
     "equipment_slot": 1,
     "tier": 4,
     "rarity": "legendary",
+    "equipment_set": "conquest",
     "level": 50,
     "materials": {
-      "divine_metal": 25,
-      "prometheum": 8,
-      "dragon_parts": 20,
-      "eternal_flame": 4,
-      "mana": 100000
+      "divine_metal": 30,
+      "prometheum": 12,
+      "dragon_parts": 25,
+      "eternal_flame": 5,
+      "mana": 115000
     },
     "territory_required": true,
     "territory_tier_requirement": 4,
-    "territory_type_requirement": "forge",
     "god_level_requirement": 45,
     "pvp_required": true,
+    "base_stats": {"defense": 350, "hp": 2500, "attack": 150},
     "guaranteed_substats": [
-      { "stat": "defense", "value": 250 },
-      { "stat": "hp", "value": 1000 },
-      { "stat": "resistance", "value": 30 }
+      {"stat": "crit_rate", "value": 20},
+      {"stat": "speed", "value": 20}
     ],
     "guaranteed_sockets": 2,
-    "base_stats": {
-      "defense": 400,
-      "hp": 3000
+    "possible_substats": ["crit_damage", "resistance"],
+    "icon": "conquest_armor"
+  },
+
+  "_comment_t4_eternal": "=== T4 ETERNAL SET (Ultimate PvP Defense) ===",
+  "eternal_aegis": {
+    "id": "eternal_aegis",
+    "name": "Eternal Aegis",
+    "description": "A shield that grants near-immortality in battle",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "eternal",
+    "level": 50,
+    "materials": {
+      "divine_metal": 30,
+      "prometheum": 10,
+      "dragon_parts": 25,
+      "eternal_flame": 6,
+      "mana": 125000
     },
+    "territory_required": true,
+    "territory_tier_requirement": 4,
+    "god_level_requirement": 45,
+    "pvp_required": true,
+    "base_stats": {"defense": 300, "hp": 2000},
+    "guaranteed_substats": [
+      {"stat": "resistance", "value": 40},
+      {"stat": "defense", "value": 150}
+    ],
+    "guaranteed_sockets": 2,
     "possible_substats": ["attack", "speed"],
-    "icon": "divine_regalia"
+    "icon": "eternal_aegis"
+  },
+  "eternal_plate": {
+    "id": "eternal_plate",
+    "name": "Eternal Guardian Plate",
+    "description": "Armor blessed by the gods for eternal protection",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "eternal",
+    "level": 50,
+    "materials": {
+      "divine_metal": 35,
+      "dragon_parts": 30,
+      "eternal_flame": 6,
+      "mana": 130000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 4,
+    "god_level_requirement": 45,
+    "pvp_required": true,
+    "base_stats": {"defense": 450, "hp": 3500},
+    "guaranteed_substats": [
+      {"stat": "resistance", "value": 35},
+      {"stat": "hp", "value": 1000}
+    ],
+    "guaranteed_sockets": 3,
+    "possible_substats": ["attack", "speed"],
+    "icon": "eternal_plate"
   }
 }

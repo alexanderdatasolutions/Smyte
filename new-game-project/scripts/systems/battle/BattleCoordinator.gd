@@ -94,6 +94,25 @@ func start_battle(config) -> bool:
 	is_battle_active = true
 	battle_started.emit(config)
 
+	# Emit team composition for analytics
+	var event_bus = _get_event_bus()
+	if event_bus:
+		var god_ids: Array = []
+		var team_power: int = 0
+		for unit in player_units:
+			if unit.source_god:
+				god_ids.append(unit.source_god.id)
+				team_power += unit.max_hp + (unit.attack * 2) + unit.defense + unit.speed
+		var enemy_power: int = 0
+		for enemy in battle_state.get_enemy_units():
+			enemy_power += enemy.max_hp + (enemy.attack * 2) + enemy.defense + enemy.speed
+		event_bus.battle_team_entered.emit({
+			"battle_type": config.get_battle_type_name() if config.has_method("get_battle_type_name") else str(config.battle_type),
+			"god_ids": god_ids,
+			"team_power": team_power,
+			"enemy_power": enemy_power
+		})
+
 	# Begin battle flow (defer to next frame to let UI initialize)
 	_begin_battle_flow.call_deferred()
 
@@ -357,16 +376,21 @@ func _award_battle_rewards(rewards: Dictionary):
 		return
 
 	# Award resource rewards
+	# Collect all resource gains for a single notification
+	var resource_gains: Array[String] = []
 	for resource in rewards:
 		# Skip experience - we handle god XP separately
 		if resource == "experience":
 			continue
 		var amount = rewards[resource]
 		resource_manager.add_resource(resource, amount)
+		resource_gains.append("%d %s" % [amount, resource.replace("_", " ").capitalize()])
 
-		var event_bus = _get_event_bus()
-		if event_bus:
-			event_bus.notification_requested.emit("Gained " + str(amount) + " " + resource, "reward", 2.0)
+	# Show single reward notification for all resources
+	if not resource_gains.is_empty():
+		var NotificationQueueClass = load("res://scripts/ui/components/NotificationQueue.gd")
+		if NotificationQueueClass:
+			NotificationQueueClass.show_reward("Battle Rewards", ", ".join(resource_gains))
 
 	# Award XP to participating gods
 	_award_god_experience(rewards)
@@ -398,9 +422,9 @@ func _award_god_experience(rewards: Dictionary):
 
 	# Notify player of XP gain
 	if gods_rewarded > 0:
-		var event_bus = _get_event_bus()
-		if event_bus:
-			event_bus.notification_requested.emit("Gods gained %d XP each!" % xp_per_god, "reward", 2.0)
+		var NotificationQueueClass = load("res://scripts/ui/components/NotificationQueue.gd")
+		if NotificationQueueClass:
+			NotificationQueueClass.show_message("Team Experience", "Gods gained %d XP each!" % xp_per_god)
 
 func _cleanup_battle():
 	"""Clean up battle state and systems"""

@@ -226,7 +226,15 @@ func craft_equipment(recipe_id: String, crafting_god_id: String = "", territory_
 			equipment_manager.add_equipment_to_inventory(equipment)
 		else:
 			push_error("EquipmentCraftingManager: Could not find EquipmentManager to add crafted item")
-	
+
+		# Also add to CollectionManager for save/load persistence
+		var collection_manager = system_registry.get_system("CollectionManager")
+		if collection_manager:
+			collection_manager.add_equipment(equipment)
+			print("[EquipmentCraftingManager] Added crafted equipment to CollectionManager: %s" % equipment.name)
+		else:
+			push_error("EquipmentCraftingManager: Could not find CollectionManager to persist crafted item")
+
 	# Emit crafting signal
 	equipment_crafted.emit(equipment, recipe_id)
 

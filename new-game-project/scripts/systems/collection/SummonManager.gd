@@ -183,6 +183,20 @@ func _perform_summon(cost: Dictionary, summon_type: String, banner_type: String,
 	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
 	if event_bus:
 		event_bus.save_requested.emit()
+		# Emit detailed analytics event
+		event_bus.summon_completed_detailed.emit({
+			"banner_id": banner_type,
+			"summon_type": summon_type,
+			"cost_type": cost.keys()[0] if not cost.is_empty() else "free",
+			"powder_element": powder_element,
+			"pity_legendary": pity_counters.get(banner_type, {}).get("legendary", 0),
+			"pity_epic": pity_counters.get(banner_type, {}).get("epic", 0),
+			"gods_obtained": [{
+				"god_id": god.id,
+				"tier": God.tier_to_string(god.tier),
+				"element": GodFactory.element_to_string(god.element)
+			}]
+		})
 
 	return true
 
@@ -641,6 +655,23 @@ func _perform_multi_summon(cost: Dictionary, summon_type: String, banner_type: S
 	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
 	if event_bus:
 		event_bus.save_requested.emit()
+		# Emit detailed analytics event for multi-summon
+		var gods_data: Array = []
+		for g in summoned_gods:
+			gods_data.append({
+				"god_id": g.id,
+				"tier": God.tier_to_string(g.tier),
+				"element": GodFactory.element_to_string(g.element)
+			})
+		event_bus.summon_completed_detailed.emit({
+			"banner_id": banner_type,
+			"summon_type": summon_type,
+			"cost_type": cost.keys()[0] if not cost.is_empty() else "free",
+			"powder_element": "",
+			"pity_legendary": pity_counters.get(banner_type, {}).get("legendary", 0),
+			"pity_epic": pity_counters.get(banner_type, {}).get("epic", 0),
+			"gods_obtained": gods_data
+		})
 
 	return summoned_gods.size() > 0
 

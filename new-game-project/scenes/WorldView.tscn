@@ -126,3 +126,13 @@ text = "SPECIALIZE"
 custom_minimum_size = Vector2(170, 85)
 layout_mode = 2
 text = "TOWER"
+
+[node name="ArenaButton" type="Button" parent="ContentContainer/ButtonGrid"]
+custom_minimum_size = Vector2(170, 85)
+layout_mode = 2
+text = "ARENA"
+
+[node name="PvPTerritoryButton" type="Button" parent="ContentContainer/ButtonGrid"]
+custom_minimum_size = Vector2(170, 85)
+layout_mode = 2
+text = "PVP MAP"

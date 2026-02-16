@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smyte Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0d0a14;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        h1 { color: #9b7ed9; margin-bottom: 20px; }
+        h2 { color: #7b6ba8; margin-bottom: 10px; font-size: 1.1em; }
+
+        .controls {
+            background: #1a1525;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .controls input, .controls select, .controls button {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #3d3555;
+            background: #252035;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+        .controls button {
+            background: #6b4d9e;
+            cursor: pointer;
+            border: none;
+        }
+        .controls button:hover { background: #7b5db8; }
+        .controls button.connected { background: #4d9e6b; }
+
+        .config-panel {
+            background: #1a1525;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .config-panel.show { display: block; }
+        .config-panel input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            background: #252035;
+            border: 1px solid #3d3555;
+            color: #e0e0e0;
+            border-radius: 4px;
+        }
+        .config-panel label { color: #888; font-size: 0.9em; }
+
+        .status {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+        .status.connected { background: #2d4d3d; color: #6bd96b; }
+        .status.disconnected { background: #4d2d2d; color: #d96b6b; }
+        .status.loading { background: #4d4d2d; color: #d9d96b; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: #1a1525;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #2d2540;
+        }
+        .card canvas { max-height: 250px; }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #252035, #1a1525);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #3d3555;
+        }
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #9b7ed9;
+        }
+        .stat-card .label { color: #888; font-size: 0.9em; }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+        .data-table th, .data-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #2d2540;
+        }
+        .data-table th { color: #9b7ed9; }
+        .data-table tr:hover { background: #252035; }
+
+        .tab-buttons { display: flex; gap: 5px; margin-bottom: 15px; }
+        .tab-buttons button {
+            padding: 8px 16px;
+            border: none;
+            background: #252035;
+            color: #888;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .tab-buttons button.active { background: #6b4d9e; color: #fff; }
+
+        #raw-json {
+            width: 100%;
+            height: 300px;
+            background: #0d0a14;
+            color: #7b9b7e;
+            border: 1px solid #3d3555;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .chip {
+            background: #3d3555;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            cursor: pointer;
+        }
+        .chip.active { background: #6b4d9e; }
+
+        .live-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #6bd96b;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Smyte Analytics Dashboard</h1>
+
+    <div class="controls">
+        <button onclick="toggleConfig()">Firebase Config</button>
+        <button id="connect-btn" onclick="connectFirebase()">Connect to Firebase</button>
+        <button onclick="loadFromFile()">Load JSON File</button>
+        <input type="file" id="file-input" accept=".json" style="display:none">
+        <select id="time-range" onchange="filterData()">
+            <option value="all">All Time</option>
+            <option value="24h">Last 24 Hours</option>
+            <option value="7d" selected>Last 7 Days</option>
+            <option value="30d">Last 30 Days</option>
+        </select>
+        <span id="status" class="status disconnected">Disconnected</span>
+        <span style="color:#888;">Events: <span id="event-count">0</span></span>
+    </div>
+
+    <div id="config-panel" class="config-panel">
+        <h2>Firebase Configuration</h2>
+        <p style="color:#888;margin-bottom:10px;">Pre-filled from your firebase_config.json</p>
+        <label>API Key</label>
+        <input type="text" id="config-apiKey" value="AIzaSyDCFl8VwwZPnLKJrWgwY6pC5b0lReZEbGg">
+        <label>Auth Domain</label>
+        <input type="text" id="config-authDomain" value="smyte-1f475.firebaseapp.com">
+        <label>Project ID</label>
+        <input type="text" id="config-projectId" value="smyte-1f475">
+        <label>Collection Name (default: analytics_events)</label>
+        <input type="text" id="config-collection" value="analytics_events">
+        <button onclick="saveConfig()" style="margin-top:10px;padding:8px 16px;background:#6b4d9e;border:none;color:#fff;border-radius:4px;cursor:pointer;">Save Config</button>
+        <button onclick="loadSampleData()" style="margin-top:10px;margin-left:10px;padding:8px 16px;background:#3d3555;border:none;color:#fff;border-radius:4px;cursor:pointer;">Load Sample Data Instead</button>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="value" id="stat-summons">0</div>
+            <div class="label">Total Summons</div>
+        </div>
+        <div class="stat-card">
+            <div class="value" id="stat-battles">0</div>
+            <div class="label">Battles</div>
+        </div>
+        <div class="stat-card">
+            <div class="value" id="stat-sacrifices">0</div>
+            <div class="label">Sacrifices</div>
+        </div>
+        <div class="stat-card">
+            <div class="value" id="stat-arena">0</div>
+            <div class="label">Arena Battles</div>
+        </div>
+        <div class="stat-card">
+            <div class="value" id="stat-achievements">0</div>
+            <div class="label">Achievements</div>
+        </div>
+        <div class="stat-card">
+            <div class="value" id="stat-users">0</div>
+            <div class="label">Unique Users</div>
+        </div>
+    </div>
+
+    <div class="tab-buttons">
+        <button class="active" onclick="showTab('charts')">Charts</button>
+        <button onclick="showTab('tables')">Data Tables</button>
+        <button onclick="showTab('gods')">God Analytics</button>
+        <button onclick="showTab('raw')">Raw JSON</button>
+        <button onclick="showTab('query')">Query Builder</button>
+    </div>
+
+    <div id="tab-charts">
+        <div class="grid">
+            <div class="card">
+                <h2>Event Types Distribution</h2>
+                <canvas id="chart-events"></canvas>
+            </div>
+            <div class="card">
+                <h2>Summon Results by Tier</h2>
+                <canvas id="chart-summons"></canvas>
+            </div>
+            <div class="card">
+                <h2>Battle Types</h2>
+                <canvas id="chart-battles"></canvas>
+            </div>
+            <div class="card">
+                <h2>Arena Win Rate</h2>
+                <canvas id="chart-arena-wr"></canvas>
+            </div>
+            <div class="card">
+                <h2>Arena ELO Distribution</h2>
+                <canvas id="chart-elo"></canvas>
+            </div>
+            <div class="card">
+                <h2>Events Over Time</h2>
+                <canvas id="chart-timeline"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-gods" style="display:none;">
+        <div class="grid">
+            <div class="card">
+                <h2>Most Used Gods in Battle (Top 10)</h2>
+                <canvas id="chart-gods"></canvas>
+            </div>
+            <div class="card">
+                <h2>Most Summoned Gods</h2>
+                <canvas id="chart-summoned-gods"></canvas>
+            </div>
+            <div class="card">
+                <h2>Most Sacrificed Gods</h2>
+                <canvas id="chart-sacrificed-gods"></canvas>
+            </div>
+            <div class="card">
+                <h2>Gods in Garrisons</h2>
+                <canvas id="chart-garrison-gods"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-tables" style="display:none;">
+        <div class="card">
+            <h2>Recent Events <span id="live-badge"></span></h2>
+            <div class="filter-chips" id="event-filters"></div>
+            <table class="data-table" id="events-table">
+                <thead><tr><th>Time</th><th>User</th><th>Event</th><th>Details</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-raw" style="display:none;">
+        <div class="card">
+            <h2>Raw Event Data</h2>
+            <textarea id="raw-json" readonly></textarea>
+            <button onclick="downloadJson()" style="margin-top:10px;padding:8px 16px;background:#6b4d9e;border:none;color:#fff;border-radius:4px;cursor:pointer;">Download JSON</button>
+        </div>
+    </div>
+
+    <div id="tab-query" style="display:none;">
+        <div class="card">
+            <h2>Query Builder</h2>
+            <p style="color:#888;margin-bottom:10px;">Write JavaScript to filter/transform data. Use <code>events</code> array.</p>
+            <textarea id="query-input" style="width:100%;height:100px;background:#0d0a14;color:#9b9;border:1px solid #3d3555;padding:10px;font-family:monospace;">// Example queries:
+// Find all legendary summons
+events.filter(e => e.name === 'summon_detailed' && e.params?.legendary_count > 0)
+
+// Get unique users
+[...new Set(events.map(e => e.params?.user_id).filter(Boolean))]
+
+// Arena win rate
+(() => {
+  const arena = events.filter(e => e.name === 'arena_battle');
+  const wins = arena.filter(e => e.params?.victory).length;
+  return `${(wins/arena.length*100).toFixed(1)}% win rate (${wins}/${arena.length})`
+})()</textarea>
+            <button onclick="runQuery()" style="margin-top:10px;padding:8px 16px;background:#6b4d9e;border:none;color:#fff;border-radius:4px;cursor:pointer;">Run Query</button>
+            <pre id="query-result" style="margin-top:10px;background:#0d0a14;padding:10px;border-radius:4px;max-height:300px;overflow:auto;font-size:12px;color:#7b9b7e;"></pre>
+        </div>
+    </div>
+
+    <script>
+        let events = [];
+        let charts = {};
+        let db = null;
+        let unsubscribe = null;
+
+        // Chart.js defaults
+        Chart.defaults.color = '#888';
+        Chart.defaults.borderColor = '#2d2540';
+
+        const COLORS = ['#9b7ed9', '#6b9ed9', '#9bd96b', '#d9b86b', '#d96b6b', '#d96bb8', '#6bd9d9', '#d9d96b'];
+
+        // Load saved config
+        function loadConfig() {
+            const saved = localStorage.getItem('smyte_firebase_config');
+            if (saved) {
+                const config = JSON.parse(saved);
+                document.getElementById('config-apiKey').value = config.apiKey || '';
+                document.getElementById('config-authDomain').value = config.authDomain || '';
+                document.getElementById('config-projectId').value = config.projectId || '';
+                document.getElementById('config-collection').value = config.collection || 'analytics_events';
+            }
+        }
+
+        function saveConfig() {
+            const config = {
+                apiKey: document.getElementById('config-apiKey').value,
+                authDomain: document.getElementById('config-authDomain').value,
+                projectId: document.getElementById('config-projectId').value,
+                collection: document.getElementById('config-collection').value
+            };
+            localStorage.setItem('smyte_firebase_config', JSON.stringify(config));
+            alert('Config saved! Click "Connect to Firebase" to connect.');
+        }
+
+        function toggleConfig() {
+            document.getElementById('config-panel').classList.toggle('show');
+        }
+
+        async function connectFirebase() {
+            // Read directly from input fields (which have defaults pre-filled)
+            const config = {
+                apiKey: document.getElementById('config-apiKey').value,
+                authDomain: document.getElementById('config-authDomain').value,
+                projectId: document.getElementById('config-projectId').value,
+                collection: document.getElementById('config-collection').value || 'analytics_events'
+            };
+
+            if (!config.apiKey || !config.projectId) {
+                toggleConfig();
+                alert('Please enter API Key and Project ID');
+                return;
+            }
+
+            // Save to localStorage for next time
+            localStorage.setItem('smyte_firebase_config', JSON.stringify(config));
+
+            setStatus('loading', 'Connecting...');
+
+            try {
+                // Initialize Firebase
+                if (!firebase.apps.length) {
+                    firebase.initializeApp({
+                        apiKey: config.apiKey,
+                        authDomain: config.authDomain,
+                        projectId: config.projectId
+                    });
+                }
+
+                db = firebase.firestore();
+
+                // Fetch data
+                await fetchFromFirestore(config.collection);
+
+                // Set up real-time listener
+                setupRealtimeListener(config.collection);
+
+                document.getElementById('connect-btn').classList.add('connected');
+                document.getElementById('connect-btn').textContent = 'Connected';
+                setStatus('connected', 'Live');
+                document.getElementById('live-badge').innerHTML = '<span class="live-indicator"></span>Live';
+
+            } catch (error) {
+                console.error('Firebase error:', error);
+                setStatus('disconnected', 'Error: ' + error.message);
+                alert('Connection failed: ' + error.message);
+            }
+        }
+
+        async function fetchFromFirestore(collection) {
+            const range = document.getElementById('time-range').value;
+            let cutoff = new Date(0);
+
+            const now = new Date();
+            switch(range) {
+                case '24h': cutoff = new Date(now - 24 * 60 * 60 * 1000); break;
+                case '7d': cutoff = new Date(now - 7 * 24 * 60 * 60 * 1000); break;
+                case '30d': cutoff = new Date(now - 30 * 24 * 60 * 60 * 1000); break;
+            }
+
+            const snapshot = await db.collection(collection)
+                .where('batch_timestamp', '>', cutoff.getTime() / 1000)
+                .orderBy('batch_timestamp', 'desc')
+                .limit(100)
+                .get();
+
+            events = [];
+            snapshot.forEach(doc => {
+                const batch = doc.data();
+                if (batch.events && Array.isArray(batch.events)) {
+                    batch.events.forEach(e => {
+                        events.push({
+                            name: e.name,
+                            timestamp: e.timestamp,
+                            params: e.params || {}
+                        });
+                    });
+                }
+            });
+
+            console.log(`Fetched ${events.length} events from ${snapshot.size} batches`);
+            updateDashboard();
+        }
+
+        function setupRealtimeListener(collection) {
+            if (unsubscribe) unsubscribe();
+
+            unsubscribe = db.collection(collection)
+                .orderBy('batch_timestamp', 'desc')
+                .limit(10)
+                .onSnapshot(snapshot => {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            const batch = change.doc.data();
+                            if (batch.events) {
+                                batch.events.forEach(e => {
+                                    // Add to front if not already present
+                                    const exists = events.some(ex =>
+                                        ex.timestamp === e.timestamp && ex.name === e.name
+                                    );
+                                    if (!exists) {
+                                        events.unshift({
+                                            name: e.name,
+                                            timestamp: e.timestamp,
+                                            params: e.params || {}
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    });
+                    updateDashboard();
+                });
+        }
+
+        function setStatus(type, text) {
+            const el = document.getElementById('status');
+            el.className = 'status ' + type;
+            el.textContent = text;
+        }
+
+        // File input handler
+        document.getElementById('file-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        parseLoadedData(data);
+                    } catch (err) {
+                        alert('Error parsing JSON: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function loadFromFile() {
+            document.getElementById('file-input').click();
+        }
+
+        function parseLoadedData(data) {
+            // Handle different formats
+            if (Array.isArray(data)) {
+                // Direct array of events
+                events = data.map(e => ({
+                    name: e.name || e.event_name,
+                    timestamp: e.timestamp || e.event_timestamp,
+                    params: e.params || e
+                }));
+            } else if (data.events) {
+                // Single batch
+                events = data.events;
+            } else {
+                // Try to flatten batches
+                events = [];
+                Object.values(data).forEach(batch => {
+                    if (batch.events) events = events.concat(batch.events);
+                });
+            }
+            setStatus('connected', 'File loaded');
+            updateDashboard();
+        }
+
+        function loadSampleData() {
+            // Generate sample analytics data
+            const eventTypes = ['summon_detailed', 'battle_team', 'sacrifice_performed', 'arena_battle', 'achievement_completed', 'garrison_assigned', 'workers_assigned', 'battle_completed', 'screen_view'];
+            const battleTypes = ['dungeon', 'territory', 'arena', 'tower', 'hex'];
+            const tiers = ['common', 'rare', 'epic', 'legendary'];
+            const godIds = ['zeus', 'athena', 'poseidon', 'hades', 'apollo', 'artemis', 'ares', 'hermes', 'dionysus', 'hephaestus', 'hera', 'demeter'];
+            const users = ['player_001', 'player_002', 'player_003', 'player_004', 'player_005'];
+
+            events = [];
+            const now = Date.now() / 1000;
+
+            for (let i = 0; i < 500; i++) {
+                const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+                const timestamp = now - Math.random() * 30 * 24 * 60 * 60;
+                const userId = users[Math.floor(Math.random() * users.length)];
+
+                let params = { session_id: 'test_' + Math.floor(Math.random() * 100), user_id: userId };
+
+                switch(eventType) {
+                    case 'summon_detailed':
+                        const tier = tiers[Math.floor(Math.random() * tiers.length)];
+                        const godId = godIds[Math.floor(Math.random() * godIds.length)];
+                        params = {
+                            ...params,
+                            banner_id: Math.random() > 0.5 ? 'premium' : 'default',
+                            summon_type: Math.random() > 0.7 ? 'divine_crystals' : 'mana',
+                            gods_count: Math.random() > 0.8 ? 10 : 1,
+                            legendary_count: tier === 'legendary' ? 1 : 0,
+                            epic_count: tier === 'epic' ? 1 : 0,
+                            pity_legendary: Math.floor(Math.random() * 100),
+                            pity_epic: Math.floor(Math.random() * 50),
+                            god_ids: [godId]
+                        };
+                        break;
+                    case 'battle_team':
+                        const teamSize = Math.floor(Math.random() * 4) + 1;
+                        const teamGods = [];
+                        for (let j = 0; j < teamSize; j++) {
+                            teamGods.push(godIds[Math.floor(Math.random() * godIds.length)]);
+                        }
+                        params = {
+                            ...params,
+                            battle_type: battleTypes[Math.floor(Math.random() * battleTypes.length)],
+                            god_ids: teamGods,
+                            team_power: Math.floor(Math.random() * 50000) + 10000,
+                            enemy_power: Math.floor(Math.random() * 50000) + 10000
+                        };
+                        break;
+                    case 'arena_battle':
+                        const win = Math.random() > 0.45;
+                        const eloChange = win ? Math.floor(Math.random() * 30) + 10 : -Math.floor(Math.random() * 25) - 5;
+                        params = {
+                            ...params,
+                            victory: win,
+                            old_elo: 1200 + Math.floor(Math.random() * 500),
+                            elo_change: eloChange,
+                            league: ['bronze', 'silver', 'gold', 'platinum'][Math.floor(Math.random() * 4)]
+                        };
+                        params.new_elo = params.old_elo + params.elo_change;
+                        break;
+                    case 'sacrifice_performed':
+                        params = {
+                            ...params,
+                            target_god_id: godIds[Math.floor(Math.random() * godIds.length)],
+                            material_count: Math.floor(Math.random() * 5) + 1,
+                            total_xp: Math.floor(Math.random() * 5000) + 500,
+                            levels_gained: Math.floor(Math.random() * 3),
+                            material_ids: [godIds[Math.floor(Math.random() * godIds.length)]]
+                        };
+                        break;
+                    case 'garrison_assigned':
+                        params = {
+                            ...params,
+                            node_id: 'node_' + Math.floor(Math.random() * 20),
+                            god_ids: [godIds[Math.floor(Math.random() * godIds.length)]],
+                            total_power: Math.floor(Math.random() * 20000) + 5000
+                        };
+                        break;
+                }
+
+                events.push({ name: eventType, timestamp, params });
+            }
+
+            setStatus('connected', 'Sample data');
+            updateDashboard();
+        }
+
+        function filterData() {
+            if (db) {
+                const config = JSON.parse(localStorage.getItem('smyte_firebase_config') || '{}');
+                fetchFromFirestore(config.collection || 'analytics_events');
+            } else {
+                updateDashboard();
+            }
+        }
+
+        function showTab(tab) {
+            document.querySelectorAll('.tab-buttons button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display = 'none');
+            document.getElementById('tab-' + tab).style.display = 'block';
+        }
+
+        function getFilteredEvents() {
+            const range = document.getElementById('time-range').value;
+            const now = Date.now() / 1000;
+            let cutoff = 0;
+
+            switch(range) {
+                case '24h': cutoff = now - 24 * 60 * 60; break;
+                case '7d': cutoff = now - 7 * 24 * 60 * 60; break;
+                case '30d': cutoff = now - 30 * 24 * 60 * 60; break;
+            }
+
+            return events.filter(e => e.timestamp >= cutoff);
+        }
+
+        function updateDashboard() {
+            const filtered = getFilteredEvents();
+            document.getElementById('event-count').textContent = filtered.length;
+
+            // Unique users
+            const uniqueUsers = new Set(filtered.map(e => e.params?.user_id).filter(Boolean));
+
+            // Update stats
+            document.getElementById('stat-summons').textContent = filtered.filter(e => e.name === 'summon_detailed').length;
+            document.getElementById('stat-battles').textContent = filtered.filter(e => e.name === 'battle_team' || e.name === 'battle_completed').length;
+            document.getElementById('stat-sacrifices').textContent = filtered.filter(e => e.name === 'sacrifice_performed').length;
+            document.getElementById('stat-arena').textContent = filtered.filter(e => e.name === 'arena_battle').length;
+            document.getElementById('stat-achievements').textContent = filtered.filter(e => e.name === 'achievement_completed').length;
+            document.getElementById('stat-users').textContent = uniqueUsers.size;
+
+            updateCharts(filtered);
+            updateGodCharts(filtered);
+            updateTable(filtered);
+            document.getElementById('raw-json').value = JSON.stringify(filtered.slice(0, 100), null, 2);
+        }
+
+        function updateCharts(data) {
+            // Event types chart
+            const eventCounts = {};
+            data.forEach(e => { eventCounts[e.name] = (eventCounts[e.name] || 0) + 1; });
+
+            createOrUpdateChart('chart-events', 'doughnut', {
+                labels: Object.keys(eventCounts),
+                datasets: [{ data: Object.values(eventCounts), backgroundColor: COLORS }]
+            });
+
+            // Summon tiers
+            const summons = data.filter(e => e.name === 'summon_detailed');
+            const tierCounts = { legendary: 0, epic: 0, rare: 0, common: 0 };
+            summons.forEach(s => {
+                tierCounts.legendary += s.params?.legendary_count || 0;
+                tierCounts.epic += s.params?.epic_count || 0;
+                const total = s.params?.gods_count || 1;
+                const special = (s.params?.legendary_count || 0) + (s.params?.epic_count || 0);
+                tierCounts.common += Math.max(0, total - special);
+            });
+
+            createOrUpdateChart('chart-summons', 'bar', {
+                labels: Object.keys(tierCounts),
+                datasets: [{ label: 'Count', data: Object.values(tierCounts), backgroundColor: ['#d4af37', '#9b59b6', '#3498db', '#95a5a6'] }]
+            });
+
+            // Battle types
+            const battles = data.filter(e => e.name === 'battle_team');
+            const battleTypes = {};
+            battles.forEach(b => {
+                const type = b.params?.battle_type || 'unknown';
+                battleTypes[type] = (battleTypes[type] || 0) + 1;
+            });
+
+            createOrUpdateChart('chart-battles', 'pie', {
+                labels: Object.keys(battleTypes),
+                datasets: [{ data: Object.values(battleTypes), backgroundColor: COLORS }]
+            });
+
+            // Arena win rate
+            const arenaEvents = data.filter(e => e.name === 'arena_battle');
+            const wins = arenaEvents.filter(e => e.params?.victory).length;
+            const losses = arenaEvents.length - wins;
+
+            createOrUpdateChart('chart-arena-wr', 'doughnut', {
+                labels: ['Wins', 'Losses'],
+                datasets: [{ data: [wins, losses], backgroundColor: ['#6bd96b', '#d96b6b'] }]
+            });
+
+            // ELO distribution
+            const eloBuckets = { '0-1000': 0, '1000-1200': 0, '1200-1400': 0, '1400-1600': 0, '1600+': 0 };
+            arenaEvents.forEach(e => {
+                const elo = e.params?.new_elo || 1000;
+                if (elo < 1000) eloBuckets['0-1000']++;
+                else if (elo < 1200) eloBuckets['1000-1200']++;
+                else if (elo < 1400) eloBuckets['1200-1400']++;
+                else if (elo < 1600) eloBuckets['1400-1600']++;
+                else eloBuckets['1600+']++;
+            });
+
+            createOrUpdateChart('chart-elo', 'bar', {
+                labels: Object.keys(eloBuckets),
+                datasets: [{ label: 'Count', data: Object.values(eloBuckets), backgroundColor: '#6b9ed9' }]
+            });
+
+            // Timeline
+            const dayBuckets = {};
+            data.forEach(e => {
+                const day = new Date(e.timestamp * 1000).toLocaleDateString();
+                dayBuckets[day] = (dayBuckets[day] || 0) + 1;
+            });
+            const sortedDays = Object.entries(dayBuckets).sort((a, b) => new Date(a[0]) - new Date(b[0]));
+
+            createOrUpdateChart('chart-timeline', 'line', {
+                labels: sortedDays.map(d => d[0]),
+                datasets: [{ label: 'Events', data: sortedDays.map(d => d[1]), borderColor: '#9b7ed9', fill: false, tension: 0.3 }]
+            });
+        }
+
+        function updateGodCharts(data) {
+            // God usage in battles
+            const battles = data.filter(e => e.name === 'battle_team');
+            const godUsage = {};
+            battles.forEach(b => {
+                (b.params?.god_ids || []).forEach(id => { godUsage[id] = (godUsage[id] || 0) + 1; });
+            });
+            const topGods = Object.entries(godUsage).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+            createOrUpdateChart('chart-gods', 'bar', {
+                labels: topGods.map(g => g[0]),
+                datasets: [{ label: 'Uses', data: topGods.map(g => g[1]), backgroundColor: '#9b7ed9' }]
+            }, { indexAxis: 'y' });
+
+            // Summoned gods
+            const summons = data.filter(e => e.name === 'summon_detailed');
+            const summonedGods = {};
+            summons.forEach(s => {
+                (s.params?.god_ids || []).forEach(id => { summonedGods[id] = (summonedGods[id] || 0) + 1; });
+            });
+            const topSummoned = Object.entries(summonedGods).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+            createOrUpdateChart('chart-summoned-gods', 'bar', {
+                labels: topSummoned.map(g => g[0]),
+                datasets: [{ label: 'Summons', data: topSummoned.map(g => g[1]), backgroundColor: '#6b9ed9' }]
+            }, { indexAxis: 'y' });
+
+            // Sacrificed gods
+            const sacrifices = data.filter(e => e.name === 'sacrifice_performed');
+            const sacrificedGods = {};
+            sacrifices.forEach(s => {
+                (s.params?.material_ids || []).forEach(id => { sacrificedGods[id] = (sacrificedGods[id] || 0) + 1; });
+            });
+            const topSacrificed = Object.entries(sacrificedGods).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+            createOrUpdateChart('chart-sacrificed-gods', 'bar', {
+                labels: topSacrificed.map(g => g[0]),
+                datasets: [{ label: 'Sacrificed', data: topSacrificed.map(g => g[1]), backgroundColor: '#d96b6b' }]
+            }, { indexAxis: 'y' });
+
+            // Garrison gods
+            const garrisons = data.filter(e => e.name === 'garrison_assigned');
+            const garrisonGods = {};
+            garrisons.forEach(g => {
+                (g.params?.god_ids || []).forEach(id => { garrisonGods[id] = (garrisonGods[id] || 0) + 1; });
+            });
+            const topGarrison = Object.entries(garrisonGods).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+            createOrUpdateChart('chart-garrison-gods', 'bar', {
+                labels: topGarrison.map(g => g[0]),
+                datasets: [{ label: 'Garrison Uses', data: topGarrison.map(g => g[1]), backgroundColor: '#9bd96b' }]
+            }, { indexAxis: 'y' });
+        }
+
+        function createOrUpdateChart(id, type, data, extraOptions = {}) {
+            const ctx = document.getElementById(id);
+            if (!ctx) return;
+            if (charts[id]) charts[id].destroy();
+
+            charts[id] = new Chart(ctx, {
+                type,
+                data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { position: type === 'bar' ? 'top' : 'right' } },
+                    ...extraOptions
+                }
+            });
+        }
+
+        function updateTable(data) {
+            // Event type filters
+            const types = [...new Set(data.map(e => e.name))];
+            const filtersDiv = document.getElementById('event-filters');
+            filtersDiv.innerHTML = types.map(t => `<span class="chip active" onclick="toggleFilter(this, '${t}')">${t}</span>`).join('');
+
+            // Table
+            const tbody = document.querySelector('#events-table tbody');
+            const recent = data.slice(0, 100);
+            tbody.innerHTML = recent.map(e => `
+                <tr>
+                    <td>${new Date(e.timestamp * 1000).toLocaleString()}</td>
+                    <td>${e.params?.user_id || '-'}</td>
+                    <td>${e.name}</td>
+                    <td>${JSON.stringify(e.params || {}).slice(0, 80)}...</td>
+                </tr>
+            `).join('');
+        }
+
+        function toggleFilter(el, type) {
+            el.classList.toggle('active');
+        }
+
+        function downloadJson() {
+            const blob = new Blob([JSON.stringify(events, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'smyte_analytics_' + new Date().toISOString().split('T')[0] + '.json';
+            a.click();
+        }
+
+        function runQuery() {
+            try {
+                const query = document.getElementById('query-input').value;
+                const result = eval(query);
+                document.getElementById('query-result').textContent = JSON.stringify(result, null, 2);
+            } catch (err) {
+                document.getElementById('query-result').textContent = 'Error: ' + err.message;
+            }
+        }
+
+        // Initialize
+        loadConfig();
+        updateDashboard();
+    </script>
+</body>
+</html>

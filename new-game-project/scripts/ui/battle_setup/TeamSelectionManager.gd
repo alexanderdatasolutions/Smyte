@@ -79,6 +79,10 @@ func _update_ui_for_context():
 			_setup_for_hex_capture()
 		"tower":
 			_setup_for_tower()
+		"pvp_territory_attack":
+			_setup_for_pvp_territory_attack()
+		"pvp_territory_defense":
+			_setup_for_pvp_territory_defense()
 
 	# Update enemy and rewards preview
 	_update_enemy_preview()
@@ -101,6 +105,14 @@ func _setup_for_hex_capture():
 	_refresh_team_slots()
 
 func _setup_for_tower():
+	max_team_size = 4
+	_refresh_team_slots()
+
+func _setup_for_pvp_territory_attack():
+	max_team_size = 4
+	_refresh_team_slots()
+
+func _setup_for_pvp_territory_defense():
 	max_team_size = 4
 	_refresh_team_slots()
 

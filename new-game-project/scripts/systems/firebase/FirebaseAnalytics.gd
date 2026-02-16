@@ -228,3 +228,65 @@ func log_error(error_type: String, error_message: String, context: Dictionary = 
 	}
 	params.merge(context)
 	log_event("error", params)
+
+# ==============================================================================
+# EXTENDED ANALYTICS METHODS
+# ==============================================================================
+
+func log_summon_detailed(summon_data: Dictionary):
+	"""Log detailed summon event with pity and cost info"""
+	log_event("summon_detailed", {
+		"banner_id": summon_data.get("banner_id", ""),
+		"summon_type": summon_data.get("summon_type", ""),
+		"cost_type": summon_data.get("cost_type", ""),
+		"powder_element": summon_data.get("powder_element", ""),
+		"pity_legendary": summon_data.get("pity_legendary", 0),
+		"pity_epic": summon_data.get("pity_epic", 0),
+		"gods_count": summon_data.get("gods_obtained", []).size(),
+		"legendary_count": _count_tier(summon_data.get("gods_obtained", []), "legendary"),
+		"epic_count": _count_tier(summon_data.get("gods_obtained", []), "epic")
+	})
+
+func log_sacrifice(sacrifice_data: Dictionary):
+	"""Log god sacrifice with materials and XP gain"""
+	log_event("sacrifice_performed", sacrifice_data)
+
+func log_awakening(awakening_data: Dictionary):
+	"""Log god awakening event"""
+	log_event("awakening_performed", awakening_data)
+
+func log_battle_team(team_data: Dictionary):
+	"""Log which gods entered battle"""
+	log_event("battle_team", team_data)
+
+func log_garrison(garrison_data: Dictionary):
+	"""Log garrison assignment to territory node"""
+	log_event("garrison_assigned", garrison_data)
+
+func log_workers(worker_data: Dictionary):
+	"""Log worker assignment to territory node"""
+	log_event("workers_assigned", worker_data)
+
+func log_achievement(achievement_id: String, rewards: Dictionary):
+	"""Log achievement unlock with rewards"""
+	log_event("achievement_completed", {"achievement_id": achievement_id, "rewards": rewards})
+
+func log_arena_battle(arena_data: Dictionary):
+	"""Log arena/PvP battle result"""
+	log_event("arena_battle", arena_data)
+
+func log_league_change(league_data: Dictionary):
+	"""Log league promotion/demotion"""
+	log_event("league_changed", league_data)
+
+func log_specialization(spec_data: Dictionary):
+	"""Log god specialization unlock"""
+	log_event("specialization_unlocked", spec_data)
+
+func log_equipment_change(change_data: Dictionary):
+	"""Log equipment equip/unequip"""
+	log_event("equipment_changed", change_data)
+
+func _count_tier(gods: Array, tier_name: String) -> int:
+	"""Helper to count gods of a specific tier in summon results"""
+	return gods.filter(func(g): return g.get("tier", "").to_lower() == tier_name).size()

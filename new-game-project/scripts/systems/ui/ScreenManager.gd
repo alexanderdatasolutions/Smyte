@@ -43,7 +43,9 @@ func _register_screen_scenes():
 		"battle_setup": "res://scenes/BattleSetupScreen.tscn",
 		"shop": "res://scenes/ShopScreen.tscn",
 		"specialization": "res://scenes/GodSpecializationScreen.tscn",
-		"tower": "res://scenes/TowerScreen.tscn"
+		"tower": "res://scenes/TowerScreen.tscn",
+		"arena": "res://scenes/ArenaScreen.tscn",
+		"pvp_territory": "res://scenes/PvPHexTerritoryScreen.tscn"
 	}
 
 func _normalize_screen_name(screen_name: String) -> String:
@@ -67,7 +69,14 @@ func _normalize_screen_name(screen_name: String) -> String:
 		"specializationscreen": "specialization",
 		"godspecializationscreen": "specialization",
 		"towerscreen": "tower",
-		"infinitetower": "tower"
+		"infinitetower": "tower",
+		"arenascreen": "arena",
+		"pvp": "arena",
+		"pvparena": "arena",
+		"pvpterritory": "pvp_territory",
+		"pvphexterritoryscreen": "pvp_territory",
+		"pvpmapselection": "pvp_territory",
+		"pvpmapselectionscreen": "pvp_territory"
 	}
 
 	if aliases.has(normalized):
@@ -120,7 +129,8 @@ const MAIN_SCREENS: Array[String] = [
 	"dungeon",        # Dungeon selection
 	"equipment",      # Equipment screen
 	"shop",           # Shop screen
-	"tower"           # Tower screen
+	"tower",          # Tower screen
+	"arena"           # PvP Arena
 ]
 
 ## Screens that should NEVER be returned to via back button

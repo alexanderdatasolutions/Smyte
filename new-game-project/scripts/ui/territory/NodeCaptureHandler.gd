@@ -403,6 +403,9 @@ func _handle_capture_victory(hex_node: HexNode) -> void:
 	# Emit success signal with rewards
 	capture_succeeded.emit(hex_node, last_capture_rewards)
 
+	# Show capture notification
+	_show_capture_notification(hex_node, last_capture_rewards)
+
 	# Log success
 	print("Victory! Node ", hex_node.name, " is now contested. Claim after contest period.")
 
@@ -412,6 +415,12 @@ func _handle_capture_defeat() -> void:
 		capture_failed.emit(current_capture_node)
 
 	print("Defeat! Failed to capture node.")
+
+func _show_capture_notification(hex_node: HexNode, rewards: Dictionary) -> void:
+	"""Show territory capture notification using NotificationQueue"""
+	var NotificationQueueClass = load("res://scripts/ui/components/NotificationQueue.gd")
+	if NotificationQueueClass:
+		NotificationQueueClass.show_territory(hex_node.name, hex_node.tier, rewards)
 
 # ==============================================================================
 # CAPTURE LOOT SYSTEM

@@ -20,12 +20,14 @@ var tutorial_active: bool = false
 var completed_tutorials: Array = []
 
 # Tutorial definitions - simple and focused
+# NOTE: Feature unlocking is handled by AchievementManager, not tutorials
+# Tutorials only introduce features, they don't unlock them
 var tutorial_steps: Dictionary = {
 	"first_time_user": [
 		{"type": "welcome", "feature": "territories"},
 		{"type": "summon_tutorial", "feature": "summon"},
-		{"type": "battle_tutorial", "feature": "battle"},
-		{"type": "sacrifice_tutorial", "feature": "sacrifice"}
+		{"type": "battle_tutorial", "feature": "battle"}
+		# sacrifice is unlocked by "first_territory" achievement, not tutorial
 	],
 	"hex_territory_intro": [
 		{"type": "hex_map_intro", "feature": "hex_territory"},

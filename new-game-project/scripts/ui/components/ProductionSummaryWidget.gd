@@ -53,6 +53,7 @@ var _buildings_data: Dictionary = {}
 var _craft_popup: Control = null
 var _recipes_data: Dictionary = {}
 var _current_craft_node: HexNode = null
+var _crafting_screen_manager: CraftingScreenManager = null
 
 func _ready() -> void:
 	_load_buildings_data()
@@ -734,34 +735,30 @@ func _on_open_craft_for_node(node: HexNode) -> void:
 # ==============================================================================
 
 func _show_craft_popup(node: HexNode) -> void:
-	"""Show the crafting recipe popup for a specific blacksmith node"""
+	"""Show the crafting screen for a specific blacksmith node using CraftingScreenManager"""
+	# Clean up any existing popup
 	if _craft_popup and is_instance_valid(_craft_popup):
 		_craft_popup.queue_free()
+		_craft_popup = null
 
 	var available_recipes := _get_available_recipes_for_node(node)
 	if available_recipes.is_empty():
 		return
 
-	var viewport_size := get_viewport().get_visible_rect().size
+	var hex_grid_manager = _get_hex_grid_manager()
+	var resource_manager = _get_resource_manager()
 
-	_craft_popup = _create_popup_overlay(viewport_size)
-	var popup_panel := _create_popup_panel(viewport_size)
-	_craft_popup.add_child(popup_panel)
+	# Use the new CraftingScreenManager
+	_crafting_screen_manager = CraftingScreenManager.new()
+	_crafting_screen_manager.craft_started.connect(_on_craft_started_from_screen)
+	_crafting_screen_manager.popup_closed.connect(_on_crafting_screen_closed)
 
-	var content := VBoxContainer.new()
-	content.add_theme_constant_override("separation", 8)
-	popup_panel.add_child(content)
+	# Get the Main node to add the crafting screen to
+	var parent_node: Node = get_tree().root.get_node_or_null("Main")
+	if not parent_node:
+		parent_node = get_tree().root
 
-	_add_popup_header(content, node.name)
-	_add_popup_tier_info(content, node.tier, available_recipes.size())
-	content.add_child(HSeparator.new())
-	_add_popup_recipe_grid(content, available_recipes, node)
-
-	var main_node := get_tree().root.get_node_or_null("Main")
-	if main_node:
-		main_node.add_child(_craft_popup)
-	else:
-		get_tree().root.add_child(_craft_popup)
+	_crafting_screen_manager.show_crafting_screen(node, available_recipes, hex_grid_manager, resource_manager, parent_node)
 
 func _create_popup_overlay(viewport_size: Vector2) -> Control:
 	"""Create the full-screen popup container with dark background"""
@@ -900,6 +897,20 @@ func _close_craft_popup() -> void:
 		_craft_popup.queue_free()
 		_craft_popup = null
 	_current_craft_node = null
+	_crafting_screen_manager = null
+
+func _on_craft_started_from_screen(_node: HexNode, task_id: String) -> void:
+	"""Handle craft started from the new CraftingScreenManager"""
+	_update_craft_display()
+	var task_data: Dictionary = _recipes_data.get(task_id, {})
+	var task_name: String = task_data.get("name", task_id)
+	_show_craft_success(task_name)
+
+func _on_crafting_screen_closed() -> void:
+	"""Handle crafting screen closed"""
+	_crafting_screen_manager = null
+	_current_craft_node = null
+	_update_craft_display()
 
 func _on_start_craft(task: Dictionary, node: HexNode) -> void:
 	"""Handle starting a craft task"""
@@ -1094,6 +1105,12 @@ func _on_collect_craft(craft_data: Dictionary) -> void:
 	_show_craft_collected_feedback(task_data)
 
 func _award_craft_rewards(task_data: Dictionary) -> void:
+	# Check if this is equipment crafting (has equipment_type field)
+	if task_data.has("equipment_type"):
+		_award_equipment_craft(task_data)
+		return
+
+	# Otherwise it's a resource conversion
 	var resource_manager = _get_resource_manager()
 	if not resource_manager:
 		return
@@ -1102,6 +1119,57 @@ func _award_craft_rewards(task_data: Dictionary) -> void:
 	for resource_id in resources.keys():
 		var amount = resources[resource_id]
 		resource_manager.add_resource(resource_id, amount)
+
+func _award_equipment_craft(task_data: Dictionary) -> void:
+	"""Create and award equipment from a crafting recipe"""
+	var registry = _get_system_registry()
+	if not registry:
+		push_error("[ProductionSummaryWidget] Cannot award equipment - SystemRegistry not available")
+		return
+
+	# Create equipment from recipe data
+	var equipment_type = task_data.get("equipment_type", "weapon")
+	var rarity = task_data.get("rarity", "common")
+	var recipe_id = task_data.get("id", "crafted_item")
+	var equipment_set = task_data.get("equipment_set", "")
+	var base_stats = task_data.get("base_stats", {})
+	var item_name = task_data.get("name", "Crafted Equipment")
+
+	# Create the equipment (equipment_type and rarity should be lowercase)
+	var equipment = Equipment.create_from_dungeon("crafted_" + recipe_id, equipment_type.to_lower(), rarity.to_lower(), 1)
+	if not equipment:
+		push_error("[ProductionSummaryWidget] Failed to create equipment from recipe: %s" % recipe_id)
+		return
+
+	# Override with recipe-specific data
+	equipment.name = item_name
+	if equipment_set != "":
+		equipment.equipment_set_type = equipment_set
+		equipment.equipment_set_name = equipment_set.capitalize()
+
+	# Apply base stats from recipe
+	for stat_name in base_stats:
+		equipment.add_stat_bonus(stat_name, base_stats[stat_name])
+
+	# Add to inventory and collection
+	var equipment_manager = registry.get_system("EquipmentManager")
+	if equipment_manager:
+		equipment_manager.add_equipment_to_inventory(equipment)
+		print("[ProductionSummaryWidget] Added crafted equipment to inventory: %s" % equipment.name)
+	else:
+		push_error("[ProductionSummaryWidget] EquipmentManager not found")
+
+	var collection_manager = registry.get_system("CollectionManager")
+	if collection_manager:
+		collection_manager.add_equipment(equipment)
+		print("[ProductionSummaryWidget] Added crafted equipment to CollectionManager: %s" % equipment.name)
+	else:
+		push_error("[ProductionSummaryWidget] CollectionManager not found")
+
+	# Trigger save
+	var event_bus = registry.get_system("EventBus")
+	if event_bus:
+		event_bus.save_requested.emit()
 
 func _show_craft_collected_feedback(task_data: Dictionary) -> void:
 	var task_name = task_data.get("name", "Item")

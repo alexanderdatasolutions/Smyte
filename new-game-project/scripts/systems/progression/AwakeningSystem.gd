@@ -116,10 +116,27 @@ func attempt_awakening(god: God) -> bool:
 	# Replace the god with the awakened version
 	if replace_god_with_awakened(god, awakened_god_data):
 		awakening_completed.emit(god)
+		_show_awakening_notification(god)
 		return true
 	else:
 		awakening_failed.emit(god, "Awakening process failed")
 		return false
+
+func _show_awakening_notification(god: God) -> void:
+	"""Show awakening notification"""
+	var root = Engine.get_main_loop().current_scene
+	if not root:
+		return
+
+	var GenericPopupClass = load("res://scripts/ui/components/GenericPopup.gd")
+	if GenericPopupClass:
+		GenericPopupClass.show_popup(root, {
+			"title": "Awakening Complete!",
+			"message": "%s has awakened!\n\nLevel cap increased to 50\nNew abilities unlocked!" % god.name,
+			"icon": "⭐",
+			"accent": "feature",
+			"buttons": [{"id": "ok", "text": "Amazing!", "primary": true}]
+		})
 
 func replace_god_with_awakened(old_god: God, awakened_data: Dictionary) -> bool:
 	"""Replace the base god with its awakened form"""

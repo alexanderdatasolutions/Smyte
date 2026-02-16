@@ -94,6 +94,50 @@ func get_god_equipment(god_id: String) -> Array:
 		return god.equipment
 	return []
 
+## Add equipment to collection (for persistence)
+func add_equipment(eq: Equipment) -> bool:
+	"""Add equipment to collection for save/load persistence"""
+	if not eq:
+		return false
+
+	# Check if already exists
+	for existing in equipment:
+		if existing.id == eq.id:
+			return false
+
+	equipment.append(eq)
+	print("[CollectionManager] Added equipment: %s (total: %d)" % [eq.name, equipment.size()])
+
+	# Emit event
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus")
+	if event_bus:
+		event_bus.collection_updated.emit()
+
+	return true
+
+## Remove equipment from collection
+func remove_equipment(eq: Equipment) -> bool:
+	"""Remove equipment from collection"""
+	if not eq:
+		return false
+
+	var index = -1
+	for i in range(equipment.size()):
+		if equipment[i].id == eq.id:
+			index = i
+			break
+
+	if index == -1:
+		return false
+
+	equipment.remove_at(index)
+	return true
+
+## Get all equipment
+func get_all_equipment() -> Array:
+	"""Get all equipment in collection"""
+	return equipment.duplicate()
+
 ## Update god equipment slot (called by EquipmentInventoryManager)
 func update_god_equipment(god_id: String, slot: int, equipment_item: Equipment) -> bool:
 	"""Update equipment in specific slot for god - RULE 3 compliant"""

@@ -627,6 +627,14 @@ func update_node_garrison(node_id: String, garrison_ids: Array) -> bool:
 	var event_bus: Node = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
 	if event_bus:
 		event_bus.save_requested.emit()
+		# Emit garrison update for analytics
+		var total_power: int = int(_calculate_garrison_power(node))
+		event_bus.garrison_updated.emit({
+			"node_id": node_id,
+			"node_tier": node.tier,
+			"god_ids": node.garrison.duplicate(),
+			"total_power": total_power
+		})
 
 	return true
 
@@ -675,6 +683,13 @@ func update_node_workers(node_id: String, worker_ids: Array) -> bool:
 	var event_bus: Node = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
 	if event_bus:
 		event_bus.save_requested.emit()
+		# Emit worker update for analytics
+		event_bus.workers_updated.emit({
+			"node_id": node_id,
+			"node_tier": node.tier,
+			"god_ids": node.assigned_workers.duplicate(),
+			"task_ids": node.active_tasks.duplicate() if "active_tasks" in node else []
+		})
 
 	return true
 
