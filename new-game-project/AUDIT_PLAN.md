@@ -601,8 +601,8 @@
     "priority": "medium",
     "file": "scripts/systems/dungeon/DungeonCoordinator.gd",
     "issue": "No null check before resource_manager.can_spend(), SystemRegistry not validated",
-    "action": "Add null checks before system calls",
-    "passes": false
+    "action": "Added null checks for SystemRegistry.get_instance() at 3 call sites (start_dungeon_battle, _get_energy_cost, _handle_dungeon_victory). Changed unsafe Dictionary dot-access to .get() with defaults for current_dungeon_battle keys (dungeon_id, difficulty, start_time, team) in _handle_dungeon_victory, _handle_dungeon_defeat, and _award_team_experience. Removed 10 Python-style docstrings. File reduced from 274 to 267 lines.",
+    "passes": true
   },
   {
     "priority": "medium",

@@ -7,6 +7,21 @@
 
 ---
 
+## 2026-02-16 - Audit: Add null checks to DungeonCoordinator.gd
+
+**Priority:** Medium (Error Handling)
+**File(s) Modified:** `scripts/systems/dungeon/DungeonCoordinator.gd`
+
+**Changes:**
+- Added null checks for SystemRegistry.get_instance() at 3 call sites (start_dungeon_battle, _get_energy_cost, _handle_dungeon_victory) with early returns/fallback defaults
+- Changed unsafe Dictionary dot-access to .get() with defaults for current_dungeon_battle keys (dungeon_id, difficulty, start_time, team) in _handle_dungeon_victory, _handle_dungeon_defeat, and _award_team_experience
+- Removed 10 Python-style docstrings (`"""..."""`) from all functions
+- File reduced from 274 to 267 lines
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Add static typing to GodFactory.gd
 
 **Priority:** Medium (Static Typing)
