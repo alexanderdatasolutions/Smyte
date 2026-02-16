@@ -1257,3 +1257,30 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: add cache clearing to Skill.gd`
+
+### 2026-02-16 - Audit: Remove dead code from StatisticsManager.gd and wire into save/EventBus
+
+**Priority:** High
+**File(s) Modified:**
+- `scripts/systems/core/StatisticsManager.gd`
+- `scripts/systems/core/SaveManager.gd`
+
+**Changes:**
+- Removed ~230 lines of dead code from StatisticsManager.gd (332 → 102 lines):
+  - Removed `achievement_unlocked` signal (duplicated EventBus signal)
+  - Removed `god_performance` dictionary and all 5 related functions (`_update_god_performance`, `record_ability_use`, `get_god_win_rate`, `record_damage_dealt/taken/healing_done` with god_performance refs)
+  - Removed all achievement checking functions (`check_achievements`, `_check_battle_achievements`, `_check_collection_achievements`, `_check_progression_achievements`, `_unlock_achievement`) — duplicated AchievementManager
+  - Removed analytics functions (`get_battle_summary`, `get_top_performing_gods`) — zero external callers
+  - Removed `time_stats` dictionary and all time tracking (`_update_session_playtime`, `get_playtime_summary`, `_exit_tree`) — never used externally
+  - Removed resource recording functions (`record_resource_earned`, `record_crystal_spending`, `record_summon`) — zero external callers
+  - Removed `record_battle_start` (used Node meta tracking, never called)
+- Wired StatisticsManager into EventBus: connects to `battle_ended`, `dungeon_completed`, `territory_captured`, `summon_performed` signals so stats are actually populated
+- Renamed `save_statistics_data()`/`load_statistics_data()` to `get_save_data()`/`load_save_data()` for consistency
+- Added StatisticsManager to SaveManager save chain (`save_data["statistics"]`)
+- Added StatisticsManager to SaveManager load chain (`_load_system_data` call)
+- Added "statistics" to save validation section list
+- Stats data (battles_won, dungeon_clears, total_summons_performed) now actually populated and persisted — AchievementManager achievement progress for battle_wins/dungeon_clears/summon_count will now work
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: remove dead code from StatisticsManager and wire into save/EventBus`

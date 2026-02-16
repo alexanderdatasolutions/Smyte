@@ -107,6 +107,10 @@ func save_game() -> bool:
 	if achievement_manager and achievement_manager.has_method("get_save_data"):
 		save_data["achievements"] = achievement_manager.get_save_data()
 
+	var statistics_manager = system_registry.get_system("StatisticsManager") if system_registry else null
+	if statistics_manager and statistics_manager.has_method("get_save_data"):
+		save_data["statistics"] = statistics_manager.get_save_data()
+
 	# Save player-specific data (tower best floor, etc.)
 	save_data["player_data"] = player_data
 
@@ -208,7 +212,7 @@ func _validate_save_data(save_data: Dictionary) -> bool:
 	var dict_sections: Array[String] = [
 		"resources", "collection", "battle", "hex_grid", "territory",
 		"dungeon", "summon", "tutorial", "arena", "player_progression",
-		"equipment", "shop", "skins", "achievements", "player_data",
+		"equipment", "shop", "skins", "achievements", "statistics", "player_data",
 	]
 	for key: String in dict_sections:
 		if save_data.has(key) and not save_data[key] is Dictionary:
@@ -260,6 +264,7 @@ func _load_systems_from_data(save_data: Dictionary, system_registry) -> void:
 	_load_system_data(system_registry, "ShopManager", "shop", save_data)
 	_load_system_data(system_registry, "SkinManager", "skins", save_data)
 	_load_system_data(system_registry, "AchievementManager", "achievements", save_data)
+	_load_system_data(system_registry, "StatisticsManager", "statistics", save_data)
 
 	# After loading arena, restore defense team references
 	var arena_manager = system_registry.get_system("ArenaManager")

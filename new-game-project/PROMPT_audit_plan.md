@@ -133,7 +133,7 @@
     "file": "scripts/systems/core/StatisticsManager.gd",
     "issue": "~250 lines of unused code including duplicate achievement_unlocked signal with EventBus",
     "action": "Remove unused tracking code or consolidate with EventBus",
-    "passes": false
+    "passes": true
   },
   {
     "priority": "high",
