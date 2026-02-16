@@ -286,8 +286,8 @@
     "priority": "medium",
     "file": "scripts/systems/firebase/FirebaseIntegration.gd",
     "issue": "_restore_session() duplicates sign-in logic (32 lines), _initialize_cloud_saves() has unused parameter path",
-    "action": "Consolidate session restoration logic",
-    "passes": false
+    "action": "Extracted _extract_user_data() helper to consolidate duplicate user data extraction from _on_login_succeeded() and _restore_session(). Fixed 6 'Signal already connected' errors in _setup_firebase() by using _safe_connect() instead of direct .connect(). Fixed 2 unused parameter warnings (_new_amount, _old_screen). File reduced from 548 to 534 lines.",
+    "passes": true
   },
   {
     "priority": "low",

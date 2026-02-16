@@ -82,13 +82,12 @@ func _setup_firebase() -> void:
 
 	# Connect auth signals - GodotFirebase uses Firebase.Auth
 	if firebase.Auth:
-		firebase.Auth.login_succeeded.connect(_on_login_succeeded)
-		firebase.Auth.login_failed.connect(_on_login_failed)
-		firebase.Auth.signup_succeeded.connect(_on_login_succeeded)  # For new accounts
-		firebase.Auth.signup_failed.connect(_on_login_failed)  # Handle signup failures
-		firebase.Auth.logged_out.connect(_on_logout_succeeded)
-		# Connect token refresh for session restoration
-		firebase.Auth.token_refresh_succeeded.connect(_on_token_refresh_succeeded)
+		_safe_connect(firebase.Auth, "login_succeeded", _on_login_succeeded)
+		_safe_connect(firebase.Auth, "login_failed", _on_login_failed)
+		_safe_connect(firebase.Auth, "signup_succeeded", _on_login_succeeded)
+		_safe_connect(firebase.Auth, "signup_failed", _on_login_failed)
+		_safe_connect(firebase.Auth, "logged_out", _on_logout_succeeded)
+		_safe_connect(firebase.Auth, "token_refresh_succeeded", _on_token_refresh_succeeded)
 
 		# Check for saved auth file first (persistent login)
 		if firebase.Auth.check_auth_file():
@@ -159,6 +158,24 @@ func _connect_cloud_save_signals() -> void:
 # ==============================================================================
 # AUTHENTICATION
 # ==============================================================================
+
+func _extract_user_data(auth_data: Dictionary) -> Dictionary:
+	"""Extract normalized user data from Firebase auth result.
+	GodotFirebase uses inconsistent key names across login/signup/token-refresh,
+	so we try multiple variants for each field."""
+	var provider: String = "email"
+	if auth_data.has("providerid"):
+		provider = auth_data.get("providerid")
+	elif auth_data.has("provider_id"):
+		provider = auth_data.get("provider_id")
+
+	return {
+		"uid": auth_data.get("localid", auth_data.get("local_id", auth_data.get("userid", auth_data.get("user_id", "")))),
+		"email": auth_data.get("email", ""),
+		"display_name": auth_data.get("displayname", auth_data.get("display_name", "")),
+		"photo_url": auth_data.get("photourl", auth_data.get("photo_url", "")),
+		"provider": provider
+	}
 
 func sign_in_with_google() -> void:
 	"""Start Google Sign-In flow via Firebase Auth"""
@@ -260,21 +277,7 @@ func _on_login_succeeded(auth_result: Dictionary) -> void:
 	if auth_state == AuthState.SIGNED_IN:
 		return
 
-	# Detect provider from auth result or default to email
-	var provider: String = "email"
-	if auth_result.has("providerid"):
-		provider = auth_result.get("providerid")
-	elif auth_result.has("provider_id"):
-		provider = auth_result.get("provider_id")
-
-	user_data = {
-		"uid": auth_result.get("localid", auth_result.get("local_id", "")),
-		"email": auth_result.get("email", ""),
-		"display_name": auth_result.get("displayname", auth_result.get("display_name", "")),
-		"photo_url": auth_result.get("photourl", auth_result.get("photo_url", "")),
-		"provider": provider
-	}
-
+	user_data = _extract_user_data(auth_result)
 	auth_state = AuthState.SIGNED_IN
 	analytics.set_user_id(user_data.get("uid", ""))
 
@@ -356,31 +359,14 @@ func is_cloud_save_ready() -> bool:
 	return cloud_save_manager != null and cloud_save_manager.is_ready()
 
 func _restore_session(auth_data: Dictionary) -> void:
-	"""Restore session from cached credentials"""
-	# Detect provider from cached data
-	var provider: String = "email"
-	if auth_data.has("providerid"):
-		provider = auth_data.get("providerid")
-	elif auth_data.has("provider_id"):
-		provider = auth_data.get("provider_id")
-
-	# GodotFirebase token refresh may use different keys
-	# Try multiple possible key names for each field
-	user_data = {
-		"uid": auth_data.get("localid", auth_data.get("local_id", auth_data.get("userid", auth_data.get("user_id", "")))),
-		"email": auth_data.get("email", ""),
-		"display_name": auth_data.get("displayname", auth_data.get("display_name", "")),
-		"photo_url": auth_data.get("photourl", auth_data.get("photo_url", "")),
-		"provider": provider
-	}
+	"""Restore session from cached credentials (token refresh or saved auth)"""
+	user_data = _extract_user_data(auth_data)
 
 	if not user_data.get("uid", "").is_empty():
 		auth_state = AuthState.SIGNED_IN
 		analytics.set_user_id(user_data.get("uid", ""))
 		# Don't auto-load from cloud on session restore - local save is current
 		_initialize_cloud_saves(false)
-
-		# IMPORTANT: Emit sign_in_completed so UI updates
 		sign_in_completed.emit(user_data)
 
 # ==============================================================================
@@ -433,7 +419,7 @@ func _on_dungeon_completed(dungeon_id: String, rewards: Variant = null) -> void:
 		rewards_dict = rewards
 	analytics.log_dungeon_completed(dungeon_id, "normal", rewards_dict)
 
-func _on_resource_changed(resource_id: String, new_amount: int, delta: int) -> void:
+func _on_resource_changed(resource_id: String, _new_amount: int, delta: int) -> void:
 	"""Log significant resource changes (filter noise + throttle)"""
 	# Throttle to prevent spam
 	var now: float = Time.get_unix_time_from_system()
@@ -458,7 +444,7 @@ func _on_territory_captured(territory: Variant) -> void:
 
 	analytics.log_territory_captured(territory_id, 0)
 
-func _on_screen_changed(old_screen: String, new_screen: String) -> void:
+func _on_screen_changed(_old_screen: String, new_screen: String) -> void:
 	"""Log screen navigation"""
 	analytics.log_screen_view(new_screen)
 

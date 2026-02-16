@@ -7,6 +7,22 @@
 
 ---
 
+## 2026-02-16 - Audit: Consolidate duplicate auth logic in FirebaseIntegration.gd
+
+**Priority:** Medium (Dead Code)
+**File(s) Modified:** `scripts/systems/firebase/FirebaseIntegration.gd`
+
+**Changes:**
+- Extracted `_extract_user_data()` helper to consolidate duplicate user data extraction logic from `_on_login_succeeded()` and `_restore_session()` (removed ~20 lines of duplication)
+- Both functions now delegate to the shared helper which handles GodotFirebase's inconsistent key names (localid/local_id/userid/user_id, displayname/display_name, etc.)
+- Fixed 6 "Signal already connected" ERROR messages in `_setup_firebase()` by switching from direct `.connect()` to existing `_safe_connect()` helper
+- Fixed 2 unused parameter warnings: `new_amount` -> `_new_amount` in `_on_resource_changed()`, `old_screen` -> `_old_screen` in `_on_screen_changed()`
+- File reduced from 548 to 534 lines
+
+**Verified:** Ran project, no new errors. Eliminated 6 pre-existing "Signal already connected" errors and 2 unused parameter warnings from FirebaseIntegration.gd.
+
+---
+
 ## 2026-02-16 - Audit: Split DungeonManager.gd into DungeonManager + DungeonWaveHelper
 
 **Priority:** High (Code Simplification)
