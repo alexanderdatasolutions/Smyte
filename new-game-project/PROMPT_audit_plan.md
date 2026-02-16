@@ -56,7 +56,7 @@
     "file": "scripts/systems/core/SaveManager.gd",
     "issue": "No save-on-quit handler - players lose up to 60 seconds of progress on force-close",
     "action": "Add NOTIFICATION_WM_CLOSE_REQUEST handler that calls save_game() before quit",
-    "passes": false
+    "passes": true
   },
   {
     "priority": "high",

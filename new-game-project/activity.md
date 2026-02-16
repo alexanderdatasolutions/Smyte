@@ -1098,3 +1098,18 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no new errors in debug output. Achievement restore works correctly — `first_summon` and `five_gods` recognized as completed, `first_territory` triggered and saved.
 
 **Commit:** `audit: fix save system for AchievementManager`
+
+### 2026-02-16 - Audit: Add save-on-quit handler to SaveManager
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/core/SaveManager.gd`
+
+**Changes:**
+- Added `_notification()` handler that catches `NOTIFICATION_WM_CLOSE_REQUEST`
+- Calls `save_game()` before `get_tree().quit()` to prevent data loss on window close
+- Players no longer lose up to 60 seconds of progress on force-close
+- Added `-> void` return type to `_ready()`, typed `delta` parameter in `_process()`
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: add save-on-quit handler to SaveManager`

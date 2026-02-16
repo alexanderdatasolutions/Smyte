@@ -25,10 +25,15 @@ var player_data: Dictionary = {}
 # Firebase integration reference (set during initialization)
 var _firebase_integration = null
 
-func _ready():
+func _ready() -> void:
 	_connect_firebase()
 
-func _process(delta):
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		save_game()
+		get_tree().quit()
+
+func _process(delta: float) -> void:
 	if auto_save_enabled:
 		last_auto_save += delta
 		if last_auto_save >= auto_save_interval:
