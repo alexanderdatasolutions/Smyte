@@ -68,6 +68,42 @@ Priority order:
 5. Remove duplicate code
 6. Simplify complex conditionals
 
+### For Data-Driven JSON Config:
+1. Identify hardcoded values that should be in JSON (costs, rates, thresholds, formulas)
+2. Check if the target JSON file exists in `data/`:
+   - If exists: Add the new section/values
+   - If not: Create the new JSON file with proper structure
+3. Update the GDScript file to:
+   - Load the JSON config (use ConfigurationManager or direct load)
+   - Replace hardcoded values with config lookups
+   - Add fallback defaults in case config is missing
+4. JSON structure guidelines:
+   ```json
+   {
+     "_comment": "Brief description of this config",
+     "section_name": {
+       "value_name": 100,
+       "nested": { "key": "value" }
+     }
+   }
+   ```
+5. GDScript loading pattern:
+   ```gdscript
+   var _config: Dictionary = {}
+
+   func _load_config() -> void:
+       var file := FileAccess.open("res://data/config_name.json", FileAccess.READ)
+       if file:
+           _config = JSON.parse_string(file.get_as_text())
+       else:
+           push_warning("Config not found, using defaults")
+           _config = _get_default_config()
+
+   func _get_value(key: String, default: Variant) -> Variant:
+       return _config.get(key, default)
+   ```
+6. Verify the game still works with the new config-driven values
+
 ### For Documentation:
 1. Read the file
 2. Add docstrings to public functions
@@ -186,6 +222,9 @@ Commit message prefixes:
 - `audit: add loading states to ShopScreen`
 - `audit: optimize GodCard rendering`
 - `audit: fix loot table references`
+- `audit: move combat formula to combat_config.json`
+- `audit: create arena_config.json for ELO settings`
+- `audit: externalize equipment rates to JSON`
 
 Do NOT push. Do NOT change remotes.
 

@@ -12,7 +12,8 @@ signal cloud_sync_completed
 signal cloud_sync_failed(error: String)
 
 const SAVE_FILE_PATH = "user://save_game.dat"  # Match GameCoordinator path
-const SAVE_VERSION = "1.0"
+const SAVE_VERSION = "1.1"
+const KNOWN_VERSIONS: Array[String] = ["1.0", "1.1"]
 
 var auto_save_enabled: bool = true
 var auto_save_interval: float = 60.0  # 1 minute - shorter interval to prevent data loss
@@ -138,10 +139,10 @@ func load_game() -> bool:
 	if save_data.is_empty():
 		return false
 
-	# Validate version
-	var version: String = save_data.get("version", "")
+	# Migrate save data if version differs
+	var version: String = save_data.get("version", "0.0")
 	if version != SAVE_VERSION:
-		push_warning("SaveManager: Save file version mismatch: " + version + " vs " + SAVE_VERSION)
+		save_data = _migrate_save_data(save_data, version)
 
 	# Load data into all systems
 	var system_registry := SystemRegistry.get_instance()
@@ -219,14 +220,6 @@ func _load_systems_from_data(save_data: Dictionary, system_registry) -> void:
 	_load_system_data(system_registry, "SkinManager", "skins", save_data)
 	_load_system_data(system_registry, "AchievementManager", "achievements", save_data)
 
-	# Migrate legacy achievements from player_data if needed
-	if not save_data.has("achievements") and save_data.has("player_data"):
-		var pd: Dictionary = save_data["player_data"]
-		if pd.has("achievements"):
-			var am = system_registry.get_system("AchievementManager")
-			if am and am.has_method("load_save_data"):
-				am.load_save_data(pd["achievements"])
-
 	# After loading arena, restore defense team references
 	var arena_manager = system_registry.get_system("ArenaManager")
 	if arena_manager and arena_manager.has_method("restore_defense_team_from_ids"):
@@ -248,6 +241,37 @@ func _load_system_data(system_registry, system_name: String, data_key: String, s
 	var system = system_registry.get_system(system_name)
 	if system and system.has_method("load_save_data"):
 		system.load_save_data(save_data[data_key])
+
+## Migrate save data from older versions to current version via sequential upgrades
+func _migrate_save_data(save_data: Dictionary, from_version: String) -> Dictionary:
+	var current: String = from_version
+	if current not in KNOWN_VERSIONS:
+		push_warning("SaveManager: Unknown save version '%s', attempting load without migration" % current)
+		save_data["version"] = SAVE_VERSION
+		return save_data
+
+	# Apply migrations sequentially: 1.0 → 1.1 → ...
+	if current == "1.0":
+		save_data = _migrate_1_0_to_1_1(save_data)
+		current = "1.1"
+
+	# Future migrations go here:
+	# if current == "1.1":
+	#     save_data = _migrate_1_1_to_1_2(save_data)
+	#     current = "1.2"
+
+	save_data["version"] = SAVE_VERSION
+	return save_data
+
+## Migrate from 1.0 → 1.1: move achievements from player_data bag to top-level key
+func _migrate_1_0_to_1_1(save_data: Dictionary) -> Dictionary:
+	# Achievements were stored inside player_data in v1.0 — promote to top-level
+	if not save_data.has("achievements") and save_data.has("player_data"):
+		var pd: Dictionary = save_data.get("player_data", {})
+		if pd.has("achievements"):
+			save_data["achievements"] = pd["achievements"]
+			pd.erase("achievements")
+	return save_data
 
 ## Auto-save
 func auto_save():
@@ -484,6 +508,11 @@ func _apply_save_data(save_data: Dictionary) -> void:
 	if not system_registry:
 		load_failed.emit("SystemRegistry not available")
 		return
+
+	# Migrate cloud save data if needed
+	var version: String = save_data.get("version", "0.0")
+	if version != SAVE_VERSION:
+		save_data = _migrate_save_data(save_data, version)
 
 	_load_systems_from_data(save_data, system_registry)
 	load_completed.emit(true, save_data)

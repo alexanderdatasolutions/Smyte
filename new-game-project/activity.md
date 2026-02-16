@@ -1113,3 +1113,22 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: add save-on-quit handler to SaveManager`
+
+### 2026-02-16 - Audit: Add save version migration to SaveManager
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/core/SaveManager.gd`
+
+**Changes:**
+- Bumped SAVE_VERSION from "1.0" to "1.1" and added KNOWN_VERSIONS constant
+- Added `_migrate_save_data()` with sequential version-based migration chains (1.0 → 1.1 → ...)
+- Added `_migrate_1_0_to_1_1()` — promotes achievements from `player_data.achievements` to top-level `achievements` key
+- Updated `load_game()` to detect version mismatch and run migration before loading systems
+- Updated `_apply_save_data()` (cloud save path) to also run migration before loading
+- Removed inline legacy migration from `_load_systems_from_data()` — now handled by migration system
+- Unknown save versions get a warning but still attempt to load (graceful fallback)
+- Future migrations can be added as `_migrate_X_to_Y()` functions chained in `_migrate_save_data()`
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: add save version migration to SaveManager`
