@@ -1149,3 +1149,18 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: add missing Equipment properties for EquipmentInventoryManager`
+
+### 2026-02-16 - Audit: Fix wrong God property in EquipmentStatCalculator
+
+**Priority:** Critical
+**File(s) Modified:** `scripts/systems/equipment/EquipmentStatCalculator.gd`
+
+**Changes:**
+- Fixed `calculate_set_bonuses()` — used non-existent `god.equipped_equipment` property (lines 155, 160), changed to `god.equipment` which is the actual God.gd property
+- Renamed loop variable from `equipment` to `equip` to avoid shadowing the Equipment class name
+- Added `is Equipment` type check in the loop for safety
+- Added static typing to `set_counts` and `bonuses` dictionaries
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: fix wrong God property in EquipmentStatCalculator`

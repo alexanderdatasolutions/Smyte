@@ -152,18 +152,18 @@ func _format_substats(substats: Array) -> Array:
 
 func calculate_set_bonuses(god: God) -> Dictionary:
 	"""Calculate set bonuses from equipped equipment"""
-	if not god or not god.equipped_equipment:
+	if not god or not god.equipment:
 		return {}
-	
+
 	# Count equipment by set
-	var set_counts = {}
-	for equipment in god.equipped_equipment:
-		if equipment and equipment.equipment_set_name != "":
-			var equipment_set = equipment.equipment_set_name
-			set_counts[equipment_set] = set_counts.get(equipment_set, 0) + 1
-	
+	var set_counts: Dictionary = {}
+	for equip in god.equipment:
+		if equip and equip is Equipment and equip.equipment_set_name != "":
+			var equip_set: String = equip.equipment_set_name
+			set_counts[equip_set] = set_counts.get(equip_set, 0) + 1
+
 	# Apply set bonuses based on counts
-	var bonuses = {}
+	var bonuses: Dictionary = {}
 	for equipment_set in set_counts:
 		var count = set_counts[equipment_set]
 		var set_bonus = _get_set_bonus_effects(equipment_set, count)

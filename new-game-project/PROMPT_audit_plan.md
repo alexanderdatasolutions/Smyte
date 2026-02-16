@@ -91,7 +91,7 @@
     "file": "scripts/systems/equipment/EquipmentStatCalculator.gd",
     "issue": "Uses wrong God property 'equipped_equipment' instead of 'equipment' - stat calculation broken",
     "action": "Change to use god.equipment property",
-    "passes": false
+    "passes": true
   },
   {
     "priority": "critical",
