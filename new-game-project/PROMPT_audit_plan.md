@@ -98,7 +98,7 @@
     "file": "scripts/systems/battle/StatusEffectManager.gd",
     "issue": "ENTIRE FILE UNUSED (149 lines) - never registered in SystemRegistry, never instantiated anywhere",
     "action": "Delete StatusEffectManager.gd - status effects are handled inline in BattleActionProcessor",
-    "passes": false
+    "passes": true
   },
   {
     "priority": "high",

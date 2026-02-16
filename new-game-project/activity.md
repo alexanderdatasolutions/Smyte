@@ -1164,3 +1164,18 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: fix wrong God property in EquipmentStatCalculator`
+
+### 2026-02-16 - Audit: Delete unused StatusEffectManager.gd
+
+**Priority:** Critical
+**File(s) Deleted:** `scripts/systems/battle/StatusEffectManager.gd`, `scripts/systems/battle/StatusEffectManager.gd.uid`
+
+**Changes:**
+- Deleted entire `StatusEffectManager.gd` (149 lines) — never registered in SystemRegistry, never instantiated, zero external callers
+- Only references were in documentation files (docs/analysis, docs/MOCs, GAME_DESIGN_DOCUMENT.md)
+- Status effects are handled inline by BattleActionProcessor.gd — this file was a dead alternative implementation
+- Also deleted orphaned `.uid` file
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: delete unused StatusEffectManager.gd`
