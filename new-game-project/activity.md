@@ -7,6 +7,25 @@
 
 ---
 
+## 2026-02-16 - Audit: Add null checks and missing methods to ResourceManager.gd
+
+**Priority:** Medium (Error Handling)
+**File(s) Modified:** `scripts/systems/resources/ResourceManager.gd`
+
+**Changes:**
+- Extracted `_emit_to_event_bus()` helper with null-safe SystemRegistry access (replaces 3 inline ternary patterns that called `get_instance()` twice each)
+- Added missing `can_spend(resource_id, amount)` method (called by DungeonCoordinator.gd and DungeonEntryManager.gd but never defined)
+- Added missing `spend_resource(resource_id, amount)` alias (called by SkinManager, AwakeningSystem, EquipmentCraftingManager, EquipmentSocketManager but never defined)
+- Added `get_resources_by_category(category)` method with resources.json loading (called by PlayerData.gd but never defined)
+- Added `_load_resource_definitions()` that reads resources.json and overrides hardcoded limits with `max_storage` values from JSON
+- Added static typing to all 25+ variables, parameters, return types, and loop iterators
+- Changed `max()` to `maxi()` for int context, used `.get()` for safe dict access in `load_from_save()`
+- File grew from 197 to 233 lines (added 3 missing methods + resource loading)
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Add null checks to DungeonCoordinator.gd
 
 **Priority:** Medium (Error Handling)

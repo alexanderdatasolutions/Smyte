@@ -608,8 +608,8 @@
     "priority": "medium",
     "file": "scripts/systems/resources/ResourceManager.gd",
     "issue": "3 SystemRegistry.get_instance() calls without null checks",
-    "action": "Add null checks",
-    "passes": false
+    "action": "Extracted _emit_to_event_bus() helper with null-safe SystemRegistry access (replaces 3 inline ternary patterns). Added missing can_spend() and spend_resource() methods (called by 7 files but never defined). Added get_resources_by_category() with resources.json loading. Added _load_resource_definitions() to read max_storage limits from JSON. Added static typing to all 25+ variables, parameters, return types, and loop iterators. Changed max() to maxi() for int context. Used .get() for safe dict access in load_from_save().",
+    "passes": true
   },
   {
     "priority": "medium",
