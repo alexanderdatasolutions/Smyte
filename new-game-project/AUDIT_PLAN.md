@@ -202,8 +202,8 @@
     "priority": "high",
     "file": "scripts/systems/collection/InventoryManager.gd",
     "issue": "Dead code: quest_items, get_all_consumables(), get_all_materials(), 2 unused signals",
-    "action": "Delete dead code",
-    "passes": false
+    "action": "Removed quest_items dict and all references (no quest system exists), removed item_consumed signal (never emitted/connected), removed inventory_updated signal (emitted but never connected). get_all_consumables/get_all_materials already didn't exist. File reduced from 112 to 93 lines.",
+    "passes": true
   },
   {
     "priority": "high",

@@ -3,7 +3,25 @@
 ## Current Status
 **Last Updated:** 2026-02-16
 **Phase:** Pre-Release Audit Execution
-**Current Task:** Executing AUDIT_PLAN.md tasks (76/76 complete)
+**Current Task:** Executing AUDIT_PLAN.md tasks (77/77 complete)
+
+---
+
+## 2026-02-16 - Audit: Remove dead code from InventoryManager.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/collection/InventoryManager.gd`
+
+**Changes:**
+- Removed `quest_items` Dictionary and all references (no quest system exists in game)
+- Removed `item_consumed` signal (never emitted, never connected - completely dead)
+- Removed `inventory_updated` signal (emitted but never connected by any listener)
+- Simplified `add_item()`/`remove_item()` match blocks (removed quest_item branches)
+- Removed quest_items from `get_item_count()`, `get_save_data()`, `load_save_data()`
+- `get_all_consumables()`/`get_all_materials()` noted in audit already didn't exist
+- File reduced from 112 to 93 lines
+
+**Verified:** Ran project, no errors in debug output
 
 ---
 
