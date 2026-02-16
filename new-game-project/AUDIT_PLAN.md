@@ -468,8 +468,8 @@
     "priority": "high",
     "file": "scripts/systems/firebase/FirebaseIntegration.gd",
     "issue": "25+ untyped variables",
-    "action": "Add types to all variables and parameters",
-    "passes": false
+    "action": "Added static types to all 40+ variables, parameters, return types. Typed _event_bus as Node, firebase locals as Node, auth callbacks with Dictionary/Variant types, all signal handler params, all -> void return types on 30+ functions. Typed lambda params in _connect_cloud_save_signals().",
+    "passes": true
   },
   {
     "priority": "high",

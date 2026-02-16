@@ -22,16 +22,16 @@ var analytics: FirebaseAnalytics
 var cloud_save_manager: CloudSaveManager
 
 var _firebase_available: bool = false
-var _event_bus = null
+var _event_bus: Node = null
 
 # Throttling for high-frequency events
 var _last_resource_log_time: float = 0.0
 const RESOURCE_LOG_COOLDOWN: float = 5.0  # seconds between resource logs
 
-func _ready():
+func _ready() -> void:
 	name = "FirebaseIntegration"
 
-func initialize():
+func initialize() -> void:
 	"""Called by SystemRegistry after registration"""
 	# Check if GodotFirebase addon is available
 	_firebase_available = _check_firebase_addon()
@@ -64,17 +64,17 @@ func _check_firebase_addon() -> bool:
 	# Check if Firebase autoload exists in the scene tree
 	return get_node_or_null("/root/Firebase") != null
 
-func _get_firebase():
+func _get_firebase() -> Node:
 	"""Get the Firebase autoload node"""
 	return get_node_or_null("/root/Firebase")
 
-func _setup_firebase():
+func _setup_firebase() -> void:
 	"""Configure Firebase connections"""
 	# GodotFirebase addon uses @onready for Auth/Firestore, so we need to wait
 	# for the scene tree to be ready before accessing them
 	await get_tree().process_frame
 
-	var firebase = _get_firebase()
+	var firebase: Node = _get_firebase()
 
 	if not firebase:
 		push_warning("FirebaseIntegration: Firebase node NOT found!")
@@ -103,13 +103,13 @@ func _setup_firebase():
 	if firebase.Firestore:
 		analytics.set_firestore(firebase.Firestore)
 
-func _connect_event_bus():
+func _connect_event_bus() -> void:
 	"""Hook into EventBus for automatic analytics logging"""
-	var system_registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+	var system_registry_script: GDScript = load("res://scripts/systems/core/SystemRegistry.gd") as GDScript
 	if not system_registry_script:
 		return
 
-	var registry = system_registry_script.get_instance()
+	var registry: Node = system_registry_script.get_instance()
 	if not registry:
 		return
 
@@ -141,26 +141,26 @@ func _connect_event_bus():
 	_safe_connect(_event_bus, "equipment_equipped", _on_equipment_equipped)
 	_safe_connect(_event_bus, "equipment_unequipped", _on_equipment_unequipped)
 
-func _safe_connect(source: Object, signal_name: String, callable: Callable):
+func _safe_connect(source: Object, signal_name: String, callable: Callable) -> void:
 	"""Safely connect to signal if it exists"""
 	if source.has_signal(signal_name):
 		if not source.is_connected(signal_name, callable):
 			source.connect(signal_name, callable)
 
-func _connect_cloud_save_signals():
+func _connect_cloud_save_signals() -> void:
 	"""Connect cloud save manager signals to pass through"""
 	if cloud_save_manager:
-		cloud_save_manager.cloud_save_completed.connect(func(): cloud_save_completed.emit())
-		cloud_save_manager.cloud_save_failed.connect(func(err): cloud_save_failed.emit(err))
-		cloud_save_manager.cloud_load_completed.connect(func(data): cloud_load_completed.emit(data))
-		cloud_save_manager.cloud_load_failed.connect(func(err): cloud_load_failed.emit(err))
-		cloud_save_manager.cloud_save_not_found.connect(func(): cloud_save_not_found.emit())
+		cloud_save_manager.cloud_save_completed.connect(func() -> void: cloud_save_completed.emit())
+		cloud_save_manager.cloud_save_failed.connect(func(err: String) -> void: cloud_save_failed.emit(err))
+		cloud_save_manager.cloud_load_completed.connect(func(data: Dictionary) -> void: cloud_load_completed.emit(data))
+		cloud_save_manager.cloud_load_failed.connect(func(err: String) -> void: cloud_load_failed.emit(err))
+		cloud_save_manager.cloud_save_not_found.connect(func() -> void: cloud_save_not_found.emit())
 
 # ==============================================================================
 # AUTHENTICATION
 # ==============================================================================
 
-func sign_in_with_google():
+func sign_in_with_google() -> void:
 	"""Start Google Sign-In flow via Firebase Auth"""
 	if auth_state == AuthState.SIGNING_IN:
 		return
@@ -169,14 +169,14 @@ func sign_in_with_google():
 		sign_in_failed.emit("Firebase not available")
 		return
 
-	var firebase = _get_firebase()
+	var firebase: Node = _get_firebase()
 	if not firebase or not firebase.Auth:
 		sign_in_failed.emit("Firebase Auth not configured")
 		return
 
 	# GodotFirebase requires clientId and clientSecret for OAuth
 	# Check if they're configured
-	var google_provider = firebase.Auth.get_GoogleProvider()
+	var google_provider: Variant = firebase.Auth.get_GoogleProvider()
 	if not google_provider:
 		sign_in_failed.emit("Google provider not configured. Set clientId and clientSecret in .env")
 		return
@@ -187,7 +187,7 @@ func sign_in_with_google():
 	# GodotFirebase opens browser for OAuth, captures token via local server
 	firebase.Auth.get_auth_localhost(google_provider)
 
-func sign_in_with_email(email: String, password: String):
+func sign_in_with_email(email: String, password: String) -> void:
 	"""Sign in with email and password"""
 	if auth_state == AuthState.SIGNING_IN:
 		return
@@ -196,7 +196,7 @@ func sign_in_with_email(email: String, password: String):
 		sign_in_failed.emit("Firebase not available")
 		return
 
-	var firebase = _get_firebase()
+	var firebase: Node = _get_firebase()
 	if not firebase or not firebase.Auth:
 		sign_in_failed.emit("Firebase Auth not configured")
 		return
@@ -207,7 +207,7 @@ func sign_in_with_email(email: String, password: String):
 	# GodotFirebase email/password login
 	firebase.Auth.login_with_email_and_password(email, password)
 
-func sign_up_with_email(email: String, password: String):
+func sign_up_with_email(email: String, password: String) -> void:
 	"""Create new account with email and password"""
 	if auth_state == AuthState.SIGNING_IN:
 		return
@@ -216,7 +216,7 @@ func sign_up_with_email(email: String, password: String):
 		sign_in_failed.emit("Firebase not available")
 		return
 
-	var firebase = _get_firebase()
+	var firebase: Node = _get_firebase()
 	if not firebase or not firebase.Auth:
 		sign_in_failed.emit("Firebase Auth not configured")
 		return
@@ -227,7 +227,7 @@ func sign_up_with_email(email: String, password: String):
 	# GodotFirebase email/password signup
 	firebase.Auth.signup_with_email_and_password(email, password)
 
-func sign_out():
+func sign_out() -> void:
 	"""Sign out of Firebase"""
 	if auth_state != AuthState.SIGNED_IN:
 		return
@@ -235,7 +235,7 @@ func sign_out():
 	# Flush analytics before signing out
 	await analytics.flush_queue()
 
-	var firebase = _get_firebase()
+	var firebase: Node = _get_firebase()
 	if firebase and firebase.Auth:
 		firebase.Auth.logout()
 
@@ -254,14 +254,14 @@ func get_user_email() -> String:
 func get_user_photo_url() -> String:
 	return user_data.get("photo_url", "")
 
-func _on_login_succeeded(auth_result):
+func _on_login_succeeded(auth_result: Dictionary) -> void:
 	"""Handle successful Firebase login"""
 	# Skip if already signed in (e.g., from token refresh on session restore)
 	if auth_state == AuthState.SIGNED_IN:
 		return
 
 	# Detect provider from auth result or default to email
-	var provider = "email"
+	var provider: String = "email"
 	if auth_result.has("providerid"):
 		provider = auth_result.get("providerid")
 	elif auth_result.has("provider_id"):
@@ -279,7 +279,7 @@ func _on_login_succeeded(auth_result):
 	analytics.set_user_id(user_data.get("uid", ""))
 
 	# Save auth for persistent login
-	var firebase = _get_firebase()
+	var firebase: Node = _get_firebase()
 	if firebase and firebase.Auth:
 		firebase.Auth.save_auth(auth_result)
 
@@ -288,14 +288,14 @@ func _on_login_succeeded(auth_result):
 
 	sign_in_completed.emit(user_data)
 
-func _on_login_failed(error_code, error_message):
+func _on_login_failed(error_code: Variant, error_message: Variant) -> void:
 	"""Handle failed Firebase login"""
 	auth_state = AuthState.SIGNED_OUT
-	var error = "%s: %s" % [error_code, error_message]
-	sign_in_failed.emit(error)
-	analytics.log_error("auth_failed", error)
+	var error_str: String = "%s: %s" % [error_code, error_message]
+	sign_in_failed.emit(error_str)
+	analytics.log_error("auth_failed", error_str)
 
-func _on_logout_succeeded():
+func _on_logout_succeeded() -> void:
 	"""Handle Firebase logout"""
 	user_data.clear()
 	auth_state = AuthState.SIGNED_OUT
@@ -303,12 +303,12 @@ func _on_logout_succeeded():
 	if cloud_save_manager:
 		cloud_save_manager.clear()
 	# Remove saved auth file
-	var firebase = _get_firebase()
+	var firebase: Node = _get_firebase()
 	if firebase and firebase.Auth:
 		firebase.Auth.remove_auth()
 	sign_out_completed.emit()
 
-func _on_token_refresh_succeeded(auth_result):
+func _on_token_refresh_succeeded(auth_result: Dictionary) -> void:
 	"""Handle token refresh from saved auth file"""
 	if auth_state == AuthState.SIGNED_IN:
 		return  # Already signed in, just a token refresh
@@ -316,9 +316,9 @@ func _on_token_refresh_succeeded(auth_result):
 	# This is a session restore from saved auth
 	_restore_session(auth_result)
 
-func _initialize_cloud_saves(load_from_cloud_on_init: bool = true):
+func _initialize_cloud_saves(load_from_cloud_on_init: bool = true) -> void:
 	"""Initialize cloud save manager with Firestore and user ID"""
-	var firebase = _get_firebase()
+	var firebase: Node = _get_firebase()
 	if firebase and firebase.Firestore and cloud_save_manager:
 		cloud_save_manager.initialize(firebase.Firestore, user_data.get("uid", ""))
 
@@ -327,7 +327,7 @@ func _initialize_cloud_saves(load_from_cloud_on_init: bool = true):
 			# Defer to allow SaveManager to connect signals first
 			_load_cloud_save_deferred.call_deferred()
 
-func _load_cloud_save_deferred():
+func _load_cloud_save_deferred() -> void:
 	"""Load from cloud after a short delay to allow systems to initialize"""
 	await get_tree().create_timer(0.5).timeout
 	if cloud_save_manager and cloud_save_manager.is_ready():
@@ -337,14 +337,14 @@ func _load_cloud_save_deferred():
 # CLOUD SAVES
 # ==============================================================================
 
-func save_to_cloud(save_data: Dictionary):
+func save_to_cloud(save_data: Dictionary) -> void:
 	"""Save game data to cloud (Firestore)"""
 	if cloud_save_manager and cloud_save_manager.is_ready():
 		cloud_save_manager.save_to_cloud(save_data)
 	else:
 		cloud_save_failed.emit("Cloud save not available")
 
-func load_from_cloud():
+func load_from_cloud() -> void:
 	"""Load game data from cloud (Firestore)"""
 	if cloud_save_manager and cloud_save_manager.is_ready():
 		cloud_save_manager.load_from_cloud()
@@ -355,12 +355,10 @@ func is_cloud_save_ready() -> bool:
 	"""Check if cloud saves are available"""
 	return cloud_save_manager != null and cloud_save_manager.is_ready()
 
-func _restore_session(auth_data):
+func _restore_session(auth_data: Dictionary) -> void:
 	"""Restore session from cached credentials"""
-	# Debug: print auth_data keys to understand structure
-
 	# Detect provider from cached data
-	var provider = "email"
+	var provider: String = "email"
 	if auth_data.has("providerid"):
 		provider = auth_data.get("providerid")
 	elif auth_data.has("provider_id"):
@@ -389,7 +387,7 @@ func _restore_session(auth_data):
 # EVENTBUS SIGNAL HANDLERS -> ANALYTICS
 # ==============================================================================
 
-func _on_battle_ended(result):
+func _on_battle_ended(result: Variant) -> void:
 	"""Log battle completion"""
 	if result is Dictionary:
 		analytics.log_battle_completed(
@@ -403,11 +401,11 @@ func _on_battle_ended(result):
 			}
 		)
 
-func _on_god_obtained(god):
+func _on_god_obtained(god: Variant) -> void:
 	"""Log god obtained"""
 	if god:
-		var tier_str = "unknown"
-		var element_str = "unknown"
+		var tier_str: String = "unknown"
+		var element_str: String = "unknown"
 
 		# Handle God object
 		if god.has_method("get"):
@@ -424,33 +422,33 @@ func _on_god_obtained(god):
 			"summon"  # Could be passed as parameter
 		)
 
-func _on_god_level_up(god_id: String, new_level: int, old_level: int):
+func _on_god_level_up(god_id: String, new_level: int, old_level: int) -> void:
 	"""Log god level up"""
 	analytics.log_god_leveled(god_id, old_level, new_level)
 
-func _on_dungeon_completed(dungeon_id: String, rewards = null):
+func _on_dungeon_completed(dungeon_id: String, rewards: Variant = null) -> void:
 	"""Log dungeon completion"""
-	var rewards_dict = {}
+	var rewards_dict: Dictionary = {}
 	if rewards is Dictionary:
 		rewards_dict = rewards
 	analytics.log_dungeon_completed(dungeon_id, "normal", rewards_dict)
 
-func _on_resource_changed(resource_id: String, new_amount: int, delta: int):
+func _on_resource_changed(resource_id: String, new_amount: int, delta: int) -> void:
 	"""Log significant resource changes (filter noise + throttle)"""
 	# Throttle to prevent spam
-	var now = Time.get_unix_time_from_system()
+	var now: float = Time.get_unix_time_from_system()
 	if now - _last_resource_log_time < RESOURCE_LOG_COOLDOWN:
 		return
 
 	# Only log significant changes to avoid spam
 	if abs(delta) >= 100 or resource_id in ["divine_crystals", "legendary_soul", "epic_soul"]:
 		_last_resource_log_time = now
-		var source = "gained" if delta > 0 else "spent"
+		var source: String = "gained" if delta > 0 else "spent"
 		analytics.log_resource_transaction(resource_id, delta, source)
 
-func _on_territory_captured(territory):
+func _on_territory_captured(territory: Variant) -> void:
 	"""Log territory capture"""
-	var territory_id = ""
+	var territory_id: String = ""
 	if territory is Dictionary:
 		territory_id = territory.get("id", str(territory))
 	elif "id" in territory:
@@ -460,13 +458,13 @@ func _on_territory_captured(territory):
 
 	analytics.log_territory_captured(territory_id, 0)
 
-func _on_screen_changed(old_screen: String, new_screen: String):
+func _on_screen_changed(old_screen: String, new_screen: String) -> void:
 	"""Log screen navigation"""
 	analytics.log_screen_view(new_screen)
 
-func _on_error_occurred(error_message: String, context = null):
+func _on_error_occurred(error_message: String, context: Variant = null) -> void:
 	"""Log errors"""
-	var context_dict = {}
+	var context_dict: Dictionary = {}
 	if context is Dictionary:
 		context_dict = context
 	elif context:
@@ -477,47 +475,47 @@ func _on_error_occurred(error_message: String, context = null):
 # EXTENDED ANALYTICS HANDLERS
 # ==============================================================================
 
-func _on_summon_detailed(summon_data: Dictionary):
+func _on_summon_detailed(summon_data: Dictionary) -> void:
 	"""Log detailed summon event"""
 	analytics.log_summon_detailed(summon_data)
 
-func _on_sacrifice(sacrifice_data: Dictionary):
+func _on_sacrifice(sacrifice_data: Dictionary) -> void:
 	"""Log god sacrifice"""
 	analytics.log_sacrifice(sacrifice_data)
 
-func _on_awakening(awakening_data: Dictionary):
+func _on_awakening(awakening_data: Dictionary) -> void:
 	"""Log god awakening"""
 	analytics.log_awakening(awakening_data)
 
-func _on_battle_team(team_data: Dictionary):
+func _on_battle_team(team_data: Dictionary) -> void:
 	"""Log battle team composition"""
 	analytics.log_battle_team(team_data)
 
-func _on_garrison(garrison_data: Dictionary):
+func _on_garrison(garrison_data: Dictionary) -> void:
 	"""Log garrison assignment"""
 	analytics.log_garrison(garrison_data)
 
-func _on_workers(worker_data: Dictionary):
+func _on_workers(worker_data: Dictionary) -> void:
 	"""Log worker assignment"""
 	analytics.log_workers(worker_data)
 
-func _on_achievement(achievement_id: String):
+func _on_achievement(achievement_id: String) -> void:
 	"""Log achievement unlock"""
 	analytics.log_achievement(achievement_id, {})
 
-func _on_arena_battle(arena_data: Dictionary):
+func _on_arena_battle(arena_data: Dictionary) -> void:
 	"""Log arena battle result"""
 	analytics.log_arena_battle(arena_data)
 
-func _on_league_change(league_data: Dictionary):
+func _on_league_change(league_data: Dictionary) -> void:
 	"""Log league promotion/demotion"""
 	analytics.log_league_change(league_data)
 
-func _on_specialization(god_id: String, spec_id: String):
+func _on_specialization(god_id: String, spec_id: String) -> void:
 	"""Log specialization unlock"""
 	analytics.log_specialization({"god_id": god_id, "spec_id": spec_id})
 
-func _on_equipment_equipped(god, equipment, slot: int):
+func _on_equipment_equipped(god: Variant, equipment: Variant, slot: int) -> void:
 	"""Log equipment equip"""
 	if not god or not equipment:
 		return
@@ -528,7 +526,7 @@ func _on_equipment_equipped(god, equipment, slot: int):
 		"equipment_id": equipment.id if "id" in equipment else str(equipment)
 	})
 
-func _on_equipment_unequipped(god, equipment, slot: int):
+func _on_equipment_unequipped(god: Variant, equipment: Variant, slot: int) -> void:
 	"""Log equipment unequip"""
 	if not god:
 		return
@@ -543,7 +541,7 @@ func _on_equipment_unequipped(god, equipment, slot: int):
 # SHUTDOWN
 # ==============================================================================
 
-func shutdown():
+func shutdown() -> void:
 	"""Called by SystemRegistry on shutdown"""
 	if analytics:
 		await analytics.flush_queue()

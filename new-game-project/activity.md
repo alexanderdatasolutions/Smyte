@@ -7,6 +7,31 @@
 
 ---
 
+## 2026-02-16 - Audit: Add static typing to FirebaseIntegration.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/firebase/FirebaseIntegration.gd`
+
+**Changes:**
+- Added `-> void` return types to 30+ functions (initialize, _setup_firebase, _connect_event_bus, all signal handlers, auth methods, cloud save methods, shutdown, etc.)
+- Added `-> Node` return type to `_get_firebase()`
+- Typed member variable `_event_bus` as `Node`
+- Typed all local `firebase` variables as `Node`
+- Typed `auth_result` and `auth_data` signal handler params as `Dictionary`
+- Typed `_on_login_failed` params as `Variant` (Firebase can send various types)
+- Typed EventBus signal handler params: `result`, `god`, `territory`, `equipment` as `Variant` (polymorphic from EventBus)
+- Typed `rewards` default param as `Variant`, `context` default param as `Variant`
+- Typed all local String variables: `provider`, `error_str`, `tier_str`, `element_str`, `territory_id`, `source`
+- Typed `now` as `float`, `rewards_dict`/`context_dict` as `Dictionary`
+- Typed `system_registry_script` as `GDScript`, `registry` as `Node`
+- Typed `google_provider` as `Variant`
+- Typed lambda parameters in `_connect_cloud_save_signals()` with proper types and `-> void`
+- Removed stale debug comment in `_restore_session()`
+
+**Verified:** Ran project, no new errors in debug output. Pre-existing "signal already connected" errors in _setup_firebase unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Move dungeon energy costs to data-driven JSON
 
 **Priority:** High (Data-Driven Config)
