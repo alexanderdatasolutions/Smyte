@@ -461,8 +461,8 @@
     "priority": "high",
     "file": "scripts/systems/collection/SummonManager.gd",
     "issue": "100+ untyped variables",
-    "action": "Add static types to all variables, parameters, and return types",
-    "passes": false
+    "action": "Added static types to all 70+ variables, parameters, return types, and loop iterators. Typed signals, cached SystemRegistry lookups, added -> void to all void functions.",
+    "passes": true
   },
   {
     "priority": "high",

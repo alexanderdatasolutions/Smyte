@@ -7,6 +7,23 @@
 
 ---
 
+## 2026-02-16 - Audit: Add static typing to SummonManager.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/collection/SummonManager.gd`
+
+**Changes:**
+- Added static types to all 70+ variables, parameters, return types, and loop iterators
+- Typed 3 signal declarations (summon_completed, summon_failed, multi_summon_completed)
+- Added `-> void` return types to 9 functions missing them (_load_config, _spend_cost, _update_pity_counters, _add_to_history, _check_milestone_rewards, _award_milestone, _check_legendary_notification, load_save_data, _ready)
+- Cached SystemRegistry.get_instance() into local `registry: SystemRegistry` variable in 8 functions to avoid repeated calls
+- Typed all Dictionary, Array, String, int, float, bool, God, Node, PackedStringArray locals
+- Typed all `for` loop variables (String, int, Dictionary, God)
+
+**Verified:** Ran project, no errors in debug output. Only pre-existing warnings remain.
+
+---
+
 ## 2026-02-16 - Audit: Remove dead code from SystemRegistry.gd
 
 **Priority:** High

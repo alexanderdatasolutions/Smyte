@@ -3,9 +3,9 @@
 extends Node
 class_name SummonManager
 
-signal summon_completed(god)
-signal summon_failed(reason)
-signal multi_summon_completed(gods)
+signal summon_completed(god: God)
+signal summon_failed(reason: String)
+signal multi_summon_completed(gods: Array)
 signal pity_milestone_reached(pity_type: String, count: int)
 signal summon_history_updated(history_entry: Dictionary)
 signal milestone_reward_claimed(milestone_key: String, rewards: Dictionary)
@@ -27,11 +27,12 @@ var claimed_milestones: Array = []
 var _summon_config: Dictionary = {}
 const MAX_HISTORY_SIZE: int = 100
 
-func _ready():
+func _ready() -> void:
 	_load_config()
 
-func _load_config():
-	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager") if SystemRegistry.get_instance() else null
+func _load_config() -> void:
+	var registry: SystemRegistry = SystemRegistry.get_instance()
+	var config_manager: Node = registry.get_system("ConfigurationManager") if registry else null
 	if config_manager:
 		_summon_config = config_manager.get_summon_config()
 
@@ -43,19 +44,19 @@ func get_config() -> Dictionary:
 # MAIN SUMMON FUNCTIONS
 
 func summon_basic() -> bool:
-	var config = get_config()
+	var config: Dictionary = get_config()
 	var cost: Dictionary = {"mana": 10000}
 	if config.has("summon_configuration"):
-		var costs = config.summon_configuration.get("costs", {}).get("premium_summons", {})
+		var costs: Dictionary = config.summon_configuration.get("costs", {}).get("premium_summons", {})
 		if costs.has("mana_summon"):
 			cost = costs.mana_summon
 	return _perform_summon(cost, "mana", "default")
 
 func summon_premium() -> bool:
-	var config = get_config()
+	var config: Dictionary = get_config()
 	var cost: Dictionary = {"divine_crystals": 100}
 	if config.has("summon_configuration"):
-		var costs = config.summon_configuration.get("costs", {}).get("premium_summons", {})
+		var costs: Dictionary = config.summon_configuration.get("costs", {}).get("premium_summons", {})
 		if costs.has("divine_crystals_summon"):
 			cost = costs.divine_crystals_summon
 	return _perform_summon(cost, "divine_crystals", "premium")
@@ -66,7 +67,7 @@ func summon_free_daily() -> bool:
 		return false
 	daily_free_used = true
 	# Store the reset day string (not just current date) so reset timing works correctly
-	var reset_hour = _get_daily_reset_hour()
+	var reset_hour: int = _get_daily_reset_hour()
 	last_free_summon_date = _get_reset_day_string(reset_hour)
 	return _perform_summon({}, "common_soul", "default")
 
@@ -77,14 +78,14 @@ func summon_with_soul(soul_type: String) -> bool:
 
 func summon_premium_with_powder(powder_element: String) -> bool:
 	"""Summon with divine crystals + element powder (150 crystals + 10 powder per summon_config.json)"""
-	var config = get_config()
+	var config: Dictionary = get_config()
 	var crystal_cost: int = 150  # Per summon_config.json element_summon base_cost
 	var powder_cost: int = 10    # Per summon_config.json element_summon powder_cost
-	var powder_id = powder_element + "_powder"
+	var powder_id: String = powder_element + "_powder"
 
 	# Try to load from summon_types config
 	if config.has("summon_types"):
-		var element_summon = config.summon_types.get("element_summon", {})
+		var element_summon: Dictionary = config.summon_types.get("element_summon", {})
 		if element_summon.has("base_cost") and element_summon.base_cost.has("divine_crystals"):
 			crystal_cost = element_summon.base_cost.divine_crystals
 		if element_summon.has("powder_cost"):
@@ -95,14 +96,14 @@ func summon_premium_with_powder(powder_element: String) -> bool:
 
 func summon_with_pantheon_token(pantheon: String) -> bool:
 	"""Summon with divine crystals + pantheon token (150 crystals + 1 token per summon_config.json)"""
-	var config = get_config()
+	var config: Dictionary = get_config()
 	var crystal_cost: int = 150  # Per summon_config.json pantheon_summon base_cost
 	var token_cost: int = 1      # Per summon_config.json pantheon_summon token_cost
-	var token_id = pantheon + "_token"
+	var token_id: String = pantheon + "_token"
 
 	# Try to load from summon_types config
 	if config.has("summon_types"):
-		var pantheon_summon = config.summon_types.get("pantheon_summon", {})
+		var pantheon_summon: Dictionary = config.summon_types.get("pantheon_summon", {})
 		if pantheon_summon.has("base_cost") and pantheon_summon.base_cost.has("divine_crystals"):
 			crystal_cost = pantheon_summon.base_cost.divine_crystals
 		if pantheon_summon.has("token_cost"):
@@ -119,13 +120,13 @@ func _perform_summon(cost: Dictionary, summon_type: String, banner_type: String,
 		return false
 	_spend_cost(cost)
 
-	var god = _get_random_god(summon_type, banner_type, element_filter, powder_element, pantheon_filter)
+	var god: God = _get_random_god(summon_type, banner_type, element_filter, powder_element, pantheon_filter)
 	if not god:
 		summon_failed.emit("Failed to generate god")
 		return false
 
 	_add_god_to_collection(god)
-	var tier_string = God.tier_to_string(god.tier).to_lower()
+	var tier_string: String = God.tier_to_string(god.tier).to_lower()
 	_update_pity_counters(tier_string, banner_type)
 	total_summons += 1
 	_check_milestone_rewards()
@@ -133,7 +134,8 @@ func _perform_summon(cost: Dictionary, summon_type: String, banner_type: String,
 	summon_completed.emit(god)
 
 	# Trigger save after successful summon
-	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	var registry: SystemRegistry = SystemRegistry.get_instance()
+	var event_bus: Node = registry.get_system("EventBus") if registry else null
 	if event_bus:
 		event_bus.save_requested.emit()
 		# Emit detailed analytics event
@@ -156,30 +158,32 @@ func _perform_summon(cost: Dictionary, summon_type: String, banner_type: String,
 func _can_afford_cost(cost: Dictionary) -> bool:
 	if cost.is_empty():
 		return true
-	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
+	var registry: SystemRegistry = SystemRegistry.get_instance()
+	var resource_manager: Node = registry.get_system("ResourceManager") if registry else null
 	if not resource_manager:
 		push_error("SummonManager: ResourceManager not available")
 		return false
-	for currency in cost:
+	for currency: String in cost:
 		if resource_manager.get_resource(currency) < cost[currency]:
 			return false
 	return true
 
-func _spend_cost(cost: Dictionary):
+func _spend_cost(cost: Dictionary) -> void:
 	if cost.is_empty():
 		return
-	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
+	var registry: SystemRegistry = SystemRegistry.get_instance()
+	var resource_manager: Node = registry.get_system("ResourceManager") if registry else null
 	if not resource_manager:
 		return
-	for currency in cost:
+	for currency: String in cost:
 		resource_manager.spend(currency, cost[currency])
 
 # GOD GENERATION
 
 func _get_random_god(summon_type: String, banner_type: String, element_filter: String = "", powder_element: String = "", pantheon_filter: String = "") -> God:
-	var rates = _get_summon_rates(summon_type)
+	var rates: Dictionary = _get_summon_rates(summon_type)
 	rates = _apply_pity_system(rates, banner_type)
-	var tier = _get_random_tier(rates)
+	var tier: String = _get_random_tier(rates)
 	return _create_god_of_tier(tier, element_filter, powder_element, pantheon_filter)
 
 func _get_summon_rates(summon_type: String) -> Dictionary:
@@ -220,16 +224,16 @@ func _get_summon_rates(summon_type: String) -> Dictionary:
 	return default_rates
 
 func _apply_pity_system(rates: Dictionary, banner_type: String) -> Dictionary:
-	var modified_rates = rates.duplicate()
-	var config = get_config()
-	var pity_config = config.get("summon_configuration", {}).get("pity_system", {})
+	var modified_rates: Dictionary = rates.duplicate()
+	var config: Dictionary = get_config()
+	var pity_config: Dictionary = config.get("summon_configuration", {}).get("pity_system", {})
 	if not pity_config.get("enabled", true):
 		return modified_rates
 
 	if not pity_counters.has(banner_type):
 		pity_counters[banner_type] = {"rare": 0, "epic": 0, "legendary": 0}
-	var counters = pity_counters[banner_type]
-	var thresholds = pity_config.get("thresholds", {"rare": 10, "epic": 50, "legendary": 100})
+	var counters: Dictionary = pity_counters[banner_type]
+	var thresholds: Dictionary = pity_config.get("thresholds", {"rare": 10, "epic": 50, "legendary": 100})
 
 	# Hard pity checks
 	if counters.legendary >= thresholds.get("legendary", 100):
@@ -240,12 +244,12 @@ func _apply_pity_system(rates: Dictionary, banner_type: String) -> Dictionary:
 		return {"legendary": modified_rates.get("legendary", 0.0), "epic": 100.0 - modified_rates.get("legendary", 0.0), "rare": 0.0, "common": 0.0}
 
 	# Soft pity
-	var soft_pity = pity_config.get("soft_pity", {})
+	var soft_pity: Dictionary = pity_config.get("soft_pity", {})
 	if soft_pity.get("enabled", true):
-		var leg_soft = soft_pity.get("legendary", {"starts_at": 75, "rate_increase_per_summon": 0.5})
+		var leg_soft: Dictionary = soft_pity.get("legendary", {"starts_at": 75, "rate_increase_per_summon": 0.5})
 		if counters.legendary >= leg_soft.get("starts_at", 75):
 			modified_rates.legendary = min(modified_rates.get("legendary", 0.0) + (counters.legendary - leg_soft.starts_at) * leg_soft.rate_increase_per_summon, 50.0)
-		var epic_soft = soft_pity.get("epic", {"starts_at": 35, "rate_increase_per_summon": 1.0})
+		var epic_soft: Dictionary = soft_pity.get("epic", {"starts_at": 35, "rate_increase_per_summon": 1.0})
 		if counters.epic >= epic_soft.get("starts_at", 35):
 			modified_rates.epic = min(modified_rates.get("epic", 0.0) + (counters.epic - epic_soft.starts_at) * epic_soft.rate_increase_per_summon, 50.0)
 	return modified_rates
@@ -260,7 +264,8 @@ func _get_random_tier(rates: Dictionary) -> String:
 	return "common"
 
 func _create_god_of_tier(tier: String, element_filter: String = "", powder_element: String = "", pantheon_filter: String = "") -> God:
-	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager") if SystemRegistry.get_instance() else null
+	var registry: SystemRegistry = SystemRegistry.get_instance()
+	var config_manager: Node = registry.get_system("ConfigurationManager") if registry else null
 	if not config_manager:
 		return null
 	var gods_config: Dictionary = config_manager.get_gods_config()
@@ -358,37 +363,39 @@ func _build_weighted_god_pool(gods: Dictionary, tier_number: int, enabled_panthe
 func _get_active_element_favors() -> Array:
 	"""Get list of active element favor buffs from dungeon completions"""
 	var active: Array = []
-	var save_manager = SystemRegistry.get_instance().get_system("SaveManager") if SystemRegistry.get_instance() else null
+	var registry: SystemRegistry = SystemRegistry.get_instance()
+	var save_manager: Node = registry.get_system("SaveManager") if registry else null
 	if not save_manager:
 		return active
 
-	var player_data = save_manager.get_player_data()
+	var player_data: Dictionary = save_manager.get_player_data()
 	if not player_data:
 		return active
 
-	var favors = player_data.get("element_favors", {})
-	var current_time = Time.get_unix_time_from_system()
+	var favors: Dictionary = player_data.get("element_favors", {})
+	var current_time: float = Time.get_unix_time_from_system()
 
-	for favor_key in favors:
-		var expire_time = favors[favor_key]
+	for favor_key: String in favors:
+		var expire_time: float = favors[favor_key]
 		if current_time < expire_time:
 			active.append(favor_key)
 
 	return active
 
-func _get_element_string(element_value) -> String:
+func _get_element_string(element_value: Variant) -> String:
 	if element_value is int or element_value is float:
 		return ["fire", "water", "earth", "lightning", "light", "dark"][clampi(int(element_value), 0, 5)]
 	return "fire"
 
 func _add_god_to_collection(god: God) -> bool:
 	"""Add god to collection. Each god has a unique instance ID so duplicates are allowed."""
-	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager") if SystemRegistry.get_instance() else null
+	var registry: SystemRegistry = SystemRegistry.get_instance()
+	var collection_manager: Node = registry.get_system("CollectionManager") if registry else null
 	if not collection_manager:
 		push_error("SummonManager: CollectionManager not available")
 		return false
 
-	var success = collection_manager.add_god(god)
+	var success: bool = collection_manager.add_god(god)
 	if not success:
 		push_error("SummonManager: Failed to add god to collection: " + god.name)
 		return false
@@ -396,8 +403,9 @@ func _add_god_to_collection(god: God) -> bool:
 	_check_legendary_notification(god)
 	return true
 
-func _check_legendary_notification(god: God):
-	var eb = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+func _check_legendary_notification(god: God) -> void:
+	var registry: SystemRegistry = SystemRegistry.get_instance()
+	var eb: Node = registry.get_system("EventBus") if registry else null
 	if not eb or not eb.has_method("emit_notification"):
 		return
 	var notif_cfg: Dictionary = _summon_config.get("notifications", {})
@@ -410,10 +418,10 @@ func _check_legendary_notification(god: God):
 
 # PITY SYSTEM
 
-func _update_pity_counters(tier: String, banner_type: String):
+func _update_pity_counters(tier: String, banner_type: String) -> void:
 	if not pity_counters.has(banner_type):
 		pity_counters[banner_type] = {"rare": 0, "epic": 0, "legendary": 0}
-	var counters = pity_counters[banner_type]
+	var counters: Dictionary = pity_counters[banner_type]
 	match tier:
 		"legendary":
 			counters.legendary = 0
@@ -440,8 +448,8 @@ func get_pity_counter(banner_type: String, rarity: String) -> int:
 
 # SUMMON HISTORY
 
-func _add_to_history(god: God, summon_type: String, cost: Dictionary):
-	var entry = {
+func _add_to_history(god: God, summon_type: String, cost: Dictionary) -> void:
+	var entry: Dictionary = {
 		"god_id": god.id, "god_name": god.name,
 		"tier": God.tier_to_string(god.tier), "element": GodFactory.element_to_string(god.element),
 		"summon_type": summon_type, "cost": cost.duplicate(),
@@ -457,41 +465,42 @@ func get_summon_history() -> Array:
 
 func get_rarity_stats() -> Dictionary:
 	var stats: Dictionary = {"common": 0, "rare": 0, "epic": 0, "legendary": 0}
-	for entry in summon_history:
-		var tier = entry.get("tier", "common").to_lower()
+	for entry: Dictionary in summon_history:
+		var tier: String = entry.get("tier", "common").to_lower()
 		if stats.has(tier):
 			stats[tier] += 1
 	return stats
 
 # MILESTONE REWARDS
 
-func _check_milestone_rewards():
-	var config = get_config()
+func _check_milestone_rewards() -> void:
+	var config: Dictionary = get_config()
 	if not config.has("progression_tracking"):
 		return
-	var milestones = config.progression_tracking.get("milestones", {})
-	for key in milestones:
+	var milestones: Dictionary = config.progression_tracking.get("milestones", {})
+	for key: String in milestones:
 		if key in claimed_milestones:
 			continue
-		var parts = key.split("_")
+		var parts: PackedStringArray = key.split("_")
 		if parts.size() > 0 and total_summons >= int(parts[0]):
 			_award_milestone(key, milestones[key])
 
-func _award_milestone(key: String, data: Dictionary):
-	var reward = data.get("reward", {})
+func _award_milestone(key: String, data: Dictionary) -> void:
+	var reward: Dictionary = data.get("reward", {})
 	if reward.is_empty():
 		return
-	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
+	var registry: SystemRegistry = SystemRegistry.get_instance()
+	var resource_manager: Node = registry.get_system("ResourceManager") if registry else null
 	if resource_manager:
-		for resource_id in reward:
+		for resource_id: String in reward:
 			resource_manager.add_resource(resource_id, reward[resource_id])
 	claimed_milestones.append(key)
 	milestone_reward_claimed.emit(key, reward)
 	# Notify via EventBus
-	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	var event_bus: Node = registry.get_system("EventBus") if registry else null
 	if event_bus and event_bus.has_method("emit_notification"):
 		var parts: Array = []
-		for r in reward:
+		for r: String in reward:
 			parts.append("%d %s" % [reward[r], r.replace("_", " ").capitalize()])
 		var count: int = int(key.split("_")[0]) if "_" in key else 0
 		event_bus.emit_notification("Milestone: %d Summons! Reward: %s" % [count, ", ".join(parts)], "milestone", 4.0)
@@ -502,39 +511,41 @@ func can_use_daily_free_summon() -> bool:
 	"""Check if daily free summon is available based on UTC reset time"""
 	if last_free_summon_date.is_empty():
 		return true
-	var reset_hour = _get_daily_reset_hour()
-	var current_reset_day = _get_reset_day_string(reset_hour)
+	var reset_hour: int = _get_daily_reset_hour()
+	var current_reset_day: String = _get_reset_day_string(reset_hour)
 	return last_free_summon_date != current_reset_day
 
 func get_time_until_free_summon() -> int:
-	if can_use_daily_free_summon(): return 0
+	if can_use_daily_free_summon():
+		return 0
 	return max(0, _get_next_reset_timestamp(_get_daily_reset_hour()) - int(Time.get_unix_time_from_system()))
 
 func get_time_until_free_summon_formatted() -> String:
-	var s = get_time_until_free_summon()
+	var s: int = get_time_until_free_summon()
 	return "Available Now!" if s <= 0 else "%02d:%02d:%02d" % [s / 3600, (s % 3600) / 60, s % 60]
 
 func _get_daily_reset_hour() -> int:
-	var cfg = get_config()
+	var cfg: Dictionary = get_config()
 	return cfg.get("banner_system", {}).get("special_summons", {}).get("daily_free", {}).get("reset_hour_utc", 0)
 
 func _get_reset_day_string(reset_hour: int) -> String:
-	var now_utc = Time.get_unix_time_from_system()
-	var utc_dict = Time.get_datetime_dict_from_unix_time(int(now_utc))
-	if utc_dict.hour < reset_hour: now_utc -= 86400
-	var adj = Time.get_datetime_dict_from_unix_time(int(now_utc))
+	var now_utc: float = Time.get_unix_time_from_system()
+	var utc_dict: Dictionary = Time.get_datetime_dict_from_unix_time(int(now_utc))
+	if utc_dict.hour < reset_hour:
+		now_utc -= 86400
+	var adj: Dictionary = Time.get_datetime_dict_from_unix_time(int(now_utc))
 	return "%04d-%02d-%02d" % [adj.year, adj.month, adj.day]
 
 func _get_next_reset_timestamp(reset_hour: int) -> int:
 	"""Calculate the Unix timestamp for the next reset time"""
-	var now_utc = Time.get_unix_time_from_system()
-	var utc_dict = Time.get_datetime_dict_from_unix_time(int(now_utc))
+	var now_utc: float = Time.get_unix_time_from_system()
+	var utc_dict: Dictionary = Time.get_datetime_dict_from_unix_time(int(now_utc))
 	# Build today's reset time
-	var today_reset_dict = {
+	var today_reset_dict: Dictionary = {
 		"year": utc_dict.year, "month": utc_dict.month, "day": utc_dict.day,
 		"hour": reset_hour, "minute": 0, "second": 0
 	}
-	var today_reset = Time.get_unix_time_from_datetime_dict(today_reset_dict)
+	var today_reset: int = Time.get_unix_time_from_datetime_dict(today_reset_dict)
 	# If we've passed today's reset, next reset is tomorrow
 	if now_utc >= today_reset:
 		return int(today_reset) + 86400
@@ -543,10 +554,10 @@ func _get_next_reset_timestamp(reset_hour: int) -> int:
 # MULTI-SUMMON
 
 func multi_summon_premium(count: int = 10) -> bool:
-	var config = get_config()
+	var config: Dictionary = get_config()
 	var single_cost: int = 100
 	if config.has("summon_configuration"):
-		var multi = config.summon_configuration.get("costs", {}).get("multi_summons", {})
+		var multi: Dictionary = config.summon_configuration.get("costs", {}).get("multi_summons", {})
 		if multi.has("premium_pack_10") and multi.premium_pack_10.has("divine_crystals"):
 			single_cost = int(multi.premium_pack_10.divine_crystals / count)
 	var total_cost: Dictionary = {"divine_crystals": int(single_cost * count * 0.9)}
@@ -558,8 +569,8 @@ func _perform_multi_summon(cost: Dictionary, summon_type: String, banner_type: S
 		return false
 	_spend_cost(cost)
 	var summoned_gods: Array = []
-	for i in range(count):
-		var god = _get_random_god(summon_type, banner_type)
+	for i: int in range(count):
+		var god: God = _get_random_god(summon_type, banner_type)
 		# Guarantee rare on last pull if none obtained
 		if i == count - 1 and not _has_rare_or_better(summoned_gods):
 			god = _create_god_of_tier("rare")
@@ -574,12 +585,13 @@ func _perform_multi_summon(cost: Dictionary, summon_type: String, banner_type: S
 	multi_summon_completed.emit(summoned_gods)
 
 	# Trigger save after multi-summon
-	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	var registry: SystemRegistry = SystemRegistry.get_instance()
+	var event_bus: Node = registry.get_system("EventBus") if registry else null
 	if event_bus:
 		event_bus.save_requested.emit()
 		# Emit detailed analytics event for multi-summon
 		var gods_data: Array = []
-		for g in summoned_gods:
+		for g: God in summoned_gods:
 			gods_data.append({
 				"god_id": g.id,
 				"tier": God.tier_to_string(g.tier),
@@ -598,7 +610,7 @@ func _perform_multi_summon(cost: Dictionary, summon_type: String, banner_type: S
 	return summoned_gods.size() > 0
 
 func _has_rare_or_better(gods: Array) -> bool:
-	for g in gods:
+	for g: God in gods:
 		if g.tier >= God.TierType.RARE:
 			return true
 	return false
@@ -617,7 +629,7 @@ func get_save_data() -> Dictionary:
 		"claimed_milestones": claimed_milestones.duplicate()
 	}
 
-func load_save_data(save_data: Dictionary):
+func load_save_data(save_data: Dictionary) -> void:
 	if save_data.has("pity_counters"):
 		pity_counters = save_data.pity_counters.duplicate(true)
 	if save_data.has("last_free_summon_date"):
