@@ -298,11 +298,14 @@ func get_enhancement_stat_bonuses() -> Dictionary:
 	if level <= 0:
 		return {}
 
+	load_equipment_config()
+	var enhancement: Dictionary = equipment_config.get("enhancement_system", {})
+	var bonus_pct: float = enhancement.get("stat_bonus_percent_per_level", 0.05)
+
 	# Enhancement increases main stat by percentage based on level
 	var bonuses: Dictionary = {}
 	if main_stat_type != "":
-		# Each level adds 5% of base stat value
-		var bonus_value: int = int(main_stat_base * level * 0.05)
+		var bonus_value: int = int(main_stat_base * level * bonus_pct)
 		bonuses[main_stat_type] = bonus_value
 
 	return bonuses
@@ -361,7 +364,8 @@ func get_enhancement_chance() -> float:
 	if level < rates_array.size():
 		return rates_array[level] / 100.0
 	else:
-		return 0.05  # 5% for very high levels
+		var fallback: float = enhancement.get("fallback_success_rate", 5) / 100.0
+		return fallback
 
 # Alias for EquipmentManager compatibility  
 func get_enhancement_success_rate() -> float:

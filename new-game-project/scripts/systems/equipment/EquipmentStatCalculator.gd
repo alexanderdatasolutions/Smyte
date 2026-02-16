@@ -93,33 +93,31 @@ func calculate_equipment_power_rating(equipment: Equipment) -> int:
 	"""Calculate overall power rating for equipment"""
 	if not equipment:
 		return 0
-	
-	var power = 0
-	
+
+	Equipment.load_equipment_config()
+	var power_config: Dictionary = Equipment.equipment_config.get("power_calculation", {})
+	var main_stat_weight: int = int(power_config.get("main_stat_weight", 2))
+	var enh_mult_per_level: float = power_config.get("enhancement_multiplier_per_level", 0.1)
+	var rarity_mults: Dictionary = power_config.get("rarity_multipliers", {})
+
+	var power: int = 0
+
 	# Main stat contributes most to power
-	power += equipment.main_stat_value * 2
-	
+	power += equipment.main_stat_value * main_stat_weight
+
 	# Substats contribute to power
-	for substat in equipment.substats:
-		power += substat.get("value", 0)
-	
+	for substat: Dictionary in equipment.substats:
+		power += int(substat.get("value", 0))
+
 	# Enhancement level multiplier
-	var enhancement_multiplier = 1.0 + (equipment.level * 0.1)
+	var enhancement_multiplier: float = 1.0 + (equipment.level * enh_mult_per_level)
 	power = int(power * enhancement_multiplier)
-	
-	# Rarity multiplier
-	match equipment.rarity:
-		Equipment.Rarity.COMMON:
-			power = int(power * 1.0)
-		Equipment.Rarity.RARE:
-			power = int(power * 1.2)
-		Equipment.Rarity.EPIC:
-			power = int(power * 1.5)
-		Equipment.Rarity.LEGENDARY:
-			power = int(power * 2.0)
-		Equipment.Rarity.MYTHIC:
-			power = int(power * 3.0)
-	
+
+	# Rarity multiplier from config
+	var rarity_key: String = Equipment.rarity_to_string(equipment.rarity)
+	var rarity_mult: float = rarity_mults.get(rarity_key, 1.0)
+	power = int(power * rarity_mult)
+
 	return power
 
 func get_equipment_display_info(equipment: Equipment) -> Dictionary:
@@ -173,24 +171,20 @@ func calculate_set_bonuses(god: God) -> Dictionary:
 	return bonuses
 
 func _get_set_bonus_effects(equipment_set: String, piece_count: int) -> Dictionary:
-	"""Get set bonus effects based on set name and piece count"""
-	# This would normally load from configuration
-	# For now, hardcoded examples
-	match equipment_set:
-		"warrior":
-			if piece_count >= 2:
-				return {"attack_bonus_percent": 20}
-		"guardian":
-			if piece_count >= 4:
-				return {"defense_bonus_percent": 35}
-		"swift":
-			if piece_count >= 2:
-				return {"speed_bonus": 25}
-		"focus":
-			if piece_count >= 2:
-				return {"accuracy_bonus_percent": 20}
-	
-	return {}
+	"""Get set bonus effects based on set name and piece count from config"""
+	Equipment.load_equipment_config()
+	var sets: Dictionary = Equipment.equipment_config.get("equipment_sets", {})
+	var set_data: Dictionary = sets.get(equipment_set, {})
+	var bonuses: Dictionary = set_data.get("bonuses", {})
+
+	# Find highest threshold met
+	var best_bonus: Dictionary = {}
+	for threshold_str: String in bonuses:
+		var threshold: int = int(threshold_str)
+		if piece_count >= threshold:
+			best_bonus = bonuses[threshold_str]
+
+	return best_bonus
 
 # === ENHANCEMENT PREVIEW ===
 
@@ -198,40 +192,28 @@ func get_enhancement_preview(equipment: Equipment) -> Dictionary:
 	"""Get preview of equipment enhancement effects"""
 	if not equipment:
 		return {}
-	
-	var current_level = equipment.level
-	if current_level >= 15:  # Max enhancement level
+
+	var max_level: int = equipment.get_max_enhancement_level()
+	var current_level: int = equipment.level
+	if current_level >= max_level:
 		return {"can_enhance": false, "reason": "Max level reached"}
-	
-	var next_level = current_level + 1
-	var main_stat_increase = _calculate_main_stat_increase(equipment, next_level)
-	
+
+	var next_level: int = current_level + 1
+	var main_stat_increase: int = _calculate_main_stat_increase(equipment)
+
 	return {
 		"can_enhance": true,
 		"current_level": current_level,
 		"next_level": next_level,
 		"main_stat_increase": main_stat_increase,
-		"success_rate": _get_enhancement_success_rate(equipment, next_level),
-		"cost": _get_enhancement_cost(equipment, next_level)
+		"success_rate": equipment.get_enhancement_chance() * 100.0,
+		"cost": equipment.get_enhancement_cost_for_level(next_level)
 	}
 
-func _calculate_main_stat_increase(equipment: Equipment, _target_level: int) -> int:
-	"""Calculate main stat increase from enhancement"""
-	# Base increase per level varies by rarity and stat type
-	var base_increase = equipment.main_stat_base * 0.05  # 5% per level
+func _calculate_main_stat_increase(equipment: Equipment) -> int:
+	"""Calculate main stat increase from enhancement using config"""
+	Equipment.load_equipment_config()
+	var enhancement: Dictionary = Equipment.equipment_config.get("enhancement_system", {})
+	var bonus_pct: float = enhancement.get("stat_bonus_percent_per_level", 0.05)
+	var base_increase: float = equipment.main_stat_base * bonus_pct
 	return int(base_increase)
-
-func _get_enhancement_success_rate(_equipment: Equipment, target_level: int) -> float:
-	"""Get enhancement success rate"""
-	# Success rate decreases with higher levels
-	var base_rate = 100.0
-	var level_penalty = target_level * 5.0
-	return max(10.0, base_rate - level_penalty)
-
-func _get_enhancement_cost(_equipment: Equipment, target_level: int) -> Dictionary:
-	"""Get enhancement cost"""
-	var base_cost = target_level * 1000
-	return {
-		"mana": base_cost,
-		"materials": target_level * 2
-	}

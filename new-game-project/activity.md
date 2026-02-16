@@ -7,6 +7,25 @@
 
 ---
 
+## 2026-02-16 - Audit: Externalize equipment enhancement/power values to JSON config
+
+**Priority:** High (Data-Driven JSON Config)
+**File(s) Modified:** `data/equipment_config.json`, `scripts/data/Equipment.gd`, `scripts/systems/equipment/EquipmentStatCalculator.gd`
+
+**Changes:**
+- **Config**: Added `stat_bonus_percent_per_level: 0.05` and `fallback_success_rate: 5` to enhancement_system section in equipment_config.json
+- **Config**: Added `power_calculation` section with `main_stat_weight: 2`, `enhancement_multiplier_per_level: 0.1`, and `rarity_multipliers` (common=1.0 through mythic=3.0)
+- **Equipment.gd**: `get_enhancement_stat_bonuses()` now reads bonus percentage from config instead of hardcoded 0.05
+- **Equipment.gd**: `get_enhancement_chance()` fallback rate now reads from config instead of hardcoded 0.05
+- **EquipmentStatCalculator.gd**: `calculate_equipment_power_rating()` now reads main_stat_weight, enhancement_multiplier_per_level, and rarity_multipliers from config instead of hardcoded values
+- **EquipmentStatCalculator.gd**: `_get_set_bonus_effects()` now reads from equipment_sets config instead of hardcoded match statement
+- **EquipmentStatCalculator.gd**: `get_enhancement_preview()` now delegates to Equipment's config-driven methods instead of local hardcoded formulas (hardcoded max level 15, base_rate 100, level_penalty 5, base_cost formula all replaced)
+- **EquipmentStatCalculator.gd**: `_calculate_main_stat_increase()` reads stat_bonus_percent_per_level from config
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Move SummonManager pity/rate values to summon_config.json
 
 **Priority:** High (Data-Driven JSON Config)

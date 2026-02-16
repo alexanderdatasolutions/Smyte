@@ -217,6 +217,8 @@
     }
   },
   "enhancement_system": {
+    "stat_bonus_percent_per_level": 0.05,
+    "fallback_success_rate": 5,
     "costs": {
       "mana_base": 500,
       "mana_multiplier_per_level": 1.5,
@@ -231,6 +233,17 @@
       "epic": [100, 100, 90, 80, 70, 60, 50, 40, 30, 20, 15, 12, 8, 5, 2],
       "legendary": [100, 100, 95, 85, 75, 65, 55, 45, 35, 25, 20, 15, 10, 7, 3],
       "mythic": [100, 100, 100, 90, 80, 70, 60, 50, 40, 30, 25, 20, 15, 10, 5]
+    }
+  },
+  "power_calculation": {
+    "main_stat_weight": 2,
+    "enhancement_multiplier_per_level": 0.1,
+    "rarity_multipliers": {
+      "common": 1.0,
+      "rare": 1.2,
+      "epic": 1.5,
+      "legendary": 2.0,
+      "mythic": 3.0
     }
   },
   "socket_system": {

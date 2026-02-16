@@ -995,8 +995,8 @@
     "priority": "high",
     "file": "scripts/data/Equipment.gd",
     "issue": "Enhancement rates hardcoded: 0.95 base, 0.05 decay per level, cost multipliers",
-    "action": "Create data/equipment_config.json with enhancement_rates[], costs[], socket_unlock_costs[]",
-    "passes": false
+    "action": "equipment_config.json already existed with enhancement_system (success_rates, costs) and socket_system. Added stat_bonus_percent_per_level (0.05), fallback_success_rate (5), and power_calculation section (main_stat_weight, enhancement_multiplier_per_level, rarity_multipliers). Updated Equipment.gd get_enhancement_stat_bonuses() and get_enhancement_chance() to read from config. Updated EquipmentStatCalculator.gd calculate_equipment_power_rating() to read rarity multipliers, enhancement multiplier, and main stat weight from config. Updated _get_set_bonus_effects() to read from equipment_sets config instead of hardcoded match. Updated get_enhancement_preview() to use Equipment's config-driven methods instead of local hardcoded formulas.",
+    "passes": true
   },
   {
     "priority": "high",
