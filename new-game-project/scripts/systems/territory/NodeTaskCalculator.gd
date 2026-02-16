@@ -18,40 +18,28 @@ Following plan.md task 4:
 """
 
 # ==============================================================================
-# NODE TYPE TO TASK MAPPING (v3.0 - Simplified 3 types + base)
+# CONFIG (loaded from task_config.json)
 # ==============================================================================
+static var _config: Dictionary = {}
+static var _config_loaded: bool = false
 
-# Map node types to their primary task
-const NODE_TASK_MAP = {
-	"resource_node": "Gathering",
-	"forge": "Crafting",
-	"shrine": "Meditation",
-	"base": "Management"
-}
+static func _load_config() -> void:
+	if _config_loaded:
+		return
+	var file: FileAccess = FileAccess.open("res://data/task_config.json", FileAccess.READ)
+	if file:
+		var parsed: Variant = JSON.parse_string(file.get_as_text())
+		if parsed is Dictionary:
+			_config = parsed
+	_config_loaded = true
 
-# Map node types to their primary output resource
-const NODE_RESOURCE_MAP = {
-	"resource_node": "ore",
-	"forge": "enhancement_powder",
-	"shrine": "divine_essence",
-	"base": "mana"
-}
+static func _get_node_output_config() -> Dictionary:
+	_load_config()
+	return _config.get("node_output", {})
 
-# Node type to affinity mapping (for bonus calculations)
-const NODE_AFFINITY_MAP = {
-	"resource_node": "earth",
-	"forge": "fire",
-	"shrine": "light",
-	"base": ""
-}
-
-# Base output rates per hour (tier 1)
-const BASE_OUTPUT_RATES = {
-	"resource_node": 10,
-	"forge": 8,
-	"shrine": 6,
-	"base": 1
-}
+static func _get_node_mappings() -> Dictionary:
+	_load_config()
+	return _config.get("node_mappings", {})
 
 # ==============================================================================
 # PUBLIC API
@@ -62,46 +50,42 @@ func initialize():
 	pass
 
 func get_task_for_node(node: HexNode) -> String:
-	"""Get the task name for a specific hex node type.
-	Returns human-readable task name (e.g., 'Mining', 'Gathering').
-	"""
+	"""Get the task name for a specific hex node type."""
 	if not node:
 		return "Unknown"
 
-	return NODE_TASK_MAP.get(node.node_type, "Working")
+	var task_map: Dictionary = _get_node_mappings().get("task_map", {"resource_node": "Gathering", "forge": "Crafting", "shrine": "Meditation", "base": "Management"})
+	return task_map.get(node.node_type, "Working")
 
 func calculate_output_rate(node: HexNode, god: God) -> int:
 	"""Calculate output rate per hour for a god working at a node.
-
-	Formula: base_rate × tier_multiplier × god_level_bonus × affinity_bonus × spec_bonus
-
-	Args:
-		node: The HexNode being worked
-		god: The God assigned as worker
-
-	Returns:
-		int: Resources generated per hour
+	Formula: base_rate x tier_multiplier x god_level_bonus x affinity_bonus x spec_bonus
 	"""
 	if not node or not god:
 		return 0
 
+	_load_config()
+	var output_cfg: Dictionary = _get_node_output_config()
+
 	# Get base rate for node type
-	var base_rate = BASE_OUTPUT_RATES.get(node.node_type, 5)
+	var base_rates: Dictionary = output_cfg.get("base_rates", {"resource_node": 10, "forge": 8, "shrine": 6, "base": 1, "default": 5})
+	var base_rate: int = int(base_rates.get(node.node_type, base_rates.get("default", 5)))
 
 	# Tier multiplier: each tier increases base output
-	var tier_multiplier = _get_tier_multiplier(node.tier)
+	var tier_multiplier: float = _get_tier_multiplier(node.tier)
 
-	# God level bonus: 5% per level
-	var level_bonus = 1.0 + (god.level * 0.05)
+	# God level bonus
+	var level_bonus_per_level: float = float(output_cfg.get("god_level_bonus_per_level", 0.05))
+	var level_bonus: float = 1.0 + (god.level * level_bonus_per_level)
 
-	# Affinity bonus: 1.5x if god's element matches node's affinity
-	var affinity_bonus = _get_affinity_bonus(node, god)
+	# Affinity bonus
+	var affinity_bonus: float = _get_affinity_bonus(node, god)
 
 	# Specialization bonus (from SpecializationManager)
-	var spec_bonus = _get_specialization_bonus(node, god)
+	var spec_bonus: float = _get_specialization_bonus(node, god)
 
 	# Calculate final output
-	var output = base_rate * tier_multiplier * level_bonus * affinity_bonus * (1.0 + spec_bonus)
+	var output: float = base_rate * tier_multiplier * level_bonus * affinity_bonus * (1.0 + spec_bonus)
 
 	return int(output)
 
@@ -110,14 +94,16 @@ func get_primary_resource(node: HexNode) -> String:
 	if not node:
 		return ""
 
-	return NODE_RESOURCE_MAP.get(node.node_type, "mana")
+	var resource_map: Dictionary = _get_node_mappings().get("resource_map", {"resource_node": "ore", "forge": "enhancement_powder", "shrine": "divine_essence", "base": "mana"})
+	return resource_map.get(node.node_type, "mana")
 
 func get_node_affinity(node: HexNode) -> String:
 	"""Get the affinity (element) associated with a node type."""
 	if not node:
 		return ""
 
-	return NODE_AFFINITY_MAP.get(node.node_type, "")
+	var affinity_map: Dictionary = _get_node_mappings().get("affinity_map", {"resource_node": "earth", "forge": "fire", "shrine": "light", "base": ""})
+	return affinity_map.get(node.node_type, "")
 
 func has_affinity_match(node: HexNode, god: God) -> bool:
 	"""Check if a god's element matches the node's affinity."""
@@ -151,18 +137,13 @@ func get_output_display_text(node: HexNode, god: God) -> String:
 
 func _get_tier_multiplier(tier: int) -> float:
 	"""Get output multiplier based on node tier."""
-	match tier:
-		1: return 1.0
-		2: return 1.5
-		3: return 2.0
-		4: return 3.0
-		5: return 4.5
-		_: return 1.0
+	var tier_mults: Dictionary = _get_node_output_config().get("tier_multipliers", {"1": 1.0, "2": 1.5, "3": 2.0, "4": 3.0, "5": 4.5})
+	return float(tier_mults.get(str(tier), 1.0))
 
 func _get_affinity_bonus(node: HexNode, god: God) -> float:
-	"""Calculate affinity bonus (1.5x if element matches)."""
+	"""Calculate affinity bonus if element matches."""
 	if has_affinity_match(node, god):
-		return 1.5
+		return float(_get_node_output_config().get("affinity_match_multiplier", 1.5))
 	return 1.0
 
 func _get_specialization_bonus(node: HexNode, god: God) -> float:
@@ -191,24 +172,20 @@ func _get_specialization_bonus(node: HexNode, god: God) -> float:
 	return _calculate_fallback_spec_bonus(god)
 
 func _calculate_fallback_spec_bonus(god: God) -> float:
-	"""Calculate a simple spec bonus when SpecializationManager isn't available.
-	Based on spec tier: tier1=0.5, tier2=1.0, tier3=2.0
-	"""
-	var spec_tier = god.get_specialization_tier()
-	match spec_tier:
-		1: return 0.5   # 50% bonus
-		2: return 1.0   # 100% bonus
-		3: return 2.0   # 200% bonus
-		_: return 0.0
+	"""Calculate a simple spec bonus when SpecializationManager isn't available."""
+	var spec_tier: int = god.get_specialization_tier()
+	var fallback_bonuses: Dictionary = _get_node_output_config().get("fallback_spec_bonuses", {"0": 0.0, "1": 0.5, "2": 1.0, "3": 2.0})
+	return float(fallback_bonuses.get(str(spec_tier), 0.0))
 
 func _get_relevant_tasks_for_node(node_type: String) -> Array:
 	"""Get relevant task IDs for a node type (for spec bonus lookup)."""
-	match node_type:
-		"resource_node": return ["gathering", "mining", "logging", "herbalism", "foraging"]
-		"forge": return ["smithing", "crafting", "armor_crafting", "weapon_crafting", "enchanting"]
-		"shrine": return ["meditation", "blessing", "divine_communion", "research"]
-		"base": return ["management"]
-		_: return []
+	var relevant_map: Dictionary = _get_node_mappings().get("relevant_tasks_map", {
+		"resource_node": ["gathering", "mining", "logging", "herbalism", "foraging"],
+		"forge": ["smithing", "crafting", "armor_crafting", "weapon_crafting", "enchanting"],
+		"shrine": ["meditation", "blessing", "divine_communion", "research"],
+		"base": ["management"]
+	})
+	return relevant_map.get(node_type, [])
 
 func _get_resource_short_name(resource_id: String) -> String:
 	"""Convert resource ID to short display name."""

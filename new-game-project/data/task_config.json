@@ -1,0 +1,63 @@
+{
+	"_comment": "Task system configuration - bonus formulas, output rates, tier scaling",
+	"bonus_formulas": {
+		"trait_duration_reduction_cap": 0.5,
+		"skill_duration_reduction_per_level": 0.01,
+		"skill_duration_reduction_cap": 0.3,
+		"skill_reward_bonus_per_level": 0.02,
+		"skill_reward_bonus_cap": 0.5
+	},
+	"progress": {
+		"update_interval_seconds": 1.0
+	},
+	"node_output": {
+		"base_rates": {
+			"resource_node": 10,
+			"forge": 8,
+			"shrine": 6,
+			"base": 1,
+			"default": 5
+		},
+		"tier_multipliers": {
+			"1": 1.0,
+			"2": 1.5,
+			"3": 2.0,
+			"4": 3.0,
+			"5": 4.5
+		},
+		"god_level_bonus_per_level": 0.05,
+		"affinity_match_multiplier": 1.5,
+		"fallback_spec_bonuses": {
+			"0": 0.0,
+			"1": 0.5,
+			"2": 1.0,
+			"3": 2.0
+		}
+	},
+	"node_mappings": {
+		"task_map": {
+			"resource_node": "Gathering",
+			"forge": "Crafting",
+			"shrine": "Meditation",
+			"base": "Management"
+		},
+		"resource_map": {
+			"resource_node": "ore",
+			"forge": "enhancement_powder",
+			"shrine": "divine_essence",
+			"base": "mana"
+		},
+		"affinity_map": {
+			"resource_node": "earth",
+			"forge": "fire",
+			"shrine": "light",
+			"base": ""
+		},
+		"relevant_tasks_map": {
+			"resource_node": ["gathering", "mining", "logging", "herbalism", "foraging"],
+			"forge": ["smithing", "crafting", "armor_crafting", "weapon_crafting", "enchanting"],
+			"shrine": ["meditation", "blessing", "divine_communion", "research"],
+			"base": ["management"]
+		}
+	}
+}

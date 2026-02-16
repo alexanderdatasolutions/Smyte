@@ -2094,3 +2094,21 @@ All initial audit tasks from AUDIT_PLAN.md have been completed:
 **Verified:** Ran project, no errors in debug output
 
 **Commit:** `audit: delete 11 orphaned .uid files for deleted scripts`
+
+---
+
+## 2026-02-16 - Audit: Externalize task system values to task_config.json and create tasks.json
+
+**Priority:** High (Data-Driven JSON Config)
+**File(s) Modified:** `data/task_config.json` (new), `data/tasks.json` (new), `scripts/data/Task.gd`, `scripts/systems/territory/NodeTaskCalculator.gd`, `scripts/systems/tasks/TaskAssignmentManager.gd`
+
+**Changes:**
+- **data/task_config.json** (new): Created with `bonus_formulas` (trait_duration_reduction_cap=0.5, skill_duration_reduction_per_level=0.01, skill_duration_reduction_cap=0.3, skill_reward_bonus_per_level=0.02, skill_reward_bonus_cap=0.5), `progress` (update_interval_seconds=1.0), `node_output` (base_rates by node type, tier_multipliers 1-5, god_level_bonus_per_level=0.05, affinity_match_multiplier=1.5, fallback_spec_bonuses by tier), `node_mappings` (task_map, resource_map, affinity_map, relevant_tasks_map)
+- **data/tasks.json** (new): Created with 31 task definitions covering all tasks from territory_config.json node_task_mapping (mining, mine_ore, mine_gems, deep_mining, gem_cutting, logging, herbalism, foraging, plant_cultivation, fishing, pearl_diving, salt_harvesting, hunting, tracking, monster_hunting, taming, smithing, armor_crafting, weapon_crafting, enchanting, research, scroll_crafting, training, skill_learning, meditation, blessing, awakening_ritual, divine_communion, garrison_duty, war_planning, combat_training, defense_building). Includes task_categories and skills sections.
+- **Task.gd**: Added static config loading from task_config.json with cache. Added 5 static getter methods (get_trait_duration_cap, get_skill_duration_per_level, get_skill_duration_cap, get_skill_reward_per_level, get_skill_reward_cap). Updated get_duration_for_god() and get_rewards_for_god() to use config values with fallback defaults. Added static typing to all local variables. Changed min() to minf().
+- **NodeTaskCalculator.gd**: Replaced 4 hardcoded const dictionaries (NODE_TASK_MAP, NODE_RESOURCE_MAP, NODE_AFFINITY_MAP, BASE_OUTPUT_RATES) with static config loading from task_config.json. Updated all 8 methods (get_task_for_node, calculate_output_rate, get_primary_resource, get_node_affinity, _get_tier_multiplier, _get_affinity_bonus, _calculate_fallback_spec_bonus, _get_relevant_tasks_for_node) to read from config with fallback defaults. Added static typing throughout.
+- **TaskAssignmentManager.gd**: Added config loading for progress.update_interval_seconds. Added static typing to JSON loading variables. Replaced PROGRESS_UPDATE_INTERVAL const with configurable _progress_update_interval member. Added static typing to _update_all_task_progress and _update_task_progress_for_assignment.
+
+**Verified:** Ran project, no new errors in debug output
+
+**Commit:** `audit: externalize task system values to task_config.json and create tasks.json`

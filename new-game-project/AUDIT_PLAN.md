@@ -1037,8 +1037,8 @@
     "priority": "high",
     "file": "scripts/systems/territory/TaskAssignmentManager.gd",
     "issue": "Task durations, reward multipliers, efficiency bonuses hardcoded",
-    "action": "Ensure data/tasks.json has all values, remove hardcoded fallbacks",
-    "passes": false
+    "action": "Created data/tasks.json with 31 task definitions (all tasks from node_task_mapping) with full rewards, requirements, skill integration. Created data/task_config.json with bonus_formulas (trait/skill duration/reward caps and rates), progress (update_interval_seconds), node_output (base_rates, tier_multipliers, god_level_bonus, affinity_match_multiplier, fallback_spec_bonuses), and node_mappings (task/resource/affinity/relevant_tasks maps). Updated Task.gd with static config loading for all 5 bonus formula values. Updated NodeTaskCalculator.gd to read all constants from config (base_rates, tier_multipliers, god_level_bonus, affinity_multiplier, fallback_spec_bonuses, all node mappings). Updated TaskAssignmentManager.gd to read progress_update_interval from config. Added static typing throughout all modified files.",
+    "passes": true
   },
   {
     "priority": "medium",

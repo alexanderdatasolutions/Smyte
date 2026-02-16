@@ -70,37 +70,78 @@ enum TaskRarity {
 @export var animation_id: String = ""  # Animation to play while working
 
 # ==============================================================================
+# STATIC CONFIG (loaded from task_config.json)
+# ==============================================================================
+static var _config: Dictionary = {}
+static var _config_loaded: bool = false
+
+static func _load_config() -> void:
+	if _config_loaded:
+		return
+	var file: FileAccess = FileAccess.open("res://data/task_config.json", FileAccess.READ)
+	if file:
+		var parsed: Variant = JSON.parse_string(file.get_as_text())
+		if parsed is Dictionary:
+			_config = parsed
+	_config_loaded = true
+
+static func _get_bonus_config() -> Dictionary:
+	_load_config()
+	return _config.get("bonus_formulas", {})
+
+static func get_trait_duration_cap() -> float:
+	return float(_get_bonus_config().get("trait_duration_reduction_cap", 0.5))
+
+static func get_skill_duration_per_level() -> float:
+	return float(_get_bonus_config().get("skill_duration_reduction_per_level", 0.01))
+
+static func get_skill_duration_cap() -> float:
+	return float(_get_bonus_config().get("skill_duration_reduction_cap", 0.3))
+
+static func get_skill_reward_per_level() -> float:
+	return float(_get_bonus_config().get("skill_reward_bonus_per_level", 0.02))
+
+static func get_skill_reward_cap() -> float:
+	return float(_get_bonus_config().get("skill_reward_bonus_cap", 0.5))
+
+# ==============================================================================
 # METHODS
 # ==============================================================================
 
 func get_duration_for_god(_god: God, trait_bonus: float = 0.0, skill_level: int = 0) -> int:
 	"""Calculate actual task duration considering bonuses"""
-	var duration = float(base_duration_seconds)
+	_load_config()
+	var duration: float = float(base_duration_seconds)
 
 	# Apply trait bonus (reduces duration)
 	if trait_bonus > 0:
-		duration *= (1.0 - min(trait_bonus, 0.5))  # Cap at 50% reduction
+		duration *= (1.0 - minf(trait_bonus, get_trait_duration_cap()))
 
-	# Apply skill level bonus (1% reduction per level above requirement)
+	# Apply skill level bonus (reduction per level above requirement)
 	if skill_level > skill_level_required:
-		var skill_bonus = min((skill_level - skill_level_required) * 0.01, 0.3)  # Cap at 30%
+		var per_level: float = get_skill_duration_per_level()
+		var cap: float = get_skill_duration_cap()
+		var skill_bonus: float = minf(float(skill_level - skill_level_required) * per_level, cap)
 		duration *= (1.0 - skill_bonus)
 
 	return int(duration)
 
 func get_rewards_for_god(_god: God, trait_bonus: float = 0.0, skill_level: int = 0) -> Dictionary:
 	"""Calculate actual rewards considering bonuses"""
-	var rewards = {}
+	_load_config()
+	var rewards: Dictionary = {}
 
 	# Base resource rewards with trait bonus
-	var resource_multiplier = 1.0 + trait_bonus
-	for resource_id in resource_rewards:
+	var resource_multiplier: float = 1.0 + trait_bonus
+	for resource_id: String in resource_rewards:
 		rewards[resource_id] = int(resource_rewards[resource_id] * resource_multiplier)
 
 	# Add skill level bonus to resources
 	if skill_level > skill_level_required:
-		var skill_bonus = 1.0 + min((skill_level - skill_level_required) * 0.02, 0.5)  # 2% per level, cap 50%
-		for resource_id in rewards:
+		var per_level: float = get_skill_reward_per_level()
+		var cap: float = get_skill_reward_cap()
+		var skill_bonus: float = 1.0 + minf(float(skill_level - skill_level_required) * per_level, cap)
+		for resource_id: String in rewards:
 			rewards[resource_id] = int(rewards[resource_id] * skill_bonus)
 
 	return rewards

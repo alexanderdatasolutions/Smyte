@@ -15,8 +15,8 @@ signal tasks_loaded()
 # ==============================================================================
 # CONSTANTS
 # ==============================================================================
-const TASKS_DATA_PATH = "res://data/tasks.json"
-const PROGRESS_UPDATE_INTERVAL = 1.0  # Check progress every second
+const TASKS_DATA_PATH: String = "res://data/tasks.json"
+const TASK_CONFIG_PATH: String = "res://data/task_config.json"
 
 # ==============================================================================
 # STATE
@@ -26,6 +26,7 @@ var _task_categories: Dictionary = {}  # category_id -> category_data
 var _skills: Dictionary = {}  # skill_id -> skill_data
 var _active_assignments: Dictionary = {}  # god_id -> [{task_id, territory_id, start_time}]
 var _is_loaded: bool = false
+var _progress_update_interval: float = 1.0
 
 var _trait_manager: TraitManager = null
 var _progress_timer: float = 0.0
@@ -35,7 +36,16 @@ var _progress_timer: float = 0.0
 # ==============================================================================
 
 func _ready() -> void:
+	_load_task_config()
 	load_tasks_from_json()
+
+func _load_task_config() -> void:
+	var file: FileAccess = FileAccess.open(TASK_CONFIG_PATH, FileAccess.READ)
+	if file:
+		var parsed: Variant = JSON.parse_string(file.get_as_text())
+		if parsed is Dictionary:
+			var progress_cfg: Dictionary = parsed.get("progress", {})
+			_progress_update_interval = float(progress_cfg.get("update_interval_seconds", 1.0))
 
 func set_trait_manager(manager: TraitManager) -> void:
 	_trait_manager = manager
@@ -46,28 +56,28 @@ func load_tasks_from_json() -> void:
 		push_error("TaskAssignmentManager: Tasks data file not found: " + TASKS_DATA_PATH)
 		return
 
-	var file = FileAccess.open(TASKS_DATA_PATH, FileAccess.READ)
+	var file: FileAccess = FileAccess.open(TASKS_DATA_PATH, FileAccess.READ)
 	if not file:
 		push_error("TaskAssignmentManager: Failed to open tasks data file")
 		return
 
-	var json_text = file.get_as_text()
+	var json_text: String = file.get_as_text()
 	file.close()
 
-	var json = JSON.new()
-	var parse_result = json.parse(json_text)
+	var json: JSON = JSON.new()
+	var parse_result: int = json.parse(json_text)
 	if parse_result != OK:
 		push_error("TaskAssignmentManager: Failed to parse tasks JSON: " + json.get_error_message())
 		return
 
-	var data = json.get_data()
+	var data: Dictionary = json.get_data()
 
 	# Load task definitions
 	if data.has("tasks"):
-		for task_id in data.tasks:
-			var task_data = data.tasks[task_id]
+		for task_id: String in data.tasks:
+			var task_data: Dictionary = data.tasks[task_id]
 			task_data["id"] = task_id
-			var loaded_task = Task.from_dict(task_data)
+			var loaded_task: Task = Task.from_dict(task_data)
 			if loaded_task:
 				_tasks[task_id] = loaded_task
 
@@ -217,31 +227,29 @@ func unassign_god_from_all_tasks(god: God) -> void:
 
 func _process(delta: float) -> void:
 	_progress_timer += delta
-	if _progress_timer >= PROGRESS_UPDATE_INTERVAL:
+	if _progress_timer >= _progress_update_interval:
 		_progress_timer = 0.0
 		_update_all_task_progress()
 
 func _update_all_task_progress() -> void:
 	"""Update progress for all active task assignments"""
-	var current_time = Time.get_unix_time_from_system()
+	var current_time: float = Time.get_unix_time_from_system()
 
-	for god_id in _active_assignments.keys():
-		var assignments = _active_assignments[god_id]
-		for assignment in assignments:
+	for god_id: String in _active_assignments.keys():
+		var assignments: Array = _active_assignments[god_id]
+		for assignment: Dictionary in assignments:
 			_update_task_progress_for_assignment(god_id, assignment, current_time)
 
 func _update_task_progress_for_assignment(god_id: String, assignment: Dictionary, current_time: float) -> void:
 	"""Update progress for a single assignment"""
-	var assigned_task = get_task(assignment.task_id)
+	var assigned_task: Task = get_task(assignment.task_id)
 	if not assigned_task:
 		return
 
-	# Get god reference (would normally come from CollectionManager)
-	# For now, calculate based on stored data
-	var elapsed = current_time - assignment.start_time
-	var duration = assigned_task.base_duration_seconds  # Would apply bonuses with god reference
+	var elapsed: float = current_time - assignment.start_time
+	var duration: float = float(assigned_task.base_duration_seconds)
 
-	var progress = min(elapsed / duration, 1.0)
+	var progress: float = minf(elapsed / duration, 1.0)
 
 	# Emit progress update
 	task_progress_updated.emit(god_id, assignment.task_id, progress)
