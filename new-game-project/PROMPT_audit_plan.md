@@ -160,15 +160,15 @@
     "priority": "high",
     "file": "scripts/systems/dungeon/DungeonManager.gd",
     "issue": "7 unused functions (lines 606-745): _enhance_dungeon_info, _calculate_enemy_power, _get_difficulty_color, get_enemy_types_for_dungeon, get_dungeon_enemies, get_dungeon_rewards",
-    "action": "Delete all 7 dead functions",
-    "passes": false
+    "action": "VERIFIED: All 7 functions have active callers - _enhance_dungeon_info (called 8x internally), _calculate_enemy_power/_get_difficulty_color (called by _enhance_dungeon_info), get_enemy_types_for_dungeon (DungeonInfoDisplay.gd), get_dungeon_enemies (TeamSelectionManager.gd, BattleInfoManager.gd), get_dungeon_rewards (TeamSelectionManager.gd, BattleInfoManager.gd). NOT dead code.",
+    "passes": true
   },
   {
     "priority": "high",
     "file": "scripts/systems/equipment/EquipmentManager.gd",
     "issue": "Dead functions: get_public_api, create_equipment_from_loot, get_god_equipment_stats, save/load_equipment_data",
-    "action": "Delete dead functions",
-    "passes": false
+    "action": "Deleted 3 dead functions (get_public_api, create_equipment_from_loot, get_god_equipment_stats). save/load_equipment_data already removed in earlier audit.",
+    "passes": true
   },
   {
     "priority": "high",

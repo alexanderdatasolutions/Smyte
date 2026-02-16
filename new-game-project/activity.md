@@ -1337,3 +1337,21 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: remove dead code from NodeTaskCalculator`
+
+### 2026-02-16 - Audit: Remove dead code from EquipmentManager.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/equipment/EquipmentManager.gd`
+
+**Changes:**
+- Removed 3 dead functions with zero external callers:
+  - `get_public_api()` (20 lines) — self-documentation function, never called
+  - `create_equipment_from_loot()` (10 lines) — dead integration method, never called by any loot/dungeon code
+  - `get_god_equipment_stats()` (32 lines) — dead stats function, never called externally (uses CollectionManager.get_god_equipment which duplicates EquipmentManager's own equip tracking)
+- `save_equipment_data()`/`load_equipment_data()` already removed in earlier audit (replaced with `get_save_data()`/`load_save_data()`)
+- Corrected audit plan: DungeonManager.gd "7 dead functions" were all false positives — all have active external callers (DungeonInfoDisplay, TeamSelectionManager, BattleInfoManager)
+- File reduced from 469 to 401 lines (-68 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: remove dead code from EquipmentManager`

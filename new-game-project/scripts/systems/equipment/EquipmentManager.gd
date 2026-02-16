@@ -350,39 +350,6 @@ func get_equipment_summary() -> Dictionary:
 	
 	return summary
 
-func get_god_equipment_stats(god: God) -> Dictionary:
-	"""Get equipment stats for a specific god - RULE 5: Use SystemRegistry"""
-	if not god:
-		return {}
-	
-	var stats = {
-		"equipped_count": 0,
-		"socketed_gems": 0,
-		"stat_bonuses": {}
-	}
-	
-	# Get god equipment through SystemRegistry
-	var system_registry = SystemRegistry.get_instance()
-	if system_registry:
-		var collection_manager = system_registry.get_system("CollectionManager")
-		if collection_manager:
-			var god_equipment = collection_manager.get_god_equipment(god.id)
-			
-			for equipment in god_equipment:
-				if equipment:
-					stats.equipped_count += 1
-
-					# Count socketed gems
-					if socket_manager:
-						var socket_effects = socket_manager.get_gem_effects_on_equipment(equipment)
-						for effect_type in socket_effects:
-							stats.socketed_gems += 1
-							if not stats.stat_bonuses.has(effect_type):
-								stats.stat_bonuses[effect_type] = 0
-							stats.stat_bonuses[effect_type] += socket_effects[effect_type]
-	
-	return stats
-
 # === SAVE/LOAD INTEGRATION ===
 
 func get_save_data() -> Dictionary:
@@ -416,41 +383,6 @@ func load_save_data(data: Dictionary) -> void:
 		for gem_data in data.gems:
 			if gem_data is Dictionary:
 				socket_manager.gems_inventory.append(gem_data.duplicate())
-
-# === INTEGRATION METHODS ===
-
-func create_equipment_from_loot(dungeon_id: String, _difficulty: String, rarity: String) -> Equipment:
-	"""Create equipment from loot system - RULE 5: Use SystemRegistry"""
-	# Create equipment through proper channels
-	var equipment = Equipment.create_from_dungeon(dungeon_id, "WEAPON", rarity, 1)
-	
-	if equipment:
-		add_equipment_to_inventory(equipment)
-
-	return equipment
-
-# === PUBLIC API SUMMARY ===
-
-func get_public_api() -> Array:
-	"""Get list of public API methods for this system"""
-	return [
-		"add_equipment_to_inventory",
-		"remove_equipment_from_inventory",
-		"get_equipment_by_id",
-		"get_equipment_by_slot_type",
-		"equip_equipment_to_god",
-		"unequip_equipment_from_god",
-		"can_craft_equipment",
-		"craft_equipment",
-		"get_available_recipes",
-		"unlock_socket",
-		"socket_gem",
-		"unsocket_gem",
-		"add_gem_to_inventory",
-		"get_equipment_summary",
-		"get_god_equipment_stats",
-		"create_equipment_from_loot"
-	]
 
 # === CLEANUP ===
 
