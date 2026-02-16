@@ -76,7 +76,6 @@ signal league_changed(league_data: Dictionary)  # {old_league, new_league, elo, 
 # ============================================================================
 signal screen_changed(old_screen: String, new_screen: String)
 signal notification_requested(message: String, type: String, duration: float)
-signal popup_requested(popup_type: String, data: Dictionary)
 signal show_tutorial_requested(tutorial_data: Dictionary)
 signal loading_started(operation: String)
 signal loading_completed(operation: String)
@@ -92,48 +91,15 @@ signal loot_obtained(loot: Array, source: String)
 # ============================================================================
 # SYSTEM EVENTS
 # ============================================================================
-signal game_paused()
-signal game_resumed()
 signal game_saved()
 signal game_loaded()
 signal save_requested()  # Request to save game state
-signal settings_changed(setting_key: String, new_value: Variant)
 signal error_occurred(error_message: String, context: String)
-
-# ============================================================================
-# EVENT BUS MANAGEMENT
-# ============================================================================
-
-var _event_history: Array[Dictionary] = []
-var _max_history_size: int = 100
-var _debug_mode: bool = false
-
-## Log an event to history (for debugging)
-func _log_event(event_name: String, data: Dictionary = {}) -> void:
-	if not _debug_mode:
-		return
-
-	var log_entry: Dictionary = {
-		"event": event_name,
-		"timestamp": Time.get_ticks_msec(),
-		"data": data
-	}
-
-	_event_history.append(log_entry)
-
-	# Keep history size manageable
-	while _event_history.size() > _max_history_size:
-		_event_history.pop_front()
 
 # ============================================================================
 # CONVENIENCE METHODS FOR COMMON EVENTS
 # ============================================================================
 
 ## Emit notification request
-func emit_notification(message: String, type: String = "info", duration: float = 3.0):
-	_log_event("notification_requested", {
-		"message": message,
-		"type": type,
-		"duration": duration
-	})
+func emit_notification(message: String, type: String = "info", duration: float = 3.0) -> void:
 	notification_requested.emit(message, type, duration)

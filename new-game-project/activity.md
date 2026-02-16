@@ -3,7 +3,24 @@
 ## Current Status
 **Last Updated:** 2026-02-16
 **Phase:** Pre-Release Audit Execution
-**Current Task:** Executing AUDIT_PLAN.md tasks (77/77 complete)
+**Current Task:** Executing AUDIT_PLAN.md tasks
+
+---
+
+## 2026-02-16 - Audit: Remove dead signals and event history from EventBus.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/core/EventBus.gd`
+
+**Changes:**
+- Removed 4 dead signals: `game_paused`, `game_resumed`, `settings_changed`, `popup_requested` (all 0 emitters/connectors)
+- Removed dead event history system: `_event_history`, `_max_history_size`, `_debug_mode` vars and `_log_event()` function (`_debug_mode` always false, never set)
+- Simplified `emit_notification()` to directly emit signal without dead `_log_event()` call
+- Added `-> void` return type to `emit_notification()`
+- File reduced from 140 to 106 lines
+- Also updated AUDIT_PLAN.md to mark 22 previously-completed tasks (SummonManager dead code, ConfigurationManager dead code, all 19 debug print tasks) as passes: true
+
+**Verified:** Ran project, no errors in debug output
 
 ---
 

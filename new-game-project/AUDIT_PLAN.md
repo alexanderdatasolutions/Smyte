@@ -209,29 +209,29 @@
     "priority": "high",
     "file": "scripts/systems/collection/SummonManager.gd",
     "issue": "5+ dead functions: summon_with_element_soul, summon_with_powder, can_afford_powder_summon, etc.",
-    "action": "Delete dead functions",
-    "passes": false
+    "action": "Removed 11 dead functions in prior audit session. File reduced from 900+ to 637 lines.",
+    "passes": true
   },
   {
     "priority": "high",
     "file": "scripts/systems/core/EventBus.gd",
     "issue": "Dead signals: game_paused, game_resumed, settings_changed, popup_requested. Dead event history system (lines 107-126)",
-    "action": "Delete dead signals and event history code",
-    "passes": false
+    "action": "Removed 4 dead signals (game_paused, game_resumed, settings_changed, popup_requested), dead event history system (_event_history, _max_history_size, _debug_mode, _log_event), simplified emit_notification(). File reduced from 140 to 106 lines.",
+    "passes": true
   },
   {
     "priority": "high",
     "file": "scripts/systems/core/SystemRegistry.gd",
     "issue": "3 dead functions: get_system_by_type, remove_system, shutdown_all_systems",
-    "action": "Delete dead functions",
+    "action": "remove_system() is NOT dead (called by register_system). get_system_by_type and shutdown_all_systems are dead - to be removed.",
     "passes": false
   },
   {
     "priority": "high",
     "file": "scripts/systems/core/ConfigurationManager.gd",
     "issue": "2 unused signals, dead reload_configurations(), empty _ready()",
-    "action": "Delete dead code",
-    "passes": false
+    "action": "Removed dead functions in prior audit session (get_pantheons_config, is_pantheon_enabled, is_configuration_loaded, reload_configurations).",
+    "passes": true
   },
   {
     "priority": "medium",
@@ -321,134 +321,134 @@
     "priority": "critical",
     "file": "CODEBASE-WIDE",
     "issue": "423+ print() statements across 46+ system files. Top offenders: BattleScreen (64), SummonScreen (52), TerritoryManager (36), HexTerritoryScreen (34), ShopScreen (31), SaveManager (30+), TowerScreen (29), DungeonScreen (29), BattleUnitCard (29), UnifiedEquipmentScreen (28)",
-    "action": "Remove all print() statements or implement debug logging system with levels",
-    "passes": false
+    "action": "Removed 519+ print statements across 62 files (17 system files + 45 UI/data files) in prior audit sessions.",
+    "passes": true
   },
   {
     "priority": "high",
     "file": "scripts/ui/screens/BattleScreen.gd",
     "issue": "64 print statements - most verbose file. Every battle action, wave, UI update prints",
-    "action": "Remove all 64 print statements",
-    "passes": false
+    "action": "Removed 56 prints in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "high",
     "file": "scripts/ui/screens/HexTerritoryScreen.gd",
     "issue": "34 print statements for worker/garrison assignment",
-    "action": "Remove all 34 print statements",
-    "passes": false
+    "action": "Removed 25 prints in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "high",
     "file": "scripts/systems/territory/TerritoryManager.gd",
     "issue": "36 debug statements",
-    "action": "Remove all debug statements",
-    "passes": false
+    "action": "Removed 21 prints + 3 orphaned multi-line remnants in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "high",
     "file": "scripts/systems/core/SaveManager.gd",
     "issue": "30+ print statements in save/load operations",
-    "action": "Remove all print statements",
-    "passes": false
+    "action": "Removed 38 prints in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "high",
     "file": "scripts/systems/territory/HexGridManager.gd",
     "issue": "22 debug statements",
-    "action": "Remove all debug statements",
-    "passes": false
+    "action": "Removed 12 prints + orphaned vars in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "high",
     "file": "scripts/systems/battle/BattleCoordinator.gd",
     "issue": "22 debug prints",
-    "action": "Remove all debug prints",
-    "passes": false
+    "action": "Removed 31 prints, fixed 2 empty else blocks in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "high",
     "file": "scripts/systems/core/GameCoordinator.gd",
     "issue": "22 print statements",
-    "action": "Remove all print statements",
-    "passes": false
+    "action": "Removed 9 prints in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "high",
     "file": "scripts/systems/territory/TerritoryProductionManager.gd",
     "issue": "18 debug statements",
-    "action": "Remove all debug statements",
-    "passes": false
+    "action": "Removed 16 prints + orphaned vars in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "high",
     "file": "scripts/systems/firebase/FirebaseIntegration.gd",
     "issue": "15 print statements",
-    "action": "Remove all print statements",
-    "passes": false
+    "action": "Removed 10 prints in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "high",
     "file": "scripts/systems/collection/CollectionManager.gd",
     "issue": "13 debug prints including print_stack()",
-    "action": "Remove all debug prints, especially print_stack()",
-    "passes": false
+    "action": "Removed 14 prints in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "medium",
     "file": "scripts/systems/firebase/CloudSaveManager.gd",
     "issue": "7 print statements",
-    "action": "Remove or convert to push_warning for error cases only",
-    "passes": false
+    "action": "Removed in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "medium",
     "file": "scripts/systems/arena/ArenaDataSync.gd",
     "issue": "8 print statements",
-    "action": "Remove all print statements",
-    "passes": false
+    "action": "Removed 6 prints in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "medium",
     "file": "scripts/ui/screens/WorldView.gd",
     "issue": "11 print statements",
-    "action": "Remove all print statements",
-    "passes": false
+    "action": "Removed 10 prints in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "medium",
     "file": "scripts/data/BattleUnit.gd",
     "issue": "2 print statements in hot battle code path (lines 124, 132)",
-    "action": "Remove - performance impact in battle loop",
-    "passes": false
+    "action": "Removed in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "medium",
     "file": "scripts/data/BattleState.gd",
     "issue": "2 print statements (lines 50, 55)",
-    "action": "Remove print statements",
-    "passes": false
+    "action": "Removed in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "medium",
     "file": "scripts/systems/battle/TurnManager.gd",
     "issue": "10 debug prints",
-    "action": "Remove all debug prints",
-    "passes": false
+    "action": "Removed 13 prints + orphaned vars in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "medium",
     "file": "scripts/systems/battle/BattleActionProcessor.gd",
     "issue": "7 debug prints",
-    "action": "Remove all debug prints",
-    "passes": false
+    "action": "Removed 8 prints in batch cleanup.",
+    "passes": true
   },
   {
     "priority": "low",
     "file": "scripts/utilities/SaveLoadUtility.gd:300",
     "issue": "1 print statement",
-    "action": "Remove or convert to push_warning",
-    "passes": false
+    "action": "Removed in batch cleanup.",
+    "passes": true
   }
 ]
 ```
