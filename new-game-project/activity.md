@@ -1065,3 +1065,18 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: fix save system for ShopManager`
+
+### 2026-02-16 - Audit: Fix save system for SkinManager
+
+**Priority:** Critical
+**File(s) Modified:** `scripts/systems/core/SaveManager.gd`
+
+**Changes:**
+- Added SkinManager to SaveManager save chain (`save_data["skins"]` via `get_save_data()`)
+- Added SkinManager to SaveManager load chain (`_load_system_data` call with "skins" key)
+- SkinManager already had `get_save_data()` and `load_save_data()` methods — just needed wiring into SaveManager
+- Owned skins and equipped skins now persist across restarts
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: fix save system for SkinManager`

@@ -42,7 +42,7 @@
     "file": "scripts/systems/core/SaveManager.gd",
     "issue": "SkinManager NOT saved - owned skins and equipped skins lost on restart",
     "action": "Add SkinManager to save/load chain (it already has get_save_data/load_save_data)",
-    "passes": false
+    "passes": true
   },
   {
     "priority": "high",
