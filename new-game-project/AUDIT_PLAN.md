@@ -237,8 +237,8 @@
     "priority": "medium",
     "file": "scripts/systems/territory/NodeProductionInfo.gd",
     "issue": "Potentially entire file unused (124 lines)",
-    "action": "Verify usage or delete",
-    "passes": false
+    "action": "VERIFIED: NOT dead code. Used by NodeInfoPanel.gd (6 method calls) and registered in SystemRegistry.gd. Loads node_production_types.json. Removed 1 debug print statement, added static typing to 5 local variables.",
+    "passes": true
   },
   {
     "priority": "medium",
@@ -251,15 +251,15 @@
     "priority": "medium",
     "file": "scripts/data/Equipment.gd",
     "issue": "create_test_equipment() (lines 120-156) - test code in production data class",
-    "action": "Remove test code from production class",
-    "passes": false
+    "action": "Removed create_test_equipment() (38 lines). Verified no callers in codebase (only in Equipment.gd definition and docs). File reduced from 501 to 463 lines.",
+    "passes": true
   },
   {
     "priority": "medium",
     "file": "scripts/data/Equipment.gd",
     "issue": "Duplicate method aliases: can_be_enhanced() / can_enhance(), get_enhancement_success_rate() / get_enhancement_chance()",
-    "action": "Consolidate to single method names and update callers",
-    "passes": false
+    "action": "Removed both aliases (can_be_enhanced, get_enhancement_success_rate). Verified neither alias is called anywhere in codebase. Primary methods (can_enhance, get_enhancement_chance) retained. EquipmentStatCalculator uses get_enhancement_chance() directly.",
+    "passes": true
   },
   {
     "priority": "medium",

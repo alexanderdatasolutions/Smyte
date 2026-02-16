@@ -7,6 +7,19 @@
 
 ---
 
+## 2026-02-16 - Audit: Clean up Equipment.gd dead code and verify NodeProductionInfo.gd
+
+**Priority:** Medium (Dead Code)
+**File(s) Modified:** `scripts/data/Equipment.gd`, `scripts/systems/territory/NodeProductionInfo.gd`
+
+**Changes:**
+- **Equipment.gd**: Removed `create_test_equipment()` (38 lines) - never called anywhere in codebase, only test factory method. Removed `can_be_enhanced()` alias (3 lines) - duplicate of `can_enhance()`, never called externally. Removed `get_enhancement_success_rate()` alias (3 lines) - duplicate of `get_enhancement_chance()`, never called externally. File reduced from 501 to 457 lines.
+- **NodeProductionInfo.gd**: VERIFIED NOT dead code - actively used by NodeInfoPanel.gd (6 method calls at lines 506-515) and registered in SystemRegistry.gd (line 168-170). Removed 1 debug print statement (line 61). Added static typing to 5 local variables (config_path, file, json_text, json, parse_result).
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings/errors unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Add missing dungeon waves for 5 pantheon trials
 
 **Priority:** Medium (Core Gameplay Loop)

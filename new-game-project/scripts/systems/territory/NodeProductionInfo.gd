@@ -33,22 +33,22 @@ func initialize() -> void:
 
 func _load_production_config() -> void:
 	"""Load production type configuration from JSON"""
-	var config_path = "res://data/node_production_types.json"
+	var config_path: String = "res://data/node_production_types.json"
 
 	if not FileAccess.file_exists(config_path):
 		push_error("NodeProductionInfo: Config file not found: " + config_path)
 		return
 
-	var file = FileAccess.open(config_path, FileAccess.READ)
+	var file: FileAccess = FileAccess.open(config_path, FileAccess.READ)
 	if not file:
 		push_error("NodeProductionInfo: Failed to open config file")
 		return
 
-	var json_text = file.get_as_text()
+	var json_text: String = file.get_as_text()
 	file.close()
 
-	var json = JSON.new()
-	var parse_result = json.parse(json_text)
+	var json: JSON = JSON.new()
+	var parse_result: int = json.parse(json_text)
 
 	if parse_result != OK:
 		push_error("NodeProductionInfo: JSON parse error at line " + str(json.get_error_line()) + ": " + json.get_error_message())
@@ -57,8 +57,6 @@ func _load_production_config() -> void:
 	production_config = json.data
 	node_type_mapping = production_config.get("node_type_production_mapping", {})
 	category_info = production_config.get("task_category_info", {})
-
-	print("NodeProductionInfo: Loaded production data for %d node types, %d categories" % [node_type_mapping.size(), category_info.size()])
 
 # ==============================================================================
 # PUBLIC METHODS

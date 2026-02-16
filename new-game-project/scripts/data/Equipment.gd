@@ -126,45 +126,6 @@ static func create_from_dungeon(dungeon_id: String, equipment_type: String, rari
 	
 	return equipment
 
-# Static factory method for creating test equipment with reasonable stats
-static func create_test_equipment(equipment_type: String, rarity_str: String = "common", init_level: int = 0) -> Equipment:
-	load_equipment_config()
-	
-	var equipment: Equipment = Equipment.new()
-	equipment.id = generate_equipment_id()
-	equipment.level = init_level
-	equipment.rarity = string_to_rarity(rarity_str)
-	
-	# Determine equipment type and slot
-	var type_info = _get_equipment_type_info(equipment_type)
-	if type_info.is_empty():
-		push_error("Unknown equipment type: " + equipment_type)
-		return null
-	
-	equipment.type = string_to_type(equipment_type)
-	equipment.slot = type_info.slot
-	equipment.name = _generate_equipment_name(equipment_type, rarity_str)
-	
-	# Set information
-	equipment.equipment_set_type = _choose_random_set_for_type(equipment_type)
-	equipment.equipment_set_name = _get_set_display_name(equipment.equipment_set_type)
-	
-	# Generate main stat
-	_generate_main_stat(equipment, equipment_type, rarity_str, 1)
-	
-	# Generate substats
-	_generate_substats(equipment, equipment_type, rarity_str)
-	
-	# Set sockets
-	equipment.max_sockets = _get_max_sockets_for_rarity(rarity_str)
-	equipment.sockets = _generate_sockets(equipment.max_sockets)
-	
-	# Set test origin info
-	equipment.origin_dungeon = "test_dungeon"
-	equipment.lore_text = "Test equipment generated for demonstration purposes."
-	
-	return equipment
-
 # Generate a unique equipment ID
 static func generate_equipment_id() -> String:
 	var timestamp: String = str(Time.get_unix_time_from_system())
@@ -259,10 +220,6 @@ func can_enhance() -> bool:
 	var rarity_key = rarity_to_string(rarity)
 	var max_level = rarities.get(rarity_key, {}).get("enhancement_limit", 15)
 	return level < max_level
-
-# Alias for EquipmentManager compatibility
-func can_be_enhanced() -> bool:
-	return can_enhance()
 
 # Get maximum enhancement level based on rarity
 func get_max_enhancement_level() -> int:
@@ -366,10 +323,6 @@ func get_enhancement_chance() -> float:
 	else:
 		var fallback: float = enhancement.get("fallback_success_rate", 5) / 100.0
 		return fallback
-
-# Alias for EquipmentManager compatibility  
-func get_enhancement_success_rate() -> float:
-	return get_enhancement_chance()
 
 # Socket system methods
 func can_unlock_socket(socket_index: int) -> bool:
