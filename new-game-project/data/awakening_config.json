@@ -1,0 +1,51 @@
+{
+  "_comment": "Awakening system configuration - requirements, costs by tier, and stat bonuses",
+  "requirements": {
+    "base_god_level": 40,
+    "base_god_max_level": true,
+    "all_skills_level_1": true
+  },
+  "awakened_level_cap": 50,
+  "costs_by_tier": {
+    "common": {
+      "awakening_stones": 5,
+      "mana": 10000
+    },
+    "rare": {
+      "awakening_stones": 10,
+      "mana": 25000
+    },
+    "epic": {
+      "awakening_stones": 20,
+      "mana": 50000,
+      "divine_essence": 5
+    },
+    "legendary": {
+      "awakening_stones": 40,
+      "mana": 100000,
+      "divine_essence": 15,
+      "ascension_crystal": 3
+    },
+    "mythic": {
+      "awakening_stones": 80,
+      "mana": 250000,
+      "divine_essence": 30,
+      "ascension_crystal": 10,
+      "celestial_essence": 5
+    }
+  },
+  "stat_bonuses": {
+    "_comment": "Percentage bonus applied to base stats upon awakening",
+    "hp_percent": 10,
+    "attack_percent": 10,
+    "defense_percent": 10,
+    "speed_percent": 5
+  },
+  "default_base_stats": {
+    "hp": 1000,
+    "attack": 500,
+    "defense": 400,
+    "speed": 100
+  },
+  "default_resource_generation": 15
+}

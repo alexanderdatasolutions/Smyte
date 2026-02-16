@@ -7,6 +7,19 @@
 
 ---
 
+## 2026-02-16 - Audit: Externalize awakening system values to awakening_config.json
+
+**Priority:** High (Data-Driven JSON Config)
+**File(s) Modified:** `data/awakening_config.json` (new), `scripts/systems/progression/AwakeningSystem.gd`
+
+**Changes:**
+- **Config**: Created `data/awakening_config.json` with `requirements` (base_god_level=40, base_god_max_level, all_skills_level_1), `awakened_level_cap` (50), `costs_by_tier` (5 tiers: common through mythic with awakening_stones/mana/divine_essence/ascension_crystal/celestial_essence), `stat_bonuses` (hp/attack/defense/speed percentages), `default_base_stats` (hp=1000, attack=500, defense=400, speed=100), `default_resource_generation` (15)
+- **AwakeningSystem.gd**: Rewrote with static config loading (`_load_config()` with cache), 6 static getter methods (`get_required_level()`, `get_awakened_level_cap()`, `get_costs_for_tier()`, `get_stat_bonuses()`, `get_default_base_stats()`, `get_default_resource_generation()`). Config-driven requirements in `can_awaken_god()` with fallback to awakened_gods.json. Tier-based cost fallback in `get_awakening_materials_cost()`. Static typing on all variables/params/returns. Null checks on SystemRegistry. Removed emojis. Fixed narrowing conversion warning (float→int on resource_generation).
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Move turn bar constants to battle_config.json
 
 **Priority:** High (Data-Driven JSON Config)

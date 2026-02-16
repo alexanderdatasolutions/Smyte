@@ -1016,8 +1016,8 @@
     "priority": "high",
     "file": "scripts/systems/progression/AwakeningSystem.gd",
     "issue": "Awakening costs, requirements, stat bonuses hardcoded",
-    "action": "Move to data/awakening_config.json with costs_by_tier[], requirements[], bonuses[]",
-    "passes": false
+    "action": "Created data/awakening_config.json with requirements (base_god_level, base_god_max_level, all_skills_level_1), awakened_level_cap, costs_by_tier (5 tiers with awakening_stones/mana/divine_essence/ascension_crystal/celestial_essence), stat_bonuses (hp/attack/defense/speed percentages), default_base_stats, and default_resource_generation. Rewrote AwakeningSystem.gd with static config loading, 6 static getter methods, config-driven requirements in can_awaken_god(), tier-based cost fallback in get_awakening_materials_cost(), static typing throughout, null checks on SystemRegistry, emoji removal, and fixed narrowing conversion warning.",
+    "passes": true
   },
   {
     "priority": "high",
