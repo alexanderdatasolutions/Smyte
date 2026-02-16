@@ -44,17 +44,17 @@ const DEFAULT_ACCURACY: int = 0          # Summoners War default: 0%
 # EQUIPMENT SYSTEM - 6 slots like Summoners War
 # ==============================================================================
 # Slots: 1=Weapon, 2=Armor, 3=Helm, 4=Boots, 5=Amulet, 6=Ring
-# Untyped because slots contain Equipment or null (empty slot)
+# Contains Equipment or null (empty slot) - untyped for JSON deserialization compatibility
 @export var equipment: Array = [null, null, null, null, null, null]
 
 # ==============================================================================
 # ABILITIES - JSON format data
 # ==============================================================================
-@export var active_abilities: Array = []  # Array[Dictionary] - from JSON, kept untyped for save/load compat
-@export var passive_abilities: Array = []  # Array[Dictionary] - from JSON, kept untyped for save/load compat
+@export var active_abilities: Array = []  # Array[Dictionary] - untyped: assigned from JSON parse
+@export var passive_abilities: Array = []  # Array[Dictionary] - untyped: assigned from JSON parse
 
 # Legacy abilities array for backward compatibility (deprecated)
-@export var abilities: Array = []  # Array[String] - from JSON, kept untyped for save/load compat
+@export var abilities: Array = []  # Array[String] - untyped: assigned from JSON parse, legacy field
 @export var passive_ability: String = ""
 
 # ==============================================================================
@@ -95,7 +95,7 @@ const DEFAULT_ACCURACY: int = 0          # Summoners War default: 0%
 @export var awakened_name: String = ""
 @export var awakened_title: String = ""
 @export var ascension_level: int = 0  # 0=unascended, 1=bronze, 2=silver, 3=gold, 4=diamond, 5=transcendent
-@export var skill_levels: Array = [1, 1, 1, 1]  # Array[int] - from save data, kept untyped for save/load compat
+@export var skill_levels: Array[int] = [1, 1, 1, 1]
 
 # ==============================================================================
 # COSMETICS SYSTEM
@@ -147,14 +147,14 @@ func can_level_up() -> bool:
 	return level < MAX_LEVEL
 
 func has_ability(ability_id: String) -> bool:
-	for ability in active_abilities:
+	for ability: Dictionary in active_abilities:
 		if ability.get("id") == ability_id:
 			return true
 	return false
 
 func is_equipped() -> bool:
 	# Check if god has any equipment equipped
-	for eq in equipment:
+	for eq: Variant in equipment:
 		if eq != null:
 			return true
 	return false
@@ -176,7 +176,7 @@ func get_portrait_path() -> String:
 	return default_portrait_path
 
 # Static utility method
-static func element_to_string(element_enum) -> String:
+static func element_to_string(element_enum: ElementType) -> String:
 	match element_enum:
 		ElementType.FIRE: return "fire"
 		ElementType.WATER: return "water"
@@ -198,7 +198,7 @@ static func string_to_element(element_string: String) -> ElementType:
 		_: return ElementType.LIGHT  # Default fallback
 
 # Static utility method for tier conversion
-static func tier_to_string(tier_enum) -> String:
+static func tier_to_string(tier_enum: TierType) -> String:
 	match tier_enum:
 		TierType.COMMON: return "common"
 		TierType.RARE: return "rare"

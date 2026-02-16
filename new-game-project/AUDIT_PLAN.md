@@ -510,8 +510,8 @@
     "priority": "high",
     "file": "scripts/data/God.gd",
     "issue": "6 untyped arrays",
-    "action": "Type all arrays with proper element types",
-    "passes": false
+    "action": "Typed skill_levels as Array[int] (with SaveLoadUtility and AwakeningSystem fixes for typed array assignment). Typed element_to_string(ElementType) and tier_to_string(TierType) parameters. Typed loop iterators (ability: Dictionary, eq: Variant). Updated comments on remaining untyped @export arrays (equipment, active_abilities, passive_abilities, abilities) documenting why they stay untyped (JSON deserialization returns untyped Arrays).",
+    "passes": true
   },
   {
     "priority": "medium",

@@ -47,7 +47,11 @@ static func deserialize_god(data: Dictionary) -> God:
 
 	god.level = data.get("level", 1)
 	god.experience = data.get("experience", 0)
-	god.skill_levels = data.get("skill_levels", [1, 1, 1]).duplicate()
+	var raw_skill_levels: Array = data.get("skill_levels", [1, 1, 1])
+	var typed_skill_levels: Array[int] = []
+	for sl: Variant in raw_skill_levels:
+		typed_skill_levels.append(int(sl))
+	god.skill_levels = typed_skill_levels
 
 	# Restore base stats if saved (these are modified when god levels up)
 	# Only apply if the save has these fields (for backwards compatibility)

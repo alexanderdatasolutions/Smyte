@@ -163,7 +163,10 @@ func replace_god_with_awakened(old_god: God, awakened_data: Dictionary) -> bool:
 	awakened_god.level = old_god.level
 	awakened_god.experience = old_god.experience
 	awakened_god.ascension_level = old_god.ascension_level
-	awakened_god.skill_levels = old_god.skill_levels.duplicate()
+	var dup_skill_levels: Array[int] = []
+	for sl: int in old_god.skill_levels:
+		dup_skill_levels.append(sl)
+	awakened_god.skill_levels = dup_skill_levels
 	awakened_god.stationed_territory = old_god.stationed_territory
 
 	# Mark as awakened

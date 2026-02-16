@@ -7,6 +7,25 @@
 
 ---
 
+## 2026-02-16 - Audit: Add static typing to God.gd
+
+**Priority:** High (Static Typing)
+**File(s) Modified:** `scripts/data/God.gd`, `scripts/utilities/SaveLoadUtility.gd`, `scripts/systems/progression/AwakeningSystem.gd`
+
+**Changes:**
+- Typed `skill_levels` as `Array[int]` (was untyped `Array`)
+- Fixed `SaveLoadUtility.deserialize_god()` to build a typed `Array[int]` from JSON data instead of using `.duplicate()` which returns untyped
+- Fixed `AwakeningSystem` to build typed `Array[int]` when copying skill levels during awakening
+- Typed `element_to_string()` parameter as `ElementType` (was untyped)
+- Typed `tier_to_string()` parameter as `TierType` (was untyped)
+- Typed loop iterator in `has_ability()` as `Dictionary`
+- Typed loop iterator in `is_equipped()` as `Variant`
+- Updated comments on remaining untyped `@export` arrays (equipment, active_abilities, passive_abilities, abilities) documenting why they stay untyped (JSON deserialization returns untyped Arrays)
+
+**Verified:** Ran project, no new errors in debug output. Initial attempt with `Array[int]` revealed Godot 4.5 doesn't implicitly convert untyped Array to typed on @export assignment — fixed by building typed arrays in deserializers.
+
+---
+
 ## 2026-02-16 - Audit: Add static typing to PlayerData.gd
 
 **Priority:** High (Static Typing)
