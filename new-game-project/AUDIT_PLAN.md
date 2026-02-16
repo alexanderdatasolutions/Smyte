@@ -244,8 +244,8 @@
     "priority": "medium",
     "file": "scripts/systems/arena/ArenaManager.gd",
     "issue": "100+ lines of mock data generation (lines 483-586) in production code",
-    "action": "Extract mock data to test utility file",
-    "passes": false
+    "action": "Extracted 112 lines of mock data generation to ArenaMockData.gd (static utility class). ArenaManager now delegates to ArenaMockDataScript.generate_mock_opponents() and generate_mock_leaderboard() via preload. File reduced from 727 to 616 lines.",
+    "passes": true
   },
   {
     "priority": "medium",
@@ -671,8 +671,8 @@
     "priority": "medium",
     "file": "scripts/systems/arena/ArenaManager.gd",
     "issue": "679 lines with 100+ lines of mock data",
-    "action": "Extract mock data to test file",
-    "passes": false
+    "action": "Extracted 112 lines of mock data to ArenaMockData.gd. File reduced from 727 to 616 lines (still over 500 but mock data now separate).",
+    "passes": true
   },
   {
     "priority": "medium",

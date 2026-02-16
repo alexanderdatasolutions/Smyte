@@ -7,6 +7,23 @@
 
 ---
 
+## 2026-02-16 - Audit: Extract ArenaManager mock data to ArenaMockData.gd
+
+**Priority:** Medium (Dead Code / Code Simplification)
+**File(s) Modified:** `scripts/systems/arena/ArenaManager.gd`, `scripts/systems/arena/ArenaMockData.gd` (new)
+
+**Changes:**
+- Created `ArenaMockData.gd` as a static utility class (extends RefCounted) with all mock data generation logic
+- Extracted 5 functions (112 lines): `generate_mock_opponents()`, `generate_mock_leaderboard()`, `_generate_mock_defense_team()`, `_get_mock_main_stat()`, `_get_mock_substats()`
+- Functions accept `get_league_for_elo` as a Callable parameter to avoid circular dependency
+- ArenaManager.gd now uses `preload("res://scripts/systems/arena/ArenaMockData.gd")` pattern (same as ArenaDataSync)
+- Thin wrapper functions remain in ArenaManager to handle caching and signal emission
+- ArenaManager.gd reduced from 727 to 616 lines
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings/errors unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Clean up Equipment.gd dead code and verify NodeProductionInfo.gd
 
 **Priority:** Medium (Dead Code)
