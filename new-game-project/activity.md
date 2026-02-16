@@ -7,6 +7,27 @@
 
 ---
 
+## 2026-02-16 - Audit: Split DungeonManager.gd into DungeonManager + DungeonWaveHelper
+
+**Priority:** High (Code Simplification)
+**File(s) Modified:** `scripts/systems/dungeon/DungeonManager.gd`, `scripts/systems/dungeon/DungeonWaveHelper.gd` (new)
+
+**Changes:**
+- Split DungeonManager.gd (726 lines) into two files both under 500 lines:
+  - **DungeonManager.gd** (418 lines): Dungeon data loading, queries, validation, loot/rewards, progress tracking, daily completion tracking
+  - **DungeonWaveHelper.gd** (200 lines): RefCounted helper for wave data loading, enemy stat calculation, battle configuration, dungeon info enhancement, difficulty colors, enemy type generation, enemy preview
+- DungeonWaveHelper uses RefCounted (not Node) for lightweight composition
+- DungeonManager creates helper in `_ready()` and delegates via method calls
+- Refactored `get_all_dungeons()` and `get_dungeon_info()` to use data-driven category scanning arrays (eliminated 4x repeated code blocks for elemental/special/pantheon/equipment)
+- All external APIs preserved unchanged via delegation pattern (get_battle_configuration, get_enemy_types_for_dungeon, get_dungeon_enemies)
+- Category map (dungeon_id -> wave category) moved to const in DungeonWaveHelper
+- Enemy scaling config loading moved to DungeonWaveHelper.initialize()
+- Static typing throughout both files
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Split ProductionSummaryWidget.gd into three files
 
 **Priority:** High (Code Simplification)

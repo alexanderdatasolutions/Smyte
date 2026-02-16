@@ -657,8 +657,8 @@
     "priority": "high",
     "file": "scripts/systems/dungeon/DungeonManager.gd",
     "issue": "746 lines (1.5x limit)",
-    "action": "Extract wave loading and enhancement logic to helper",
-    "passes": false
+    "action": "Split into DungeonManager.gd (418 lines) + DungeonWaveHelper.gd (200 lines). Extracted wave data loading, enemy stat calculation, battle configuration, dungeon info enhancement, difficulty colors, enemy types, and enemy preview to DungeonWaveHelper as RefCounted helper. DungeonManager delegates via thin wrapper methods, preserving all external APIs unchanged. Also refactored get_all_dungeons() and get_dungeon_info() to use data-driven category scanning (eliminated 4x repeated code blocks). Used preload pattern with initialize(dungeon_waves) for data passing.",
+    "passes": true
   },
   {
     "priority": "medium",
