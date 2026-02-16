@@ -7,6 +7,24 @@
 
 ---
 
+## 2026-02-16 - Audit: Add null checks and static typing to StatusEffect.gd
+
+**Priority:** High (Error Handling)
+**File(s) Modified:** `scripts/data/StatusEffect.gd`
+
+**Changes:**
+- Added null checks for `SystemRegistry.get_instance()` at all 3 call sites (DOT damage, HOT healing, `_get_attack` helper) — prevents crash if registry unavailable
+- Fixed `create_poison()` bug: referenced non-existent `caster.max_health` property, changed to safe `max_hp`/`base_hp` lookup with 1000 fallback
+- Fixed `_get_target_name()` to safely check for `display_name` property with `.get()` instead of direct access
+- Added `Variant` typing to all 30+ factory method `_caster`/`caster` parameters
+- Added `StatusEffect` typing to all `effect` local variables in factory methods
+- Added `Dictionary`, `int`, `float` typing to all intermediate variables in `apply_turn_effects()`
+- Typed `target` parameter as `Variant` in `apply_turn_effects()` and `_get_target_name()`
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Add static typing to God.gd
 
 **Priority:** High (Static Typing)

@@ -54,45 +54,47 @@ func _init(effect_id: String = "", effect_name: String = ""):
 	id = effect_id
 	name = effect_name
 
-func apply_turn_effects(target) -> Dictionary:
+func apply_turn_effects(target: Variant) -> Dictionary:
 	"""Apply effects at start of turn, returns effect results"""
-	var results = {"damage": 0, "healing": 0, "messages": []}
-	
+	var results: Dictionary = {"damage": 0, "healing": 0, "messages": []}
+
 	# Damage over time
 	if damage_per_turn > 0:
-		var turn_dot_damage = 0
+		var turn_dot_damage: int = 0
 		if target is God:
-			var stat_calc = SystemRegistry.get_instance().get_system("EquipmentStatCalculator")
+			var registry: Variant = SystemRegistry.get_instance()
+			var stat_calc: Variant = registry.get_system("EquipmentStatCalculator") if registry else null
 			if stat_calc:
-				var total_stats = stat_calc.calculate_god_total_stats(target)
+				var total_stats: Dictionary = stat_calc.calculate_god_total_stats(target)
 				turn_dot_damage = int(total_stats.hp * damage_per_turn * stacks)
 			else:
 				turn_dot_damage = int(target.base_hp * damage_per_turn * stacks)
 		else:
 			turn_dot_damage = int(target.max_hp * damage_per_turn * stacks)
-		
+
 		results.damage = turn_dot_damage
 		results.messages.append("%s takes %d %s damage!" % [_get_target_name(target), turn_dot_damage, name])
-	
+
 	# Flat damage over time (from dot_damage property)
 	if dot_damage > 0:
-		var flat_damage = dot_damage * stacks
+		var flat_damage: int = dot_damage * stacks
 		results.damage += flat_damage
 		results.messages.append("%s takes %d %s damage!" % [_get_target_name(target), flat_damage, name])
-	
+
 	# Heal over time
 	if heal_per_turn > 0:
-		var hot_healing = 0
+		var hot_healing: int = 0
 		if target is God:
-			var stat_calc = SystemRegistry.get_instance().get_system("EquipmentStatCalculator")
+			var registry: Variant = SystemRegistry.get_instance()
+			var stat_calc: Variant = registry.get_system("EquipmentStatCalculator") if registry else null
 			if stat_calc:
-				var total_stats = stat_calc.calculate_god_total_stats(target)
+				var total_stats: Dictionary = stat_calc.calculate_god_total_stats(target)
 				hot_healing = int(total_stats.hp * heal_per_turn * stacks)
 			else:
 				hot_healing = int(target.base_hp * heal_per_turn * stacks)
 		else:
 			hot_healing = int(target.max_hp * heal_per_turn * stacks)
-		
+
 		results.healing = hot_healing
 		results.messages.append("%s recovers %d HP from %s!" % [_get_target_name(target), hot_healing, name])
 	
@@ -108,18 +110,21 @@ func get_stat_modifier(stat_name: String) -> float:
 func is_expired() -> bool:
 	return duration <= 0
 
-func _get_target_name(target) -> String:
+func _get_target_name(target: Variant) -> String:
 	if target is God:
 		return target.name
+	elif target.get("display_name"):
+		return target.display_name
 	else:
-		return target.display_name if target.display_name else "Enemy"
+		return "Enemy"
 
 # Helper function to get attack stat from caster
-static func _get_attack(caster) -> int:
+static func _get_attack(caster: Variant) -> int:
 	if caster is God:
-		var stat_calc = SystemRegistry.get_instance().get_system("EquipmentStatCalculator")
+		var registry: Variant = SystemRegistry.get_instance()
+		var stat_calc: Variant = registry.get_system("EquipmentStatCalculator") if registry else null
 		if stat_calc:
-			var total_stats = stat_calc.calculate_god_total_stats(caster)
+			var total_stats: Dictionary = stat_calc.calculate_god_total_stats(caster)
 			return total_stats.attack
 		else:
 			return caster.base_attack
@@ -127,8 +132,8 @@ static func _get_attack(caster) -> int:
 		return caster.get("attack", 100)  # Fallback for enemies
 
 # Factory methods for common effects - ALL SCALED TO SUMMONERS WAR SPECS
-static func create_stun(_caster, turns: int = 1) -> StatusEffect:
-	var effect = StatusEffect.new("stun", "Stunned")
+static func create_stun(_caster: Variant, turns: int = 1) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("stun", "Stunned")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	effect.prevents_action = true
@@ -136,8 +141,8 @@ static func create_stun(_caster, turns: int = 1) -> StatusEffect:
 	effect.color = Color.YELLOW
 	return effect
 
-static func create_burn(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("burn", "Burning")
+static func create_burn(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("burn", "Burning")
 	effect.effect_type = EffectType.DOT
 	effect.duration = turns
 	# Summoners War: 15% max HP per turn
@@ -147,8 +152,8 @@ static func create_burn(_caster, turns: int = 3) -> StatusEffect:
 	effect.can_stack = false  # Burns don't stack in SW
 	return effect
 
-static func create_continuous_damage(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("continuous_damage", "Continuous Damage")
+static func create_continuous_damage(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("continuous_damage", "Continuous Damage")
 	effect.effect_type = EffectType.DOT
 	effect.duration = turns
 	# Summoners War: 15% max HP per turn (same as burn)
@@ -158,8 +163,8 @@ static func create_continuous_damage(_caster, turns: int = 3) -> StatusEffect:
 	effect.can_stack = true  # Continuous damage can stack in SW
 	return effect
 
-static func create_regeneration(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("regeneration", "Regeneration")
+static func create_regeneration(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("regeneration", "Regeneration")
 	effect.effect_type = EffectType.HOT
 	effect.duration = turns
 	# Summoners War: 15% max HP per turn
@@ -168,8 +173,8 @@ static func create_regeneration(_caster, turns: int = 3) -> StatusEffect:
 	effect.color = Color.GREEN
 	return effect
 
-static func create_attack_boost(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("attack_boost", "Attack Boost")
+static func create_attack_boost(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("attack_boost", "Attack Boost")
 	effect.effect_type = EffectType.BUFF
 	effect.duration = turns
 	# Summoners War: 50% attack increase
@@ -178,8 +183,8 @@ static func create_attack_boost(_caster, turns: int = 3) -> StatusEffect:
 	effect.color = Color.RED
 	return effect
 
-static func create_defense_boost(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("defense_boost", "Defense Boost")
+static func create_defense_boost(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("defense_boost", "Defense Boost")
 	effect.effect_type = EffectType.BUFF
 	effect.duration = turns
 	# Summoners War: 50% defense increase
@@ -188,8 +193,8 @@ static func create_defense_boost(_caster, turns: int = 3) -> StatusEffect:
 	effect.color = Color.BLUE
 	return effect
 
-static func create_speed_boost(_caster, turns: int = 2) -> StatusEffect:
-	var effect = StatusEffect.new("speed_boost", "Speed Boost")
+static func create_speed_boost(_caster: Variant, turns: int = 2) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("speed_boost", "Speed Boost")
 	effect.effect_type = EffectType.BUFF
 	effect.duration = turns
 	# Summoners War: 30% speed increase, 2 turns duration
@@ -198,20 +203,20 @@ static func create_speed_boost(_caster, turns: int = 2) -> StatusEffect:
 	effect.color = Color.CYAN
 	return effect
 
-static func create_shield(caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("shield", "Shield")
+static func create_shield(caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("shield", "Shield")
 	effect.effect_type = EffectType.BUFF
 	effect.duration = turns
 	# Summoners War: shield_value = caster.attack * 0.5
-	var caster_attack = _get_attack(caster)
-	var shield_amount = int(caster_attack * 0.5)
+	var caster_attack: int = _get_attack(caster)
+	var shield_amount: int = int(caster_attack * 0.5)
 	effect.shield_value = shield_amount
 	effect.description = "Absorbs %d damage" % shield_amount
 	effect.color = Color.LIGHT_BLUE
 	return effect
 
-static func create_fear(_caster, turns: int = 2) -> StatusEffect:
-	var effect = StatusEffect.new("fear", "Feared")
+static func create_fear(_caster: Variant, turns: int = 2) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("fear", "Feared")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	effect.prevents_action = true  # Simplified - in full game could be chance-based
@@ -219,8 +224,8 @@ static func create_fear(_caster, turns: int = 2) -> StatusEffect:
 	effect.color = Color.PURPLE
 	return effect
 
-static func create_slow(_caster, turns: int = 2) -> StatusEffect:
-	var effect = StatusEffect.new("slow", "Slowed")
+static func create_slow(_caster: Variant, turns: int = 2) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("slow", "Slowed")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	# Summoners War: 50% speed reduction
@@ -229,8 +234,8 @@ static func create_slow(_caster, turns: int = 2) -> StatusEffect:
 	effect.color = Color.DARK_BLUE
 	return effect
 
-static func create_debuff_immunity(_caster, turns: int = 2) -> StatusEffect:
-	var effect = StatusEffect.new("debuff_immunity", "Debuff Immunity")
+static func create_debuff_immunity(_caster: Variant, turns: int = 2) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("debuff_immunity", "Debuff Immunity")
 	effect.effect_type = EffectType.BUFF
 	effect.duration = turns
 	effect.immune_to_debuffs = true
@@ -238,8 +243,8 @@ static func create_debuff_immunity(_caster, turns: int = 2) -> StatusEffect:
 	effect.color = Color.GOLD
 	return effect
 
-static func create_accuracy_boost(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("accuracy_boost", "Accuracy Boost")
+static func create_accuracy_boost(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("accuracy_boost", "Accuracy Boost")
 	effect.effect_type = EffectType.BUFF
 	effect.duration = turns
 	# Summoners War: 50% accuracy boost
@@ -248,8 +253,8 @@ static func create_accuracy_boost(_caster, turns: int = 3) -> StatusEffect:
 	effect.color = Color.YELLOW
 	return effect
 
-static func create_evasion_boost(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("evasion_boost", "Evasion Boost")
+static func create_evasion_boost(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("evasion_boost", "Evasion Boost")
 	effect.effect_type = EffectType.BUFF
 	effect.duration = turns
 	# Evasion increase - makes unit harder to hit
@@ -258,8 +263,8 @@ static func create_evasion_boost(_caster, turns: int = 3) -> StatusEffect:
 	effect.color = Color.CYAN
 	return effect
 
-static func create_crit_boost(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("crit_boost", "Critical Boost")
+static func create_crit_boost(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("crit_boost", "Critical Boost")
 	effect.effect_type = EffectType.BUFF
 	effect.duration = turns
 	# Summoners War: 30% crit chance boost + 20% crit damage boost
@@ -269,8 +274,8 @@ static func create_crit_boost(_caster, turns: int = 3) -> StatusEffect:
 	effect.color = Color.ORANGE
 	return effect
 
-static func create_critical_damage_boost(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("crit_damage_boost", "Critical Damage Boost")
+static func create_critical_damage_boost(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("crit_damage_boost", "Critical Damage Boost")
 	effect.effect_type = EffectType.BUFF
 	effect.duration = turns
 	# Pure critical damage enhancement
@@ -279,8 +284,8 @@ static func create_critical_damage_boost(_caster, turns: int = 3) -> StatusEffec
 	effect.color = Color.CRIMSON
 	return effect
 
-static func create_wisdom_boost(_caster, turns: int = 5) -> StatusEffect:
-	var effect = StatusEffect.new("wisdom_boost", "Wisdom Boost")
+static func create_wisdom_boost(_caster: Variant, turns: int = 5) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("wisdom_boost", "Wisdom Boost")
 	effect.effect_type = EffectType.BUFF
 	effect.duration = turns
 	effect.stat_modifier["magic_power"] = 0.20
@@ -289,8 +294,8 @@ static func create_wisdom_boost(_caster, turns: int = 5) -> StatusEffect:
 	effect.color = Color.CYAN
 	return effect
 
-static func create_analyze_weakness(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("analyze_weakness", "Analyzed")
+static func create_analyze_weakness(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("analyze_weakness", "Analyzed")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	# Summoners War: Marked for Death - 25% more damage taken
@@ -299,8 +304,8 @@ static func create_analyze_weakness(_caster, turns: int = 3) -> StatusEffect:
 	effect.color = Color.DARK_RED
 	return effect
 
-static func create_marked_for_death(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("marked_for_death", "Marked for Death")
+static func create_marked_for_death(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("marked_for_death", "Marked for Death")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	# Summoners War: 25% damage increase taken
@@ -309,8 +314,8 @@ static func create_marked_for_death(_caster, turns: int = 3) -> StatusEffect:
 	effect.color = Color.DARK_RED
 	return effect
 
-static func create_defense_reduction(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("defense_reduction", "Defense Down")
+static func create_defense_reduction(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("defense_reduction", "Defense Down")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	# Summoners War: 30% defense reduction
@@ -319,8 +324,8 @@ static func create_defense_reduction(_caster, turns: int = 3) -> StatusEffect:
 	effect.color = Color.ORANGE_RED
 	return effect
 
-static func create_attack_reduction(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("attack_reduction", "Attack Down")
+static func create_attack_reduction(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("attack_reduction", "Attack Down")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	# Summoners War: 30% attack reduction
@@ -329,8 +334,8 @@ static func create_attack_reduction(_caster, turns: int = 3) -> StatusEffect:
 	effect.color = Color.ORANGE_RED
 	return effect
 
-static func create_damage_immunity(_caster, turns: int = 1) -> StatusEffect:
-	var effect = StatusEffect.new("damage_immunity", "Damage Immunity")
+static func create_damage_immunity(_caster: Variant, turns: int = 1) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("damage_immunity", "Damage Immunity")
 	effect.effect_type = EffectType.BUFF
 	effect.duration = turns
 	effect.damage_immunity = true
@@ -338,8 +343,8 @@ static func create_damage_immunity(_caster, turns: int = 1) -> StatusEffect:
 	effect.color = Color.GOLD
 	return effect
 
-static func create_charm(_caster, turns: int = 1) -> StatusEffect:
-	var effect = StatusEffect.new("charm", "Charmed")
+static func create_charm(_caster: Variant, turns: int = 1) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("charm", "Charmed")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	effect.charmed = true
@@ -347,8 +352,8 @@ static func create_charm(_caster, turns: int = 1) -> StatusEffect:
 	effect.color = Color.PINK
 	return effect
 
-static func create_untargetable(_caster, turns: int = 1) -> StatusEffect:
-	var effect = StatusEffect.new("untargetable", "Untargetable")
+static func create_untargetable(_caster: Variant, turns: int = 1) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("untargetable", "Untargetable")
 	effect.effect_type = EffectType.BUFF
 	effect.duration = turns
 	effect.untargetable = true
@@ -356,8 +361,8 @@ static func create_untargetable(_caster, turns: int = 1) -> StatusEffect:
 	effect.color = Color.LIGHT_GRAY
 	return effect
 
-static func create_counter_attack(_caster, turns: int = 2) -> StatusEffect:
-	var effect = StatusEffect.new("counter_attack", "Counter Attack")
+static func create_counter_attack(_caster: Variant, turns: int = 2) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("counter_attack", "Counter Attack")
 	effect.effect_type = EffectType.BUFF
 	effect.duration = turns
 	effect.counter_attack = true
@@ -365,8 +370,8 @@ static func create_counter_attack(_caster, turns: int = 2) -> StatusEffect:
 	effect.color = Color.ORANGE
 	return effect
 
-static func create_blind(_caster, turns: int = 2) -> StatusEffect:
-	var effect = StatusEffect.new("blind", "Blinded")
+static func create_blind(_caster: Variant, turns: int = 2) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("blind", "Blinded")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	# Summoners War: 50% accuracy reduction
@@ -375,8 +380,8 @@ static func create_blind(_caster, turns: int = 2) -> StatusEffect:
 	effect.color = Color.BLACK
 	return effect
 
-static func create_reflect_damage(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("reflect_damage", "Damage Reflection")
+static func create_reflect_damage(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("reflect_damage", "Damage Reflection")
 	effect.effect_type = EffectType.BUFF
 	effect.duration = turns
 	# Summoners War: 30% damage reflection
@@ -385,8 +390,8 @@ static func create_reflect_damage(_caster, turns: int = 3) -> StatusEffect:
 	effect.color = Color.SILVER
 	return effect
 
-static func create_immobilize(_caster, turns: int = 2) -> StatusEffect:
-	var effect = StatusEffect.new("immobilize", "Immobilized")
+static func create_immobilize(_caster: Variant, turns: int = 2) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("immobilize", "Immobilized")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	effect.prevents_action = true
@@ -394,8 +399,8 @@ static func create_immobilize(_caster, turns: int = 2) -> StatusEffect:
 	effect.color = Color.GRAY
 	return effect
 
-static func create_curse(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("curse", "Cursed")
+static func create_curse(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("curse", "Cursed")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	# Summoners War: Reduces healing by 50%
@@ -404,8 +409,8 @@ static func create_curse(_caster, turns: int = 3) -> StatusEffect:
 	effect.color = Color.PURPLE
 	return effect
 
-static func create_bleed(_caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("bleed", "Bleeding")
+static func create_bleed(_caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("bleed", "Bleeding")
 	effect.effect_type = EffectType.DOT
 	effect.duration = turns
 	# Summoners War: 10% max HP per turn, ignores defense
@@ -415,20 +420,21 @@ static func create_bleed(_caster, turns: int = 3) -> StatusEffect:
 	return effect
 
 # Additional status effects for complete Summoners War system
-static func create_poison(caster, turns: int = 3) -> StatusEffect:
-	var effect = StatusEffect.new("poison", "Poisoned")
+static func create_poison(caster: Variant, turns: int = 3) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("poison", "Poisoned")
 	effect.effect_type = EffectType.DOT
 	effect.duration = turns
 	# Summoners War: 5% max HP per turn + caster attack * 0.08
-	var base_damage = caster.max_health * 0.05
-	var scaled_damage = _get_attack(caster) * 0.08
-	effect.damage_per_turn = (base_damage + scaled_damage) / caster.max_health  # Convert back to percentage
+	var caster_max_hp: int = caster.max_hp if caster.get("max_hp") else (caster.base_hp if caster.get("base_hp") else 1000)
+	var base_damage: float = caster_max_hp * 0.05
+	var scaled_damage: float = _get_attack(caster) * 0.08
+	effect.damage_per_turn = (base_damage + scaled_damage) / caster_max_hp  # Convert back to percentage
 	effect.description = "Takes poison damage each turn (5% HP + 8% caster attack)"
 	effect.color = Color.GREEN
 	return effect
 
-static func create_freeze(_caster, turns: int = 1) -> StatusEffect:
-	var effect = StatusEffect.new("freeze", "Frozen")
+static func create_freeze(_caster: Variant, turns: int = 1) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("freeze", "Frozen")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	effect.prevents_action = true
@@ -437,8 +443,8 @@ static func create_freeze(_caster, turns: int = 1) -> StatusEffect:
 	effect.color = Color.LIGHT_BLUE
 	return effect
 
-static func create_sleep(_caster, turns: int = 2) -> StatusEffect:
-	var effect = StatusEffect.new("sleep", "Sleeping")
+static func create_sleep(_caster: Variant, turns: int = 2) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("sleep", "Sleeping")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	effect.prevents_action = true
@@ -447,8 +453,8 @@ static func create_sleep(_caster, turns: int = 2) -> StatusEffect:
 	effect.color = Color.LIGHT_GRAY
 	return effect
 
-static func create_silence(_caster, turns: int = 2) -> StatusEffect:
-	var effect = StatusEffect.new("silence", "Silenced")
+static func create_silence(_caster: Variant, turns: int = 2) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("silence", "Silenced")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	effect.silenced = true
@@ -456,8 +462,8 @@ static func create_silence(_caster, turns: int = 2) -> StatusEffect:
 	effect.color = Color.PURPLE
 	return effect
 
-static func create_heal_block(_caster, turns: int = 2) -> StatusEffect:
-	var effect = StatusEffect.new("heal_block", "Heal Block")
+static func create_heal_block(_caster: Variant, turns: int = 2) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("heal_block", "Heal Block")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	# Summoners War: Completely blocks all healing
@@ -466,8 +472,8 @@ static func create_heal_block(_caster, turns: int = 2) -> StatusEffect:
 	effect.color = Color.DARK_RED
 	return effect
 
-static func create_provoke(_caster, turns: int = 1) -> StatusEffect:
-	var effect = StatusEffect.new("provoke", "Provoked")
+static func create_provoke(_caster: Variant, turns: int = 1) -> StatusEffect:
+	var effect: StatusEffect = StatusEffect.new("provoke", "Provoked")
 	effect.effect_type = EffectType.DEBUFF
 	effect.duration = turns
 	effect.provoked = true

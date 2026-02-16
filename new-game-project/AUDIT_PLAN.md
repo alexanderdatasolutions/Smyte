@@ -594,8 +594,8 @@
     "priority": "high",
     "file": "scripts/data/StatusEffect.gd",
     "issue": "SystemRegistry.get_instance() not null-checked (lines 65-94, 118-127)",
-    "action": "Add null check for SystemRegistry",
-    "passes": false
+    "action": "Added null checks for SystemRegistry.get_instance() at all 3 call sites (apply_turn_effects DOT, apply_turn_effects HOT, _get_attack). Split into registry + stat_calc with ternary null guard. Fixed create_poison() crash: caster.max_health -> safe max_hp/base_hp lookup with fallback. Added static typing to all 30+ factory method parameters (Variant), all effect local variables (StatusEffect), all intermediate variables. Typed _get_target_name() with safe .get() check for display_name.",
+    "passes": true
   },
   {
     "priority": "medium",
