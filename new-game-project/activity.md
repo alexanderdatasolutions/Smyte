@@ -7,6 +7,29 @@
 
 ---
 
+## 2026-02-16 - Audit: Add null checks to ArenaManager.gd
+
+**Priority:** High (Error Handling)
+**File(s) Modified:** `scripts/systems/arena/ArenaManager.gd`
+
+**Changes:**
+- Added JSON parse validation with type guard (`parsed is Dictionary`) in `_load_arena_config()`
+- Changed 3 `LEAGUE_THRESHOLDS[key]` direct accesses to `.get(key, default)` with fallback values
+- Added type check for league colors array before casting (`c_val is Array`)
+- Guarded `.find()` result against -1 in `_calculate_pvp_rewards()`
+- Added type validation for reward amounts in `_award_rewards()` (checks `is int or is float`)
+- Type-checked `get_equipped_items_for_god()` return value before dict iteration
+- Validated opponent data per-element in `_on_opponents_fetched()` signal handler
+- Added empty-data guard in `deserialize_god_for_battle()` (returns null)
+- Added empty opponent guard in `process_battle_result()` (returns early with safe result)
+- Added warning for empty `user_id` in `start_pvp_battle()`
+- Changed `min()` to `mini()` for int context in mock data generation
+- Changed `max(0, ...)` to `maxi(0, ...)` for int context in crystal rewards
+
+**Verified:** Ran project, no new errors in debug output. Pre-existing Firebase signal errors unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Add static typing to ArenaDataSync.gd
 
 **Priority:** High

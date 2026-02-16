@@ -75,9 +75,11 @@ func _load_arena_config() -> void:
 	var file := FileAccess.open("res://data/arena_config.json", FileAccess.READ)
 	if not file:
 		return
-	var config: Dictionary = JSON.parse_string(file.get_as_text())
-	if not config:
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	if not parsed or not (parsed is Dictionary):
+		push_warning("[ArenaManager] arena_config.json parse failed or not a Dictionary")
 		return
+	var config: Dictionary = parsed as Dictionary
 	_arena_config = config
 
 	var elo_cfg: Dictionary = config.get("elo", {})
@@ -99,8 +101,9 @@ func _load_arena_config() -> void:
 		LEAGUE_THRESHOLDS = thresholds
 	var colors: Dictionary = leagues.get("colors", {})
 	for league_name: String in colors:
-		var c: Array = colors[league_name]
-		if c.size() >= 3:
+		var c_val: Variant = colors[league_name]
+		if c_val is Array and (c_val as Array).size() >= 3:
+			var c: Array = c_val as Array
 			LEAGUE_COLORS[league_name] = Color(c[0], c[1], c[2])
 
 func _connect_signals() -> void:
@@ -173,7 +176,10 @@ func get_attack_cooldown_remaining(opponent_uid: String) -> float:
 
 func start_pvp_battle(opponent_data: Dictionary) -> Dictionary:
 	"""Prepare battle context for PvP - returns context for BattleSetupCoordinator"""
-	attack_cooldowns[opponent_data.get("user_id", "")] = Time.get_unix_time_from_system()
+	var opponent_uid: String = opponent_data.get("user_id", "")
+	if opponent_uid.is_empty():
+		push_warning("[ArenaManager] Opponent has no user_id")
+	attack_cooldowns[opponent_uid] = Time.get_unix_time_from_system()
 	return {
 		"type": "pvp",
 		"opponent": opponent_data,
@@ -184,6 +190,9 @@ func start_pvp_battle(opponent_data: Dictionary) -> Dictionary:
 
 func process_battle_result(victory: bool, opponent_data: Dictionary) -> Dictionary:
 	"""Process battle result, update ELO, return rewards"""
+	if opponent_data.is_empty():
+		push_warning("[ArenaManager] Empty opponent data in process_battle_result")
+		return {"victory": victory, "elo_change": 0, "rewards": {}}
 	var opponent_elo: int = opponent_data.get("elo", BASE_ELO)
 	var elo_change: int = _calculate_elo_change(player_elo, opponent_elo, victory)
 
@@ -222,7 +231,9 @@ func process_battle_result(victory: bool, opponent_data: Dictionary) -> Dictiona
 		})
 		# Emit league change if applicable
 		if old_league != player_league:
-			var direction: String = "promoted" if LEAGUE_THRESHOLDS[player_league] > LEAGUE_THRESHOLDS[old_league] else "demoted"
+			var new_threshold: int = LEAGUE_THRESHOLDS.get(player_league, 0)
+			var old_threshold: int = LEAGUE_THRESHOLDS.get(old_league, 0)
+			var direction: String = "promoted" if new_threshold > old_threshold else "demoted"
 			event_bus.league_changed.emit({
 				"old_league": old_league,
 				"new_league": player_league,
@@ -277,7 +288,7 @@ func get_league_color(league: String) -> Color:
 func get_league_for_elo(elo: int) -> String:
 	"""Determine league from ELO"""
 	for league: String in ["legend", "diamond", "platinum", "gold", "silver", "bronze"]:
-		if elo >= LEAGUE_THRESHOLDS[league]:
+		if elo >= LEAGUE_THRESHOLDS.get(league, 0):
 			return league
 	return "bronze"
 
@@ -295,7 +306,7 @@ func _calculate_elo_change(p_elo: int, opp_elo: int, victory: bool) -> int:
 	var k_factor: int = K_FACTOR_NEW_PLAYER if total_games < NEW_PLAYER_GAMES else K_FACTOR_BASE
 
 	# Reduce K at high ELO for stability
-	if p_elo > LEAGUE_THRESHOLDS["diamond"]:
+	if p_elo > LEAGUE_THRESHOLDS.get("diamond", 1800):
 		k_factor = int(k_factor * HIGH_ELO_K_FACTOR_MULT)
 
 	var change: int = int(k_factor * (actual - expected))
@@ -337,7 +348,8 @@ func _calculate_pvp_rewards(victory: bool, opponent_elo: int) -> Dictionary:
 	var crystal_leagues: Array = rcfg.get("divine_crystal_leagues", ["platinum", "diamond", "legend"])
 	if victory and player_league in crystal_leagues:
 		var league_index: int = ["bronze", "silver", "gold", "platinum", "diamond", "legend"].find(player_league)
-		rewards["divine_crystals"] = rcfg.get("divine_crystal_base", 3) + max(0, league_index - 3)
+		if league_index >= 0:
+			rewards["divine_crystals"] = rcfg.get("divine_crystal_base", 3) + maxi(0, league_index - 3)
 
 	return rewards
 
@@ -348,9 +360,13 @@ func _award_rewards(rewards: Dictionary) -> void:
 		return
 
 	var resource_manager: Node = system_registry.get_system("ResourceManager")
-	if resource_manager:
-		for resource_id: String in rewards:
-			resource_manager.add_resource(resource_id, rewards[resource_id])
+	if not resource_manager:
+		push_warning("[ArenaManager] ResourceManager not found, cannot award rewards")
+		return
+	for resource_id: String in rewards:
+		var amount: Variant = rewards[resource_id]
+		if amount is int or amount is float:
+			resource_manager.add_resource(resource_id, int(amount))
 
 func _calculate_team_power(team: Array[God]) -> int:
 	"""Calculate total team combat power"""
@@ -377,11 +393,12 @@ func _serialize_god_for_pvp(god: God) -> Dictionary:
 	# Get equipped items
 	var equipped: Dictionary = {}
 	if equipment_manager and equipment_manager.has_method("get_equipped_items_for_god"):
-		var god_equipment: Dictionary = equipment_manager.get_equipped_items_for_god(god.id)
-		for slot_idx: Variant in god_equipment:
-			var eq: Equipment = god_equipment[slot_idx]
-			if eq != null:
-				equipped[str(slot_idx)] = _serialize_equipment(eq)
+		var god_equipment: Variant = equipment_manager.get_equipped_items_for_god(god.id)
+		if god_equipment is Dictionary:
+			for slot_idx: Variant in god_equipment:
+				var eq: Variant = god_equipment[slot_idx]
+				if eq is Equipment:
+					equipped[str(slot_idx)] = _serialize_equipment(eq as Equipment)
 
 	return {
 		"god_id": god.id,
@@ -425,6 +442,9 @@ func _serialize_equipment(eq: Equipment) -> Dictionary:
 
 func deserialize_god_for_battle(data: Dictionary) -> God:
 	"""Create a God object from serialized PvP data"""
+	if data.is_empty():
+		push_warning("[ArenaManager] Empty data passed to deserialize_god_for_battle")
+		return null
 	var god: God = God.new()
 	god.id = data.get("god_id", "pvp_" + str(randi()))
 	god.template_id = data.get("template_id", "")
@@ -511,7 +531,7 @@ func _generate_mock_opponents() -> void:
 	var mock_names: Array[String] = ["TestPlayer1", "ArenaKing", "GodSlayer", "Mythic_Mike", "DivineFury", "SkyGod99", "ElementalX", "TierLord", "BattleMage", "StormBringer"]
 	var opponents: Array[Dictionary] = []
 
-	for i: int in range(min(OPPONENTS_TO_FETCH, mock_names.size())):
+	for i: int in range(mini(OPPONENTS_TO_FETCH, mock_names.size())):
 		var elo_variance: int = randi_range(-200, 200)
 		var mock_elo: int = max(0, player_elo + elo_variance)
 
@@ -635,8 +655,11 @@ func _generate_mock_leaderboard() -> void:
 # ==============================================================================
 
 func _on_opponents_fetched(opponents: Array) -> void:
-	cached_opponents = opponents
-	opponents_loaded.emit(opponents)
+	cached_opponents.clear()
+	for opp: Variant in opponents:
+		if opp is Dictionary:
+			cached_opponents.append(opp as Dictionary)
+	opponents_loaded.emit(cached_opponents)
 
 func _on_defense_uploaded(success: bool) -> void:
 	defense_updated.emit(success)
