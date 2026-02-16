@@ -187,10 +187,6 @@ func execute_action(action) -> bool:
 
 	return success
 
-## Get current battle state (for UI updates)
-func get_battle_state() -> BattleState:
-	return battle_state
-
 ## Check if a battle is currently active
 func is_in_battle() -> bool:
 	return is_battle_active

@@ -3,7 +3,7 @@
 ## Current Status
 **Last Updated:** 2026-02-16
 **Phase:** Pre-Release Audit Execution
-**Current Task:** Executing AUDIT_PLAN.md tasks (1/73 complete)
+**Current Task:** Executing AUDIT_PLAN.md tasks (7/73 complete)
 
 ---
 
@@ -52,6 +52,22 @@
 **Fix:** Removed the dead save/load stubs entirely. No need to wire empty methods into the save chain.
 
 **Verification:** Project runs clean, no errors
+
+### Remove dead code from BattleCoordinator.gd (High)
+**Files modified:** `scripts/systems/battle/BattleCoordinator.gd`
+**Removed:** `get_battle_state()` — 0 external callers.
+**Verification:** Project runs clean
+
+### Remove dead code from WaveManager.gd (High)
+**Files modified:** `scripts/systems/battle/WaveManager.gd`
+**Removed:** `get_current_wave()`, `is_final_wave()`, `get_current_wave_enemies()`, `get_next_wave_enemies()` — all 0 external callers.
+**Kept:** `get_wave_count()` — called by BattleScreen.gd.
+**Verification:** Project runs clean
+
+### Remove dead code from InventoryManager.gd (High)
+**Files modified:** `scripts/systems/collection/InventoryManager.gd`
+**Removed:** `use_consumable()`, `_apply_consumable_effect()`, `add_loot_items()`, `get_all_consumables()`, `get_all_materials()` — all 0 external callers.
+**Verification:** Project runs clean
 
 ---
 

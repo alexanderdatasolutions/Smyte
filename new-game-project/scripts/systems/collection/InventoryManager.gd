@@ -90,88 +90,11 @@ func get_item_count(item_id: String) -> int:
 	count += quest_items.get(item_id, 0)
 	return count
 
-# CONSUMABLE MANAGEMENT
-
-func use_consumable(item_id: String, target_god: God = null) -> bool:
-	"""Use a consumable item with effects"""
-	if not has_item(item_id, 1):
-		return false
-
-	var item_info = get_item_info(item_id)
-	if item_info.get("category") != "consumable":
-		return false
-	
-	# Process consumable effects
-	var effects = item_info.get("effects", [])
-	for effect in effects:
-		_apply_consumable_effect(effect, target_god)
-	
-	# Remove the item
-	remove_item(item_id, 1)
-	item_consumed.emit(item_id, 1)
-
-	return true
-
-func _apply_consumable_effect(effect: Dictionary, target_god: God = null):
-	"""Apply consumable effect to god or player"""
-	var effect_type = effect.get("type", "")
-	var value = effect.get("value", 0)
-	
-	match effect_type:
-		"heal_god":
-			if target_god:
-				target_god.heal(value)
-		"restore_energy":
-			var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager")
-			if resource_manager:
-				resource_manager.add_resource("energy", value)
-		"add_experience":
-			if target_god:
-				var system_registry = SystemRegistry.get_instance()
-				var god_progression_manager = system_registry.get_system("GodProgressionManager")
-				god_progression_manager.add_experience_to_god(target_god, value)
-
-# BATTLE INTEGRATION METHODS
-
-func add_loot_items(loot_results: Dictionary):
-	"""Add loot items from battle rewards to inventory"""
-	for item_id in loot_results:
-		var amount = loot_results[item_id]
-		var item_info = get_item_info(item_id)
-		var category = item_info.get("category", "material")
-		
-		# Skip resources - those go to ResourceManager
-		if category in ["currency", "resource"]:
-			continue
-		
-		# Add items to appropriate inventory
-		add_item(item_id, amount)
-
 # UTILITY METHODS
 
 func get_item_info(item_id: String) -> Dictionary:
 	"""Get item information from configuration"""
 	return item_config.get(item_id, {"name": item_id.capitalize(), "category": "material"})
-
-func get_all_consumables() -> Dictionary:
-	"""Get all consumables with their info"""
-	var result = {}
-	for item_id in consumables:
-		result[item_id] = {
-			"count": consumables[item_id],
-			"info": get_item_info(item_id)
-		}
-	return result
-
-func get_all_materials() -> Dictionary:
-	"""Get all materials with their info"""
-	var result = {}
-	for item_id in materials:
-		result[item_id] = {
-			"count": materials[item_id],
-			"info": get_item_info(item_id)
-		}
-	return result
 
 # SAVE/LOAD SYSTEM
 

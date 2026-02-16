@@ -41,29 +41,9 @@ func complete_current_wave():
 		# Start next wave
 		start_wave(current_wave + 1)
 
-## Get current wave number
-func get_current_wave() -> int:
-	return current_wave
-
 ## Get total wave count
 func get_wave_count() -> int:
 	return max_waves
-
-## Check if this is the last wave
-func is_final_wave() -> bool:
-	return current_wave >= max_waves
-
-## Get current wave enemy data
-func get_current_wave_enemies() -> Array:
-	if current_wave <= 0 or current_wave > wave_data.size():
-		return []
-	return wave_data[current_wave - 1]
-
-## Get next wave enemy data
-func get_next_wave_enemies() -> Array:
-	if current_wave >= wave_data.size():
-		return []
-	return wave_data[current_wave]
 
 ## Reset wave manager
 func reset():
