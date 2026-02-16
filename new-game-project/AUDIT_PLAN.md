@@ -20,7 +20,7 @@
 
 ### Dead Code Removal
 
-- [ ] **Remove dead functions from ArenaManager.gd** — `get_cached_opponents()` (0 external callers), `get_battle_rewards_preview()` (0 external callers). Also has 2 unused mock generation functions. `{"file": "scripts/systems/arena/ArenaManager.gd", "passes": false}`
+- [x] **Remove dead functions from ArenaManager.gd** — Removed `get_cached_opponents()` and `get_battle_rewards_preview()` (0 external callers). Mock generation functions are actually used internally as Firebase fallbacks. `{"file": "scripts/systems/arena/ArenaManager.gd", "passes": true}`
 - [ ] **Remove dead functions from BattleCoordinator.gd** — `get_battle_state()` (0 external callers). `{"file": "scripts/systems/battle/BattleCoordinator.gd", "passes": false}`
 - [ ] **Remove dead functions from WaveManager.gd** — `get_current_wave()`, `is_final_wave()`, `get_current_wave_enemies()`, `get_next_wave_enemies()` (all 0 external callers). `{"file": "scripts/systems/battle/WaveManager.gd", "passes": false}`
 - [ ] **Remove dead functions from InventoryManager.gd** — `use_consumable()`, `add_loot_items()`, `get_all_consumables()`, `get_all_materials()` (all 0 external callers). `{"file": "scripts/systems/resources/InventoryManager.gd", "passes": false}`

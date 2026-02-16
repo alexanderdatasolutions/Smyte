@@ -95,10 +95,6 @@ func fetch_opponents() -> void:
 		# Generate mock opponents for testing without Firebase
 		_generate_mock_opponents()
 
-func get_cached_opponents() -> Array:
-	"""Get the cached list of opponents"""
-	return cached_opponents
-
 func update_defense_team(team: Array) -> void:
 	"""Update the player's defense team"""
 	defense_team = team.duplicate()
@@ -217,11 +213,6 @@ func process_battle_result(victory: bool, opponent_data: Dictionary) -> Dictiona
 
 	battle_result_processed.emit(result)
 	return result
-
-func get_battle_rewards_preview(opponent_data: Dictionary) -> Dictionary:
-	"""Get reward preview for BattleInfoManager"""
-	var opponent_elo = opponent_data.get("elo", BASE_ELO)
-	return _calculate_pvp_rewards(true, opponent_elo)  # Show win rewards
 
 func fetch_leaderboard() -> void:
 	"""Fetch top players leaderboard"""

@@ -38,6 +38,12 @@
 
 **Verification:** Project runs clean, no errors
 
+### Remove dead code from ArenaManager.gd (High)
+**Files modified:** `scripts/systems/arena/ArenaManager.gd`
+**Removed:** `get_cached_opponents()`, `get_battle_rewards_preview()` — 0 external callers each.
+**Note:** Mock generation functions (`_generate_mock_opponents`, etc.) are NOT dead — they're used as Firebase fallbacks.
+**Verification:** Project runs clean
+
 ### Remove dead save stubs from LootSystem (Critical → resolved)
 **Files modified:** `scripts/systems/resources/LootSystem.gd`
 
