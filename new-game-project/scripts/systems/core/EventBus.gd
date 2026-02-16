@@ -129,25 +129,6 @@ func _log_event(event_name: String, data: Dictionary = {}) -> void:
 # CONVENIENCE METHODS FOR COMMON EVENTS
 # ============================================================================
 
-## Emit a resource change event with proper logging
-func emit_resource_change(resource_id: String, new_amount: int, delta: int):
-	_log_event("resource_changed", {
-		"resource": resource_id,
-		"new_amount": new_amount,
-		"delta": delta
-	})
-	resource_changed.emit(resource_id, new_amount, delta)
-
-## Emit battle result with comprehensive data
-func emit_battle_ended(result):  # result: BattleResult - untyped for autoload compatibility
-	_log_event("battle_ended", {
-		"victory": result.victory,
-		"battle_type": result.battle_type,
-		"duration": result.duration,
-		"rewards": result.rewards
-	})
-	battle_ended.emit(result)
-
 ## Emit notification request
 func emit_notification(message: String, type: String = "info", duration: float = 3.0):
 	_log_event("notification_requested", {

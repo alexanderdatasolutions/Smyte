@@ -182,10 +182,6 @@ func get_crafting_recipes_config() -> Dictionary:
 func get_summon_config() -> Dictionary:
 	return summon_config
 
-## Get pantheons configuration
-func get_pantheons_config() -> Dictionary:
-	return pantheons_config
-
 ## Get team bonuses configuration
 func get_team_bonuses_config() -> Dictionary:
 	return team_bonuses_config
@@ -197,31 +193,8 @@ func get_enabled_pantheons() -> Array:
 	# Default to all if no config
 	return ["greek", "norse", "egyptian", "chinese", "slavic", "hindu", "celtic", "japanese", "mesopotamian"]
 
-## Check if a pantheon is enabled
-func is_pantheon_enabled(pantheon: String) -> bool:
-	return pantheon.to_lower() in get_enabled_pantheons()
-
 func get_territory_roles_config() -> Dictionary:
 	# Load territory roles if not already loaded
 	var territory_roles_path = "res://data/territory_roles.json"
 	return _load_json_file(territory_roles_path)
 
-## Check if configurations are loaded
-func is_configuration_loaded() -> bool:
-	return is_loaded
-
-## Reload all configurations (for development)
-func reload_configurations():
-	is_loaded = false
-	territories_config.clear()
-	gods_config.clear()
-	equipment_config.clear()
-	resources_config.clear()
-	battle_config.clear()
-	loot_config.clear()
-	crafting_recipes_config.clear()
-	summon_config.clear()
-	pantheons_config.clear()
-	team_bonuses_config.clear()
-
-	load_all_configurations()

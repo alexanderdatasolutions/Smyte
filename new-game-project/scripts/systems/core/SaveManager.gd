@@ -386,29 +386,6 @@ func set_player_value(key: String, value) -> void:
 func get_player_value(key: String, default = null):
 	return player_data.get(key, default)
 
-## Get save file info
-func get_save_info() -> Dictionary:
-	if not has_save_file():
-		return {}
-	
-	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.READ)
-	if not file:
-		return {}
-	
-	var json_string = file.get_as_text()
-	file.close()
-	
-	var json = JSON.new()
-	if json.parse(json_string) != OK:
-		return {}
-	
-	var save_data = json.data
-	return {
-		"version": save_data.get("version", "Unknown"),
-		"timestamp": save_data.get("timestamp", 0),
-		"readable_time": Time.get_datetime_string_from_unix_time(save_data.get("timestamp", 0))
-	}
-
 ## Calculate offline production and store in nodes for manual collection
 ## Player collects via "Collect All" on territory screen for satisfying reward moment
 func _calculate_offline_production_rewards(system_registry, hex_grid_manager) -> void:

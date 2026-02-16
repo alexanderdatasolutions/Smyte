@@ -75,35 +75,6 @@ func summon_with_soul(soul_type: String) -> bool:
 	var banner_type = "element" if soul_type.ends_with("_soul") and not soul_type.begins_with("common") and not soul_type.begins_with("rare") and not soul_type.begins_with("epic") and not soul_type.begins_with("legendary") else "default"
 	return _perform_summon(cost, soul_type, banner_type)
 
-func summon_with_element_soul(element: String) -> bool:
-	var soul_type = element + "_soul"
-	return _perform_summon({soul_type: 1}, soul_type, "element", element)
-
-func summon_with_powder(soul_type: String, powder_element: String) -> bool:
-	"""Summon using a soul + element powder to boost matching element weight"""
-	var config = get_config()
-	var powder_cost = config.get("element_powder_summon", {}).get("cost_per_summon", 10)
-	var powder_id = powder_element + "_powder"
-
-	# Build cost: soul + powder
-	var cost = {soul_type: 1, powder_id: powder_cost}
-	return _perform_summon(cost, soul_type, "default", "", powder_element)
-
-func summon_basic_with_powder(powder_element: String) -> bool:
-	"""Summon with mana + element powder"""
-	var config = get_config()
-	var mana_cost = 10000
-	var powder_cost = config.get("element_powder_summon", {}).get("cost_per_summon", 10)
-	var powder_id = powder_element + "_powder"
-
-	if config.has("summon_configuration"):
-		var costs = config.summon_configuration.get("costs", {}).get("premium_summons", {})
-		if costs.has("mana_summon") and costs.mana_summon.has("mana"):
-			mana_cost = costs.mana_summon.mana
-
-	var cost = {"mana": mana_cost, powder_id: powder_cost}
-	return _perform_summon(cost, "mana", "default", "", powder_element)
-
 func summon_premium_with_powder(powder_element: String) -> bool:
 	"""Summon with divine crystals + element powder (150 crystals + 10 powder per summon_config.json)"""
 	var config = get_config()
@@ -139,24 +110,6 @@ func summon_with_pantheon_token(pantheon: String) -> bool:
 
 	var cost = {"divine_crystals": crystal_cost, token_id: token_cost}
 	return _perform_summon(cost, "divine_crystals", "pantheon", "", "", pantheon)
-
-func get_powder_cost() -> int:
-	"""Get the powder cost per summon from config"""
-	var config = get_config()
-	return config.get("element_powder_summon", {}).get("cost_per_summon", 10)
-
-func get_powder_weight_multiplier() -> float:
-	"""Get the weight multiplier from using powder"""
-	var config = get_config()
-	return config.get("element_powder_summon", {}).get("weight_multiplier", 2.0)
-
-func can_afford_powder_summon(soul_type: String, powder_element: String) -> bool:
-	"""Check if player can afford a powder-boosted summon"""
-	var config = get_config()
-	var powder_cost = config.get("element_powder_summon", {}).get("cost_per_summon", 10)
-	var powder_id = powder_element + "_powder"
-	var cost = {soul_type: 1, powder_id: powder_cost}
-	return _can_afford_cost(cost)
 
 # CORE SUMMON LOGIC
 
@@ -399,54 +352,6 @@ func _get_active_element_favors() -> Array:
 
 	return active
 
-func grant_element_favor(element: String, duration_hours: int = 24):
-	"""Grant an element favor buff (called after completing element dungeon)"""
-	var save_manager = SystemRegistry.get_instance().get_system("SaveManager") if SystemRegistry.get_instance() else null
-	if not save_manager:
-		return
-
-	var favor_key = element + "_favor"
-	var expire_time = Time.get_unix_time_from_system() + (duration_hours * 3600)
-
-	save_manager.set_player_value("element_favors", {favor_key: expire_time}, true)
-	print("SummonManager: Granted %s for %d hours" % [favor_key, duration_hours])
-
-	# Trigger save after granting favor
-	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
-	if event_bus:
-		event_bus.save_requested.emit()
-
-func get_element_favor_status() -> Dictionary:
-	"""Get status of all element favors for UI display"""
-	var status = {}
-	var elements = ["fire", "water", "earth", "lightning", "light", "dark"]
-	var active_favors = _get_active_element_favors()
-	var current_time = Time.get_unix_time_from_system()
-
-	var save_manager = SystemRegistry.get_instance().get_system("SaveManager") if SystemRegistry.get_instance() else null
-	var player_data = save_manager.get_player_data() if save_manager else {}
-	var favors = player_data.get("element_favors", {})
-
-	for element in elements:
-		var favor_key = element + "_favor"
-		var is_active = favor_key in active_favors
-		var time_remaining = 0
-		if is_active and favors.has(favor_key):
-			time_remaining = max(0, int(favors[favor_key]) - int(current_time))
-		status[element] = {
-			"active": is_active,
-			"time_remaining": time_remaining,
-			"time_formatted": _format_time_remaining(time_remaining) if is_active else ""
-		}
-	return status
-
-func _format_time_remaining(seconds: int) -> String:
-	if seconds <= 0:
-		return ""
-	var hours = seconds / 3600
-	var minutes = (seconds % 3600) / 60
-	return "%dh %dm" % [hours, minutes]
-
 func _get_element_string(element_value) -> String:
 	if element_value is int or element_value is float:
 		return ["fire", "water", "earth", "lightning", "light", "dark"][clampi(int(element_value), 0, 5)]
@@ -571,15 +476,6 @@ func can_use_daily_free_summon() -> bool:
 	var current_reset_day = _get_reset_day_string(reset_hour)
 	return last_free_summon_date != current_reset_day
 
-func can_use_weekly_premium_summon() -> bool:
-	if last_weekly_premium_date.is_empty():
-		return true
-	var last_parts = last_weekly_premium_date.split("-")
-	var curr_parts = Time.get_date_string_from_system().split("-")
-	if last_parts.size() != 3 or curr_parts.size() != 3:
-		return true
-	return int(curr_parts[2]) - int(last_parts[2]) >= 7
-
 func get_time_until_free_summon() -> int:
 	if can_use_daily_free_summon(): return 0
 	return max(0, _get_next_reset_timestamp(_get_daily_reset_hour()) - int(Time.get_unix_time_from_system()))
@@ -625,10 +521,6 @@ func multi_summon_premium(count: int = 10) -> bool:
 			single_cost = int(multi.premium_pack_10.divine_crystals / count)
 	var total_cost = {"divine_crystals": int(single_cost * count * 0.9)}
 	return _perform_multi_summon(total_cost, "divine_crystals", "premium", count, single_cost)
-
-func summon_multi_with_soul(soul_type: String, count: int = 10) -> bool:
-	var total_cost = {soul_type: int(count * 0.9)}
-	return _perform_multi_summon(total_cost, soul_type, "default", count, 1)
 
 func _perform_multi_summon(cost: Dictionary, summon_type: String, banner_type: String, count: int, unit_cost: int) -> bool:
 	if not _can_afford_cost(cost):

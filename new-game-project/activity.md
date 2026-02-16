@@ -3,7 +3,7 @@
 ## Current Status
 **Last Updated:** 2026-02-16
 **Phase:** Pre-Release Audit Execution
-**Current Task:** Executing AUDIT_PLAN.md tasks (7/73 complete)
+**Current Task:** Executing AUDIT_PLAN.md tasks (11/73 complete)
 
 ---
 
@@ -67,6 +67,28 @@
 ### Remove dead code from InventoryManager.gd (High)
 **Files modified:** `scripts/systems/collection/InventoryManager.gd`
 **Removed:** `use_consumable()`, `_apply_consumable_effect()`, `add_loot_items()`, `get_all_consumables()`, `get_all_materials()` — all 0 external callers.
+**Verification:** Project runs clean
+
+### Remove dead summon functions from SummonManager.gd (High)
+**Files modified:** `scripts/systems/collection/SummonManager.gd`
+**Removed:** `summon_with_element_soul()`, `summon_with_powder()`, `summon_basic_with_powder()`, `get_powder_cost()`, `get_powder_weight_multiplier()`, `can_afford_powder_summon()`, `grant_element_favor()`, `get_element_favor_status()`, `_format_time_remaining()`, `can_use_weekly_premium_summon()`, `summon_multi_with_soul()` — all 0 external callers.
+**Kept:** `summon_premium_with_powder()`, `summon_with_pantheon_token()` — called by SummonScreen.gd.
+**Verification:** Project runs clean
+
+### Remove dead functions from ConfigurationManager.gd (High)
+**Files modified:** `scripts/systems/core/ConfigurationManager.gd`
+**Removed:** `get_pantheons_config()`, `is_pantheon_enabled()`, `is_configuration_loaded()`, `reload_configurations()` — all 0 external callers.
+**Verification:** Project runs clean
+
+### Remove dead functions from EventBus.gd (High)
+**Files modified:** `scripts/systems/core/EventBus.gd`
+**Removed:** `emit_resource_change()`, `emit_battle_ended()` — 0 external callers.
+**Kept:** `emit_notification()` — used by multiple systems.
+**Verification:** Project runs clean
+
+### Remove dead function from SaveManager.gd (High)
+**Files modified:** `scripts/systems/core/SaveManager.gd`
+**Removed:** `get_save_info()` — 0 external callers.
 **Verification:** Project runs clean
 
 ---
