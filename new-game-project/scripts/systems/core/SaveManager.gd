@@ -139,6 +139,11 @@ func load_game() -> bool:
 	if save_data.is_empty():
 		return false
 
+	# Validate save data structure before loading
+	if not _validate_save_data(save_data):
+		load_failed.emit("Save data failed validation — may be corrupted")
+		return false
+
 	# Migrate save data if version differs
 	var version: String = save_data.get("version", "0.0")
 	if version != SAVE_VERSION:
@@ -182,6 +187,42 @@ func _read_save_file() -> Dictionary:
 	var save_data: Dictionary = json.data
 	print("[SaveManager] Parsed save data, keys: %s" % str(save_data.keys()))
 	return save_data
+
+## Validate save data structure — checks required keys and expected types.
+## Returns true if the data looks safe to load, false if corrupted.
+func _validate_save_data(save_data: Dictionary) -> bool:
+	# Required top-level keys
+	if not save_data.has("version"):
+		push_warning("SaveManager: Save data missing 'version' key")
+		return false
+
+	if not save_data["version"] is String:
+		push_warning("SaveManager: 'version' is not a String")
+		return false
+
+	if not save_data.has("timestamp"):
+		push_warning("SaveManager: Save data missing 'timestamp' key")
+		return false
+
+	# Validate that known section keys, when present, are Dictionaries
+	var dict_sections: Array[String] = [
+		"resources", "collection", "battle", "hex_grid", "territory",
+		"dungeon", "summon", "tutorial", "arena", "player_progression",
+		"equipment", "shop", "skins", "achievements", "player_data",
+	]
+	for key: String in dict_sections:
+		if save_data.has(key) and not save_data[key] is Dictionary:
+			push_warning("SaveManager: Section '%s' expected Dictionary, got %s" % [key, typeof(save_data[key])])
+			return false
+
+	# Validate collection section has expected structure if present
+	if save_data.has("collection"):
+		var collection: Dictionary = save_data["collection"]
+		if collection.has("gods") and not collection["gods"] is Array:
+			push_warning("SaveManager: 'collection.gods' expected Array, got %s" % typeof(collection["gods"]))
+			return false
+
+	return true
 
 ## Load save data into all game systems via SystemRegistry
 func _load_systems_from_data(save_data: Dictionary, system_registry) -> void:
@@ -452,7 +493,13 @@ func _on_cloud_load_completed(save_data: Dictionary):
 	# Safety check: Don't apply empty or invalid cloud saves
 	# This prevents wiping local data if cloud save is corrupted/empty
 	if save_data.is_empty():
-		print("[SaveManager] WARNING: Cloud save is empty, ignoring")
+		push_warning("SaveManager: Cloud save is empty, ignoring")
+		return
+
+	# Validate structure before applying
+	if not _validate_save_data(save_data):
+		push_warning("SaveManager: Cloud save failed validation, ignoring")
+		cloud_sync_failed.emit("Cloud save data corrupted")
 		return
 
 	# Check if cloud save has ACTUAL gods/equipment, not just empty arrays

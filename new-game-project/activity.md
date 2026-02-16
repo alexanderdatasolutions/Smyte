@@ -1202,3 +1202,21 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: add null checks to Firebase/Firestore operations`
+
+### 2026-02-16 - Audit: Add save corruption detection to SaveManager
+
+**Priority:** Medium
+**File(s) Modified:** `scripts/systems/core/SaveManager.gd`
+
+**Changes:**
+- Added `_validate_save_data()` function that checks save data integrity before loading
+- Validates required top-level keys (`version`, `timestamp`) exist and have correct types
+- Validates all known section keys (`resources`, `collection`, `hex_grid`, etc.) are Dictionaries when present
+- Validates `collection.gods` is an Array when present
+- Called from both `load_game()` (local saves) and `_on_cloud_load_completed()` (cloud saves)
+- On validation failure: emits `load_failed` signal for local saves, `cloud_sync_failed` for cloud saves
+- Prevents corrupted JSON from crashing game systems during load
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: add save corruption detection to SaveManager`
