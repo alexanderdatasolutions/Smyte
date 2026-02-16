@@ -930,8 +930,8 @@
     "priority": "high",
     "file": "orphaned .uid files (11 files)",
     "issue": "11 orphaned .uid files for deleted scripts: BattleEffectProcessor, BattleFactory, ProgressionCoordinator, GodSelectionPanel, DungeonTab, LoadingScreen, TerritoryRoleScreen, TerritoryScreen, TutorialDialog, TerritoryCardFactory, JSONLoader",
-    "action": "Delete all 11 orphaned .uid files",
-    "passes": false
+    "action": "Deleted all 11 orphaned .uid files: BattleEffectProcessor, BattleFactory, ProgressionCoordinator, GodSelectionPanel (components), DungeonTab, LoadingScreen, TerritoryRoleScreen, TerritoryScreen, TutorialDialog (screens), TerritoryCardFactory, JSONLoader. Verified no scene/resource/script references to any of them.",
+    "passes": true
   },
   {
     "priority": "low",

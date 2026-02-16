@@ -1641,11 +1641,38 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 
 ---
 
-## AUDIT COMPLETE — 73/73 Tasks
+## AUDIT PHASE 1 COMPLETE — 73/73 Tasks
 
-All audit tasks from AUDIT_PLAN.md have been completed:
+All initial audit tasks from AUDIT_PLAN.md have been completed:
 - **Critical (3):** Save system fixes for TowerManager, LootSystem, InventoryManager
 - **High - Dead Code (8):** Removed dead functions from 8 system files
 - **High - Debug Prints (36):** Removed ~519 print statements from 62 files (17 system + 43 UI + 2 data)
 - **Medium - Static Typing (20):** Added 1,357 type annotations to the 20 worst files
 - **Low - Hardcoded Values (5):** Externalized balance values from 5 systems to 3 new JSON config files
+
+---
+
+## 2026-02-16 - Audit: Delete 11 orphaned .uid files
+
+**Priority:** High
+**File(s) Modified:** 11 .uid files deleted
+
+**Changes:**
+- Deleted 11 orphaned .uid files whose corresponding .gd scripts no longer exist:
+  1. `scripts/systems/battle/BattleEffectProcessor.gd.uid`
+  2. `scripts/systems/battle/BattleFactory.gd.uid`
+  3. `scripts/systems/progression/ProgressionCoordinator.gd.uid`
+  4. `scripts/ui/components/GodSelectionPanel.gd.uid`
+  5. `scripts/ui/screens/DungeonTab.gd.uid`
+  6. `scripts/ui/screens/LoadingScreen.gd.uid`
+  7. `scripts/ui/screens/TerritoryRoleScreen.gd.uid`
+  8. `scripts/ui/screens/TerritoryScreen.gd.uid`
+  9. `scripts/ui/screens/TutorialDialog.gd.uid`
+  10. `scripts/ui/territory/TerritoryCardFactory.gd.uid`
+  11. `scripts/utilities/JSONLoader.gd.uid`
+- Verified no scene, resource, or script files reference any of these UIDs
+- Note: GodSelectionPanel (components) is different from active GodSelectionPanel (territory); TutorialDialog (screens) is different from active TutorialDialog (components)
+
+**Verified:** Ran project, no errors in debug output
+
+**Commit:** `audit: delete 11 orphaned .uid files for deleted scripts`
