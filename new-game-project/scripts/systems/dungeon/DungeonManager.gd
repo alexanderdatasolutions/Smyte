@@ -21,7 +21,7 @@ func _ready():
 
 func load_dungeon_data():
 	"""Load dungeon definitions from JSON - RULE 5: Data-driven approach"""
-	var file_path = "res://data/dungeons.json"
+	var file_path: String = "res://data/dungeons.json"
 	var file = FileAccess.open(file_path, FileAccess.READ)
 	
 	if not file:
@@ -32,7 +32,7 @@ func load_dungeon_data():
 	var json_text = file.get_as_text()
 	file.close()
 	
-	var json = JSON.new()
+	var json: JSON = JSON.new()
 	var parse_result = json.parse(json_text)
 	
 	if parse_result != OK:
@@ -63,7 +63,7 @@ func _load_fallback_data():
 
 func load_dungeon_waves():
 	"""Load wave configurations from dungeon_waves.json"""
-	var file_path = "res://data/dungeon_waves.json"
+	var file_path: String = "res://data/dungeon_waves.json"
 	var file = FileAccess.open(file_path, FileAccess.READ)
 
 	if not file:
@@ -73,7 +73,7 @@ func load_dungeon_waves():
 	var json_text = file.get_as_text()
 	file.close()
 
-	var json = JSON.new()
+	var json: JSON = JSON.new()
 	var parse_result = json.parse(json_text)
 
 	if parse_result != OK:
@@ -97,7 +97,7 @@ func initialize_player_progress():
 
 func get_available_dungeons() -> Array:
 	"""Get all available dungeons for today"""
-	var available = []
+	var available: Array = []
 	var all_dungeons = get_all_dungeons()
 	
 	for dungeon_info in all_dungeons:
@@ -108,7 +108,7 @@ func get_available_dungeons() -> Array:
 
 func get_all_dungeons() -> Array:
 	"""Get all dungeons across all categories with enhanced power info"""
-	var all_dungeons = []
+	var all_dungeons: Array = []
 
 	# Elemental sanctums
 	var elemental = dungeon_data.get("elemental_sanctums", {})
@@ -197,7 +197,7 @@ func is_dungeon_available(_dungeon_id: String) -> bool:
 func get_dungeon_schedule_info() -> Dictionary:
 	"""Get today's dungeon schedule information - Only show rotating dungeons like Summoners War"""
 	var current_date = Time.get_date_dict_from_system()
-	var weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+	var weekdays: Array = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
 	var today = weekdays[current_date.weekday]
 	
 	var schedule_info = {
@@ -213,7 +213,7 @@ func get_dungeon_schedule_info() -> Dictionary:
 		var schedule_day = dungeon.get("schedule_day", "")
 		
 		# Only include dungeons with rotating schedules (NOT always_available)
-		var is_rotating_and_available = false
+		var is_rotating_and_available: bool = false
 		match schedule:
 			"always_available":
 				# Skip - these don't appear in "Today's Dungeons"
@@ -389,10 +389,10 @@ func _get_wave_data(dungeon_id: String, difficulty: String) -> Array:
 
 func _convert_wave_data_to_battle_config(wave_data: Array) -> Array:
 	"""Convert dungeon_waves.json format to BattleConfig.enemy_waves format"""
-	var enemy_waves = []
+	var enemy_waves: Array = []
 
 	for wave in wave_data:
-		var wave_enemies = []
+		var wave_enemies: Array = []
 		var enemies = wave.get("enemies", [])
 
 		for enemy_def in enemies:
@@ -424,10 +424,10 @@ func _calculate_enemy_stats(level: int, tier: String) -> Dictionary:
 	"""Calculate enemy stats based on level and tier - BALANCED for god stats"""
 	# Base stats at level 1 - matched to god power levels
 	# Average god at level 1: ~110 HP, ~55 ATK, ~70 DEF, ~60 SPD
-	var base_hp = 120  # Slightly tankier than gods
-	var base_attack = 50  # Slightly weaker than gods
-	var base_defense = 60  # Similar to gods
-	var base_speed = 55  # Similar to gods
+	var base_hp: int = 120  # Slightly tankier than gods
+	var base_attack: int = 50  # Slightly weaker than gods
+	var base_defense: int = 60  # Similar to gods
+	var base_speed: int = 55  # Similar to gods
 
 	# Tier multipliers - REDUCED from previous values
 	var tier_multipliers = {
@@ -619,7 +619,7 @@ func _enhance_dungeon_info(info: Dictionary):
 
 func _calculate_enemy_power(dungeon_info: Dictionary, difficulty: String) -> int:
 	"""Calculate estimated enemy power based on dungeon category and difficulty"""
-	var base_power = 1000
+	var base_power: int = 1000
 	
 	# Adjust base power by dungeon category
 	var category = dungeon_info.get("category", "elemental")
@@ -634,7 +634,7 @@ func _calculate_enemy_power(dungeon_info: Dictionary, difficulty: String) -> int
 			base_power = 1500
 	
 	# Apply difficulty multiplier
-	var difficulty_multiplier = 1.0
+	var difficulty_multiplier: float = 1.0
 	match difficulty:
 		"beginner":
 			difficulty_multiplier = 1.0
@@ -680,7 +680,7 @@ func get_enemy_types_for_dungeon(dungeon_id: String) -> Array:
 	var element = dungeon_info.get("element", "neutral")
 	var category = dungeon_info.get("category", "elemental")
 	
-	var enemy_types = []
+	var enemy_types: Array = []
 	
 	# Based on element and category, determine enemy types
 	match category:
@@ -711,7 +711,7 @@ func get_dungeon_enemies(dungeon_id: String, difficulty: String) -> Array:
 	var difficulty_info = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
 	var waves = difficulty_info.get("waves", [])
 
-	var enemies = []
+	var enemies: Array = []
 	var enemy_types = get_enemy_types_for_dungeon(dungeon_id)
 
 	# If waves exist in data, use them

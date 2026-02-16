@@ -3,7 +3,7 @@
 ## Current Status
 **Last Updated:** 2026-02-16
 **Phase:** Pre-Release Audit Execution
-**Current Task:** Executing AUDIT_PLAN.md tasks (47/73 complete)
+**Current Task:** Executing AUDIT_PLAN.md tasks (68/73 complete)
 
 ---
 
@@ -1490,3 +1490,41 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: remove dead code from EquipmentSocketManager`
+
+### 2026-02-16 - Audit: Remove debug prints from all 17 system files (~203 statements)
+
+**Files modified:** 17 files in `scripts/systems/`
+
+**Changes:**
+- Removed ~203 print/push_warning statements across all system files using paren-counting parser for multi-line safety
+- Top files: SaveManager(38), BattleCoordinator(31), TerritoryManager(21), TerritoryProductionManager(16), CollectionManager(14), TurnManager(13), HexGridManager(12), FirebaseIntegration(10), GameCoordinator(9)
+- Fixed 3 orphaned multi-line print remnants in TerritoryManager.gd (left over from earlier regex pass)
+- Cleaned up orphaned debug-only variables: `coord_str`(x4), `was_capped`, `bonus_percent` in TerritoryProductionManager; `hex_coord_script`, `matched_count`, `player_nodes_loaded`, `newly_revealed` in HexGridManager; `effect_results`, `reason` in TurnManager
+
+**Verified:** Ran project, no parse errors or runtime errors.
+
+**Commit:** `audit: remove debug prints from all 17 system files (~203 statements)`
+
+### 2026-02-16 - Audit: Remove debug prints from all UI and data files (316 statements)
+
+**Files modified:** 43 files in `scripts/ui/`, 2 files in `scripts/data/`
+
+**Changes:**
+- Removed 316 print statements across 45 UI and data files using automated paren-counting parser
+- Top files: BattleScreen(56), BattleUnitCard(29), HexTerritoryScreen(25), GodDetailsPanel(20), CollectionScreenCoordinator(18), NodeInfoPanel(18), TerritoryActionsManager(16), GodCollectionList(11), WorldView(10), EquipmentInventoryManager(10), CollectionFilterPanel(9)
+- Data files: BattleState(2), BattleUnit(2)
+
+**Verified:** Ran project, no parse errors or runtime errors.
+
+**Commit:** `audit: remove debug prints from all UI and data files (316 statements)`
+
+### 2026-02-16 - Audit: Add static typing to top 20 worst files (1,357 annotations)
+
+**Files modified:** 20 files across `scripts/ui/`, `scripts/systems/`, `scripts/data/`
+
+**Changes:**
+- Added 1,357 type annotations across the 20 files with the most missing annotations
+- Used automated type inference script that handles: Constructor patterns (`Type.new()` → `Type`), literals (string/int/float/bool), Vector2/Vector3/Color, empty arrays/dicts, `str()/int()/float()` casts, format strings, `randf()/randi()`
+- Top files: ArenaScreen(271), NodeInfoPanel(132), TerritoryOverviewScreen(117), TerritoryCardBuilder(89), TeamSelectionManager(88), CollectionDetailsPanel(85), UnifiedEquipmentScreen(82), TowerScreen(75), SummonScreen(69), ProductionSummaryWidget(58)
+
+**Verified:** Ran project, no parse errors or runtime errors.

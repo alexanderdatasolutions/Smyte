@@ -14,11 +14,11 @@ static func create_enhanced_territory_card(territory_id: String, territory_data:
 	var card_panel = _create_enhanced_card_panel(territory_data)
 
 	# Main vertical layout with proper margins
-	var main_vbox = VBoxContainer.new()
+	var main_vbox: VBoxContainer = VBoxContainer.new()
 	main_vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	main_vbox.add_theme_constant_override("separation", 8)
 
-	var margin_container = MarginContainer.new()
+	var margin_container: MarginContainer = MarginContainer.new()
 	margin_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	margin_container.add_theme_constant_override("margin_left", 12)
 	margin_container.add_theme_constant_override("margin_right", 12)
@@ -36,7 +36,7 @@ static func create_enhanced_territory_card(territory_id: String, territory_data:
 	main_vbox.add_child(progress_section)
 
 	# MAIN CONTENT SECTIONS - 4 detailed sections side by side
-	var content_hbox = HBoxContainer.new()
+	var content_hbox: HBoxContainer = HBoxContainer.new()
 	content_hbox.add_theme_constant_override("separation", 12)
 	content_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -69,7 +69,7 @@ static func create_enhanced_territory_card(territory_id: String, territory_data:
 
 static func _create_enhanced_card_panel(territory_data: Dictionary) -> Panel:
 	"""Create enhanced card panel with tier-based styling and status effects"""
-	var panel = Panel.new()
+	var panel: Panel = Panel.new()
 	panel.custom_minimum_size = Vector2(0, 320)  # Larger for detailed content
 	
 	var tier = territory_data.get("tier", 1)
@@ -77,8 +77,8 @@ static func _create_enhanced_card_panel(territory_data: Dictionary) -> Panel:
 	
 	# Check territory status
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
-	var is_controlled = false
-	var current_stage = 0
+	var is_controlled: bool = false
+	var current_stage: int = 0
 	var max_stages = territory_data.get("stages", 10)
 	
 	if territory_manager:
@@ -87,7 +87,7 @@ static func _create_enhanced_card_panel(territory_data: Dictionary) -> Panel:
 		if territory_manager.has_method("get_territory_stage"):
 			current_stage = territory_manager.get_territory_stage(territory_id)
 	
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	
 	# Base color based on tier
 	match tier:
@@ -124,25 +124,25 @@ static func _create_enhanced_card_panel(territory_data: Dictionary) -> Panel:
 
 static func _create_enhanced_territory_header(territory_id: String, territory_data: Dictionary) -> Control:
 	"""Create enhanced territory header with name, tier, element, status badges"""
-	var header = HBoxContainer.new()
+	var header: HBoxContainer = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 15)
 	
 	# Territory icon based on element
-	var icon_label = Label.new()
+	var icon_label: Label = Label.new()
 	icon_label.text = _get_element_icon(territory_data.get("element", "neutral"))
 	icon_label.add_theme_font_size_override("font_size", 24)
 	header.add_child(icon_label)
 	
 	# Name and tier container
-	var name_container = VBoxContainer.new()
+	var name_container: VBoxContainer = VBoxContainer.new()
 	
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = territory_data.get("name", territory_id.capitalize().replace("_", " "))
 	name_label.add_theme_font_size_override("font_size", 18)
 	name_label.add_theme_color_override("font_color", Color.WHITE)
 	name_container.add_child(name_label)
 	
-	var tier_label = Label.new()
+	var tier_label: Label = Label.new()
 	var tier = territory_data.get("tier", 1)
 	var element = territory_data.get("element", "neutral")
 	tier_label.text = "Tier %d • %s" % [tier, element.capitalize()]
@@ -153,18 +153,18 @@ static func _create_enhanced_territory_header(territory_id: String, territory_da
 	header.add_child(name_container)
 	
 	# Spacer
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
 	
 	# Status badges
-	var badges = HBoxContainer.new()
+	var badges: HBoxContainer = HBoxContainer.new()
 	badges.add_theme_constant_override("separation", 8)
 	
 	var territory_id_clean = territory_data.get("id", territory_id)
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
-	var is_controlled = false
-	var current_stage = 0
+	var is_controlled: bool = false
+	var current_stage: int = 0
 	var max_stages = territory_data.get("stages", 10)
 	
 	if territory_manager:
@@ -187,32 +187,32 @@ static func _create_enhanced_territory_header(territory_id: String, territory_da
 
 static func _create_stage_progress_with_indicators(territory_data: Dictionary) -> Control:
 	"""Create enhanced stage progress with visual indicators and selectors"""
-	var progress_container = VBoxContainer.new()
+	var progress_container: VBoxContainer = VBoxContainer.new()
 	progress_container.add_theme_constant_override("separation", 4)
 	
 	var territory_id = territory_data.get("id", "")
 	var max_stages = territory_data.get("stages", 10)
-	var current_stage = 0
+	var current_stage: int = 0
 	
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
 	if territory_manager and territory_manager.has_method("get_territory_stage"):
 		current_stage = territory_manager.get_territory_stage(territory_id)
 	
 	# Progress label
-	var progress_label = Label.new()
+	var progress_label: Label = Label.new()
 	progress_label.text = "Stage Progress: %d/%d" % [current_stage, max_stages]
 	progress_label.add_theme_font_size_override("font_size", 11)
 	progress_container.add_child(progress_label)
 	
 	# Progress bar
-	var progress_bar = ProgressBar.new()
+	var progress_bar: ProgressBar = ProgressBar.new()
 	progress_bar.custom_minimum_size = Vector2(0, 20)
 	progress_bar.max_value = max_stages
 	progress_bar.value = current_stage
 	progress_bar.show_percentage = false
 	
 	# Style the progress bar
-	var bar_style = StyleBoxFlat.new()
+	var bar_style: StyleBoxFlat = StyleBoxFlat.new()
 	bar_style.bg_color = Color(0.1, 0.1, 0.1, 1)
 	bar_style.corner_radius_top_left = 3
 	bar_style.corner_radius_top_right = 3
@@ -220,7 +220,7 @@ static func _create_stage_progress_with_indicators(territory_data: Dictionary) -
 	bar_style.corner_radius_bottom_left = 3
 	progress_bar.add_theme_stylebox_override("background", bar_style)
 	
-	var fill_style = StyleBoxFlat.new()
+	var fill_style: StyleBoxFlat = StyleBoxFlat.new()
 	if current_stage >= max_stages:
 		fill_style.bg_color = Color(0.2, 0.8, 0.2, 1)  # Green when complete
 	else:
@@ -234,7 +234,7 @@ static func _create_stage_progress_with_indicators(territory_data: Dictionary) -
 	progress_container.add_child(progress_bar)
 	
 	# Stage indicators (dots)
-	var stage_indicators = HBoxContainer.new()
+	var stage_indicators: HBoxContainer = HBoxContainer.new()
 	stage_indicators.add_theme_constant_override("separation", 2)
 	
 	for i in range(max_stages):
@@ -246,10 +246,10 @@ static func _create_stage_progress_with_indicators(territory_data: Dictionary) -
 
 static func _create_stage_indicator(_stage_num: int, is_complete: bool, is_boss: bool) -> Panel:
 	"""Create individual stage indicator dot"""
-	var indicator = Panel.new()
+	var indicator: Panel = Panel.new()
 	indicator.custom_minimum_size = Vector2(8, 8)
 	
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	if is_complete:
 		style.bg_color = Color.GREEN if not is_boss else Color.GOLD
 	else:
@@ -273,13 +273,13 @@ static func _create_stage_indicator(_stage_num: int, is_complete: bool, is_boss:
 
 static func _create_detailed_resource_production(territory_data: Dictionary) -> Control:
 	"""Create detailed resource production section with hourly rates"""
-	var section = VBoxContainer.new()
+	var section: VBoxContainer = VBoxContainer.new()
 	section.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	section.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	section.add_theme_constant_override("separation", 3)
 	
 	var territory_id = territory_data.get("id", "")
-	var is_controlled = false
+	var is_controlled: bool = false
 	
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
 	if territory_manager and territory_manager.has_method("is_territory_controlled"):
@@ -302,14 +302,14 @@ static func _create_detailed_resource_production(territory_data: Dictionary) -> 
 		section.add_child(materials_line)
 		
 		# Production efficiency indicator
-		var efficiency_label = Label.new()
+		var efficiency_label: Label = Label.new()
 		efficiency_label.text = "Efficiency: 100%"  # TODO: Calculate based on god bonuses
 		efficiency_label.add_theme_font_size_override("font_size", 8)
 		efficiency_label.add_theme_color_override("font_color", Color.YELLOW)
 		section.add_child(efficiency_label)
 	else:
 		# Show potential production
-		var potential_label = Label.new()
+		var potential_label: Label = Label.new()
 		potential_label.text = "Potential Production:"
 		potential_label.add_theme_font_size_override("font_size", 9)
 		potential_label.add_theme_color_override("font_color", Color.GRAY)
@@ -319,7 +319,7 @@ static func _create_detailed_resource_production(territory_data: Dictionary) -> 
 		var potential_mana = _create_enhanced_resource_line("⚡", "Mana", tier * 1000, Color(0.5, 0.7, 0.9, 1))
 		section.add_child(potential_mana)
 		
-		var unlock_hint = Label.new()
+		var unlock_hint: Label = Label.new()
 		unlock_hint.text = "Capture to unlock!"
 		unlock_hint.add_theme_font_size_override("font_size", 8)
 		unlock_hint.add_theme_color_override("font_color", Color.ORANGE)
@@ -329,13 +329,13 @@ static func _create_detailed_resource_production(territory_data: Dictionary) -> 
 
 static func _create_detailed_role_assignments(territory_data: Dictionary) -> Control:
 	"""Create detailed god role assignments section"""
-	var section = VBoxContainer.new()
+	var section: VBoxContainer = VBoxContainer.new()
 	section.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	section.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	section.add_theme_constant_override("separation", 6)
 	
 	var territory_id = territory_data.get("id", "")
-	var is_controlled = false
+	var is_controlled: bool = false
 	
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
 	if territory_manager and territory_manager.has_method("is_territory_controlled"):
@@ -354,25 +354,25 @@ static func _create_detailed_role_assignments(territory_data: Dictionary) -> Con
 			section.add_child(role_line)
 		
 		# Management buttons
-		var btn_row = HBoxContainer.new()
+		var btn_row: HBoxContainer = HBoxContainer.new()
 		btn_row.add_theme_constant_override("separation", 4)
 		section.add_child(btn_row)
 
-		var manage_btn = Button.new()
+		var manage_btn: Button = Button.new()
 		manage_btn.text = "👥 Roles"
 		manage_btn.add_theme_font_size_override("font_size", 9)
 		manage_btn.custom_minimum_size = Vector2(0, 20)
 		manage_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btn_row.add_child(manage_btn)
 
-		var tasks_btn = Button.new()
+		var tasks_btn: Button = Button.new()
 		tasks_btn.text = "📋 Tasks"
 		tasks_btn.add_theme_font_size_override("font_size", 9)
 		tasks_btn.custom_minimum_size = Vector2(0, 20)
 		tasks_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btn_row.add_child(tasks_btn)
 	else:
-		var unlock_label = Label.new()
+		var unlock_label: Label = Label.new()
 		unlock_label.text = "Capture territory to\nassign gods to roles"
 		unlock_label.add_theme_font_size_override("font_size", 9)
 		unlock_label.add_theme_color_override("font_color", Color.GRAY)
@@ -383,21 +383,21 @@ static func _create_detailed_role_assignments(territory_data: Dictionary) -> Con
 
 static func _create_detailed_role_line(role_data: Dictionary, _territory_data: Dictionary) -> HBoxContainer:
 	"""Create detailed role assignment line with god info"""
-	var line = HBoxContainer.new()
+	var line: HBoxContainer = HBoxContainer.new()
 	line.add_theme_constant_override("separation", 5)
 	
-	var icon_label = Label.new()
+	var icon_label: Label = Label.new()
 	icon_label.text = role_data.get("icon", "")
 	icon_label.add_theme_font_size_override("font_size", 10)
 	line.add_child(icon_label)
 	
-	var role_label = Label.new()
+	var role_label: Label = Label.new()
 	role_label.text = role_data.get("name", "")
 	role_label.add_theme_font_size_override("font_size", 9)
 	role_label.custom_minimum_size.x = 50
 	line.add_child(role_label)
 	
-	var assigned_label = Label.new()
+	var assigned_label: Label = Label.new()
 	assigned_label.text = "0/1"  # TODO: Get actual assignments
 	assigned_label.add_theme_font_size_override("font_size", 9)
 	assigned_label.add_theme_color_override("font_color", role_data.get("color", Color.WHITE))
@@ -408,13 +408,13 @@ static func _create_detailed_role_line(role_data: Dictionary, _territory_data: D
 static func _create_combat_farming_section(territory_data: Dictionary) -> Dictionary:
 	"""Create combat and farming section with stage selection
 	Returns: Dictionary with 'content' (Control) and 'attack_button' (Button)"""
-	var section = VBoxContainer.new()
+	var section: VBoxContainer = VBoxContainer.new()
 	section.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	section.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	section.add_theme_constant_override("separation", 5)
 
 	var territory_id = territory_data.get("id", "")
-	var current_stage = 0
+	var current_stage: int = 0
 	var max_stages = territory_data.get("stages", 10)
 
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
@@ -422,16 +422,16 @@ static func _create_combat_farming_section(territory_data: Dictionary) -> Dictio
 		current_stage = territory_manager.get_territory_stage(territory_id)
 
 	# Stage selector
-	var stage_selector = HBoxContainer.new()
+	var stage_selector: HBoxContainer = HBoxContainer.new()
 	stage_selector.add_theme_constant_override("separation", 3)
 
-	var prev_btn = Button.new()
+	var prev_btn: Button = Button.new()
 	prev_btn.text = "◀"
 	prev_btn.custom_minimum_size = Vector2(20, 20)
 	prev_btn.add_theme_font_size_override("font_size", 8)
 	stage_selector.add_child(prev_btn)
 
-	var stage_label = Label.new()
+	var stage_label: Label = Label.new()
 	var selected_stage = min(current_stage + 1, max_stages)  # Next stage to attack
 	stage_label.text = "Stage %d" % selected_stage
 	stage_label.add_theme_font_size_override("font_size", 10)
@@ -439,7 +439,7 @@ static func _create_combat_farming_section(territory_data: Dictionary) -> Dictio
 	stage_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	stage_selector.add_child(stage_label)
 
-	var next_btn = Button.new()
+	var next_btn: Button = Button.new()
 	next_btn.text = "▶"
 	next_btn.custom_minimum_size = Vector2(20, 20)
 	next_btn.add_theme_font_size_override("font_size", 8)
@@ -449,7 +449,7 @@ static func _create_combat_farming_section(territory_data: Dictionary) -> Dictio
 
 	# Power requirement
 	var power_req = _calculate_power_requirement(territory_data, selected_stage)
-	var power_label = Label.new()
+	var power_label: Label = Label.new()
 	power_label.text = "Power: %d" % power_req
 	power_label.add_theme_font_size_override("font_size", 9)
 	power_label.add_theme_color_override("font_color", Color.ORANGE)
@@ -457,7 +457,7 @@ static func _create_combat_farming_section(territory_data: Dictionary) -> Dictio
 	section.add_child(power_label)
 
 	# Attack button
-	var attack_btn = Button.new()
+	var attack_btn: Button = Button.new()
 	if current_stage >= max_stages:
 		attack_btn.text = "⚔️ Farm"
 		attack_btn.modulate = Color.GREEN
@@ -476,13 +476,13 @@ static func _create_combat_farming_section(territory_data: Dictionary) -> Dictio
 
 static func _create_upgrade_power_section(territory_data: Dictionary) -> Control:
 	"""Create upgrades and power section"""
-	var section = VBoxContainer.new()
+	var section: VBoxContainer = VBoxContainer.new()
 	section.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	section.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	section.add_theme_constant_override("separation", 5)
 	
 	var territory_id = territory_data.get("id", "")
-	var is_controlled = false
+	var is_controlled: bool = false
 	
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
 	if territory_manager and territory_manager.has_method("is_territory_controlled"):
@@ -490,7 +490,7 @@ static func _create_upgrade_power_section(territory_data: Dictionary) -> Control
 	
 	if is_controlled:
 		# Show upgrade options
-		var upgrades_label = Label.new()
+		var upgrades_label: Label = Label.new()
 		upgrades_label.text = "Territory Upgrades:"
 		upgrades_label.add_theme_font_size_override("font_size", 9)
 		upgrades_label.add_theme_color_override("font_color", Color.YELLOW)
@@ -509,7 +509,7 @@ static func _create_upgrade_power_section(territory_data: Dictionary) -> Control
 		section.add_child(cap_upgrade)
 	else:
 		# Show power requirements
-		var power_req_label = Label.new()
+		var power_req_label: Label = Label.new()
 		power_req_label.text = "Power Requirements:"
 		power_req_label.add_theme_font_size_override("font_size", 9)
 		power_req_label.add_theme_color_override("font_color", Color.GRAY)
@@ -517,7 +517,7 @@ static func _create_upgrade_power_section(territory_data: Dictionary) -> Control
 		
 		var tier = territory_data.get("tier", 1)
 		var req_power = tier * 1000
-		var power_line = Label.new()
+		var power_line: Label = Label.new()
 		power_line.text = "⚡ %d Power" % req_power
 		power_line.add_theme_font_size_override("font_size", 9)
 		power_line.add_theme_color_override("font_color", Color.ORANGE)
@@ -527,16 +527,16 @@ static func _create_upgrade_power_section(territory_data: Dictionary) -> Control
 
 static func _create_upgrade_line(upgrade_name: String, level: String, color: Color) -> HBoxContainer:
 	"""Create upgrade line display"""
-	var line = HBoxContainer.new()
+	var line: HBoxContainer = HBoxContainer.new()
 	line.add_theme_constant_override("separation", 5)
 	
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = upgrade_name
 	name_label.add_theme_font_size_override("font_size", 8)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	line.add_child(name_label)
 	
-	var level_label = Label.new()
+	var level_label: Label = Label.new()
 	level_label.text = level
 	level_label.add_theme_font_size_override("font_size", 8)
 	level_label.add_theme_color_override("font_color", color)
@@ -559,8 +559,8 @@ static func _get_element_icon(element: String) -> String:
 
 static func _create_badge(text: String, color: Color) -> Panel:
 	"""Create styled badge panel"""
-	var badge_panel = Panel.new()
-	var style = StyleBoxFlat.new()
+	var badge_panel: Panel = Panel.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(color.r, color.g, color.b, 0.2)
 	style.border_width_left = 1
 	style.border_width_top = 1
@@ -574,7 +574,7 @@ static func _create_badge(text: String, color: Color) -> Panel:
 	badge_panel.add_theme_stylebox_override("panel", style)
 	badge_panel.custom_minimum_size = Vector2(80, 20)
 	
-	var badge_label = Label.new()
+	var badge_label: Label = Label.new()
 	badge_label.text = text
 	badge_label.add_theme_font_size_override("font_size", 9)
 	badge_label.add_theme_color_override("font_color", color)
@@ -594,21 +594,21 @@ static func _calculate_power_requirement(territory_data: Dictionary, stage: int)
 # Update the resource line method to match new signature
 static func _create_enhanced_resource_line(icon: String, resource_name: String, amount: int, color: Color) -> HBoxContainer:
 	"""Create enhanced resource display line with name and hourly rate"""
-	var line = HBoxContainer.new()
+	var line: HBoxContainer = HBoxContainer.new()
 	line.add_theme_constant_override("separation", 3)
 	
-	var icon_label = Label.new()
+	var icon_label: Label = Label.new()
 	icon_label.text = icon
 	icon_label.add_theme_font_size_override("font_size", 9)
 	line.add_child(icon_label)
 	
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = resource_name
 	name_label.add_theme_font_size_override("font_size", 8)
 	name_label.custom_minimum_size = Vector2(60, 0)
 	line.add_child(name_label)
 	
-	var amount_label = Label.new()
+	var amount_label: Label = Label.new()
 	amount_label.text = "+%s/hr" % _format_number(amount)
 	amount_label.add_theme_font_size_override("font_size", 8)
 	amount_label.add_theme_color_override("font_color", color)
@@ -626,18 +626,18 @@ static func _format_number(num: int) -> String:
 
 static func _create_territory_header(territory_id: String, territory_data: Dictionary) -> Control:
 	"""Create territory header with name, tier, element badges"""
-	var header = HBoxContainer.new()
+	var header: HBoxContainer = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 10)
 	
 	# Territory name
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = territory_data.get("name", territory_id.capitalize().replace("_", " "))
 	name_label.add_theme_font_size_override("font_size", 16)
 	name_label.add_theme_color_override("font_color", Color.WHITE)
 	header.add_child(name_label)
 	
 	# Spacer
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
 	
@@ -657,24 +657,24 @@ static func _create_territory_header(territory_id: String, territory_data: Dicti
 
 static func _create_stage_progress_section(territory_data: Dictionary) -> Control:
 	"""Create stage progress section with visual progress bar"""
-	var content = VBoxContainer.new()
+	var content: VBoxContainer = VBoxContainer.new()
 	content.add_theme_constant_override("separation", 5)
 	
 	# Get progress from TerritoryManager via SystemRegistry
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
-	var current_stage = 0
+	var current_stage: int = 0
 	var max_stages = territory_data.get("stages", 10)
 	
 	if territory_manager and territory_manager.has_method("get_territory_stage"):
 		current_stage = territory_manager.get_territory_stage(territory_data.get("id", ""))
 	
 	# Stage progress bar
-	var stage_color = Color(0.3, 0.8, 0.3, 1) if current_stage >= max_stages else Color(0.8, 0.6, 0.2, 1)
+	var stage_color: Color = Color(0.3, 0.8, 0.3, 1) if current_stage >= max_stages else Color(0.8, 0.6, 0.2, 1)
 	var progress_bar = UIStyler.create_progress_bar_styled(current_stage, max_stages, stage_color)
 	content.add_child(progress_bar)
 	
 	# Status text
-	var status_text = Label.new()
+	var status_text: Label = Label.new()
 	if current_stage >= max_stages:
 		status_text.text = "🏆 CAPTURED"
 		status_text.add_theme_color_override("font_color", Color.GREEN)
@@ -693,13 +693,13 @@ static func _create_stage_progress_section(territory_data: Dictionary) -> Contro
 
 static func _create_production_section(territory_data: Dictionary) -> Control:
 	"""Create resource production section with rates"""
-	var content = VBoxContainer.new()
+	var content: VBoxContainer = VBoxContainer.new()
 	content.add_theme_constant_override("separation", 3)
 	
 	# Get production from TerritoryProductionManager
 	var production_manager = SystemRegistry.get_instance().get_system("TerritoryProductionManager") 
 	var territory_id = territory_data.get("id", "")
-	var is_captured = false
+	var is_captured: bool = false
 	
 	# Check if territory is captured
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
@@ -717,7 +717,7 @@ static func _create_production_section(territory_data: Dictionary) -> Control:
 		content.add_child(crystal_line)
 	else:
 		# Show potential production
-		var potential_label = Label.new()
+		var potential_label: Label = Label.new()
 		potential_label.text = "Capture to unlock\nproduction!"
 		potential_label.add_theme_font_size_override("font_size", 9)
 		potential_label.add_theme_color_override("font_color", Color.GRAY)
@@ -728,15 +728,15 @@ static func _create_production_section(territory_data: Dictionary) -> Control:
 
 static func _create_resource_line(icon: String, amount: int, color: Color) -> HBoxContainer:
 	"""Create resource display line with icon and amount"""
-	var line = HBoxContainer.new()
+	var line: HBoxContainer = HBoxContainer.new()
 	line.add_theme_constant_override("separation", 5)
 	
-	var icon_label = Label.new()
+	var icon_label: Label = Label.new()
 	icon_label.text = icon
 	icon_label.add_theme_font_size_override("font_size", 10)
 	line.add_child(icon_label)
 	
-	var amount_label = Label.new()
+	var amount_label: Label = Label.new()
 	amount_label.text = str(amount) + "/hr"
 	amount_label.add_theme_font_size_override("font_size", 9)
 	amount_label.add_theme_color_override("font_color", color)
@@ -746,25 +746,25 @@ static func _create_resource_line(icon: String, amount: int, color: Color) -> HB
 
 static func _create_roles_section(territory_data: Dictionary) -> Control:
 	"""Create god role assignments section"""
-	var content = VBoxContainer.new()
+	var content: VBoxContainer = VBoxContainer.new()
 	content.add_theme_constant_override("separation", 3)
 	
 	var territory_id = territory_data.get("id", "")
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
 	
 	# Check if territory is captured to show roles
-	var is_captured = false
+	var is_captured: bool = false
 	if territory_manager and territory_manager.has_method("is_territory_controlled"):
 		is_captured = territory_manager.is_territory_controlled(territory_id)
 	
 	if is_captured:
 		# Show role slots with assignments
-		var roles = ["Defender", "Gatherer", "Crafter"]
+		var roles: Array = ["Defender", "Gatherer", "Crafter"]
 		for role in roles:
 			var role_line = _create_role_line(role, territory_data)
 			content.add_child(role_line)
 	else:
-		var unlock_label = Label.new()
+		var unlock_label: Label = Label.new()
 		unlock_label.text = "Capture territory\nto assign gods"
 		unlock_label.add_theme_font_size_override("font_size", 9)
 		unlock_label.add_theme_color_override("font_color", Color.GRAY)
@@ -775,16 +775,16 @@ static func _create_roles_section(territory_data: Dictionary) -> Control:
 
 static func _create_role_line(role: String, _territory_data: Dictionary) -> HBoxContainer:
 	"""Create role assignment line"""
-	var line = HBoxContainer.new()
+	var line: HBoxContainer = HBoxContainer.new()
 	line.add_theme_constant_override("separation", 5)
 	
-	var role_label = Label.new()
+	var role_label: Label = Label.new()
 	role_label.text = role + ":"
 	role_label.add_theme_font_size_override("font_size", 9)
 	role_label.custom_minimum_size.x = 60
 	line.add_child(role_label)
 	
-	var assigned_label = Label.new()
+	var assigned_label: Label = Label.new()
 	assigned_label.text = "0/1"  # TODO: Get actual assignments from TerritoryManager
 	assigned_label.add_theme_font_size_override("font_size", 9)
 	assigned_label.add_theme_color_override("font_color", Color.YELLOW)
@@ -794,39 +794,39 @@ static func _create_role_line(role: String, _territory_data: Dictionary) -> HBox
 
 static func _create_action_buttons(territory_id: String, _territory_data: Dictionary) -> Control:
 	"""Create action buttons for territory"""
-	var button_row = HBoxContainer.new()
+	var button_row: HBoxContainer = HBoxContainer.new()
 	button_row.add_theme_constant_override("separation", 5)
 	button_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	
 	# Check territory status
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
-	var is_captured = false
+	var is_captured: bool = false
 	if territory_manager and territory_manager.has_method("is_territory_controlled"):
 		is_captured = territory_manager.is_territory_controlled(territory_id)
 	
 	if is_captured:
 		# Collect resources button
-		var collect_btn = Button.new()
+		var collect_btn: Button = Button.new()
 		collect_btn.text = "💰 Collect"
 		collect_btn.add_theme_font_size_override("font_size", 10)
 		collect_btn.custom_minimum_size = Vector2(70, 25)
 		button_row.add_child(collect_btn)
 		
 		# Manage roles button
-		var manage_btn = Button.new()
+		var manage_btn: Button = Button.new()
 		manage_btn.text = "👥 Manage"
 		manage_btn.add_theme_font_size_override("font_size", 10)
 		manage_btn.custom_minimum_size = Vector2(70, 25)
 		button_row.add_child(manage_btn)
 	else:
 		# Attack/Continue button
-		var attack_btn = Button.new()
+		var attack_btn: Button = Button.new()
 		attack_btn.text = "⚔️ Attack"
 		attack_btn.add_theme_font_size_override("font_size", 10)
 		attack_btn.custom_minimum_size = Vector2(80, 25)
 		
 		# Style attack button
-		var btn_style = StyleBoxFlat.new()
+		var btn_style: StyleBoxFlat = StyleBoxFlat.new()
 		btn_style.bg_color = Color(0.8, 0.2, 0.2, 0.9)
 		btn_style.corner_radius_top_left = 4
 		btn_style.corner_radius_top_right = 4

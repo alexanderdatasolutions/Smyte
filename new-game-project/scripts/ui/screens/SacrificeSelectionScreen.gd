@@ -79,7 +79,7 @@ func _ready():
 # ==============================================================================
 func _style_panel(panel: Control, highlight: bool = false) -> void:
 	"""Apply consistent panel styling"""
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = COLOR_PANEL_BG
 	if highlight:
 		style.border_color = Color.GOLD
@@ -91,7 +91,7 @@ func _style_panel(panel: Control, highlight: bool = false) -> void:
 
 func _style_button(button: Button, primary: bool = false) -> void:
 	"""Apply consistent button styling"""
-	var style_normal = StyleBoxFlat.new()
+	var style_normal: StyleBoxFlat = StyleBoxFlat.new()
 	if primary:
 		style_normal.bg_color = Color(0.2, 0.5, 0.3, 0.9)
 		style_normal.border_color = Color(0.3, 0.7, 0.4, 0.8)
@@ -121,12 +121,12 @@ func _style_header_label(label: Label) -> void:
 
 func _style_progress_bar(bar: ProgressBar) -> void:
 	"""Style a progress bar"""
-	var bg_style = StyleBoxFlat.new()
+	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
 	bg_style.bg_color = Color(0.1, 0.08, 0.12, 0.9)
 	bg_style.set_corner_radius_all(4)
 	bar.add_theme_stylebox_override("background", bg_style)
 
-	var fill_style = StyleBoxFlat.new()
+	var fill_style: StyleBoxFlat = StyleBoxFlat.new()
 	fill_style.bg_color = Color(0.3, 0.6, 0.8, 0.9)
 	fill_style.set_corner_radius_all(4)
 	bar.add_theme_stylebox_override("fill", fill_style)
@@ -152,12 +152,12 @@ func _style_scroll_area() -> void:
 		return
 
 	# Create wrapper panel
-	var wrapper = PanelContainer.new()
+	var wrapper: PanelContainer = PanelContainer.new()
 	wrapper.name = "ScrollWrapper"
 	wrapper.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.06, 0.04, 0.08, 0.9)
 	style.set_corner_radius_all(6)
 	style.set_border_width_all(1)
@@ -181,7 +181,7 @@ func _style_separators() -> void:
 	]
 	for sep in separators:
 		if sep:
-			var style = StyleBoxFlat.new()
+			var style: StyleBoxFlat = StyleBoxFlat.new()
 			style.bg_color = COLOR_PANEL_BORDER
 			style.content_margin_top = 1
 			style.content_margin_bottom = 1
@@ -192,11 +192,11 @@ func _style_separators() -> void:
 # ==============================================================================
 func _create_controls_row() -> HBoxContainer:
 	"""Create sorting controls and select duplicates button"""
-	var container = HBoxContainer.new()
+	var container: HBoxContainer = HBoxContainer.new()
 	container.add_theme_constant_override("separation", 10)
 
 	# Sort label
-	var sort_label = Label.new()
+	var sort_label: Label = Label.new()
 	sort_label.text = "Sort:"
 	sort_label.add_theme_font_size_override("font_size", 12)
 	sort_label.add_theme_color_override("font_color", COLOR_TEXT_NORMAL)
@@ -224,7 +224,7 @@ func _create_controls_row() -> HBoxContainer:
 	container.add_child(sort_direction_btn)
 
 	# Spacer
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	container.add_child(spacer)
 
@@ -238,7 +238,7 @@ func _create_controls_row() -> HBoxContainer:
 	container.add_child(select_dupes_btn)
 
 	# Clear Selection button
-	var clear_btn = Button.new()
+	var clear_btn: Button = Button.new()
 	clear_btn.text = "Clear"
 	clear_btn.custom_minimum_size = Vector2(60, 28)
 	clear_btn.tooltip_text = "Clear all selections"
@@ -394,11 +394,11 @@ func _setup_material_section_header():
 	var idx = material_label.get_index()
 
 	# Create header row
-	var header_row = HBoxContainer.new()
+	var header_row: HBoxContainer = HBoxContainer.new()
 	header_row.add_theme_constant_override("separation", 15)
 
 	# Label
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = "SELECT GODS TO SACRIFICE:"
 	label.add_theme_font_size_override("font_size", 14)
 	label.add_theme_color_override("font_color", COLOR_HEADER)
@@ -420,7 +420,7 @@ func setup_xp_bar():
 
 	await get_tree().process_frame
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	vbox.add_theme_constant_override("separation", 5)
 	xp_bar_container.add_child(vbox)
@@ -433,7 +433,7 @@ func setup_xp_bar():
 	vbox.add_child(level_preview_label)
 
 	# XP bar
-	var hbox = HBoxContainer.new()
+	var hbox: HBoxContainer = HBoxContainer.new()
 	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_child(hbox)
 
@@ -497,11 +497,11 @@ func populate_material_grid():
 
 func create_god_card(god: God) -> Control:
 	"""Create a god card for material selection"""
-	var card = Panel.new()
+	var card: Panel = Panel.new()
 	card.custom_minimum_size = Vector2(95, 125)  # Smaller to fit more
 
 	# Style based on selection
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	if selected_materials.has(god):
 		style.bg_color = COLOR_SELECTED
 		style.border_color = COLOR_SELECTED_BORDER
@@ -515,7 +515,7 @@ func create_god_card(god: God) -> Control:
 	card.add_theme_stylebox_override("panel", style)
 
 	# MarginContainer for padding
-	var margin = MarginContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 5)
 	margin.add_theme_constant_override("margin_right", 5)
@@ -524,19 +524,19 @@ func create_god_card(god: God) -> Control:
 	card.add_child(margin)
 
 	# Content
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 2)
 	margin.add_child(vbox)
 
 	# God image
-	var god_image = TextureRect.new()
+	var god_image: TextureRect = TextureRect.new()
 	god_image.custom_minimum_size = Vector2(60, 60)
 	god_image.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	god_image.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	god_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
 	var god_template = god.template_id if god.template_id else god.id
-	var sprite_path = "res://assets/gods/" + god_template + ".png"
+	var sprite_path: String = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		var god_texture = load(sprite_path)
 		god_image.texture = god_texture
@@ -544,7 +544,7 @@ func create_god_card(god: God) -> Control:
 	vbox.add_child(god_image)
 
 	# God name
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = god.name
 	name_label.add_theme_font_size_override("font_size", 10)
 	name_label.add_theme_color_override("font_color", COLOR_HEADER)
@@ -553,7 +553,7 @@ func create_god_card(god: God) -> Control:
 	vbox.add_child(name_label)
 
 	# Level info
-	var level_label = Label.new()
+	var level_label: Label = Label.new()
 	level_label.text = "Lv.%d" % god.level
 	level_label.add_theme_font_size_override("font_size", 9)
 	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -563,7 +563,7 @@ func create_god_card(god: God) -> Control:
 	# Location info (garrison/worker)
 	var location = _get_god_location(god)
 	if location != "":
-		var location_label = Label.new()
+		var location_label: Label = Label.new()
 		location_label.text = location
 		location_label.add_theme_font_size_override("font_size", 8)
 		location_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -573,7 +573,7 @@ func create_god_card(god: God) -> Control:
 
 	# Make clickable if not locked
 	if not locked_in:
-		var button = Button.new()
+		var button: Button = Button.new()
 		button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		button.flat = true
 		button.pressed.connect(_on_god_clicked.bind(god))
@@ -616,25 +616,25 @@ func update_target_display():
 
 	await get_tree().process_frame
 
-	var hbox = HBoxContainer.new()
+	var hbox: HBoxContainer = HBoxContainer.new()
 	hbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	hbox.add_theme_constant_override("separation", 15)
 	target_god_display.add_child(hbox)
 
 	# Left margin
-	var left_margin = Control.new()
+	var left_margin: Control = Control.new()
 	left_margin.custom_minimum_size = Vector2(10, 0)
 	hbox.add_child(left_margin)
 
 	# God image
-	var god_image = TextureRect.new()
+	var god_image: TextureRect = TextureRect.new()
 	god_image.custom_minimum_size = Vector2(80, 80)
 	god_image.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	god_image.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	god_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
 	var god_template = target_god.template_id if target_god.template_id else target_god.id
-	var sprite_path = "res://assets/gods/" + god_template + ".png"
+	var sprite_path: String = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		var god_texture = load(sprite_path)
 		god_image.texture = god_texture
@@ -642,23 +642,23 @@ func update_target_display():
 	hbox.add_child(god_image)
 
 	# God info
-	var info_vbox = VBoxContainer.new()
+	var info_vbox: VBoxContainer = VBoxContainer.new()
 	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info_vbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = target_god.name
 	name_label.add_theme_font_size_override("font_size", 22)
 	name_label.add_theme_color_override("font_color", COLOR_HEADER)
 	info_vbox.add_child(name_label)
 
-	var level_label = Label.new()
+	var level_label: Label = Label.new()
 	level_label.text = "Level %d" % target_god.level
 	level_label.add_theme_font_size_override("font_size", 16)
 	level_label.add_theme_color_override("font_color", Color.GOLD)
 	info_vbox.add_child(level_label)
 
-	var details_label = Label.new()
+	var details_label: Label = Label.new()
 	details_label.text = "%s %s - Power: %d" % [God.tier_to_string(target_god.tier), God.element_to_string(target_god.element), GodCalculator.get_power_rating(target_god)]
 	details_label.add_theme_font_size_override("font_size", 12)
 	details_label.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
@@ -673,10 +673,10 @@ func update_xp_bar():
 
 	var current_level = target_god.level
 	var current_xp = target_god.experience
-	var max_level = 40
+	var max_level: int = 40
 
 	# Calculate preview XP
-	var preview_xp = 0
+	var preview_xp: int = 0
 	if selected_materials.size() > 0:
 		var system_registry = SystemRegistry.get_instance()
 		if system_registry:
@@ -695,7 +695,7 @@ func update_xp_bar():
 	# Calculate progress
 	var xp_needed_for_next = GodCalculator.get_experience_to_next_level(target_god)
 	var xp_progress_in_level = current_xp
-	var current_level_progress = float(xp_progress_in_level) / float(xp_needed_for_next) if xp_needed_for_next > 0 else 0.0
+	var current_level_progress: float = float(xp_progress_in_level) / float(xp_needed_for_next) if xp_needed_for_next > 0 else 0.0
 
 	# Update progress bar and labels
 	if preview_xp > 0:
@@ -709,7 +709,7 @@ func update_xp_bar():
 		var new_level_xp_needed = GodExperienceCalculator.get_experience_to_next_level(new_level)
 		var new_level_start_xp = GodExperienceCalculator.get_total_experience_for_level(new_level)
 		var xp_into_new_level = new_total_xp - new_level_start_xp
-		var new_level_progress = float(xp_into_new_level) / float(new_level_xp_needed) * 100.0 if new_level_xp_needed > 0 else 100.0
+		var new_level_progress: float = float(xp_into_new_level) / float(new_level_xp_needed) * 100.0 if new_level_xp_needed > 0 else 100.0
 
 		xp_bar.value = min(100, new_level_progress)
 		xp_bar.modulate = COLOR_SUCCESS
@@ -782,38 +782,38 @@ func _on_sacrifice_pressed():
 # ==============================================================================
 func _show_success_popup(xp_gained: int):
 	"""Show success popup with UI pattern styling"""
-	var popup_overlay = ColorRect.new()
+	var popup_overlay: ColorRect = ColorRect.new()
 	popup_overlay.color = Color(0, 0, 0, 0.7)
 	popup_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	popup_overlay.z_index = 100
 	add_child(popup_overlay)
 
-	var popup_panel = PanelContainer.new()
+	var popup_panel: PanelContainer = PanelContainer.new()
 	popup_panel.custom_minimum_size = Vector2(400, 200)
 	popup_panel.set_anchors_preset(Control.PRESET_CENTER)
 	popup_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	_style_panel(popup_panel)
 	popup_overlay.add_child(popup_panel)
 
-	var content = VBoxContainer.new()
+	var content: VBoxContainer = VBoxContainer.new()
 	content.add_theme_constant_override("separation", 15)
 	popup_panel.add_child(content)
 
-	var title = Label.new()
+	var title: Label = Label.new()
 	title.text = "Sacrifice Complete!"
 	title.add_theme_font_size_override("font_size", 24)
 	title.add_theme_color_override("font_color", Color.GOLD)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	content.add_child(title)
 
-	var message = Label.new()
+	var message: Label = Label.new()
 	message.text = "Your god gained %d experience!" % xp_gained
 	message.add_theme_font_size_override("font_size", 16)
 	message.add_theme_color_override("font_color", COLOR_SUCCESS)
 	message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	content.add_child(message)
 
-	var ok_button = Button.new()
+	var ok_button: Button = Button.new()
 	ok_button.text = "Continue"
 	ok_button.custom_minimum_size = Vector2(150, 40)
 	ok_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -826,7 +826,7 @@ func _show_success_popup(xp_gained: int):
 
 func _show_error_popup(error_message: String):
 	"""Show error popup"""
-	var popup_overlay = ColorRect.new()
+	var popup_overlay: ColorRect = ColorRect.new()
 	popup_overlay.color = Color(0, 0, 0, 0.7)
 	popup_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	popup_overlay.z_index = 100
@@ -837,25 +837,25 @@ func _show_error_popup(error_message: String):
 			popup_overlay.queue_free()
 	)
 
-	var popup_panel = PanelContainer.new()
+	var popup_panel: PanelContainer = PanelContainer.new()
 	popup_panel.custom_minimum_size = Vector2(400, 150)
 	popup_panel.set_anchors_preset(Control.PRESET_CENTER)
 	popup_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	_style_panel(popup_panel)
 	popup_overlay.add_child(popup_panel)
 
-	var content = VBoxContainer.new()
+	var content: VBoxContainer = VBoxContainer.new()
 	content.add_theme_constant_override("separation", 15)
 	popup_panel.add_child(content)
 
-	var title = Label.new()
+	var title: Label = Label.new()
 	title.text = "Sacrifice Failed"
 	title.add_theme_font_size_override("font_size", 20)
 	title.add_theme_color_override("font_color", COLOR_WARNING)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	content.add_child(title)
 
-	var message = Label.new()
+	var message: Label = Label.new()
 	message.text = error_message
 	message.add_theme_font_size_override("font_size", 14)
 	message.add_theme_color_override("font_color", COLOR_TEXT_NORMAL)

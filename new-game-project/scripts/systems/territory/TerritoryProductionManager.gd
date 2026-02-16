@@ -18,7 +18,7 @@ func initialize():
 func _start_generation_cycle():
 	"""Start automatic resource generation cycle"""
 	# Generate resources every minute
-	var timer = Timer.new()
+	var timer: Timer = Timer.new()
 	timer.wait_time = 60.0  # 1 minute
 	timer.timeout.connect(_process_all_territory_generation)
 	timer.autostart = true
@@ -41,7 +41,7 @@ func calculate_node_production(node: HexNode) -> Dictionary:
 	if not node or not node.is_controlled_by_player():
 		return {}
 
-	var production = {}
+	var production: Dictionary = {}
 	var base_production = _get_node_base_production(node)
 
 	if base_production.is_empty():
@@ -150,7 +150,7 @@ func apply_spec_bonus(node: HexNode, god: God) -> float:
 	var task_bonuses = spec_manager.get_total_task_bonuses_for_god(god)
 
 	# Check for bonuses related to node type
-	var total_bonus = 0.0
+	var total_bonus: float = 0.0
 
 	# Map node types to task categories
 	var node_task_mapping = {
@@ -194,7 +194,7 @@ func _calculate_worker_efficiency(node: HexNode) -> float:
 	if not collection_manager:
 		return 0.0
 
-	var total_bonus = 0.0
+	var total_bonus: float = 0.0
 
 	for god_id in node.assigned_workers:
 		var god = collection_manager.get_god_by_id(god_id)
@@ -202,7 +202,7 @@ func _calculate_worker_efficiency(node: HexNode) -> float:
 			continue
 
 		# Base bonus: 10% per worker
-		var worker_bonus = 0.10
+		var worker_bonus: float = 0.10
 
 		# Specialization bonus (can be 50-200% from CLAUDE.md)
 		if spec_manager:
@@ -236,14 +236,14 @@ func _calculate_pantheon_bonus(god_ids: Array, collection_manager) -> float:
 			pantheon_counts[pantheon] = pantheon_counts.get(pantheon, 0) + 1
 
 	# Find the most common pantheon
-	var max_count = 0
+	var max_count: int = 0
 	for pantheon in pantheon_counts:
 		if pantheon_counts[pantheon] > max_count:
 			max_count = pantheon_counts[pantheon]
 
 	# Load team bonuses from dedicated config
 	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager")
-	var production_bonus = 0.0
+	var production_bonus: float = 0.0
 
 	if config_manager:
 		var team_bonuses = config_manager.get_team_bonuses_config()
@@ -274,7 +274,7 @@ func get_all_hex_nodes_production() -> Dictionary:
 	"""Get total production across all controlled hex nodes
 	Returns: Dictionary of {"resource_id": total_amount_per_hour}
 	"""
-	var total_production = {}
+	var total_production: Dictionary = {}
 	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
 
 	if not territory_manager or not territory_manager.has_method("get_controlled_nodes"):
@@ -328,7 +328,7 @@ func _process_extraction_building(node: HexNode, current_time: float) -> void:
 		return
 
 	# Convert hourly to per-minute (60 second tick)
-	var production_this_tick = {}
+	var production_this_tick: Dictionary = {}
 	for resource_id in hourly_production:
 		var hourly_amount = hourly_production[resource_id]
 		var tick_amount = hourly_amount / 60.0
@@ -368,7 +368,7 @@ func _process_conversion_building(node: HexNode, all_nodes: Array, current_time:
 		return  # Workers inactive - no conversion without garrison protection
 
 	# Calculate how much we want to consume this tick (hourly / 60)
-	var consume_this_tick = {}
+	var consume_this_tick: Dictionary = {}
 	for res_id in consumes:
 		consume_this_tick[res_id] = consumes[res_id] / 60.0
 
@@ -414,7 +414,7 @@ func _get_building_consumes(node: HexNode) -> Dictionary:
 func _calculate_consumption_fulfillment(consume_amounts: Dictionary, all_nodes: Array) -> float:
 	"""Calculate what fraction of the consumption we can fulfill (0.0 to 1.0)"""
 	var resource_manager = _get_resource_manager()
-	var min_ratio = 1.0
+	var min_ratio: float = 1.0
 
 	for res_id in consume_amounts:
 		var needed = consume_amounts[res_id]
@@ -422,13 +422,13 @@ func _calculate_consumption_fulfillment(consume_amounts: Dictionary, all_nodes: 
 			continue
 
 		# Count available from accumulated resources across all nodes
-		var available_accumulated = 0.0
+		var available_accumulated: float = 0.0
 		for node in all_nodes:
 			if node and node.is_controlled_by_player():
 				available_accumulated += node.accumulated_resources.get(res_id, 0)
 
 		# Add inventory
-		var available_inventory = 0.0
+		var available_inventory: float = 0.0
 		if resource_manager:
 			available_inventory = resource_manager.get_resource(res_id)
 
@@ -466,7 +466,7 @@ func _format_resources_dict(resources: Dictionary) -> String:
 	if resources.is_empty():
 		return "{}"
 
-	var parts = []
+	var parts: Array = []
 	for resource_id in resources:
 		var amount = resources[resource_id]
 		# Format with 1 decimal place
@@ -566,7 +566,7 @@ func collect_node_resources(node_id: String) -> Dictionary:
 	# Convert float amounts to integers for ResourceManager (which expects ints)
 	var integer_resources: Dictionary = {}
 	for resource_id in collected_resources:
-		var int_amount = int(collected_resources[resource_id])
+		var int_amount: int = int(collected_resources[resource_id])
 		if int_amount > 0:
 			integer_resources[resource_id] = int_amount
 
@@ -587,7 +587,7 @@ func _load_balance_config() -> Dictionary:
 	"""Load territory balance config from JSON file
 	Returns: Dictionary with balance configuration or empty dict on failure
 	"""
-	var file_path = "res://data/territory_balance_config.json"
+	var file_path: String = "res://data/territory_balance_config.json"
 	var file = FileAccess.open(file_path, FileAccess.READ)
 	if not file:
 		push_warning("TerritoryProductionManager: Could not open " + file_path)
@@ -596,7 +596,7 @@ func _load_balance_config() -> Dictionary:
 	var json_text = file.get_as_text()
 	file.close()
 
-	var json = JSON.new()
+	var json: JSON = JSON.new()
 	var parse_result = json.parse(json_text)
 
 	if parse_result != OK:

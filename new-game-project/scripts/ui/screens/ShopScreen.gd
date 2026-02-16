@@ -58,7 +58,7 @@ func _update_header_for_screen():
 		main_ui.connect_header_back_button(_on_back_pressed)
 
 func _setup_fullscreen():
-	var viewport_size = get_viewport().get_visible_rect().size
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	set_size(viewport_size)
 	position = Vector2.ZERO
@@ -98,14 +98,14 @@ func _style_back_button():
 	if not back_button:
 		return
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.12, 0.1, 0.15, 0.95)
 	style.border_color = Color(0.4, 0.35, 0.5, 0.8)
 	style.set_border_width_all(1)
 	style.set_corner_radius_all(6)
 	back_button.add_theme_stylebox_override("normal", style)
 
-	var hover = StyleBoxFlat.new()
+	var hover: StyleBoxFlat = StyleBoxFlat.new()
 	hover.bg_color = Color(0.18, 0.15, 0.22, 0.98)
 	hover.border_color = Color(0.5, 0.45, 0.6, 1.0)
 	hover.set_border_width_all(1)
@@ -116,26 +116,26 @@ func _style_back_button():
 	back_button.add_theme_color_override("font_hover_color", Color(1.0, 0.95, 0.85))
 
 func _style_tabs():
-	var tabs = [crystals_tab, skins_tab, offers_tab]
+	var tabs: Array = [crystals_tab, skins_tab, offers_tab]
 	for tab in tabs:
 		if not tab:
 			continue
 
-		var normal = StyleBoxFlat.new()
+		var normal: StyleBoxFlat = StyleBoxFlat.new()
 		normal.bg_color = Color(0.15, 0.12, 0.2, 0.9)
 		normal.border_color = Color(0.4, 0.35, 0.5, 0.6)
 		normal.set_border_width_all(1)
 		normal.set_corner_radius_all(6)
 		tab.add_theme_stylebox_override("normal", normal)
 
-		var hover = StyleBoxFlat.new()
+		var hover: StyleBoxFlat = StyleBoxFlat.new()
 		hover.bg_color = Color(0.2, 0.17, 0.28, 0.95)
 		hover.border_color = Color(0.6, 0.5, 0.4, 0.8)
 		hover.set_border_width_all(1)
 		hover.set_corner_radius_all(6)
 		tab.add_theme_stylebox_override("hover", hover)
 
-		var pressed = StyleBoxFlat.new()
+		var pressed: StyleBoxFlat = StyleBoxFlat.new()
 		pressed.bg_color = Color(0.25, 0.2, 0.35, 1.0)
 		pressed.border_color = Color(0.95, 0.85, 0.6, 1.0)
 		pressed.set_border_width_all(2)
@@ -150,7 +150,7 @@ func _style_content_panel():
 	if not content_panel:
 		return
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.08, 0.14, 0.8)
 	style.border_color = Color(0.3, 0.25, 0.4, 0.5)
 	style.set_border_width_all(1)
@@ -220,23 +220,23 @@ func _populate_crystal_packs():
 		content_grid.add_child(card)
 
 func _create_crystal_pack_card(pack: Dictionary) -> Control:
-	var card = PanelContainer.new()
+	var card: PanelContainer = PanelContainer.new()
 	card.custom_minimum_size = Vector2(200, 250)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.12, 0.1, 0.18, 0.95)
 	style.border_color = Color(0.4, 0.6, 0.8, 0.8) if pack.get("best_value", false) else Color(0.4, 0.35, 0.5, 0.6)
 	style.set_border_width_all(2 if pack.get("best_value", false) else 1)
 	style.set_corner_radius_all(10)
 	card.add_theme_stylebox_override("panel", style)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 8)
 	card.add_child(vbox)
 
 	# Best value badge
 	if pack.get("best_value", false):
-		var badge = Label.new()
+		var badge: Label = Label.new()
 		badge.text = "BEST VALUE"
 		badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		badge.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
@@ -244,7 +244,7 @@ func _create_crystal_pack_card(pack: Dictionary) -> Control:
 		vbox.add_child(badge)
 
 	# Pack name
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = pack.get("name", "Crystal Pack")
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.8))
@@ -254,7 +254,7 @@ func _create_crystal_pack_card(pack: Dictionary) -> Control:
 	# Crystal amount
 	var crystals = pack.get("crystals", 0)
 	var bonus = pack.get("bonus", 0)
-	var crystal_label = Label.new()
+	var crystal_label: Label = Label.new()
 	crystal_label.text = "💎 %d" % crystals
 	crystal_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	crystal_label.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
@@ -263,7 +263,7 @@ func _create_crystal_pack_card(pack: Dictionary) -> Control:
 
 	# Bonus
 	if bonus > 0:
-		var bonus_label = Label.new()
+		var bonus_label: Label = Label.new()
 		bonus_label.text = "+%d BONUS" % bonus
 		bonus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		bonus_label.add_theme_color_override("font_color", Color(0.4, 0.9, 0.4))
@@ -271,7 +271,7 @@ func _create_crystal_pack_card(pack: Dictionary) -> Control:
 		vbox.add_child(bonus_label)
 
 	# Description
-	var desc_label = Label.new()
+	var desc_label: Label = Label.new()
 	desc_label.text = pack.get("description", "")
 	desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	desc_label.add_theme_color_override("font_color", Color(0.6, 0.55, 0.5))
@@ -280,12 +280,12 @@ func _create_crystal_pack_card(pack: Dictionary) -> Control:
 	vbox.add_child(desc_label)
 
 	# Spacer
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(spacer)
 
 	# Buy button
-	var buy_button = Button.new()
+	var buy_button: Button = Button.new()
 	buy_button.text = "$%.2f" % pack.get("price_usd", 0.0)
 	buy_button.custom_minimum_size = Vector2(120, 40)
 	buy_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -316,25 +316,25 @@ func _populate_skins():
 		content_grid.add_child(card)
 
 func _create_skin_card(skin: Dictionary) -> Control:
-	var card = PanelContainer.new()
+	var card: PanelContainer = PanelContainer.new()
 	card.custom_minimum_size = Vector2(200, 280)
 
 	var rarity = skin.get("rarity", "common")
 	var rarity_color = _get_rarity_color(rarity)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.12, 0.1, 0.18, 0.95)
 	style.border_color = rarity_color
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(10)
 	card.add_theme_stylebox_override("panel", style)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 6)
 	card.add_child(vbox)
 
 	# Rarity badge
-	var rarity_label = Label.new()
+	var rarity_label: Label = Label.new()
 	rarity_label.text = rarity.to_upper()
 	rarity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	rarity_label.add_theme_color_override("font_color", rarity_color)
@@ -342,14 +342,14 @@ func _create_skin_card(skin: Dictionary) -> Control:
 	vbox.add_child(rarity_label)
 
 	# Portrait placeholder
-	var portrait = ColorRect.new()
+	var portrait: ColorRect = ColorRect.new()
 	portrait.custom_minimum_size = Vector2(120, 120)
 	portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	portrait.color = Color(0.2, 0.18, 0.25, 1.0)
 	vbox.add_child(portrait)
 
 	# Skin name
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = skin.get("name", "Skin")
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.8))
@@ -357,7 +357,7 @@ func _create_skin_card(skin: Dictionary) -> Control:
 	vbox.add_child(name_label)
 
 	# God name
-	var god_label = Label.new()
+	var god_label: Label = Label.new()
 	god_label.text = skin.get("god_id", "").capitalize()
 	god_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	god_label.add_theme_color_override("font_color", Color(0.6, 0.55, 0.5))
@@ -365,7 +365,7 @@ func _create_skin_card(skin: Dictionary) -> Control:
 	vbox.add_child(god_label)
 
 	# Description
-	var desc_label = Label.new()
+	var desc_label: Label = Label.new()
 	desc_label.text = skin.get("description", "")
 	desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	desc_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
@@ -374,14 +374,14 @@ func _create_skin_card(skin: Dictionary) -> Control:
 	vbox.add_child(desc_label)
 
 	# Spacer
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(spacer)
 
 	# Buy/Equip button
 	var skin_id = skin.get("id", "")
 	var is_owned = _skin_manager.is_skin_owned(skin_id)
-	var button = Button.new()
+	var button: Button = Button.new()
 
 	if is_owned:
 		button.text = "OWNED"
@@ -421,22 +421,22 @@ func _populate_offers():
 		content_grid.add_child(card)
 
 func _create_offer_card(offer: Dictionary) -> Control:
-	var card = PanelContainer.new()
+	var card: PanelContainer = PanelContainer.new()
 	card.custom_minimum_size = Vector2(280, 200)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.12, 0.2, 0.95)
 	style.border_color = Color(0.9, 0.7, 0.3, 0.9)
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(12)
 	card.add_theme_stylebox_override("panel", style)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 10)
 	card.add_child(vbox)
 
 	# Offer name
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = offer.get("name", "Special Offer")
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
@@ -444,7 +444,7 @@ func _create_offer_card(offer: Dictionary) -> Control:
 	vbox.add_child(name_label)
 
 	# Description
-	var desc_label = Label.new()
+	var desc_label: Label = Label.new()
 	desc_label.text = offer.get("description", "")
 	desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	desc_label.add_theme_color_override("font_color", Color(0.8, 0.75, 0.65))
@@ -453,7 +453,7 @@ func _create_offer_card(offer: Dictionary) -> Control:
 	vbox.add_child(desc_label)
 
 	# Rewards preview
-	var rewards_text = ""
+	var rewards_text: String = ""
 	if offer.has("rewards"):
 		for key in offer.rewards:
 			rewards_text += "%s: %d\n" % [key.capitalize().replace("_", " "), offer.rewards[key]]
@@ -465,7 +465,7 @@ func _create_offer_card(offer: Dictionary) -> Control:
 			rewards_text += "Daily: %d %s\n" % [offer.daily_reward[key], key.capitalize().replace("_", " ")]
 
 	if not rewards_text.is_empty():
-		var rewards_label = Label.new()
+		var rewards_label: Label = Label.new()
 		rewards_label.text = rewards_text.strip_edges()
 		rewards_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		rewards_label.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
@@ -473,14 +473,14 @@ func _create_offer_card(offer: Dictionary) -> Control:
 		vbox.add_child(rewards_label)
 
 	# Spacer
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(spacer)
 
 	# Buy button
 	var offer_id = offer.get("id", "")
 	var check = _shop_manager.can_purchase_offer(offer_id)
-	var button = Button.new()
+	var button: Button = Button.new()
 
 	if check.can_purchase:
 		button.text = "$%.2f" % offer.get("price_usd", 0.0)
@@ -510,21 +510,21 @@ func _on_offer_purchase_pressed(offer_id: String):
 # ==============================================================================
 
 func _style_buy_button(button: Button, accent_color: Color):
-	var normal = StyleBoxFlat.new()
+	var normal: StyleBoxFlat = StyleBoxFlat.new()
 	normal.bg_color = accent_color
 	normal.border_color = accent_color * 1.3
 	normal.set_border_width_all(1)
 	normal.set_corner_radius_all(6)
 	button.add_theme_stylebox_override("normal", normal)
 
-	var hover = StyleBoxFlat.new()
+	var hover: StyleBoxFlat = StyleBoxFlat.new()
 	hover.bg_color = accent_color * 1.2
 	hover.border_color = accent_color * 1.5
 	hover.set_border_width_all(1)
 	hover.set_corner_radius_all(6)
 	button.add_theme_stylebox_override("hover", hover)
 
-	var disabled = StyleBoxFlat.new()
+	var disabled: StyleBoxFlat = StyleBoxFlat.new()
 	disabled.bg_color = Color(0.2, 0.2, 0.2, 0.8)
 	disabled.border_color = Color(0.3, 0.3, 0.3, 0.5)
 	disabled.set_border_width_all(1)

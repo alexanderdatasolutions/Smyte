@@ -53,7 +53,7 @@ func _load_summon_config():
 	if _summon_config.is_empty():
 		var file = FileAccess.open("res://data/summon_config.json", FileAccess.READ)
 		if file:
-			var json = JSON.new()
+			var json: JSON = JSON.new()
 			if json.parse(file.get_as_text()) == OK:
 				_summon_config = json.get_data()
 			file.close()
@@ -76,12 +76,12 @@ func _notification(what):
 		_refresh_ui()
 
 func _create_ui():
-	var bg = ColorRect.new()
+	var bg: ColorRect = ColorRect.new()
 	bg.color = Color(0.08, 0.06, 0.12, 1.0)
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 
-	var main_vbox = VBoxContainer.new()
+	var main_vbox: VBoxContainer = VBoxContainer.new()
 	main_vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	main_vbox.offset_left = 15
 	main_vbox.offset_top = 60
@@ -93,7 +93,7 @@ func _create_ui():
 	var tab_bar = _create_tab_bar()
 	main_vbox.add_child(tab_bar)
 
-	var content_hbox = HBoxContainer.new()
+	var content_hbox: HBoxContainer = HBoxContainer.new()
 	content_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content_hbox.add_theme_constant_override("separation", 15)
 	main_vbox.add_child(content_hbox)
@@ -107,7 +107,7 @@ func _create_ui():
 	content_hbox.add_child(right_panel)
 
 func _create_tab_bar() -> Control:
-	var hbox = HBoxContainer.new()
+	var hbox: HBoxContainer = HBoxContainer.new()
 	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	hbox.add_theme_constant_override("separation", 5)
 
@@ -121,7 +121,7 @@ func _create_tab_bar() -> Control:
 	]
 
 	for tab in tabs:
-		var btn = Button.new()
+		var btn: Button = Button.new()
 		btn.text = tab.label
 		btn.custom_minimum_size = Vector2(90, 35)
 		btn.pressed.connect(_switch_tab.bind(tab.id))
@@ -132,11 +132,11 @@ func _create_tab_bar() -> Control:
 	return hbox
 
 func _create_left_panel() -> Control:
-	var panel = PanelContainer.new()
+	var panel: PanelContainer = PanelContainer.new()
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_style_panel(panel)
 
-	var margin = MarginContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_theme_constant_override("margin_left", 20)
 	margin.add_theme_constant_override("margin_right", 20)
@@ -144,7 +144,7 @@ func _create_left_panel() -> Control:
 	margin.add_theme_constant_override("margin_bottom", 15)
 	panel.add_child(margin)
 
-	var container = Control.new()
+	var container: Control = Control.new()
 	container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.add_child(container)
@@ -165,7 +165,7 @@ func _create_left_panel() -> Control:
 	return panel
 
 func _create_crystal_panel() -> Control:
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
 
 	vbox.add_child(_create_title_label("DIVINE SUMMON", "Use Divine Crystals for random gods"))
@@ -173,7 +173,7 @@ func _create_crystal_panel() -> Control:
 	vbox.add_child(_create_rates_label(rates))
 	vbox.add_child(HSeparator.new())
 
-	var cost_label = Label.new()
+	var cost_label: Label = Label.new()
 	cost_label.name = "CostLabel"
 	cost_label.text = "Cost: 100 Crystals (x1) | 900 Crystals (x10)"
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -181,11 +181,11 @@ func _create_crystal_panel() -> Control:
 	cost_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
 	vbox.add_child(cost_label)
 
-	var btn_vbox = VBoxContainer.new()
+	var btn_vbox: VBoxContainer = VBoxContainer.new()
 	btn_vbox.add_theme_constant_override("separation", 10)
 	vbox.add_child(btn_vbox)
 
-	var single_btn = Button.new()
+	var single_btn: Button = Button.new()
 	single_btn.name = "SingleBtn"
 	single_btn.text = "SUMMON x1  (100 Crystals)"
 	single_btn.custom_minimum_size = Vector2(0, 50)
@@ -193,7 +193,7 @@ func _create_crystal_panel() -> Control:
 	_style_button(single_btn, true)
 	btn_vbox.add_child(single_btn)
 
-	var multi_btn = Button.new()
+	var multi_btn: Button = Button.new()
 	multi_btn.name = "MultiBtn"
 	multi_btn.text = "SUMMON x10  (900 Crystals)  10% OFF"
 	multi_btn.custom_minimum_size = Vector2(0, 50)
@@ -201,7 +201,7 @@ func _create_crystal_panel() -> Control:
 	_style_button(multi_btn, true)
 	btn_vbox.add_child(multi_btn)
 
-	var pity_label = Label.new()
+	var pity_label: Label = Label.new()
 	pity_label.name = "PityLabel"
 	pity_label.text = "Pity: Guaranteed Legendary at 100 summons"
 	pity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -213,19 +213,19 @@ func _create_crystal_panel() -> Control:
 	return vbox
 
 func _create_soul_panel() -> Control:
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
 
 	vbox.add_child(_create_title_label("SOUL SUMMON", "Use souls for guaranteed rarity"))
 	vbox.add_child(HSeparator.new())
 
-	var soul_label = Label.new()
+	var soul_label: Label = Label.new()
 	soul_label.text = "SELECT SOUL TYPE:"
 	soul_label.add_theme_font_size_override("font_size", 12)
 	soul_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
 	vbox.add_child(soul_label)
 
-	var soul_grid = GridContainer.new()
+	var soul_grid: GridContainer = GridContainer.new()
 	soul_grid.columns = 2
 	soul_grid.add_theme_constant_override("h_separation", 8)
 	soul_grid.add_theme_constant_override("v_separation", 8)
@@ -239,7 +239,7 @@ func _create_soul_panel() -> Control:
 	]
 
 	for soul in souls:
-		var btn = Button.new()
+		var btn: Button = Button.new()
 		btn.name = soul.id + "_btn"
 		btn.text = soul.label
 		btn.tooltip_text = soul.desc
@@ -248,14 +248,14 @@ func _create_soul_panel() -> Control:
 		_style_soul_button(btn, soul.color, soul.id == selected_soul_type)
 		soul_grid.add_child(btn)
 
-	var rates_label = Label.new()
+	var rates_label: Label = Label.new()
 	rates_label.name = "SoulRatesLabel"
 	rates_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	rates_label.add_theme_font_size_override("font_size", 11)
 	rates_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
 	vbox.add_child(rates_label)
 
-	var summon_btn = Button.new()
+	var summon_btn: Button = Button.new()
 	summon_btn.name = "SoulSummonBtn"
 	summon_btn.text = "SUMMON WITH SOUL"
 	summon_btn.custom_minimum_size = Vector2(0, 50)
@@ -267,7 +267,7 @@ func _create_soul_panel() -> Control:
 	return vbox
 
 func _create_element_panel() -> Control:
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
 
 	vbox.add_child(_create_title_label("ELEMENT SUMMON", "Focus summons on a specific element"))
@@ -275,13 +275,13 @@ func _create_element_panel() -> Control:
 	vbox.add_child(_create_rates_label(rates))
 	vbox.add_child(HSeparator.new())
 
-	var elem_label = Label.new()
+	var elem_label: Label = Label.new()
 	elem_label.text = "SELECT ELEMENT:"
 	elem_label.add_theme_font_size_override("font_size", 12)
 	elem_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
 	vbox.add_child(elem_label)
 
-	var elem_row = HBoxContainer.new()
+	var elem_row: HBoxContainer = HBoxContainer.new()
 	elem_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	elem_row.add_theme_constant_override("separation", 8)
 	vbox.add_child(elem_row)
@@ -296,7 +296,7 @@ func _create_element_panel() -> Control:
 	]
 
 	for elem in elements:
-		var btn = Button.new()
+		var btn: Button = Button.new()
 		btn.name = elem.id + "_elem_btn"
 		btn.text = elem.icon
 		btn.tooltip_text = elem.id.capitalize() + " Element"
@@ -305,14 +305,14 @@ func _create_element_panel() -> Control:
 		_style_element_button(btn, elem.color, elem.id == selected_element)
 		elem_row.add_child(btn)
 
-	var cost_label = Label.new()
+	var cost_label: Label = Label.new()
 	cost_label.name = "ElementCostLabel"
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_label.add_theme_font_size_override("font_size", 12)
 	cost_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
 	vbox.add_child(cost_label)
 
-	var summon_btn = Button.new()
+	var summon_btn: Button = Button.new()
 	summon_btn.name = "ElementSummonBtn"
 	summon_btn.text = "SUMMON (150 Crystals + 10 Powder)"
 	summon_btn.custom_minimum_size = Vector2(0, 50)
@@ -324,7 +324,7 @@ func _create_element_panel() -> Control:
 	return vbox
 
 func _create_pantheon_panel() -> Control:
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
 
 	vbox.add_child(_create_title_label("PANTHEON SUMMON", "Focus summons on a specific pantheon"))
@@ -332,23 +332,23 @@ func _create_pantheon_panel() -> Control:
 	vbox.add_child(_create_rates_label(rates))
 	vbox.add_child(HSeparator.new())
 
-	var panth_label = Label.new()
+	var panth_label: Label = Label.new()
 	panth_label.text = "SELECT PANTHEON:"
 	panth_label.add_theme_font_size_override("font_size", 12)
 	panth_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
 	vbox.add_child(panth_label)
 
-	var panth_grid = GridContainer.new()
+	var panth_grid: GridContainer = GridContainer.new()
 	panth_grid.columns = 4
 	panth_grid.add_theme_constant_override("h_separation", 6)
 	panth_grid.add_theme_constant_override("v_separation", 6)
 	vbox.add_child(panth_grid)
 
-	var pantheons = ["greek", "norse", "egyptian", "celtic", "japanese", "hindu", "aztec", "slavic"]
-	var panth_abbr = {"greek": "GRK", "norse": "NRS", "egyptian": "EGY", "celtic": "CLT", "japanese": "JPN", "hindu": "HND", "aztec": "AZT", "slavic": "SLV"}
+	var pantheons: Array = ["greek", "norse", "egyptian", "celtic", "japanese", "hindu", "aztec", "slavic"]
+	var panth_abbr: Dictionary = {"greek": "GRK", "norse": "NRS", "egyptian": "EGY", "celtic": "CLT", "japanese": "JPN", "hindu": "HND", "aztec": "AZT", "slavic": "SLV"}
 
 	for panth in pantheons:
-		var btn = Button.new()
+		var btn: Button = Button.new()
 		btn.name = panth + "_panth_btn"
 		btn.text = panth_abbr.get(panth, panth.substr(0, 3).to_upper())
 		btn.tooltip_text = panth.capitalize()
@@ -357,14 +357,14 @@ func _create_pantheon_panel() -> Control:
 		_style_pantheon_button(btn, panth == selected_pantheon)
 		panth_grid.add_child(btn)
 
-	var cost_label = Label.new()
+	var cost_label: Label = Label.new()
 	cost_label.name = "PantheonCostLabel"
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_label.add_theme_font_size_override("font_size", 12)
 	cost_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
 	vbox.add_child(cost_label)
 
-	var summon_btn = Button.new()
+	var summon_btn: Button = Button.new()
 	summon_btn.name = "PantheonSummonBtn"
 	summon_btn.text = "SUMMON (150 Crystals + 1 Token)"
 	summon_btn.custom_minimum_size = Vector2(0, 50)
@@ -376,7 +376,7 @@ func _create_pantheon_panel() -> Control:
 	return vbox
 
 func _create_free_panel() -> Control:
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
 
 	vbox.add_child(_create_title_label("FREE DAILY SUMMON", "One free summon every 24 hours"))
@@ -384,13 +384,13 @@ func _create_free_panel() -> Control:
 	vbox.add_child(_create_rates_label(rates))
 	vbox.add_child(HSeparator.new())
 
-	var status_label = Label.new()
+	var status_label: Label = Label.new()
 	status_label.name = "FreeStatusLabel"
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_label.add_theme_font_size_override("font_size", 14)
 	vbox.add_child(status_label)
 
-	var summon_btn = Button.new()
+	var summon_btn: Button = Button.new()
 	summon_btn.name = "FreeSummonBtn"
 	summon_btn.text = "FREE SUMMON"
 	summon_btn.custom_minimum_size = Vector2(0, 60)
@@ -402,7 +402,7 @@ func _create_free_panel() -> Control:
 	return vbox
 
 func _create_mana_panel() -> Control:
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
 
 	vbox.add_child(_create_title_label("MANA SUMMON", "Spend mana for basic summons - mainly for fodder"))
@@ -410,7 +410,7 @@ func _create_mana_panel() -> Control:
 	vbox.add_child(_create_rates_label(rates))
 	vbox.add_child(HSeparator.new())
 
-	var cost_label = Label.new()
+	var cost_label: Label = Label.new()
 	cost_label.name = "ManaCostLabel"
 	cost_label.text = "Cost: 10,000 Mana per summon"
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -418,7 +418,7 @@ func _create_mana_panel() -> Control:
 	cost_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
 	vbox.add_child(cost_label)
 
-	var summon_btn = Button.new()
+	var summon_btn: Button = Button.new()
 	summon_btn.name = "ManaSummonBtn"
 	summon_btn.text = "SUMMON (10,000 Mana)"
 	summon_btn.custom_minimum_size = Vector2(0, 50)
@@ -430,11 +430,11 @@ func _create_mana_panel() -> Control:
 	return vbox
 
 func _add_spacer_and_history(vbox: VBoxContainer):
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(spacer)
 
-	var history_btn = Button.new()
+	var history_btn: Button = Button.new()
 	history_btn.text = "Summon History"
 	history_btn.custom_minimum_size = Vector2(0, 35)
 	history_btn.pressed.connect(_on_history_pressed)
@@ -442,17 +442,17 @@ func _add_spacer_and_history(vbox: VBoxContainer):
 	vbox.add_child(history_btn)
 
 func _create_title_label(title: String, subtitle: String) -> Control:
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 4)
 
-	var title_lbl = Label.new()
+	var title_lbl: Label = Label.new()
 	title_lbl.text = title
 	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_lbl.add_theme_font_size_override("font_size", 18)
 	title_lbl.add_theme_color_override("font_color", Color.GOLD)
 	vbox.add_child(title_lbl)
 
-	var sub_lbl = Label.new()
+	var sub_lbl: Label = Label.new()
 	sub_lbl.text = subtitle
 	sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub_lbl.add_theme_font_size_override("font_size", 11)
@@ -462,8 +462,8 @@ func _create_title_label(title: String, subtitle: String) -> Control:
 	return vbox
 
 func _create_rates_label(rates: Dictionary) -> Label:
-	var label = Label.new()
-	var parts = []
+	var label: Label = Label.new()
+	var parts: Array = []
 	if rates.has("common"): parts.append("Common %.0f%%" % rates.common)
 	if rates.has("rare"): parts.append("Rare %.0f%%" % rates.rare)
 	if rates.has("epic"): parts.append("Epic %.1f%%" % rates.epic)
@@ -475,7 +475,7 @@ func _create_rates_label(rates: Dictionary) -> Label:
 	return label
 
 func _get_rates(summon_type: String) -> Dictionary:
-	var default = {"common": 60.0, "rare": 30.0, "epic": 8.5, "legendary": 1.5}
+	var default: Dictionary = {"common": 60.0, "rare": 30.0, "epic": 8.5, "legendary": 1.5}
 	if _summon_config.has("summon_types"):
 		var type_data = _summon_config.summon_types.get(summon_type, {})
 		if type_data.has("rates"):
@@ -483,12 +483,12 @@ func _get_rates(summon_type: String) -> Dictionary:
 	return default
 
 func _create_right_panel() -> Control:
-	var panel = PanelContainer.new()
+	var panel: PanelContainer = PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_style_panel(panel)
 
-	var margin = MarginContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_theme_constant_override("margin_left", 15)
@@ -497,19 +497,19 @@ func _create_right_panel() -> Control:
 	margin.add_theme_constant_override("margin_bottom", 15)
 	panel.add_child(margin)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_theme_constant_override("separation", 10)
 	margin.add_child(vbox)
 
-	var header = Label.new()
+	var header: Label = Label.new()
 	header.text = "RECENT SUMMONS"
 	header.add_theme_font_size_override("font_size", 14)
 	header.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
 	vbox.add_child(header)
 
-	var scroll = ScrollContainer.new()
+	var scroll: ScrollContainer = ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -707,7 +707,7 @@ func _on_multi_summon_completed(gods: Array):
 	is_processing_summon = false
 	_refresh_ui()
 	if result_overlay and pending_summon_results.size() > 0:
-		var banner_data = {"id": "premium", "title": "DIVINE SUMMONING"}
+		var banner_data: Dictionary = {"id": "premium", "title": "DIVINE SUMMONING"}
 		result_overlay.show_results(pending_summon_results, banner_data)
 		pending_summon_results.clear()
 
@@ -728,7 +728,7 @@ func _on_all_animations_completed():
 	is_processing_summon = false
 	_refresh_ui()
 	if pending_summon_results.size() > 0 and result_overlay:
-		var banner_data = {"id": "premium", "title": "DIVINE SUMMONING"}
+		var banner_data: Dictionary = {"id": "premium", "title": "DIVINE SUMMONING"}
 		result_overlay.show_results(pending_summon_results, banner_data)
 		pending_summon_results.clear()
 
@@ -790,7 +790,7 @@ func _update_soul_panel():
 	var panel = tab_panels.get("soul")
 	if not panel: return
 	var resource_mgr = _get_resource_manager()
-	var souls = ["common_soul", "rare_soul", "epic_soul", "legendary_soul"]
+	var souls: Array = ["common_soul", "rare_soul", "epic_soul", "legendary_soul"]
 	var soul_colors = {
 		"common_soul": Color(0.6, 0.6, 0.6),
 		"rare_soul": Color(0.3, 0.6, 1.0),
@@ -803,7 +803,7 @@ func _update_soul_panel():
 			_style_soul_button(btn, soul_colors[soul_type], soul_type == selected_soul_type)
 	var rates_label = panel.find_child("SoulRatesLabel", true, false)
 	if rates_label:
-		var rates = {}
+		var rates: Dictionary = {}
 		if _summon_config.has("summon_types"):
 			var soul_cfg = _summon_config.summon_types.get("soul_summon", {})
 			var variants = soul_cfg.get("variants", {})
@@ -811,7 +811,7 @@ func _update_soul_panel():
 		if rates.is_empty():
 			rates_label.text = ""
 		else:
-			var parts = []
+			var parts: Array = []
 			if rates.has("common"): parts.append("Common %.0f%%" % rates.common)
 			if rates.has("rare"): parts.append("Rare %.0f%%" % rates.rare)
 			if rates.has("epic"): parts.append("Epic %.1f%%" % rates.epic)
@@ -826,7 +826,7 @@ func _update_soul_panel():
 func _update_element_panel():
 	var panel = tab_panels.get("element")
 	if not panel: return
-	var elements = ["fire", "water", "earth", "lightning", "light", "dark"]
+	var elements: Array = ["fire", "water", "earth", "lightning", "light", "dark"]
 	var elem_colors = {
 		"fire": Color(1.0, 0.4, 0.3), "water": Color(0.3, 0.6, 1.0),
 		"earth": Color(0.6, 0.4, 0.2), "lightning": Color(1.0, 1.0, 0.3),
@@ -850,7 +850,7 @@ func _update_element_panel():
 func _update_pantheon_panel():
 	var panel = tab_panels.get("pantheon")
 	if not panel: return
-	var pantheons = ["greek", "norse", "egyptian", "celtic", "japanese", "hindu", "aztec", "slavic"]
+	var pantheons: Array = ["greek", "norse", "egyptian", "celtic", "japanese", "hindu", "aztec", "slavic"]
 	for panth in pantheons:
 		var btn = panel.find_child(panth + "_panth_btn", true, false)
 		if btn:
@@ -896,7 +896,7 @@ func _update_mana_panel():
 # === HELPERS ===
 
 func _show_message(text: String):
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 16)
@@ -904,7 +904,7 @@ func _show_message(text: String):
 	label.z_index = 200
 	add_child(label)
 	await get_tree().process_frame
-	var viewport_size = get_viewport().get_visible_rect().size
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	label.position = Vector2((viewport_size.x - label.size.x) / 2, viewport_size.y * 0.4)
 	var tween = create_tween()
 	tween.tween_interval(2.0)
@@ -923,7 +923,7 @@ func _get_config_manager():
 # === STYLING ===
 
 func _style_panel(panel: PanelContainer):
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.12, 0.1, 0.16, 0.95)
 	style.border_color = Color(0.3, 0.25, 0.4, 0.8)
 	style.set_border_width_all(1)
@@ -931,7 +931,7 @@ func _style_panel(panel: PanelContainer):
 	panel.add_theme_stylebox_override("panel", style)
 
 func _style_tab_button(button: Button, is_active: bool):
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	if is_active:
 		style.bg_color = Color(0.25, 0.2, 0.35, 1.0)
 		style.border_color = Color.GOLD
@@ -950,7 +950,7 @@ func _style_tab_button(button: Button, is_active: bool):
 	button.add_theme_font_size_override("font_size", 12)
 
 func _style_button(button: Button, primary: bool = false):
-	var style_normal = StyleBoxFlat.new()
+	var style_normal: StyleBoxFlat = StyleBoxFlat.new()
 	if primary:
 		style_normal.bg_color = Color(0.2, 0.4, 0.5, 0.9)
 		style_normal.border_color = Color(0.3, 0.6, 0.7, 0.8)
@@ -970,7 +970,7 @@ func _style_button(button: Button, primary: bool = false):
 	button.add_theme_font_size_override("font_size", 14)
 
 func _style_soul_button(button: Button, color: Color, is_selected: bool):
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	if is_selected:
 		style.bg_color = color.darkened(0.5)
 		style.border_color = color
@@ -987,7 +987,7 @@ func _style_soul_button(button: Button, color: Color, is_selected: bool):
 	button.add_theme_font_size_override("font_size", 11)
 
 func _style_element_button(button: Button, element_color: Color, is_selected: bool):
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	if is_selected:
 		style.bg_color = element_color.darkened(0.3)
 		style.border_color = element_color
@@ -1004,7 +1004,7 @@ func _style_element_button(button: Button, element_color: Color, is_selected: bo
 	button.add_theme_font_size_override("font_size", 14)
 
 func _style_pantheon_button(button: Button, is_selected: bool):
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	if is_selected:
 		style.bg_color = Color(0.3, 0.25, 0.4, 1.0)
 		style.border_color = Color.GOLD

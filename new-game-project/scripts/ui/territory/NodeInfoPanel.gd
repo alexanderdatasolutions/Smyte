@@ -127,7 +127,7 @@ func _process(delta: float) -> void:
 		_update_attack_timer_display()
 
 	# Check for active crafts from shared tracker
-	var has_active = false
+	var has_active: bool = false
 	if hex_grid_manager and current_node:
 		has_active = not hex_grid_manager.get_active_crafts_for_node(current_node.id).is_empty()
 
@@ -167,9 +167,9 @@ func _build_ui() -> void:
 	custom_minimum_size = Vector2(PANEL_WIDTH, PANEL_HEIGHT)
 
 	# Background panel
-	var bg_panel = Panel.new()
+	var bg_panel: Panel = Panel.new()
 	bg_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var bg_style = StyleBoxFlat.new()
+	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
 	bg_style.bg_color = Color(0.1, 0.1, 0.12, 0.95)
 	bg_style.border_width_left = 2
 	bg_style.border_width_right = 2
@@ -184,7 +184,7 @@ func _build_ui() -> void:
 	add_child(bg_panel)
 
 	# Main scroll container
-	var scroll = ScrollContainer.new()
+	var scroll: ScrollContainer = ScrollContainer.new()
 	scroll.name = "MainScrollContainer"
 	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	scroll.offset_left = 10
@@ -327,7 +327,7 @@ func _build_action_buttons() -> void:
 
 func _create_section_label(text: String) -> Label:
 	"""Create a section header label"""
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = text
 	label.add_theme_font_size_override("font_size", 16)
 	label.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0, 1))
@@ -335,7 +335,7 @@ func _create_section_label(text: String) -> Label:
 
 func _add_separator() -> void:
 	"""Add a horizontal separator"""
-	var separator = HSeparator.new()
+	var separator: HSeparator = HSeparator.new()
 	separator.add_theme_constant_override("separation", 8)
 	_main_container.add_child(separator)
 
@@ -404,7 +404,7 @@ func _update_header() -> void:
 
 	_header_label.text = current_node.name
 
-	var tier_stars = ""
+	var tier_stars: String = ""
 	for i in range(current_node.tier):
 		tier_stars += "★"
 
@@ -426,7 +426,7 @@ func _update_pending_resources() -> void:
 
 	# Only show for player-controlled nodes
 	if not current_node.is_controlled_by_player():
-		var not_available_label = Label.new()
+		var not_available_label: Label = Label.new()
 		not_available_label.text = "  Capture node to accumulate resources"
 		not_available_label.add_theme_font_size_override("font_size", 11)
 		not_available_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
@@ -435,7 +435,7 @@ func _update_pending_resources() -> void:
 
 	# Check if there are accumulated resources
 	if current_node.accumulated_resources.is_empty() or _get_total_accumulated() <= 0:
-		var no_resources_label = Label.new()
+		var no_resources_label: Label = Label.new()
 		no_resources_label.text = "  No pending resources (assign workers to begin)"
 		no_resources_label.add_theme_font_size_override("font_size", 11)
 		no_resources_label.add_theme_color_override("font_color", Color(0.6, 0.7, 0.6))
@@ -445,7 +445,7 @@ func _update_pending_resources() -> void:
 	# Check if we're approaching max storage
 	var time_since_last_production: float = 0.0
 	if current_node.last_production_time > 0:
-		var current_time = int(Time.get_unix_time_from_system())
+		var current_time: int = int(Time.get_unix_time_from_system())
 		time_since_last_production = (current_time - current_node.last_production_time) / 3600.0
 
 	# Get max storage hours from config
@@ -456,13 +456,13 @@ func _update_pending_resources() -> void:
 
 	# Show warning if at or near max storage
 	if time_since_last_production >= max_storage_hours:
-		var warning_label = Label.new()
+		var warning_label: Label = Label.new()
 		warning_label.text = "  ⚠️ Max storage reached (%.0f hours)" % max_storage_hours
 		warning_label.add_theme_font_size_override("font_size", 11)
 		warning_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
 		_pending_resources_container.add_child(warning_label)
 
-		var spacer = Control.new()
+		var spacer: Control = Control.new()
 		spacer.custom_minimum_size = Vector2(0, 4)
 		_pending_resources_container.add_child(spacer)
 
@@ -470,14 +470,14 @@ func _update_pending_resources() -> void:
 	for resource_id in current_node.accumulated_resources.keys():
 		var amount = current_node.accumulated_resources[resource_id]
 		if amount > 0:
-			var resource_label = Label.new()
+			var resource_label: Label = Label.new()
 			resource_label.text = "  %s: %.1f" % [resource_id.replace("_", " ").capitalize(), amount]
 			resource_label.add_theme_font_size_override("font_size", 12)
 			resource_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.7, 1))
 			_pending_resources_container.add_child(resource_label)
 
 	# Spacer
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.custom_minimum_size = Vector2(0, 6)
 	_pending_resources_container.add_child(spacer)
 
@@ -491,7 +491,7 @@ func _get_total_accumulated() -> float:
 	if not current_node:
 		return 0.0
 
-	var total = 0.0
+	var total: float = 0.0
 	for resource_id in current_node.accumulated_resources.keys():
 		total += current_node.accumulated_resources[resource_id]
 	return total
@@ -514,14 +514,14 @@ func _update_production() -> void:
 		var category_color = node_production_info.get_category_color(category)
 
 		# Production type header
-		var type_label = Label.new()
+		var type_label: Label = Label.new()
 		type_label.text = "%s %s" % [icon, node_production_info.get_category_name(category)]
 		type_label.add_theme_font_size_override("font_size", 13)
 		type_label.add_theme_color_override("font_color", category_color)
 		_production_container.add_child(type_label)
 
 		# Description
-		var desc_label = Label.new()
+		var desc_label: Label = Label.new()
 		desc_label.text = description
 		desc_label.add_theme_font_size_override("font_size", 11)
 		desc_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
@@ -530,14 +530,14 @@ func _update_production() -> void:
 		_production_container.add_child(desc_label)
 
 		# Focus
-		var focus_label = Label.new()
+		var focus_label: Label = Label.new()
 		focus_label.text = "Produces: " + focus
 		focus_label.add_theme_font_size_override("font_size", 11)
 		focus_label.add_theme_color_override("font_color", Color(0.8, 0.9, 0.7))
 		_production_container.add_child(focus_label)
 
 		# Spacer
-		var spacer = Control.new()
+		var spacer: Control = Control.new()
 		spacer.custom_minimum_size = Vector2(0, 6)
 		_production_container.add_child(spacer)
 
@@ -546,21 +546,21 @@ func _update_production() -> void:
 		var production_data = production_manager.calculate_node_production(current_node)
 		if not production_data.is_empty():
 			# Check if this is a processing building with consumes
-			var building_consumes = {}
+			var building_consumes: Dictionary = {}
 			if not current_node.placed_building.is_empty() and building_manager:
 				var building = building_manager.get_building(current_node.placed_building)
 				building_consumes = building.get("consumes", {})
 
 			if not building_consumes.is_empty():
 				# Show conversion format for processing buildings
-				var input_parts = []
-				var output_parts = []
+				var input_parts: Array = []
+				var output_parts: Array = []
 				for res_id in building_consumes:
 					input_parts.append("%d %s" % [building_consumes[res_id], res_id.replace("_", " ")])
 				for res_id in production_data.keys():
 					output_parts.append("%.0f %s" % [production_data[res_id], res_id.replace("_", " ")])
 
-				var convert_label = Label.new()
+				var convert_label: Label = Label.new()
 				convert_label.text = "  Converts: %s → %s/hr" % [", ".join(input_parts), ", ".join(output_parts)]
 				convert_label.add_theme_font_size_override("font_size", 12)
 				convert_label.add_theme_color_override("font_color", Color(0.9, 0.8, 0.5))  # Orange for conversion
@@ -569,13 +569,13 @@ func _update_production() -> void:
 				# Show input resource availability
 				var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager")
 				var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager")
-				var status_parts = []
-				var all_available = true
+				var status_parts: Array = []
+				var all_available: bool = true
 
 				for res_id in building_consumes:
 					var needed = building_consumes[res_id]
-					var available_accumulated = 0.0
-					var available_inventory = 0
+					var available_accumulated: float = 0.0
+					var available_inventory: int = 0
 
 					# Count accumulated across all player nodes
 					if hex_grid_manager:
@@ -589,10 +589,10 @@ func _update_production() -> void:
 					var has_enough = total >= needed
 					if not has_enough:
 						all_available = false
-					var check_mark = "✓" if has_enough else "✗"
+					var check_mark: String = "✓" if has_enough else "✗"
 					status_parts.append("%s %s: %.0f" % [check_mark, res_id.replace("_", " "), total])
 
-				var status_label = Label.new()
+				var status_label: Label = Label.new()
 				status_label.text = "  Input: " + ", ".join(status_parts)
 				status_label.add_theme_font_size_override("font_size", 10)
 				if all_available:
@@ -604,14 +604,14 @@ func _update_production() -> void:
 				# Display each resource production normally
 				for resource_id in production_data.keys():
 					var amount = production_data[resource_id]
-					var resource_label = Label.new()
+					var resource_label: Label = Label.new()
 					resource_label.text = "  %s: +%.1f/hour" % [resource_id.replace("_", " ").capitalize(), amount]
 					resource_label.add_theme_font_size_override("font_size", 12)
 					resource_label.add_theme_color_override("font_color", Color(0.8, 0.9, 0.8, 1))
 					_production_container.add_child(resource_label)
 
 			# Spacer before bonuses
-			var spacer2 = Control.new()
+			var spacer2: Control = Control.new()
 			spacer2.custom_minimum_size = Vector2(0, 4)
 			_production_container.add_child(spacer2)
 
@@ -622,7 +622,7 @@ func _update_production() -> void:
 			_show_defense_drops()
 		else:
 			# No production (no workers assigned)
-			var no_prod_label = Label.new()
+			var no_prod_label: Label = Label.new()
 			no_prod_label.text = "  No production (assign workers)"
 			no_prod_label.add_theme_font_size_override("font_size", 11)
 			no_prod_label.add_theme_color_override("font_color", Color(0.7, 0.6, 0.5))
@@ -648,7 +648,7 @@ func _show_production_bonuses() -> void:
 
 	if territory_manager:
 		var connected_count = territory_manager.get_connected_node_count(current_node.coord)
-		var connected_bonus = 0.0
+		var connected_bonus: float = 0.0
 		if connected_count >= 4:
 			connected_bonus = 0.30
 		elif connected_count == 3:
@@ -664,7 +664,7 @@ func _show_production_bonuses() -> void:
 			bonuses.append("+%.0f%% workers" % [worker_efficiency * 100])
 
 	if not bonuses.is_empty():
-		var bonus_label = Label.new()
+		var bonus_label: Label = Label.new()
 		bonus_label.text = "  Bonuses: " + ", ".join(bonuses)
 		bonus_label.add_theme_font_size_override("font_size", 10)
 		bonus_label.add_theme_color_override("font_color", Color(0.7, 0.9, 0.7))
@@ -680,12 +680,12 @@ func _show_defense_drops() -> void:
 		return
 
 	# Spacer before defense drops
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.custom_minimum_size = Vector2(0, 6)
 	_production_container.add_child(spacer)
 
 	# Defense drops header
-	var drops_header = Label.new()
+	var drops_header: Label = Label.new()
 	drops_header.text = "⚔️ GARRISON BATTLE REWARDS:"
 	drops_header.add_theme_font_size_override("font_size", 12)
 	drops_header.add_theme_color_override("font_color", Color(0.9, 0.7, 0.5))
@@ -706,12 +706,12 @@ func _show_defense_drops() -> void:
 		var progress = clampf(remaining_seconds / max_seconds, 0.0, 1.0)
 
 		# Timer container with label
-		var timer_row = HBoxContainer.new()
+		var timer_row: HBoxContainer = HBoxContainer.new()
 		timer_row.add_theme_constant_override("separation", 6)
 		_production_container.add_child(timer_row)
 
 		# Timer icon/label
-		var timer_icon = Label.new()
+		var timer_icon: Label = Label.new()
 		timer_icon.text = "  ⏱️"
 		timer_icon.add_theme_font_size_override("font_size", 12)
 		timer_row.add_child(timer_icon)
@@ -724,7 +724,7 @@ func _show_defense_drops() -> void:
 		_attack_timer_progress_bar.show_percentage = false
 
 		# Style the progress bar
-		var bar_bg = StyleBoxFlat.new()
+		var bar_bg: StyleBoxFlat = StyleBoxFlat.new()
 		bar_bg.bg_color = Color(0.15, 0.15, 0.2, 1)
 		bar_bg.set_corner_radius_all(4)
 		_attack_timer_progress_bar.add_theme_stylebox_override("background", bar_bg)
@@ -745,7 +745,7 @@ func _show_defense_drops() -> void:
 		timer_row.add_child(_attack_timer_label)
 	elif attack_hours <= 0:
 		# Safe node - no attacks
-		var safe_label = Label.new()
+		var safe_label: Label = Label.new()
 		safe_label.text = "  🛡️ Safe node (no attacks)"
 		safe_label.add_theme_font_size_override("font_size", 10)
 		safe_label.add_theme_color_override("font_color", Color(0.5, 0.7, 0.5))
@@ -754,7 +754,7 @@ func _show_defense_drops() -> void:
 	# List each drop with "per battle" label
 	for drop_id in current_node.defense_drops.keys():
 		var drop_data = current_node.defense_drops[drop_id]
-		var drop_label = Label.new()
+		var drop_label: Label = Label.new()
 		var drop_name = drop_id.replace("_", " ").capitalize()
 		if drop_data is Dictionary:
 			var min_amt = drop_data.get("min", 0)
@@ -779,8 +779,8 @@ func _get_timer_fill_color(timer_active: bool, progress: float) -> Color:
 
 func _get_timer_text(timer_active: bool, remaining_seconds: float, attack_hours: float) -> String:
 	"""Get the timer label text based on state"""
-	var hours_left = int(remaining_seconds / 3600)
-	var minutes_left = int((remaining_seconds - hours_left * 3600) / 60)
+	var hours_left: int = int(remaining_seconds / 3600)
+	var minutes_left: int = int((remaining_seconds - hours_left * 3600) / 60)
 
 	if not timer_active:
 		return "Safe (%.0fh cycle)" % attack_hours
@@ -840,12 +840,12 @@ func _calculate_worker_efficiency_display() -> float:
 	if not current_node or not collection_manager:
 		return 0.0
 
-	var total_efficiency = 0.0
+	var total_efficiency: float = 0.0
 	for worker_id in current_node.assigned_workers:
 		var god = collection_manager.get_god_by_id(worker_id)
 		if god:
 			# Base 10% per worker
-			var efficiency = 0.10
+			var efficiency: float = 0.10
 
 			# Add level bonus (1% per level)
 			efficiency += god.level * 0.01
@@ -863,7 +863,7 @@ func _show_potential_production() -> void:
 		return
 
 	# Header showing this is what you'll get
-	var header_label = Label.new()
+	var header_label: Label = Label.new()
 	header_label.text = "📦 CAPTURE TO RECEIVE:"
 	header_label.add_theme_font_size_override("font_size", 12)
 	header_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
@@ -871,7 +871,7 @@ func _show_potential_production() -> void:
 
 	# Show base production from the node's template
 	if current_node.base_production.is_empty():
-		var no_prod_label = Label.new()
+		var no_prod_label: Label = Label.new()
 		no_prod_label.text = "  No production data"
 		no_prod_label.add_theme_font_size_override("font_size", 11)
 		no_prod_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
@@ -882,7 +882,7 @@ func _show_potential_production() -> void:
 	for resource_id in current_node.base_production.keys():
 		var amount = current_node.base_production[resource_id]
 		if amount > 0:
-			var resource_label = Label.new()
+			var resource_label: Label = Label.new()
 			var resource_name = resource_id.replace("_", " ").capitalize()
 			resource_label.text = "  • %s: %d/hour" % [resource_name, amount]
 			resource_label.add_theme_font_size_override("font_size", 12)
@@ -890,13 +890,13 @@ func _show_potential_production() -> void:
 			_production_container.add_child(resource_label)
 
 	# Spacer
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.custom_minimum_size = Vector2(0, 8)
 	_production_container.add_child(spacer)
 
 	# Show defense drops if any (loot when defending)
 	if not current_node.defense_drops.is_empty():
-		var drops_header = Label.new()
+		var drops_header: Label = Label.new()
 		drops_header.text = "⚔️ DEFENSE BATTLE DROPS:"
 		drops_header.add_theme_font_size_override("font_size", 11)
 		drops_header.add_theme_color_override("font_color", Color(0.9, 0.7, 0.5))
@@ -904,7 +904,7 @@ func _show_potential_production() -> void:
 
 		for drop_id in current_node.defense_drops.keys():
 			var drop_data = current_node.defense_drops[drop_id]
-			var drop_label = Label.new()
+			var drop_label: Label = Label.new()
 			var drop_name = drop_id.replace("_", " ").capitalize()
 			if drop_data is Dictionary:
 				var min_amt = drop_data.get("min", 0)
@@ -917,12 +917,12 @@ func _show_potential_production() -> void:
 			_production_container.add_child(drop_label)
 
 	# Spacer
-	var spacer2 = Control.new()
+	var spacer2: Control = Control.new()
 	spacer2.custom_minimum_size = Vector2(0, 6)
 	_production_container.add_child(spacer2)
 
 	# Show worker/garrison capacity
-	var capacity_label = Label.new()
+	var capacity_label: Label = Label.new()
 	var max_workers = mini(current_node.tier, 5)
 	capacity_label.text = "👥 Workers: %d slots | 🛡️ Garrison: %d slots" % [max_workers, current_node.max_garrison]
 	capacity_label.add_theme_font_size_override("font_size", 11)
@@ -930,7 +930,7 @@ func _show_potential_production() -> void:
 	_production_container.add_child(capacity_label)
 
 	# Show capture requirement
-	var capture_label = Label.new()
+	var capture_label: Label = Label.new()
 	capture_label.text = "⚡ Capture Power: %d required" % current_node.capture_power_required
 	capture_label.add_theme_font_size_override("font_size", 11)
 	capture_label.add_theme_color_override("font_color", Color(0.8, 0.6, 0.6))
@@ -950,7 +950,7 @@ func _update_garrison() -> void:
 
 	# Show lock message if not captured
 	if not is_captured:
-		var lock_label = Label.new()
+		var lock_label: Label = Label.new()
 		lock_label.text = "🔒 Capture this node to assign garrison"
 		lock_label.add_theme_font_size_override("font_size", 11)
 		lock_label.add_theme_color_override("font_color", Color(0.6, 0.5, 0.4))
@@ -961,7 +961,7 @@ func _update_garrison() -> void:
 		_cleanup_stale_garrison_ids()
 
 	# Create slot boxes
-	var slots_row = HBoxContainer.new()
+	var slots_row: HBoxContainer = HBoxContainer.new()
 	slots_row.add_theme_constant_override("separation", SLOT_SPACING)
 	_garrison_container.add_child(slots_row)
 
@@ -993,12 +993,12 @@ func _show_garrison_team_bonuses(garrison_gods: Array) -> void:
 		return
 
 	# Spacer
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.custom_minimum_size = Vector2(0, 4)
 	_garrison_container.add_child(spacer)
 
 	# Team bonuses header
-	var header = Label.new()
+	var header: Label = Label.new()
 	header.text = "⚔️ Team Bonuses (affects workers):"
 	header.add_theme_font_size_override("font_size", 11)
 	header.add_theme_color_override("font_color", Color(0.8, 0.75, 0.5))
@@ -1006,12 +1006,12 @@ func _show_garrison_team_bonuses(garrison_gods: Array) -> void:
 
 	# List each bonus (stacked vertically to prevent overflow)
 	for bonus in bonuses:
-		var bonus_row = VBoxContainer.new()
+		var bonus_row: VBoxContainer = VBoxContainer.new()
 		bonus_row.add_theme_constant_override("separation", 1)
 		_garrison_container.add_child(bonus_row)
 
-		var bonus_name = Label.new()
-		var element_text = ""
+		var bonus_name: Label = Label.new()
+		var element_text: String = ""
 		if bonus.has("element"):
 			element_text = " (%s)" % bonus.element
 		bonus_name.text = "  • %s%s" % [bonus.name, element_text]
@@ -1021,7 +1021,7 @@ func _show_garrison_team_bonuses(garrison_gods: Array) -> void:
 		bonus_name.clip_text = true
 		bonus_row.add_child(bonus_name)
 
-		var bonus_desc = Label.new()
+		var bonus_desc: Label = Label.new()
 		bonus_desc.text = "    %s" % bonus.desc
 		bonus_desc.add_theme_font_size_override("font_size", 9)
 		bonus_desc.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
@@ -1053,26 +1053,26 @@ func _show_worker_received_bonuses() -> void:
 		return
 
 	# Spacer
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.custom_minimum_size = Vector2(0, 4)
 	_workers_container.add_child(spacer)
 
 	# Receiving bonuses header
-	var header = Label.new()
+	var header: Label = Label.new()
 	header.text = "📈 Garrison Production Bonus:"
 	header.add_theme_font_size_override("font_size", 11)
 	header.add_theme_color_override("font_color", Color(0.6, 0.8, 0.9))
 	_workers_container.add_child(header)
 
 	# Compact list of bonuses received
-	var bonus_text = ""
+	var bonus_text: String = ""
 	for i in range(worker_bonuses.size()):
 		var bonus = worker_bonuses[i]
 		if i > 0:
 			bonus_text += ", "
 		bonus_text += "%s" % bonus.desc
 
-	var bonus_label = Label.new()
+	var bonus_label: Label = Label.new()
 	bonus_label.text = "  " + bonus_text
 	bonus_label.add_theme_font_size_override("font_size", 10)
 	bonus_label.add_theme_color_override("font_color", Color(0.5, 0.75, 0.5))
@@ -1095,7 +1095,7 @@ func _filter_worker_relevant_bonuses(bonuses: Array) -> Array:
 			continue
 
 		# Check if any bonus key is worker-relevant
-		var has_relevant = false
+		var has_relevant: bool = false
 		for key in bonus.bonuses:
 			if key in WORKER_RELEVANT_KEYS:
 				has_relevant = true
@@ -1132,7 +1132,7 @@ func _update_workers() -> void:
 
 	# Show lock message if not captured
 	if not is_captured:
-		var lock_label = Label.new()
+		var lock_label: Label = Label.new()
 		lock_label.text = "🔒 Capture this node to assign workers"
 		lock_label.add_theme_font_size_override("font_size", 11)
 		lock_label.add_theme_color_override("font_color", Color(0.6, 0.5, 0.4))
@@ -1145,7 +1145,7 @@ func _update_workers() -> void:
 	var max_workers = mini(current_node.tier, 5)
 
 	if max_workers == 0:
-		var no_lbl = Label.new()
+		var no_lbl: Label = Label.new()
 		no_lbl.text = "Not available (Tier 0)"
 		no_lbl.add_theme_font_size_override("font_size", 11)
 		no_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
@@ -1161,20 +1161,20 @@ func _update_workers() -> void:
 
 	# Show garrison power requirement warning if not met
 	if not can_use_workers:
-		var warning_label = Label.new()
+		var warning_label: Label = Label.new()
 		warning_label.text = "🛡️ Garrison power required: %d/%d" % [garrison_status.get("current", 0), garrison_status.get("required", 0)]
 		warning_label.add_theme_font_size_override("font_size", 11)
 		warning_label.add_theme_color_override("font_color", Color(0.9, 0.5, 0.3))
 		_workers_container.add_child(warning_label)
 
-		var hint_label = Label.new()
+		var hint_label: Label = Label.new()
 		hint_label.text = "  Assign stronger gods to garrison first"
 		hint_label.add_theme_font_size_override("font_size", 10)
 		hint_label.add_theme_color_override("font_color", Color(0.6, 0.5, 0.4))
 		_workers_container.add_child(hint_label)
 
 	# Create slot boxes
-	var slots_row = HBoxContainer.new()
+	var slots_row: HBoxContainer = HBoxContainer.new()
 	slots_row.add_theme_constant_override("separation", SLOT_SPACING)
 	_workers_container.add_child(slots_row)
 
@@ -1197,7 +1197,7 @@ func _update_workers() -> void:
 		_show_worker_received_bonuses()
 	elif current_node.assigned_workers.size() > 0 and not can_use_workers:
 		# Show that workers are inactive
-		var inactive_label = Label.new()
+		var inactive_label: Label = Label.new()
 		inactive_label.text = "⚠️ Workers inactive - not producing"
 		inactive_label.add_theme_font_size_override("font_size", 10)
 		inactive_label.add_theme_color_override("font_color", Color(0.8, 0.5, 0.3))
@@ -1228,14 +1228,14 @@ func _update_requirements() -> void:
 	var missing_reqs = node_requirement_checker.get_missing_requirements(current_node)
 
 	if missing_reqs.is_empty():
-		var met_label = Label.new()
+		var met_label: Label = Label.new()
 		met_label.text = "All requirements met!"
 		met_label.add_theme_font_size_override("font_size", 12)
 		met_label.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3, 1))
 		_requirements_container.add_child(met_label)
 	else:
 		for req_text in missing_reqs:
-			var req_label = Label.new()
+			var req_label: Label = Label.new()
 			req_label.text = "  ✗ %s" % req_text
 			req_label.add_theme_font_size_override("font_size", 11)
 			req_label.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3, 1))
@@ -1279,15 +1279,15 @@ func _update_action_buttons() -> void:
 # ==============================================================================
 func _create_empty_slot(node: HexNode, slot_type: String, slot_index: int, disabled: bool = false) -> Control:
 	"""Create an empty slot with '+' icon (60x60px tap target)"""
-	var slot = Panel.new()
+	var slot: Panel = Panel.new()
 	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
 
 	# Greyed out style if disabled
-	var border_color = Color(0.3, 0.3, 0.35, 0.5) if disabled else Color(0.4, 0.4, 0.45, 0.7)
+	var border_color: Color = Color(0.3, 0.3, 0.35, 0.5) if disabled else Color(0.4, 0.4, 0.45, 0.7)
 	slot.add_theme_stylebox_override("panel", _create_slot_style(border_color, 2))
 
 	# Plus icon or lock icon if disabled
-	var plus_label = Label.new()
+	var plus_label: Label = Label.new()
 	plus_label.text = "🔒" if disabled else "+"
 	plus_label.add_theme_font_size_override("font_size", 20 if disabled else 24)
 	plus_label.add_theme_color_override("font_color", Color(0.4, 0.35, 0.3) if disabled else Color(0.5, 0.5, 0.55))
@@ -1303,7 +1303,7 @@ func _create_empty_slot(node: HexNode, slot_type: String, slot_index: int, disab
 
 func _create_filled_slot(node: HexNode, slot_type: String, slot_index: int, god: God, inactive: bool = false) -> Control:
 	"""Create a filled slot showing god portrait (60x60px). Inactive shows grayed out."""
-	var slot = Panel.new()
+	var slot: Panel = Panel.new()
 	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
 	var border_color = ELEMENT_COLORS.get(god.element, Color.GRAY) if god else Color(0.5, 0.5, 0.5)
 	if inactive:
@@ -1321,7 +1321,7 @@ func _create_filled_slot(node: HexNode, slot_type: String, slot_index: int, god:
 			portrait.modulate = Color(0.5, 0.5, 0.5, 0.7)  # Grayscale/dim effect
 		slot.add_child(portrait)
 
-		var level_label = Label.new()
+		var level_label: Label = Label.new()
 		level_label.text = "Lv.%d" % god.level
 		level_label.add_theme_font_size_override("font_size", 9)
 		level_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5) if inactive else Color(0.8, 0.8, 0.8))
@@ -1336,7 +1336,7 @@ func _create_filled_slot(node: HexNode, slot_type: String, slot_index: int, god:
 
 		# Add "INACTIVE" overlay for workers without garrison protection
 		if inactive:
-			var inactive_overlay = Label.new()
+			var inactive_overlay: Label = Label.new()
 			inactive_overlay.text = "⚠️"
 			inactive_overlay.add_theme_font_size_override("font_size", 16)
 			inactive_overlay.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -1344,7 +1344,7 @@ func _create_filled_slot(node: HexNode, slot_type: String, slot_index: int, god:
 			inactive_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 			slot.add_child(inactive_overlay)
 	else:
-		var lbl = Label.new()
+		var lbl: Label = Label.new()
 		lbl.text = "?"
 		lbl.add_theme_font_size_override("font_size", 20)
 		lbl.add_theme_color_override("font_color", Color(0.6, 0.4, 0.4))
@@ -1359,7 +1359,7 @@ func _create_filled_slot(node: HexNode, slot_type: String, slot_index: int, god:
 
 func _create_slot_style(border_color: Color, border_width: int) -> StyleBoxFlat:
 	"""Create slot panel style"""
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.15, 0.18, 0.9)
 	style.border_color = border_color
 	style.set_border_width_all(border_width)
@@ -1368,7 +1368,7 @@ func _create_slot_style(border_color: Color, border_width: int) -> StyleBoxFlat:
 
 func _add_slot_button(slot: Panel, node: HexNode, slot_type: String, slot_index: int) -> void:
 	"""Add tappable button overlay to empty slot"""
-	var button = Button.new()
+	var button: Button = Button.new()
 	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	button.flat = true
 	button.pressed.connect(_on_slot_tapped.bind(node, slot_type, slot_index))
@@ -1376,7 +1376,7 @@ func _add_slot_button(slot: Panel, node: HexNode, slot_type: String, slot_index:
 
 func _add_filled_slot_button(slot: Panel, node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
 	"""Add tappable button overlay to filled slot (emits different signal)"""
-	var button = Button.new()
+	var button: Button = Button.new()
 	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	button.flat = true
 	button.pressed.connect(_on_filled_slot_tapped.bind(node, slot_type, slot_index, god))
@@ -1384,11 +1384,11 @@ func _add_filled_slot_button(slot: Panel, node: HexNode, slot_type: String, slot
 
 func _create_god_portrait(god: God) -> TextureRect:
 	"""Create god portrait TextureRect"""
-	var portrait = TextureRect.new()
+	var portrait: TextureRect = TextureRect.new()
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	var god_template = god.template_id if god.template_id else god.id
-	var sprite_path = "res://assets/gods/" + god_template + ".png"
+	var sprite_path: String = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		portrait.texture = load(sprite_path)
 	else:
@@ -1450,12 +1450,12 @@ func _cleanup_stale_worker_ids() -> void:
 
 func _create_button(text: String, color: Color) -> Button:
 	"""Create a styled button"""
-	var button = Button.new()
+	var button: Button = Button.new()
 	button.text = text
 	button.custom_minimum_size = Vector2(80, BUTTON_HEIGHT)
 
 	# Normal state
-	var normal_style = StyleBoxFlat.new()
+	var normal_style: StyleBoxFlat = StyleBoxFlat.new()
 	normal_style.bg_color = color
 	normal_style.corner_radius_top_left = 4
 	normal_style.corner_radius_top_right = 4
@@ -1464,7 +1464,7 @@ func _create_button(text: String, color: Color) -> Button:
 	button.add_theme_stylebox_override("normal", normal_style)
 
 	# Hover state
-	var hover_style = StyleBoxFlat.new()
+	var hover_style: StyleBoxFlat = StyleBoxFlat.new()
 	hover_style.bg_color = color.lightened(0.2)
 	hover_style.corner_radius_top_left = 4
 	hover_style.corner_radius_top_right = 4
@@ -1473,7 +1473,7 @@ func _create_button(text: String, color: Color) -> Button:
 	button.add_theme_stylebox_override("hover", hover_style)
 
 	# Disabled state
-	var disabled_style = StyleBoxFlat.new()
+	var disabled_style: StyleBoxFlat = StyleBoxFlat.new()
 	disabled_style.bg_color = Color(0.3, 0.3, 0.3, 1)
 	disabled_style.corner_radius_top_left = 4
 	disabled_style.corner_radius_top_right = 4
@@ -1539,7 +1539,7 @@ func _on_collect_resources_pressed() -> void:
 			manual_bonus = balance_config.generation_timing.manual_collection_bonus
 
 		# Format collected resources for display
-		var message = "Collected:\n"
+		var message: String = "Collected:\n"
 		for resource_id in collected.keys():
 			var amount = collected[resource_id]
 			if manual_bonus > 1.0:
@@ -1551,7 +1551,7 @@ func _on_collect_resources_pressed() -> void:
 
 		# Add bonus indicator to message if applicable
 		if manual_bonus > 1.0:
-			var bonus_percent = int((manual_bonus - 1.0) * 100)
+			var bonus_percent: int = int((manual_bonus - 1.0) * 100)
 			message += "\n✨ +%d%% Manual Collection Bonus" % bonus_percent
 
 		_show_collection_feedback(message, Color(0.3, 0.9, 0.4))
@@ -1577,7 +1577,7 @@ func _trigger_collection_effect_on_tile() -> void:
 		return
 
 	# Get the tile for current node
-	var coord_key = "%d,%d" % [current_node.coord.q, current_node.coord.r]
+	var coord_key: String = "%d,%d" % [current_node.coord.q, current_node.coord.r]
 	if hex_map_view.hex_tiles.has(coord_key):
 		var tile = hex_map_view.hex_tiles[coord_key]
 		if tile and tile.has_method("show_collection_effect"):
@@ -1586,7 +1586,7 @@ func _trigger_collection_effect_on_tile() -> void:
 func _show_collection_feedback(message: String, color: Color) -> void:
 	"""Show a temporary feedback message about collection"""
 	# Create a temporary label that fades out
-	var feedback_label = Label.new()
+	var feedback_label: Label = Label.new()
 	feedback_label.text = message
 	feedback_label.add_theme_font_size_override("font_size", 13)
 	feedback_label.add_theme_color_override("font_color", color)
@@ -1603,7 +1603,7 @@ func _load_balance_config() -> Dictionary:
 	"""Load territory balance config from JSON file
 	Returns: Dictionary with balance configuration or empty dict on failure
 	"""
-	var file_path = "res://data/territory_balance_config.json"
+	var file_path: String = "res://data/territory_balance_config.json"
 	var file = FileAccess.open(file_path, FileAccess.READ)
 	if not file:
 		return {}
@@ -1611,7 +1611,7 @@ func _load_balance_config() -> Dictionary:
 	var json_text = file.get_as_text()
 	file.close()
 
-	var json = JSON.new()
+	var json: JSON = JSON.new()
 	var parse_result = json.parse(json_text)
 
 	if parse_result != OK:
@@ -1624,7 +1624,7 @@ func _load_balance_config() -> Dictionary:
 # ==============================================================================
 func _load_tasks_data() -> void:
 	"""Load crafting recipes from JSON file"""
-	var file_path = "res://data/crafting_recipes.json"
+	var file_path: String = "res://data/crafting_recipes.json"
 	var file = FileAccess.open(file_path, FileAccess.READ)
 	if not file:
 		push_error("NodeInfoPanel: Could not load crafting_recipes.json")
@@ -1633,7 +1633,7 @@ func _load_tasks_data() -> void:
 	var json_text = file.get_as_text()
 	file.close()
 
-	var json = JSON.new()
+	var json: JSON = JSON.new()
 	var parse_result = json.parse(json_text)
 	if parse_result != OK:
 		push_error("NodeInfoPanel: Failed to parse crafting_recipes.json")
@@ -1671,7 +1671,7 @@ func _update_tasks() -> void:
 	var is_player_controlled = current_node.is_controlled_by_player()
 
 	# Also check if node has a building with crafting_enabled
-	var has_crafting_building = false
+	var has_crafting_building: bool = false
 	if not current_node.placed_building.is_empty() and building_manager:
 		var building = building_manager.get_building(current_node.placed_building)
 		var effects = building.get("effects", {})
@@ -1690,7 +1690,7 @@ func _update_tasks() -> void:
 
 	# Get the craft tier and type from the building
 	var craft_tier = current_node.tier
-	var craft_type = ""  # empty = all types
+	var craft_type: String = ""  # empty = all types
 	if has_crafting_building and building_manager:
 		var building = building_manager.get_building(current_node.placed_building)
 		var effects = building.get("effects", {})
@@ -1703,7 +1703,7 @@ func _update_tasks() -> void:
 	# Show active crafts first (with progress bars)
 	var active_for_this_node = _get_active_crafts_for_node(current_node.id)
 	if not active_for_this_node.is_empty():
-		var active_label = Label.new()
+		var active_label: Label = Label.new()
 		active_label.text = "  🔨 Active Crafting:"
 		active_label.add_theme_font_size_override("font_size", 12)
 		active_label.add_theme_color_override("font_color", Color(0.9, 0.8, 0.5))
@@ -1714,12 +1714,12 @@ func _update_tasks() -> void:
 			_tasks_container.add_child(progress_card)
 
 		# Spacer after active crafts
-		var active_spacer = Control.new()
+		var active_spacer: Control = Control.new()
 		active_spacer.custom_minimum_size = Vector2(0, 8)
 		_tasks_container.add_child(active_spacer)
 
 	if _available_tasks.is_empty():
-		var no_tasks_label = Label.new()
+		var no_tasks_label: Label = Label.new()
 		no_tasks_label.text = "  No recipes available for this tier"
 		no_tasks_label.add_theme_font_size_override("font_size", 11)
 		no_tasks_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
@@ -1727,14 +1727,14 @@ func _update_tasks() -> void:
 		return
 
 	# Show recipe count and Craft button
-	var info_label = Label.new()
+	var info_label: Label = Label.new()
 	info_label.text = "  %d recipes available" % _available_tasks.size()
 	info_label.add_theme_font_size_override("font_size", 11)
 	info_label.add_theme_color_override("font_color", Color(0.8, 0.85, 0.7))
 	_tasks_container.add_child(info_label)
 
 	# Spacer
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.custom_minimum_size = Vector2(0, 4)
 	_tasks_container.add_child(spacer)
 
@@ -1751,10 +1751,10 @@ func _get_active_crafts_for_node(node_id: String) -> Array:
 
 func _create_craft_progress_card(craft_data: Dictionary) -> PanelContainer:
 	"""Create a progress card for an active craft"""
-	var card = PanelContainer.new()
+	var card: PanelContainer = PanelContainer.new()
 	card.custom_minimum_size = Vector2(0, 60)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.18, 0.22, 0.18, 0.95)
 	style.border_color = Color(0.4, 0.6, 0.4, 0.9)
 	style.set_border_width_all(1)
@@ -1765,20 +1765,20 @@ func _create_craft_progress_card(craft_data: Dictionary) -> PanelContainer:
 	style.content_margin_bottom = 6
 	card.add_theme_stylebox_override("panel", style)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 4)
 	card.add_child(vbox)
 
 	# Task name
 	var task_data = craft_data.get("task_data", {})
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = "⚒️ " + task_data.get("name", "Crafting...")
 	name_label.add_theme_font_size_override("font_size", 12)
 	name_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.8))
 	vbox.add_child(name_label)
 
 	# Progress bar
-	var current_time = int(Time.get_unix_time_from_system())
+	var current_time: int = int(Time.get_unix_time_from_system())
 	var start_time = craft_data.get("start_time", current_time)
 	var end_time = craft_data.get("end_time", current_time + 60)
 	var total_duration = end_time - start_time
@@ -1786,25 +1786,25 @@ func _create_craft_progress_card(craft_data: Dictionary) -> PanelContainer:
 	var progress = clampf(float(elapsed) / float(total_duration), 0.0, 1.0)
 	var remaining = maxi(0, end_time - current_time)
 
-	var progress_bar = ProgressBar.new()
+	var progress_bar: ProgressBar = ProgressBar.new()
 	progress_bar.custom_minimum_size = Vector2(0, 16)
 	progress_bar.value = progress * 100.0
 	progress_bar.show_percentage = false
 
 	# Style the progress bar
-	var bar_bg = StyleBoxFlat.new()
+	var bar_bg: StyleBoxFlat = StyleBoxFlat.new()
 	bar_bg.bg_color = Color(0.15, 0.15, 0.2, 1)
 	bar_bg.set_corner_radius_all(4)
 	progress_bar.add_theme_stylebox_override("background", bar_bg)
 
-	var bar_fill = StyleBoxFlat.new()
+	var bar_fill: StyleBoxFlat = StyleBoxFlat.new()
 	bar_fill.bg_color = Color(0.4, 0.7, 0.4, 1) if progress < 1.0 else Color(0.3, 0.9, 0.3, 1)
 	bar_fill.set_corner_radius_all(4)
 	progress_bar.add_theme_stylebox_override("fill", bar_fill)
 	vbox.add_child(progress_bar)
 
 	# Time remaining or complete
-	var time_label = Label.new()
+	var time_label: Label = Label.new()
 	if progress >= 1.0:
 		time_label.text = "✓ Complete! Tap to collect"
 		time_label.add_theme_color_override("font_color", Color(0.4, 0.9, 0.4))
@@ -1816,7 +1816,7 @@ func _create_craft_progress_card(craft_data: Dictionary) -> PanelContainer:
 
 	# Make the card clickable if complete
 	if progress >= 1.0:
-		var btn = Button.new()
+		var btn: Button = Button.new()
 		btn.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		btn.flat = true
 		btn.pressed.connect(_on_craft_complete_clicked.bind(craft_data))
@@ -1874,10 +1874,10 @@ func _show_craft_collected_feedback(task_data: Dictionary) -> void:
 	"""Show feedback when a craft is collected"""
 	var task_name = task_data.get("name", "Item")
 
-	var feedback = PanelContainer.new()
+	var feedback: PanelContainer = PanelContainer.new()
 	feedback.z_index = 150
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.25, 0.45, 0.3, 0.95)
 	style.border_color = Color(0.4, 0.8, 0.5, 1)
 	style.set_border_width_all(2)
@@ -1888,7 +1888,7 @@ func _show_craft_collected_feedback(task_data: Dictionary) -> void:
 	style.content_margin_bottom = 12
 	feedback.add_theme_stylebox_override("panel", style)
 
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = "✓ Crafted: %s" % task_name
 	label.add_theme_font_size_override("font_size", 16)
 	label.add_theme_color_override("font_color", Color(0.9, 1.0, 0.9))
@@ -2012,7 +2012,7 @@ func _format_costs_with_check(costs: Dictionary) -> String:
 	var parts: Array = []
 	for resource_id in costs.keys():
 		var needed = costs[resource_id]
-		var have = 0
+		var have: int = 0
 		if resource_manager:
 			have = resource_manager.player_resources.get(resource_id, 0)
 		var name = resource_id.replace("_", " ").capitalize()
@@ -2059,7 +2059,7 @@ func _format_task_rewards(task: Dictionary) -> String:
 			var chance = item.get("chance", 1.0)
 
 			# Add rarity indicator for equipment
-			var rarity_prefix = ""
+			var rarity_prefix: String = ""
 			match rarity:
 				"common":
 					rarity_prefix = "⚪ "
@@ -2113,7 +2113,7 @@ func _on_start_craft(task: Dictionary, auto_repeat_check = null) -> void:
 		return
 
 	# Check if auto-repeat is enabled
-	var auto_repeat = false
+	var auto_repeat: bool = false
 	if auto_repeat_check and auto_repeat_check is CheckButton:
 		auto_repeat = auto_repeat_check.button_pressed
 
@@ -2130,7 +2130,7 @@ func _on_start_craft(task: Dictionary, auto_repeat_check = null) -> void:
 
 
 	# Track the craft using shared tracker in HexGridManager
-	var craft_started = false
+	var craft_started: bool = false
 	if hex_grid_manager:
 		craft_started = hex_grid_manager.start_craft(current_node.id, task_id, task, auto_repeat)
 
@@ -2155,10 +2155,10 @@ func _on_start_craft(task: Dictionary, auto_repeat_check = null) -> void:
 
 func _show_craft_error_feedback(message: String) -> void:
 	"""Show error feedback when craft cannot start"""
-	var feedback = PanelContainer.new()
+	var feedback: PanelContainer = PanelContainer.new()
 	feedback.z_index = 150
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.4, 0.15, 0.15, 0.95)
 	style.border_color = Color(0.8, 0.3, 0.3, 1)
 	style.set_border_width_all(2)
@@ -2169,7 +2169,7 @@ func _show_craft_error_feedback(message: String) -> void:
 	style.content_margin_bottom = 12
 	feedback.add_theme_stylebox_override("panel", style)
 
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = "❌ " + message
 	label.add_theme_font_size_override("font_size", 12)
 	label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.8))
@@ -2191,10 +2191,10 @@ func _show_craft_started_feedback(task: Dictionary) -> void:
 	var duration_text = _format_duration(duration)
 
 	# Create floating feedback panel
-	var feedback = PanelContainer.new()
+	var feedback: PanelContainer = PanelContainer.new()
 	feedback.z_index = 150
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.2, 0.4, 0.3, 0.95)
 	style.border_color = Color(0.4, 0.7, 0.5, 1)
 	style.set_border_width_all(2)
@@ -2205,25 +2205,25 @@ func _show_craft_started_feedback(task: Dictionary) -> void:
 	style.content_margin_bottom = 10
 	feedback.add_theme_stylebox_override("panel", style)
 
-	var content = VBoxContainer.new()
+	var content: VBoxContainer = VBoxContainer.new()
 	content.add_theme_constant_override("separation", 4)
 	feedback.add_child(content)
 
-	var title_label = Label.new()
+	var title_label: Label = Label.new()
 	title_label.text = "⚒️ Crafting Started!"
 	title_label.add_theme_font_size_override("font_size", 16)
 	title_label.add_theme_color_override("font_color", Color(0.9, 1.0, 0.9))
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	content.add_child(title_label)
 
-	var task_label = Label.new()
+	var task_label: Label = Label.new()
 	task_label.text = task_name
 	task_label.add_theme_font_size_override("font_size", 14)
 	task_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.7))
 	task_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	content.add_child(task_label)
 
-	var time_label = Label.new()
+	var time_label: Label = Label.new()
 	time_label.text = "Completes in: %s" % duration_text
 	time_label.add_theme_font_size_override("font_size", 12)
 	time_label.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9))

@@ -194,7 +194,7 @@ func _expand_panel():
 		_create_expanded_panel()
 
 	# Position panel just below the resource bar
-	var panel_height = 300  # Height of expanded content (scrollable)
+	var panel_height: int = 300  # Height of expanded content (scrollable)
 	expanded_panel.position = Vector2(0, size.y)
 	expanded_panel.size = Vector2(size.x, 0)
 	expanded_panel.visible = true
@@ -240,7 +240,7 @@ func _create_expanded_panel():
 	expanded_panel.clip_contents = true
 
 	# Dark panel styling
-	var panel_style = StyleBoxFlat.new()
+	var panel_style: StyleBoxFlat = StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.12, 0.12, 0.16, 0.98)
 	panel_style.border_color = Color(0.3, 0.3, 0.4, 1.0)
 	panel_style.set_border_width_all(1)
@@ -250,7 +250,7 @@ func _create_expanded_panel():
 	expanded_panel.add_theme_stylebox_override("panel", panel_style)
 
 	# Content container with margins
-	var margin = MarginContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 12)
 	margin.add_theme_constant_override("margin_right", 12)
 	margin.add_theme_constant_override("margin_top", 8)
@@ -258,13 +258,13 @@ func _create_expanded_panel():
 	expanded_panel.add_child(margin)
 
 	# ScrollContainer for all content
-	var scroll = ScrollContainer.new()
+	var scroll: ScrollContainer = ScrollContainer.new()
 	scroll.name = "ResourceScroll"
 	scroll.custom_minimum_size = Vector2(0, 260)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	margin.add_child(scroll)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.name = "ResourceContent"
 	vbox.add_theme_constant_override("separation", 10)
 	scroll.add_child(vbox)
@@ -391,7 +391,7 @@ static func _get_resource_metadata() -> Dictionary:
 
 func _create_resource_grid(columns: int) -> GridContainer:
 	"""Create a grid for displaying resources"""
-	var grid = GridContainer.new()
+	var grid: GridContainer = GridContainer.new()
 	grid.columns = columns
 	grid.add_theme_constant_override("h_separation", 16)
 	grid.add_theme_constant_override("v_separation", 6)
@@ -403,42 +403,42 @@ func _add_resource_to_grid(grid: GridContainer, resource_id: String, data: Dicti
 	var amount = data.get("amount", 0)
 
 	# Use a Button as the base for tap detection
-	var item_btn = Button.new()
+	var item_btn: Button = Button.new()
 	item_btn.flat = true
 	item_btn.mouse_filter = Control.MOUSE_FILTER_STOP
 	item_btn.custom_minimum_size = Vector2(120, 24)
 
 	# Style the button
-	var btn_style = StyleBoxFlat.new()
+	var btn_style: StyleBoxFlat = StyleBoxFlat.new()
 	btn_style.bg_color = Color(0.15, 0.15, 0.2, 0.0)
 	btn_style.set_corner_radius_all(4)
 	item_btn.add_theme_stylebox_override("normal", btn_style)
 
-	var btn_hover = StyleBoxFlat.new()
+	var btn_hover: StyleBoxFlat = StyleBoxFlat.new()
 	btn_hover.bg_color = Color(0.25, 0.25, 0.35, 0.5)
 	btn_hover.set_corner_radius_all(4)
 	item_btn.add_theme_stylebox_override("hover", btn_hover)
 
-	var btn_pressed = StyleBoxFlat.new()
+	var btn_pressed: StyleBoxFlat = StyleBoxFlat.new()
 	btn_pressed.bg_color = Color(0.3, 0.3, 0.4, 0.6)
 	btn_pressed.set_corner_radius_all(4)
 	item_btn.add_theme_stylebox_override("pressed", btn_pressed)
 
 	# Content inside button
-	var item = HBoxContainer.new()
+	var item: HBoxContainer = HBoxContainer.new()
 	item.add_theme_constant_override("separation", 4)
 	item.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	item_btn.add_child(item)
 
 	# Icon
-	var icon_label = Label.new()
+	var icon_label: Label = Label.new()
 	icon_label.text = info.get("icon", "📦")
 	icon_label.add_theme_font_size_override("font_size", 12)
 	icon_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	item.add_child(icon_label)
 
 	# Name and amount
-	var text_label = Label.new()
+	var text_label: Label = Label.new()
 	text_label.name = "Resource_%s" % resource_id
 	text_label.text = "%s: %s" % [info.get("name", resource_id), _format_amount(amount)]
 	text_label.add_theme_font_size_override("font_size", 11)
@@ -465,7 +465,7 @@ func _show_resource_description(res_name: String, description: String):
 	_description_popup.z_index = 200
 
 	# Style
-	var popup_style = StyleBoxFlat.new()
+	var popup_style: StyleBoxFlat = StyleBoxFlat.new()
 	popup_style.bg_color = Color(0.1, 0.1, 0.15, 0.95)
 	popup_style.border_color = Color(0.5, 0.5, 0.6, 1.0)
 	popup_style.set_border_width_all(2)
@@ -477,19 +477,19 @@ func _show_resource_description(res_name: String, description: String):
 	_description_popup.add_theme_stylebox_override("panel", popup_style)
 
 	# Content
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 4)
 	_description_popup.add_child(vbox)
 
 	# Title
-	var title = Label.new()
+	var title: Label = Label.new()
 	title.text = res_name
 	title.add_theme_font_size_override("font_size", 14)
 	title.add_theme_color_override("font_color", Color.GOLD)
 	vbox.add_child(title)
 
 	# Description
-	var desc_label = Label.new()
+	var desc_label: Label = Label.new()
 	desc_label.text = description
 	desc_label.add_theme_font_size_override("font_size", 11)
 	desc_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.85))
@@ -498,7 +498,7 @@ func _show_resource_description(res_name: String, description: String):
 	vbox.add_child(desc_label)
 
 	# Tap to close hint
-	var hint = Label.new()
+	var hint: Label = Label.new()
 	hint.text = "(tap anywhere to close)"
 	hint.add_theme_font_size_override("font_size", 9)
 	hint.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
@@ -509,7 +509,7 @@ func _show_resource_description(res_name: String, description: String):
 	add_child(_description_popup)
 	await get_tree().process_frame
 
-	var viewport_size = get_viewport().get_visible_rect().size
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	_description_popup.position = Vector2(
 		(viewport_size.x - _description_popup.size.x) / 2,
 		(viewport_size.y - _description_popup.size.y) / 2 - 50
@@ -543,7 +543,7 @@ func _format_amount(amount) -> String:
 
 func _create_section_header(text: String) -> Label:
 	"""Create a styled section header label"""
-	var header = Label.new()
+	var header: Label = Label.new()
 	header.text = text
 	header.add_theme_font_size_override("font_size", 11)
 	header.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
@@ -625,8 +625,8 @@ func _update_player_level_display():
 	if not player_level_label:
 		return
 
-	var player_level = 1
-	var player_xp = 0
+	var player_level: int = 1
+	var player_xp: int = 0
 
 	# Get experience from ResourceManager instead of PlayerData
 	var resource_mgr = _get_system_registry().get_system("ResourceManager") if _get_system_registry() else null
@@ -696,7 +696,7 @@ func _get_total_materials_count() -> int:
 	if not resource_mgr:
 		return 0
 
-	var total = 0
+	var total: int = 0
 	# Count all crafting-relevant materials (T1-T4 raw and processed)
 	var material_types = [
 		# T1 Raw

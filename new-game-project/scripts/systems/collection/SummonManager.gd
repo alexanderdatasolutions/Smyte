@@ -44,7 +44,7 @@ func get_config() -> Dictionary:
 
 func summon_basic() -> bool:
 	var config = get_config()
-	var cost = {"mana": 10000}
+	var cost: Dictionary = {"mana": 10000}
 	if config.has("summon_configuration"):
 		var costs = config.summon_configuration.get("costs", {}).get("premium_summons", {})
 		if costs.has("mana_summon"):
@@ -53,7 +53,7 @@ func summon_basic() -> bool:
 
 func summon_premium() -> bool:
 	var config = get_config()
-	var cost = {"divine_crystals": 100}
+	var cost: Dictionary = {"divine_crystals": 100}
 	if config.has("summon_configuration"):
 		var costs = config.summon_configuration.get("costs", {}).get("premium_summons", {})
 		if costs.has("divine_crystals_summon"):
@@ -71,15 +71,15 @@ func summon_free_daily() -> bool:
 	return _perform_summon({}, "common_soul", "default")
 
 func summon_with_soul(soul_type: String) -> bool:
-	var cost = {soul_type: 1}
-	var banner_type = "element" if soul_type.ends_with("_soul") and not soul_type.begins_with("common") and not soul_type.begins_with("rare") and not soul_type.begins_with("epic") and not soul_type.begins_with("legendary") else "default"
+	var cost: Dictionary = {soul_type: 1}
+	var banner_type: String = "element" if soul_type.ends_with("_soul") and not soul_type.begins_with("common") and not soul_type.begins_with("rare") and not soul_type.begins_with("epic") and not soul_type.begins_with("legendary") else "default"
 	return _perform_summon(cost, soul_type, banner_type)
 
 func summon_premium_with_powder(powder_element: String) -> bool:
 	"""Summon with divine crystals + element powder (150 crystals + 10 powder per summon_config.json)"""
 	var config = get_config()
-	var crystal_cost = 150  # Per summon_config.json element_summon base_cost
-	var powder_cost = 10    # Per summon_config.json element_summon powder_cost
+	var crystal_cost: int = 150  # Per summon_config.json element_summon base_cost
+	var powder_cost: int = 10    # Per summon_config.json element_summon powder_cost
 	var powder_id = powder_element + "_powder"
 
 	# Try to load from summon_types config
@@ -90,14 +90,14 @@ func summon_premium_with_powder(powder_element: String) -> bool:
 		if element_summon.has("powder_cost"):
 			powder_cost = element_summon.powder_cost
 
-	var cost = {"divine_crystals": crystal_cost, powder_id: powder_cost}
+	var cost: Dictionary = {"divine_crystals": crystal_cost, powder_id: powder_cost}
 	return _perform_summon(cost, "divine_crystals", "element", "", powder_element)
 
 func summon_with_pantheon_token(pantheon: String) -> bool:
 	"""Summon with divine crystals + pantheon token (150 crystals + 1 token per summon_config.json)"""
 	var config = get_config()
-	var crystal_cost = 150  # Per summon_config.json pantheon_summon base_cost
-	var token_cost = 1      # Per summon_config.json pantheon_summon token_cost
+	var crystal_cost: int = 150  # Per summon_config.json pantheon_summon base_cost
+	var token_cost: int = 1      # Per summon_config.json pantheon_summon token_cost
 	var token_id = pantheon + "_token"
 
 	# Try to load from summon_types config
@@ -108,7 +108,7 @@ func summon_with_pantheon_token(pantheon: String) -> bool:
 		if pantheon_summon.has("token_cost"):
 			token_cost = pantheon_summon.token_cost
 
-	var cost = {"divine_crystals": crystal_cost, token_id: token_cost}
+	var cost: Dictionary = {"divine_crystals": crystal_cost, token_id: token_cost}
 	return _perform_summon(cost, "divine_crystals", "pantheon", "", "", pantheon)
 
 # CORE SUMMON LOGIC
@@ -184,7 +184,7 @@ func _get_random_god(summon_type: String, banner_type: String, element_filter: S
 
 func _get_summon_rates(summon_type: String) -> Dictionary:
 	var config = get_config()
-	var default_rates = {"common": 70.0, "rare": 25.0, "epic": 4.5, "legendary": 0.5}
+	var default_rates: Dictionary = {"common": 70.0, "rare": 25.0, "epic": 4.5, "legendary": 0.5}
 	if not config.has("summon_configuration"):
 		return default_rates
 	var rates_section = config.summon_configuration.get("rates", {})
@@ -227,8 +227,8 @@ func _apply_pity_system(rates: Dictionary, banner_type: String) -> Dictionary:
 	return modified_rates
 
 func _get_random_tier(rates: Dictionary) -> String:
-	var random_value = randf() * 100.0
-	var cumulative = 0.0
+	var random_value: float = randf() * 100.0
+	var cumulative: float = 0.0
 	for tier in ["legendary", "epic", "rare", "common"]:
 		cumulative += rates.get(tier, 0.0)
 		if random_value <= cumulative:
@@ -333,7 +333,7 @@ func _build_weighted_god_pool(gods: Dictionary, tier_number: int, enabled_panthe
 
 func _get_active_element_favors() -> Array:
 	"""Get list of active element favor buffs from dungeon completions"""
-	var active = []
+	var active: Array = []
 	var save_manager = SystemRegistry.get_instance().get_system("SaveManager") if SystemRegistry.get_instance() else null
 	if not save_manager:
 		return active
@@ -426,7 +426,7 @@ func get_summon_history() -> Array:
 	return summon_history.duplicate()
 
 func get_rarity_stats() -> Dictionary:
-	var stats = {"common": 0, "rare": 0, "epic": 0, "legendary": 0}
+	var stats: Dictionary = {"common": 0, "rare": 0, "epic": 0, "legendary": 0}
 	for entry in summon_history:
 		var tier = entry.get("tier", "common").to_lower()
 		if stats.has(tier):
@@ -460,10 +460,10 @@ func _award_milestone(key: String, data: Dictionary):
 	# Notify via EventBus
 	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
 	if event_bus and event_bus.has_method("emit_notification"):
-		var parts = []
+		var parts: Array = []
 		for r in reward:
 			parts.append("%d %s" % [reward[r], r.replace("_", " ").capitalize()])
-		var count = int(key.split("_")[0]) if "_" in key else 0
+		var count: int = int(key.split("_")[0]) if "_" in key else 0
 		event_bus.emit_notification("Milestone: %d Summons! Reward: %s" % [count, ", ".join(parts)], "milestone", 4.0)
 
 # SPECIAL SUMMON AVAILABILITY
@@ -514,12 +514,12 @@ func _get_next_reset_timestamp(reset_hour: int) -> int:
 
 func multi_summon_premium(count: int = 10) -> bool:
 	var config = get_config()
-	var single_cost = 100
+	var single_cost: int = 100
 	if config.has("summon_configuration"):
 		var multi = config.summon_configuration.get("costs", {}).get("multi_summons", {})
 		if multi.has("premium_pack_10") and multi.premium_pack_10.has("divine_crystals"):
 			single_cost = int(multi.premium_pack_10.divine_crystals / count)
-	var total_cost = {"divine_crystals": int(single_cost * count * 0.9)}
+	var total_cost: Dictionary = {"divine_crystals": int(single_cost * count * 0.9)}
 	return _perform_multi_summon(total_cost, "divine_crystals", "premium", count, single_cost)
 
 func _perform_multi_summon(cost: Dictionary, summon_type: String, banner_type: String, count: int, unit_cost: int) -> bool:
@@ -527,7 +527,7 @@ func _perform_multi_summon(cost: Dictionary, summon_type: String, banner_type: S
 		summon_failed.emit("Cannot afford multi-summon")
 		return false
 	_spend_cost(cost)
-	var summoned_gods = []
+	var summoned_gods: Array = []
 	for i in range(count):
 		var god = _get_random_god(summon_type, banner_type)
 		# Guarantee rare on last pull if none obtained
@@ -538,7 +538,7 @@ func _perform_multi_summon(cost: Dictionary, summon_type: String, banner_type: S
 			_add_god_to_collection(god)
 			_update_pity_counters(God.tier_to_string(god.tier).to_lower(), banner_type)
 			total_summons += 1
-			var entry_cost = {summon_type: unit_cost} if summon_type != "divine_crystals" else {"divine_crystals": int(unit_cost * 0.9)}
+			var entry_cost: Dictionary = {summon_type: unit_cost} if summon_type != "divine_crystals" else {"divine_crystals": int(unit_cost * 0.9)}
 			_add_to_history(god, summon_type, entry_cost)
 	_check_milestone_rewards()
 	multi_summon_completed.emit(summoned_gods)

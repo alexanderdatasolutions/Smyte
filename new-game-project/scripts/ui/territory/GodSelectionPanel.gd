@@ -65,7 +65,7 @@ func _ready() -> void:
 
 func _setup_fullscreen() -> void:
 	"""Setup fullscreen sizing (required when Control is child of Node2D)"""
-	var viewport_size = get_viewport().get_visible_rect().size
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	call_deferred("set_size", viewport_size)
 	position = Vector2.ZERO
@@ -100,7 +100,7 @@ func _build_ui() -> void:
 	add_child(_panel_container)
 
 	# Style the panel
-	var panel_style = StyleBoxFlat.new()
+	var panel_style: StyleBoxFlat = StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.08, 0.08, 0.1, 0.98)
 	panel_style.border_color = Color(0.3, 0.35, 0.4)
 	panel_style.border_width_right = 2
@@ -109,7 +109,7 @@ func _build_ui() -> void:
 	_panel_container.add_theme_stylebox_override("panel", panel_style)
 
 	# Inner margin container
-	var margin = MarginContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 16)
 	margin.add_theme_constant_override("margin_right", 16)
@@ -133,10 +133,10 @@ func _build_ui() -> void:
 
 func _build_header() -> void:
 	"""Build header with title and close button"""
-	var header_panel = Panel.new()
+	var header_panel: Panel = Panel.new()
 	header_panel.custom_minimum_size = Vector2(0, 70)  # Increased for 60x60 close button
 
-	var header_style = StyleBoxFlat.new()
+	var header_style: StyleBoxFlat = StyleBoxFlat.new()
 	header_style.bg_color = Color(0.1, 0.1, 0.14, 0.95)
 	header_style.corner_radius_top_left = 8
 	header_style.corner_radius_top_right = 8
@@ -173,7 +173,7 @@ func _build_header() -> void:
 	_header_container.add_child(_title_label)
 
 	# Spacer to balance the close button
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.custom_minimum_size = Vector2(60, 0)
 	_header_container.add_child(spacer)
 
@@ -195,7 +195,7 @@ func _build_filter_bars() -> void:
 	]
 
 	for option in context_options:
-		var btn = Button.new()
+		var btn: Button = Button.new()
 		btn.text = option.text
 		btn.toggle_mode = true
 		btn.custom_minimum_size = Vector2(70, 36)
@@ -205,12 +205,12 @@ func _build_filter_bars() -> void:
 		_context_filters.add_child(btn)
 
 	# Separator
-	var sep = VSeparator.new()
+	var sep: VSeparator = VSeparator.new()
 	sep.custom_minimum_size = Vector2(8, 0)
 	_filter_bar.add_child(sep)
 
 	# Affinity filter label
-	var affinity_label = Label.new()
+	var affinity_label: Label = Label.new()
 	affinity_label.text = "Element:"
 	affinity_label.add_theme_font_size_override("font_size", 12)
 	affinity_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
@@ -223,7 +223,7 @@ func _build_filter_bars() -> void:
 	_content_container.add_child(_affinity_filters)
 
 	# "All" element filter
-	var all_btn = Button.new()
+	var all_btn: Button = Button.new()
 	all_btn.text = "All"
 	all_btn.toggle_mode = true
 	all_btn.custom_minimum_size = Vector2(40, 32)
@@ -244,7 +244,7 @@ func _build_filter_bars() -> void:
 	}
 
 	for elem in elements:
-		var elem_btn = Button.new()
+		var elem_btn: Button = Button.new()
 		elem_btn.text = element_icons.get(elem, "?")
 		elem_btn.toggle_mode = true
 		elem_btn.custom_minimum_size = Vector2(48, 32)
@@ -263,7 +263,7 @@ func _build_sort_bar() -> void:
 	_content_container.add_child(_sort_bar)
 
 	# Sort label
-	var sort_label = Label.new()
+	var sort_label: Label = Label.new()
 	sort_label.text = "Sort:"
 	sort_label.add_theme_font_size_override("font_size", 12)
 	sort_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
@@ -294,7 +294,7 @@ func _build_sort_bar() -> void:
 func _build_god_grid() -> void:
 	"""Build the embedded god selection grid"""
 	# Create a custom grid view (simpler than embedding GodSelectionGrid)
-	var scroll = ScrollContainer.new()
+	var scroll: ScrollContainer = ScrollContainer.new()
 	scroll.name = "GodScrollContainer"
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -304,7 +304,7 @@ func _build_god_grid() -> void:
 	scroll.mouse_filter = Control.MOUSE_FILTER_STOP
 	_content_container.add_child(scroll)
 
-	var grid = GridContainer.new()
+	var grid: GridContainer = GridContainer.new()
 	grid.name = "GodGrid"
 	grid.columns = 4  # Fit in narrower panel
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -314,14 +314,14 @@ func _build_god_grid() -> void:
 
 func _style_close_button(button: Button) -> void:
 	"""Apply close button styling"""
-	var style_normal = StyleBoxFlat.new()
+	var style_normal: StyleBoxFlat = StyleBoxFlat.new()
 	style_normal.bg_color = Color(0.2, 0.15, 0.15, 0.9)
 	style_normal.border_color = Color(0.5, 0.3, 0.3)
 	style_normal.set_border_width_all(1)
 	style_normal.set_corner_radius_all(8)
 	button.add_theme_stylebox_override("normal", style_normal)
 
-	var style_hover = StyleBoxFlat.new()
+	var style_hover: StyleBoxFlat = StyleBoxFlat.new()
 	style_hover.bg_color = Color(0.35, 0.2, 0.2, 0.95)
 	style_hover.border_color = Color(0.6, 0.4, 0.4)
 	style_hover.set_border_width_all(1)
@@ -334,10 +334,10 @@ func _style_close_button(button: Button) -> void:
 
 func _style_filter_button(button: Button, active: bool) -> void:
 	"""Apply filter button styling"""
-	var bg_color = Color(0.2, 0.3, 0.4, 0.9) if active else Color(0.15, 0.15, 0.2, 0.8)
-	var border_color = Color(0.4, 0.5, 0.6) if active else Color(0.3, 0.3, 0.4)
+	var bg_color: Color = Color(0.2, 0.3, 0.4, 0.9) if active else Color(0.15, 0.15, 0.2, 0.8)
+	var border_color: Color = Color(0.4, 0.5, 0.6) if active else Color(0.3, 0.3, 0.4)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = bg_color
 	style.border_color = border_color
 	style.set_border_width_all(1)
@@ -353,7 +353,7 @@ func _style_element_button(button: Button, element: God.ElementType, active: boo
 	var elem_color = ELEMENT_COLORS.get(element, Color.GRAY)
 	var bg_color = elem_color.darkened(0.4) if active else Color(0.15, 0.15, 0.2, 0.8)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = bg_color
 	style.border_color = elem_color if active else Color(0.3, 0.3, 0.4)
 	style.set_border_width_all(2 if active else 1)
@@ -378,7 +378,7 @@ func _set_context_filter(context: SelectionContext) -> void:
 
 func _update_context_buttons() -> void:
 	"""Update context button pressed states"""
-	var contexts = [SelectionContext.ALL, SelectionContext.WORKER, SelectionContext.GARRISON]
+	var contexts: Array = [SelectionContext.ALL, SelectionContext.WORKER, SelectionContext.GARRISON]
 	var buttons = _context_filters.get_children()
 	for i in range(min(buttons.size(), contexts.size())):
 		if buttons[i] is Button:
@@ -679,7 +679,7 @@ func _calculate_synergy_score(god: God, garrison_gods: Array) -> float:
 
 func _sum_bonus_values(bonuses: Array) -> float:
 	"""Sum up all bonus values from a bonuses array"""
-	var total = 0.0
+	var total: float = 0.0
 	for bonus in bonuses:
 		if bonus.has("bonus"):
 			total += bonus.bonus
@@ -698,7 +698,7 @@ func _on_sort_direction_pressed() -> void:
 
 func _filter_gods(gods: Array) -> Array:
 	"""Apply current filters to god list (assigned gods are shown but grayed out)"""
-	var result = []
+	var result: Array = []
 
 	for god in gods:
 		if not god is God:
@@ -718,7 +718,7 @@ func _filter_gods(gods: Array) -> Array:
 
 func _create_god_card(god: God) -> Control:
 	"""Create a compact god card (80x100px), grayed out if already assigned"""
-	var card = Panel.new()
+	var card: Panel = Panel.new()
 	card.custom_minimum_size = Vector2(80, 100)
 	card.name = "GodCard_" + god.id
 
@@ -734,7 +734,7 @@ func _create_god_card(god: God) -> Control:
 	if is_unavailable:
 		element_color = element_color * 0.4  # Dim the border color
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	if is_unavailable:
 		style.bg_color = Color(0.1, 0.1, 0.12, 0.7)  # Darker background for unavailable
 	else:
@@ -745,7 +745,7 @@ func _create_god_card(god: God) -> Control:
 	card.add_theme_stylebox_override("panel", style)
 
 	# Content layout
-	var margin = MarginContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 4)
 	margin.add_theme_constant_override("margin_right", 4)
@@ -753,12 +753,12 @@ func _create_god_card(god: God) -> Control:
 	margin.add_theme_constant_override("margin_bottom", 4)
 	card.add_child(margin)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 2)
 	margin.add_child(vbox)
 
 	# Portrait (40x40)
-	var portrait_container = CenterContainer.new()
+	var portrait_container: CenterContainer = CenterContainer.new()
 	var portrait = _create_portrait(god)
 	if is_unavailable:
 		portrait.modulate = Color(0.5, 0.5, 0.5, 0.8)  # Dim the portrait
@@ -767,7 +767,7 @@ func _create_god_card(god: God) -> Control:
 
 	# Status indicator badge for unavailable gods
 	if is_unavailable:
-		var status_badge = Label.new()
+		var status_badge: Label = Label.new()
 		if is_stationed_elsewhere:
 			status_badge.text = "STATIONED"
 		elif is_working:
@@ -780,7 +780,7 @@ func _create_god_card(god: God) -> Control:
 		vbox.add_child(status_badge)
 
 	# Name (truncated)
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = _truncate_name(god.name, 10)
 	name_label.add_theme_font_size_override("font_size", 10)
 	if is_unavailable:
@@ -791,12 +791,12 @@ func _create_god_card(god: God) -> Control:
 	vbox.add_child(name_label)
 
 	# Level + Element (compact row)
-	var level_elem_row = HBoxContainer.new()
+	var level_elem_row: HBoxContainer = HBoxContainer.new()
 	level_elem_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	level_elem_row.add_theme_constant_override("separation", 2)
 	vbox.add_child(level_elem_row)
 
-	var level_label = Label.new()
+	var level_label: Label = Label.new()
 	level_label.text = "Lv.%d" % god.level
 	level_label.add_theme_font_size_override("font_size", 9)
 	if is_unavailable:
@@ -806,7 +806,7 @@ func _create_god_card(god: God) -> Control:
 	level_elem_row.add_child(level_label)
 
 	# Element icon
-	var elem_label = Label.new()
+	var elem_label: Label = Label.new()
 	elem_label.text = _get_element_icon(god.element)
 	elem_label.add_theme_font_size_override("font_size", 9)
 	var elem_color = ELEMENT_COLORS.get(god.element, Color.GRAY)
@@ -816,7 +816,7 @@ func _create_god_card(god: God) -> Control:
 	level_elem_row.add_child(elem_label)
 
 	# Invisible tap button
-	var button = Button.new()
+	var button: Button = Button.new()
 	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	button.flat = true
 	button.pressed.connect(_on_god_card_pressed.bind(god))
@@ -826,13 +826,13 @@ func _create_god_card(god: God) -> Control:
 
 func _create_portrait(god: God) -> Control:
 	"""Create god portrait with element-colored placeholder"""
-	var portrait = TextureRect.new()
+	var portrait: TextureRect = TextureRect.new()
 	portrait.custom_minimum_size = Vector2(40, 40)
 	portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
 	var god_template = god.template_id if god.template_id else god.id
-	var sprite_path = "res://assets/gods/" + god_template + ".png"
+	var sprite_path: String = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		portrait.texture = load(sprite_path)
 	else:
@@ -862,7 +862,7 @@ func _get_element_icon(element: God.ElementType) -> String:
 
 func _add_empty_label(parent: Control, message: String) -> void:
 	"""Add empty state label"""
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = message
 	label.add_theme_font_size_override("font_size", 14)
 	label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
@@ -871,7 +871,7 @@ func _add_empty_label(parent: Control, message: String) -> void:
 
 func _add_error_label(parent: Control, message: String) -> void:
 	"""Add error state label"""
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = message
 	label.add_theme_font_size_override("font_size", 12)
 	label.add_theme_color_override("font_color", Color(0.9, 0.5, 0.5))

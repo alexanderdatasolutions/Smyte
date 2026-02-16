@@ -60,7 +60,7 @@ static func show_god_details(god: God, details_content: Control, no_selection_la
 	await details_content.get_tree().process_frame
 
 	# Add content directly to details_content (which is already inside a ScrollContainer)
-	var content = VBoxContainer.new()
+	var content: VBoxContainer = VBoxContainer.new()
 	content.name = "GodDetailsContent"
 	content.add_theme_constant_override("separation", 16)
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -97,18 +97,18 @@ static func show_god_details(god: God, details_content: Control, no_selection_la
 
 static func _create_identity_section(god: God) -> VBoxContainer:
 	"""Create god identity section with image and basic info"""
-	var section = VBoxContainer.new()
+	var section: VBoxContainer = VBoxContainer.new()
 	section.add_theme_constant_override("separation", 8)
 
 	# God Image
-	var image_container = CenterContainer.new()
-	var image_rect = TextureRect.new()
+	var image_container: CenterContainer = CenterContainer.new()
+	var image_rect: TextureRect = TextureRect.new()
 	image_rect.custom_minimum_size = Vector2(180, 180)
 	image_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	image_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 
 	var god_template = god.template_id if god.template_id else god.id
-	var sprite_path = "res://assets/gods/" + god_template + ".png"
+	var sprite_path: String = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		image_rect.texture = load(sprite_path)
 
@@ -116,7 +116,7 @@ static func _create_identity_section(god: God) -> VBoxContainer:
 	section.add_child(image_container)
 
 	# Name with tier color
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = god.get_display_name().to_upper()
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.add_theme_font_size_override("font_size", 20)
@@ -125,7 +125,7 @@ static func _create_identity_section(god: God) -> VBoxContainer:
 
 	# Awakened title if applicable
 	if god.is_awakened and god.awakened_title != "":
-		var title_label = Label.new()
+		var title_label: Label = Label.new()
 		title_label.text = god.awakened_title
 		title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		title_label.add_theme_font_size_override("font_size", 12)
@@ -133,7 +133,7 @@ static func _create_identity_section(god: God) -> VBoxContainer:
 		section.add_child(title_label)
 
 	# Basic info row
-	var info_row = HBoxContainer.new()
+	var info_row: HBoxContainer = HBoxContainer.new()
 	info_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	info_row.add_theme_constant_override("separation", 20)
 
@@ -152,9 +152,9 @@ static func _create_identity_section(god: God) -> VBoxContainer:
 	section.add_child(info_row)
 
 	# Power Rating
-	var power_row = HBoxContainer.new()
+	var power_row: HBoxContainer = HBoxContainer.new()
 	power_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	var power_label = Label.new()
+	var power_label: Label = Label.new()
 	power_label.text = "⚔ Combat Power: %s" % _format_number(GodCalculator.get_power_rating(god))
 	power_label.add_theme_font_size_override("font_size", 14)
 	power_label.add_theme_color_override("font_color", Color.GOLD)
@@ -172,24 +172,24 @@ static func _create_xp_section(god: God) -> VBoxContainer:
 	var remaining_xp = god_exp_calc.get_experience_remaining_to_next_level(god)
 
 	# Level display
-	var level_row = HBoxContainer.new()
+	var level_row: HBoxContainer = HBoxContainer.new()
 	level_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	level_row.add_theme_constant_override("separation", 20)
 
-	var level_label = Label.new()
+	var level_label: Label = Label.new()
 	level_label.text = "Level %d" % god.level
 	level_label.add_theme_font_size_override("font_size", 18)
 	level_label.add_theme_color_override("font_color", COLOR_HEADER)
 	level_row.add_child(level_label)
 
 	if god.level < 40:
-		var xp_label = Label.new()
+		var xp_label: Label = Label.new()
 		xp_label.text = "(%d XP to next)" % remaining_xp
 		xp_label.add_theme_font_size_override("font_size", 12)
 		xp_label.add_theme_color_override("font_color", COLOR_MUTED)
 		level_row.add_child(xp_label)
 	else:
-		var max_label = Label.new()
+		var max_label: Label = Label.new()
 		max_label.text = "MAX LEVEL"
 		max_label.add_theme_font_size_override("font_size", 12)
 		max_label.add_theme_color_override("font_color", Color.GOLD)
@@ -198,23 +198,23 @@ static func _create_xp_section(god: God) -> VBoxContainer:
 	section.add_child(level_row)
 
 	# XP Progress Bar
-	var bar_container = MarginContainer.new()
+	var bar_container: MarginContainer = MarginContainer.new()
 	bar_container.add_theme_constant_override("margin_left", 20)
 	bar_container.add_theme_constant_override("margin_right", 20)
 
-	var xp_bar = ProgressBar.new()
+	var xp_bar: ProgressBar = ProgressBar.new()
 	xp_bar.custom_minimum_size = Vector2(0, 16)
 	xp_bar.min_value = 0.0
 	xp_bar.max_value = 100.0
 	xp_bar.value = progress_percent
 	xp_bar.show_percentage = false
 
-	var bar_style = StyleBoxFlat.new()
+	var bar_style: StyleBoxFlat = StyleBoxFlat.new()
 	bar_style.bg_color = Color(0.3, 0.5, 0.8, 0.9)
 	bar_style.set_corner_radius_all(4)
 	xp_bar.add_theme_stylebox_override("fill", bar_style)
 
-	var bar_bg = StyleBoxFlat.new()
+	var bar_bg: StyleBoxFlat = StyleBoxFlat.new()
 	bar_bg.bg_color = Color(0.1, 0.1, 0.15, 0.8)
 	bar_bg.set_corner_radius_all(4)
 	xp_bar.add_theme_stylebox_override("background", bar_bg)
@@ -224,7 +224,7 @@ static func _create_xp_section(god: God) -> VBoxContainer:
 
 	# Ascension level if applicable
 	if god.ascension_level > 0:
-		var asc_label = Label.new()
+		var asc_label: Label = Label.new()
 		asc_label.text = "✦ Ascension Level: %d (+%d%% all stats)" % [god.ascension_level, god.ascension_level * 5]
 		asc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		asc_label.add_theme_font_size_override("font_size", 11)
@@ -237,7 +237,7 @@ static func _create_assignments_section(god: God) -> VBoxContainer:
 	"""Create current assignments section showing where god is deployed"""
 	var section = _create_section_container("CURRENT ASSIGNMENTS")
 
-	var has_assignment = false
+	var has_assignment: bool = false
 
 	# Check territory assignment
 	if god.stationed_territory != "" and god.stationed_territory != null:
@@ -258,7 +258,7 @@ static func _create_assignments_section(god: God) -> VBoxContainer:
 
 	# No assignments
 	if not has_assignment:
-		var none_label = Label.new()
+		var none_label: Label = Label.new()
 		none_label.text = "No current assignments - available for battle!"
 		none_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		none_label.add_theme_font_size_override("font_size", 11)
@@ -275,7 +275,7 @@ static func _create_stats_breakdown_section(god: God) -> VBoxContainer:
 	var stats_data = _calculate_stat_breakdown(god)
 
 	# Create stat rows with breakdown
-	var stats_grid = VBoxContainer.new()
+	var stats_grid: VBoxContainer = VBoxContainer.new()
 	stats_grid.add_theme_constant_override("separation", 6)
 
 	# Main stats
@@ -285,7 +285,7 @@ static func _create_stats_breakdown_section(god: God) -> VBoxContainer:
 	stats_grid.add_child(_create_stat_row("Speed", stats_data.speed, COLOR_SPD, STAT_EXPLANATIONS.speed, god))
 
 	# Separator
-	var sep = HSeparator.new()
+	var sep: HSeparator = HSeparator.new()
 	sep.add_theme_constant_override("separation", 8)
 	stats_grid.add_child(sep)
 
@@ -302,31 +302,31 @@ static func _create_equipment_section(god: God) -> VBoxContainer:
 	"""Create equipment section with set bonuses"""
 	var section = _create_section_container("EQUIPMENT")
 
-	var slot_names = ["Weapon", "Armor", "Helm", "Boots", "Amulet", "Ring"]
+	var slot_names: Array = ["Weapon", "Armor", "Helm", "Boots", "Amulet", "Ring"]
 
 	# Equipment grid (2 columns)
-	var grid = GridContainer.new()
+	var grid: GridContainer = GridContainer.new()
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 4)
 
 	# Track sets for bonus display
-	var set_counts = {}
-	var equipped_count = 0
+	var set_counts: Dictionary = {}
+	var equipped_count: int = 0
 
 	for i in range(6):
-		var slot_container = HBoxContainer.new()
+		var slot_container: HBoxContainer = HBoxContainer.new()
 		slot_container.add_theme_constant_override("separation", 4)
 		slot_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 		# Slot icon
-		var icon_label = Label.new()
+		var icon_label: Label = Label.new()
 		icon_label.text = _get_slot_icon(i)
 		icon_label.add_theme_font_size_override("font_size", 14)
 		slot_container.add_child(icon_label)
 
 		# Slot name
-		var slot_label = Label.new()
+		var slot_label: Label = Label.new()
 		slot_label.text = slot_names[i] + ":"
 		slot_label.add_theme_font_size_override("font_size", 11)
 		slot_label.add_theme_color_override("font_color", COLOR_MUTED)
@@ -334,7 +334,7 @@ static func _create_equipment_section(god: God) -> VBoxContainer:
 		slot_container.add_child(slot_label)
 
 		# Equipment info
-		var equip_label = Label.new()
+		var equip_label: Label = Label.new()
 		equip_label.add_theme_font_size_override("font_size", 11)
 		equip_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
@@ -359,7 +359,7 @@ static func _create_equipment_section(god: God) -> VBoxContainer:
 	section.add_child(grid)
 
 	# Equipment summary
-	var summary_label = Label.new()
+	var summary_label: Label = Label.new()
 	summary_label.text = "%d/6 slots equipped" % equipped_count
 	summary_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	summary_label.add_theme_font_size_override("font_size", 10)
@@ -368,7 +368,7 @@ static func _create_equipment_section(god: God) -> VBoxContainer:
 
 	# Set Bonuses Section
 	if not set_counts.is_empty():
-		var set_title = Label.new()
+		var set_title: Label = Label.new()
 		set_title.text = "── SET BONUSES ──"
 		set_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		set_title.add_theme_font_size_override("font_size", 11)
@@ -395,7 +395,7 @@ static func _create_abilities_section(god: God) -> VBoxContainer:
 	var ability_ids = god_config.get("ability_ids", [])
 
 	if ability_ids.is_empty():
-		var no_skills = Label.new()
+		var no_skills: Label = Label.new()
 		no_skills.text = "No abilities data available"
 		no_skills.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		no_skills.add_theme_font_size_override("font_size", 11)
@@ -419,10 +419,10 @@ static func _create_abilities_section(god: God) -> VBoxContainer:
 
 static func _create_section_container(title: String) -> VBoxContainer:
 	"""Create a styled section container with title"""
-	var section = VBoxContainer.new()
+	var section: VBoxContainer = VBoxContainer.new()
 	section.add_theme_constant_override("separation", 8)
 
-	var title_label = Label.new()
+	var title_label: Label = Label.new()
 	title_label.text = "══ %s ══" % title
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.add_theme_font_size_override("font_size", 12)
@@ -433,8 +433,8 @@ static func _create_section_container(title: String) -> VBoxContainer:
 
 static func _create_info_chip(text: String, color: Color) -> PanelContainer:
 	"""Create a small info chip/badge"""
-	var panel = PanelContainer.new()
-	var style = StyleBoxFlat.new()
+	var panel: PanelContainer = PanelContainer.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(color.r, color.g, color.b, 0.2)
 	style.border_color = color
 	style.set_border_width_all(1)
@@ -445,7 +445,7 @@ static func _create_info_chip(text: String, color: Color) -> PanelContainer:
 	style.content_margin_bottom = 2
 	panel.add_theme_stylebox_override("panel", style)
 
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = text
 	label.add_theme_font_size_override("font_size", 10)
 	label.add_theme_color_override("font_color", color)
@@ -455,17 +455,17 @@ static func _create_info_chip(text: String, color: Color) -> PanelContainer:
 
 static func _create_assignment_row(type: String, location: String, role: String) -> HBoxContainer:
 	"""Create an assignment info row"""
-	var row = HBoxContainer.new()
+	var row: HBoxContainer = HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 
-	var type_label = Label.new()
+	var type_label: Label = Label.new()
 	type_label.text = type
 	type_label.add_theme_font_size_override("font_size", 11)
 	type_label.add_theme_color_override("font_color", COLOR_INFO)
 	type_label.custom_minimum_size.x = 80
 	row.add_child(type_label)
 
-	var loc_label = Label.new()
+	var loc_label: Label = Label.new()
 	loc_label.text = location
 	loc_label.add_theme_font_size_override("font_size", 11)
 	loc_label.add_theme_color_override("font_color", COLOR_TEXT)
@@ -479,10 +479,10 @@ static func _create_assignment_row(type: String, location: String, role: String)
 
 static func _create_stat_row(stat_name: String, stat_data: Dictionary, color: Color, explanation: String, god: God, is_percent: bool = false) -> PanelContainer:
 	"""Create an interactive stat row with breakdown"""
-	var panel = PanelContainer.new()
+	var panel: PanelContainer = PanelContainer.new()
 	panel.tooltip_text = explanation
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.08, 0.14, 0.6)
 	style.set_corner_radius_all(4)
 	style.content_margin_left = 8
@@ -491,19 +491,19 @@ static func _create_stat_row(stat_name: String, stat_data: Dictionary, color: Co
 	style.content_margin_bottom = 4
 	panel.add_theme_stylebox_override("panel", style)
 
-	var row = HBoxContainer.new()
+	var row: HBoxContainer = HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 
 	# Stat name with color indicator
-	var name_container = HBoxContainer.new()
+	var name_container: HBoxContainer = HBoxContainer.new()
 	name_container.add_theme_constant_override("separation", 4)
 
-	var color_indicator = ColorRect.new()
+	var color_indicator: ColorRect = ColorRect.new()
 	color_indicator.custom_minimum_size = Vector2(4, 16)
 	color_indicator.color = color
 	name_container.add_child(color_indicator)
 
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = stat_name
 	name_label.add_theme_font_size_override("font_size", 11)
 	name_label.add_theme_color_override("font_color", COLOR_TEXT)
@@ -512,24 +512,24 @@ static func _create_stat_row(stat_name: String, stat_data: Dictionary, color: Co
 	row.add_child(name_container)
 
 	# Breakdown (base + level + equip)
-	var breakdown = HBoxContainer.new()
+	var breakdown: HBoxContainer = HBoxContainer.new()
 	breakdown.add_theme_constant_override("separation", 4)
 	breakdown.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	var base_label = Label.new()
+	var base_label: Label = Label.new()
 	base_label.text = str(stat_data.base)
 	base_label.add_theme_font_size_override("font_size", 10)
 	base_label.add_theme_color_override("font_color", COLOR_MUTED)
 	breakdown.add_child(base_label)
 
 	if stat_data.level_bonus > 0:
-		var plus1 = Label.new()
+		var plus1: Label = Label.new()
 		plus1.text = "+"
 		plus1.add_theme_font_size_override("font_size", 10)
 		plus1.add_theme_color_override("font_color", COLOR_MUTED)
 		breakdown.add_child(plus1)
 
-		var level_label = Label.new()
+		var level_label: Label = Label.new()
 		level_label.text = str(stat_data.level_bonus)
 		level_label.add_theme_font_size_override("font_size", 10)
 		level_label.add_theme_color_override("font_color", COLOR_INFO)
@@ -537,13 +537,13 @@ static func _create_stat_row(stat_name: String, stat_data: Dictionary, color: Co
 		breakdown.add_child(level_label)
 
 	if stat_data.equipment_bonus > 0:
-		var plus2 = Label.new()
+		var plus2: Label = Label.new()
 		plus2.text = "+"
 		plus2.add_theme_font_size_override("font_size", 10)
 		plus2.add_theme_color_override("font_color", COLOR_MUTED)
 		breakdown.add_child(plus2)
 
-		var equip_label = Label.new()
+		var equip_label: Label = Label.new()
 		equip_label.text = str(stat_data.equipment_bonus)
 		equip_label.add_theme_font_size_override("font_size", 10)
 		equip_label.add_theme_color_override("font_color", COLOR_SUCCESS)
@@ -553,8 +553,8 @@ static func _create_stat_row(stat_name: String, stat_data: Dictionary, color: Co
 	row.add_child(breakdown)
 
 	# Total value
-	var total_label = Label.new()
-	var suffix = "%" if is_percent else ""
+	var total_label: Label = Label.new()
+	var suffix: String = "%" if is_percent else ""
 	total_label.text = str(stat_data.total) + suffix
 	total_label.add_theme_font_size_override("font_size", 13)
 	total_label.add_theme_color_override("font_color", color)
@@ -563,7 +563,7 @@ static func _create_stat_row(stat_name: String, stat_data: Dictionary, color: Co
 	row.add_child(total_label)
 
 	# Info button
-	var info_btn = Label.new()
+	var info_btn: Label = Label.new()
 	info_btn.text = "ⓘ"
 	info_btn.add_theme_font_size_override("font_size", 12)
 	info_btn.add_theme_color_override("font_color", COLOR_MUTED)
@@ -579,12 +579,12 @@ static func _create_set_bonus_row(set_type: String, count: int, config: Dictiona
 	if set_info.is_empty():
 		return null
 
-	var row = HBoxContainer.new()
+	var row: HBoxContainer = HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 
 	# Set name with count
-	var set_color = Color(set_info.get("color", "#FFFFFF"))
-	var name_label = Label.new()
+	var set_color: Color = Color(set_info.get("color", "#FFFFFF"))
+	var name_label: Label = Label.new()
 	name_label.text = "%s (%d)" % [set_info.get("name", set_type.capitalize()), count]
 	name_label.add_theme_font_size_override("font_size", 11)
 	name_label.add_theme_color_override("font_color", set_color)
@@ -592,16 +592,16 @@ static func _create_set_bonus_row(set_type: String, count: int, config: Dictiona
 	row.add_child(name_label)
 
 	# Show active bonuses
-	var bonuses_container = VBoxContainer.new()
+	var bonuses_container: VBoxContainer = VBoxContainer.new()
 	var bonuses = set_info.get("bonuses", {})
 
 	for threshold in ["2", "4", "6"]:
 		if bonuses.has(threshold):
 			var bonus_data = bonuses[threshold]
-			var threshold_int = int(threshold)
+			var threshold_int: int = int(threshold)
 			var is_active = count >= threshold_int
 
-			var bonus_label = Label.new()
+			var bonus_label: Label = Label.new()
 			bonus_label.text = "%s-pc: %s" % [threshold, bonus_data.get("description", "Bonus")]
 			bonus_label.add_theme_font_size_override("font_size", 9)
 			bonus_label.add_theme_color_override("font_color", COLOR_SUCCESS if is_active else COLOR_MUTED)
@@ -612,8 +612,8 @@ static func _create_set_bonus_row(set_type: String, count: int, config: Dictiona
 
 static func _create_ability_panel(ability_data: Dictionary, ability_id: String, skill_level: int, slot_num: int) -> PanelContainer:
 	"""Create a detailed ability panel"""
-	var panel = PanelContainer.new()
-	var style = StyleBoxFlat.new()
+	var panel: PanelContainer = PanelContainer.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.08, 0.14, 0.7)
 	style.border_color = Color(0.25, 0.2, 0.35, 0.8)
 	style.set_border_width_all(1)
@@ -624,22 +624,22 @@ static func _create_ability_panel(ability_data: Dictionary, ability_id: String, 
 	style.content_margin_bottom = 8
 	panel.add_theme_stylebox_override("panel", style)
 
-	var content = VBoxContainer.new()
+	var content: VBoxContainer = VBoxContainer.new()
 	content.add_theme_constant_override("separation", 4)
 
 	# Header row: Slot number, Name, Level, Cooldown
-	var header = HBoxContainer.new()
+	var header: HBoxContainer = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 8)
 
 	# Slot indicator
-	var slot_label = Label.new()
+	var slot_label: Label = Label.new()
 	slot_label.text = "S%d" % slot_num
 	slot_label.add_theme_font_size_override("font_size", 10)
 	slot_label.add_theme_color_override("font_color", COLOR_MUTED)
 	header.add_child(slot_label)
 
 	# Ability name
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = ability_data.get("name", ability_id.capitalize().replace("_", " "))
 	name_label.add_theme_font_size_override("font_size", 12)
 	name_label.add_theme_color_override("font_color", Color.YELLOW)
@@ -652,7 +652,7 @@ static func _create_ability_panel(ability_data: Dictionary, ability_id: String, 
 
 	# Cooldown
 	var cooldown = ability_data.get("cooldown", 0)
-	var cd_label = Label.new()
+	var cd_label: Label = Label.new()
 	cd_label.text = "CD: %d" % cooldown if cooldown > 0 else "No CD"
 	cd_label.add_theme_font_size_override("font_size", 10)
 	cd_label.add_theme_color_override("font_color", Color(0.8, 0.6, 0.4) if cooldown > 0 else COLOR_SUCCESS)
@@ -661,7 +661,7 @@ static func _create_ability_panel(ability_data: Dictionary, ability_id: String, 
 	content.add_child(header)
 
 	# Stats row: Damage, Scaling, Targets
-	var stats_row = HBoxContainer.new()
+	var stats_row: HBoxContainer = HBoxContainer.new()
 	stats_row.add_theme_constant_override("separation", 16)
 
 	var dmg_mult = ability_data.get("damage_multiplier", 0)
@@ -670,16 +670,16 @@ static func _create_ability_panel(ability_data: Dictionary, ability_id: String, 
 	var hits = ability_data.get("hits", 1)
 
 	if dmg_mult > 0:
-		var dmg_container = HBoxContainer.new()
+		var dmg_container: HBoxContainer = HBoxContainer.new()
 		dmg_container.add_theme_constant_override("separation", 4)
 
-		var dmg_icon = Label.new()
+		var dmg_icon: Label = Label.new()
 		dmg_icon.text = "⚔"
 		dmg_icon.add_theme_font_size_override("font_size", 11)
 		dmg_container.add_child(dmg_icon)
 
-		var dmg_text = Label.new()
-		var dmg_str = "%.0f%% %s" % [dmg_mult * 100, scaling]
+		var dmg_text: Label = Label.new()
+		var dmg_str: String = "%.0f%% %s" % [dmg_mult * 100, scaling]
 		if hits > 1:
 			dmg_str += " x%d" % hits
 		dmg_text.text = dmg_str
@@ -690,15 +690,15 @@ static func _create_ability_panel(ability_data: Dictionary, ability_id: String, 
 		stats_row.add_child(dmg_container)
 
 	# Target type
-	var target_container = HBoxContainer.new()
+	var target_container: HBoxContainer = HBoxContainer.new()
 	target_container.add_theme_constant_override("separation", 4)
 
-	var target_icon = Label.new()
+	var target_icon: Label = Label.new()
 	target_icon.text = "🎯"
 	target_icon.add_theme_font_size_override("font_size", 11)
 	target_container.add_child(target_icon)
 
-	var target_text = Label.new()
+	var target_text: Label = Label.new()
 	target_text.text = _format_target_type(targets)
 	target_text.add_theme_font_size_override("font_size", 10)
 	target_text.add_theme_color_override("font_color", COLOR_INFO)
@@ -709,7 +709,7 @@ static func _create_ability_panel(ability_data: Dictionary, ability_id: String, 
 
 	# Description
 	var desc = ability_data.get("description", "No description available")
-	var desc_label = Label.new()
+	var desc_label: Label = Label.new()
 	desc_label.text = desc
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_label.add_theme_font_size_override("font_size", 10)
@@ -720,7 +720,7 @@ static func _create_ability_panel(ability_data: Dictionary, ability_id: String, 
 	var effects = ability_data.get("effects", [])
 	for effect in effects:
 		if effect.get("type") == "debuff":
-			var effect_label = Label.new()
+			var effect_label: Label = Label.new()
 			var debuff_name = effect.get("debuff", "effect").capitalize()
 			var chance = effect.get("chance", 100)
 			var duration = effect.get("duration", 1)
@@ -738,7 +738,7 @@ static func _create_ability_panel(ability_data: Dictionary, ability_id: String, 
 
 static func _calculate_stat_breakdown(god: God) -> Dictionary:
 	"""Calculate breakdown for all stats showing base, level bonus, equipment bonus, total"""
-	var breakdown = {}
+	var breakdown: Dictionary = {}
 
 	# HP
 	var hp_base = god.base_hp
@@ -788,7 +788,7 @@ static func _calculate_stat_breakdown(god: God) -> Dictionary:
 
 static func _get_equipment_stat_bonus(god: God, stat_type: String) -> int:
 	"""Get total equipment bonus for a stat"""
-	var total = 0
+	var total: int = 0
 	for equipment in god.equipment:
 		if equipment and equipment is Equipment:
 			if equipment.main_stat_type.to_lower() == stat_type.to_lower():
@@ -842,7 +842,7 @@ static func _load_abilities_data() -> Dictionary:
 	if not file:
 		return {}
 
-	var json = JSON.new()
+	var json: JSON = JSON.new()
 	if json.parse(file.get_as_text()) == OK:
 		var data = json.get_data()
 		if data.has("abilities"):
@@ -861,7 +861,7 @@ static func _load_god_config(god_id: String) -> Dictionary:
 	if not file:
 		return {}
 
-	var json = JSON.new()
+	var json: JSON = JSON.new()
 	if json.parse(file.get_as_text()) == OK:
 		var data = json.get_data()
 		if data.has("gods") and data.gods.has(god_id):
@@ -881,7 +881,7 @@ static func _load_equipment_set_config() -> Dictionary:
 	if not file:
 		return {}
 
-	var json = JSON.new()
+	var json: JSON = JSON.new()
 	if json.parse(file.get_as_text()) == OK:
 		_cached_set_config = json.get_data()
 	file.close()

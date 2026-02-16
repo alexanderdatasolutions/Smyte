@@ -77,7 +77,7 @@ func _process(delta: float) -> void:
 		return
 
 	# Check shared tracker for active crafts
-	var has_active = false
+	var has_active: bool = false
 	if hex_grid_manager:
 		has_active = not hex_grid_manager.get_active_crafts().is_empty()
 
@@ -110,7 +110,7 @@ func _init_systems():
 
 func _load_tasks_data() -> void:
 	"""Load crafting recipes from JSON file"""
-	var file_path = "res://data/crafting_recipes.json"
+	var file_path: String = "res://data/crafting_recipes.json"
 	var file = FileAccess.open(file_path, FileAccess.READ)
 	if not file:
 		push_error("TerritoryOverviewScreen: Could not load crafting_recipes.json")
@@ -119,7 +119,7 @@ func _load_tasks_data() -> void:
 	var json_text = file.get_as_text()
 	file.close()
 
-	var json = JSON.new()
+	var json: JSON = JSON.new()
 	var parse_result = json.parse(json_text)
 	if parse_result != OK:
 		push_error("TerritoryOverviewScreen: Failed to parse crafting_recipes.json")
@@ -144,13 +144,13 @@ func _build_ui():
 	clip_contents = true
 
 	# Background
-	var bg = ColorRect.new()
+	var bg: ColorRect = ColorRect.new()
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bg.color = Color(0.08, 0.08, 0.1, 1)
 	add_child(bg)
 
 	# Main layout (offset_top accounts for unified header ~50px)
-	var main = VBoxContainer.new()
+	var main: VBoxContainer = VBoxContainer.new()
 	main.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	main.offset_left = 16
 	main.offset_right = -16
@@ -160,17 +160,17 @@ func _build_ui():
 	add_child(main)
 
 	# Header row
-	var header = HBoxContainer.new()
+	var header: HBoxContainer = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 16)
 	main.add_child(header)
 
-	var title = Label.new()
+	var title: Label = Label.new()
 	title.text = "TERRITORY OVERVIEW"
 	title.add_theme_font_size_override("font_size", 20)
 	title.add_theme_color_override("font_color", Color(0.9, 0.9, 1))
 	header.add_child(title)
 
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
 
@@ -180,7 +180,7 @@ func _build_ui():
 	header.add_child(_summary_label)
 
 	# Production summary section (vertical to prevent horizontal overflow)
-	var prod_section = VBoxContainer.new()
+	var prod_section: VBoxContainer = VBoxContainer.new()
 	prod_section.add_theme_constant_override("separation", 4)
 	main.add_child(prod_section)
 
@@ -204,17 +204,17 @@ func _build_ui():
 	prod_section.add_child(_claim_button)
 
 	# Filter row
-	var filter_row = HBoxContainer.new()
+	var filter_row: HBoxContainer = HBoxContainer.new()
 	filter_row.add_theme_constant_override("separation", 8)
 	main.add_child(filter_row)
 
-	var filter_label = Label.new()
+	var filter_label: Label = Label.new()
 	filter_label.text = "Filter:"
 	filter_label.add_theme_font_size_override("font_size", 12)
 	filter_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
 	filter_row.add_child(filter_label)
 
-	var filter_option = OptionButton.new()
+	var filter_option: OptionButton = OptionButton.new()
 	filter_option.add_item("All", 0)
 	filter_option.add_item("Mines", 1)
 	filter_option.add_item("Forests", 2)
@@ -237,7 +237,7 @@ func _build_ui():
 	_scroll_container.add_child(_node_list)
 
 	# Back button
-	var back_btn = Button.new()
+	var back_btn: Button = Button.new()
 	back_btn.text = "BACK TO MAP"
 	back_btn.custom_minimum_size = Vector2(140, 36)
 	back_btn.pressed.connect(func(): back_pressed.emit())
@@ -245,12 +245,12 @@ func _build_ui():
 	main.add_child(back_btn)
 
 func _style_button(btn: Button, bg_color: Color):
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = bg_color
 	style.set_corner_radius_all(4)
 	btn.add_theme_stylebox_override("normal", style)
 
-	var hover = StyleBoxFlat.new()
+	var hover: StyleBoxFlat = StyleBoxFlat.new()
 	hover.bg_color = bg_color.lightened(0.15)
 	hover.set_corner_radius_all(4)
 	btn.add_theme_stylebox_override("hover", hover)
@@ -283,7 +283,7 @@ func _update_production():
 	if total.is_empty():
 		_production_label.text = "Production: None (assign workers)"
 	else:
-		var parts = []
+		var parts: Array = []
 		for res_id in total:
 			parts.append("%s +%.0f/h" % [_short_name(res_id), total[res_id]])
 		_production_label.text = "Production: " + ", ".join(parts)
@@ -294,14 +294,14 @@ func _update_production():
 		_pending_label.text = "Pending: None"
 		_claim_button.disabled = true
 	else:
-		var parts = []
+		var parts: Array = []
 		for res_id in pending:
 			parts.append("%s: %.0f" % [_short_name(res_id), pending[res_id]])
 		_pending_label.text = "Pending: " + ", ".join(parts)
 		_claim_button.disabled = false
 
 func _get_total_pending() -> Dictionary:
-	var total = {}
+	var total: Dictionary = {}
 	if not territory_manager:
 		return total
 
@@ -370,7 +370,7 @@ func _populate_nodes():
 	var nodes = territory_manager.get_controlled_nodes()
 
 	# Filter
-	var filtered = []
+	var filtered: Array = []
 	for node in nodes:
 		if _filter_type == "" or _matches_filter(node):
 			filtered.append(node)
@@ -386,7 +386,7 @@ func _populate_nodes():
 		_node_list.add_child(_create_node_card(node))
 
 	if filtered.is_empty():
-		var empty = Label.new()
+		var empty: Label = Label.new()
 		empty.text = "No nodes match filter"
 		empty.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
 		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -404,17 +404,17 @@ func _matches_filter(node: HexNode) -> bool:
 # NODE CARD
 # ==============================================================================
 func _create_node_card(node: HexNode) -> Panel:
-	var card = Panel.new()
+	var card: Panel = Panel.new()
 	card.custom_minimum_size = Vector2(0, CARD_HEIGHT)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.12, 0.12, 0.15, 0.95)
 	style.border_color = Color(0.3, 0.35, 0.4)
 	style.set_border_width_all(1)
 	style.set_corner_radius_all(4)
 	card.add_theme_stylebox_override("panel", style)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	vbox.offset_left = 10
 	vbox.offset_right = -10
@@ -424,11 +424,11 @@ func _create_node_card(node: HexNode) -> Panel:
 	card.add_child(vbox)
 
 	# Header: Name + Type + Tier + Power
-	var header = HBoxContainer.new()
+	var header: HBoxContainer = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 8)
 	vbox.add_child(header)
 
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = node.name
 	name_label.add_theme_font_size_override("font_size", 13)
 	name_label.add_theme_color_override("font_color", Color(0.95, 0.95, 1))
@@ -436,13 +436,13 @@ func _create_node_card(node: HexNode) -> Panel:
 
 	header.add_child(_create_type_badge(node.node_type))
 
-	var stars = Label.new()
+	var stars: Label = Label.new()
 	stars.text = "★".repeat(node.tier) if node.tier > 0 else "-"
 	stars.add_theme_font_size_override("font_size", 10)
 	stars.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 	header.add_child(stars)
 
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
 
@@ -451,7 +451,7 @@ func _create_node_card(node: HexNode) -> Panel:
 	header.add_child(_create_power_badge(total_power))
 
 	# Main content row: Garrison | Workers | Production (all horizontal)
-	var content = HBoxContainer.new()
+	var content: HBoxContainer = HBoxContainer.new()
 	content.add_theme_constant_override("separation", 16)
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(content)
@@ -474,7 +474,7 @@ func _create_node_card(node: HexNode) -> Panel:
 	return card
 
 func _calculate_garrison_power(node: HexNode) -> int:
-	var total = 0
+	var total: int = 0
 	for god_id in node.garrison:
 		var god = _get_god(god_id)
 		if god:
@@ -482,7 +482,7 @@ func _calculate_garrison_power(node: HexNode) -> int:
 	return total
 
 func _create_power_badge(power: int) -> Panel:
-	var badge = Panel.new()
+	var badge: Panel = Panel.new()
 	badge.custom_minimum_size = Vector2(70, 20)
 
 	# Color based on power level
@@ -498,12 +498,12 @@ func _create_power_badge(power: int) -> Panel:
 	else:
 		bg_color = Color(0.25, 0.35, 0.5)  # Blue - very strong
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = bg_color
 	style.set_corner_radius_all(3)
 	badge.add_theme_stylebox_override("panel", style)
 
-	var label = Label.new()
+	var label: Label = Label.new()
 	if power == 0:
 		label.text = "⚔ ---"
 	else:
@@ -518,11 +518,11 @@ func _create_power_badge(power: int) -> Panel:
 	return badge
 
 func _create_compact_slot_column(node: HexNode, slot_type: String, count: int, assigned: Array) -> HBoxContainer:
-	var row = HBoxContainer.new()
+	var row: HBoxContainer = HBoxContainer.new()
 	row.add_theme_constant_override("separation", 2)
 
 	# Check if workers can be assigned (garrison power requirement)
-	var can_assign_workers = true
+	var can_assign_workers: bool = true
 	if slot_type == "worker" and territory_manager:
 		can_assign_workers = territory_manager.can_assign_workers(node)
 
@@ -542,14 +542,14 @@ func _create_compact_slot_column(node: HexNode, slot_type: String, count: int, a
 	return row
 
 func _create_mini_slot(node: HexNode, slot_type: String, idx: int, god: God, inactive: bool = false) -> Panel:
-	var slot = Panel.new()
+	var slot: Panel = Panel.new()
 	slot.custom_minimum_size = Vector2(44, 52)
 
 	var border_color = ELEMENT_COLORS.get(god.element, Color.GRAY) if god else Color(0.4, 0.4, 0.4)
 	if inactive:
 		border_color = border_color * 0.5  # Dim the border
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.15, 0.17) if inactive else Color(0.18, 0.18, 0.2)
 	style.border_color = border_color
 	style.set_border_width_all(2)
@@ -568,7 +568,7 @@ func _create_mini_slot(node: HexNode, slot_type: String, idx: int, god: God, ina
 		slot.add_child(portrait)
 
 		# Combined Lv + Power label
-		var info = Label.new()
+		var info: Label = Label.new()
 		var power = GodCalculator.get_power_rating(god)
 		info.text = "L%d %s" % [god.level, _format_power(power)]
 		info.add_theme_font_size_override("font_size", 7)
@@ -584,7 +584,7 @@ func _create_mini_slot(node: HexNode, slot_type: String, idx: int, god: God, ina
 
 		# Add warning indicator for inactive workers
 		if inactive:
-			var warn = Label.new()
+			var warn: Label = Label.new()
 			warn.text = "⚠️"
 			warn.add_theme_font_size_override("font_size", 12)
 			warn.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -592,7 +592,7 @@ func _create_mini_slot(node: HexNode, slot_type: String, idx: int, god: God, ina
 			warn.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 			slot.add_child(warn)
 
-	var btn = Button.new()
+	var btn: Button = Button.new()
 	btn.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	btn.flat = true
 	btn.pressed.connect(func(): filled_slot_tapped.emit(node, slot_type, idx, god))
@@ -601,17 +601,17 @@ func _create_mini_slot(node: HexNode, slot_type: String, idx: int, god: God, ina
 	return slot
 
 func _create_mini_empty_slot(node: HexNode, slot_type: String, idx: int, disabled: bool = false) -> Panel:
-	var slot = Panel.new()
+	var slot: Panel = Panel.new()
 	slot.custom_minimum_size = Vector2(44, 52)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.1, 0.12) if disabled else Color(0.12, 0.12, 0.14)
 	style.border_color = Color(0.2, 0.2, 0.25) if disabled else Color(0.25, 0.25, 0.3)
 	style.set_border_width_all(1)
 	style.set_corner_radius_all(3)
 	slot.add_theme_stylebox_override("panel", style)
 
-	var plus = Label.new()
+	var plus: Label = Label.new()
 	plus.text = "🔒" if disabled else "+"
 	plus.add_theme_font_size_override("font_size", 14 if disabled else 16)
 	plus.add_theme_color_override("font_color", Color(0.3, 0.25, 0.25) if disabled else Color(0.35, 0.35, 0.4))
@@ -622,7 +622,7 @@ func _create_mini_empty_slot(node: HexNode, slot_type: String, idx: int, disable
 
 	# Only add clickable button if not disabled
 	if not disabled:
-		var btn = Button.new()
+		var btn: Button = Button.new()
 		btn.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		btn.flat = true
 		btn.pressed.connect(func(): slot_tapped.emit(node, slot_type, idx))
@@ -631,20 +631,20 @@ func _create_mini_empty_slot(node: HexNode, slot_type: String, idx: int, disable
 	return slot
 
 func _create_production_section(node: HexNode) -> VBoxContainer:
-	var section = VBoxContainer.new()
+	var section: VBoxContainer = VBoxContainer.new()
 	section.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	section.size_flags_stretch_ratio = 0.5  # Share space with crafting section
 	section.add_theme_constant_override("separation", 4)
 
 	# Get hourly production for this node
-	var hourly = {}
+	var hourly: Dictionary = {}
 	if production_manager:
 		hourly = production_manager.get_node_hourly_production(node)
 
 	var accumulated = node.accumulated_resources if node.accumulated_resources else {}
 
 	if hourly.is_empty():
-		var no_prod = Label.new()
+		var no_prod: Label = Label.new()
 		no_prod.text = "No production"
 		no_prod.add_theme_font_size_override("font_size", 10)
 		no_prod.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
@@ -659,17 +659,17 @@ func _create_production_section(node: HexNode) -> VBoxContainer:
 	return section
 
 func _create_resource_bar(res_id: String, hourly_rate: float, accumulated: float) -> Panel:
-	var bar = Panel.new()
+	var bar: Panel = Panel.new()
 	bar.custom_minimum_size = Vector2(0, 18)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.1, 0.12)
 	style.set_corner_radius_all(2)
 	bar.add_theme_stylebox_override("panel", style)
 
 	# Fill based on accumulated (cap visual at 50 units for faster feedback)
 	var fill_pct = clampf(accumulated / 50.0, 0.0, 1.0)
-	var fill = ColorRect.new()
+	var fill: ColorRect = ColorRect.new()
 	fill.color = _get_resource_color(res_id).darkened(0.4)
 	fill.anchor_right = fill_pct
 	fill.anchor_bottom = 1.0
@@ -680,33 +680,33 @@ func _create_resource_bar(res_id: String, hourly_rate: float, accumulated: float
 	bar.add_child(fill)
 
 	# Label overlay
-	var label_container = HBoxContainer.new()
+	var label_container: HBoxContainer = HBoxContainer.new()
 	label_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	label_container.offset_left = 6
 	label_container.offset_right = -6
 	label_container.add_theme_constant_override("separation", 4)
 	bar.add_child(label_container)
 
-	var name_lbl = Label.new()
+	var name_lbl: Label = Label.new()
 	name_lbl.text = _short_name(res_id)
 	name_lbl.add_theme_font_size_override("font_size", 10)
 	name_lbl.add_theme_color_override("font_color", _get_resource_color(res_id))
 	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label_container.add_child(name_lbl)
 
-	var rate_lbl = Label.new()
+	var rate_lbl: Label = Label.new()
 	rate_lbl.text = "+%.0f/h" % hourly_rate
 	rate_lbl.add_theme_font_size_override("font_size", 9)
 	rate_lbl.add_theme_color_override("font_color", Color(0.5, 0.65, 0.5))
 	rate_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label_container.add_child(rate_lbl)
 
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label_container.add_child(spacer)
 
 	if accumulated > 0.1:
-		var acc_lbl = Label.new()
+		var acc_lbl: Label = Label.new()
 		acc_lbl.text = "%.0f" % accumulated
 		acc_lbl.add_theme_font_size_override("font_size", 10)
 		acc_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.7))
@@ -716,15 +716,15 @@ func _create_resource_bar(res_id: String, hourly_rate: float, accumulated: float
 	return bar
 
 func _create_resource_chip(res_id: String, hourly_rate: float, accumulated: float) -> Panel:
-	var chip = Panel.new()
+	var chip: Panel = Panel.new()
 	chip.custom_minimum_size = Vector2(90, 24)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.18, 0.2)
 	style.set_corner_radius_all(3)
 	chip.add_theme_stylebox_override("panel", style)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	vbox.offset_left = 4
 	vbox.offset_right = -4
@@ -734,28 +734,28 @@ func _create_resource_chip(res_id: String, hourly_rate: float, accumulated: floa
 	chip.add_child(vbox)
 
 	# Resource name + rate
-	var top_row = HBoxContainer.new()
+	var top_row: HBoxContainer = HBoxContainer.new()
 	top_row.add_theme_constant_override("separation", 4)
 	vbox.add_child(top_row)
 
-	var name_lbl = Label.new()
+	var name_lbl: Label = Label.new()
 	name_lbl.text = _short_name(res_id)
 	name_lbl.add_theme_font_size_override("font_size", 9)
 	name_lbl.add_theme_color_override("font_color", _get_resource_color(res_id))
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top_row.add_child(name_lbl)
 
-	var rate_lbl = Label.new()
+	var rate_lbl: Label = Label.new()
 	rate_lbl.text = "+%.0f/h" % hourly_rate
 	rate_lbl.add_theme_font_size_override("font_size", 8)
 	rate_lbl.add_theme_color_override("font_color", Color(0.6, 0.75, 0.6))
 	top_row.add_child(rate_lbl)
 
 	# Mini progress bar showing accumulated
-	var progress_container = Panel.new()
+	var progress_container: Panel = Panel.new()
 	progress_container.custom_minimum_size = Vector2(0, 6)
 
-	var prog_style = StyleBoxFlat.new()
+	var prog_style: StyleBoxFlat = StyleBoxFlat.new()
 	prog_style.bg_color = Color(0.1, 0.1, 0.12)
 	prog_style.set_corner_radius_all(2)
 	progress_container.add_theme_stylebox_override("panel", prog_style)
@@ -764,7 +764,7 @@ func _create_resource_chip(res_id: String, hourly_rate: float, accumulated: floa
 	# Fill based on accumulated (cap visual at 100 units for progress)
 	var fill_pct = clampf(accumulated / 100.0, 0.0, 1.0)
 	if accumulated > 0:
-		var fill = ColorRect.new()
+		var fill: ColorRect = ColorRect.new()
 		fill.color = _get_resource_color(res_id).darkened(0.3)
 		fill.anchor_right = fill_pct
 		fill.anchor_bottom = 1.0
@@ -775,7 +775,7 @@ func _create_resource_chip(res_id: String, hourly_rate: float, accumulated: floa
 		progress_container.add_child(fill)
 
 		# Accumulated amount label
-		var acc_lbl = Label.new()
+		var acc_lbl: Label = Label.new()
 		acc_lbl.text = "%.0f" % accumulated
 		acc_lbl.add_theme_font_size_override("font_size", 7)
 		acc_lbl.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
@@ -827,15 +827,15 @@ func _get_resource_color(res_id: String) -> Color:
 		_: return Color(0.7, 0.7, 0.7)
 
 func _create_type_badge(node_type: String) -> Panel:
-	var badge = Panel.new()
+	var badge: Panel = Panel.new()
 	badge.custom_minimum_size = Vector2(60, 18)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = NODE_TYPE_COLORS.get(node_type, Color(0.3, 0.3, 0.35))
 	style.set_corner_radius_all(3)
 	badge.add_theme_stylebox_override("panel", style)
 
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = node_type.capitalize()
 	label.add_theme_font_size_override("font_size", 9)
 	label.add_theme_color_override("font_color", Color.WHITE)
@@ -847,16 +847,16 @@ func _create_type_badge(node_type: String) -> Panel:
 	return badge
 
 func _create_slot_column(node: HexNode, title: String, slot_type: String, count: int, assigned: Array) -> VBoxContainer:
-	var col = VBoxContainer.new()
+	var col: VBoxContainer = VBoxContainer.new()
 	col.add_theme_constant_override("separation", 4)
 
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = title
 	label.add_theme_font_size_override("font_size", 10)
 	label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8))
 	col.add_child(label)
 
-	var slots = HBoxContainer.new()
+	var slots: HBoxContainer = HBoxContainer.new()
 	slots.add_theme_constant_override("separation", SLOT_SPACING)
 	col.add_child(slots)
 
@@ -872,17 +872,17 @@ func _create_slot_column(node: HexNode, title: String, slot_type: String, count:
 	return col
 
 func _create_empty_slot(node: HexNode, slot_type: String, idx: int) -> Panel:
-	var slot = Panel.new()
+	var slot: Panel = Panel.new()
 	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.15, 0.18)
 	style.border_color = Color(0.35, 0.35, 0.4)
 	style.set_border_width_all(1)
 	style.set_corner_radius_all(4)
 	slot.add_theme_stylebox_override("panel", style)
 
-	var plus = Label.new()
+	var plus: Label = Label.new()
 	plus.text = "+"
 	plus.add_theme_font_size_override("font_size", 20)
 	plus.add_theme_color_override("font_color", Color(0.4, 0.4, 0.45))
@@ -891,7 +891,7 @@ func _create_empty_slot(node: HexNode, slot_type: String, idx: int) -> Panel:
 	plus.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	slot.add_child(plus)
 
-	var btn = Button.new()
+	var btn: Button = Button.new()
 	btn.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	btn.flat = true
 	btn.pressed.connect(func(): slot_tapped.emit(node, slot_type, idx))
@@ -900,12 +900,12 @@ func _create_empty_slot(node: HexNode, slot_type: String, idx: int) -> Panel:
 	return slot
 
 func _create_filled_slot(node: HexNode, slot_type: String, idx: int, god: God) -> Panel:
-	var slot = Panel.new()
+	var slot: Panel = Panel.new()
 	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
 
 	var border_color = ELEMENT_COLORS.get(god.element, Color.GRAY) if god else Color(0.4, 0.4, 0.4)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.18, 0.18, 0.2)
 	style.border_color = border_color
 	style.set_border_width_all(2)
@@ -922,7 +922,7 @@ func _create_filled_slot(node: HexNode, slot_type: String, idx: int, god: God) -
 		slot.add_child(portrait)
 
 		# Level label
-		var lv = Label.new()
+		var lv: Label = Label.new()
 		lv.text = "Lv%d" % god.level
 		lv.add_theme_font_size_override("font_size", 8)
 		lv.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
@@ -936,7 +936,7 @@ func _create_filled_slot(node: HexNode, slot_type: String, idx: int, god: God) -
 		slot.add_child(lv)
 
 		# Combat power label
-		var cp = Label.new()
+		var cp: Label = Label.new()
 		var power = GodCalculator.get_power_rating(god)
 		cp.text = _format_power(power)
 		cp.add_theme_font_size_override("font_size", 7)
@@ -950,7 +950,7 @@ func _create_filled_slot(node: HexNode, slot_type: String, idx: int, god: God) -
 		cp.offset_bottom = 0
 		slot.add_child(cp)
 	else:
-		var q = Label.new()
+		var q: Label = Label.new()
 		q.text = "?"
 		q.add_theme_font_size_override("font_size", 18)
 		q.add_theme_color_override("font_color", Color(0.5, 0.4, 0.4))
@@ -959,7 +959,7 @@ func _create_filled_slot(node: HexNode, slot_type: String, idx: int, god: God) -
 		q.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		slot.add_child(q)
 
-	var btn = Button.new()
+	var btn: Button = Button.new()
 	btn.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	btn.flat = true
 	btn.pressed.connect(func(): filled_slot_tapped.emit(node, slot_type, idx, god))
@@ -968,12 +968,12 @@ func _create_filled_slot(node: HexNode, slot_type: String, idx: int, god: God) -
 	return slot
 
 func _create_portrait(god: God) -> TextureRect:
-	var portrait = TextureRect.new()
+	var portrait: TextureRect = TextureRect.new()
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
 	var god_template = god.template_id if god.template_id else god.id
-	var path = "res://assets/gods/%s.png" % god_template
+	var path: String = "res://assets/gods/%s.png" % god_template
 	if ResourceLoader.exists(path):
 		portrait.texture = load(path)
 	else:
@@ -993,7 +993,7 @@ func _get_god(god_id: String) -> God:
 # ==============================================================================
 func _create_crafting_section(node: HexNode) -> HBoxContainer:
 	"""Create crafting section for forge nodes with workers - compact inline"""
-	var section = HBoxContainer.new()
+	var section: HBoxContainer = HBoxContainer.new()
 	section.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	section.size_flags_stretch_ratio = 0.5  # Share space with production section
 	section.add_theme_constant_override("separation", 8)
@@ -1009,7 +1009,7 @@ func _create_crafting_section(node: HexNode) -> HBoxContainer:
 	var available_tasks = _get_available_tasks_for_forge(node.tier)
 
 	# Open Crafting button - compact
-	var craft_btn = Button.new()
+	var craft_btn: Button = Button.new()
 	craft_btn.text = "⚒️ (%d)" % available_tasks.size()
 	craft_btn.custom_minimum_size = Vector2(60, 24)
 	craft_btn.pressed.connect(_on_open_crafting.bind(node))
@@ -1026,11 +1026,11 @@ func _get_active_crafts_for_node(node_id: String) -> Array:
 
 func _create_craft_progress_card(craft_data: Dictionary) -> PanelContainer:
 	"""Create a compact inline progress card for an active craft"""
-	var card = PanelContainer.new()
+	var card: PanelContainer = PanelContainer.new()
 	card.custom_minimum_size = Vector2(100, 24)  # Compact inline size
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	var current_time = int(Time.get_unix_time_from_system())
+	var current_time: int = int(Time.get_unix_time_from_system())
 	var start_time = craft_data.get("start_time", current_time)
 	var end_time = craft_data.get("end_time", current_time + 60)
 	var total_duration = end_time - start_time
@@ -1040,7 +1040,7 @@ func _create_craft_progress_card(craft_data: Dictionary) -> PanelContainer:
 
 	var is_complete = progress >= 1.0
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.18, 0.22, 0.18, 0.95) if not is_complete else Color(0.2, 0.35, 0.2, 0.95)
 	style.border_color = Color(0.4, 0.6, 0.4, 0.9) if not is_complete else Color(0.4, 0.8, 0.4, 1)
 	style.set_border_width_all(1)
@@ -1052,7 +1052,7 @@ func _create_craft_progress_card(craft_data: Dictionary) -> PanelContainer:
 	card.add_theme_stylebox_override("panel", style)
 
 	# Single line with progress bar background
-	var hbox = HBoxContainer.new()
+	var hbox: HBoxContainer = HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 6)
 	card.add_child(hbox)
 
@@ -1063,14 +1063,14 @@ func _create_craft_progress_card(craft_data: Dictionary) -> PanelContainer:
 	if task_name.length() > 12:
 		task_name = task_name.substr(0, 10) + ".."
 
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = "⚒️" + task_name
 	name_label.add_theme_font_size_override("font_size", 9)
 	name_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.8))
 	hbox.add_child(name_label)
 
 	# Time remaining (compact)
-	var time_label = Label.new()
+	var time_label: Label = Label.new()
 	if is_complete:
 		time_label.text = "✓"
 		time_label.add_theme_color_override("font_color", Color(0.4, 0.9, 0.4))
@@ -1082,7 +1082,7 @@ func _create_craft_progress_card(craft_data: Dictionary) -> PanelContainer:
 
 	# Make clickable if complete
 	if is_complete:
-		var btn = Button.new()
+		var btn: Button = Button.new()
 		btn.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		btn.flat = true
 		btn.pressed.connect(_on_craft_complete_clicked.bind(craft_data))
@@ -1134,7 +1134,7 @@ func _show_craft_popup(node: HexNode) -> void:
 	if _craft_popup and is_instance_valid(_craft_popup):
 		_craft_popup.queue_free()
 
-	var viewport_size = get_viewport().get_visible_rect().size
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	var available_tasks = _get_available_tasks_for_forge(node.tier)
 
 	# Create popup
@@ -1145,7 +1145,7 @@ func _show_craft_popup(node: HexNode) -> void:
 	_craft_popup.size = viewport_size
 
 	# Dark background
-	var bg_overlay = ColorRect.new()
+	var bg_overlay: ColorRect = ColorRect.new()
 	bg_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg_overlay.size = viewport_size
 	bg_overlay.color = Color(0, 0, 0, 0.7)
@@ -1153,7 +1153,7 @@ func _show_craft_popup(node: HexNode) -> void:
 	_craft_popup.add_child(bg_overlay)
 
 	# Panel
-	var popup_panel = PanelContainer.new()
+	var popup_panel: PanelContainer = PanelContainer.new()
 	var panel_width = viewport_size.x * 0.85
 	var panel_height = viewport_size.y * 0.75
 	popup_panel.custom_minimum_size = Vector2(panel_width, panel_height)
@@ -1163,7 +1163,7 @@ func _show_craft_popup(node: HexNode) -> void:
 		(viewport_size.y - panel_height) / 2
 	)
 
-	var panel_style = StyleBoxFlat.new()
+	var panel_style: StyleBoxFlat = StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.12, 0.1, 0.15, 0.98)
 	panel_style.border_color = Color(0.6, 0.45, 0.3, 1)
 	panel_style.set_border_width_all(3)
@@ -1176,27 +1176,27 @@ func _show_craft_popup(node: HexNode) -> void:
 	_craft_popup.add_child(popup_panel)
 
 	# Content
-	var content = VBoxContainer.new()
+	var content: VBoxContainer = VBoxContainer.new()
 	content.add_theme_constant_override("separation", 10)
 	popup_panel.add_child(content)
 
 	# Header
-	var header = HBoxContainer.new()
+	var header: HBoxContainer = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 10)
 	content.add_child(header)
 
-	var title = Label.new()
+	var title: Label = Label.new()
 	title.text = "⚒️ %s FORGE RECIPES" % node.name.to_upper()
 	title.add_theme_font_size_override("font_size", 18)
 	title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.6))
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 
-	var close_btn = Button.new()
+	var close_btn: Button = Button.new()
 	close_btn.text = "✕"
 	close_btn.custom_minimum_size = Vector2(40, 40)
 	close_btn.pressed.connect(_close_craft_popup)
-	var close_style = StyleBoxFlat.new()
+	var close_style: StyleBoxFlat = StyleBoxFlat.new()
 	close_style.bg_color = Color(0.5, 0.2, 0.2, 0.9)
 	close_style.set_corner_radius_all(6)
 	close_btn.add_theme_stylebox_override("normal", close_style)
@@ -1204,18 +1204,18 @@ func _show_craft_popup(node: HexNode) -> void:
 	header.add_child(close_btn)
 
 	# Tier info
-	var tier_label = Label.new()
+	var tier_label: Label = Label.new()
 	tier_label.text = "Tier %d Forge - %d recipes unlocked" % [node.tier, available_tasks.size()]
 	tier_label.add_theme_font_size_override("font_size", 12)
 	tier_label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8))
 	content.add_child(tier_label)
 
 	# Separator
-	var sep = HSeparator.new()
+	var sep: HSeparator = HSeparator.new()
 	content.add_child(sep)
 
 	# Scroll container
-	var scroll = ScrollContainer.new()
+	var scroll: ScrollContainer = ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	content.add_child(scroll)
@@ -1287,7 +1287,7 @@ func _on_start_craft(task: Dictionary, node: HexNode) -> void:
 
 
 	# Track the craft using shared tracker
-	var craft_started = false
+	var craft_started: bool = false
 	if hex_grid_manager:
 		craft_started = hex_grid_manager.start_craft(node.id, task_id, task)
 
@@ -1304,10 +1304,10 @@ func _on_start_craft(task: Dictionary, node: HexNode) -> void:
 
 func _show_craft_error_feedback(message: String) -> void:
 	"""Show error feedback when craft cannot start"""
-	var feedback = PanelContainer.new()
+	var feedback: PanelContainer = PanelContainer.new()
 	feedback.z_index = 150
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.4, 0.15, 0.15, 0.95)
 	style.border_color = Color(0.8, 0.3, 0.3, 1)
 	style.set_border_width_all(2)
@@ -1318,7 +1318,7 @@ func _show_craft_error_feedback(message: String) -> void:
 	style.content_margin_bottom = 12
 	feedback.add_theme_stylebox_override("panel", style)
 
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = "❌ " + message
 	label.add_theme_font_size_override("font_size", 12)
 	label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.8))
@@ -1380,10 +1380,10 @@ func _show_craft_started_feedback(task: Dictionary) -> void:
 	var duration = task.get("base_duration_seconds", 0)
 	var duration_text = CraftingUIUtils.format_duration(duration)
 
-	var feedback = PanelContainer.new()
+	var feedback: PanelContainer = PanelContainer.new()
 	feedback.z_index = 150
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.2, 0.4, 0.3, 0.95)
 	style.border_color = Color(0.4, 0.7, 0.5, 1)
 	style.set_border_width_all(2)
@@ -1394,25 +1394,25 @@ func _show_craft_started_feedback(task: Dictionary) -> void:
 	style.content_margin_bottom = 10
 	feedback.add_theme_stylebox_override("panel", style)
 
-	var content = VBoxContainer.new()
+	var content: VBoxContainer = VBoxContainer.new()
 	content.add_theme_constant_override("separation", 4)
 	feedback.add_child(content)
 
-	var title_label = Label.new()
+	var title_label: Label = Label.new()
 	title_label.text = "⚒️ Crafting Started!"
 	title_label.add_theme_font_size_override("font_size", 16)
 	title_label.add_theme_color_override("font_color", Color(0.9, 1.0, 0.9))
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	content.add_child(title_label)
 
-	var task_label = Label.new()
+	var task_label: Label = Label.new()
 	task_label.text = task_name
 	task_label.add_theme_font_size_override("font_size", 14)
 	task_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.7))
 	task_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	content.add_child(task_label)
 
-	var time_label = Label.new()
+	var time_label: Label = Label.new()
 	time_label.text = "Completes in: %s" % duration_text
 	time_label.add_theme_font_size_override("font_size", 12)
 	time_label.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9))
@@ -1439,10 +1439,10 @@ func _show_craft_collected_feedback(task_data: Dictionary) -> void:
 	"""Show feedback when a craft is collected"""
 	var task_name = task_data.get("name", "Item")
 
-	var feedback = PanelContainer.new()
+	var feedback: PanelContainer = PanelContainer.new()
 	feedback.z_index = 150
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.25, 0.45, 0.3, 0.95)
 	style.border_color = Color(0.4, 0.8, 0.5, 1)
 	style.set_border_width_all(2)
@@ -1453,7 +1453,7 @@ func _show_craft_collected_feedback(task_data: Dictionary) -> void:
 	style.content_margin_bottom = 12
 	feedback.add_theme_stylebox_override("panel", style)
 
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = "✓ Crafted: %s" % task_name
 	label.add_theme_font_size_override("font_size", 16)
 	label.add_theme_color_override("font_color", Color(0.9, 1.0, 0.9))
@@ -1493,7 +1493,7 @@ func _on_claim_all():
 	if not production_manager or not territory_manager:
 		return
 
-	var total = {}
+	var total: Dictionary = {}
 	for node in territory_manager.get_controlled_nodes():
 		if not node:
 			continue

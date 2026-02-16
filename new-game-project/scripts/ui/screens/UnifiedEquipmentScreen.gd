@@ -70,7 +70,7 @@ func _ready():
 
 func _setup_fullscreen():
 	"""Make this control fill the entire viewport (needed when parent is Node2D)"""
-	var viewport_size = get_viewport().get_visible_rect().size
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	set_size(viewport_size)
 	position = Vector2.ZERO
@@ -110,7 +110,7 @@ func _build_ui():
 	# Background is now in the .tscn file - no need to create programmatically
 
 	# Main horizontal layout - fills screen below header using anchors
-	var main_hbox = HBoxContainer.new()
+	var main_hbox: HBoxContainer = HBoxContainer.new()
 	main_hbox.name = "MainHBox"
 	# Use anchors like other working screens
 	main_hbox.anchor_left = 0.0
@@ -136,31 +136,31 @@ func _build_ui():
 	main_hbox.add_child(right_panel)
 
 func _create_left_panel() -> PanelContainer:
-	var panel = PanelContainer.new()
+	var panel: PanelContainer = PanelContainer.new()
 	panel.custom_minimum_size = Vector2(290, 0)  # Slightly narrower
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_style_panel(panel)
 
-	var margin = MarginContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 10)
 	margin.add_theme_constant_override("margin_right", 10)
 	margin.add_theme_constant_override("margin_top", 8)
 	margin.add_theme_constant_override("margin_bottom", 8)
 	panel.add_child(margin)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 6)  # Tighter spacing
 	margin.add_child(vbox)
 
 	# God portrait and info row (compact - no header needed)
-	var portrait_row = HBoxContainer.new()
+	var portrait_row: HBoxContainer = HBoxContainer.new()
 	portrait_row.add_theme_constant_override("separation", 10)
 	vbox.add_child(portrait_row)
 
 	# Portrait container - smaller
-	var portrait_panel = PanelContainer.new()
+	var portrait_panel: PanelContainer = PanelContainer.new()
 	portrait_panel.custom_minimum_size = Vector2(65, 65)
-	var portrait_style = StyleBoxFlat.new()
+	var portrait_style: StyleBoxFlat = StyleBoxFlat.new()
 	portrait_style.bg_color = Color(0.1, 0.08, 0.14)
 	portrait_style.border_color = COLOR_PANEL_BORDER
 	portrait_style.set_border_width_all(2)
@@ -175,7 +175,7 @@ func _create_left_panel() -> PanelContainer:
 	portrait_panel.add_child(god_portrait)
 
 	# God name/info + stats combined
-	var info_vbox = VBoxContainer.new()
+	var info_vbox: VBoxContainer = VBoxContainer.new()
 	info_vbox.add_theme_constant_override("separation", 2)
 	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	portrait_row.add_child(info_vbox)
@@ -197,12 +197,12 @@ func _create_left_panel() -> PanelContainer:
 	info_vbox.add_child(stats_grid)
 
 	# Thin separator
-	var sep1 = HSeparator.new()
+	var sep1: HSeparator = HSeparator.new()
 	sep1.add_theme_constant_override("separation", 4)
 	vbox.add_child(sep1)
 
 	# Equipment slots section - compact header
-	var equip_header = Label.new()
+	var equip_header: Label = Label.new()
 	equip_header.text = "EQUIPMENT"
 	equip_header.add_theme_font_size_override("font_size", 11)
 	equip_header.add_theme_color_override("font_color", COLOR_MUTED)
@@ -212,19 +212,19 @@ func _create_left_panel() -> PanelContainer:
 	vbox.add_child(equipment_slots_grid)
 
 	# Thin separator
-	var sep2 = HSeparator.new()
+	var sep2: HSeparator = HSeparator.new()
 	sep2.add_theme_constant_override("separation", 4)
 	vbox.add_child(sep2)
 
 	# Set bonuses section
-	var set_header = Label.new()
+	var set_header: Label = Label.new()
 	set_header.text = "SET BONUSES"
 	set_header.add_theme_font_size_override("font_size", 11)
 	set_header.add_theme_color_override("font_color", COLOR_MUTED)
 	vbox.add_child(set_header)
 
 	# Set bonus in a scroll container to handle overflow
-	var set_scroll = ScrollContainer.new()
+	var set_scroll: ScrollContainer = ScrollContainer.new()
 	set_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	set_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	vbox.add_child(set_scroll)
@@ -237,20 +237,20 @@ func _create_left_panel() -> PanelContainer:
 	return panel
 
 func _create_stats_grid() -> GridContainer:
-	var grid = GridContainer.new()
+	var grid: GridContainer = GridContainer.new()
 	grid.columns = 6  # 3 stat pairs per row (HP ATK DEF / SPD CR CD)
 	grid.add_theme_constant_override("h_separation", 4)
 	grid.add_theme_constant_override("v_separation", 2)
 
-	var stats = ["HP", "ATK", "DEF", "SPD", "CR", "CD"]
+	var stats: Array = ["HP", "ATK", "DEF", "SPD", "CR", "CD"]
 	for stat in stats:
-		var label = Label.new()
+		var label: Label = Label.new()
 		label.text = stat + ":"
 		label.add_theme_font_size_override("font_size", 10)
 		label.add_theme_color_override("font_color", COLOR_MUTED)
 		grid.add_child(label)
 
-		var value = Label.new()
+		var value: Label = Label.new()
 		value.name = stat + "Value"
 		value.text = "-"
 		value.add_theme_font_size_override("font_size", 10)
@@ -261,12 +261,12 @@ func _create_stats_grid() -> GridContainer:
 	return grid
 
 func _create_equipment_slots() -> GridContainer:
-	var grid = GridContainer.new()
+	var grid: GridContainer = GridContainer.new()
 	grid.columns = 3
 	grid.add_theme_constant_override("h_separation", 6)
 	grid.add_theme_constant_override("v_separation", 6)
 
-	var slot_names = ["Weapon", "Armor", "Helm", "Boots", "Amulet", "Ring"]
+	var slot_names: Array = ["Weapon", "Armor", "Helm", "Boots", "Amulet", "Ring"]
 
 	for i in range(6):
 		var slot = _create_equipment_slot(i, slot_names[i])
@@ -275,25 +275,25 @@ func _create_equipment_slots() -> GridContainer:
 	return grid
 
 func _create_equipment_slot(slot_index: int, slot_name: String) -> Control:
-	var container = PanelContainer.new()
+	var container: PanelContainer = PanelContainer.new()
 	container.custom_minimum_size = Vector2(85, 80)  # Taller for icon
 	container.name = "Slot" + str(slot_index)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.12, 0.2, 0.9)
 	style.border_color = COLOR_PANEL_BORDER
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(6)
 	container.add_theme_stylebox_override("panel", style)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.name = "SlotVBox"
 	vbox.add_theme_constant_override("separation", 1)
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	container.add_child(vbox)
 
 	# Slot name at top
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = slot_name
 	name_label.name = "SlotName"
 	name_label.add_theme_font_size_override("font_size", 9)
@@ -302,12 +302,12 @@ func _create_equipment_slot(slot_index: int, slot_name: String) -> Control:
 	vbox.add_child(name_label)
 
 	# Equipment icon in center
-	var icon_container = CenterContainer.new()
+	var icon_container: CenterContainer = CenterContainer.new()
 	icon_container.name = "IconContainer"  # Name it so we can find it later
 	icon_container.custom_minimum_size = Vector2(32, 32)
 	vbox.add_child(icon_container)
 
-	var icon = TextureRect.new()
+	var icon: TextureRect = TextureRect.new()
 	icon.name = "EquipIcon"
 	icon.custom_minimum_size = Vector2(30, 30)
 	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
@@ -315,7 +315,7 @@ func _create_equipment_slot(slot_index: int, slot_name: String) -> Control:
 	icon_container.add_child(icon)
 
 	# Status/name label at bottom
-	var status_label = Label.new()
+	var status_label: Label = Label.new()
 	status_label.text = "Empty"
 	status_label.name = "Status"
 	status_label.add_theme_font_size_override("font_size", 8)
@@ -324,7 +324,7 @@ func _create_equipment_slot(slot_index: int, slot_name: String) -> Control:
 	vbox.add_child(status_label)
 
 	# Click button overlay
-	var btn = Button.new()
+	var btn: Button = Button.new()
 	btn.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	btn.flat = true
 	btn.pressed.connect(_on_equipment_slot_clicked.bind(slot_index))
@@ -333,10 +333,10 @@ func _create_equipment_slot(slot_index: int, slot_name: String) -> Control:
 	return container
 
 func _create_right_panel() -> PanelContainer:
-	var panel = PanelContainer.new()
+	var panel: PanelContainer = PanelContainer.new()
 	_style_panel(panel)
 
-	var margin = MarginContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 15)
 	margin.add_theme_constant_override("margin_right", 15)
 	margin.add_theme_constant_override("margin_top", 15)
@@ -345,7 +345,7 @@ func _create_right_panel() -> PanelContainer:
 	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	panel.add_child(margin)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -366,15 +366,15 @@ func _create_right_panel() -> PanelContainer:
 	return panel
 
 func _create_god_selector_section() -> Control:
-	var section = VBoxContainer.new()
+	var section: VBoxContainer = VBoxContainer.new()
 	section.add_theme_constant_override("separation", 10)
 
 	# Header with sorting
-	var header_row = HBoxContainer.new()
+	var header_row: HBoxContainer = HBoxContainer.new()
 	header_row.add_theme_constant_override("separation", 12)
 	section.add_child(header_row)
 
-	var title = Label.new()
+	var title: Label = Label.new()
 	title.text = "SELECT GOD"
 	title.add_theme_font_size_override("font_size", 16)
 	title.add_theme_color_override("font_color", COLOR_HEADER)
@@ -395,7 +395,7 @@ func _create_god_selector_section() -> Control:
 	header_row.add_child(god_sort_btn)
 
 	# Sort direction
-	var sort_dir_btn = Button.new()
+	var sort_dir_btn: Button = Button.new()
 	sort_dir_btn.text = "▼"
 	sort_dir_btn.name = "GodSortDir"
 	sort_dir_btn.custom_minimum_size = Vector2(32, 0)
@@ -419,16 +419,16 @@ func _create_god_selector_section() -> Control:
 	return section
 
 func _create_inventory_section() -> Control:
-	var section = VBoxContainer.new()
+	var section: VBoxContainer = VBoxContainer.new()
 	section.add_theme_constant_override("separation", 10)
 	section.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
 	# Header with sorting
-	var header_row = HBoxContainer.new()
+	var header_row: HBoxContainer = HBoxContainer.new()
 	header_row.add_theme_constant_override("separation", 12)
 	section.add_child(header_row)
 
-	var title = Label.new()
+	var title: Label = Label.new()
 	title.text = "EQUIPMENT INVENTORY"
 	title.add_theme_font_size_override("font_size", 16)
 	title.add_theme_color_override("font_color", COLOR_HEADER)
@@ -475,7 +475,7 @@ func _create_inventory_section() -> Control:
 # ==============================================================================
 
 func _style_panel(panel: PanelContainer):
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = COLOR_PANEL_BG
 	style.border_color = COLOR_PANEL_BORDER
 	style.set_border_width_all(1)
@@ -483,7 +483,7 @@ func _style_panel(panel: PanelContainer):
 	panel.add_theme_stylebox_override("panel", style)
 
 func _style_option_button(btn: OptionButton):
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.12, 0.2, 0.9)
 	style.border_color = COLOR_PANEL_BORDER
 	style.set_border_width_all(1)
@@ -492,7 +492,7 @@ func _style_option_button(btn: OptionButton):
 	btn.add_theme_font_size_override("font_size", 12)
 
 func _style_small_button(btn: Button):
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.12, 0.2, 0.9)
 	style.border_color = COLOR_PANEL_BORDER
 	style.set_border_width_all(1)
@@ -505,7 +505,7 @@ func _style_small_button(btn: Button):
 	btn.add_theme_font_size_override("font_size", 12)
 
 func _create_separator() -> HSeparator:
-	var sep = HSeparator.new()
+	var sep: HSeparator = HSeparator.new()
 	sep.add_theme_constant_override("separation", 10)
 	return sep
 
@@ -548,9 +548,9 @@ func _populate_god_selector():
 
 	# 2-row layout: Create VBox columns with 2 cards each
 	# Pair gods: [0,1], [2,3], [4,5]... for 2 rows per column
-	var i = 0
+	var i: int = 0
 	while i < all_gods.size():
-		var column = VBoxContainer.new()
+		var column: VBoxContainer = VBoxContainer.new()
 		column.add_theme_constant_override("separation", 8)
 		god_selector_grid.add_child(column)
 
@@ -567,7 +567,7 @@ func _populate_god_selector():
 
 func _create_god_card(god: God) -> Control:
 	# Use GodCard component for proper portraits
-	var card = GodCardScript.new()
+	var card: GodCardScript = GodCardScript.new()
 	card.card_size = GodCardScript.CardSize.SMALL
 	card.show_experience_bar = false
 	card.show_power_rating = false
@@ -584,7 +584,7 @@ func _create_god_card(god: God) -> Control:
 
 	# Add selection styling
 	if is_selected:
-		var style = StyleBoxFlat.new()
+		var style: StyleBoxFlat = StyleBoxFlat.new()
 		style.bg_color = Color(0.2, 0.35, 0.25, 0.95)
 		style.border_color = COLOR_SUCCESS
 		style.set_border_width_all(3)
@@ -592,7 +592,7 @@ func _create_god_card(god: God) -> Control:
 		card.add_theme_stylebox_override("panel", style)
 
 	# Click handler
-	var btn = Button.new()
+	var btn: Button = Button.new()
 	btn.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	btn.flat = true
 	btn.pressed.connect(_on_god_selected.bind(god))
@@ -633,7 +633,7 @@ func _refresh_inventory():
 	# Update filter hint
 	if filter_hint_label:
 		if selected_slot >= 0:
-			var slot_names = ["Weapon", "Armor", "Helm", "Boots", "Amulet", "Ring"]
+			var slot_names: Array = ["Weapon", "Armor", "Helm", "Boots", "Amulet", "Ring"]
 			filter_hint_label.text = "Showing: " + slot_names[selected_slot]
 			filter_hint_label.add_theme_color_override("font_color", COLOR_SUCCESS)
 		else:
@@ -666,35 +666,35 @@ func _get_slot_for_type(type) -> int:
 		_: return -1
 
 func _create_equipment_card(equipment: Equipment) -> Control:
-	var card = PanelContainer.new()
+	var card: PanelContainer = PanelContainer.new()
 	card.custom_minimum_size = Vector2(130, 140)  # Taller for icon
 
 	var rarity_color = _get_rarity_color(equipment.rarity)
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(rarity_color.r * 0.2, rarity_color.g * 0.2, rarity_color.b * 0.2, 0.9)
 	style.border_color = rarity_color
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(8)
 	card.add_theme_stylebox_override("panel", style)
 
-	var margin = MarginContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 6)
 	margin.add_theme_constant_override("margin_right", 6)
 	margin.add_theme_constant_override("margin_top", 6)
 	margin.add_theme_constant_override("margin_bottom", 6)
 	card.add_child(margin)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 3)
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	margin.add_child(vbox)
 
 	# Equipment icon
-	var icon_container = CenterContainer.new()
+	var icon_container: CenterContainer = CenterContainer.new()
 	icon_container.custom_minimum_size = Vector2(50, 50)
 	vbox.add_child(icon_container)
 
-	var icon = TextureRect.new()
+	var icon: TextureRect = TextureRect.new()
 	icon.custom_minimum_size = Vector2(48, 48)
 	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -702,7 +702,7 @@ func _create_equipment_card(equipment: Equipment) -> Control:
 	icon_container.add_child(icon)
 
 	# Equipment name
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	var display_name = equipment.name if equipment.name.length() <= 14 else equipment.name.substr(0, 12) + ".."
 	name_label.text = display_name
 	name_label.add_theme_font_size_override("font_size", 11)
@@ -712,7 +712,7 @@ func _create_equipment_card(equipment: Equipment) -> Control:
 
 	# Main stat
 	if equipment.main_stat_type != "":
-		var stat_label = Label.new()
+		var stat_label: Label = Label.new()
 		stat_label.text = "%s +%d" % [_get_stat_abbrev(equipment.main_stat_type), equipment.main_stat_value]
 		stat_label.add_theme_font_size_override("font_size", 12)
 		stat_label.add_theme_color_override("font_color", Color.GOLD)
@@ -721,7 +721,7 @@ func _create_equipment_card(equipment: Equipment) -> Control:
 
 	# Level if enhanced
 	if equipment.enhancement_level > 0:
-		var lvl_label = Label.new()
+		var lvl_label: Label = Label.new()
 		lvl_label.text = "+%d" % equipment.enhancement_level
 		lvl_label.add_theme_font_size_override("font_size", 10)
 		lvl_label.add_theme_color_override("font_color", COLOR_SUCCESS)
@@ -729,7 +729,7 @@ func _create_equipment_card(equipment: Equipment) -> Control:
 		vbox.add_child(lvl_label)
 
 	# Click to equip
-	var btn = Button.new()
+	var btn: Button = Button.new()
 	btn.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	btn.flat = true
 	btn.pressed.connect(_on_equipment_clicked.bind(equipment))
@@ -767,7 +767,7 @@ func _get_stat_abbrev(stat: String) -> String:
 
 func _load_equipment_texture(equipment: Equipment) -> Texture2D:
 	"""Load equipment icon texture - tries multiple path patterns"""
-	var base_path = "res://assets/equipment/"
+	var base_path: String = "res://assets/equipment/"
 	var type_str = Equipment.type_to_string(equipment.type)
 
 	# Try patterns in order of specificity:
@@ -775,7 +775,7 @@ func _load_equipment_texture(equipment: Equipment) -> Texture2D:
 	# 2. Generic type-based: iron_sword.png, swift_boots.png
 	# 3. Type only: weapon.png
 
-	var paths_to_try = []
+	var paths_to_try: Array = []
 
 	# Pattern 1: set_type + type (e.g., weapon_guardian_weapon.png)
 	if equipment.equipment_set_type != "":
@@ -820,7 +820,7 @@ func _refresh_god_display():
 
 	# Load portrait - use template_id like GodCard does
 	var god_template = selected_god.template_id if selected_god.template_id else selected_god.id
-	var sprite_path = "res://assets/gods/" + god_template + ".png"
+	var sprite_path: String = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		god_portrait.texture = load(sprite_path)
 	else:
@@ -837,7 +837,7 @@ func _refresh_god_display():
 	_refresh_set_bonuses()
 
 func _clear_stats():
-	var stat_names = ["HP", "ATK", "DEF", "SPD", "CR", "CD"]
+	var stat_names: Array = ["HP", "ATK", "DEF", "SPD", "CR", "CD"]
 	for stat in stat_names:
 		var val = stats_grid.get_node_or_null(stat + "Value")
 		if val:
@@ -848,7 +848,7 @@ func _update_stats_display():
 		return
 
 	var stat_calc = SystemRegistry.get_instance().get_system("EquipmentStatCalculator")
-	var stats = {}
+	var stats: Dictionary = {}
 
 	if stat_calc:
 		stats = stat_calc.calculate_god_total_stats(selected_god)
@@ -895,7 +895,7 @@ func _refresh_equipment_slots():
 		var icon = slot_panel.get_node_or_null("SlotVBox/IconContainer/EquipIcon")
 
 		# Update slot styling based on equipped state
-		var style = StyleBoxFlat.new()
+		var style: StyleBoxFlat = StyleBoxFlat.new()
 
 		if equipped:
 			style.bg_color = COLOR_EQUIPPED
@@ -949,7 +949,7 @@ func _refresh_set_bonuses():
 		child.queue_free()
 
 	if not selected_god:
-		var no_bonus = Label.new()
+		var no_bonus: Label = Label.new()
 		no_bonus.text = "No god selected"
 		no_bonus.add_theme_font_size_override("font_size", 12)
 		no_bonus.add_theme_color_override("font_color", COLOR_MUTED)
@@ -961,8 +961,8 @@ func _refresh_set_bonuses():
 	var config_sets = config.get("equipment_sets", {})
 
 	# Count set pieces and track set types
-	var set_counts = {}
-	var set_types = {}
+	var set_counts: Dictionary = {}
+	var set_types: Dictionary = {}
 	for i in range(6):
 		var equipped = _get_equipped_in_slot(i)
 		if equipped and equipped.equipment_set_type != "":
@@ -975,7 +975,7 @@ func _refresh_set_bonuses():
 			set_types[set_type] = set_name
 
 	if set_counts.is_empty():
-		var no_bonus = Label.new()
+		var no_bonus: Label = Label.new()
 		no_bonus.text = "No set bonuses active"
 		no_bonus.add_theme_font_size_override("font_size", 12)
 		no_bonus.add_theme_color_override("font_color", COLOR_MUTED)
@@ -990,8 +990,8 @@ func _refresh_set_bonuses():
 		var set_name = set_types.get(set_type, set_type.capitalize())
 
 		# Set header with count
-		var set_panel = PanelContainer.new()
-		var set_style = StyleBoxFlat.new()
+		var set_panel: PanelContainer = PanelContainer.new()
+		var set_style: StyleBoxFlat = StyleBoxFlat.new()
 		set_style.bg_color = Color(0.1, 0.08, 0.14, 0.8)
 		set_style.border_color = Color.GOLD if count >= 2 else COLOR_PANEL_BORDER
 		set_style.set_border_width_all(1)
@@ -999,34 +999,34 @@ func _refresh_set_bonuses():
 		set_panel.add_theme_stylebox_override("panel", set_style)
 		set_bonus_container.add_child(set_panel)
 
-		var set_vbox = VBoxContainer.new()
+		var set_vbox: VBoxContainer = VBoxContainer.new()
 		set_vbox.add_theme_constant_override("separation", 4)
 		set_panel.add_child(set_vbox)
 
-		var header = Label.new()
+		var header: Label = Label.new()
 		header.text = "%s (%d/6)" % [set_name, count]
 		header.add_theme_font_size_override("font_size", 12)
 		header.add_theme_color_override("font_color", Color.GOLD if count >= 2 else COLOR_HEADER)
 		set_vbox.add_child(header)
 
 		# Show tier bonuses
-		var tiers = [2, 4, 6]
+		var tiers: Array = [2, 4, 6]
 		# Use lowercase for lookup (JSON keys are lowercase)
 		var set_type_lower = set_type.to_lower()
 		var set_info = set_bonus_data.get(set_type_lower, {})
 
 		for tier in tiers:
 			var tier_active = count >= tier
-			var tier_str = str(tier)
+			var tier_str: String = str(tier)
 			var bonus_info = set_info.get(tier_str, {})
 			var description = bonus_info.get("description", _get_default_bonus_description(set_type_lower, tier))
 
-			var tier_row = HBoxContainer.new()
+			var tier_row: HBoxContainer = HBoxContainer.new()
 			tier_row.add_theme_constant_override("separation", 6)
 			set_vbox.add_child(tier_row)
 
 			# Tier indicator
-			var tier_label = Label.new()
+			var tier_label: Label = Label.new()
 			tier_label.text = "(%d)" % tier
 			tier_label.add_theme_font_size_override("font_size", 10)
 			tier_label.add_theme_color_override("font_color", COLOR_SUCCESS if tier_active else COLOR_MUTED)
@@ -1034,7 +1034,7 @@ func _refresh_set_bonuses():
 			tier_row.add_child(tier_label)
 
 			# Bonus description
-			var desc_label = Label.new()
+			var desc_label: Label = Label.new()
 			desc_label.text = description
 			desc_label.add_theme_font_size_override("font_size", 10)
 			desc_label.add_theme_color_override("font_color", COLOR_TEXT if tier_active else Color(0.4, 0.4, 0.45))
@@ -1043,7 +1043,7 @@ func _refresh_set_bonuses():
 
 			# Show special effect for 6-piece if active
 			if tier == 6 and tier_active and bonus_info.has("special_effect"):
-				var effect_label = Label.new()
+				var effect_label: Label = Label.new()
 				effect_label.text = "★ " + bonus_info.get("special_effect", "")
 				effect_label.add_theme_font_size_override("font_size", 10)
 				effect_label.add_theme_color_override("font_color", Color.GOLD)
@@ -1052,10 +1052,10 @@ func _refresh_set_bonuses():
 
 func _load_set_bonus_data() -> Dictionary:
 	"""Load set bonus descriptions from JSON"""
-	var bonus_data = {}
+	var bonus_data: Dictionary = {}
 	var file = FileAccess.open("res://data/equipment_set_bonuses.json", FileAccess.READ)
 	if file:
-		var json = JSON.new()
+		var json: JSON = JSON.new()
 		var result = json.parse(file.get_as_text())
 		file.close()
 		if result == OK:
@@ -1082,7 +1082,7 @@ func _get_default_bonus_description(set_type: String, tier: int) -> String:
 			6: return "+Major stat bonus"
 		return "Bonus"
 
-	var parts = []
+	var parts: Array = []
 	for stat in tier_bonuses:
 		var value = tier_bonuses[stat]
 		var stat_name = stat.replace("_", " ").capitalize()
@@ -1099,7 +1099,7 @@ func _get_equipment_config() -> Dictionary:
 
 	var file = FileAccess.open("res://data/equipment_config.json", FileAccess.READ)
 	if file:
-		var json = JSON.new()
+		var json: JSON = JSON.new()
 		var result = json.parse(file.get_as_text())
 		file.close()
 		if result == OK:

@@ -67,7 +67,7 @@ func _load_buildings_data() -> void:
 	"""Load buildings data for refiner info"""
 	var file = FileAccess.open("res://data/buildings.json", FileAccess.READ)
 	if file:
-		var json = JSON.new()
+		var json: JSON = JSON.new()
 		if json.parse(file.get_as_text()) == OK:
 			var data = json.get_data()
 			_buildings_data = data.get("buildings", {})
@@ -77,13 +77,13 @@ func _load_recipes_data() -> void:
 	"""Load crafting recipes data"""
 	var file = FileAccess.open("res://data/crafting_recipes.json", FileAccess.READ)
 	if file:
-		var json = JSON.new()
+		var json: JSON = JSON.new()
 		if json.parse(file.get_as_text()) == OK:
 			_recipes_data = json.get_data()
 		file.close()
 
 func _setup_styling() -> void:
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.08, 0.06, 0.1, 0.95)
 	style.border_color = Color(0.4, 0.35, 0.5, 0.8)
 	style.set_border_width_all(2)
@@ -105,7 +105,7 @@ func _create_ui() -> void:
 	_content_container.add_child(header)
 
 	# Three-column layout for production data
-	var columns_container = HBoxContainer.new()
+	var columns_container: HBoxContainer = HBoxContainer.new()
 	columns_container.add_theme_constant_override("separation", 8)
 	columns_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	columns_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -117,7 +117,7 @@ func _create_ui() -> void:
 	columns_container.add_child(_production_section)
 
 	# Vertical separator
-	var vsep1 = VSeparator.new()
+	var vsep1: VSeparator = VSeparator.new()
 	vsep1.add_theme_constant_override("separation", 2)
 	columns_container.add_child(vsep1)
 
@@ -127,7 +127,7 @@ func _create_ui() -> void:
 	columns_container.add_child(_refiner_section)
 
 	# Vertical separator
-	var vsep2 = VSeparator.new()
+	var vsep2: VSeparator = VSeparator.new()
 	vsep2.add_theme_constant_override("separation", 2)
 	columns_container.add_child(vsep2)
 
@@ -137,28 +137,28 @@ func _create_ui() -> void:
 	columns_container.add_child(_accumulated_section)
 
 	# Separator before crafting
-	var sep = HSeparator.new()
+	var sep: HSeparator = HSeparator.new()
 	_content_container.add_child(sep)
 
 	# Crafting section
 	_create_craft_section()
 
 func _create_header() -> HBoxContainer:
-	var header = HBoxContainer.new()
+	var header: HBoxContainer = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 8)
 
-	var icon = Label.new()
+	var icon: Label = Label.new()
 	icon.text = "⚡"
 	icon.add_theme_font_size_override("font_size", 16)
 	header.add_child(icon)
 
-	var title = Label.new()
+	var title: Label = Label.new()
 	title.text = "TERRITORY PRODUCTION"
 	title.add_theme_font_size_override("font_size", 14)
 	title.add_theme_color_override("font_color", COLOR_HEADER)
 	header.add_child(title)
 
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
 
@@ -172,15 +172,15 @@ func _create_header() -> HBoxContainer:
 
 func _create_column(title: String, section_type: String) -> VBoxContainer:
 	"""Create a column for the 3-column layout"""
-	var column = VBoxContainer.new()
+	var column: VBoxContainer = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 4)
 	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
 	# Column header
-	var header_hbox = HBoxContainer.new()
+	var header_hbox: HBoxContainer = HBoxContainer.new()
 	header_hbox.add_theme_constant_override("separation", 4)
 
-	var section_icon = Label.new()
+	var section_icon: Label = Label.new()
 	match section_type:
 		"production":
 			section_icon.text = "📈"
@@ -191,7 +191,7 @@ func _create_column(title: String, section_type: String) -> VBoxContainer:
 	section_icon.add_theme_font_size_override("font_size", 11)
 	header_hbox.add_child(section_icon)
 
-	var section_title = Label.new()
+	var section_title: Label = Label.new()
 	section_title.text = title
 	section_title.add_theme_font_size_override("font_size", 10)
 	match section_type:
@@ -206,7 +206,7 @@ func _create_column(title: String, section_type: String) -> VBoxContainer:
 	column.add_child(header_hbox)
 
 	# Content grid - multiple columns for compact display (icon+value pairs, 3 pairs per row = 6 columns)
-	var grid = GridContainer.new()
+	var grid: GridContainer = GridContainer.new()
 	grid.name = "Grid"
 	grid.columns = 6  # 3 pairs of icon+value per row
 	grid.add_theme_constant_override("h_separation", 4)
@@ -227,7 +227,7 @@ func _create_column(title: String, section_type: String) -> VBoxContainer:
 	return column
 
 func _style_button(button: Button, primary: bool = false) -> void:
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	if primary:
 		style.bg_color = Color(0.3, 0.5, 0.3, 0.9)
 		style.border_color = Color(0.5, 0.8, 0.5, 0.8)
@@ -313,7 +313,7 @@ func _update_production_grid() -> void:
 		child.queue_free()
 
 	if _cached_rates.is_empty():
-		var empty = Label.new()
+		var empty: Label = Label.new()
 		empty.text = "No production"
 		empty.add_theme_font_size_override("font_size", 10)
 		empty.add_theme_color_override("font_color", COLOR_MUTED)
@@ -344,7 +344,7 @@ func _update_refiner_grid() -> void:
 		child.queue_free()
 
 	if _cached_conversions.is_empty():
-		var empty = Label.new()
+		var empty: Label = Label.new()
 		empty.text = "No refiners"
 		empty.add_theme_font_size_override("font_size", 10)
 		empty.add_theme_color_override("font_color", COLOR_MUTED)
@@ -367,7 +367,7 @@ func _update_accumulated_grid() -> void:
 		child.queue_free()
 
 	if _cached_accumulated.is_empty():
-		var empty = Label.new()
+		var empty: Label = Label.new()
 		empty.text = "Nothing ready"
 		empty.add_theme_font_size_override("font_size", 10)
 		empty.add_theme_color_override("font_color", COLOR_MUTED)
@@ -392,15 +392,15 @@ func _update_accumulated_grid() -> void:
 
 func _create_rate_item(resource_id: String, rate: float) -> Array:
 	"""Returns [icon_label, value_label] for 2-column grid"""
-	var tooltip = "%s: +%.1f per hour" % [resource_id.replace("_", " ").capitalize(), rate]
+	var tooltip: String = "%s: +%.1f per hour" % [resource_id.replace("_", " ").capitalize(), rate]
 
-	var icon = Label.new()
+	var icon: Label = Label.new()
 	icon.text = _get_resource_icon(resource_id)
 	icon.add_theme_font_size_override("font_size", 11)
 	icon.tooltip_text = tooltip
 	icon.mouse_filter = Control.MOUSE_FILTER_PASS
 
-	var rate_label = Label.new()
+	var rate_label: Label = Label.new()
 	rate_label.text = "+%s" % _format_number(rate)
 	rate_label.add_theme_font_size_override("font_size", 10)
 	rate_label.add_theme_color_override("font_color", COLOR_SUCCESS)
@@ -412,30 +412,30 @@ func _create_rate_item(resource_id: String, rate: float) -> Array:
 func _create_conversion_item(conversion: Dictionary) -> Array:
 	"""Returns [icon_label, value_label] for 2-column grid"""
 	# Build tooltip
-	var input_str = ""
+	var input_str: String = ""
 	for res_id in conversion.consumes:
 		input_str += "%d %s, " % [conversion.consumes[res_id], res_id.replace("_", " ")]
 	input_str = input_str.trim_suffix(", ")
 
-	var output_str = ""
+	var output_str: String = ""
 	for res_id in conversion.produces:
 		output_str += "%d %s, " % [conversion.produces[res_id], res_id.replace("_", " ")]
 	output_str = output_str.trim_suffix(", ")
 
-	var tooltip = "%s\nConverts: %s/hr\nProduces: %s/hr" % [conversion.name, input_str, output_str]
+	var tooltip: String = "%s\nConverts: %s/hr\nProduces: %s/hr" % [conversion.name, input_str, output_str]
 
 	# Show compact: input icon -> output icon
 	var first_input = conversion.consumes.keys()[0] if not conversion.consumes.is_empty() else ""
 	var first_output = conversion.produces.keys()[0] if not conversion.produces.is_empty() else ""
 	var output_rate = conversion.produces.get(first_output, 0)
 
-	var icons_label = Label.new()
+	var icons_label: Label = Label.new()
 	icons_label.text = "%s→%s" % [_get_resource_icon(first_input), _get_resource_icon(first_output)]
 	icons_label.add_theme_font_size_override("font_size", 10)
 	icons_label.tooltip_text = tooltip
 	icons_label.mouse_filter = Control.MOUSE_FILTER_PASS
 
-	var rate_label = Label.new()
+	var rate_label: Label = Label.new()
 	rate_label.text = "+%s" % _format_number(output_rate)
 	rate_label.add_theme_font_size_override("font_size", 10)
 	rate_label.add_theme_color_override("font_color", COLOR_REFINER)
@@ -446,15 +446,15 @@ func _create_conversion_item(conversion: Dictionary) -> Array:
 
 func _create_accumulated_item(resource_id: String, amount: float) -> Array:
 	"""Returns [icon_label, value_label] for 2-column grid"""
-	var tooltip = "%s: %.1f ready to collect" % [resource_id.replace("_", " ").capitalize(), amount]
+	var tooltip: String = "%s: %.1f ready to collect" % [resource_id.replace("_", " ").capitalize(), amount]
 
-	var icon = Label.new()
+	var icon: Label = Label.new()
 	icon.text = _get_resource_icon(resource_id)
 	icon.add_theme_font_size_override("font_size", 11)
 	icon.tooltip_text = tooltip
 	icon.mouse_filter = Control.MOUSE_FILTER_PASS
 
-	var amount_label = Label.new()
+	var amount_label: Label = Label.new()
 	amount_label.text = _format_number(amount)
 	amount_label.add_theme_font_size_override("font_size", 10)
 	amount_label.add_theme_color_override("font_color", COLOR_GOLD)
@@ -464,7 +464,7 @@ func _create_accumulated_item(resource_id: String, amount: float) -> Array:
 	return [icon, amount_label]
 
 func _update_collect_button_state() -> void:
-	var has_resources = false
+	var has_resources: bool = false
 	for resource_id in _cached_accumulated:
 		if _cached_accumulated[resource_id] >= 0.1:
 			has_resources = true
@@ -504,7 +504,7 @@ func _show_collection_feedback(collected: Dictionary) -> void:
 	var tween = create_tween()
 	tween.tween_property(_collect_button, "modulate", original, 0.3)
 
-	var total = 0.0
+	var total: float = 0.0
 	for resource_id in collected:
 		total += collected[resource_id]
 
@@ -541,22 +541,22 @@ func _create_craft_section() -> void:
 	_craft_section.add_theme_constant_override("separation", 4)
 	_content_container.add_child(_craft_section)
 
-	var header = HBoxContainer.new()
+	var header: HBoxContainer = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 8)
 	_craft_section.add_child(header)
 
-	var icon = Label.new()
+	var icon: Label = Label.new()
 	icon.text = "⚒️"
 	icon.add_theme_font_size_override("font_size", 14)
 	header.add_child(icon)
 
-	var title = Label.new()
+	var title: Label = Label.new()
 	title.text = "CRAFTING"
 	title.add_theme_font_size_override("font_size", 12)
 	title.add_theme_color_override("font_color", Color(0.9, 0.75, 0.5))
 	header.add_child(title)
 
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
 
@@ -567,11 +567,11 @@ func _create_craft_section() -> void:
 	header.add_child(_craft_button)
 
 	# No crafts message
-	var no_crafts = HBoxContainer.new()
+	var no_crafts: HBoxContainer = HBoxContainer.new()
 	no_crafts.name = "NoCrafts"
 	_craft_section.add_child(no_crafts)
 
-	var no_label = Label.new()
+	var no_label: Label = Label.new()
 	no_label.text = "No active crafts"
 	no_label.add_theme_font_size_override("font_size", 11)
 	no_label.add_theme_color_override("font_color", COLOR_MUTED)
@@ -606,7 +606,7 @@ func _update_craft_display() -> void:
 func _get_player_blacksmith_nodes(hex_grid_manager) -> Array:
 	"""Get all player-owned crafting building nodes"""
 	var nodes: Array = []
-	var crafting_types = ["blacksmith", "weapon_forge", "armor_forge", "divine_forge"]
+	var crafting_types: Array = ["blacksmith", "weapon_forge", "armor_forge", "divine_forge"]
 
 	# Get all player-controlled nodes and check their placed_building
 	var all_nodes: Array = []
@@ -649,8 +649,8 @@ func _show_blacksmith_list(blacksmith_nodes: Array, hex_grid_manager) -> void:
 	for child in _craft_list.get_children():
 		child.queue_free()
 
-	var current_time = int(Time.get_unix_time_from_system())
-	var count = 0
+	var current_time: int = int(Time.get_unix_time_from_system())
+	var count: int = 0
 
 	for node in blacksmith_nodes:
 		if count >= 4:  # Show max 4 blacksmiths
@@ -674,7 +674,7 @@ func _show_blacksmith_list(blacksmith_nodes: Array, hex_grid_manager) -> void:
 		count += 1
 
 	if blacksmith_nodes.size() > 4:
-		var more = Label.new()
+		var more: Label = Label.new()
 		more.text = "+%d more smithies..." % (blacksmith_nodes.size() - 4)
 		more.add_theme_font_size_override("font_size", 10)
 		more.add_theme_color_override("font_color", COLOR_MUTED)
@@ -682,12 +682,12 @@ func _show_blacksmith_list(blacksmith_nodes: Array, hex_grid_manager) -> void:
 
 func _create_idle_blacksmith_item(node: HexNode) -> HBoxContainer:
 	"""Create a row for a blacksmith with no active craft"""
-	var item = HBoxContainer.new()
+	var item: HBoxContainer = HBoxContainer.new()
 	item.add_theme_constant_override("separation", 8)
 
 	# Node name
 	var node_name = node.name if node.name.length() <= 16 else node.name.substr(0, 14) + ".."
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = "⚒️ " + node_name
 	name_label.add_theme_font_size_override("font_size", 10)
 	name_label.add_theme_color_override("font_color", COLOR_MUTED)
@@ -695,7 +695,7 @@ func _create_idle_blacksmith_item(node: HexNode) -> HBoxContainer:
 	item.add_child(name_label)
 
 	# Idle status
-	var status_label = Label.new()
+	var status_label: Label = Label.new()
 	status_label.text = "Idle"
 	status_label.add_theme_font_size_override("font_size", 10)
 	status_label.add_theme_color_override("font_color", COLOR_MUTED)
@@ -703,12 +703,12 @@ func _create_idle_blacksmith_item(node: HexNode) -> HBoxContainer:
 	item.add_child(status_label)
 
 	# Craft button
-	var craft_btn = Button.new()
+	var craft_btn: Button = Button.new()
 	craft_btn.text = "Craft"
 	craft_btn.custom_minimum_size = Vector2(50, 18)
 	craft_btn.pressed.connect(_on_open_craft_for_node.bind(node))
 
-	var btn_style = StyleBoxFlat.new()
+	var btn_style: StyleBoxFlat = StyleBoxFlat.new()
 	btn_style.bg_color = Color(0.5, 0.35, 0.2, 0.9)
 	btn_style.border_color = Color(0.7, 0.5, 0.3, 0.8)
 	btn_style.set_border_width_all(1)
@@ -932,7 +932,7 @@ func _on_start_craft(task: Dictionary, node: HexNode) -> void:
 			return
 
 	# Start the craft
-	var craft_started = false
+	var craft_started: bool = false
 	if hex_grid_manager:
 		craft_started = hex_grid_manager.start_craft(node.id, task_id, task)
 
@@ -959,7 +959,7 @@ func _show_craft_success(item_name: String) -> void:
 	pass
 
 func _create_craft_progress_item(craft_data: Dictionary, current_time: int, node_name: String = "") -> HBoxContainer:
-	var item = HBoxContainer.new()
+	var item: HBoxContainer = HBoxContainer.new()
 	item.add_theme_constant_override("separation", 8)
 
 	var task_data = craft_data.get("task_data", {})
@@ -978,7 +978,7 @@ func _create_craft_progress_item(craft_data: Dictionary, current_time: int, node
 	if display_name.length() > 14:
 		display_name = display_name.substr(0, 12) + ".."
 
-	var node_label = Label.new()
+	var node_label: Label = Label.new()
 	node_label.text = "⚒️ " + display_name
 	node_label.add_theme_font_size_override("font_size", 10)
 	node_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.7))
@@ -986,18 +986,18 @@ func _create_craft_progress_item(craft_data: Dictionary, current_time: int, node
 	item.add_child(node_label)
 
 	# Progress bar container
-	var progress_container = Panel.new()
+	var progress_container: Panel = Panel.new()
 	progress_container.custom_minimum_size = Vector2(80, 14)
 	progress_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	var prog_style = StyleBoxFlat.new()
+	var prog_style: StyleBoxFlat = StyleBoxFlat.new()
 	prog_style.bg_color = Color(0.15, 0.15, 0.18)
 	prog_style.set_corner_radius_all(3)
 	progress_container.add_theme_stylebox_override("panel", prog_style)
 	item.add_child(progress_container)
 
 	# Progress fill bar
-	var fill = ColorRect.new()
+	var fill: ColorRect = ColorRect.new()
 	fill.color = Color(0.3, 0.7, 0.4) if is_complete else Color(0.5, 0.4, 0.25)
 	fill.anchor_right = progress
 	fill.anchor_bottom = 1.0
@@ -1007,7 +1007,7 @@ func _create_craft_progress_item(craft_data: Dictionary, current_time: int, node
 	progress_container.add_child(fill)
 
 	# Countdown timer / status
-	var status_label = Label.new()
+	var status_label: Label = Label.new()
 	if is_complete:
 		status_label.text = "✓ Ready!"
 		status_label.add_theme_color_override("font_color", COLOR_SUCCESS)
@@ -1020,12 +1020,12 @@ func _create_craft_progress_item(craft_data: Dictionary, current_time: int, node
 
 	# Collect button when complete
 	if is_complete:
-		var collect_btn = Button.new()
+		var collect_btn: Button = Button.new()
 		collect_btn.text = "Collect"
 		collect_btn.custom_minimum_size = Vector2(50, 18)
 		collect_btn.pressed.connect(_on_collect_craft.bind(craft_data))
 
-		var btn_style = StyleBoxFlat.new()
+		var btn_style: StyleBoxFlat = StyleBoxFlat.new()
 		btn_style.bg_color = Color(0.3, 0.5, 0.3, 0.9)
 		btn_style.set_corner_radius_all(3)
 		collect_btn.add_theme_stylebox_override("normal", btn_style)
@@ -1051,7 +1051,7 @@ func _on_craft_button_pressed() -> void:
 		return
 
 	# Find player-owned crafting building
-	var crafting_types = ["blacksmith", "weapon_forge", "armor_forge", "divine_forge"]
+	var crafting_types: Array = ["blacksmith", "weapon_forge", "armor_forge", "divine_forge"]
 	var player_smithy: HexNode = null
 
 	for building_type in crafting_types:

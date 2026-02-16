@@ -58,7 +58,7 @@ func _setup_header():
 		main_ui.connect_header_back_button(_on_back_pressed)
 
 func _apply_fullscreen_size():
-	var viewport_size = get_viewport().get_visible_rect().size
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	size = viewport_size
 	position = Vector2.ZERO
 
@@ -75,13 +75,13 @@ func _create_ui():
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	# Dark background - fill entire screen
-	var bg = ColorRect.new()
+	var bg: ColorRect = ColorRect.new()
 	bg.color = Color(0.08, 0.06, 0.12, 1.0)
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 
 	# Main layout container with margins
-	var main_hbox = HBoxContainer.new()
+	var main_hbox: HBoxContainer = HBoxContainer.new()
 	main_hbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	main_hbox.offset_left = 10
 	main_hbox.offset_top = 55
@@ -103,11 +103,11 @@ func _create_ui():
 	main_hbox.add_child(right_panel)
 
 func _create_left_panel() -> Control:
-	var panel = PanelContainer.new()
+	var panel: PanelContainer = PanelContainer.new()
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_style_panel(panel)
 
-	var margin = MarginContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_theme_constant_override("margin_left", 15)
 	margin.add_theme_constant_override("margin_right", 15)
@@ -115,13 +115,13 @@ func _create_left_panel() -> Control:
 	margin.add_theme_constant_override("margin_bottom", 15)
 	panel.add_child(margin)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_theme_constant_override("separation", 12)
 	margin.add_child(vbox)
 
 	# Title
-	var title = Label.new()
+	var title: Label = Label.new()
 	title.text = "⚔️ INFINITE TOWER ⚔️"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 22)
@@ -129,14 +129,14 @@ func _create_left_panel() -> Control:
 	vbox.add_child(title)
 
 	# Floor info row
-	var info_hbox = HBoxContainer.new()
+	var info_hbox: HBoxContainer = HBoxContainer.new()
 	info_hbox.add_theme_constant_override("separation", 20)
 	vbox.add_child(info_hbox)
 
 	# Floor
-	var floor_vbox = VBoxContainer.new()
+	var floor_vbox: VBoxContainer = VBoxContainer.new()
 	info_hbox.add_child(floor_vbox)
-	var floor_title = Label.new()
+	var floor_title: Label = Label.new()
 	floor_title.text = "FLOOR"
 	floor_title.add_theme_font_size_override("font_size", 10)
 	floor_title.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
@@ -147,9 +147,9 @@ func _create_left_panel() -> Control:
 	floor_vbox.add_child(floor_label)
 
 	# Best
-	var best_vbox = VBoxContainer.new()
+	var best_vbox: VBoxContainer = VBoxContainer.new()
 	info_hbox.add_child(best_vbox)
-	var best_title = Label.new()
+	var best_title: Label = Label.new()
 	best_title.text = "BEST"
 	best_title.add_theme_font_size_override("font_size", 10)
 	best_title.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
@@ -161,9 +161,9 @@ func _create_left_panel() -> Control:
 	best_vbox.add_child(best_floor_label)
 
 	# Difficulty
-	var diff_vbox = VBoxContainer.new()
+	var diff_vbox: VBoxContainer = VBoxContainer.new()
 	info_hbox.add_child(diff_vbox)
-	var diff_title = Label.new()
+	var diff_title: Label = Label.new()
 	diff_title.text = "DIFFICULTY"
 	diff_title.add_theme_font_size_override("font_size", 10)
 	diff_title.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
@@ -175,20 +175,20 @@ func _create_left_panel() -> Control:
 	diff_vbox.add_child(difficulty_label)
 
 	# Separator
-	var sep = HSeparator.new()
+	var sep: HSeparator = HSeparator.new()
 	sep.add_theme_constant_override("separation", 8)
 	vbox.add_child(sep)
 
 	# Team section header
-	var team_header = HBoxContainer.new()
+	var team_header: HBoxContainer = HBoxContainer.new()
 	vbox.add_child(team_header)
-	var team_title = Label.new()
+	var team_title: Label = Label.new()
 	team_title.text = "YOUR TEAM"
 	team_title.add_theme_font_size_override("font_size", 14)
 	team_title.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
 	team_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	team_header.add_child(team_title)
-	var clear_btn = Button.new()
+	var clear_btn: Button = Button.new()
 	clear_btn.text = "Clear"
 	clear_btn.custom_minimum_size = Vector2(60, 25)
 	clear_btn.pressed.connect(_clear_team)
@@ -202,17 +202,17 @@ func _create_left_panel() -> Control:
 	vbox.add_child(team_container)
 
 	# Team power display
-	var power_hbox = HBoxContainer.new()
+	var power_hbox: HBoxContainer = HBoxContainer.new()
 	power_hbox.add_theme_constant_override("separation", 10)
 	power_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_child(power_hbox)
 
-	var power_icon = Label.new()
+	var power_icon: Label = Label.new()
 	power_icon.text = "⚔️"
 	power_icon.add_theme_font_size_override("font_size", 16)
 	power_hbox.add_child(power_icon)
 
-	var power_title = Label.new()
+	var power_title: Label = Label.new()
 	power_title.text = "Combat Power:"
 	power_title.add_theme_font_size_override("font_size", 12)
 	power_title.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
@@ -230,25 +230,25 @@ func _create_left_panel() -> Control:
 	vbox.add_child(team_bonuses_container)
 
 	# Separator
-	var sep2 = HSeparator.new()
+	var sep2: HSeparator = HSeparator.new()
 	sep2.add_theme_constant_override("separation", 8)
 	vbox.add_child(sep2)
 
 	# Rewards info (compact)
-	var rewards_title = Label.new()
+	var rewards_title: Label = Label.new()
 	rewards_title.text = "FLOOR REWARDS"
 	rewards_title.add_theme_font_size_override("font_size", 12)
 	rewards_title.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
 	vbox.add_child(rewards_title)
 
-	var rewards_info = Label.new()
+	var rewards_info: Label = Label.new()
 	rewards_info.text = "• Mana, Gold & Materials\n• Higher floors = better loot\n• Boss (10th): 2.5x + Souls\n• Milestones: Crystals & Rare"
 	rewards_info.add_theme_font_size_override("font_size", 10)
 	rewards_info.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
 	vbox.add_child(rewards_info)
 
 	# Spacer
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(spacer)
 
@@ -263,12 +263,12 @@ func _create_left_panel() -> Control:
 	return panel
 
 func _create_right_panel() -> Control:
-	var panel = PanelContainer.new()
+	var panel: PanelContainer = PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_style_panel(panel)
 
-	var margin = MarginContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_theme_constant_override("margin_left", 10)
@@ -277,18 +277,18 @@ func _create_right_panel() -> Control:
 	margin.add_theme_constant_override("margin_bottom", 10)
 	panel.add_child(margin)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_theme_constant_override("separation", 8)
 	margin.add_child(vbox)
 
 	# Header row
-	var header_row = HBoxContainer.new()
+	var header_row: HBoxContainer = HBoxContainer.new()
 	header_row.add_theme_constant_override("separation", 10)
 	vbox.add_child(header_row)
 
-	var header = Label.new()
+	var header: Label = Label.new()
 	header.text = "SELECT GODS"
 	header.add_theme_font_size_override("font_size", 14)
 	header.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
@@ -296,11 +296,11 @@ func _create_right_panel() -> Control:
 	header_row.add_child(header)
 
 	# Sorting controls
-	var sort_container = HBoxContainer.new()
+	var sort_container: HBoxContainer = HBoxContainer.new()
 	sort_container.add_theme_constant_override("separation", 5)
 	header_row.add_child(sort_container)
 
-	var sort_label = Label.new()
+	var sort_label: Label = Label.new()
 	sort_label.text = "Sort:"
 	sort_label.add_theme_font_size_override("font_size", 11)
 	sort_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
@@ -315,7 +315,7 @@ func _create_right_panel() -> Control:
 		{"text": "Az", "tooltip": "Name", "type": SortType.NAME}
 	]
 	for option in sort_options:
-		var btn = Button.new()
+		var btn: Button = Button.new()
 		btn.text = option.text
 		btn.tooltip_text = option.tooltip
 		btn.custom_minimum_size = Vector2(28, 24)
@@ -325,7 +325,7 @@ func _create_right_panel() -> Control:
 		sort_container.add_child(btn)
 
 	# Sort direction button
-	var dir_btn = Button.new()
+	var dir_btn: Button = Button.new()
 	dir_btn.text = "↓" if not sort_ascending else "↑"
 	dir_btn.tooltip_text = "Toggle sort direction"
 	dir_btn.custom_minimum_size = Vector2(24, 24)
@@ -335,7 +335,7 @@ func _create_right_panel() -> Control:
 	sort_container.add_child(dir_btn)
 
 	# Scrollable gods grid
-	var scroll = ScrollContainer.new()
+	var scroll: ScrollContainer = ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -409,7 +409,7 @@ func _update_sort_button_styles():
 
 func _style_sort_button(button: Button, is_active: bool):
 	"""Style a sort button"""
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	if is_active:
 		style.bg_color = Color(0.3, 0.25, 0.15, 0.95)
 		style.border_color = Color(0.8, 0.65, 0.3, 1.0)
@@ -437,11 +437,11 @@ func _refresh_gods_grid():
 
 func _create_god_card_for_grid(god) -> Control:
 	# Use a Panel container to hold the card
-	var container = Panel.new()
+	var container: Panel = Panel.new()
 	container.custom_minimum_size = Vector2(160, 200)
 
 	# Transparent background for container
-	var container_style = StyleBoxFlat.new()
+	var container_style: StyleBoxFlat = StyleBoxFlat.new()
 	container_style.bg_color = Color(0, 0, 0, 0)
 	container.add_theme_stylebox_override("panel", container_style)
 
@@ -454,7 +454,7 @@ func _create_god_card_for_grid(god) -> Control:
 	container.add_child(god_card)
 
 	# Selection overlay (shown when selected)
-	var selection_overlay = ColorRect.new()
+	var selection_overlay: ColorRect = ColorRect.new()
 	selection_overlay.name = "SelectionOverlay"
 	selection_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	selection_overlay.color = Color(0.2, 0.8, 0.3, 0.3)
@@ -463,7 +463,7 @@ func _create_god_card_for_grid(god) -> Control:
 	container.add_child(selection_overlay)
 
 	# Selection checkmark (top-right corner)
-	var checkmark = Label.new()
+	var checkmark: Label = Label.new()
 	checkmark.name = "Checkmark"
 	checkmark.text = "✓"
 	checkmark.position = Vector2(132, 5)
@@ -476,14 +476,14 @@ func _create_god_card_for_grid(god) -> Control:
 	container.add_child(checkmark)
 
 	# Click button
-	var click_btn = Button.new()
+	var click_btn: Button = Button.new()
 	click_btn.flat = true
 	click_btn.set_anchors_preset(Control.PRESET_FULL_RECT)
 	click_btn.pressed.connect(_on_god_card_clicked.bind(god, container))
 	container.add_child(click_btn)
 
 	# Hover effect
-	var hover_style = StyleBoxFlat.new()
+	var hover_style: StyleBoxFlat = StyleBoxFlat.new()
 	hover_style.bg_color = Color(1.0, 0.9, 0.5, 0.15)
 	hover_style.set_corner_radius_all(8)
 	click_btn.add_theme_stylebox_override("hover", hover_style)
@@ -538,7 +538,7 @@ func _update_team_stats():
 
 		var bonuses = TeamStatsCalculator.get_team_bonuses(selected_team)
 		if bonuses.is_empty():
-			var no_bonus = Label.new()
+			var no_bonus: Label = Label.new()
 			no_bonus.text = "No team bonuses"
 			no_bonus.add_theme_font_size_override("font_size", 10)
 			no_bonus.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
@@ -546,17 +546,17 @@ func _update_team_stats():
 			team_bonuses_container.add_child(no_bonus)
 		else:
 			for bonus in bonuses:
-				var bonus_row = HBoxContainer.new()
+				var bonus_row: HBoxContainer = HBoxContainer.new()
 				bonus_row.add_theme_constant_override("separation", 5)
 				bonus_row.alignment = BoxContainer.ALIGNMENT_CENTER
 
-				var name_label = Label.new()
+				var name_label: Label = Label.new()
 				name_label.text = bonus.name + ":"
 				name_label.add_theme_font_size_override("font_size", 10)
 				name_label.add_theme_color_override("font_color", Color(0.7, 0.85, 0.7))
 				bonus_row.add_child(name_label)
 
-				var desc_label = Label.new()
+				var desc_label: Label = Label.new()
 				desc_label.text = bonus.desc
 				desc_label.add_theme_font_size_override("font_size", 10)
 				desc_label.add_theme_color_override("font_color", Color.LIME_GREEN)
@@ -573,11 +573,11 @@ func _format_number(num: int) -> String:
 	return str(num)
 
 func _create_team_slot(index: int) -> Control:
-	var container = Panel.new()
+	var container: Panel = Panel.new()
 	container.custom_minimum_size = Vector2(85, 110)
 
 	# Transparent container background
-	var container_style = StyleBoxFlat.new()
+	var container_style: StyleBoxFlat = StyleBoxFlat.new()
 	container_style.bg_color = Color(0, 0, 0, 0)
 	container.add_theme_stylebox_override("panel", container_style)
 
@@ -592,22 +592,22 @@ func _create_team_slot(index: int) -> Control:
 		container.add_child(god_card)
 
 		# X button to remove
-		var remove_btn = Button.new()
+		var remove_btn: Button = Button.new()
 		remove_btn.text = "✕"
 		remove_btn.position = Vector2(65, 2)
 		remove_btn.custom_minimum_size = Vector2(18, 18)
 		remove_btn.add_theme_font_size_override("font_size", 10)
 		remove_btn.pressed.connect(_remove_from_team.bind(god))
-		var btn_style = StyleBoxFlat.new()
+		var btn_style: StyleBoxFlat = StyleBoxFlat.new()
 		btn_style.bg_color = Color(0.6, 0.15, 0.15, 0.9)
 		btn_style.set_corner_radius_all(9)
 		remove_btn.add_theme_stylebox_override("normal", btn_style)
 		container.add_child(remove_btn)
 	else:
 		# Empty slot
-		var empty = Panel.new()
+		var empty: Panel = Panel.new()
 		empty.set_anchors_preset(Control.PRESET_FULL_RECT)
-		var style = StyleBoxFlat.new()
+		var style: StyleBoxFlat = StyleBoxFlat.new()
 		style.bg_color = Color(0.15, 0.12, 0.2, 0.6)
 		style.border_color = Color(0.3, 0.25, 0.4, 0.5)
 		style.set_border_width_all(2)
@@ -615,7 +615,7 @@ func _create_team_slot(index: int) -> Control:
 		empty.add_theme_stylebox_override("panel", style)
 		container.add_child(empty)
 
-		var plus = Label.new()
+		var plus: Label = Label.new()
 		plus.text = "+"
 		plus.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		plus.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -648,7 +648,7 @@ func _update_display():
 	if not tower_manager:
 		return
 
-	var next_floor = 1
+	var next_floor: int = 1
 	if tower_manager.is_run_active():
 		next_floor = tower_manager.get_current_floor() + 1
 		is_in_run = true
@@ -739,21 +739,21 @@ func _on_run_ended(final_floor: int, is_new_record: bool, total_rewards: Diction
 	)
 
 func _show_run_result(final_floor: int, is_new_record: bool, total_rewards: Dictionary):
-	var popup = PanelContainer.new()
+	var popup: PanelContainer = PanelContainer.new()
 	popup.z_index = 100
 	_style_panel(popup)
-	var margin = MarginContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 30)
 	margin.add_theme_constant_override("margin_right", 30)
 	margin.add_theme_constant_override("margin_top", 20)
 	margin.add_theme_constant_override("margin_bottom", 20)
 	popup.add_child(margin)
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
 	margin.add_child(vbox)
 
 	# Title
-	var title = Label.new()
+	var title: Label = Label.new()
 	title.text = "🏆 NEW RECORD! 🏆" if is_new_record else "RUN ENDED"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 24)
@@ -761,19 +761,19 @@ func _show_run_result(final_floor: int, is_new_record: bool, total_rewards: Dict
 	vbox.add_child(title)
 
 	# Floor reached
-	var floor_text = Label.new()
+	var floor_text: Label = Label.new()
 	floor_text.text = "Reached Floor %d" % final_floor
 	floor_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	floor_text.add_theme_font_size_override("font_size", 18)
 	vbox.add_child(floor_text)
 
 	# Separator
-	var sep = HSeparator.new()
+	var sep: HSeparator = HSeparator.new()
 	vbox.add_child(sep)
 
 	# Rewards section
 	if not total_rewards.is_empty():
-		var rewards_title = Label.new()
+		var rewards_title: Label = Label.new()
 		rewards_title.text = "TOTAL LOOT EARNED"
 		rewards_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		rewards_title.add_theme_font_size_override("font_size", 14)
@@ -781,12 +781,12 @@ func _show_run_result(final_floor: int, is_new_record: bool, total_rewards: Dict
 		vbox.add_child(rewards_title)
 
 		# Scrollable rewards container (in case of many rewards)
-		var scroll = ScrollContainer.new()
+		var scroll: ScrollContainer = ScrollContainer.new()
 		scroll.custom_minimum_size = Vector2(300, 150)
 		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 		vbox.add_child(scroll)
 
-		var rewards_grid = GridContainer.new()
+		var rewards_grid: GridContainer = GridContainer.new()
 		rewards_grid.columns = 2
 		rewards_grid.add_theme_constant_override("h_separation", 20)
 		rewards_grid.add_theme_constant_override("v_separation", 5)
@@ -795,20 +795,20 @@ func _show_run_result(final_floor: int, is_new_record: bool, total_rewards: Dict
 		# Sort rewards by importance (currencies first, then materials)
 		var sorted_rewards = _sort_rewards_for_display(total_rewards)
 		for item in sorted_rewards:
-			var name_label = Label.new()
+			var name_label: Label = Label.new()
 			name_label.text = _get_resource_display_name(item.id)
 			name_label.add_theme_font_size_override("font_size", 12)
 			name_label.add_theme_color_override("font_color", _get_resource_color(item.id))
 			rewards_grid.add_child(name_label)
 
-			var amount_label = Label.new()
+			var amount_label: Label = Label.new()
 			amount_label.text = "x%s" % _format_number(item.amount)
 			amount_label.add_theme_font_size_override("font_size", 12)
 			amount_label.add_theme_color_override("font_color", Color.WHITE)
 			amount_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 			rewards_grid.add_child(amount_label)
 	else:
-		var no_loot = Label.new()
+		var no_loot: Label = Label.new()
 		no_loot.text = "No loot earned (defeated on floor 1)"
 		no_loot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		no_loot.add_theme_font_size_override("font_size", 12)
@@ -816,7 +816,7 @@ func _show_run_result(final_floor: int, is_new_record: bool, total_rewards: Dict
 		vbox.add_child(no_loot)
 
 	# Close button
-	var close_btn = Button.new()
+	var close_btn: Button = Button.new()
 	close_btn.text = "OK"
 	close_btn.custom_minimum_size = Vector2(100, 40)
 	close_btn.pressed.connect(func(): popup.queue_free())
@@ -825,15 +825,15 @@ func _show_run_result(final_floor: int, is_new_record: bool, total_rewards: Dict
 
 	add_child(popup)
 	await get_tree().process_frame
-	var viewport_size = get_viewport().get_visible_rect().size
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	popup.position = (viewport_size - popup.size) / 2
 
 func _sort_rewards_for_display(rewards: Dictionary) -> Array:
 	"""Sort rewards into display order: currencies, souls, materials"""
-	var currency_order = ["mana", "gold", "divine_crystals", "energy"]
-	var soul_order = ["common_soul", "rare_soul", "epic_soul", "legendary_soul"]
+	var currency_order: Array = ["mana", "gold", "divine_crystals", "energy"]
+	var soul_order: Array = ["common_soul", "rare_soul", "epic_soul", "legendary_soul"]
 
-	var sorted = []
+	var sorted: Array = []
 	# Add currencies first
 	for currency in currency_order:
 		if rewards.has(currency):
@@ -923,7 +923,7 @@ func _on_back_pressed():
 		screen_manager.change_screen("worldview")
 
 func _show_message(text: String):
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 16)
@@ -931,7 +931,7 @@ func _show_message(text: String):
 	label.z_index = 100
 	add_child(label)
 	await get_tree().process_frame
-	var viewport_size = get_viewport().get_visible_rect().size
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	label.position = Vector2((viewport_size.x - label.size.x) / 2, viewport_size.y / 2)
 	var tween = create_tween()
 	tween.tween_interval(1.5)
@@ -939,7 +939,7 @@ func _show_message(text: String):
 	tween.tween_callback(label.queue_free)
 
 func _style_panel(panel: PanelContainer):
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.12, 0.1, 0.16, 0.95)
 	style.border_color = Color(0.4, 0.35, 0.5, 0.8)
 	style.set_border_width_all(1)
@@ -947,7 +947,7 @@ func _style_panel(panel: PanelContainer):
 	panel.add_theme_stylebox_override("panel", style)
 
 func _style_button(button: Button, primary: bool = false):
-	var style_normal = StyleBoxFlat.new()
+	var style_normal: StyleBoxFlat = StyleBoxFlat.new()
 	if primary:
 		style_normal.bg_color = Color(0.2, 0.5, 0.3, 0.9)
 		style_normal.border_color = Color(0.3, 0.7, 0.4, 1.0)

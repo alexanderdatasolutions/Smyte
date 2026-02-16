@@ -78,7 +78,7 @@ static func load_equipment_config():
 	var json_string = file.get_as_text()
 	file.close()
 	
-	var json = JSON.new()
+	var json: JSON = JSON.new()
 	var parse_result = json.parse(json_string)
 	if parse_result != OK:
 		push_error("Failed to parse equipment_config.json: " + json.error_string)
@@ -91,7 +91,7 @@ static func load_equipment_config():
 static func create_from_dungeon(dungeon_id: String, equipment_type: String, rarity_str: String, item_level: int = 1) -> Equipment:
 	load_equipment_config()
 	
-	var equipment = Equipment.new()
+	var equipment: Equipment = Equipment.new()
 	equipment.id = generate_equipment_id()
 	equipment.level = 0  # Always start at +0
 	equipment.rarity = string_to_rarity(rarity_str)
@@ -130,7 +130,7 @@ static func create_from_dungeon(dungeon_id: String, equipment_type: String, rari
 static func create_test_equipment(equipment_type: String, rarity_str: String = "common", init_level: int = 0) -> Equipment:
 	load_equipment_config()
 	
-	var equipment = Equipment.new()
+	var equipment: Equipment = Equipment.new()
 	equipment.id = generate_equipment_id()
 	equipment.level = init_level
 	equipment.rarity = string_to_rarity(rarity_str)
@@ -167,8 +167,8 @@ static func create_test_equipment(equipment_type: String, rarity_str: String = "
 
 # Generate a unique equipment ID
 static func generate_equipment_id() -> String:
-	var timestamp = str(Time.get_unix_time_from_system())
-	var random_part = str(randi_range(1000, 9999))
+	var timestamp: String = str(Time.get_unix_time_from_system())
+	var random_part: String = str(randi_range(1000, 9999))
 	return "eq_" + timestamp + "_" + random_part
 
 # Convert string to rarity enum
@@ -215,7 +215,7 @@ static func type_to_string(type_enum: EquipmentType) -> String:
 
 # Get equipment's total stat bonuses
 func get_stat_bonuses() -> Dictionary:
-	var bonuses = {}
+	var bonuses: Dictionary = {}
 	
 	# Add main stat
 	if main_stat_type != "":
@@ -284,9 +284,9 @@ func get_enhancement_cost_for_level(target_level: int) -> Dictionary:
 	var powder_mult = enhancement_powder.get("multiplier_per_level", 1.2)
 
 	# Cost is based on target_level - 1 (going from 0 to 1 uses level 0 cost)
-	var cost_level = max(0, target_level - 1)
-	var mana_cost = int(mana_base * pow(mana_mult, cost_level))
-	var powder_cost = int(powder_base * pow(powder_mult, cost_level))
+	var cost_level: int = max(0, target_level - 1)
+	var mana_cost: int = int(mana_base * pow(mana_mult, cost_level))
+	var powder_cost: int = int(powder_base * pow(powder_mult, cost_level))
 
 	return {
 		"mana": mana_cost,
@@ -299,10 +299,10 @@ func get_enhancement_stat_bonuses() -> Dictionary:
 		return {}
 
 	# Enhancement increases main stat by percentage based on level
-	var bonuses = {}
+	var bonuses: Dictionary = {}
 	if main_stat_type != "":
 		# Each level adds 5% of base stat value
-		var bonus_value = int(main_stat_base * level * 0.05)
+		var bonus_value: int = int(main_stat_base * level * 0.05)
 		bonuses[main_stat_type] = bonus_value
 
 	return bonuses
@@ -342,8 +342,8 @@ func get_enhancement_cost() -> Dictionary:
 	var powder_base = enhancement_powder.get("base", 1)
 	var powder_mult = enhancement_powder.get("multiplier_per_level", 1.2)
 	
-	var mana_cost = int(mana_base * pow(mana_mult, level))
-	var powder_cost = int(powder_base * pow(powder_mult, level))
+	var mana_cost: int = int(mana_base * pow(mana_mult, level))
+	var powder_cost: int = int(powder_base * pow(powder_mult, level))
 	
 	return {
 		"mana": mana_cost,
@@ -377,7 +377,7 @@ func get_socket_unlock_cost(socket_index: int) -> Dictionary:
 	var socket_system = equipment_config.get("socket_system", {})
 	var costs = socket_system.get("unlock_costs", {})
 	
-	var cost_key = "socket_" + str(socket_index + 1)
+	var cost_key: String = "socket_" + str(socket_index + 1)
 	return costs.get(cost_key, {"socket_crystal": 1, "mana": 5000})
 
 # Private helper methods
@@ -421,8 +421,8 @@ static func _generate_main_stat(equipment: Equipment, equipment_type: String, ra
 	var rarity_config = equipment_config.get("equipment_rarities", {}).get(rarity_str, {})
 	var multiplier = rarity_config.get("stat_multiplier", 1.0)
 	
-	var min_value = int(stat_range[0] * multiplier)
-	var max_value = int(stat_range[1] * multiplier)
+	var min_value: int = int(stat_range[0] * multiplier)
+	var max_value: int = int(stat_range[1] * multiplier)
 	
 	equipment.main_stat_base = randi_range(min_value, max_value)
 	equipment.main_stat_value = equipment.main_stat_base
@@ -438,25 +438,25 @@ static func _generate_substats(equipment: Equipment, equipment_type: String, rar
 	var available_stats = type_info.get("secondary_stats", ["hp", "defense"])
 	
 	# Remove main stat from available substats
-	var filtered_stats = []
+	var filtered_stats: Array = []
 	for stat in available_stats:
 		if stat != equipment.main_stat_type:
 			filtered_stats.append(stat)
 	
 	# Generate substats
-	var num_substats = randi_range(1, max_substats)
+	var num_substats: int = randi_range(1, max_substats)
 	
 	for i in range(num_substats):
 		if filtered_stats.size() == 0:
 			break
 		
-		var stat_index = randi() % filtered_stats.size()
+		var stat_index: int = randi() % filtered_stats.size()
 		var stat_type = filtered_stats[stat_index]
 		filtered_stats.remove_at(stat_index)
 		
 		var stat_ranges = equipment_config.get("stat_ranges", {}).get("substat_values", {})
 		var stat_range = stat_ranges.get(stat_type, [5, 25])
-		var stat_value = randi_range(stat_range[0], stat_range[1])
+		var stat_value: int = randi_range(stat_range[0], stat_range[1])
 		
 		equipment.substats.append({
 			"type": stat_type,
@@ -472,7 +472,7 @@ static func _get_max_sockets_for_rarity(rarity_str: String) -> int:
 
 static func _generate_sockets(socket_count: int) -> Array:  # Array[Dictionary]
 	var socket_list: Array = []  # Array[Dictionary]
-	var socket_types = ["red", "blue", "yellow", "green"]
+	var socket_types: Array = ["red", "blue", "yellow", "green"]
 	
 	for i in range(socket_count):
 		var socket_type = socket_types[randi() % socket_types.size()]

@@ -145,24 +145,24 @@ func _update_enemy_preview():
 			enemies = [{"name": "Unknown", "level": 1}]
 
 	if enemies.is_empty():
-		var no_enemy = Label.new()
+		var no_enemy: Label = Label.new()
 		no_enemy.text = "No enemy info available"
 		no_enemy.add_theme_font_size_override("font_size", 10)
 		no_enemy.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
 		enemy_preview_container.add_child(no_enemy)
 	else:
 		for enemy in enemies.slice(0, 4):  # Show max 4 enemies
-			var enemy_row = HBoxContainer.new()
+			var enemy_row: HBoxContainer = HBoxContainer.new()
 			enemy_row.add_theme_constant_override("separation", 8)
 
-			var name_label = Label.new()
+			var name_label: Label = Label.new()
 			name_label.text = enemy.get("name", "Enemy")
 			name_label.add_theme_font_size_override("font_size", 10)
 			name_label.add_theme_color_override("font_color", Color(0.9, 0.6, 0.6))
 			name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			enemy_row.add_child(name_label)
 
-			var level_label = Label.new()
+			var level_label: Label = Label.new()
 			level_label.text = "Lv." + str(enemy.get("level", 1))
 			level_label.add_theme_font_size_override("font_size", 10)
 			level_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
@@ -193,7 +193,7 @@ func _update_rewards_preview():
 			rewards = {"mana": 100}
 
 	if rewards.is_empty():
-		var no_rewards = Label.new()
+		var no_rewards: Label = Label.new()
 		no_rewards.text = "No reward info available"
 		no_rewards.add_theme_font_size_override("font_size", 10)
 		no_rewards.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
@@ -201,17 +201,17 @@ func _update_rewards_preview():
 	else:
 		for resource_id in rewards:
 			var amount = rewards[resource_id]
-			var reward_row = HBoxContainer.new()
+			var reward_row: HBoxContainer = HBoxContainer.new()
 			reward_row.add_theme_constant_override("separation", 8)
 
-			var name_label = Label.new()
+			var name_label: Label = Label.new()
 			name_label.text = resource_id.capitalize().replace("_", " ")
 			name_label.add_theme_font_size_override("font_size", 10)
 			name_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.9))
 			name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			reward_row.add_child(name_label)
 
-			var amount_label = Label.new()
+			var amount_label: Label = Label.new()
 			amount_label.text = "x" + _format_number(amount)
 			amount_label.add_theme_font_size_override("font_size", 10)
 			amount_label.add_theme_color_override("font_color", Color.GOLD)
@@ -231,7 +231,7 @@ func _get_hex_node_defenders() -> Array:
 	var hex_node = battle_context.get("hex_node")
 	if not hex_node:
 		return []
-	var defenders = []
+	var defenders: Array = []
 	for defender_name in hex_node.base_defenders:
 		defenders.append({"name": defender_name, "level": hex_node.tier * 5})
 	return defenders
@@ -271,7 +271,7 @@ func _get_hex_node_rewards() -> Dictionary:
 	if not hex_node:
 		return {}
 	# Show what the node produces per hour once captured
-	var rewards = {}
+	var rewards: Dictionary = {}
 	if hex_node.base_production and not hex_node.base_production.is_empty():
 		for resource_id in hex_node.base_production:
 			rewards[resource_id] = hex_node.base_production[resource_id]
@@ -294,33 +294,33 @@ func _get_tower_rewards() -> Dictionary:
 
 func create_stats_panel() -> Control:
 	"""Create a panel showing team stats, bonuses, and controls"""
-	var panel = PanelContainer.new()
+	var panel: PanelContainer = PanelContainer.new()
 	panel.custom_minimum_size = Vector2(280, 0)
 	_style_panel(panel)
 
-	var margin = MarginContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 15)
 	margin.add_theme_constant_override("margin_right", 15)
 	margin.add_theme_constant_override("margin_top", 15)
 	margin.add_theme_constant_override("margin_bottom", 15)
 	panel.add_child(margin)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
 	margin.add_child(vbox)
 
 	# Team header with clear button
-	var header_row = HBoxContainer.new()
+	var header_row: HBoxContainer = HBoxContainer.new()
 	vbox.add_child(header_row)
 
-	var team_title = Label.new()
+	var team_title: Label = Label.new()
 	team_title.text = "YOUR TEAM"
 	team_title.add_theme_font_size_override("font_size", 14)
 	team_title.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
 	team_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header_row.add_child(team_title)
 
-	var clear_btn = Button.new()
+	var clear_btn: Button = Button.new()
 	clear_btn.text = "Clear All"
 	clear_btn.custom_minimum_size = Vector2(70, 28)
 	clear_btn.pressed.connect(_clear_team)
@@ -334,17 +334,17 @@ func create_stats_panel() -> Control:
 	vbox.add_child(team_slots_container)
 
 	# Combat power display
-	var power_hbox = HBoxContainer.new()
+	var power_hbox: HBoxContainer = HBoxContainer.new()
 	power_hbox.add_theme_constant_override("separation", 10)
 	power_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_child(power_hbox)
 
-	var power_icon = Label.new()
+	var power_icon: Label = Label.new()
 	power_icon.text = "⚔️"
 	power_icon.add_theme_font_size_override("font_size", 18)
 	power_hbox.add_child(power_icon)
 
-	var power_title = Label.new()
+	var power_title: Label = Label.new()
 	power_title.text = "Combat Power:"
 	power_title.add_theme_font_size_override("font_size", 13)
 	power_title.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
@@ -357,7 +357,7 @@ func create_stats_panel() -> Control:
 	power_hbox.add_child(team_power_label)
 
 	# Team bonuses section
-	var bonuses_header = Label.new()
+	var bonuses_header: Label = Label.new()
 	bonuses_header.text = "TEAM BONUSES"
 	bonuses_header.add_theme_font_size_override("font_size", 12)
 	bonuses_header.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
@@ -368,25 +368,25 @@ func create_stats_panel() -> Control:
 	vbox.add_child(team_bonuses_container)
 
 	# Equipment summary header
-	var equip_header = Label.new()
+	var equip_header: Label = Label.new()
 	equip_header.text = "EQUIPMENT"
 	equip_header.add_theme_font_size_override("font_size", 12)
 	equip_header.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
 	vbox.add_child(equip_header)
 
 	# Equipment quick view container (shows equipped items per god)
-	var equip_container = VBoxContainer.new()
+	var equip_container: VBoxContainer = VBoxContainer.new()
 	equip_container.name = "EquipmentContainer"
 	equip_container.add_theme_constant_override("separation", 4)
 	vbox.add_child(equip_container)
 
 	# Separator
-	var sep1 = HSeparator.new()
+	var sep1: HSeparator = HSeparator.new()
 	sep1.add_theme_constant_override("separation", 8)
 	vbox.add_child(sep1)
 
 	# Enemy preview section
-	var enemy_header = Label.new()
+	var enemy_header: Label = Label.new()
 	enemy_header.text = "ENEMIES"
 	enemy_header.add_theme_font_size_override("font_size", 12)
 	enemy_header.add_theme_color_override("font_color", Color(0.8, 0.4, 0.4))
@@ -397,12 +397,12 @@ func create_stats_panel() -> Control:
 	vbox.add_child(enemy_preview_container)
 
 	# Separator
-	var sep2 = HSeparator.new()
+	var sep2: HSeparator = HSeparator.new()
 	sep2.add_theme_constant_override("separation", 8)
 	vbox.add_child(sep2)
 
 	# Battle rewards section
-	var rewards_header = Label.new()
+	var rewards_header: Label = Label.new()
 	rewards_header.text = "BATTLE REWARDS"
 	rewards_header.add_theme_font_size_override("font_size", 12)
 	rewards_header.add_theme_color_override("font_color", Color(0.4, 0.7, 0.9))
@@ -445,24 +445,24 @@ func _update_team_bonuses_display():
 	var bonuses = TeamStatsCalculator.get_team_bonuses(selected_team)
 
 	if bonuses.is_empty():
-		var no_bonus = Label.new()
+		var no_bonus: Label = Label.new()
 		no_bonus.text = "No active bonuses"
 		no_bonus.add_theme_font_size_override("font_size", 11)
 		no_bonus.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
 		team_bonuses_container.add_child(no_bonus)
 	else:
 		for bonus in bonuses:
-			var bonus_row = HBoxContainer.new()
+			var bonus_row: HBoxContainer = HBoxContainer.new()
 			bonus_row.add_theme_constant_override("separation", 6)
 
-			var name_label = Label.new()
+			var name_label: Label = Label.new()
 			name_label.text = bonus.name
 			name_label.add_theme_font_size_override("font_size", 11)
 			name_label.add_theme_color_override("font_color", Color(0.4, 0.8, 0.4))
 			name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			bonus_row.add_child(name_label)
 
-			var desc_label = Label.new()
+			var desc_label: Label = Label.new()
 			desc_label.text = bonus.desc
 			desc_label.add_theme_font_size_override("font_size", 10)
 			desc_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
@@ -484,14 +484,14 @@ func _update_equipment_display():
 		child.queue_free()
 
 	# Check if any gods are selected
-	var has_selected = false
+	var has_selected: bool = false
 	for god in selected_team:
 		if god != null:
 			has_selected = true
 			break
 
 	if not has_selected:
-		var no_team = Label.new()
+		var no_team: Label = Label.new()
 		no_team.text = "Select gods to view equipment"
 		no_team.add_theme_font_size_override("font_size", 10)
 		no_team.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
@@ -503,11 +503,11 @@ func _update_equipment_display():
 		if god == null:
 			continue
 
-		var god_equip = HBoxContainer.new()
+		var god_equip: HBoxContainer = HBoxContainer.new()
 		god_equip.add_theme_constant_override("separation", 6)
 
 		# God name (abbreviated)
-		var name_label = Label.new()
+		var name_label: Label = Label.new()
 		var display_name = god.name.substr(0, 8) if god.name.length() > 8 else god.name
 		name_label.text = display_name
 		name_label.custom_minimum_size = Vector2(70, 0)
@@ -517,7 +517,7 @@ func _update_equipment_display():
 
 		# Equipment slots (show icons or empty)
 		var equip_text = _get_equipment_summary(god)
-		var equip_label = Label.new()
+		var equip_label: Label = Label.new()
 		equip_label.text = equip_text
 		equip_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		equip_label.add_theme_font_size_override("font_size", 10)
@@ -528,7 +528,7 @@ func _update_equipment_display():
 		god_equip.add_child(equip_label)
 
 		# Edit button - always visible
-		var edit_btn = Button.new()
+		var edit_btn: Button = Button.new()
 		edit_btn.text = "⚙"
 		edit_btn.tooltip_text = "Edit " + god.name + "'s equipment"
 		edit_btn.custom_minimum_size = Vector2(28, 24)
@@ -564,7 +564,7 @@ func _on_edit_equipment(god: God):
 func _show_equipment_popup(god: God):
 	"""Show inline equipment editing popup"""
 	# Create popup overlay
-	var popup_overlay = ColorRect.new()
+	var popup_overlay: ColorRect = ColorRect.new()
 	popup_overlay.name = "EquipmentPopupOverlay"
 	popup_overlay.color = Color(0, 0, 0, 0.7)
 	popup_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -581,7 +581,7 @@ func _show_equipment_popup(god: God):
 	)
 
 	# Main popup panel
-	var popup_panel = PanelContainer.new()
+	var popup_panel: PanelContainer = PanelContainer.new()
 	popup_panel.custom_minimum_size = Vector2(500, 450)
 	popup_panel.set_anchors_preset(Control.PRESET_CENTER)
 	popup_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
@@ -593,29 +593,29 @@ func _show_equipment_popup(god: God):
 	# Stop clicks on panel from closing
 	popup_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 
-	var margin = MarginContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 15)
 	margin.add_theme_constant_override("margin_right", 15)
 	margin.add_theme_constant_override("margin_top", 15)
 	margin.add_theme_constant_override("margin_bottom", 15)
 	popup_panel.add_child(margin)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
 	margin.add_child(vbox)
 
 	# Header with god name and close button
-	var header = HBoxContainer.new()
+	var header: HBoxContainer = HBoxContainer.new()
 	vbox.add_child(header)
 
-	var title = Label.new()
+	var title: Label = Label.new()
 	title.text = "EQUIPMENT: " + god.name.to_upper()
 	title.add_theme_font_size_override("font_size", 16)
 	title.add_theme_color_override("font_color", Color(0.9, 0.85, 1.0))
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 
-	var close_btn = Button.new()
+	var close_btn: Button = Button.new()
 	close_btn.text = "✕"
 	close_btn.custom_minimum_size = Vector2(32, 32)
 	close_btn.pressed.connect(func(): popup_overlay.queue_free())
@@ -623,31 +623,31 @@ func _show_equipment_popup(god: God):
 	header.add_child(close_btn)
 
 	# Equipment slots section
-	var slots_label = Label.new()
+	var slots_label: Label = Label.new()
 	slots_label.text = "EQUIPPED ITEMS"
 	slots_label.add_theme_font_size_override("font_size", 12)
 	slots_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
 	vbox.add_child(slots_label)
 
-	var slots_grid = GridContainer.new()
+	var slots_grid: GridContainer = GridContainer.new()
 	slots_grid.columns = 3
 	slots_grid.add_theme_constant_override("h_separation", 10)
 	slots_grid.add_theme_constant_override("v_separation", 10)
 	vbox.add_child(slots_grid)
 
 	# Create equipment slot UI (weapon, armor, accessory, etc.)
-	var slot_types = ["weapon", "armor", "helmet", "accessory", "ring", "artifact"]
+	var slot_types: Array = ["weapon", "armor", "helmet", "accessory", "ring", "artifact"]
 	var equipment_manager = SystemRegistry.get_instance().get_system("EquipmentManager")
-	var equipped_items = {}
+	var equipped_items: Dictionary = {}
 	if equipment_manager and equipment_manager.has_method("get_equipped_items"):
 		equipped_items = equipment_manager.get_equipped_items(god.id)
 		if equipped_items == null:
 			equipped_items = {}
 
 	for slot_type in slot_types:
-		var slot_panel = PanelContainer.new()
+		var slot_panel: PanelContainer = PanelContainer.new()
 		slot_panel.custom_minimum_size = Vector2(145, 60)
-		var slot_style = StyleBoxFlat.new()
+		var slot_style: StyleBoxFlat = StyleBoxFlat.new()
 		slot_style.bg_color = Color(0.1, 0.08, 0.15, 0.9)
 		slot_style.border_color = Color(0.3, 0.25, 0.4, 0.6)
 		slot_style.set_border_width_all(1)
@@ -655,23 +655,23 @@ func _show_equipment_popup(god: God):
 		slot_panel.add_theme_stylebox_override("panel", slot_style)
 		slots_grid.add_child(slot_panel)
 
-		var slot_vbox = VBoxContainer.new()
+		var slot_vbox: VBoxContainer = VBoxContainer.new()
 		slot_vbox.add_theme_constant_override("separation", 2)
 		slot_panel.add_child(slot_vbox)
 
-		var slot_margin = MarginContainer.new()
+		var slot_margin: MarginContainer = MarginContainer.new()
 		slot_margin.add_theme_constant_override("margin_left", 8)
 		slot_margin.add_theme_constant_override("margin_top", 5)
 		slot_margin.add_child(slot_vbox)
 		slot_panel.add_child(slot_margin)
 
-		var slot_title = Label.new()
+		var slot_title: Label = Label.new()
 		slot_title.text = slot_type.to_upper()
 		slot_title.add_theme_font_size_override("font_size", 9)
 		slot_title.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
 		slot_vbox.add_child(slot_title)
 
-		var item_name = Label.new()
+		var item_name: Label = Label.new()
 		if equipped_items.has(slot_type) and equipped_items[slot_type] != null:
 			var item = equipped_items[slot_type]
 			item_name.text = item.name if item.has("name") else "Unknown"
@@ -683,22 +683,22 @@ func _show_equipment_popup(god: God):
 		slot_vbox.add_child(item_name)
 
 	# Separator
-	var sep = HSeparator.new()
+	var sep: HSeparator = HSeparator.new()
 	vbox.add_child(sep)
 
 	# Inventory section
-	var inv_label = Label.new()
+	var inv_label: Label = Label.new()
 	inv_label.text = "INVENTORY"
 	inv_label.add_theme_font_size_override("font_size", 12)
 	inv_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
 	vbox.add_child(inv_label)
 
-	var scroll = ScrollContainer.new()
+	var scroll: ScrollContainer = ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	vbox.add_child(scroll)
 
-	var inv_grid = GridContainer.new()
+	var inv_grid: GridContainer = GridContainer.new()
 	inv_grid.columns = 4
 	inv_grid.add_theme_constant_override("h_separation", 8)
 	inv_grid.add_theme_constant_override("v_separation", 8)
@@ -706,19 +706,19 @@ func _show_equipment_popup(god: God):
 
 	# Get inventory items
 	var inventory_manager = SystemRegistry.get_instance().get_system("InventoryManager")
-	var equipment_items = []
+	var equipment_items: Array = []
 	if inventory_manager and inventory_manager.has_method("get_equipment_items"):
 		equipment_items = inventory_manager.get_equipment_items()
 
 	if equipment_items.is_empty():
-		var no_items = Label.new()
+		var no_items: Label = Label.new()
 		no_items.text = "No equipment in inventory"
 		no_items.add_theme_font_size_override("font_size", 11)
 		no_items.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
 		inv_grid.add_child(no_items)
 	else:
 		for item in equipment_items.slice(0, 12):  # Show first 12
-			var item_btn = Button.new()
+			var item_btn: Button = Button.new()
 			item_btn.text = item.get("name", "Item")
 			item_btn.custom_minimum_size = Vector2(100, 40)
 			item_btn.add_theme_font_size_override("font_size", 10)
@@ -754,10 +754,10 @@ func _equip_item_to_god(god: God, item: Dictionary):
 
 func create_sorting_controls() -> HBoxContainer:
 	"""Create sorting controls for the gods grid"""
-	var container = HBoxContainer.new()
+	var container: HBoxContainer = HBoxContainer.new()
 	container.add_theme_constant_override("separation", 8)
 
-	var sort_label = Label.new()
+	var sort_label: Label = Label.new()
 	sort_label.text = "Sort:"
 	sort_label.add_theme_font_size_override("font_size", 12)
 	sort_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
@@ -850,30 +850,30 @@ func _refresh_team_slots():
 	_update_team_stats()
 
 func _create_team_slot(index: int) -> Control:
-	var slot = Panel.new()
+	var slot: Panel = Panel.new()
 	slot.name = "TeamSlot_" + str(index)
 	slot.custom_minimum_size = Vector2(65, 85)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.12, 0.2, 0.8)
 	style.border_color = Color(0.4, 0.35, 0.5, 0.6)
 	style.set_border_width_all(1)
 	style.set_corner_radius_all(4)
 	slot.add_theme_stylebox_override("panel", style)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.name = "VBoxContainer"
 	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	vbox.add_theme_constant_override("separation", 2)
 	slot.add_child(vbox)
 
-	var god_display = Control.new()
+	var god_display: Control = Control.new()
 	god_display.name = "GodDisplay"
 	god_display.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(god_display)
 
 	# Empty slot indicator
-	var empty_label = Label.new()
+	var empty_label: Label = Label.new()
 	empty_label.text = "+"
 	empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -924,7 +924,7 @@ func _update_slot_display(slot_index: int):
 
 	var god = selected_team[slot_index]
 	if god == null:
-		var empty_label = Label.new()
+		var empty_label: Label = Label.new()
 		empty_label.text = "+"
 		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -973,7 +973,7 @@ func _refresh_gods_grid():
 
 	# Add available gods (filter out already selected)
 	for god in sorted_gods:
-		var already_selected = false
+		var already_selected: bool = false
 		for selected in selected_team:
 			if selected != null and selected.id == god.id:
 				already_selected = true
@@ -994,10 +994,10 @@ func _refresh_gods_grid():
 func _create_god_card_for_grid(god: God, assignment: String = "") -> Control:
 	var is_unavailable = not assignment.is_empty()
 
-	var container = Panel.new()
+	var container: Panel = Panel.new()
 	container.custom_minimum_size = Vector2(160, 200)
 
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0, 0, 0, 0)
 	container.add_theme_stylebox_override("panel", style)
 
@@ -1009,7 +1009,7 @@ func _create_god_card_for_grid(god: God, assignment: String = "") -> Control:
 	container.add_child(god_card)
 
 	# Selection overlay (shown when selected)
-	var selection_overlay = ColorRect.new()
+	var selection_overlay: ColorRect = ColorRect.new()
 	selection_overlay.name = "SelectionOverlay"
 	selection_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	selection_overlay.color = Color(0.2, 0.6, 0.2, 0.3)
@@ -1019,7 +1019,7 @@ func _create_god_card_for_grid(god: God, assignment: String = "") -> Control:
 
 	# Unavailable overlay (greyed out with assignment info)
 	if is_unavailable:
-		var unavailable_overlay = ColorRect.new()
+		var unavailable_overlay: ColorRect = ColorRect.new()
 		unavailable_overlay.name = "UnavailableOverlay"
 		unavailable_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 		unavailable_overlay.color = Color(0.1, 0.1, 0.15, 0.7)
@@ -1027,7 +1027,7 @@ func _create_god_card_for_grid(god: God, assignment: String = "") -> Control:
 		container.add_child(unavailable_overlay)
 
 		# Assignment label at bottom
-		var assignment_label = Label.new()
+		var assignment_label: Label = Label.new()
 		assignment_label.text = assignment
 		assignment_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		assignment_label.add_theme_font_size_override("font_size", 10)
@@ -1093,7 +1093,7 @@ func _disable_mouse_on_children(node: Node):
 # ============================================================================
 
 func _on_start_battle_pressed():
-	var has_gods = false
+	var has_gods: bool = false
 	for god in selected_team:
 		if god != null:
 			has_gods = true
@@ -1122,7 +1122,7 @@ func _format_number(num: int) -> String:
 	return str(num)
 
 func _style_panel(panel: PanelContainer):
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.12, 0.1, 0.16, 0.95)
 	style.border_color = Color(0.3, 0.25, 0.4, 0.8)
 	style.set_border_width_all(1)
@@ -1130,7 +1130,7 @@ func _style_panel(panel: PanelContainer):
 	panel.add_theme_stylebox_override("panel", style)
 
 func _style_button(button: Button, primary: bool = false):
-	var style_normal = StyleBoxFlat.new()
+	var style_normal: StyleBoxFlat = StyleBoxFlat.new()
 	if primary:
 		style_normal.bg_color = Color(0.2, 0.5, 0.3, 0.9)
 		style_normal.border_color = Color(0.3, 0.7, 0.4, 0.8)
@@ -1152,13 +1152,13 @@ func _create_full_ui(parent: Control):
 	# This creates a complete battle setup UI from scratch
 	# Used when the parent scene doesn't have pre-built UI elements
 
-	var main_vbox = VBoxContainer.new()
+	var main_vbox: VBoxContainer = VBoxContainer.new()
 	main_vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	main_vbox.add_theme_constant_override("separation", 10)
 	parent.add_child(main_vbox)
 
 	# Content area (hbox with stats panel and gods grid)
-	var content_hbox = HBoxContainer.new()
+	var content_hbox: HBoxContainer = HBoxContainer.new()
 	content_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content_hbox.add_theme_constant_override("separation", 15)
 	main_vbox.add_child(content_hbox)
@@ -1169,29 +1169,29 @@ func _create_full_ui(parent: Control):
 	content_hbox.add_child(left_panel)
 
 	# Right panel - gods grid
-	var right_panel = PanelContainer.new()
+	var right_panel: PanelContainer = PanelContainer.new()
 	right_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_style_panel(right_panel)
 	content_hbox.add_child(right_panel)
 
-	var right_margin = MarginContainer.new()
+	var right_margin: MarginContainer = MarginContainer.new()
 	right_margin.add_theme_constant_override("margin_left", 10)
 	right_margin.add_theme_constant_override("margin_right", 10)
 	right_margin.add_theme_constant_override("margin_top", 10)
 	right_margin.add_theme_constant_override("margin_bottom", 10)
 	right_panel.add_child(right_margin)
 
-	var right_vbox = VBoxContainer.new()
+	var right_vbox: VBoxContainer = VBoxContainer.new()
 	right_vbox.add_theme_constant_override("separation", 8)
 	right_margin.add_child(right_vbox)
 
 	# Header with sorting
-	var header_row = HBoxContainer.new()
+	var header_row: HBoxContainer = HBoxContainer.new()
 	header_row.add_theme_constant_override("separation", 10)
 	right_vbox.add_child(header_row)
 
-	var header = Label.new()
+	var header: Label = Label.new()
 	header.text = "SELECT GODS"
 	header.add_theme_font_size_override("font_size", 14)
 	header.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
@@ -1202,7 +1202,7 @@ func _create_full_ui(parent: Control):
 	header_row.add_child(sorting)
 
 	# Scrollable gods grid
-	var scroll = ScrollContainer.new()
+	var scroll: ScrollContainer = ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	right_vbox.add_child(scroll)
@@ -1214,19 +1214,19 @@ func _create_full_ui(parent: Control):
 	scroll.add_child(available_gods_grid)
 
 	# Bottom buttons panel
-	var buttons_panel = PanelContainer.new()
+	var buttons_panel: PanelContainer = PanelContainer.new()
 	buttons_panel.custom_minimum_size = Vector2(0, 60)
 	_style_panel(buttons_panel)
 	main_vbox.add_child(buttons_panel)
 
-	var buttons_margin = MarginContainer.new()
+	var buttons_margin: MarginContainer = MarginContainer.new()
 	buttons_margin.add_theme_constant_override("margin_left", 20)
 	buttons_margin.add_theme_constant_override("margin_right", 20)
 	buttons_margin.add_theme_constant_override("margin_top", 10)
 	buttons_margin.add_theme_constant_override("margin_bottom", 10)
 	buttons_panel.add_child(buttons_margin)
 
-	var buttons_hbox = HBoxContainer.new()
+	var buttons_hbox: HBoxContainer = HBoxContainer.new()
 	buttons_hbox.add_theme_constant_override("separation", 20)
 	buttons_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	buttons_margin.add_child(buttons_hbox)

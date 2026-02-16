@@ -137,7 +137,7 @@ func _initialize_battle_connections():
 
 func _force_fullscreen_layout():
 	"""Force all layout elements to fill the viewport - runs deferred for proper sizing"""
-	var viewport_size = get_viewport().get_visible_rect().size
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 
 	# Force this control to fill viewport
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -418,7 +418,7 @@ func _on_ability_selected(skill_index: int):
 
 	# Update action label to instruct user to tap target
 	if action_label:
-		var target_type = "enemy" if skill.targets_enemies else "ally"
+		var target_type: String = "enemy" if skill.targets_enemies else "ally"
 		action_label.text = "Tap %s to use %s" % [target_type, skill.name]
 
 	# Highlight ability button to show it's selected
@@ -631,12 +631,12 @@ func _show_damage_number(target: BattleUnit, damage_result):
 		return
 
 	# Create a container for the damage number that handles mouse events
-	var damage_container = Control.new()
+	var damage_container: Control = Control.new()
 	damage_container.mouse_filter = Control.MOUSE_FILTER_STOP
 	damage_container.custom_minimum_size = Vector2(100, 40)
 
 	# Create damage number label
-	var damage_label = Label.new()
+	var damage_label: Label = Label.new()
 	damage_label.text = str(damage_result.total)
 
 	# Style based on damage type
@@ -681,11 +681,11 @@ func _show_damage_number(target: BattleUnit, damage_result):
 
 func _create_damage_tooltip(damage_result) -> PanelContainer:
 	"""Create a tooltip panel showing damage calculation breakdown"""
-	var panel = PanelContainer.new()
+	var panel: PanelContainer = PanelContainer.new()
 	panel.z_index = 200
 
 	# Style the panel
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.08, 0.15, 0.95)
 	style.border_color = Color(0.4, 0.35, 0.5, 0.9)
 	style.set_border_width_all(1)
@@ -694,7 +694,7 @@ func _create_damage_tooltip(damage_result) -> PanelContainer:
 	panel.add_theme_stylebox_override("panel", style)
 
 	# Content
-	var content = VBoxContainer.new()
+	var content: VBoxContainer = VBoxContainer.new()
 	content.add_theme_constant_override("separation", 2)
 	panel.add_child(content)
 
@@ -703,7 +703,7 @@ func _create_damage_tooltip(damage_result) -> PanelContainer:
 	var lines = breakdown_text.split("\n")
 
 	for line in lines:
-		var label = Label.new()
+		var label: Label = Label.new()
 		label.text = line
 		label.add_theme_font_size_override("font_size", 10)
 
@@ -776,7 +776,7 @@ func _hide_battle_result_overlay():
 func _on_return_to_map_pressed():
 	"""Handle return to map button - navigate based on battle type"""
 	# Get the battle type from the result overlay
-	var return_screen = "WorldView"  # Default
+	var return_screen: String = "WorldView"  # Default
 
 	if battle_result_overlay and battle_result_overlay.battle_result:
 		var battle_type = battle_result_overlay.battle_result.battle_type
@@ -871,7 +871,7 @@ func _on_wave_completed(wave_number: int):
 		return
 
 	# Get total waves from wave manager
-	var total_waves = 0
+	var total_waves: int = 0
 	if battle_coordinator and battle_coordinator.wave_manager:
 		total_waves = battle_coordinator.wave_manager.get_wave_count()
 
@@ -983,7 +983,7 @@ func _trigger_wave_reward_particles():
 	# Calculate target position (top-right where resource display is)
 	# ResourceDisplay is positioned at offset_left: 453, offset_top: 3 in MainUIOverlay
 	# We target the mana and crystal icon positions
-	var mana_target = Vector2(size.x - 350, 20)  # Approximate mana icon position
+	var mana_target: Vector2 = Vector2(size.x - 350, 20)  # Approximate mana icon position
 
 	# Play particles flying toward resource display
 	wave_reward_effect.play_wave_reward(spawn_pos, mana_target, 5, 3)
