@@ -7,6 +7,31 @@
 
 ---
 
+## 2026-02-16 - Audit: Split TeamSelectionManager.gd into four files
+
+**Priority:** High (Code Simplification)
+**File(s) Modified:** `scripts/ui/battle_setup/TeamSelectionManager.gd`, `scripts/ui/battle_setup/TeamBattlePreview.gd` (new), `scripts/ui/battle_setup/TeamEquipmentPopup.gd` (new), `scripts/ui/battle_setup/TeamStatsPanel.gd` (new)
+
+**Changes:**
+- Split TeamSelectionManager.gd (1266 lines) into four files all under 600 lines:
+  - **TeamSelectionManager.gd** (596 lines): Coordinator - signals, data, initialization, context setup, sorting, team slots, god grid, buttons/actions, full UI layout, public API
+  - **TeamBattlePreview.gd** (197 lines): Enemy and rewards preview display - fetches data from DungeonManager/context, renders preview rows
+  - **TeamEquipmentPopup.gd** (302 lines): Equipment display summary per god + inline equipment editing popup with slot grid and inventory browser
+  - **TeamStatsPanel.gd** (208 lines): Left-side stats panel creation - team header, combat power, bonuses display, section containers for enemies/rewards
+- All three helper classes extend RefCounted (not Node) for lightweight composition
+- TeamSelectionManager creates helpers in `initialize_full()` and delegates via method calls
+- Equipment popup uses `Engine.get_main_loop()` instead of `get_tree()` since it's RefCounted
+- Equipment popup emits `equipment_changed` signal for stats refresh
+- Stats panel accepts `clear_callback: Callable` to wire clear button without tight coupling
+- Battle preview accepts containers via `initialize()` for rendering into
+- Added static typing throughout all four files (parameters, return types, local variables, loop iterators)
+- Simplified `_update_ui_for_context()` to use comma-separated match pattern instead of 7 identical functions
+- All external APIs (signals, `initialize_full()`, `setup_for_context()`, `get_selected_team()`, `set_team()`) preserved unchanged
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings/errors unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Split HexGridManager.gd into two files
 
 **Priority:** High (Code Simplification)
