@@ -64,16 +64,16 @@ func validate_dungeon_entry(dungeon_id: String, difficulty: String) -> Dictionar
 	result.message = "Ready to enter!"
 	return result
 
-func get_energy_cost(_dungeon_id: String, difficulty: String) -> int:
-	"""Calculate energy cost for dungeon entry"""
-	var base_cost = 10
-	
-	# Difficulty multiplier
-	match difficulty.to_lower():
-		"hard": base_cost *= 2
-		"hell", "nightmare": base_cost *= 3
-	
-	return base_cost
+func get_energy_cost(dungeon_id: String, difficulty: String) -> int:
+	"""Get energy cost from dungeon config data (dungeons.json)"""
+	var system_registry: SystemRegistry = SystemRegistry.get_instance()
+	if system_registry:
+		var dungeon_manager: Node = system_registry.get_system("DungeonManager")
+		if dungeon_manager:
+			var dungeon_info: Dictionary = dungeon_manager.get_dungeon_info(dungeon_id)
+			var difficulty_info: Dictionary = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
+			return difficulty_info.get("energy_cost", 10)
+	return 10
 
 func start_dungeon_battle(dungeon_id: String, difficulty: String):
 	"""Start the dungeon battle - RULE 5: Use SystemRegistry"""

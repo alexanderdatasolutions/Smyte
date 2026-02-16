@@ -7,6 +7,23 @@
 
 ---
 
+## 2026-02-16 - Audit: Move dungeon energy costs to data-driven JSON
+
+**Priority:** High (Data-Driven Config)
+**File(s) Modified:** `scripts/systems/dungeon/DungeonCoordinator.gd`, `scripts/ui/components/DungeonEntryManager.gd`
+
+**Changes:**
+- Replaced hardcoded energy cost dictionary in `DungeonCoordinator._get_energy_cost()` with lookup from DungeonManager (reads from dungeons.json)
+- Replaced hardcoded base_cost/match-based energy cost in `DungeonEntryManager.get_energy_cost()` with same DungeonManager lookup
+- Both functions previously ignored the dungeon_id parameter and used wrong difficulty names (easy/normal/hard/hell vs actual beginner/intermediate/advanced/expert)
+- Removed 4 debug print statements from DungeonCoordinator.gd (lines 157, 180, 186, 192)
+- Added static typing to all untyped variables (12+ vars) and `-> void` return types to 7 functions
+- Energy costs are already defined per-dungeon per-difficulty in dungeons.json (6-18 range) - no JSON changes needed
+
+**Verified:** Ran project, no errors in debug output
+
+---
+
 ## 2026-02-16 - Audit: Add static typing to SummonManager.gd
 
 **Priority:** High

@@ -960,8 +960,8 @@
     "priority": "high",
     "file": "scripts/systems/dungeon/DungeonCoordinator.gd",
     "issue": "Energy costs hardcoded: 8, 10, 12, 15 per difficulty",
-    "action": "Move to data/dungeons.json under each dungeon's difficulty config",
-    "passes": false
+    "action": "Replaced hardcoded energy costs in DungeonCoordinator._get_energy_cost() and DungeonEntryManager.get_energy_cost() to read from DungeonManager (which loads from dungeons.json). Also removed 4 debug print statements and added static typing to all variables/functions.",
+    "passes": true
   },
   {
     "priority": "high",

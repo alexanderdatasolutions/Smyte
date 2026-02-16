@@ -24,13 +24,13 @@ var loot_system: Node
 var current_dungeon_battle: Dictionary = {}
 var battle_in_progress: bool = false
 
-func _ready():
+func _ready() -> void:
 	"""Initialize dungeon coordinator"""
 	_connect_to_systems()
 
-func _connect_to_systems():
+func _connect_to_systems() -> void:
 	"""Connect to required systems via SystemRegistry"""
-	var system_registry = SystemRegistry.get_instance()
+	var system_registry: SystemRegistry = SystemRegistry.get_instance()
 	if not system_registry:
 		push_error("DungeonCoordinator: SystemRegistry not available")
 		return
@@ -53,21 +53,21 @@ func start_dungeon_battle(dungeon_id: String, difficulty: String, team: Array) -
 		return {"success": false, "error": "Battle already in progress"}
 	
 	# Validate energy cost
-	var energy_cost = _get_energy_cost(dungeon_id, difficulty)
+	var energy_cost: int = _get_energy_cost(dungeon_id, difficulty)
 	if not resource_manager or not resource_manager.can_spend("energy", energy_cost):
 		return {"success": false, "error": "Not enough energy"}
 	
 	# Validate team
-	var team_validation = _validate_battle_team(team)
+	var team_validation: Dictionary = _validate_battle_team(team)
 	if not team_validation.success:
 		return team_validation
 	
 	# Get dungeon battle data
-	var dungeon_manager = SystemRegistry.get_instance().get_system("DungeonManager")
+	var dungeon_manager: Node = SystemRegistry.get_instance().get_system("DungeonManager")
 	if not dungeon_manager:
 		return {"success": false, "error": "Dungeon manager not available"}
-	
-	var battle_config = dungeon_manager.get_battle_configuration(dungeon_id, difficulty)
+
+	var battle_config: Dictionary = dungeon_manager.get_battle_configuration(dungeon_id, difficulty)
 	if battle_config.is_empty():
 		return {"success": false, "error": "Invalid dungeon configuration"}
 	
@@ -88,7 +88,7 @@ func start_dungeon_battle(dungeon_id: String, difficulty: String, team: Array) -
 	
 	# Start battle through BattleCoordinator
 	if battle_coordinator:
-		var battle_result = battle_coordinator.start_battle(team, battle_config.enemies, battle_config)
+		var battle_result: Dictionary = battle_coordinator.start_battle(team, battle_config.enemies, battle_config)
 		if not battle_result.success:
 			_reset_battle_state()
 			resource_manager.add("energy", energy_cost)  # Refund energy
@@ -99,17 +99,14 @@ func start_dungeon_battle(dungeon_id: String, difficulty: String, team: Array) -
 	
 	return {"success": true, "message": "Dungeon battle started"}
 
-func _get_energy_cost(_dungeon_id: String, difficulty: String) -> int:
-	"""Calculate energy cost for dungeon battle"""
-	# Base cost varies by difficulty
-	var base_costs = {
-		"easy": 8,
-		"normal": 10,
-		"hard": 12,
-		"hell": 15
-	}
-	
-	return base_costs.get(difficulty, 10)
+func _get_energy_cost(dungeon_id: String, difficulty: String) -> int:
+	"""Get energy cost from dungeon config data (dungeons.json)"""
+	var dungeon_manager: Node = SystemRegistry.get_instance().get_system("DungeonManager")
+	if dungeon_manager:
+		var dungeon_info: Dictionary = dungeon_manager.get_dungeon_info(dungeon_id)
+		var difficulty_info: Dictionary = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
+		return difficulty_info.get("energy_cost", 10)
+	return 10
 
 func _validate_battle_team(team: Array) -> Dictionary:
 	"""Validate team composition for dungeon battle"""
@@ -130,7 +127,7 @@ func _validate_battle_team(team: Array) -> Dictionary:
 	
 	return {"success": true}
 
-func _on_battle_completed(result: BattleResult):
+func _on_battle_completed(result: BattleResult) -> void:
 	"""Handle battle completion from BattleCoordinator"""
 	if not battle_in_progress or current_dungeon_battle.is_empty():
 		return
@@ -157,7 +154,6 @@ func _handle_dungeon_victory(battle_result: BattleResult) -> void:
 		dungeon_manager.record_completion(dungeon_id, difficulty, completion_time)
 
 	dungeon_completed.emit(dungeon_id, difficulty)
-	print("DungeonCoordinator: Emitted dungeon_completed signal for %s %s" % [dungeon_id, difficulty])
 
 	dungeon_battle_completed.emit({
 		"dungeon_id": dungeon_id,
@@ -180,19 +176,16 @@ func _generate_victory_rewards(dungeon_id: String, difficulty: String, dungeon_m
 		# Generate loot from table
 		if not loot_table_id.is_empty():
 			var generated_loot: Dictionary = loot_system.generate_loot(loot_table_id, multiplier, element)
-			print("DungeonCoordinator: Generated loot from table '%s': %s" % [loot_table_id, generated_loot])
 			_merge_rewards(all_rewards, generated_loot, battle_result, "loot_table")
 
 		# First-clear bonus
 		if dungeon_manager.is_first_clear(dungeon_id, difficulty):
 			var first_clear_rewards: Dictionary = dungeon_manager.get_first_clear_rewards(dungeon_id, difficulty)
-			print("DungeonCoordinator: First clear bonus: %s" % first_clear_rewards)
 			_merge_rewards(all_rewards, first_clear_rewards, battle_result, "first_clear")
 
 		# Award all loot through LootSystem (updates ResourceManager)
 		if not all_rewards.is_empty():
 			loot_system.award_loot(all_rewards)
-			print("DungeonCoordinator: Awarded loot to player: %s" % all_rewards)
 
 	elif dungeon_manager:
 		# Fallback if LootSystem not available
@@ -224,20 +217,20 @@ func _award_team_experience(difficulty: String, battle_result: BattleResult) -> 
 		collection_manager.award_experience(god.id, exp_per_god)
 		battle_result.add_experience_gained(god.id, exp_per_god)
 
-func _handle_dungeon_defeat(_battle_result: BattleResult):
+func _handle_dungeon_defeat(_battle_result: BattleResult) -> void:
 	"""Process dungeon defeat"""
-	var dungeon_id = current_dungeon_battle.dungeon_id
-	var difficulty = current_dungeon_battle.difficulty
-	
+	var dungeon_id: String = current_dungeon_battle.dungeon_id
+	var difficulty: String = current_dungeon_battle.difficulty
+
 	# Small consolation rewards on defeat
 	if resource_manager:
-		var consolation_rewards = {"experience": 10}
+		var consolation_rewards: Dictionary = {"experience": 10}
 		resource_manager.add_bulk_resources(consolation_rewards)
 	
 	# Emit defeat signal
 	dungeon_battle_failed.emit(dungeon_id, difficulty, "Battle lost")
 	
-	var result_data = {
+	var result_data: Dictionary = {
 		"dungeon_id": dungeon_id,
 		"difficulty": difficulty,
 		"victory": false,
@@ -248,7 +241,7 @@ func _handle_dungeon_defeat(_battle_result: BattleResult):
 
 func _calculate_experience_reward(difficulty: String) -> int:
 	"""Calculate experience reward per god based on difficulty"""
-	var base_exp = {
+	var base_exp: Dictionary = {
 		"easy": 25,
 		"normal": 50,
 		"hard": 100,
@@ -264,17 +257,17 @@ func _calculate_experience_reward(difficulty: String) -> int:
 	return base_exp.get(difficulty, 50)
 
 
-func _reset_battle_state():
+func _reset_battle_state() -> void:
 	"""Reset battle state after completion"""
 	current_dungeon_battle.clear()
 	battle_in_progress = false
 
 # System interface methods
-func initialize():
+func initialize() -> void:
 	"""Initialize system - called by SystemRegistry"""
 	pass
 
-func shutdown():
+func shutdown() -> void:
 	"""Shutdown system - called by SystemRegistry"""
 	if battle_in_progress:
 		_reset_battle_state()
