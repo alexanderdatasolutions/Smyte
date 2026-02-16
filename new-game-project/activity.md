@@ -7,6 +7,28 @@
 
 ---
 
+## 2026-02-16 - Audit: Move SummonManager pity/rate values to summon_config.json
+
+**Priority:** High (Data-Driven JSON Config)
+**File(s) Modified:** `scripts/systems/collection/SummonManager.gd`, `data/summon_config.json`
+
+**Changes:**
+- **BUG FIX**: `_apply_pity_system()` was reading from `config.get("summon_configuration", {}).get("pity_system", {})` — a path that doesn't exist in the current config. Pity system was effectively disabled. Fixed to read from top-level `config.get("pity_system", {})`.
+- **BUG FIX**: `summon_basic()` and `summon_premium()` read costs from dead `summon_configuration.costs.premium_summons` path. Fixed to read from `summon_types.mana_summon.cost` and `summon_types.crystal_summon.cost`.
+- **BUG FIX**: `_get_summon_rates()` had dead legacy fallback reading from `summon_configuration.rates`. Removed and added proper `mana`, `pantheon`, and `free` summon type lookups.
+- **BUG FIX**: `multi_summon_premium()` read from dead `summon_configuration.costs.multi_summons`. Fixed to read from `summon_types.crystal_summon.cost_10x`.
+- **Config**: `_get_summon_weights()` read `filtering_weights` from dead `summon_configuration` path. Fixed to read from top-level.
+- **Config**: Added `hard_pity.rare: 10` to pity_system in summon_config.json.
+- **Config**: Added `multi_summon` section with `discount_multiplier: 0.9` and `guarantee_rare_on_10x: true`.
+- **Config**: Added `filtering_weights.element_focus` section with matching/other element weights.
+- **Config**: Added `notifications` section with legendary/epic durations.
+- Replaced hardcoded `0.9` multi-summon discount with config lookup in both `multi_summon_premium()` and `_perform_multi_summon()`.
+- Used `minf()` instead of `min()` for float context in soft pity calculation.
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Add null/bounds checks to PvP territory system (5 files)
 
 **Priority:** High (Error Handling)

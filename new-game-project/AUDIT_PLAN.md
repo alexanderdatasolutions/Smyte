@@ -988,8 +988,8 @@
     "priority": "high",
     "file": "scripts/systems/collection/SummonManager.gd",
     "issue": "Pity system values hardcoded: pity_epic_threshold, pity_legendary_threshold, rate-up percentages",
-    "action": "Move to data/summon_config.json (partially exists, complete it)",
-    "passes": false
+    "action": "Fixed SummonManager to read pity system from top-level pity_system key (was reading dead summon_configuration path). Added hard_pity.rare, multi_summon (discount_multiplier, guarantee_rare_on_10x), filtering_weights, and notifications sections to summon_config.json. Updated summon_basic/summon_premium to read from summon_types.mana_summon/crystal_summon. Removed all dead summon_configuration legacy code paths. Updated _get_summon_rates to handle mana/pantheon types. Updated multi_summon_premium to read cost_10x from config.",
+    "passes": true
   },
   {
     "priority": "high",

@@ -149,8 +149,9 @@
     "enabled": true,
     "applies_to": ["crystal_summon", "element_summon", "pantheon_summon"],
     "hard_pity": {
-      "legendary": 100,
-      "epic": 50
+      "rare": 10,
+      "epic": 50,
+      "legendary": 100
     },
     "soft_pity": {
       "legendary": {
@@ -166,6 +167,23 @@
     },
     "pity_carries_over": true,
     "resets_on_obtain": true
+  },
+
+  "multi_summon": {
+    "discount_multiplier": 0.9,
+    "guarantee_rare_on_10x": true
+  },
+
+  "filtering_weights": {
+    "element_focus": {
+      "matching_element_weight": 3.0,
+      "other_elements_weight": 1.0
+    }
+  },
+
+  "notifications": {
+    "legendary_duration": 5.0,
+    "epic_duration": 3.0
   },
 
   "duplicate_rewards": {

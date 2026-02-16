@@ -46,19 +46,17 @@ func get_config() -> Dictionary:
 func summon_basic() -> bool:
 	var config: Dictionary = get_config()
 	var cost: Dictionary = {"mana": 10000}
-	if config.has("summon_configuration"):
-		var costs: Dictionary = config.summon_configuration.get("costs", {}).get("premium_summons", {})
-		if costs.has("mana_summon"):
-			cost = costs.mana_summon
+	var mana_summon: Dictionary = config.get("summon_types", {}).get("mana_summon", {})
+	if mana_summon.has("cost"):
+		cost = mana_summon.cost
 	return _perform_summon(cost, "mana", "default")
 
 func summon_premium() -> bool:
 	var config: Dictionary = get_config()
 	var cost: Dictionary = {"divine_crystals": 100}
-	if config.has("summon_configuration"):
-		var costs: Dictionary = config.summon_configuration.get("costs", {}).get("premium_summons", {})
-		if costs.has("divine_crystals_summon"):
-			cost = costs.divine_crystals_summon
+	var crystal_summon: Dictionary = config.get("summon_types", {}).get("crystal_summon", {})
+	if crystal_summon.has("cost"):
+		cost = crystal_summon.cost
 	return _perform_summon(cost, "divine_crystals", "premium")
 
 func summon_free_daily() -> bool:
@@ -189,17 +187,21 @@ func _get_random_god(summon_type: String, banner_type: String, element_filter: S
 func _get_summon_rates(summon_type: String) -> Dictionary:
 	var config: Dictionary = get_config()
 	var default_rates: Dictionary = {"common": 70.0, "rare": 25.0, "epic": 4.5, "legendary": 0.5}
-
-	# Look up rates from summon_types config (the actual config structure)
 	var summon_types: Dictionary = config.get("summon_types", {})
 
-	# Check crystal_summon rates for divine_crystals / premium types
+	# Crystal/premium summon rates
 	if summon_type in ["divine_crystals", "premium"]:
 		var crystal: Dictionary = summon_types.get("crystal_summon", {})
 		if crystal.has("rates"):
 			return crystal.rates
 
-	# Check soul variants for soul-based summons
+	# Mana summon rates
+	if summon_type == "mana":
+		var mana: Dictionary = summon_types.get("mana_summon", {})
+		if mana.has("rates"):
+			return mana.rates
+
+	# Soul-based summon rates (common_soul, rare_soul, etc.)
 	var soul_summon: Dictionary = summon_types.get("soul_summon", {})
 	var variants: Dictionary = soul_summon.get("variants", {})
 	if variants.has(summon_type):
@@ -207,51 +209,62 @@ func _get_summon_rates(summon_type: String) -> Dictionary:
 		if variant.has("rates"):
 			return variant.rates
 
-	# Check element_summon rates
-	var element_summon: Dictionary = summon_types.get("element_summon", {})
-	if element_summon.has("rates"):
-		if summon_type == "element":
+	# Element summon rates
+	if summon_type == "element":
+		var element_summon: Dictionary = summon_types.get("element_summon", {})
+		if element_summon.has("rates"):
 			return element_summon.rates
 
-	# Legacy config fallback (summon_configuration key)
-	if config.has("summon_configuration"):
-		var rates_section: Dictionary = config.summon_configuration.get("rates", {})
-		for category in ["soul_based_rates", "element_soul_rates", "premium_rates"]:
-			var category_rates: Dictionary = rates_section.get(category, {})
-			if category_rates.has(summon_type):
-				return category_rates[summon_type]
+	# Pantheon summon rates
+	if summon_type == "pantheon":
+		var pantheon_summon: Dictionary = summon_types.get("pantheon_summon", {})
+		if pantheon_summon.has("rates"):
+			return pantheon_summon.rates
+
+	# Free daily summon rates
+	if summon_type in ["free", "common_soul"]:
+		var free_daily: Dictionary = summon_types.get("free_daily", {})
+		if free_daily.has("rates"):
+			return free_daily.rates
 
 	return default_rates
 
 func _apply_pity_system(rates: Dictionary, banner_type: String) -> Dictionary:
 	var modified_rates: Dictionary = rates.duplicate()
 	var config: Dictionary = get_config()
-	var pity_config: Dictionary = config.get("summon_configuration", {}).get("pity_system", {})
+	var pity_config: Dictionary = config.get("pity_system", {})
 	if not pity_config.get("enabled", true):
 		return modified_rates
 
 	if not pity_counters.has(banner_type):
 		pity_counters[banner_type] = {"rare": 0, "epic": 0, "legendary": 0}
 	var counters: Dictionary = pity_counters[banner_type]
-	var thresholds: Dictionary = pity_config.get("thresholds", {"rare": 10, "epic": 50, "legendary": 100})
+	var hard_pity: Dictionary = pity_config.get("hard_pity", {})
 
 	# Hard pity checks
-	if counters.legendary >= thresholds.get("legendary", 100):
+	if counters.legendary >= hard_pity.get("legendary", 100):
 		pity_milestone_reached.emit("legendary_hard_pity", counters.legendary)
 		return {"legendary": 100.0, "epic": 0.0, "rare": 0.0, "common": 0.0}
-	if counters.epic >= thresholds.get("epic", 50):
+	if counters.epic >= hard_pity.get("epic", 50):
 		pity_milestone_reached.emit("epic_hard_pity", counters.epic)
 		return {"legendary": modified_rates.get("legendary", 0.0), "epic": 100.0 - modified_rates.get("legendary", 0.0), "rare": 0.0, "common": 0.0}
 
 	# Soft pity
 	var soft_pity: Dictionary = pity_config.get("soft_pity", {})
-	if soft_pity.get("enabled", true):
-		var leg_soft: Dictionary = soft_pity.get("legendary", {"starts_at": 75, "rate_increase_per_summon": 0.5})
-		if counters.legendary >= leg_soft.get("starts_at", 75):
-			modified_rates.legendary = min(modified_rates.get("legendary", 0.0) + (counters.legendary - leg_soft.starts_at) * leg_soft.rate_increase_per_summon, 50.0)
-		var epic_soft: Dictionary = soft_pity.get("epic", {"starts_at": 35, "rate_increase_per_summon": 1.0})
-		if counters.epic >= epic_soft.get("starts_at", 35):
-			modified_rates.epic = min(modified_rates.get("epic", 0.0) + (counters.epic - epic_soft.starts_at) * epic_soft.rate_increase_per_summon, 50.0)
+	var leg_soft: Dictionary = soft_pity.get("legendary", {})
+	var leg_starts_at: int = leg_soft.get("starts_at", 75)
+	var leg_rate_inc: float = leg_soft.get("rate_increase_per_summon", 0.5)
+	var leg_max_bonus: float = leg_soft.get("max_bonus", 50.0)
+	if counters.legendary >= leg_starts_at:
+		modified_rates.legendary = minf(modified_rates.get("legendary", 0.0) + (counters.legendary - leg_starts_at) * leg_rate_inc, leg_max_bonus)
+
+	var epic_soft: Dictionary = soft_pity.get("epic", {})
+	var epic_starts_at: int = epic_soft.get("starts_at", 35)
+	var epic_rate_inc: float = epic_soft.get("rate_increase_per_summon", 1.0)
+	var epic_max_bonus: float = epic_soft.get("max_bonus", 50.0)
+	if counters.epic >= epic_starts_at:
+		modified_rates.epic = minf(modified_rates.get("epic", 0.0) + (counters.epic - epic_starts_at) * epic_rate_inc, epic_max_bonus)
+
 	return modified_rates
 
 func _get_random_tier(rates: Dictionary) -> String:
@@ -301,10 +314,9 @@ func _get_summon_weights(powder_element: String, pantheon_filter: String) -> Dic
 		"active_favors": _get_active_element_favors()
 	}
 
-	if summon_cfg.has("summon_configuration"):
-		var focus: Dictionary = summon_cfg.summon_configuration.get("filtering_weights", {}).get("element_focus", {})
-		result.element_weight = focus.get("matching_element_weight", 3.0)
-		result.other_weight = focus.get("other_elements_weight", 1.0)
+	var focus: Dictionary = summon_cfg.get("filtering_weights", {}).get("element_focus", {})
+	result.element_weight = focus.get("matching_element_weight", 3.0)
+	result.other_weight = focus.get("other_elements_weight", 1.0)
 
 	if summon_cfg.has("summon_types"):
 		var element_summon: Dictionary = summon_cfg.summon_types.get("element_summon", {})
@@ -555,12 +567,12 @@ func _get_next_reset_timestamp(reset_hour: int) -> int:
 
 func multi_summon_premium(count: int = 10) -> bool:
 	var config: Dictionary = get_config()
-	var single_cost: int = 100
-	if config.has("summon_configuration"):
-		var multi: Dictionary = config.summon_configuration.get("costs", {}).get("multi_summons", {})
-		if multi.has("premium_pack_10") and multi.premium_pack_10.has("divine_crystals"):
-			single_cost = int(multi.premium_pack_10.divine_crystals / count)
-	var total_cost: Dictionary = {"divine_crystals": int(single_cost * count * 0.9)}
+	var crystal_summon: Dictionary = config.get("summon_types", {}).get("crystal_summon", {})
+	var cost_10x: Dictionary = crystal_summon.get("cost_10x", {})
+	var discount: float = config.get("multi_summon", {}).get("discount_multiplier", 0.9)
+	var single_cost: int = crystal_summon.get("cost", {}).get("divine_crystals", 100)
+	var total_crystals: int = cost_10x.get("divine_crystals", int(single_cost * count * discount))
+	var total_cost: Dictionary = {"divine_crystals": total_crystals}
 	return _perform_multi_summon(total_cost, "divine_crystals", "premium", count, single_cost)
 
 func _perform_multi_summon(cost: Dictionary, summon_type: String, banner_type: String, count: int, unit_cost: int) -> bool:
@@ -568,18 +580,22 @@ func _perform_multi_summon(cost: Dictionary, summon_type: String, banner_type: S
 		summon_failed.emit("Cannot afford multi-summon")
 		return false
 	_spend_cost(cost)
+	var config: Dictionary = get_config()
+	var multi_cfg: Dictionary = config.get("multi_summon", {})
+	var guarantee_rare: bool = multi_cfg.get("guarantee_rare_on_10x", true)
+	var discount: float = multi_cfg.get("discount_multiplier", 0.9)
 	var summoned_gods: Array = []
 	for i: int in range(count):
 		var god: God = _get_random_god(summon_type, banner_type)
 		# Guarantee rare on last pull if none obtained
-		if i == count - 1 and not _has_rare_or_better(summoned_gods):
+		if guarantee_rare and i == count - 1 and not _has_rare_or_better(summoned_gods):
 			god = _create_god_of_tier("rare")
 		if god:
 			summoned_gods.append(god)
 			_add_god_to_collection(god)
 			_update_pity_counters(God.tier_to_string(god.tier).to_lower(), banner_type)
 			total_summons += 1
-			var entry_cost: Dictionary = {summon_type: unit_cost} if summon_type != "divine_crystals" else {"divine_crystals": int(unit_cost * 0.9)}
+			var entry_cost: Dictionary = {summon_type: unit_cost} if summon_type != "divine_crystals" else {"divine_crystals": int(unit_cost * discount)}
 			_add_to_history(god, summon_type, entry_cost)
 	_check_milestone_rewards()
 	multi_summon_completed.emit(summoned_gods)
