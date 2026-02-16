@@ -279,8 +279,8 @@
     "priority": "medium",
     "file": "scripts/systems/shop/SkinManager.gd",
     "issue": "_rarity_colors loaded from JSON but never used; _equipped_skins tracked but no equip/unequip functions",
-    "action": "Implement or remove",
-    "passes": false
+    "action": "Removed _rarity_colors variable and its JSON loading (never read after get_rarity_color() was removed in prior audit). Removed _equipped_skins variable and all references in save/load/shutdown (equip/unequip functions were removed in prior audit, so this dict could never have data). Added static typing to all variables, parameters, return types. Added type validation for JSON parse result. File reduced from 149 to 135 lines.",
+    "passes": true
   },
   {
     "priority": "medium",

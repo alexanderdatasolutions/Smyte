@@ -7,6 +7,23 @@
 
 ---
 
+## 2026-02-16 - Audit: Remove dead code from SkinManager.gd
+
+**Priority:** Medium (Dead Code)
+**File(s) Modified:** `scripts/systems/shop/SkinManager.gd`
+
+**Changes:**
+- Removed `_rarity_colors` variable and its JSON loading in `_load_skin_data()` (loaded from god_skins.json but never read - the getter `get_rarity_color()` was removed in a prior audit)
+- Removed `_equipped_skins` variable and all references in `get_save_data()`, `load_save_data()`, and `shutdown()` (equip/unequip functions were removed in prior audit, so this dict could never contain data)
+- Added static typing to all variables, parameters, return types (`-> void`, `-> bool`, `-> Dictionary`, `-> Array`)
+- Added type validation for JSON parse result (`if not data is Dictionary`)
+- Added explicit `int()` casts for crystal cost comparisons
+- File reduced from 149 to 135 lines
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Split TeamSelectionManager.gd into four files
 
 **Priority:** High (Code Simplification)

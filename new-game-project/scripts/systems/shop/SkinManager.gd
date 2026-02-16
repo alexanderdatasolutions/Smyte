@@ -12,58 +12,53 @@ var _skins_by_god: Dictionary = {}  # god_id -> Array of skin_ids
 # Owned skins
 var _owned_skins: Array = []  # Array of skin_ids
 
-# Currently equipped skins per god
-var _equipped_skins: Dictionary = {}  # god_id -> skin_id
-
-# Rarity colors from config
-var _rarity_colors: Dictionary = {}
-
 # System references
 var _resource_manager: Node = null
 
-func _ready():
+func _ready() -> void:
 	name = "SkinManagerSystem"
 
-func initialize():
+func initialize() -> void:
 	_load_skin_data()
 	_cache_system_references()
 
-func _cache_system_references():
-	var registry = SystemRegistry.get_instance()
+func _cache_system_references() -> void:
+	var registry: Node = SystemRegistry.get_instance()
 	if registry:
 		_resource_manager = registry.get_system("ResourceManager")
 
-func _load_skin_data():
-	var file = FileAccess.open("res://data/god_skins.json", FileAccess.READ)
+func _load_skin_data() -> void:
+	var file: FileAccess = FileAccess.open("res://data/god_skins.json", FileAccess.READ)
 	if not file:
 		push_error("SkinManager: Failed to load god_skins.json")
 		return
 
-	var json = JSON.new()
-	var error = json.parse(file.get_as_text())
+	var json: JSON = JSON.new()
+	var error: int = json.parse(file.get_as_text())
 	file.close()
 
 	if error != OK:
 		push_error("SkinManager: Failed to parse god_skins.json")
 		return
 
-	var data = json.data
-
-	# Load rarity colors
-	if data.has("rarity_colors"):
-		_rarity_colors = data.rarity_colors
+	var data: Variant = json.data
+	if not data is Dictionary:
+		push_error("SkinManager: god_skins.json root is not a Dictionary")
+		return
 
 	# Load skins
 	if data.has("skins"):
-		for skin in data.skins:
-			var skin_id = skin.get("id", "")
+		for skin: Variant in data.skins:
+			if not skin is Dictionary:
+				continue
+			var skin_id: String = skin.get("id", "")
 			if skin_id.is_empty():
 				continue
 
 			_available_skins[skin_id] = skin
 
 			# Index by god
-			var god_id = skin.get("god_id", "")
+			var god_id: String = skin.get("god_id", "")
 			if not _skins_by_god.has(god_id):
 				_skins_by_god[god_id] = []
 			_skins_by_god[god_id].append(skin_id)
@@ -73,15 +68,12 @@ func _load_skin_data():
 # ==============================================================================
 
 func get_all_skins() -> Array:
-	"""Get all available skins"""
 	return _available_skins.values()
 
 func get_skin(skin_id: String) -> Dictionary:
-	"""Get skin data by ID"""
 	return _available_skins.get(skin_id, {})
 
 func is_skin_owned(skin_id: String) -> bool:
-	"""Check if a skin is owned"""
 	return skin_id in _owned_skins
 
 # ==============================================================================
@@ -89,30 +81,28 @@ func is_skin_owned(skin_id: String) -> bool:
 # ==============================================================================
 
 func can_purchase_skin(skin_id: String) -> Dictionary:
-	"""Check if a skin can be purchased"""
-	var skin = get_skin(skin_id)
+	var skin: Dictionary = get_skin(skin_id)
 	if skin.is_empty():
 		return {"can_purchase": false, "reason": "Skin not found"}
 
 	if is_skin_owned(skin_id):
 		return {"can_purchase": false, "reason": "Already owned"}
 
-	var cost = skin.get("cost_crystals", 0)
+	var cost: int = int(skin.get("cost_crystals", 0))
 	if _resource_manager:
-		var crystals = _resource_manager.get_resource("divine_crystals")
+		var crystals: int = int(_resource_manager.get_resource("divine_crystals"))
 		if crystals < cost:
 			return {"can_purchase": false, "reason": "Not enough crystals", "cost": cost, "have": crystals}
 
 	return {"can_purchase": true, "cost": cost}
 
 func purchase_skin(skin_id: String) -> bool:
-	"""Purchase a skin with crystals"""
-	var check = can_purchase_skin(skin_id)
+	var check: Dictionary = can_purchase_skin(skin_id)
 	if not check.can_purchase:
 		return false
 
-	var skin = get_skin(skin_id)
-	var cost = skin.get("cost_crystals", 0)
+	var skin: Dictionary = get_skin(skin_id)
+	var cost: int = int(skin.get("cost_crystals", 0))
 
 	# Deduct crystals
 	if _resource_manager:
@@ -133,16 +123,12 @@ func purchase_skin(skin_id: String) -> bool:
 
 func get_save_data() -> Dictionary:
 	return {
-		"owned_skins": _owned_skins.duplicate(),
-		"equipped_skins": _equipped_skins.duplicate()
+		"owned_skins": _owned_skins.duplicate()
 	}
 
-func load_save_data(data: Dictionary):
+func load_save_data(data: Dictionary) -> void:
 	if data.has("owned_skins"):
 		_owned_skins = data.owned_skins.duplicate()
-	if data.has("equipped_skins"):
-		_equipped_skins = data.equipped_skins.duplicate()
 
-func shutdown():
+func shutdown() -> void:
 	_owned_skins.clear()
-	_equipped_skins.clear()
