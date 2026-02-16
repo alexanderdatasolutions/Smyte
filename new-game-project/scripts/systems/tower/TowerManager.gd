@@ -36,7 +36,6 @@ var enemy_templates: Array = []
 
 func _ready():
 	_load_enemy_templates()
-	_load_best_floor()
 
 func _load_enemy_templates():
 	"""Load enemy templates from enemies.json"""
@@ -77,26 +76,17 @@ func _load_enemy_templates():
 					if not enemy_templates.has(enemy_name):
 						enemy_templates.append(enemy_name)
 
-func _load_best_floor():
-	"""Load best floor from save data"""
-	var system_registry = SystemRegistry.get_instance()
-	if system_registry:
-		var save_manager = system_registry.get_system("SaveManager")
-		if save_manager:
-			var save_data = save_manager.get_player_data()
-			if save_data:
-				best_floor = save_data.get("tower_best_floor", 0)
-				best_floor_timestamp = save_data.get("tower_best_timestamp", 0)
+## Save tower data — called by SaveManager during save chain
+func get_save_data() -> Dictionary:
+	return {
+		"best_floor": best_floor,
+		"best_floor_timestamp": best_floor_timestamp,
+	}
 
-func _save_best_floor():
-	"""Save best floor to save data"""
-	var system_registry = SystemRegistry.get_instance()
-	if system_registry:
-		var save_manager = system_registry.get_system("SaveManager")
-		if save_manager:
-			save_manager.set_player_value("tower_best_floor", best_floor)
-			save_manager.set_player_value("tower_best_timestamp", best_floor_timestamp)
-			save_manager.save_game()
+## Load tower data — called by SaveManager during load chain
+func load_save_data(data: Dictionary) -> void:
+	best_floor = data.get("best_floor", 0)
+	best_floor_timestamp = data.get("best_floor_timestamp", 0)
 
 # === PUBLIC API ===
 
@@ -193,7 +183,12 @@ func end_tower_run(_victory: bool = false):
 		best_floor = final_floor
 		best_floor_timestamp = int(Time.get_unix_time_from_system())
 		is_new_record = true
-		_save_best_floor()
+		# Trigger save via EventBus (SaveManager handles periodic saves)
+		var system_registry := SystemRegistry.get_instance()
+		if system_registry:
+			var event_bus := system_registry.get_system("EventBus")
+			if event_bus:
+				event_bus.save_requested.emit()
 		print("TowerManager: NEW RECORD! Floor %d" % best_floor)
 
 	tower_run_ended.emit(final_floor, is_new_record, total_rewards)

@@ -1,9 +1,29 @@
 # Game Design Document & System Unification - Activity Log
 
 ## Current Status
-**Last Updated:** 2026-01-18 23:45
-**Phase:** Planning - Comprehensive System Audit
-**Current Task:** Ralph will create complete Game Design Document with 500 parallel agents
+**Last Updated:** 2026-02-16
+**Phase:** Pre-Release Audit Execution
+**Current Task:** Executing AUDIT_PLAN.md tasks (1/73 complete)
+
+---
+
+## 2026-02-16: Pre-Release Audit — Task 1
+
+### Wire TowerManager into SaveManager save chain (Critical)
+**Files modified:** `scripts/systems/tower/TowerManager.gd`, `scripts/systems/core/SaveManager.gd`
+
+**Problem:** TowerManager used `set_player_value()` / `get_player_value()` hack to stash best_floor inside the player_data bag, bypassing the proper save chain pattern used by all other systems.
+
+**Fix:**
+- Replaced `_load_best_floor()` / `_save_best_floor()` with standard `get_save_data()` / `load_save_data()` methods on TowerManager
+- Added TowerManager to SaveManager save chain (writes `save_data["tower"]`)
+- Added TowerManager to SaveManager load chain via `_load_system_data()`
+- Added legacy migration: if old save has `tower_best_floor` in `player_data`, it gets promoted to top-level `tower` section
+- Bumped SAVE_VERSION from "1.1" to "1.2" with proper `_migrate_1_1_to_1_2()` function
+- Added "tower" to save data validation section list
+- Changed `end_tower_run()` to emit `EventBus.save_requested` signal instead of calling `_save_best_floor()` directly
+
+**Verification:** Project runs clean, no errors related to save system changes
 
 ---
 

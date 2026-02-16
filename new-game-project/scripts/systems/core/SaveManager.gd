@@ -12,8 +12,8 @@ signal cloud_sync_completed
 signal cloud_sync_failed(error: String)
 
 const SAVE_FILE_PATH = "user://save_game.dat"  # Match GameCoordinator path
-const SAVE_VERSION = "1.1"
-const KNOWN_VERSIONS: Array[String] = ["1.0", "1.1"]
+const SAVE_VERSION = "1.2"
+const KNOWN_VERSIONS: Array[String] = ["1.0", "1.1", "1.2"]
 
 var auto_save_enabled: bool = true
 var auto_save_interval: float = 60.0  # 1 minute - shorter interval to prevent data loss
@@ -111,7 +111,11 @@ func save_game() -> bool:
 	if statistics_manager and statistics_manager.has_method("get_save_data"):
 		save_data["statistics"] = statistics_manager.get_save_data()
 
-	# Save player-specific data (tower best floor, etc.)
+	var tower_manager = system_registry.get_system("TowerManager") if system_registry else null
+	if tower_manager and tower_manager.has_method("get_save_data"):
+		save_data["tower"] = tower_manager.get_save_data()
+
+	# Save player-specific data
 	save_data["player_data"] = player_data
 
 	# Write to file
@@ -212,7 +216,7 @@ func _validate_save_data(save_data: Dictionary) -> bool:
 	var dict_sections: Array[String] = [
 		"resources", "collection", "battle", "hex_grid", "territory",
 		"dungeon", "summon", "tutorial", "arena", "player_progression",
-		"equipment", "shop", "skins", "achievements", "statistics", "player_data",
+		"equipment", "shop", "skins", "achievements", "statistics", "tower", "player_data",
 	]
 	for key: String in dict_sections:
 		if save_data.has(key) and not save_data[key] is Dictionary:
@@ -265,6 +269,18 @@ func _load_systems_from_data(save_data: Dictionary, system_registry) -> void:
 	_load_system_data(system_registry, "SkinManager", "skins", save_data)
 	_load_system_data(system_registry, "AchievementManager", "achievements", save_data)
 	_load_system_data(system_registry, "StatisticsManager", "statistics", save_data)
+	_load_system_data(system_registry, "TowerManager", "tower", save_data)
+
+	# Migrate legacy tower data from player_data bag if present
+	if not save_data.has("tower") and save_data.has("player_data"):
+		var pd: Dictionary = save_data.get("player_data", {})
+		if pd.has("tower_best_floor"):
+			var tower_mgr = system_registry.get_system("TowerManager")
+			if tower_mgr and tower_mgr.has_method("load_save_data"):
+				tower_mgr.load_save_data({
+					"best_floor": pd.get("tower_best_floor", 0),
+					"best_floor_timestamp": pd.get("tower_best_timestamp", 0),
+				})
 
 	# After loading arena, restore defense team references
 	var arena_manager = system_registry.get_system("ArenaManager")
@@ -301,10 +317,14 @@ func _migrate_save_data(save_data: Dictionary, from_version: String) -> Dictiona
 		save_data = _migrate_1_0_to_1_1(save_data)
 		current = "1.1"
 
+	if current == "1.1":
+		save_data = _migrate_1_1_to_1_2(save_data)
+		current = "1.2"
+
 	# Future migrations go here:
-	# if current == "1.1":
-	#     save_data = _migrate_1_1_to_1_2(save_data)
-	#     current = "1.2"
+	# if current == "1.2":
+	#     save_data = _migrate_1_2_to_1_3(save_data)
+	#     current = "1.3"
 
 	save_data["version"] = SAVE_VERSION
 	return save_data
@@ -317,6 +337,19 @@ func _migrate_1_0_to_1_1(save_data: Dictionary) -> Dictionary:
 		if pd.has("achievements"):
 			save_data["achievements"] = pd["achievements"]
 			pd.erase("achievements")
+	return save_data
+
+## Migrate from 1.1 → 1.2: move tower data from player_data bag to top-level key
+func _migrate_1_1_to_1_2(save_data: Dictionary) -> Dictionary:
+	if not save_data.has("tower") and save_data.has("player_data"):
+		var pd: Dictionary = save_data.get("player_data", {})
+		if pd.has("tower_best_floor"):
+			save_data["tower"] = {
+				"best_floor": pd.get("tower_best_floor", 0),
+				"best_floor_timestamp": pd.get("tower_best_timestamp", 0),
+			}
+			pd.erase("tower_best_floor")
+			pd.erase("tower_best_timestamp")
 	return save_data
 
 ## Auto-save
