@@ -7,13 +7,32 @@ class_name GodCalculator
 # GOD STAT CALCULATOR - Clean separation of data and logic
 # ==============================================================================
 
+# Cached config from data/progression_config.json
+static var _config: Dictionary = {}
+static var _config_loaded: bool = false
+
+static func _load_config() -> void:
+	if _config_loaded:
+		return
+	var file := FileAccess.open("res://data/progression_config.json", FileAccess.READ)
+	if file:
+		var parsed = JSON.parse_string(file.get_as_text())
+		if parsed is Dictionary:
+			_config = parsed
+	_config_loaded = true
+
+static func _get_level_scale(stat_name: String) -> float:
+	_load_config()
+	var scaling: Dictionary = _config.get("stat_scaling", {}).get("level_scaling_per_level", {})
+	return scaling.get(stat_name, 0.1)
+
 static func get_current_hp(god: God) -> int:
 	var base = god.base_hp
-	var level_bonus = (god.level - 1) * int(base * 0.1)  # 10% per level
+	var level_bonus = (god.level - 1) * int(base * _get_level_scale("hp"))
 	var equipment_bonus = _get_equipment_stat_bonus(god, "hp")
 	var modifier = _get_stat_modifier(god, "hp")
 	var ascension_bonus = get_ascension_bonus(god, "hp")
-	
+
 	return int((base + level_bonus + equipment_bonus) * modifier * (1.0 + ascension_bonus))
 
 static func get_max_hp(god: God) -> int:
@@ -21,29 +40,29 @@ static func get_max_hp(god: God) -> int:
 
 static func get_current_attack(god: God) -> int:
 	var base = god.base_attack
-	var level_bonus = (god.level - 1) * int(base * 0.1)
+	var level_bonus = (god.level - 1) * int(base * _get_level_scale("attack"))
 	var equipment_bonus = _get_equipment_stat_bonus(god, "attack")
 	var modifier = _get_stat_modifier(god, "attack")
 	var ascension_bonus = get_ascension_bonus(god, "attack")
-	
+
 	return int((base + level_bonus + equipment_bonus) * modifier * (1.0 + ascension_bonus))
 
 static func get_current_defense(god: God) -> int:
 	var base = god.base_defense
-	var level_bonus = (god.level - 1) * int(base * 0.1)
+	var level_bonus = (god.level - 1) * int(base * _get_level_scale("defense"))
 	var equipment_bonus = _get_equipment_stat_bonus(god, "defense")
 	var modifier = _get_stat_modifier(god, "defense")
 	var ascension_bonus = get_ascension_bonus(god, "defense")
-	
+
 	return int((base + level_bonus + equipment_bonus) * modifier * (1.0 + ascension_bonus))
 
 static func get_current_speed(god: God) -> int:
 	var base = god.base_speed
-	var level_bonus = (god.level - 1) * int(base * 0.05)  # 5% per level for speed
+	var level_bonus = (god.level - 1) * int(base * _get_level_scale("speed"))
 	var equipment_bonus = _get_equipment_stat_bonus(god, "speed")
 	var modifier = _get_stat_modifier(god, "speed")
 	var ascension_bonus = get_ascension_bonus(god, "speed")
-	
+
 	return int((base + level_bonus + equipment_bonus) * modifier * (1.0 + ascension_bonus))
 
 static func get_current_crit_rate(god: God) -> int:
@@ -96,25 +115,22 @@ static func _get_equipment_stat_bonus(god: God, stat_type: String) -> int:
 	return total_bonus
 
 static func _get_stat_modifier(god: God, stat_name: String) -> float:
-	var modifier = 1.0
-	
-	# Territory role bonuses
-	match god.territory_role:
-		"defender":
-			if stat_name in ["hp", "defense"]:
-				modifier += 0.15  # 15% bonus to defensive stats
-		"gatherer":
-			if stat_name == "speed":
-				modifier += 0.20  # 20% speed bonus
-		"crafter":
-			if stat_name == "accuracy":
-				modifier += 0.25  # 25% accuracy bonus
-	
+	_load_config()
+	var modifier: float = 1.0
+	var role_modifiers: Dictionary = _config.get("stat_scaling", {}).get("role_modifiers", {})
+
+	var role_data: Dictionary = role_modifiers.get(god.territory_role, {})
+	if not role_data.is_empty():
+		var affected_stats: Array = role_data.get("stats", [])
+		if stat_name in affected_stats:
+			modifier += role_data.get("bonus", 0.0)
+
 	return modifier
 
 static func get_ascension_bonus(god: God, _stat_name: String) -> float:
-	# Each ascension level provides 5% bonus to all stats
-	return god.ascension_level * 0.05
+	_load_config()
+	var bonus_per_level: float = _config.get("stat_scaling", {}).get("ascension_bonus_per_level", 0.05)
+	return god.ascension_level * bonus_per_level
 
 # ==============================================================================
 # POWER RATING AND PROGRESSION
@@ -124,17 +140,17 @@ static func get_power_rating(god: God) -> int:
 	return get_current_hp(god) + get_current_attack(god) + get_current_defense(god) + get_current_speed(god)
 
 static func get_tier_multiplier(god: God) -> float:
+	_load_config()
+	var tier_mults: Dictionary = _config.get("stat_scaling", {}).get("tier_multipliers", {})
+	var tier_name: String = God.tier_to_string(god.tier).to_lower()
+	if tier_mults.has(tier_name):
+		return tier_mults[tier_name]
 	match god.tier:
-		God.TierType.COMMON:
-			return 1.0
-		God.TierType.RARE:
-			return 1.2
-		God.TierType.EPIC:
-			return 1.5
-		God.TierType.LEGENDARY:
-			return 2.0
-		_:
-			return 1.0
+		God.TierType.COMMON: return 1.0
+		God.TierType.RARE: return 1.2
+		God.TierType.EPIC: return 1.5
+		God.TierType.LEGENDARY: return 2.0
+		_: return 1.0
 
 static func get_experience_to_next_level(god: God) -> int:
 	# Use centralized experience calculator

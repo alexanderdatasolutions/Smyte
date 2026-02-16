@@ -3,7 +3,7 @@
 ## Current Status
 **Last Updated:** 2026-02-16
 **Phase:** Pre-Release Audit Execution
-**Current Task:** Executing AUDIT_PLAN.md tasks (68/73 complete)
+**Current Task:** Executing AUDIT_PLAN.md tasks (73/73 complete) — AUDIT COMPLETE
 
 ---
 
@@ -1528,3 +1528,34 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 - Top files: ArenaScreen(271), NodeInfoPanel(132), TerritoryOverviewScreen(117), TerritoryCardBuilder(89), TeamSelectionManager(88), CollectionDetailsPanel(85), UnifiedEquipmentScreen(82), TowerScreen(75), SummonScreen(69), ProductionSummaryWidget(58)
 
 **Verified:** Ran project, no parse errors or runtime errors.
+
+**Commit:** `audit: add static typing to top 20 worst files (1,357 annotations)`
+
+### 2026-02-16 - Audit: Externalize hardcoded balance values to JSON configs
+
+**Files created:**
+- `data/progression_config.json` — God leveling (max levels, XP formula), stat bonuses per tier, stat scaling (level scaling, role modifiers, ascension bonus, tier multipliers)
+- `data/tower_config.json` — Floor scaling, base enemy stats, milestones, rewards, difficulty ratings, boss names
+- `data/arena_config.json` — ELO settings, cooldowns, league thresholds/colors, PvP rewards
+
+**Files modified:**
+- `scripts/systems/progression/GodProgressionManager.gd` — Loads god_leveling and stat_bonuses_per_level from progression_config.json at startup
+- `scripts/systems/collection/GodCalculator.gd` — Static config cache; loads level scaling, role modifiers, ascension bonus, tier multipliers from progression_config.json
+- `scripts/systems/tower/TowerManager.gd` — Loads all floor scaling, enemy stats, milestones, rewards, difficulty ratings, and boss names from tower_config.json
+- `scripts/systems/arena/ArenaManager.gd` — Loads ELO, cooldown, league, and reward config from arena_config.json; removed 2 stray debug prints
+- `scripts/systems/collection/SummonManager.gd` — Fixed `_get_summon_rates()` to look up rates from actual `summon_types` config structure (was always falling through to hardcoded defaults); notification durations now configurable
+
+**Verified:** Ran project, no parse errors or runtime errors.
+
+**Commit:** `audit: externalize hardcoded balance values to JSON configs`
+
+---
+
+## AUDIT COMPLETE — 73/73 Tasks
+
+All audit tasks from AUDIT_PLAN.md have been completed:
+- **Critical (3):** Save system fixes for TowerManager, LootSystem, InventoryManager
+- **High - Dead Code (8):** Removed dead functions from 8 system files
+- **High - Debug Prints (36):** Removed ~519 print statements from 62 files (17 system + 43 UI + 2 data)
+- **Medium - Static Typing (20):** Added 1,357 type annotations to the 20 worst files
+- **Low - Hardcoded Values (5):** Externalized balance values from 5 systems to 3 new JSON config files

@@ -12,19 +12,19 @@ signal god_leveled_up(god: God, new_level: int, old_level: int)
 signal god_experience_gained(god: God, amount: int)
 signal god_awakened(god: God)
 
-# God Level Configuration
-const MAX_GOD_LEVEL = 40
-const AWAKENED_MAX_LEVEL = 50
-const XP_BASE_AMOUNT = 200
-const XP_SCALING_FACTOR = 1.2
+# God Level Configuration (loaded from data/progression_config.json)
+var MAX_GOD_LEVEL: int = 40
+var AWAKENED_MAX_LEVEL: int = 50
+var XP_BASE_AMOUNT: int = 200
+var XP_SCALING_FACTOR: float = 1.2
 
-# Level up stat bonuses per tier
+# Level up stat bonuses per tier (loaded from config)
 var stat_bonuses_per_level: Dictionary = {
-	1: {"attack": 10, "defense": 8, "hp": 25, "speed": 2},    # Common
-	2: {"attack": 12, "defense": 10, "hp": 30, "speed": 2},   # Rare
-	3: {"attack": 15, "defense": 12, "hp": 40, "speed": 3},   # Epic  
-	4: {"attack": 20, "defense": 15, "hp": 50, "speed": 3},   # Legendary
-	5: {"attack": 25, "defense": 18, "hp": 65, "speed": 4}    # Mythic
+	1: {"attack": 10, "defense": 8, "hp": 25, "speed": 2},
+	2: {"attack": 12, "defense": 10, "hp": 30, "speed": 2},
+	3: {"attack": 15, "defense": 12, "hp": 40, "speed": 3},
+	4: {"attack": 20, "defense": 15, "hp": 50, "speed": 3},
+	5: {"attack": 25, "defense": 18, "hp": 65, "speed": 4}
 }
 
 var event_bus: EventBus
@@ -32,15 +32,35 @@ var collection_manager: CollectionManager
 
 func _ready():
 	name = "GodProgressionManager"
+	_load_config()
 	_initialize_dependencies()
+
+func _load_config():
+	"""Load progression values from data/progression_config.json"""
+	var file := FileAccess.open("res://data/progression_config.json", FileAccess.READ)
+	if not file:
+		return
+	var config: Dictionary = JSON.parse_string(file.get_as_text())
+	if not config:
+		return
+
+	var leveling: Dictionary = config.get("god_leveling", {})
+	MAX_GOD_LEVEL = leveling.get("max_god_level", MAX_GOD_LEVEL)
+	AWAKENED_MAX_LEVEL = leveling.get("awakened_max_level", AWAKENED_MAX_LEVEL)
+	XP_BASE_AMOUNT = leveling.get("xp_base_amount", XP_BASE_AMOUNT)
+	XP_SCALING_FACTOR = leveling.get("xp_scaling_factor", XP_SCALING_FACTOR)
+
+	var bonuses: Dictionary = config.get("stat_bonuses_per_level", {})
+	if not bonuses.is_empty():
+		stat_bonuses_per_level.clear()
+		for tier_key in bonuses:
+			stat_bonuses_per_level[int(tier_key)] = bonuses[tier_key]
 
 func _initialize_dependencies():
 	"""Initialize system dependencies through SystemRegistry"""
 	var system_registry = SystemRegistry.get_instance()
 	event_bus = system_registry.get_system("EventBus")
 	collection_manager = system_registry.get_system("CollectionManager")
-	
-	# Dependencies initialized - no event connections needed
 
 # ==============================================================================
 # EXPERIENCE MANAGEMENT - Core god progression

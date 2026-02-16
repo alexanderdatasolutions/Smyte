@@ -21,21 +21,68 @@ var run_total_rewards: Dictionary = {}  # Accumulated rewards for the entire run
 var best_floor: int = 0
 var best_floor_timestamp: int = 0
 
-# Floor configuration
-const BASE_ENEMY_LEVEL: int = 1
-const LEVEL_SCALING_PER_FLOOR: float = 1.5  # Enemies gain 1.5 levels per floor
-const STAT_SCALING_PER_FLOOR: float = 1.08  # 8% stat increase per floor
-const ENEMIES_PER_FLOOR: int = 3
-const BOSS_FLOOR_INTERVAL: int = 10  # Every 10 floors is a boss
+# Floor configuration (loaded from data/tower_config.json)
+var BASE_ENEMY_LEVEL: int = 1
+var LEVEL_SCALING_PER_FLOOR: float = 1.5
+var STAT_SCALING_PER_FLOOR: float = 1.08
+var ENEMIES_PER_FLOOR: int = 3
+var BOSS_FLOOR_INTERVAL: int = 10
+var BOSS_STAT_MULTIPLIER: float = 2.5
+var BOSS_LEVEL_MULTIPLIER: float = 1.5
+var MILESTONE_FLOORS: Array = [10, 25, 50, 100, 150, 200, 250, 500, 1000]
 
-# Milestone floors for special rewards
-const MILESTONE_FLOORS: Array = [10, 25, 50, 100, 150, 200, 250, 500, 1000]
+# Base enemy stat formulas (loaded from config)
+var _base_hp: int = 100
+var _hp_per_level: int = 8
+var _base_atk: int = 40
+var _atk_per_level: int = 3
+var _base_def: int = 30
+var _def_per_level: int = 2
+var _base_spd: int = 45
+var _spd_per_level: int = 1
+
+# Reward config (loaded from config)
+var _tower_config: Dictionary = {}
 
 # Enemy pool for tower (scales with floor)
 var enemy_templates: Array = []
 
 func _ready():
+	_load_tower_config()
 	_load_enemy_templates()
+
+func _load_tower_config():
+	"""Load tower balance values from data/tower_config.json"""
+	var file := FileAccess.open("res://data/tower_config.json", FileAccess.READ)
+	if not file:
+		return
+	var config: Dictionary = JSON.parse_string(file.get_as_text())
+	if not config:
+		return
+	_tower_config = config
+
+	var scaling: Dictionary = config.get("floor_scaling", {})
+	BASE_ENEMY_LEVEL = scaling.get("base_enemy_level", BASE_ENEMY_LEVEL)
+	LEVEL_SCALING_PER_FLOOR = scaling.get("level_scaling_per_floor", LEVEL_SCALING_PER_FLOOR)
+	STAT_SCALING_PER_FLOOR = scaling.get("stat_scaling_per_floor", STAT_SCALING_PER_FLOOR)
+	ENEMIES_PER_FLOOR = scaling.get("enemies_per_floor", ENEMIES_PER_FLOOR)
+	BOSS_FLOOR_INTERVAL = scaling.get("boss_floor_interval", BOSS_FLOOR_INTERVAL)
+	BOSS_STAT_MULTIPLIER = scaling.get("boss_stat_multiplier", BOSS_STAT_MULTIPLIER)
+	BOSS_LEVEL_MULTIPLIER = scaling.get("boss_level_multiplier", BOSS_LEVEL_MULTIPLIER)
+
+	var stats: Dictionary = config.get("base_enemy_stats", {})
+	_base_hp = stats.get("hp", _base_hp)
+	_hp_per_level = stats.get("hp_per_level", _hp_per_level)
+	_base_atk = stats.get("attack", _base_atk)
+	_atk_per_level = stats.get("attack_per_level", _atk_per_level)
+	_base_def = stats.get("defense", _base_def)
+	_def_per_level = stats.get("defense_per_level", _def_per_level)
+	_base_spd = stats.get("speed", _base_spd)
+	_spd_per_level = stats.get("speed_per_level", _spd_per_level)
+
+	var milestones: Array = config.get("milestone_floors", [])
+	if not milestones.is_empty():
+		MILESTONE_FLOORS = milestones
 
 func _load_enemy_templates():
 	"""Load enemy templates from enemies.json"""
@@ -215,20 +262,11 @@ func is_milestone_floor(floor_num: int = -1) -> bool:
 
 func get_floor_difficulty_rating(floor_num: int) -> String:
 	"""Get a difficulty rating string for display"""
-	if floor_num <= 10:
-		return "Normal"
-	elif floor_num <= 25:
-		return "Hard"
-	elif floor_num <= 50:
-		return "Expert"
-	elif floor_num <= 100:
-		return "Master"
-	elif floor_num <= 200:
-		return "Nightmare"
-	elif floor_num <= 500:
-		return "Inferno"
-	else:
-		return "Abyss"
+	var ratings: Array = _tower_config.get("difficulty_ratings", [])
+	for entry in ratings:
+		if floor_num <= entry.get("max_floor", 0):
+			return entry.get("rating", "Normal")
+	return _tower_config.get("difficulty_rating_default", "Abyss")
 
 # === ENEMY GENERATION ===
 
@@ -246,14 +284,14 @@ func _create_scaled_enemy(floor_num: int, is_boss: bool) -> Dictionary:
 
 	# Boss multiplier
 	if is_boss:
-		stat_multiplier *= 2.5
-		base_level = int(base_level * 1.5)
+		stat_multiplier *= BOSS_STAT_MULTIPLIER
+		base_level = int(base_level * BOSS_LEVEL_MULTIPLIER)
 
 	# Base stats that scale with level
-	var base_hp = 100 + (base_level * 8)
-	var base_atk = 40 + (base_level * 3)
-	var base_def = 30 + (base_level * 2)
-	var base_spd = 45 + (base_level * 1)
+	var base_hp = _base_hp + (base_level * _hp_per_level)
+	var base_atk = _base_atk + (base_level * _atk_per_level)
+	var base_def = _base_def + (base_level * _def_per_level)
+	var base_spd = _base_spd + (base_level * _spd_per_level)
 
 	# Apply multiplier
 	var hp = int(base_hp * stat_multiplier)
@@ -290,13 +328,13 @@ func _create_default_enemy(floor_num: int, is_boss: bool) -> Dictionary:
 	var stat_multiplier = pow(STAT_SCALING_PER_FLOOR, floor_num)
 
 	if is_boss:
-		stat_multiplier *= 2.5
-		base_level = int(base_level * 1.5)
+		stat_multiplier *= BOSS_STAT_MULTIPLIER
+		base_level = int(base_level * BOSS_LEVEL_MULTIPLIER)
 
-	var hp = int((100 + base_level * 8) * stat_multiplier)
-	var atk = int((40 + base_level * 3) * stat_multiplier)
-	var def = int((30 + base_level * 2) * stat_multiplier)
-	var spd = int((45 + base_level * 1) * stat_multiplier)
+	var hp = int((_base_hp + base_level * _hp_per_level) * stat_multiplier)
+	var atk = int((_base_atk + base_level * _atk_per_level) * stat_multiplier)
+	var def = int((_base_def + base_level * _def_per_level) * stat_multiplier)
+	var spd = int((_base_spd + base_level * _spd_per_level) * stat_multiplier)
 
 	return {
 		"id": "tower_enemy_%d_%d" % [floor_num, randi()],
@@ -315,20 +353,11 @@ func _create_default_enemy(floor_num: int, is_boss: bool) -> Dictionary:
 
 func _get_boss_name(floor_num: int) -> String:
 	"""Get boss name based on floor milestone"""
-	if floor_num >= 1000:
-		return "Primordial Titan"
-	elif floor_num >= 500:
-		return "Abyssal Overlord"
-	elif floor_num >= 200:
-		return "Infernal Archon"
-	elif floor_num >= 100:
-		return "Nightmare Lord"
-	elif floor_num >= 50:
-		return "Master Guardian"
-	elif floor_num >= 20:
-		return "Elite Warden"
-	else:
-		return "Tower Guardian"
+	var boss_names: Array = _tower_config.get("boss_names", [])
+	for entry in boss_names:
+		if floor_num >= entry.get("min_floor", 0):
+			return entry.get("name", "Tower Guardian")
+	return _tower_config.get("boss_name_default", "Tower Guardian")
 
 # === REWARDS ===
 
@@ -337,9 +366,10 @@ func _calculate_floor_rewards(floor_num: int) -> Dictionary:
 	var rewards = {}
 
 	# Exponential scaling for mana/gold (more rewarding at higher floors)
-	var base_mana = 150
-	var base_gold = 75
-	var floor_multiplier = pow(1.05, floor_num)  # 5% compound growth per floor
+	var reward_cfg: Dictionary = _tower_config.get("rewards", {})
+	var base_mana: int = reward_cfg.get("base_mana", 150)
+	var base_gold: int = reward_cfg.get("base_gold", 75)
+	var floor_multiplier: float = pow(reward_cfg.get("floor_compound_growth", 1.05), floor_num)
 
 	rewards["mana"] = int(base_mana * floor_multiplier)
 	rewards["gold"] = int(base_gold * floor_multiplier)
@@ -409,8 +439,9 @@ func _calculate_floor_rewards(floor_num: int) -> Dictionary:
 
 	# === BOSS FLOOR BONUSES (every 10 floors) ===
 	if is_boss_floor(floor_num):
-		rewards["mana"] = int(rewards["mana"] * 2.5)
-		rewards["gold"] = int(rewards["gold"] * 2.5)
+		var boss_reward_mult: float = reward_cfg.get("boss_reward_multiplier", 2.5)
+		rewards["mana"] = int(rewards["mana"] * boss_reward_mult)
+		rewards["gold"] = int(rewards["gold"] * boss_reward_mult)
 		@warning_ignore("integer_division")
 		rewards["divine_crystals"] = 3 + floor_num / 5
 
@@ -485,17 +516,11 @@ func _get_floor_tier(floor_num: int) -> int:
 
 func _get_milestone_crystals(floor_num: int) -> int:
 	"""Get divine crystal bonus for milestone floors"""
-	match floor_num:
-		10: return 20
-		25: return 35
-		50: return 50
-		100: return 100
-		150: return 150
-		200: return 200
-		250: return 300
-		500: return 500
-		1000: return 1000
-		_: return 50
+	var crystals: Dictionary = _tower_config.get("milestone_crystals", {})
+	var key: String = str(floor_num)
+	if crystals.has(key):
+		return int(crystals[key])
+	return 50
 
 func _award_rewards(rewards: Dictionary):
 	"""Award rewards to the player"""

@@ -12,33 +12,31 @@ signal battle_result_processed(result: Dictionary)
 signal leaderboard_loaded(entries: Array)
 signal elo_changed(old_elo: int, new_elo: int, change: int)
 
-# Constants
-const BASE_ELO: int = 1000
-const K_FACTOR_BASE: int = 32
-const K_FACTOR_NEW_PLAYER: int = 40
-const NEW_PLAYER_GAMES: int = 30
-const ATTACK_COOLDOWN: float = 60.0  # Seconds between attacks on same player
-const MAX_ELO_RANGE: int = 300
-const OPPONENTS_TO_FETCH: int = 10
+# Constants (loaded from data/arena_config.json)
+var BASE_ELO: int = 1000
+var K_FACTOR_BASE: int = 32
+var K_FACTOR_NEW_PLAYER: int = 40
+var NEW_PLAYER_GAMES: int = 30
+var ATTACK_COOLDOWN: float = 60.0
+var MAX_ELO_RANGE: int = 300
+var OPPONENTS_TO_FETCH: int = 10
+var HIGH_ELO_K_FACTOR_MULT: float = 0.75
+var MIN_ELO_CHANGE: int = 5
 
-# League thresholds
-const LEAGUE_THRESHOLDS: Dictionary = {
-	"bronze": 0,
-	"silver": 1100,
-	"gold": 1300,
-	"platinum": 1500,
-	"diamond": 1800,
-	"legend": 2200
+# League thresholds (loaded from config)
+var LEAGUE_THRESHOLDS: Dictionary = {
+	"bronze": 0, "silver": 1100, "gold": 1300,
+	"platinum": 1500, "diamond": 1800, "legend": 2200
 }
 
-const LEAGUE_COLORS: Dictionary = {
-	"bronze": Color(0.6, 0.4, 0.2),
-	"silver": Color(0.7, 0.7, 0.75),
-	"gold": Color(1.0, 0.84, 0.0),
-	"platinum": Color(0.4, 0.8, 0.8),
-	"diamond": Color(0.4, 0.6, 1.0),
-	"legend": Color(0.7, 0.4, 0.9)
+var LEAGUE_COLORS: Dictionary = {
+	"bronze": Color(0.6, 0.4, 0.2), "silver": Color(0.7, 0.7, 0.75),
+	"gold": Color(1.0, 0.84, 0.0), "platinum": Color(0.4, 0.8, 0.8),
+	"diamond": Color(0.4, 0.6, 1.0), "legend": Color(0.7, 0.4, 0.9)
 }
+
+# Reward config (loaded from config)
+var _arena_config: Dictionary = {}
 
 # Player state
 var player_elo: int = BASE_ELO
@@ -65,12 +63,45 @@ func _get_system_registry():
 	return null
 
 func initialize() -> void:
+	_load_arena_config()
 	_data_sync = ArenaDataSyncScript.new()
 	_data_sync.name = "ArenaDataSync"
 	add_child(_data_sync)
 	_connect_signals()
 	_update_league()
-	print("[ArenaManager] Initialized")
+
+func _load_arena_config() -> void:
+	"""Load arena balance values from data/arena_config.json"""
+	var file := FileAccess.open("res://data/arena_config.json", FileAccess.READ)
+	if not file:
+		return
+	var config: Dictionary = JSON.parse_string(file.get_as_text())
+	if not config:
+		return
+	_arena_config = config
+
+	var elo_cfg: Dictionary = config.get("elo", {})
+	BASE_ELO = elo_cfg.get("base_elo", BASE_ELO)
+	K_FACTOR_BASE = elo_cfg.get("k_factor_base", K_FACTOR_BASE)
+	K_FACTOR_NEW_PLAYER = elo_cfg.get("k_factor_new_player", K_FACTOR_NEW_PLAYER)
+	NEW_PLAYER_GAMES = elo_cfg.get("new_player_games", NEW_PLAYER_GAMES)
+	HIGH_ELO_K_FACTOR_MULT = elo_cfg.get("high_elo_k_factor_multiplier", HIGH_ELO_K_FACTOR_MULT)
+	MIN_ELO_CHANGE = elo_cfg.get("min_elo_change", MIN_ELO_CHANGE)
+	MAX_ELO_RANGE = elo_cfg.get("max_elo_range", MAX_ELO_RANGE)
+	OPPONENTS_TO_FETCH = elo_cfg.get("opponents_to_fetch", OPPONENTS_TO_FETCH)
+
+	var cooldowns: Dictionary = config.get("cooldowns", {})
+	ATTACK_COOLDOWN = cooldowns.get("attack_cooldown_seconds", ATTACK_COOLDOWN)
+
+	var leagues: Dictionary = config.get("leagues", {})
+	var thresholds: Dictionary = leagues.get("thresholds", {})
+	if not thresholds.is_empty():
+		LEAGUE_THRESHOLDS = thresholds
+	var colors: Dictionary = leagues.get("colors", {})
+	for league_name in colors:
+		var c: Array = colors[league_name]
+		if c.size() >= 3:
+			LEAGUE_COLORS[league_name] = Color(c[0], c[1], c[2])
 
 func _connect_signals() -> void:
 	if _data_sync:
@@ -120,7 +151,6 @@ func post_defense_to_firebase() -> void:
 
 	if _data_sync and _data_sync.is_ready():
 		_data_sync.upload_defense_team(_serialize_defense_team(defense_team))
-		print("[ArenaManager] Defense team posted to Firebase")
 	else:
 		push_warning("[ArenaManager] DataSync not ready, defense not posted")
 		defense_updated.emit(true)
@@ -263,15 +293,15 @@ func _calculate_elo_change(p_elo: int, opp_elo: int, victory: bool) -> int:
 
 	# Reduce K at high ELO for stability
 	if p_elo > LEAGUE_THRESHOLDS["diamond"]:
-		k_factor = int(k_factor * 0.75)
+		k_factor = int(k_factor * HIGH_ELO_K_FACTOR_MULT)
 
 	var change = int(k_factor * (actual - expected))
 
-	# Minimum change of +/- 5 to feel meaningful
+	# Minimum change to feel meaningful
 	if change > 0:
-		change = max(5, change)
+		change = max(MIN_ELO_CHANGE, change)
 	elif change < 0:
-		change = min(-5, change)
+		change = min(-MIN_ELO_CHANGE, change)
 
 	return change
 
@@ -287,22 +317,24 @@ func _calculate_win_rate() -> float:
 
 func _calculate_pvp_rewards(victory: bool, opponent_elo: int) -> Dictionary:
 	"""Calculate rewards based on victory and opponent ELO"""
-	var base_gold = 300 if victory else 100
-	var base_mana = 600 if victory else 200
+	var rcfg: Dictionary = _arena_config.get("rewards", {})
+	var base_gold: int = rcfg.get("victory_gold", 300) if victory else rcfg.get("defeat_gold", 100)
+	var base_mana: int = rcfg.get("victory_mana", 600) if victory else rcfg.get("defeat_mana", 200)
 
 	# Bonus for defeating higher-rated opponents
-	var elo_diff = opponent_elo - player_elo
-	var elo_bonus = 1.0 + (max(0, elo_diff) / 500.0)  # Up to 60% bonus
+	var elo_diff: int = opponent_elo - player_elo
+	var elo_bonus: float = 1.0 + (max(0, elo_diff) / rcfg.get("elo_bonus_divisor", 500.0))
 
-	var rewards = {
+	var rewards: Dictionary = {
 		"gold": int(base_gold * elo_bonus),
 		"mana": int(base_mana * elo_bonus)
 	}
 
 	# Divine crystals for high-league wins
-	if victory and player_league in ["platinum", "diamond", "legend"]:
-		var league_index = ["bronze", "silver", "gold", "platinum", "diamond", "legend"].find(player_league)
-		rewards["divine_crystals"] = 3 + max(0, league_index - 3)
+	var crystal_leagues: Array = rcfg.get("divine_crystal_leagues", ["platinum", "diamond", "legend"])
+	if victory and player_league in crystal_leagues:
+		var league_index: int = ["bronze", "silver", "gold", "platinum", "diamond", "legend"].find(player_league)
+		rewards["divine_crystals"] = rcfg.get("divine_crystal_base", 3) + max(0, league_index - 3)
 
 	return rewards
 
@@ -650,7 +682,6 @@ func load_save_data(data: Dictionary) -> void:
 	attack_cooldowns = data.get("attack_cooldowns", {})
 
 	_update_league()
-	print("[ArenaManager] Loaded save data - ELO: %d, League: %s" % [player_elo, player_league])
 
 func restore_defense_team_from_ids() -> void:
 	"""Restore defense team references from saved god IDs"""

@@ -1,0 +1,35 @@
+{
+	"god_leveling": {
+		"max_god_level": 40,
+		"awakened_max_level": 50,
+		"xp_base_amount": 200,
+		"xp_scaling_factor": 1.2
+	},
+	"stat_bonuses_per_level": {
+		"1": {"attack": 10, "defense": 8, "hp": 25, "speed": 2},
+		"2": {"attack": 12, "defense": 10, "hp": 30, "speed": 2},
+		"3": {"attack": 15, "defense": 12, "hp": 40, "speed": 3},
+		"4": {"attack": 20, "defense": 15, "hp": 50, "speed": 3},
+		"5": {"attack": 25, "defense": 18, "hp": 65, "speed": 4}
+	},
+	"stat_scaling": {
+		"level_scaling_per_level": {
+			"hp": 0.1,
+			"attack": 0.1,
+			"defense": 0.1,
+			"speed": 0.05
+		},
+		"role_modifiers": {
+			"defender": {"stats": ["hp", "defense"], "bonus": 0.15},
+			"gatherer": {"stats": ["speed"], "bonus": 0.20},
+			"crafter": {"stats": ["accuracy"], "bonus": 0.25}
+		},
+		"ascension_bonus_per_level": 0.05,
+		"tier_multipliers": {
+			"common": 1.0,
+			"rare": 1.2,
+			"epic": 1.5,
+			"legendary": 2.0
+		}
+	}
+}

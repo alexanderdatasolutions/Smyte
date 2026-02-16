@@ -1,0 +1,67 @@
+{
+	"floor_scaling": {
+		"base_enemy_level": 1,
+		"level_scaling_per_floor": 1.5,
+		"stat_scaling_per_floor": 1.08,
+		"enemies_per_floor": 3,
+		"boss_floor_interval": 10,
+		"boss_stat_multiplier": 2.5,
+		"boss_level_multiplier": 1.5
+	},
+	"base_enemy_stats": {
+		"hp": 100,
+		"hp_per_level": 8,
+		"attack": 40,
+		"attack_per_level": 3,
+		"defense": 30,
+		"defense_per_level": 2,
+		"speed": 45,
+		"speed_per_level": 1
+	},
+	"milestone_floors": [10, 25, 50, 100, 150, 200, 250, 500, 1000],
+	"rewards": {
+		"base_mana": 150,
+		"base_gold": 75,
+		"floor_compound_growth": 1.05,
+		"boss_reward_multiplier": 2.5,
+		"element_powder_base_chance": 0.25,
+		"element_powder_chance_per_floor": 0.005,
+		"awakening_essence_base_chance": 0.1,
+		"awakening_essence_chance_per_floor": 0.002,
+		"awakening_essence_min_floor": 20,
+		"soul_thresholds": {
+			"common_soul": {"min_floor": 5, "chance": 0.15},
+			"rare_soul": {"min_floor": 25, "chance": 0.1},
+			"epic_soul": {"min_floor": 75, "chance": 0.05}
+		}
+	},
+	"milestone_crystals": {
+		"10": 20,
+		"25": 35,
+		"50": 50,
+		"100": 100,
+		"150": 150,
+		"200": 200,
+		"250": 300,
+		"500": 500,
+		"1000": 1000
+	},
+	"difficulty_ratings": [
+		{"max_floor": 10, "rating": "Normal"},
+		{"max_floor": 25, "rating": "Hard"},
+		{"max_floor": 50, "rating": "Expert"},
+		{"max_floor": 100, "rating": "Master"},
+		{"max_floor": 200, "rating": "Nightmare"},
+		{"max_floor": 500, "rating": "Inferno"}
+	],
+	"difficulty_rating_default": "Abyss",
+	"boss_names": [
+		{"min_floor": 1000, "name": "Primordial Titan"},
+		{"min_floor": 500, "name": "Abyssal Overlord"},
+		{"min_floor": 200, "name": "Infernal Archon"},
+		{"min_floor": 100, "name": "Nightmare Lord"},
+		{"min_floor": 50, "name": "Master Guardian"},
+		{"min_floor": 20, "name": "Elite Warden"}
+	],
+	"boss_name_default": "Tower Guardian"
+}

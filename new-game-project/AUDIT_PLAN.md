@@ -106,11 +106,11 @@
 
 ### Hardcoded Values to Externalize
 
-- [ ] **Externalize GodProgressionManager balance values** — XP_BASE_AMOUNT(200), XP_SCALING_FACTOR(1.2), MAX_GOD_LEVEL(40), AWAKENED_MAX_LEVEL(50), stat_bonuses_per_level dictionary — all hardcoded. Should be in `data/progression_config.json`. `{"file": "scripts/systems/progression/GodProgressionManager.gd", "passes": false}`
-- [ ] **Externalize GodCalculator stat formulas** — Level scaling (0.1 = 10% per level for HP/ATK/DEF, 0.05 = 5% for speed), role modifiers (0.15 for defense, 0.20 for speed, 0.25 for accuracy), tier multipliers (1.5, 2.0) — all hardcoded. `{"file": "scripts/systems/collection/GodCalculator.gd", "passes": false}`
-- [ ] **Externalize TowerManager scaling constants** — LEVEL_SCALING_PER_FLOOR(1.5), STAT_SCALING_PER_FLOOR(1.08), ENEMIES_PER_FLOOR(3), BOSS_FLOOR_INTERVAL(10), MILESTONE_FLOORS array, reward calculations. Should be in `data/tower_config.json`. `{"file": "scripts/systems/tower/TowerManager.gd", "passes": false}`
-- [ ] **Externalize ArenaManager ELO/league constants** — BASE_ELO(1000), K_FACTOR_BASE(32), K_FACTOR_NEW_PLAYER(40), NEW_PLAYER_GAMES(30), ATTACK_COOLDOWN(60), MAX_ELO_RANGE(300), LEAGUE_THRESHOLDS, reward calculations. Should be in `data/arena_config.json`. `{"file": "scripts/systems/arena/ArenaManager.gd", "passes": false}`
-- [ ] **Externalize SummonManager fallback rates** — Default rates {common:70, rare:25, epic:4.5, legendary:0.5}, pity system defaults, notification durations. `{"file": "scripts/systems/collection/SummonManager.gd", "passes": false}`
+- [x] **Externalize GodProgressionManager balance values** — Created `data/progression_config.json` with god_leveling (max levels, XP formula), stat_bonuses_per_level, stat_scaling, role_modifiers, tier_multipliers. GodProgressionManager loads config at startup. `{"file": "scripts/systems/progression/GodProgressionManager.gd", "passes": true}`
+- [x] **Externalize GodCalculator stat formulas** — GodCalculator now loads level scaling, role modifiers, ascension bonus, and tier multipliers from `data/progression_config.json` (shared with GodProgressionManager). Static config cache pattern for static class. `{"file": "scripts/systems/collection/GodCalculator.gd", "passes": true}`
+- [x] **Externalize TowerManager scaling constants** — Created `data/tower_config.json` with floor_scaling, base_enemy_stats, milestone_floors, rewards, milestone_crystals, difficulty_ratings, boss_names. TowerManager loads all values at startup. `{"file": "scripts/systems/tower/TowerManager.gd", "passes": true}`
+- [x] **Externalize ArenaManager ELO/league constants** — Created `data/arena_config.json` with elo settings, cooldowns, league thresholds/colors, reward values. ArenaManager loads config in initialize(). Also removed 2 stray debug prints. `{"file": "scripts/systems/arena/ArenaManager.gd", "passes": true}`
+- [x] **Externalize SummonManager fallback rates** — Fixed `_get_summon_rates()` to properly look up rates from `summon_types` config structure (was always falling back to hardcoded defaults due to nonexistent `summon_configuration` key). Notification durations now configurable. `{"file": "scripts/systems/collection/SummonManager.gd", "passes": true}`
 
 ---
 

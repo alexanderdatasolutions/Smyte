@@ -183,16 +183,40 @@ func _get_random_god(summon_type: String, banner_type: String, element_filter: S
 	return _create_god_of_tier(tier, element_filter, powder_element, pantheon_filter)
 
 func _get_summon_rates(summon_type: String) -> Dictionary:
-	var config = get_config()
+	var config: Dictionary = get_config()
 	var default_rates: Dictionary = {"common": 70.0, "rare": 25.0, "epic": 4.5, "legendary": 0.5}
-	if not config.has("summon_configuration"):
-		return default_rates
-	var rates_section = config.summon_configuration.get("rates", {})
-	# Check all rate categories
-	for category in ["soul_based_rates", "element_soul_rates", "premium_rates"]:
-		var category_rates = rates_section.get(category, {})
-		if category_rates.has(summon_type):
-			return category_rates[summon_type]
+
+	# Look up rates from summon_types config (the actual config structure)
+	var summon_types: Dictionary = config.get("summon_types", {})
+
+	# Check crystal_summon rates for divine_crystals / premium types
+	if summon_type in ["divine_crystals", "premium"]:
+		var crystal: Dictionary = summon_types.get("crystal_summon", {})
+		if crystal.has("rates"):
+			return crystal.rates
+
+	# Check soul variants for soul-based summons
+	var soul_summon: Dictionary = summon_types.get("soul_summon", {})
+	var variants: Dictionary = soul_summon.get("variants", {})
+	if variants.has(summon_type):
+		var variant: Dictionary = variants[summon_type]
+		if variant.has("rates"):
+			return variant.rates
+
+	# Check element_summon rates
+	var element_summon: Dictionary = summon_types.get("element_summon", {})
+	if element_summon.has("rates"):
+		if summon_type == "element":
+			return element_summon.rates
+
+	# Legacy config fallback (summon_configuration key)
+	if config.has("summon_configuration"):
+		var rates_section: Dictionary = config.summon_configuration.get("rates", {})
+		for category in ["soul_based_rates", "element_soul_rates", "premium_rates"]:
+			var category_rates: Dictionary = rates_section.get(category, {})
+			if category_rates.has(summon_type):
+				return category_rates[summon_type]
+
 	return default_rates
 
 func _apply_pity_system(rates: Dictionary, banner_type: String) -> Dictionary:
@@ -374,9 +398,15 @@ func _add_god_to_collection(god: God) -> bool:
 
 func _check_legendary_notification(god: God):
 	var eb = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
-	if not eb or not eb.has_method("emit_notification"): return
-	if god.tier == God.TierType.LEGENDARY: eb.emit_notification("LEGENDARY! %s joined!" % god.name, "legendary", 5.0)
-	elif god.tier == God.TierType.EPIC: eb.emit_notification("Epic! %s obtained!" % god.name, "epic", 3.0)
+	if not eb or not eb.has_method("emit_notification"):
+		return
+	var notif_cfg: Dictionary = _summon_config.get("notifications", {})
+	var leg_dur: float = notif_cfg.get("legendary_duration", 5.0)
+	var epic_dur: float = notif_cfg.get("epic_duration", 3.0)
+	if god.tier == God.TierType.LEGENDARY:
+		eb.emit_notification("LEGENDARY! %s joined!" % god.name, "legendary", leg_dur)
+	elif god.tier == God.TierType.EPIC:
+		eb.emit_notification("Epic! %s obtained!" % god.name, "epic", epic_dur)
 
 # PITY SYSTEM
 
