@@ -345,15 +345,6 @@ func _process_extraction_building(node: HexNode, current_time: float) -> void:
 	# Update timestamp
 	node.last_production_time = current_time
 
-	# Debug output
-	var coord_str = "(%d,%d)" % [node.coord.q, node.coord.r] if node.coord else "unknown"
-	print("[TerritoryProductionManager] Node %s '%s' accumulated resources: %s (hourly rate: %s)" % [
-		coord_str,
-		node.name if node.name else node.id,
-		_format_resources_dict(node.accumulated_resources),
-		_format_resources_dict(hourly_production)
-	])
-
 func _process_conversion_building(node: HexNode, all_nodes: Array, current_time: float) -> void:
 	"""Process conversion buildings that consume input resources to produce outputs"""
 	var building_manager = _get_building_manager()
@@ -386,8 +377,6 @@ func _process_conversion_building(node: HexNode, all_nodes: Array, current_time:
 
 	if fulfillment_ratio <= 0:
 		# No input resources available
-		var coord_str = "(%d,%d)" % [node.coord.q, node.coord.r] if node.coord else "unknown"
-		print("[TerritoryProductionManager] Conversion %s '%s': No input resources available" % [coord_str, node.name])
 		node.last_production_time = current_time
 		return
 
@@ -409,16 +398,6 @@ func _process_conversion_building(node: HexNode, all_nodes: Array, current_time:
 
 	# Update timestamp
 	node.last_production_time = current_time
-
-	# Debug output
-	var coord_str = "(%d,%d)" % [node.coord.q, node.coord.r] if node.coord else "unknown"
-	print("[TerritoryProductionManager] Conversion %s '%s': %.0f%% efficiency, consumed %s, produced %s" % [
-		coord_str,
-		node.name if node.name else node.id,
-		fulfillment_ratio * 100,
-		_format_resources_dict(consume_this_tick),
-		_format_resources_dict(node.accumulated_resources)
-	])
 
 func _get_building_consumes(node: HexNode) -> Dictionary:
 	"""Get the consumes dictionary for a node's building, if any"""
@@ -514,15 +493,12 @@ func calculate_offline_hex_production(node: HexNode) -> Dictionary:
 
 	# Apply max storage hours cap from balance config
 	var max_storage_hours: float = 12.0  # Default
-	var was_capped: bool = false
-
 	# Load balance config directly
 	var balance_config = _load_balance_config()
 	if balance_config and balance_config.has("generation_timing"):
 		max_storage_hours = balance_config.generation_timing.get("max_storage_hours", 12.0)
 
 	if hours_passed > max_storage_hours:
-		was_capped = true
 		hours_passed = max_storage_hours
 
 	# Get hourly production rate using existing formula
@@ -547,14 +523,6 @@ func calculate_offline_hex_production(node: HexNode) -> Dictionary:
 	node.last_production_time = current_time
 
 	# Debug output
-	print("[TerritoryProductionManager] Offline calculation for node (%d,%d) '%s':" % [node.coord.q, node.coord.r, node.name])
-	print("  - Offline duration: %.2f hours (%.0f seconds)" % [hours_passed, time_diff])
-	if was_capped:
-		print("  - ⚠️ Max storage reached (capped at %.1f hours)" % max_storage_hours)
-	print("  - Hourly rate: %s" % _format_resources_dict(hourly_rate))
-	print("  - Generated offline: %s" % _format_resources_dict(offline_resources))
-	print("  - Total accumulated: %s" % _format_resources_dict(node.accumulated_resources))
-
 	return offline_resources
 
 func collect_node_resources(node_id: String) -> Dictionary:
@@ -564,16 +532,13 @@ func collect_node_resources(node_id: String) -> Dictionary:
 	# Get node from HexGridManager
 	var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager")
 	if not hex_grid_manager or not hex_grid_manager.has_method("get_node_by_id"):
-		print("[TerritoryProductionManager] ERROR: HexGridManager not available for collect_node_resources")
 		return {}
 
 	var node: HexNode = hex_grid_manager.get_node_by_id(node_id)
 	if not node:
-		print("[TerritoryProductionManager] ERROR: Node '%s' not found" % node_id)
 		return {}
 
 	if not node.is_controlled_by_player():
-		print("[TerritoryProductionManager] ERROR: Node '%s' not controlled by player" % node_id)
 		return {}
 
 	# Copy accumulated_resources to return Dictionary
@@ -582,7 +547,6 @@ func collect_node_resources(node_id: String) -> Dictionary:
 		collected_resources[resource_id] = node.accumulated_resources[resource_id]
 
 	if collected_resources.is_empty():
-		print("[TerritoryProductionManager] Node '%s' has no accumulated resources to collect" % node_id)
 		return {}
 
 	# Apply manual collection bonus from balance config
@@ -610,30 +574,12 @@ func collect_node_resources(node_id: String) -> Dictionary:
 	if resource_manager and not integer_resources.is_empty():
 		if resource_manager.has_method("award_resources"):
 			resource_manager.award_resources(integer_resources)
-			print("[TerritoryProductionManager] Awarded to ResourceManager: %s" % str(integer_resources))
 
 	# Clear node.accumulated_resources
 	node.accumulated_resources.clear()
 
 	# Emit resources_generated signal
 	resources_generated.emit(node_id, collected_resources)
-
-	# Debug output
-	var coord_str = "(%d,%d)" % [node.coord.q, node.coord.r] if node.coord else "unknown"
-	if manual_bonus > 1.0:
-		var bonus_percent = int((manual_bonus - 1.0) * 100)
-		print("[TerritoryProductionManager] Collected resources from node %s '%s': %s (+%d%% manual bonus)" % [
-			coord_str,
-			node.name if node.name else node_id,
-			_format_resources_dict(collected_resources),
-			bonus_percent
-		])
-	else:
-		print("[TerritoryProductionManager] Collected resources from node %s '%s': %s" % [
-			coord_str,
-			node.name if node.name else node_id,
-			_format_resources_dict(collected_resources)
-		])
 
 	return collected_resources
 

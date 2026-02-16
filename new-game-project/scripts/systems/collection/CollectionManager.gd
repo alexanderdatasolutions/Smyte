@@ -52,9 +52,6 @@ func remove_god(god: God) -> bool:
 		return false
 
 	# DEBUG: Log god removal with stack trace
-	print("CollectionManager: REMOVING GOD - ", god.name, " (", god.id, ")")
-	print("CollectionManager: Stack trace:")
-	print_stack()
 
 	gods.remove_at(index)
 	gods_by_id.erase(god.id)
@@ -106,7 +103,6 @@ func add_equipment(eq: Equipment) -> bool:
 			return false
 
 	equipment.append(eq)
-	print("[CollectionManager] Added equipment: %s (total: %d)" % [eq.name, equipment.size()])
 
 	# Emit event
 	var event_bus = SystemRegistry.get_instance().get_system("EventBus")
@@ -169,7 +165,6 @@ func update_god_equipment(god_id: String, slot: int, equipment_item: Equipment) 
 
 ## Get save data - called by SaveManager
 func get_save_data() -> Dictionary:
-	print("[CollectionManager] get_save_data() called - current gods: %d, equipment: %d" % [gods.size(), equipment.size()])
 
 	var save_data = {
 		"gods": [],
@@ -184,14 +179,10 @@ func get_save_data() -> Dictionary:
 	for eq in equipment:
 		save_data.equipment.append(SaveLoadUtility.serialize_equipment(eq))
 
-	print("[CollectionManager] Serialized %d gods, %d equipment" % [save_data.gods.size(), save_data.equipment.size()])
 	return save_data
 
 ## Load save data - called by SaveManager
 func load_save_data(data: Dictionary):
-	print("[CollectionManager] load_save_data() called")
-	print("[CollectionManager] BEFORE clear: %d gods, %d equipment" % [gods.size(), equipment.size()])
-	print("[CollectionManager] Input data keys: %s" % str(data.keys()))
 
 	# Clear current data
 	gods.clear()
@@ -200,7 +191,6 @@ func load_save_data(data: Dictionary):
 
 	# Load gods using utility (RULE 3: Logic in utilities)
 	var gods_data = data.get("gods", [])
-	print("[CollectionManager] Loading %d gods from save data" % gods_data.size())
 
 	for god_data in gods_data:
 		var god = SaveLoadUtility.deserialize_god(god_data)
@@ -208,17 +198,11 @@ func load_save_data(data: Dictionary):
 			# Use internal add to avoid triggering save during load
 			gods.append(god)
 			gods_by_id[god.id] = god
-			print("[CollectionManager] Loaded god: %s" % god.name)
-		else:
-			print("[CollectionManager] ERROR: Failed to deserialize god")
-
 	# Load equipment
 	var equipment_data = data.get("equipment", [])
-	print("[CollectionManager] Loading %d equipment from save data" % equipment_data.size())
 
 	for eq_data in equipment_data:
 		var eq = SaveLoadUtility.deserialize_equipment(eq_data)
 		if eq:
 			equipment.append(eq)
 
-	print("[CollectionManager] AFTER load: %d gods, %d equipment" % [gods.size(), equipment.size()])

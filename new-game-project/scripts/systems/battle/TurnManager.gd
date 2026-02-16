@@ -23,14 +23,11 @@ func setup_turn_order(units: Array):  # Array[BattleUnit]
 
 ## Start the battle turn cycle
 func start_battle():
-	print("TurnManager.start_battle: Starting with ", battle_units.size(), " units")
 	if battle_units.is_empty():
 		push_error("TurnManager: No units available for battle")
 		return
 
-	print("TurnManager.start_battle: Beginning first turn...")
 	_begin_next_turn()
-	print("TurnManager.start_battle: First turn begun")
 
 ## Advance to the next unit's turn
 func advance_turn():
@@ -114,7 +111,6 @@ func add_units(new_units: Array):
 			battle_units.append(unit)
 			# Initialize their turn bar (start at 0 so existing units get to act first)
 			unit.current_turn_bar = 0.0
-			print("TurnManager: Added new unit to turn order: ", unit.display_name)
 
 ## End the battle
 func end_battle():
@@ -172,28 +168,21 @@ func _fill_turn_queue():
 
 func _begin_next_turn():
 	"""Begin the next unit's turn"""
-	print("TurnManager._begin_next_turn: Starting...")
 	# Clean up turn queue (remove dead units)
 	turn_queue = turn_queue.filter(func(unit): return unit.is_alive)
-	print("TurnManager._begin_next_turn: Turn queue after cleanup: ", turn_queue.size(), " units")
 
 	# Fill turn queue if empty
 	if turn_queue.is_empty():
-		print("TurnManager._begin_next_turn: Turn queue empty, filling...")
 		_fill_turn_queue()
-		print("TurnManager._begin_next_turn: Turn queue filled with ", turn_queue.size(), " units")
 
 	# Check if battle should end
 	if turn_queue.is_empty():
-		print("TurnManager._begin_next_turn: Turn queue still empty, ending")
 		return
 
 	# Get next unit and store as active unit
 	active_unit = turn_queue.pop_front()
-	print("TurnManager._begin_next_turn: Next unit is ", active_unit.display_name if active_unit else "NULL")
 	if not active_unit or not active_unit.is_alive:
 		# Try again with next unit
-		print("TurnManager._begin_next_turn: Unit dead or null, trying next unit")
 		active_unit = null
 		_begin_next_turn()
 		return
@@ -202,12 +191,10 @@ func _begin_next_turn():
 	active_unit.reset_turn_bar()
 
 	# Process status effects at start of turn (DoT/HoT, reduce durations)
-	var effect_results = active_unit.process_status_effects()
+	active_unit.process_status_effects()
 
 	# Check if unit can act (not stunned, frozen, sleeping, etc.)
 	if not active_unit.can_act():
-		var reason = active_unit.get_action_prevention_reason()
-		print("TurnManager: %s cannot act (%s) - skipping turn" % [active_unit.display_name, reason])
 		# Still emit turn_started so UI can show the skip
 		turn_started.emit(active_unit)
 		# Auto-skip to next turn after brief delay
@@ -216,7 +203,6 @@ func _begin_next_turn():
 		return
 
 	# Emit turn started signal
-	print("TurnManager._begin_next_turn: Emitting turn_started for ", active_unit.display_name)
 	turn_started.emit(active_unit)
 
 func _end_current_turn():

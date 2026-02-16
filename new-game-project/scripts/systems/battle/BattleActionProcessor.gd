@@ -134,15 +134,11 @@ func _apply_skill_status_effects(skill: Skill, caster: BattleUnit, target: Battl
 	# Load ability data from JSON to get effects
 	var ability_data: Dictionary = _get_ability_data(skill.skill_id)
 	if ability_data == null or ability_data.is_empty():
-		print("BattleActionProcessor: No ability data found for skill: ", skill.skill_id)
 		return
 
 	var effects: Array = ability_data.get("effects", [])
 	if effects.is_empty():
-		print("BattleActionProcessor: Skill %s has no effects" % skill.skill_id)
 		return
-
-	print("BattleActionProcessor: Processing %d effects for skill %s" % [effects.size(), skill.skill_id])
 
 	# Process each effect in the skill
 	for effect_data: Variant in effects:
@@ -194,15 +190,10 @@ func _apply_debuff_effect(effect_data: Dictionary, caster: BattleUnit, target: B
 	var chance: int = effect_data.get("chance", 100)
 	var duration: int = effect_data.get("duration", 1)
 
-	print("BattleActionProcessor: Attempting to apply %s (chance: %d%%, duration: %d)" % [debuff_type, chance, duration])
-
 	# Roll for chance
 	var roll: float = randf() * 100
 	if roll > chance:
-		print("BattleActionProcessor: Failed chance roll (%d > %d)" % [roll, chance])
 		return
-
-	print("BattleActionProcessor: Passed chance roll (%d <= %d)" % [roll, chance])
 
 	# Create the appropriate status effect using factory methods
 	var status_effect: StatusEffect = null
@@ -255,7 +246,6 @@ func _apply_debuff_effect(effect_data: Dictionary, caster: BattleUnit, target: B
 
 	# Apply the status effect to target
 	if status_effect:
-		print("BattleActionProcessor: Applying status effect to %s: %s" % [target.display_name, status_effect.name])
 		# Set tracking info for battle log
 		status_effect.target_name = target.display_name
 		status_effect.caster_name = caster.display_name if caster else ""
@@ -263,7 +253,6 @@ func _apply_debuff_effect(effect_data: Dictionary, caster: BattleUnit, target: B
 		result.message += " " + target.display_name + " is " + status_effect.name + "!"
 		# Track applied status effect in result for logging
 		result.add_status_effect(status_effect)
-		print("BattleActionProcessor: Status effect applied successfully")
 
 func _apply_buff_effect(effect_data: Dictionary, caster: BattleUnit, target: BattleUnit, result: ActionResult) -> void:
 	var buff_type: String = effect_data.get("buff", "")

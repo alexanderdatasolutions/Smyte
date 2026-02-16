@@ -5,7 +5,6 @@
 extends Node
 class_name DungeonManager
 
-
 # Signals for UI communication (RULE 4: No UI in systems)
 signal dungeon_data_loaded
 
@@ -82,7 +81,6 @@ func load_dungeon_waves():
 		return
 
 	dungeon_waves = json.get_data()
-	print("DungeonManager: Loaded wave data for dungeon categories: ", dungeon_waves.keys())
 
 func initialize_player_progress():
 	"""Initialize player dungeon progress"""
@@ -472,12 +470,10 @@ func get_completion_rewards(dungeon_id: String, difficulty: String) -> Dictionar
 	var loot_system = SystemRegistry.get_instance().get_system("LootSystem") if SystemRegistry.get_instance() else null
 	if loot_system:
 		var rewards = loot_system.generate_loot(loot_table_id, multiplier, element)
-		print("DungeonManager: Generated rewards for %s %s: %s" % [dungeon_id, difficulty, rewards])
 		return rewards
 	else:
 		push_warning("DungeonManager: LootSystem not available, returning empty rewards")
 		return {}
-
 
 func record_completion(dungeon_id: String, difficulty: String, completion_time: float) -> bool:
 	"""Record dungeon completion for statistics. Returns true if this was a first clear."""
@@ -545,7 +541,6 @@ func mark_dungeon_cleared(dungeon_id: String, difficulty: String):
 	"""Mark a dungeon+difficulty as cleared (for first-clear tracking)"""
 	var clear_key = dungeon_id + "_" + difficulty
 	player_progress.completed_dungeons[clear_key] = true
-	print("DungeonManager: Marked %s as cleared (first clear)" % clear_key)
 
 func get_first_clear_rewards(dungeon_id: String, difficulty: String) -> Dictionary:
 	"""Get first-clear bonus rewards for a dungeon+difficulty"""
@@ -572,7 +567,6 @@ func _check_daily_reset():
 		# New day - reset daily completions
 		player_progress["daily_completions"] = {}
 		player_progress["daily_completions_date"] = current_date
-		print("DungeonManager: Daily completions reset for new day: %s" % current_date)
 
 func get_daily_limit(dungeon_id: String) -> int:
 	"""Get the daily completion limit for a dungeon (default: 10)"""
@@ -601,7 +595,6 @@ func increment_daily_completion(dungeon_id: String):
 	_check_daily_reset()  # Ensure we're working with current day's data
 	var current_count = player_progress.daily_completions.get(dungeon_id, 0)
 	player_progress.daily_completions[dungeon_id] = current_count + 1
-	print("DungeonManager: Daily completion for %s: %d/%d" % [dungeon_id, current_count + 1, get_daily_limit(dungeon_id)])
 
 func _enhance_dungeon_info(info: Dictionary):
 	"""Enhance dungeon info with calculated power ratings and detailed information"""

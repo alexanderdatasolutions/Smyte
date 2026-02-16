@@ -111,13 +111,10 @@ func _initialize_game():
 	# Try to load save game using SaveManager
 	var save_manager = system_registry.get_system("SaveManager")
 	var has_save = save_manager.has_save_file() if save_manager else false
-	print("[GameCoordinator] SaveManager found: %s, has_save_file: %s" % [save_manager != null, has_save])
 
 	if save_manager and has_save:
-		print("[GameCoordinator] Loading existing save...")
 		_load_save_game()
 	else:
-		print("[GameCoordinator] No save file, starting new game...")
 		_start_new_game()
 	
 	is_initialized = true
@@ -162,7 +159,6 @@ func _setup_starting_gods():
 	if collection_manager:
 		# Give player a starter god from each element
 		var starter_gods = ["ares", "poseidon", "artemis"]  # Fire, Water, Wind
-		print("[GameCoordinator] Setting up %d starter gods..." % starter_gods.size())
 
 		# Use late binding to avoid parse-time GodFactory class reference
 		var god_factory_script = load("res://scripts/systems/collection/GodFactory.gd")
@@ -170,12 +166,6 @@ func _setup_starting_gods():
 			var god = god_factory_script.create_from_json(god_id)
 			if god:
 				collection_manager.add_god(god)
-				print("[GameCoordinator] Added starter god: %s" % god.name)
-			else:
-				print("[GameCoordinator] ERROR: Failed to create god: %s" % god_id)
-
-		print("[GameCoordinator] Collection now has %d gods" % collection_manager.get_all_gods().size())
-
 ## Setup starting equipment for new players
 func _setup_starting_equipment():
 	var equipment_manager = system_registry.get_system("EquipmentManager")
@@ -250,12 +240,10 @@ func get_system(system_name: String) -> Node:
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		# Save game when window is closed
-		print("GameCoordinator: Window close requested, saving game...")
 		save_game()
 	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		# Save game when app loses focus (mobile background, alt-tab, etc.)
 		if is_initialized:
-			print("GameCoordinator: App lost focus, saving game...")
 			save_game()
 
 # ============================================================================

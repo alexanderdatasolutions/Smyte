@@ -71,7 +71,6 @@ func load_specializations_from_json() -> void:
 
 	_is_loaded = true
 	specializations_loaded.emit()
-	print("SpecializationManager: Loaded %d specializations" % _specializations.size())
 
 # ==============================================================================
 # SPECIALIZATION QUERIES

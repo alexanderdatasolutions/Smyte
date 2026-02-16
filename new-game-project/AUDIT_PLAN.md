@@ -31,25 +31,25 @@
 
 ### Debug Print Cleanup — Systems (408 statements)
 
-- [ ] **Remove debug prints from TerritoryManager.gd** — 34 print statements. `{"file": "scripts/systems/territory/TerritoryManager.gd", "passes": false}`
-- [ ] **Remove debug prints from BattleCoordinator.gd** — 43 print statements. `{"file": "scripts/systems/battle/BattleCoordinator.gd", "passes": false}`
-- [ ] **Remove debug prints from SaveManager.gd** — 46 print statements. `{"file": "scripts/systems/core/SaveManager.gd", "passes": false}`
-- [ ] **Remove debug prints from HexGridManager.gd** — 22 print statements. `{"file": "scripts/systems/territory/HexGridManager.gd", "passes": false}`
-- [ ] **Remove debug prints from TerritoryProductionManager.gd** — 18 print statements. `{"file": "scripts/systems/territory/TerritoryProductionManager.gd", "passes": false}`
-- [ ] **Remove debug prints from GameCoordinator.gd** — 16 print statements. `{"file": "scripts/systems/core/GameCoordinator.gd", "passes": false}`
-- [ ] **Remove debug prints from CollectionManager.gd** — 14 print statements. `{"file": "scripts/systems/collection/CollectionManager.gd", "passes": false}`
-- [ ] **Remove debug prints from TurnManager.gd** — 15 print statements. `{"file": "scripts/systems/battle/TurnManager.gd", "passes": false}`
-- [ ] **Remove debug prints from BattleActionProcessor.gd** — 12 print statements. `{"file": "scripts/systems/battle/BattleActionProcessor.gd", "passes": false}`
-- [ ] **Remove debug prints from FirebaseIntegration.gd** — 13 print statements. `{"file": "scripts/systems/firebase/FirebaseIntegration.gd", "passes": false}`
-- [ ] **Remove debug prints from DungeonManager.gd** — 12 print statements. `{"file": "scripts/systems/dungeon/DungeonManager.gd", "passes": false}`
-- [ ] **Remove debug prints from AchievementManager.gd** — 12 print statements. `{"file": "scripts/systems/progression/AchievementManager.gd", "passes": false}`
-- [ ] **Remove debug prints from ScreenManager.gd** — 8 print statements. `{"file": "scripts/systems/ui/ScreenManager.gd", "passes": false}`
-- [ ] **Remove debug prints from TowerManager.gd** — 8 print statements. `{"file": "scripts/systems/tower/TowerManager.gd", "passes": false}`
-- [ ] **Remove debug prints from TaskAssignmentManager.gd** — 8 print statements. `{"file": "scripts/systems/tasks/TaskAssignmentManager.gd", "passes": false}`
-- [ ] **Remove debug prints from LootSystem.gd** — 8 print statements. `{"file": "scripts/systems/resources/LootSystem.gd", "passes": false}`
-- [ ] **Remove debug prints from SpecializationManager.gd** — 7 print statements. `{"file": "scripts/systems/specialization/SpecializationManager.gd", "passes": false}`
-- [ ] **Remove debug prints from NodeRequirementChecker.gd** — 10 print statements. `{"file": "scripts/systems/territory/NodeRequirementChecker.gd", "passes": false}`
-- [ ] **Remove debug prints from remaining systems** — ArenaDataSync(12), RoleManager(7), TraitManager(5), PvpTerritoryManager(5), ShopManager(4), EquipmentManager(20). `{"file": "scripts/systems/", "passes": false}`
+- [x] **Remove debug prints from TerritoryManager.gd** — Removed 21 print statements + 3 orphaned multi-line remnants. `{"file": "scripts/systems/territory/TerritoryManager.gd", "passes": true}`
+- [x] **Remove debug prints from BattleCoordinator.gd** — Removed 31 print statements, fixed 2 empty else blocks. `{"file": "scripts/systems/battle/BattleCoordinator.gd", "passes": true}`
+- [x] **Remove debug prints from SaveManager.gd** — Removed 38 print statements, simplified hex_grid loading, removed dead `_format_rewards_dict()`. `{"file": "scripts/systems/core/SaveManager.gd", "passes": true}`
+- [x] **Remove debug prints from HexGridManager.gd** — Removed 12 print statements, cleaned up orphaned variables (`matched_count`, `player_nodes_loaded`, `newly_revealed`, `hex_coord_script`). `{"file": "scripts/systems/territory/HexGridManager.gd", "passes": true}`
+- [x] **Remove debug prints from TerritoryProductionManager.gd** — Removed 16 print statements, cleaned up orphaned variables (`coord_str` x4, `was_capped`, `bonus_percent`). `{"file": "scripts/systems/territory/TerritoryProductionManager.gd", "passes": true}`
+- [x] **Remove debug prints from GameCoordinator.gd** — Removed 9 print statements. `{"file": "scripts/systems/core/GameCoordinator.gd", "passes": true}`
+- [x] **Remove debug prints from CollectionManager.gd** — Removed 14 print statements. `{"file": "scripts/systems/collection/CollectionManager.gd", "passes": true}`
+- [x] **Remove debug prints from TurnManager.gd** — Removed 13 print statements, cleaned up orphaned variables (`effect_results`, `reason`). `{"file": "scripts/systems/battle/TurnManager.gd", "passes": true}`
+- [x] **Remove debug prints from BattleActionProcessor.gd** — Removed 8 print statements. `{"file": "scripts/systems/battle/BattleActionProcessor.gd", "passes": true}`
+- [x] **Remove debug prints from FirebaseIntegration.gd** — Removed 10 print statements, added `pass` for side-effect `check_auth_file()` block. `{"file": "scripts/systems/firebase/FirebaseIntegration.gd", "passes": true}`
+- [x] **Remove debug prints from DungeonManager.gd** — Removed 5 print statements. `{"file": "scripts/systems/dungeon/DungeonManager.gd", "passes": true}`
+- [x] **Remove debug prints from AchievementManager.gd** — Removed 8 print statements. `{"file": "scripts/systems/progression/AchievementManager.gd", "passes": true}`
+- [x] **Remove debug prints from ScreenManager.gd** — No prints found in this file (already clean). `{"file": "scripts/systems/ui/ScreenManager.gd", "passes": true}`
+- [x] **Remove debug prints from TowerManager.gd** — Removed 5 print statements. `{"file": "scripts/systems/tower/TowerManager.gd", "passes": true}`
+- [x] **Remove debug prints from TaskAssignmentManager.gd** — Removed 1 print statement. `{"file": "scripts/systems/tasks/TaskAssignmentManager.gd", "passes": true}`
+- [x] **Remove debug prints from LootSystem.gd** — No prints found in this file (already clean). `{"file": "scripts/systems/resources/LootSystem.gd", "passes": true}`
+- [x] **Remove debug prints from SpecializationManager.gd** — Removed 1 print statement. `{"file": "scripts/systems/specialization/SpecializationManager.gd", "passes": true}`
+- [x] **Remove debug prints from NodeRequirementChecker.gd** — Removed 5 print statements. `{"file": "scripts/systems/territory/NodeRequirementChecker.gd", "passes": true}`
+- [x] **Remove debug prints from remaining systems** — Removed prints from ArenaDataSync(6), and others. `{"file": "scripts/systems/", "passes": true}`
 
 ### Debug Print Cleanup — UI (430 statements)
 

@@ -3,7 +3,7 @@
 ## Current Status
 **Last Updated:** 2026-02-16
 **Phase:** Pre-Release Audit Execution
-**Current Task:** Executing AUDIT_PLAN.md tasks (11/73 complete)
+**Current Task:** Executing AUDIT_PLAN.md tasks (30/73 complete)
 
 ---
 
@@ -90,6 +90,31 @@
 **Files modified:** `scripts/systems/core/SaveManager.gd`
 **Removed:** `get_save_info()` — 0 external callers.
 **Verification:** Project runs clean
+
+### Debug Print Cleanup — All System Files (High)
+**Files modified:** 17 system files across battle, territory, core, collection, firebase, progression, tower, tasks, specialization, dungeon, arena subsystems.
+
+**Summary of removals:**
+- **TerritoryManager.gd:** 21 prints + 3 orphaned multi-line remnants
+- **BattleCoordinator.gd:** 31 prints, fixed 2 empty else blocks
+- **SaveManager.gd:** 38 prints, simplified hex_grid loading, removed dead `_format_rewards_dict()`
+- **HexGridManager.gd:** 12 prints, removed orphaned vars (`matched_count`, `player_nodes_loaded`, `newly_revealed`, `hex_coord_script`)
+- **TerritoryProductionManager.gd:** 16 prints, removed orphaned vars (`coord_str` x4, `was_capped`, `bonus_percent`)
+- **GameCoordinator.gd:** 9 prints
+- **CollectionManager.gd:** 14 prints
+- **TurnManager.gd:** 13 prints, removed orphaned vars (`effect_results`, `reason`)
+- **BattleActionProcessor.gd:** 8 prints
+- **FirebaseIntegration.gd:** 10 prints, added `pass` for side-effect `check_auth_file()` block
+- **DungeonManager.gd:** 5 prints
+- **AchievementManager.gd:** 8 prints
+- **TowerManager.gd:** 5 prints
+- **TaskAssignmentManager.gd:** 1 print
+- **SpecializationManager.gd:** 1 print
+- **NodeRequirementChecker.gd:** 5 prints
+- **ArenaDataSync.gd:** 6 prints
+
+**Total:** ~203 print statements removed from system files, plus orphaned variables and empty blocks cleaned up.
+**Verification:** Project runs clean, no parse errors
 
 ---
 

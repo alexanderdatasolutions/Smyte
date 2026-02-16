@@ -45,12 +45,10 @@ func _get_event_bus():
 
 ## Start a new battle with the given configuration
 func start_battle(config) -> bool:
-	print("BattleCoordinator.start_battle: Starting new battle...")
 
 	# Force cleanup any stale battle state before starting
 	# This prevents the perma-defeat bug where old state blocks new battles
 	if is_battle_active or battle_state != null or current_battle_config != null:
-		print("BattleCoordinator.start_battle: Found stale state, forcing cleanup")
 		_force_cleanup_stale_battle()
 
 	# Validate battle configuration
@@ -63,7 +61,6 @@ func start_battle(config) -> bool:
 	if valid_attackers.is_empty():
 		push_error("BattleCoordinator: No valid gods in attacker team")
 		return false
-	print("BattleCoordinator.start_battle: %d valid attackers" % valid_attackers.size())
 
 	# Store config and create battle state
 	current_battle_config = config
@@ -72,7 +69,6 @@ func start_battle(config) -> bool:
 
 	# Verify player units were created properly
 	var player_units = battle_state.get_player_units()
-	print("BattleCoordinator.start_battle: Created %d player units" % player_units.size())
 	if player_units.is_empty():
 		push_error("BattleCoordinator: Failed to create player units from config")
 		_force_cleanup_stale_battle()
@@ -121,7 +117,6 @@ func start_battle(config) -> bool:
 ## Force cleanup stale battle state without emitting signals
 func _force_cleanup_stale_battle():
 	"""Emergency cleanup for stale battle state - used to fix perma-defeat bug"""
-	print("BattleCoordinator: Force cleaning up stale battle state")
 	auto_battle_enabled = false
 
 	if battle_state:
@@ -136,7 +131,6 @@ func _force_cleanup_stale_battle():
 
 	current_battle_config = null
 	is_battle_active = false
-	print("BattleCoordinator: Stale battle cleanup complete")
 
 ## End the current battle with the given result
 func end_battle(result: BattleResult):
@@ -165,7 +159,6 @@ func end_battle(result: BattleResult):
 
 ## Toggle auto-battle mode
 func set_auto_battle(enabled: bool):
-	print("BattleCoordinator.set_auto_battle: Setting auto_battle to ", enabled)
 	auto_battle_enabled = enabled
 	if enabled:
 		_process_auto_battle()
@@ -231,38 +224,27 @@ func _begin_battle_flow():
 		push_warning("BattleCoordinator: _begin_battle_flow called but config is null")
 		return
 
-	print("BattleCoordinator: Beginning battle flow...")
 	# Start first wave if applicable
 	if current_battle_config.enemy_waves and not current_battle_config.enemy_waves.is_empty():
-		print("BattleCoordinator: Starting wave 1...")
 		wave_manager.start_wave(1)
 
 	# Begin turn cycle
-	print("BattleCoordinator: Starting turn manager...")
 	turn_manager.start_battle()
-	print("BattleCoordinator: Turn manager started")
 
 	# Start auto-battle if enabled
 	if auto_battle_enabled:
-		print("BattleCoordinator: Auto-battle enabled, processing...")
 		_process_auto_battle()
 
 func _process_auto_battle():
 	"""Process auto-battle logic"""
-	print("BattleCoordinator._process_auto_battle: Starting...")
-	print("BattleCoordinator._process_auto_battle: auto_battle_enabled=", auto_battle_enabled, " is_battle_active=", is_battle_active)
 
 	if not auto_battle_enabled or not is_battle_active:
-		print("BattleCoordinator._process_auto_battle: Exiting early - conditions not met")
 		return
 
 	# Get current unit's turn
 	var current_unit = turn_manager.get_current_unit()
 	if not current_unit:
-		print("BattleCoordinator._process_auto_battle: No current unit")
 		return
-
-	print("BattleCoordinator._process_auto_battle: Current unit is ", current_unit.display_name, " is_enemy=", current_unit.is_enemy())
 
 	# Let AI choose action for enemy units, or auto-battle for player units
 	var action: BattleAction
@@ -272,14 +254,10 @@ func _process_auto_battle():
 	else:
 		action = _choose_auto_battle_action(current_unit)
 
-	print("BattleCoordinator._process_auto_battle: Action created = ", action != null)
-
 	if action:
 		action_processor.execute_action(action, battle_state)
 		# End turn after action (same as enemy turn processing)
 		turn_manager.advance_turn()
-	else:
-		print("BattleCoordinator._process_auto_battle: No action available!")
 
 func _choose_auto_battle_action(unit: BattleUnit) -> BattleAction:
 	"""Choose the best action for auto-battle"""
@@ -414,7 +392,6 @@ func _award_god_experience(rewards: Dictionary):
 		if unit.source_god:
 			god_progression.add_experience_to_god(unit.source_god, xp_per_god)
 			gods_rewarded += 1
-			print("BattleCoordinator: Awarded %d XP to %s" % [xp_per_god, unit.display_name])
 
 	# Notify player of XP gain
 	if gods_rewarded > 0:
@@ -441,24 +418,17 @@ func _cleanup_battle():
 # ============================================================================
 
 func _on_turn_started(unit: BattleUnit):
-	print("BattleCoordinator._on_turn_started: Turn started for ", unit.display_name if unit else "NULL")
-	print("BattleCoordinator._on_turn_started: Emitting turn_changed signal...")
 	turn_changed.emit(unit)
-	print("BattleCoordinator._on_turn_started: Signal emitted")
 
 	# Process enemy turns automatically (AI takes action)
 	if unit.is_enemy():
-		print("BattleCoordinator._on_turn_started: Enemy turn, processing AI...")
 		# Add small delay for visual feedback
 		await get_tree().create_timer(0.5).timeout
 		_process_enemy_turn(unit)
 	elif auto_battle_enabled:
-		print("BattleCoordinator._on_turn_started: Auto-battle enabled, processing...")
 		# Process auto-battle for player units if enabled
 		await get_tree().create_timer(0.5).timeout
 		_process_auto_battle()
-	else:
-		print("BattleCoordinator._on_turn_started: Player turn, waiting for input")
 
 func _process_enemy_turn(unit: BattleUnit):
 	"""Process an enemy unit's turn using AI"""
@@ -492,7 +462,6 @@ func _on_wave_started(wave_number: int):
 
 	# Resume auto-battle after wave transition if enabled
 	if auto_battle_enabled and is_battle_active:
-		print("BattleCoordinator._on_wave_started: Resuming auto-battle for wave ", wave_number)
 		# Small delay to let UI update with new enemies
 		await get_tree().create_timer(0.8).timeout
 		_process_auto_battle()
@@ -514,8 +483,6 @@ func _advance_to_next_wave():
 		push_warning("BattleCoordinator: _advance_to_next_wave called but config/state is null")
 		return
 
-	print("BattleCoordinator: Advancing to next wave...")
-
 	# Mark current wave as complete
 	wave_manager.complete_current_wave()
 
@@ -526,15 +493,12 @@ func _advance_to_next_wave():
 		return
 
 	var next_wave_enemies = current_battle_config.enemy_waves[next_wave_index]
-	print("BattleCoordinator: Next wave has ", next_wave_enemies.size(), " enemy entries")
 
 	# Advance battle state to next wave (this creates new enemy BattleUnits)
 	battle_state.advance_to_next_wave(next_wave_enemies)
-	print("BattleCoordinator: Battle state advanced to wave ", battle_state.current_wave)
 
 	# Update turn manager with new enemies
 	turn_manager.add_units(battle_state.get_enemy_units())
-	print("BattleCoordinator: Added new enemies to turn order")
 
 func _check_battle_end_conditions() -> bool:
 	"""Check if battle should end and end it if necessary"""

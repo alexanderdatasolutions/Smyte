@@ -57,7 +57,6 @@ func initialize():
 	_connect_event_bus()
 
 	firebase_ready.emit()
-	print("FirebaseIntegration: Initialized (Firebase available: %s)" % _firebase_available)
 
 func _check_firebase_addon() -> bool:
 	"""Check if GodotFirebase addon is installed and configured"""
@@ -93,7 +92,7 @@ func _setup_firebase():
 
 		# Check for saved auth file first (persistent login)
 		if firebase.Auth.check_auth_file():
-			print("FirebaseIntegration: Found saved auth, restoring session...")
+			pass
 		# Fallback: check if already has auth in memory
 		elif firebase.Auth.auth and not firebase.Auth.auth.is_empty():
 			_restore_session(firebase.Auth.auth)
@@ -116,7 +115,6 @@ func _connect_event_bus():
 
 	_event_bus = registry.get_system("EventBus")
 	if not _event_bus:
-		print("FirebaseIntegration: EventBus not found, manual logging only")
 		return
 
 	# Connect to core gameplay signals
@@ -142,8 +140,6 @@ func _connect_event_bus():
 	_safe_connect(_event_bus, "specialization_unlocked", _on_specialization)
 	_safe_connect(_event_bus, "equipment_equipped", _on_equipment_equipped)
 	_safe_connect(_event_bus, "equipment_unequipped", _on_equipment_unequipped)
-
-	print("FirebaseIntegration: Connected to EventBus signals")
 
 func _safe_connect(source: Object, signal_name: String, callable: Callable):
 	"""Safely connect to signal if it exists"""
@@ -291,7 +287,6 @@ func _on_login_succeeded(auth_result):
 	_initialize_cloud_saves()
 
 	sign_in_completed.emit(user_data)
-	print("FirebaseIntegration: Signed in as %s" % user_data.get("email", ""))
 
 func _on_login_failed(error_code, error_message):
 	"""Handle failed Firebase login"""
@@ -312,7 +307,6 @@ func _on_logout_succeeded():
 	if firebase and firebase.Auth:
 		firebase.Auth.remove_auth()
 	sign_out_completed.emit()
-	print("FirebaseIntegration: Signed out")
 
 func _on_token_refresh_succeeded(auth_result):
 	"""Handle token refresh from saved auth file"""
@@ -337,7 +331,6 @@ func _load_cloud_save_deferred():
 	"""Load from cloud after a short delay to allow systems to initialize"""
 	await get_tree().create_timer(0.5).timeout
 	if cloud_save_manager and cloud_save_manager.is_ready():
-		print("FirebaseIntegration: Loading save from cloud...")
 		cloud_save_manager.load_from_cloud()
 
 # ==============================================================================
@@ -365,7 +358,6 @@ func is_cloud_save_ready() -> bool:
 func _restore_session(auth_data):
 	"""Restore session from cached credentials"""
 	# Debug: print auth_data keys to understand structure
-	print("FirebaseIntegration: Restoring session, auth_data keys: %s" % str(auth_data.keys()))
 
 	# Detect provider from cached data
 	var provider = "email"
@@ -392,8 +384,6 @@ func _restore_session(auth_data):
 
 		# IMPORTANT: Emit sign_in_completed so UI updates
 		sign_in_completed.emit(user_data)
-
-		print("FirebaseIntegration: Restored session for %s (uid: %s)" % [user_data.get("email", "unknown"), user_data.get("uid", "")])
 
 # ==============================================================================
 # EVENTBUS SIGNAL HANDLERS -> ANALYTICS
@@ -557,4 +547,3 @@ func shutdown():
 	"""Called by SystemRegistry on shutdown"""
 	if analytics:
 		await analytics.flush_queue()
-	print("FirebaseIntegration: Shutdown complete")

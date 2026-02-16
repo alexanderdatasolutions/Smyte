@@ -72,7 +72,6 @@ func _load_achievements() -> void:
 	var data: Dictionary = json.get_data()
 	_achievements = data.get("achievements", {})
 	_is_loaded = true
-	print("AchievementManager: Loaded %d achievement definitions" % _achievements.size())
 
 func _connect_to_events() -> void:
 	"""Connect to EventBus signals for achievement tracking"""
@@ -99,24 +98,20 @@ func _connect_to_events() -> void:
 	if building_manager:
 		building_manager.building_placed.connect(_on_building_placed)
 
-
 # ==============================================================================
 # EVENT HANDLERS
 # ==============================================================================
 
 func _on_god_obtained(god) -> void:
 	"""Handle god obtained - check god_count achievements"""
-	print("[AchievementManager] god_obtained event received: %s" % (god.name if god else "null"))
 	_check_god_count_achievements()
 
 func _on_god_level_up(god_id: String, new_level: int, _old_level: int) -> void:
 	"""Handle god level up - check max_god_level achievements"""
-	print("[AchievementManager] god_level_up event: %s -> level %d" % [god_id, new_level])
 	_check_max_god_level_achievements(new_level)
 
 func _on_summon_performed(banner_id: String, results: Array) -> void:
 	"""Handle summon performed - check summon_count achievements"""
-	print("[AchievementManager] summon_performed event: banner=%s, results=%d gods" % [banner_id, results.size()])
 	_check_summon_count_achievements()
 
 func _on_battle_ended(result) -> void:
@@ -145,11 +140,9 @@ func _check_god_count_achievements() -> void:
 	"""Check achievements with trigger type: god_count"""
 	var collection_manager: Node = SystemRegistry.get_instance().get_system("CollectionManager")
 	if not collection_manager:
-		print("[AchievementManager] _check_god_count: CollectionManager not found!")
 		return
 
 	var god_count: int = collection_manager.gods.size()
-	print("[AchievementManager] Checking god_count achievements: player has %d gods" % god_count)
 
 	for achievement_id in _achievements:
 		var achievement: Dictionary = _achievements[achievement_id]
@@ -158,7 +151,6 @@ func _check_god_count_achievements() -> void:
 		if trigger.get("type") == "god_count":
 			var target: int = trigger.get("target", 0)
 			var already_done: bool = is_achievement_completed(achievement_id)
-			print("[AchievementManager]   - %s: need %d, have %d, completed=%s" % [achievement_id, target, god_count, already_done])
 			if god_count >= target and not already_done:
 				complete_achievement(achievement_id)
 
@@ -372,8 +364,6 @@ func complete_achievement(achievement_id: String) -> void:
 
 	# Show notification
 	_show_achievement_notification(achievement)
-
-	print("AchievementManager: Achievement completed - %s" % achievement.get("name", achievement_id))
 
 func _award_rewards(rewards: Dictionary) -> void:
 	"""Award resources from achievement"""

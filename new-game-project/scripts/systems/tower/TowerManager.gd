@@ -121,8 +121,6 @@ func start_tower_run(team: Array) -> bool:
 	for god in current_team:
 		team_hp_state[god.id] = -1  # -1 means use max HP
 
-	print("TowerManager: Starting tower run with %d gods" % current_team.size())
-
 	# Start first floor
 	advance_to_next_floor()
 	return true
@@ -134,8 +132,6 @@ func advance_to_next_floor():
 
 	current_floor += 1
 	floor_started.emit(current_floor)
-
-	print("TowerManager: Entering floor %d" % current_floor)
 
 func get_current_floor_enemies() -> Array:
 	"""Generate enemies for the current floor"""
@@ -189,7 +185,6 @@ func end_tower_run(_victory: bool = false):
 			var event_bus := system_registry.get_system("EventBus")
 			if event_bus:
 				event_bus.save_requested.emit()
-		print("TowerManager: NEW RECORD! Floor %d" % best_floor)
 
 	tower_run_ended.emit(final_floor, is_new_record, total_rewards)
 
@@ -198,8 +193,6 @@ func end_tower_run(_victory: bool = false):
 	current_floor = 0
 	team_hp_state.clear()
 	run_total_rewards.clear()
-
-	print("TowerManager: Run ended at floor %d (Record: %d)" % [final_floor, best_floor])
 
 func get_current_floor() -> int:
 	return current_floor
@@ -548,7 +541,6 @@ func save_team_hp_from_battle(battle_state) -> void:
 	for unit in battle_state.get_player_units():
 		if unit.source_god:
 			team_hp_state[unit.source_god.id] = unit.current_hp
-			print("TowerManager: Saved HP for %s: %d/%d" % [unit.display_name, unit.current_hp, unit.max_hp])
 
 func get_hp_override(god_id: String) -> int:
 	"""Get HP override for a god (-1 means use max HP)"""

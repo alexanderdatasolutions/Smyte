@@ -30,12 +30,10 @@ func _initialize_firebase() -> void:
 	"""Initialize Firebase connection"""
 	var system_registry = _get_system_registry()
 	if not system_registry:
-		print("[ArenaDataSync] SystemRegistry not available")
 		return
 
 	var firebase_integration = system_registry.get_system("FirebaseIntegration")
 	if not firebase_integration:
-		print("[ArenaDataSync] FirebaseIntegration not available - running in offline mode")
 		return
 
 	# Get Firestore reference
@@ -51,10 +49,7 @@ func _initialize_firebase() -> void:
 		_display_name = firebase_integration.get_user_display_name()
 
 	if is_ready():
-		print("[ArenaDataSync] Initialized with user: %s" % _user_id)
-	else:
-		print("[ArenaDataSync] Not fully initialized - offline mode")
-
+		pass
 func is_ready() -> bool:
 	"""Check if Firebase sync is available"""
 	return _firestore != null and not _user_id.is_empty()
@@ -72,7 +67,6 @@ func get_display_name() -> String:
 func fetch_opponents_in_range(min_elo: int, max_elo: int, count: int) -> void:
 	"""Fetch opponents within ELO range from Firestore"""
 	if not is_ready():
-		print("[ArenaDataSync] Not ready - emitting empty opponents")
 		opponents_fetched.emit([])
 		return
 
@@ -179,7 +173,6 @@ func _get_league_for_elo(elo: int) -> String:
 func upload_defense_team(serialized_team: Array) -> void:
 	"""Upload defense team to Firestore"""
 	if not is_ready():
-		print("[ArenaDataSync] Not ready - defense upload skipped")
 		defense_uploaded.emit(false)
 		return
 

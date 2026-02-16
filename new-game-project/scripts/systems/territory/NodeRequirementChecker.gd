@@ -66,7 +66,6 @@ func _resolve_dependencies() -> void:
 func can_player_capture_node(node: HexNode) -> bool:
 	"""Check if player meets all requirements to capture a node"""
 	if not node:
-		print("[NodeRequirementChecker] can_player_capture_node: node is null")
 		return false
 
 	# Check all individual requirements
@@ -74,24 +73,13 @@ func can_player_capture_node(node: HexNode) -> bool:
 	var spec_ok = check_specialization_requirement(node)
 	var adjacent_ok = check_adjacent_garrison_requirement(node)
 
-	print("[NodeRequirementChecker] Node '%s' (T%d): level_ok=%s, spec_ok=%s, adjacent_ok=%s, unlock_req=%s" % [
-		node.id, node.tier, level_ok, spec_ok, adjacent_ok, node.unlock_requirements
-	])
-
 	if not level_ok:
-		print("[NodeRequirementChecker] BLOCKED: Level requirement not met (need %d, have %d)" % [
-			node.get_required_level(), _get_player_level()
-		])
 		return false
 
 	if not spec_ok:
-		print("[NodeRequirementChecker] BLOCKED: Spec requirement not met (need tier %d role '%s')" % [
-			node.get_required_spec_tier(), node.get_required_spec_role()
-		])
 		return false
 
 	if not adjacent_ok:
-		print("[NodeRequirementChecker] BLOCKED: No adjacent garrisoned node")
 		return false
 
 	# Power requirement is checked during battle, not here

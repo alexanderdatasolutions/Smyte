@@ -81,7 +81,6 @@ func load_tasks_from_json() -> void:
 
 	_is_loaded = true
 	tasks_loaded.emit()
-	print("TaskAssignmentManager: Loaded %d tasks, %d categories, %d skills" % [_tasks.size(), _task_categories.size(), _skills.size()])
 
 # ==============================================================================
 # TASK QUERIES

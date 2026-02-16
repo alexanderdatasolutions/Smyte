@@ -148,12 +148,9 @@ func _load_from_hex_tiles() -> void:
 
 	_is_loaded = true
 	nodes_loaded.emit()
-	print("HexGridManager: Generated %d hex nodes (blank tiles + special nodes)" % _nodes.size())
 
 func _create_base_node(hex_node_script: GDScript, base_template: Dictionary) -> void:
 	"""Create the player's home base at (0,0)"""
-	var hex_coord_script: GDScript = load("res://scripts/data/HexCoord.gd")
-
 	var node_data: Dictionary = {
 		"id": "home_base",
 		"name": base_template.get("name", "Divine Sanctum"),
@@ -539,18 +536,12 @@ func get_save_data() -> Dictionary:
 func load_save_data(save_data: Dictionary) -> void:
 	"""Load grid state from save data"""
 	if not save_data.has("nodes"):
-		print("[HexGridManager] load_save_data: No 'nodes' key in save data!")
 		return
 
 	var saved_nodes: Dictionary = save_data.nodes
-	print("[HexGridManager] load_save_data: Found %d saved nodes, current grid has %d nodes" % [saved_nodes.size(), _nodes.size()])
-
-	var matched_count: int = 0
-	var player_nodes_loaded: int = 0
 
 	for node_id: String in saved_nodes:
 		if _nodes.has(node_id):
-			matched_count += 1
 			# Update existing node with saved state
 			var node: HexNode = _nodes[node_id]
 			var saved_state: Dictionary = saved_nodes[node_id]
@@ -561,10 +552,7 @@ func load_save_data(save_data: Dictionary) -> void:
 			node.is_contested = saved_state.get("is_contested", false)
 			node.contested_until = saved_state.get("contested_until", 0)
 
-			if node.controller == "player":
-				player_nodes_loaded += 1
-
-			# Update typed arrays using .assign()
+				# Update typed arrays using .assign()
 			var garrison_data: Array = saved_state.get("garrison", [])
 			node.garrison.assign(garrison_data)
 			var workers_data: Array = saved_state.get("assigned_workers", [])
@@ -586,11 +574,6 @@ func load_save_data(save_data: Dictionary) -> void:
 			# Attack timer state
 			node.attack_timer_remaining = saved_state.get("attack_timer_remaining", -1.0)
 			node.last_attack_check_time = saved_state.get("last_attack_check_time", 0)
-		else:
-			# Log unmatched node IDs to diagnose save/load issues
-			print("[HexGridManager] WARNING: Saved node '%s' not found in current grid!" % node_id)
-
-	print("[HexGridManager] load_save_data: Matched %d/%d saved nodes, %d player-controlled" % [matched_count, saved_nodes.size(), player_nodes_loaded])
 
 	# Restore active crafts
 	if save_data.has("active_crafts"):
@@ -610,17 +593,11 @@ func _ensure_adjacent_nodes_revealed() -> void:
 	"""Ensure all nodes adjacent to player-controlled nodes are revealed.
 	Called after loading save data to fix saves from before reveal logic was added."""
 	var player_nodes: Array = get_player_nodes()
-	var newly_revealed: int = 0
-
 	for node: HexNode in player_nodes:
 		var neighbors: Array = get_neighbors(node.coord)
 		for neighbor: HexNode in neighbors:
 			if neighbor and not neighbor.is_revealed:
 				neighbor.is_revealed = true
-				newly_revealed += 1
-
-	if newly_revealed > 0:
-		print("HexGridManager: Post-load revealed %d adjacent nodes" % newly_revealed)
 
 # ==============================================================================
 # CRAFT TRACKING (Shared across UI screens)
@@ -669,7 +646,6 @@ func start_craft(node_id: String, task_id: String, task_data: Dictionary, auto_r
 	if not node.active_tasks.has(task_id):
 		node.active_tasks.append(task_id)
 
-	print("HexGridManager: Started craft '%s' at node '%s' (auto-repeat: %s)" % [task_id, node_id, auto_repeat])
 	return true
 
 func _get_max_crafts_for_node(node: HexNode) -> int:
@@ -741,7 +717,6 @@ func cancel_craft(node_id: String, task_id: String) -> bool:
 	if node and node.active_tasks.has(task_id):
 		node.active_tasks.erase(task_id)
 
-	print("HexGridManager: Cancelled craft '%s' at node '%s'" % [task_id, node_id])
 	return true
 
 func cancel_all_crafts_for_node(node_id: String) -> int:
@@ -759,9 +734,6 @@ func cancel_all_crafts_for_node(node_id: String) -> int:
 	for task_id: String in crafts_to_cancel:
 		if cancel_craft(node_id, task_id):
 			cancelled += 1
-
-	if cancelled > 0:
-		print("HexGridManager: Cancelled %d crafts for node '%s'" % [cancelled, node_id])
 
 	return cancelled
 
@@ -794,7 +766,6 @@ func _check_auto_repeat_crafts() -> void:
 		var node_id: String = craft_data.get("node_id", "")
 		var task_id: String = craft_data.get("task_id", "")
 		cancel_craft(node_id, task_id)
-		print("HexGridManager: Auto-cancelled craft '%s' - no workers assigned" % task_id)
 
 	# Process auto-restarts
 	for craft_data: Dictionary in crafts_to_restart:
@@ -927,7 +898,6 @@ func _auto_collect_resource_from_nodes(resource_id: String, amount_needed: float
 				resource_manager.add_resource(resource_id, to_collect)
 
 			collected += to_collect
-			print("[HexGridManager] Auto-collected %.1f %s from node %s for craft" % [to_collect, resource_id, node.id])
 
 	return collected
 
@@ -947,7 +917,6 @@ func _award_craft_rewards(task_data: Dictionary) -> void:
 	for resource_id: String in resources.keys():
 		var amount: int = resources[resource_id]
 		resource_manager.add_resource(resource_id, amount)
-		print("HexGridManager: Auto-repeat craft awarded %d %s" % [amount, resource_id])
 
 func _get_resource_manager() -> Node:
 	"""Get ResourceManager via SystemRegistry"""

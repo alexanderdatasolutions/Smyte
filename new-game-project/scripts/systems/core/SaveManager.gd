@@ -43,7 +43,6 @@ func _process(delta: float) -> void:
 
 ## Save game data
 func save_game() -> bool:
-	print("[SaveManager] save_game() called")
 
 	var save_data = {}
 	save_data["version"] = SAVE_VERSION
@@ -133,9 +132,6 @@ func save_game() -> bool:
 	file.store_string(json_string)
 	file.close()
 
-	print("[SaveManager] Save completed successfully to: %s" % SAVE_FILE_PATH)
-	print("[SaveManager] Save data keys: %s" % str(save_data.keys()))
-
 	save_completed.emit(true)
 
 	# Trigger cloud save if signed in
@@ -145,7 +141,6 @@ func save_game() -> bool:
 
 ## Load game data
 func load_game() -> bool:
-	print("[SaveManager] load_game() called, checking: %s" % SAVE_FILE_PATH)
 
 	var save_data: Dictionary = _read_save_file()
 	if save_data.is_empty():
@@ -172,32 +167,26 @@ func load_game() -> bool:
 func _read_save_file() -> Dictionary:
 	if not FileAccess.file_exists(SAVE_FILE_PATH):
 		var error := "Save file does not exist"
-		print("[SaveManager] ERROR: %s" % error)
 		load_failed.emit(error)
 		return {}
 
 	var file := FileAccess.open(SAVE_FILE_PATH, FileAccess.READ)
 	if not file:
 		var error := "Failed to open save file for reading"
-		print("[SaveManager] ERROR: %s" % error)
 		load_failed.emit(error)
 		return {}
 
 	var json_string := file.get_as_text()
 	file.close()
 
-	print("[SaveManager] Loaded %d bytes from save file" % json_string.length())
-
 	var json := JSON.new()
 	var parse_result := json.parse(json_string)
 	if parse_result != OK:
 		var error := "Failed to parse save file JSON"
-		print("[SaveManager] ERROR: %s" % error)
 		load_failed.emit(error)
 		return {}
 
 	var save_data: Dictionary = json.data
-	print("[SaveManager] Parsed save data, keys: %s" % str(save_data.keys()))
 	return save_data
 
 ## Validate save data structure — checks required keys and expected types.
@@ -244,24 +233,13 @@ func _load_systems_from_data(save_data: Dictionary, system_registry) -> void:
 	_load_system_data(system_registry, "ResourceManager", "resources", save_data)
 	_load_system_data(system_registry, "CollectionManager", "collection", save_data)
 
-	# Hex grid needs extra logging and offline production calculation
+	# Hex grid loading and offline production calculation
 	if save_data.has("hex_grid"):
-		print("[SaveManager] hex_grid data found in save")
-		var hex_grid_data: Dictionary = save_data.hex_grid
-		if hex_grid_data.has("nodes"):
-			print("[SaveManager] hex_grid has %d nodes in save data" % hex_grid_data.nodes.size())
-		else:
-			print("[SaveManager] WARNING: hex_grid has no 'nodes' key!")
-
 		var hex_grid_manager = system_registry.get_system("HexGridManager")
 		if hex_grid_manager and hex_grid_manager.has_method("load_save_data"):
 			hex_grid_manager.load_save_data(save_data.hex_grid)
-		else:
-			print("[SaveManager] WARNING: HexGridManager not found or no load_save_data method!")
 
 		_calculate_offline_production_rewards(system_registry, hex_grid_manager)
-	else:
-		print("[SaveManager] WARNING: No hex_grid data in save file!")
 
 	_load_system_data(system_registry, "TerritoryManager", "territory", save_data)
 	_load_system_data(system_registry, "DungeonManager", "dungeon", save_data)
@@ -364,7 +342,6 @@ func auto_save():
 ## Check if save file exists
 func has_save_file() -> bool:
 	var exists = FileAccess.file_exists(SAVE_FILE_PATH)
-	print("[SaveManager] has_save_file() checking: %s -> %s" % [SAVE_FILE_PATH, exists])
 	return exists
 
 ## Delete save file
@@ -394,52 +371,17 @@ func _calculate_offline_production_rewards(system_registry, hex_grid_manager) ->
 
 	var territory_production_manager = system_registry.get_system("TerritoryProductionManager")
 	if not territory_production_manager:
-		print("[SaveManager] TerritoryProductionManager not found, skipping offline production")
 		return
 
 	# Get all player-controlled nodes
 	var player_nodes: Array = hex_grid_manager.get_player_nodes()
 	if player_nodes.is_empty():
-		print("[SaveManager] No player nodes found, skipping offline production")
 		return
-
-	print("[SaveManager] Calculating offline production for %d player nodes..." % player_nodes.size())
-
-	var total_offline_rewards: Dictionary = {}
-	var nodes_with_production: int = 0
 
 	# Calculate offline production for each node
 	# calculate_offline_hex_production() adds to node.accumulated_resources automatically
 	for node in player_nodes:
-		var offline_rewards: Dictionary = territory_production_manager.calculate_offline_hex_production(node)
-
-		if not offline_rewards.is_empty():
-			nodes_with_production += 1
-
-			# Track total for logging only
-			for resource_id in offline_rewards:
-				if total_offline_rewards.has(resource_id):
-					total_offline_rewards[resource_id] += offline_rewards[resource_id]
-				else:
-					total_offline_rewards[resource_id] = offline_rewards[resource_id]
-
-	# Log what's waiting to be collected (NOT auto-awarded)
-	if not total_offline_rewards.is_empty():
-		print("[SaveManager] Offline production stored in nodes (awaiting collection): %s" % _format_rewards_dict(total_offline_rewards))
-		print("[SaveManager] %d nodes have resources ready - player can Collect All!" % nodes_with_production)
-	else:
-		print("[SaveManager] No offline production to store")
-
-## Format rewards dictionary for debug output
-func _format_rewards_dict(rewards: Dictionary) -> String:
-	if rewards.is_empty():
-		return "{}"
-
-	var parts: Array[String] = []
-	for resource_id in rewards:
-		parts.append("%s: %.1f" % [resource_id, rewards[resource_id]])
-
-	return "{%s}" % ", ".join(parts)
+		territory_production_manager.calculate_offline_hex_production(node)
 
 # ==============================================================================
 # CLOUD SAVE INTEGRATION
@@ -463,7 +405,6 @@ func _connect_firebase_deferred():
 		_firebase_integration.cloud_load_completed.connect(_on_cloud_load_completed)
 		_firebase_integration.cloud_load_failed.connect(_on_cloud_load_failed)
 		_firebase_integration.cloud_save_not_found.connect(_on_cloud_save_not_found)
-		print("[SaveManager] Connected to FirebaseIntegration for cloud saves")
 
 func _trigger_cloud_save(save_data: Dictionary):
 	"""Trigger cloud save if signed in and enabled"""
@@ -479,7 +420,6 @@ func _trigger_cloud_save(save_data: Dictionary):
 	if not _firebase_integration.is_cloud_save_ready():
 		return
 
-	print("[SaveManager] Triggering cloud save...")
 	_firebase_integration.save_to_cloud(save_data)
 
 func load_from_cloud():
@@ -492,23 +432,18 @@ func load_from_cloud():
 		cloud_sync_failed.emit("Cloud saves not ready")
 		return
 
-	print("[SaveManager] Loading from cloud...")
 	_firebase_integration.load_from_cloud()
 
 func _on_cloud_save_completed():
 	"""Handle successful cloud save"""
-	print("[SaveManager] Cloud save completed")
 	cloud_sync_completed.emit()
 
 func _on_cloud_save_failed(error: String):
 	"""Handle failed cloud save"""
-	print("[SaveManager] Cloud save failed: %s" % error)
 	cloud_sync_failed.emit(error)
 
 func _on_cloud_load_completed(save_data: Dictionary):
 	"""Handle successful cloud load - apply save data to game"""
-	print("[SaveManager] Cloud load completed, checking save data...")
-	print("[SaveManager] Cloud save_data keys: %s" % str(save_data.keys()))
 
 	# Safety check: Don't apply empty or invalid cloud saves
 	# This prevents wiping local data if cloud save is corrupted/empty
@@ -527,34 +462,27 @@ func _on_cloud_load_completed(save_data: Dictionary):
 	var has_equipment = false
 	if save_data.has("collection"):
 		var collection = save_data.collection
-		print("[SaveManager] Cloud collection keys: %s" % str(collection.keys() if collection is Dictionary else "not a dict"))
 		if collection is Dictionary:
 			var gods_array = collection.get("gods", [])
 			var equip_array = collection.get("equipment", [])
 			has_gods = gods_array is Array and not gods_array.is_empty()
 			has_equipment = equip_array is Array and not equip_array.is_empty()
-			print("[SaveManager] Cloud save has %d gods, %d equipment" % [gods_array.size() if gods_array is Array else 0, equip_array.size() if equip_array is Array else 0])
 
 	if not has_gods and not has_equipment:
-		print("[SaveManager] WARNING: Cloud save has no gods or equipment, IGNORING to prevent data loss")
 		return
 
-	print("[SaveManager] Cloud save valid with gods/equipment, applying data...")
 	_apply_save_data(save_data)
 	cloud_sync_completed.emit()
 
 func _on_cloud_load_failed(error: String):
 	"""Handle failed cloud load"""
-	print("[SaveManager] Cloud load failed: %s" % error)
 	cloud_sync_failed.emit(error)
 
 func _on_cloud_save_not_found():
 	"""Handle case where no cloud save exists - push local save to cloud"""
-	print("[SaveManager] No cloud save found...")
 
 	# Safety check: Only push to cloud if we have a local save with actual data
 	if not has_save_file():
-		print("[SaveManager] No local save file either, nothing to push")
 		return
 
 	# Extra safety: Check if collection has data before pushing
@@ -564,10 +492,8 @@ func _on_cloud_save_not_found():
 		if collection_manager:
 			var gods = collection_manager.get_all_gods()
 			if gods.is_empty():
-				print("[SaveManager] Collection is empty, skipping cloud push (game may not be fully initialized)")
 				return
 
-	print("[SaveManager] Pushing local save to cloud...")
 	save_game()  # This will trigger cloud save after local save
 
 func _apply_save_data(save_data: Dictionary) -> void:
@@ -583,4 +509,3 @@ func _apply_save_data(save_data: Dictionary) -> void:
 
 	_load_systems_from_data(save_data, system_registry)
 	load_completed.emit(true, save_data)
-	print("[SaveManager] Cloud save data applied successfully")

@@ -207,14 +207,11 @@ func capture_node(coord: HexCoord) -> bool:
 		return false
 
 	# Capture the node
-	print("[TerritoryManager] BEFORE capture: node.id=%s, node.controller=%s" % [node.id, node.controller])
 	node.controller = "player"
 	node.is_revealed = true
 
 	# Start the attack timer for this node (garrison defense mechanic)
 	_start_attack_timer(node)
-
-	print("[TerritoryManager] AFTER capture: node.id=%s, node.controller=%s" % [node.id, node.controller])
 
 	# Add to controlled territories for backward compatibility
 	if node.id not in controlled_territories:
@@ -238,7 +235,6 @@ func capture_node(coord: HexCoord) -> bool:
 	var save_manager: Node = SystemRegistry.get_instance().get_system("SaveManager") if SystemRegistry.get_instance() else null
 	if save_manager:
 		save_manager.save_game()
-		print("TerritoryManager: Saved game after capturing node %s" % node.id)
 
 	return true
 
@@ -482,8 +478,6 @@ func update_node_garrison(node_id: String, garrison_ids: Array) -> bool:
 		if god_id is String:
 			node.garrison.append(god_id)
 
-	print("TerritoryManager: Updated garrison for node %s: %s" % [node_id, node.garrison])
-
 	# Trigger save after assigning garrison
 	var event_bus: Node = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
 	if event_bus:
@@ -528,8 +522,6 @@ func update_node_workers(node_id: String, worker_ids: Array) -> bool:
 		if god_id is String:
 			node.assigned_workers.append(god_id)
 
-	print("TerritoryManager: Updated workers for node %s: %s" % [node_id, node.assigned_workers])
-
 	# Emit production_updated signal to refresh UI
 	var production_manager: Node = SystemRegistry.get_instance().get_system("TerritoryProductionManager")
 	if production_manager:
@@ -538,7 +530,6 @@ func update_node_workers(node_id: String, worker_ids: Array) -> bool:
 		for resource_id: String in new_production_rate:
 			total_rate += int(new_production_rate[resource_id])
 		production_manager.production_updated.emit(node_id, total_rate)
-		print("TerritoryManager: Emitted production_updated signal for node %s with rate %d" % [node_id, total_rate])
 
 	# Trigger save after assigning workers
 	var event_bus: Node = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
@@ -574,7 +565,6 @@ func upgrade_hex_node(node_id: String) -> bool:
 	# Check if already at max level
 	var max_level: int = 5  # From CLAUDE.md
 	if node.production_level >= max_level:
-		print("TerritoryManager: Node %s already at max production level" % node_id)
 		return false
 
 	# Get upgrade cost
@@ -582,14 +572,11 @@ func upgrade_hex_node(node_id: String) -> bool:
 	var resource_manager: Node = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
 
 	if not resource_manager or not resource_manager.can_afford(upgrade_cost):
-		print("TerritoryManager: Cannot afford upgrade cost for node %s" % node_id)
 		return false
 
 	# Spend resources and upgrade
 	resource_manager.spend_resources(upgrade_cost)
 	node.production_level += 1
-
-	print("TerritoryManager: Upgraded node %s to production level %d" % [node_id, node.production_level])
 
 	# Emit production_updated signal to refresh UI
 	var production_manager: Node = SystemRegistry.get_instance().get_system("TerritoryProductionManager")
@@ -599,7 +586,6 @@ func upgrade_hex_node(node_id: String) -> bool:
 		for resource_id: String in new_production_rate:
 			total_rate += int(new_production_rate[resource_id])
 		production_manager.production_updated.emit(node_id, total_rate)
-		print("TerritoryManager: Emitted production_updated signal for node %s with new rate %d" % [node_id, total_rate])
 
 	# Trigger save after upgrading node
 	var event_bus: Node = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
@@ -639,12 +625,10 @@ func _deferred_connect_dungeon_coordinator() -> void:
 	if dungeon_coordinator and dungeon_coordinator.has_signal("dungeon_completed"):
 		if not dungeon_coordinator.dungeon_completed.is_connected(_on_dungeon_completed):
 			dungeon_coordinator.dungeon_completed.connect(_on_dungeon_completed)
-			print("TerritoryManager: Connected to DungeonCoordinator.dungeon_completed signal")
 
 ## Handle dungeon completion event
 func _on_dungeon_completed(dungeon_id: String, difficulty: String) -> void:
 	"""Check if dungeon completion unlocks any hex nodes"""
-	print("TerritoryManager: Received dungeon_completed for %s %s" % [dungeon_id, difficulty])
 
 	var hex_grid_manager: Node = SystemRegistry.get_instance().get_system("HexGridManager") if SystemRegistry.get_instance() else null
 	if not hex_grid_manager:
@@ -654,7 +638,6 @@ func _on_dungeon_completed(dungeon_id: String, difficulty: String) -> void:
 	var all_nodes: Array = hex_grid_manager.get_all_nodes()
 	for node: HexNode in all_nodes:
 		if _check_node_dungeon_unlock(node, dungeon_id, difficulty):
-			print("TerritoryManager: Dungeon clear %s %s unlocked node %s" % [dungeon_id, difficulty, node.id])
 			node_unlocked.emit(node.id, "%s_%s" % [dungeon_id, difficulty])
 
 ## Check if a node's dungeon unlock requirements are satisfied by this clear
@@ -718,9 +701,6 @@ func _award_capture_rewards(node: HexNode) -> void:
 
 	if total_crystals > 0:
 		resource_manager.add_resource("divine_crystals", total_crystals)
-		print("TerritoryManager: Awarded %d divine crystals for capturing %s (early bonus: %d, tier bonus: %d)" % [
-			total_crystals, node.name if node else "territory", early_game_bonus, tier_reward
-		])
 
 		# Show notification to player
 		if event_bus:
@@ -743,12 +723,10 @@ func _reveal_adjacent_nodes(captured_node: HexNode, hex_grid_manager: Node) -> v
 		if neighbor and not neighbor.is_revealed:
 			neighbor.is_revealed = true
 			newly_revealed += 1
-			print("TerritoryManager: Revealed adjacent node '%s' (tier %d)" % [neighbor.name, neighbor.tier])
 
 	if newly_revealed > 0:
 		# Notify that grid has updated (for UI refresh)
 		hex_grid_manager.grid_updated.emit()
-		print("TerritoryManager: Revealed %d new adjacent nodes from capturing '%s'" % [newly_revealed, captured_node.name])
 
 # ==============================================================================
 # ATTACK TIMER SYSTEM
@@ -771,12 +749,6 @@ func _start_attack_timer(node: HexNode) -> void:
 	var max_seconds: float = node.attack_timer_hours * 3600.0
 	node.attack_timer_remaining = max_seconds
 	node.last_attack_check_time = int(Time.get_unix_time_from_system())
-
-	print("TerritoryManager: Started attack timer for node '%s' - %.1f hours (%.0f seconds)" % [
-		node.name if node.name else node.id,
-		node.attack_timer_hours,
-		max_seconds
-	])
 
 ## Update attack timers for all player-controlled nodes
 ## Called periodically (e.g., every 60 seconds from TerritoryProductionManager)
@@ -812,9 +784,6 @@ func update_attack_timers() -> void:
 		if node.attack_timer_remaining <= 0:
 			node.attack_timer_remaining = 0.0  # Clamp at 0
 			nodes_under_attack.append(node)
-			print("TerritoryManager: ⚔️ Attack timer EXPIRED for node '%s' - Defense battle needed!" % [
-				node.name if node.name else node.id
-			])
 
 	# Handle expired timers (defense battles)
 	for node: HexNode in nodes_under_attack:
@@ -831,7 +800,6 @@ func _handle_node_attack(node: HexNode) -> void:
 	# Check garrison status
 	if node.garrison.size() == 0:
 		# No garrison = automatic loss
-		print("TerritoryManager: ❌ Node '%s' LOST - no garrison to defend!" % [node.name if node.name else node.id])
 
 		# Emit event for UI notification
 		var event_bus: Node = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
@@ -843,7 +811,6 @@ func _handle_node_attack(node: HexNode) -> void:
 	else:
 		# Has garrison - defense battle available
 		# The actual battle will be initiated by UI when player clicks on the node
-		print("TerritoryManager: ⚔️ Node '%s' is under attack! Garrison defense available." % [node.name if node.name else node.id])
 
 		# Emit event for UI notification
 		var event_bus: Node = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
@@ -862,4 +829,3 @@ func reset_attack_timer(node_id: String) -> void:
 		return
 
 	_start_attack_timer(node)
-	print("TerritoryManager: Reset attack timer for node '%s' after successful defense" % [node.name if node.name else node_id])
