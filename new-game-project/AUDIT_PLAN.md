@@ -11,7 +11,7 @@
 ### Save System Issues
 
 - [x] **Wire TowerManager into SaveManager save chain** — TowerManager uses `set_player_value()` hack instead of proper `get_save_data()`/`load_save_data()` pattern. Best floor, timestamp, and run rewards should be saved via dedicated "tower" section. `{"file": "scripts/systems/tower/TowerManager.gd", "passes": true}`
-- [ ] **Wire LootSystem save methods into SaveManager** — LootSystem has `get_save_data()`/`load_save_data()` methods but SaveManager never calls them. Orphaned save data. `{"file": "scripts/systems/resources/LootSystem.gd", "passes": false}`
+- [x] **Remove dead save stubs from LootSystem** — LootSystem had no-op `get_save_data()`/`load_save_data()` methods (returned empty dict, did nothing). Removed dead stubs instead of wiring them. `{"file": "scripts/systems/resources/LootSystem.gd", "passes": true}`
 - [ ] **Wire InventoryManager into SaveManager** — InventoryManager has `save_inventory_data()`/`load_inventory_data()` methods (non-standard names) but isn't wired into SaveManager save chain. Consumables and materials not persisted. `{"file": "scripts/systems/resources/InventoryManager.gd", "passes": false}`
 
 ---

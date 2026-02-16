@@ -197,12 +197,3 @@ func _calculate_amount(item_data: Dictionary, multiplier: float) -> int:
 	
 	return int(base_amount * multiplier)
 
-## For save/load
-func get_save_data() -> Dictionary:
-	return {
-		# LootSystem doesn't need persistent state
-	}
-
-func load_save_data(_save_data: Dictionary):
-	# LootSystem doesn't need persistent state
-	pass

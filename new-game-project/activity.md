@@ -25,6 +25,15 @@
 
 **Verification:** Project runs clean, no errors related to save system changes
 
+### Remove dead save stubs from LootSystem (Critical → resolved)
+**Files modified:** `scripts/systems/resources/LootSystem.gd`
+
+**Problem:** Audit flagged LootSystem as having orphaned `get_save_data()`/`load_save_data()` methods not wired into SaveManager. On inspection, both methods were no-ops — `get_save_data()` returned `{}` and `load_save_data()` was `pass`. LootSystem loads its config from JSON files, not from save data.
+
+**Fix:** Removed the dead save/load stubs entirely. No need to wire empty methods into the save chain.
+
+**Verification:** Project runs clean, no errors
+
 ---
 
 ## Project Context
