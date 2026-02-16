@@ -135,6 +135,7 @@ static func serialize_equipment(equipment: Equipment) -> Dictionary:
 		"sockets": equipment.sockets.duplicate(true),
 		"max_sockets": equipment.max_sockets,
 		"equipped_by_god_id": equipment.equipped_by_god_id,
+		"equipped_slot": equipment.equipped_slot,
 		"is_destroyed": equipment.is_destroyed,
 		"origin_dungeon": equipment.origin_dungeon,
 		"lore_text": equipment.lore_text,
@@ -158,6 +159,7 @@ static func deserialize_equipment(data: Dictionary) -> Equipment:
 	equipment.sockets = data.get("sockets", []).duplicate(true)
 	equipment.max_sockets = data.get("max_sockets", 0)
 	equipment.equipped_by_god_id = data.get("equipped_by_god_id", "")
+	equipment.equipped_slot = data.get("equipped_slot", -1)
 	equipment.is_destroyed = data.get("is_destroyed", false)
 	equipment.origin_dungeon = data.get("origin_dungeon", "")
 	equipment.lore_text = data.get("lore_text", "")

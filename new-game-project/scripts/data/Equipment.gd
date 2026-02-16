@@ -30,6 +30,16 @@ enum Rarity { COMMON, RARE, EPIC, LEGENDARY, MYTHIC }
 
 # Equipment assignment - which god has this equipped
 @export var equipped_by_god_id: String = ""
+@export var equipped_slot: int = -1  # -1 = not equipped, 0-5 = slot index
+
+# Computed property: true if equipped to any god
+var is_equipped: bool:
+	get:
+		return equipped_by_god_id != ""
+	set(value):
+		if not value:
+			equipped_by_god_id = ""
+			equipped_slot = -1
 
 # Destruction flag (set when enhancement fails catastrophically)
 @export var is_destroyed: bool = false

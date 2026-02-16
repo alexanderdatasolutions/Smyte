@@ -1132,3 +1132,20 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: add save version migration to SaveManager`
+
+### 2026-02-16 - Audit: Add missing Equipment properties for EquipmentInventoryManager
+
+**Priority:** Critical
+**File(s) Modified:** `scripts/data/Equipment.gd`, `scripts/utilities/SaveLoadUtility.gd`
+
+**Changes:**
+- Added `@export var equipped_slot: int = -1` to Equipment.gd — tracks which slot (0-5) the equipment occupies on a god
+- Added computed `is_equipped` property with getter (`equipped_by_god_id != ""`) and setter (clears both `equipped_by_god_id` and `equipped_slot` when set to false)
+- `equipped_by_god_id` already existed — audit plan was partially incorrect (only `is_equipped` and `equipped_slot` were missing)
+- Updated SaveLoadUtility `serialize_equipment()` to include `equipped_slot` field
+- Updated SaveLoadUtility `deserialize_equipment()` to restore `equipped_slot` from save data (defaults to -1)
+- EquipmentInventoryManager.gd required NO changes — all 7 references to `is_equipped` and 3 references to `equipped_slot` now resolve correctly
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: add missing Equipment properties for EquipmentInventoryManager`

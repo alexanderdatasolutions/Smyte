@@ -84,7 +84,7 @@
     "file": "scripts/systems/equipment/EquipmentInventoryManager.gd",
     "issue": "Uses undefined Equipment properties: is_equipped, equipped_god_id, equipped_slot - will crash at runtime",
     "action": "Add these properties to Equipment.gd or refactor to use existing properties",
-    "passes": false
+    "passes": true
   },
   {
     "priority": "critical",
