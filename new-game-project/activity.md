@@ -7,6 +7,29 @@
 
 ---
 
+## 2026-02-16 - Audit: Split ProductionSummaryWidget.gd into three files
+
+**Priority:** High (Code Simplification)
+**File(s) Modified:** `scripts/ui/components/ProductionSummaryWidget.gd`, `scripts/ui/components/ProductionDisplayHelper.gd` (new), `scripts/ui/components/CraftTrackerDisplay.gd` (new)
+
+**Changes:**
+- Split ProductionSummaryWidget.gd (1254 lines) into three files all under 600 lines:
+  - **ProductionSummaryWidget.gd** (373 lines): Coordinator - signals, UI creation, timers, column layout, header, collect all, system access
+  - **ProductionDisplayHelper.gd** (222 lines): RefCounted helper for production/refiner/accumulated grid displays, resource icons, number formatting
+  - **CraftTrackerDisplay.gd** (593 lines): RefCounted helper for craft section UI, blacksmith list, craft progress items, popup delegation to CraftingScreenManager, craft rewards/collection, territory navigation
+- All three helper classes use RefCounted (not Node) for lightweight composition
+- ProductionSummaryWidget creates helpers in `_create_ui()` and delegates via method calls
+- CraftTrackerDisplay uses `Engine.get_main_loop()` for scene tree access since it's RefCounted
+- Removed 5 dead popup methods from original (replaced by CraftingScreenManager delegation in prior refactor)
+- Added static typing throughout all three files (parameters, return types, local variables, loop iterators)
+- Fixed integer division warnings with `@warning_ignore("integer_division")` in `_format_duration()`
+- Fixed unused parameter warning (`hex_grid_manager` -> `_hex_grid_manager` in `get_refiner_conversions()`)
+- All external APIs (signals: `resources_collected`, `craft_collected`, `navigate_to_crafting_requested`) preserved unchanged
+
+**Verified:** Ran project, no new errors or warnings in debug output. All pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Remove dead code from SkinManager.gd
 
 **Priority:** Medium (Dead Code)

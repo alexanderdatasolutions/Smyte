@@ -650,8 +650,8 @@
     "priority": "high",
     "file": "scripts/ui/components/ProductionSummaryWidget.gd",
     "issue": "1256 lines (2.5x limit)",
-    "action": "Split into ProductionDisplay, RefinerDisplay, CraftingDisplay, ProductionCollector",
-    "passes": false
+    "action": "Split into ProductionSummaryWidget.gd (373 lines coordinator) + ProductionDisplayHelper.gd (222 lines production/refiner/accumulated grid displays) + CraftTrackerDisplay.gd (593 lines craft tracker, popup, rewards, territory navigation). All external APIs preserved unchanged via delegation pattern with RefCounted helpers. Added static typing throughout all files. Removed 5 dead popup methods from original (replaced by CraftingScreenManager delegation). Fixed integer division warnings and unused parameter warnings.",
+    "passes": true
   },
   {
     "priority": "high",
