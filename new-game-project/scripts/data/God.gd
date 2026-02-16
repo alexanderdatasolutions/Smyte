@@ -6,14 +6,57 @@ enum ElementType { FIRE, WATER, EARTH, LIGHTNING, LIGHT, DARK }
 enum TierType { COMMON, RARE, EPIC, LEGENDARY }
 
 # ==============================================================================
-# CONSTANTS
+# CONFIG - Loaded from data/god_config.json (static cache)
 # ==============================================================================
+static var _config: Dictionary = {}
+static var _config_loaded: bool = false
+
+static func _load_god_config() -> void:
+	if _config_loaded:
+		return
+	_config_loaded = true
+	var file := FileAccess.open("res://data/god_config.json", FileAccess.READ)
+	if file:
+		var parsed: Variant = JSON.parse_string(file.get_as_text())
+		if parsed is Dictionary:
+			_config = parsed
+
+static func get_max_level() -> int:
+	_load_god_config()
+	return _config.get("level_cap", {}).get("max_level", 40)
+
+static func get_awakened_max_level() -> int:
+	_load_god_config()
+	return _config.get("level_cap", {}).get("awakened_max_level", 50)
+
+static func get_specialization_unlock_level() -> int:
+	_load_god_config()
+	return _config.get("level_cap", {}).get("specialization_unlock_level", 20)
+
+static func get_default_crit_rate() -> int:
+	_load_god_config()
+	return _config.get("default_stats", {}).get("crit_rate", 15)
+
+static func get_default_crit_damage() -> int:
+	_load_god_config()
+	return _config.get("default_stats", {}).get("crit_damage", 50)
+
+static func get_default_resistance() -> int:
+	_load_god_config()
+	return _config.get("default_stats", {}).get("resistance", 15)
+
+static func get_default_accuracy() -> int:
+	_load_god_config()
+	return _config.get("default_stats", {}).get("accuracy", 0)
+
+# Legacy const aliases for backward compatibility with @export defaults and external callers
+# These keep the same values as fallback defaults; config overrides via static methods above
 const MAX_LEVEL: int = 40
 const MIN_SPECIALIZATION_LEVEL: int = 20
-const DEFAULT_CRIT_RATE: int = 15        # Summoners War default: 15%
-const DEFAULT_CRIT_DAMAGE: int = 50      # Summoners War default: 50%
-const DEFAULT_RESISTANCE: int = 15       # Summoners War default: 15%
-const DEFAULT_ACCURACY: int = 0          # Summoners War default: 0%
+const DEFAULT_CRIT_RATE: int = 15
+const DEFAULT_CRIT_DAMAGE: int = 50
+const DEFAULT_RESISTANCE: int = 15
+const DEFAULT_ACCURACY: int = 0
 
 # ==============================================================================
 # CORE IDENTITY - Pure data properties only
@@ -144,7 +187,7 @@ func is_valid() -> bool:
 
 func can_level_up() -> bool:
 	"""Simple level cap check - RULE 3 compliant"""
-	return level < MAX_LEVEL
+	return level < God.get_max_level()
 
 func has_ability(ability_id: String) -> bool:
 	for ability: Dictionary in active_abilities:
@@ -282,7 +325,7 @@ func get_role_ids() -> Array[String]:
 
 func can_specialize() -> bool:
 	"""Check if god meets basic requirements for specialization"""
-	return level >= MIN_SPECIALIZATION_LEVEL and primary_role != ""
+	return level >= God.get_specialization_unlock_level() and primary_role != ""
 
 func has_specialization() -> bool:
 	"""Check if god has any specialization unlocked"""

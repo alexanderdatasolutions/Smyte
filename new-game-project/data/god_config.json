@@ -1,0 +1,17 @@
+{
+	"level_cap": {
+		"max_level": 40,
+		"awakened_max_level": 50,
+		"specialization_unlock_level": 20
+	},
+	"default_stats": {
+		"crit_rate": 15,
+		"crit_damage": 50,
+		"resistance": 15,
+		"accuracy": 0
+	},
+	"xp_curve": {
+		"base_xp": 100,
+		"level_multiplier": 1.5
+	}
+}

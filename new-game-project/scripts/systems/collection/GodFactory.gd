@@ -30,10 +30,10 @@ static func create_from_json(god_id: String) -> God:
 	god.base_attack = base_stats.get("attack", god_data.get("base_attack", 50))
 	god.base_defense = base_stats.get("defense", god_data.get("base_defense", 30))
 	god.base_speed = base_stats.get("speed", god_data.get("base_speed", 100))
-	god.base_crit_rate = base_stats.get("crit_rate", god_data.get("base_crit_rate", God.DEFAULT_CRIT_RATE))
-	god.base_crit_damage = base_stats.get("crit_damage", god_data.get("base_crit_damage", God.DEFAULT_CRIT_DAMAGE))
-	god.base_resistance = base_stats.get("resistance", god_data.get("base_resistance", God.DEFAULT_RESISTANCE))
-	god.base_accuracy = base_stats.get("accuracy", god_data.get("base_accuracy", God.DEFAULT_ACCURACY))
+	god.base_crit_rate = base_stats.get("crit_rate", god_data.get("base_crit_rate", God.get_default_crit_rate()))
+	god.base_crit_damage = base_stats.get("crit_damage", god_data.get("base_crit_damage", God.get_default_crit_damage()))
+	god.base_resistance = base_stats.get("resistance", god_data.get("base_resistance", God.get_default_resistance()))
+	god.base_accuracy = base_stats.get("accuracy", god_data.get("base_accuracy", God.get_default_accuracy()))
 	god.resource_generation = god_data.get("resource_generation", 10)
 	
 	# Abilities - support both new and legacy formats

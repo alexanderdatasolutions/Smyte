@@ -7,6 +7,22 @@
 
 ---
 
+## 2026-02-16 - Audit: Move God constants and XP curve to god_config.json
+
+**Priority:** High (Data-Driven JSON Config)
+**File(s) Modified:** `data/god_config.json` (new), `scripts/data/God.gd`, `scripts/utilities/GodExperienceCalculator.gd`, `scripts/systems/arena/ArenaManager.gd`, `scripts/systems/collection/GodFactory.gd`
+
+**Changes:**
+- **Config**: Created `data/god_config.json` with `level_cap` (max_level=40, awakened_max_level=50, specialization_unlock_level=20), `default_stats` (crit_rate=15, crit_damage=50, resistance=15, accuracy=0), and `xp_curve` (base_xp=100, level_multiplier=1.5)
+- **God.gd**: Added static config cache with `_load_god_config()` and 7 static getter methods (`get_max_level()`, `get_awakened_max_level()`, `get_specialization_unlock_level()`, `get_default_crit_rate/damage/resistance/accuracy()`). Updated `can_level_up()` and `can_specialize()` to use config-driven methods. Kept legacy `const` aliases for `@export` default values.
+- **GodExperienceCalculator.gd**: Replaced hardcoded `BASE_XP=100`, `LEVEL_MULTIPLIER=1.5`, `MAX_LEVEL=40` with static config loading from `god_config.json`. Added `_get_base_xp()`, `_get_level_multiplier()`, `_get_max_level()`. Added static typing to all local variables, used `minf/maxf/maxi` for type safety.
+- **ArenaManager.gd**: Changed `God.DEFAULT_CRIT_RATE` etc. to `God.get_default_crit_rate()` etc. (4 lines)
+- **GodFactory.gd**: Changed `God.DEFAULT_CRIT_RATE` etc. to `God.get_default_crit_rate()` etc. (4 lines)
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Externalize equipment enhancement/power values to JSON config
 
 **Priority:** High (Data-Driven JSON Config)

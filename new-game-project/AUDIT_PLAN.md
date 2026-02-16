@@ -1002,8 +1002,8 @@
     "priority": "high",
     "file": "scripts/data/God.gd",
     "issue": "MAX_LEVEL=40, MIN_SPECIALIZATION_LEVEL=20, DEFAULT_CRIT_RATE=15 hardcoded",
-    "action": "Move to data/god_config.json with level_cap, specialization_unlock_level, default_stats",
-    "passes": false
+    "action": "Created data/god_config.json with level_cap (max_level, awakened_max_level, specialization_unlock_level), default_stats (crit_rate, crit_damage, resistance, accuracy), and xp_curve (base_xp, level_multiplier). Added static config loading to God.gd with get_max_level(), get_specialization_unlock_level(), get_default_crit_rate/damage/resistance/accuracy() methods. Updated can_level_up() and can_specialize() to use config methods. Updated ArenaManager.gd and GodFactory.gd to use God.get_default_*() instead of God.DEFAULT_* constants. Kept legacy const aliases for @export defaults.",
+    "passes": true
   },
   {
     "priority": "high",
@@ -1058,8 +1058,8 @@
     "priority": "medium",
     "file": "scripts/utilities/GodExperienceCalculator.gd",
     "issue": "XP curve formula hardcoded: base=100, multiplier=1.15",
-    "action": "Move to data/god_config.json under xp_curve section",
-    "passes": false
+    "action": "Replaced hardcoded BASE_XP=100, LEVEL_MULTIPLIER=1.5, MAX_LEVEL=40 constants with static config loading from data/god_config.json (xp_curve.base_xp, xp_curve.level_multiplier, level_cap.max_level). Added static _config cache with _load_config(), _get_base_xp(), _get_level_multiplier(), _get_max_level() methods. Added static typing to all local variables. Changed min/max to minf/maxf/maxi for type safety.",
+    "passes": true
   },
   {
     "priority": "medium",
