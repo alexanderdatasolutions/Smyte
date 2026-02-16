@@ -37,14 +37,6 @@ const NODE_RESOURCE_MAP = {
 	"base": "mana"
 }
 
-# Secondary resources by node type (tier 2+)
-const NODE_SECONDARY_RESOURCES = {
-	"resource_node": ["wood", "herbs", "monster_parts"],
-	"forge": ["refined_metal", "socket_crystal"],
-	"shrine": ["mana_crystals", "blessed_oil"],
-	"base": []
-}
-
 # Node type to affinity mapping (for bonus calculations)
 const NODE_AFFINITY_MAP = {
 	"resource_node": "earth",
@@ -77,16 +69,6 @@ func get_task_for_node(node: HexNode) -> String:
 		return "Unknown"
 
 	return NODE_TASK_MAP.get(node.node_type, "Working")
-
-func get_task_display_name(node: HexNode) -> String:
-	"""Get formatted task name for UI display.
-	Returns format like 'Mining (Tier 2)'
-	"""
-	if not node:
-		return "Unknown Task"
-
-	var task_name = get_task_for_node(node)
-	return "%s (Tier %d)" % [task_name, node.tier]
 
 func calculate_output_rate(node: HexNode, god: God) -> int:
 	"""Calculate output rate per hour for a god working at a node.
@@ -123,59 +105,12 @@ func calculate_output_rate(node: HexNode, god: God) -> int:
 
 	return int(output)
 
-func calculate_output_with_details(node: HexNode, god: God) -> Dictionary:
-	"""Calculate output rate with breakdown of all bonuses.
-	Useful for UI tooltips showing how output is calculated.
-
-	Returns:
-		Dictionary with keys: total, base, tier_mult, level_bonus, affinity_bonus, spec_bonus
-	"""
-	if not node or not god:
-		return {"total": 0}
-
-	var base_rate = BASE_OUTPUT_RATES.get(node.node_type, 5)
-	var tier_mult = _get_tier_multiplier(node.tier)
-	var level_bonus = 1.0 + (god.level * 0.05)
-	var affinity_bonus = _get_affinity_bonus(node, god)
-	var spec_bonus = _get_specialization_bonus(node, god)
-
-	var total = int(base_rate * tier_mult * level_bonus * affinity_bonus * (1.0 + spec_bonus))
-
-	return {
-		"total": total,
-		"base_rate": base_rate,
-		"tier_multiplier": tier_mult,
-		"level_bonus": level_bonus,
-		"affinity_bonus": affinity_bonus,
-		"spec_bonus": spec_bonus,
-		"resource_id": get_primary_resource(node),
-		"resource_name": _get_resource_display_name(node)
-	}
-
 func get_primary_resource(node: HexNode) -> String:
 	"""Get the primary resource ID produced by a node type."""
 	if not node:
 		return ""
 
 	return NODE_RESOURCE_MAP.get(node.node_type, "mana")
-
-func get_secondary_resources(node: HexNode) -> Array:
-	"""Get secondary resources produced by a node (tier 2+)."""
-	if not node or node.tier < 2:
-		return []
-
-	return NODE_SECONDARY_RESOURCES.get(node.node_type, [])
-
-func get_all_resources(node: HexNode) -> Array:
-	"""Get all resources a node can produce (primary + secondary)."""
-	if not node:
-		return []
-
-	var resources = [get_primary_resource(node)]
-	if node.tier >= 2:
-		resources.append_array(get_secondary_resources(node))
-
-	return resources
 
 func get_node_affinity(node: HexNode) -> String:
 	"""Get the affinity (element) associated with a node type."""
@@ -195,49 +130,6 @@ func has_affinity_match(node: HexNode, god: God) -> bool:
 
 	var god_element = God.element_to_string(god.element).to_lower()
 	return god_element == node_affinity
-
-func calculate_total_node_output(node: HexNode) -> Dictionary:
-	"""Calculate total output from all workers assigned to a node.
-
-	Returns:
-		Dictionary of {"resource_id": total_per_hour}
-	"""
-	if not node:
-		return {}
-
-	var total_output = {}
-	var primary_resource = get_primary_resource(node)
-	total_output[primary_resource] = 0
-
-	# Get CollectionManager for worker gods
-	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager")
-	if not collection_manager:
-		return total_output
-
-	# Calculate output from each worker
-	for god_id in node.assigned_workers:
-		var god = collection_manager.get_god_by_id(god_id)
-		if god:
-			var rate = calculate_output_rate(node, god)
-			total_output[primary_resource] = total_output.get(primary_resource, 0) + rate
-
-	# Add secondary resources for tier 2+ nodes with workers
-	if node.tier >= 2 and node.assigned_workers.size() > 0:
-		var secondary = get_secondary_resources(node)
-		for resource_id in secondary:
-			# Secondary resources at 30% of primary rate
-			var secondary_rate = int(total_output[primary_resource] * 0.3)
-			if secondary_rate > 0:
-				total_output[resource_id] = secondary_rate
-
-	return total_output
-
-func format_output_rate(rate: int, resource_id: String) -> String:
-	"""Format output rate for display in UI.
-	Returns string like '+12 ore/hr' or '+5 fish/hr'
-	"""
-	var resource_name = _get_resource_short_name(resource_id)
-	return "+%d %s/hr" % [rate, resource_name]
 
 func get_output_display_text(node: HexNode, god: God) -> String:
 	"""Get formatted output text for a god at a node.
@@ -317,11 +209,6 @@ func _get_relevant_tasks_for_node(node_type: String) -> Array:
 		"shrine": return ["meditation", "blessing", "divine_communion", "research"]
 		"base": return ["management"]
 		_: return []
-
-func _get_resource_display_name(node: HexNode) -> String:
-	"""Get human-readable resource name for a node's output."""
-	var resource_id = get_primary_resource(node)
-	return _get_resource_short_name(resource_id)
 
 func _get_resource_short_name(resource_id: String) -> String:
 	"""Convert resource ID to short display name."""

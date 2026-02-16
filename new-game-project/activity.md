@@ -1322,3 +1322,18 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: remove dead code from BuildingManager`
+
+### 2026-02-16 - Audit: Remove dead code from NodeTaskCalculator.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/territory/NodeTaskCalculator.gd`
+
+**Changes:**
+- Removed 7 dead public functions with zero external callers: `get_task_display_name()`, `calculate_output_with_details()`, `get_secondary_resources()`, `get_all_resources()`, `calculate_total_node_output()`, `format_output_rate()`, and 1 dead private helper `_get_resource_display_name()`
+- Removed `NODE_SECONDARY_RESOURCES` constant (only used by dead functions)
+- Kept all functions with external callers: `has_affinity_match()` (WorkerSlotDisplay), `get_output_display_text()` (WorkerSlotDisplay), and their dependency chain (`get_task_for_node()`, `calculate_output_rate()`, `get_primary_resource()`, `get_node_affinity()`)
+- File reduced from 356 to 243 lines (-113 lines)
+
+**Verified:** Ran project, no errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: remove dead code from NodeTaskCalculator`

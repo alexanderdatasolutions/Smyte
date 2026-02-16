@@ -154,7 +154,7 @@
     "file": "scripts/systems/territory/NodeTaskCalculator.gd",
     "issue": "10 dead methods (~150 lines) never called externally",
     "action": "Delete dead methods",
-    "passes": false
+    "passes": true
   },
   {
     "priority": "high",
