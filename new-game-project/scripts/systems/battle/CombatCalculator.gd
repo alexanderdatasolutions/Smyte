@@ -17,10 +17,6 @@ const DAMAGE_VARIANCE_MAX: float = 1.1
 const ELEMENT_ADVANTAGE_MULT: float = 1.3
 const ELEMENT_DISADVANTAGE_MULT: float = 0.85
 
-# --- Healing Constants ---
-const HEAL_VARIANCE_MIN: float = 0.95
-const HEAL_VARIANCE_MAX: float = 1.05
-
 # --- Stat Scaling Constants ---
 const LEVEL_STAT_SCALE: float = 0.1  # +10% per level
 const POWER_PER_LEVEL: int = 50
@@ -83,29 +79,6 @@ static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Sk
 
 	return result
 
-## Calculate total stats for a god (base + equipment + buffs)
-static func calculate_total_stats(god: God) -> Dictionary:
-	# Start with base stats
-	var stats = {
-		"hp": god.base_hp,
-		"attack": god.base_attack,
-		"defense": god.base_defense,
-		"speed": god.base_speed,
-		"crit_rate": god.base_crit_rate,
-		"crit_damage": god.base_crit_damage,
-		"accuracy": god.base_accuracy,
-		"resistance": god.base_resistance
-	}
-	
-	# Apply level scaling
-	var level_multiplier: float = 1.0 + (god.level - 1) * LEVEL_STAT_SCALE
-	stats.hp = int(stats.hp * level_multiplier)
-	stats.attack = int(stats.attack * level_multiplier)
-	stats.defense = int(stats.defense * level_multiplier)
-	
-	# Equipment stats not yet implemented
-	return stats
-
 ## Get element type from a BattleUnit (from source god or enemy data)
 static func _get_unit_element(unit: BattleUnit) -> God.ElementType:
 	if unit.source_god:
@@ -137,16 +110,6 @@ static func _check_critical_hit(attacker: BattleUnit, _target: BattleUnit) -> bo
 	var base_crit_rate: float = attacker.crit_rate
 	var effective_crit_rate: float = base_crit_rate  # Could apply accuracy vs resistance here
 	return randf() * 100.0 < effective_crit_rate
-
-## Calculate healing amount
-static func calculate_healing(healer: BattleUnit, _target: BattleUnit, skill: Skill) -> int:
-	var heal_power: int = healer.attack
-	var multiplier: float = skill.get_damage_multiplier() if skill else 1.0
-
-	var base_heal: float = heal_power * multiplier
-	var final_heal: int = int(base_heal * randf_range(HEAL_VARIANCE_MIN, HEAL_VARIANCE_MAX))
-
-	return max(1, final_heal)
 
 ## Get detailed attack breakdown for UI/debugging
 static func get_detailed_attack_breakdown(god: God) -> Dictionary:

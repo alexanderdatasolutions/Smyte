@@ -3,7 +3,23 @@
 ## Current Status
 **Last Updated:** 2026-02-16
 **Phase:** Pre-Release Audit Execution
-**Current Task:** Executing AUDIT_PLAN.md tasks (73/73 complete) — AUDIT COMPLETE
+**Current Task:** Executing AUDIT_PLAN.md tasks (74/74 complete)
+
+---
+
+## 2026-02-16 - Audit: Remove dead code from CombatCalculator.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/battle/CombatCalculator.gd`
+
+**Changes:**
+- Removed dead function `calculate_total_stats()` (22 lines) - 0 external callers
+- Removed dead function `calculate_healing()` (9 lines) - 0 external callers
+- Removed orphaned `HEAL_VARIANCE_MIN`/`HEAL_VARIANCE_MAX` constants (only used by calculate_healing)
+- File reduced from 219 to 182 lines
+- Verified `get_detailed_*_breakdown()` functions are NOT dead (called by BattleUnit.gd)
+
+**Verified:** Ran project, no errors in debug output
 
 ---
 
