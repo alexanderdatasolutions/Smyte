@@ -7,6 +7,23 @@
 
 ---
 
+## 2026-02-16 - Audit: Add static typing to DungeonManager.gd
+
+**Priority:** High
+**File(s) Modified:** `scripts/systems/dungeon/DungeonManager.gd`
+
+**Changes:**
+- Added static types to all 60+ variables, parameters, return types, and loop iterators
+- Typed all local variables: `file: FileAccess`, `json_text: String`, `parse_result: Error`, `dungeon_info: Dictionary`, `difficulty_info: Dictionary`, `category: String`, `element: String`, `multiplier: float`, `loot_system: Node`, etc.
+- Typed all loop iterators: `for dungeon_id: String`, `for wave: Dictionary`, `for enemy_def: Dictionary`, `for enemy_type: String`, `for difficulty_name: String`, `for i: int`, etc.
+- Added `-> void` return type to 11 functions: `_ready`, `load_dungeon_data`, `_load_fallback_data`, `load_dungeon_waves`, `initialize_player_progress`, `load_progress`, `load_save_data`, `update_clear_count`, `mark_dungeon_cleared`, `increment_daily_completion`, `_enhance_dungeon_info`, `_check_daily_reset`
+- Typed `weekdays` as `Array[String]`
+- Added null-safe SystemRegistry access in `validate_dungeon_entry()` with `if SystemRegistry.get_instance() else null`
+
+**Verified:** Ran project, no new errors in debug output. Pre-existing Firebase signal errors unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Move DungeonManager enemy scaling to battle_config.json
 
 **Priority:** High (Data-Driven Config)
