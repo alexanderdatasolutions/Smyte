@@ -1050,3 +1050,18 @@ This planning phase creates a comprehensive Game Design Document that maps ALL g
 **Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
 
 **Commit:** `audit: fix save system for EquipmentManager`
+
+### 2026-02-15 - Audit: Fix save system for ShopManager
+
+**Priority:** Critical
+**File(s) Modified:** `scripts/systems/core/SaveManager.gd`
+
+**Changes:**
+- Added ShopManager to SaveManager save chain (`save_data["shop"]` via `get_save_data()`)
+- Added ShopManager to SaveManager load chain (`_load_system_data` call with "shop" key)
+- ShopManager already had `get_save_data()` and `load_save_data()` methods — just needed wiring into SaveManager
+- Purchase history and active subscriptions now persist across restarts
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+**Commit:** `audit: fix save system for ShopManager`

@@ -35,7 +35,7 @@
     "file": "scripts/systems/core/SaveManager.gd",
     "issue": "ShopManager NOT saved - purchase history and active subscriptions lost on restart (duplicate purchases possible)",
     "action": "Add ShopManager to save/load chain (it already has get_save_data/load_save_data)",
-    "passes": false
+    "passes": true
   },
   {
     "priority": "critical",
