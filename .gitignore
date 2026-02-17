@@ -2,3 +2,6 @@ DUNGEON_SYSTEM.md
 Obsidian/nul
 nul
 .claude/settings.local.json
+new-game-project/exports/*.exe
+new-game-project/exports/*.pck
+new-game-project/exports/*.zip
