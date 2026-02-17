@@ -208,6 +208,9 @@ func capture_node(coord: HexCoord) -> bool:
 	node.controller = "player"
 	node.is_revealed = true
 
+	# Initialize production time to now (prevents exploit from unset timestamps)
+	node.last_production_time = int(Time.get_unix_time_from_system())
+
 	# Delegate defense operations to defense manager
 	_defense_manager.start_attack_timer(node)
 
@@ -234,7 +237,7 @@ func capture_node(coord: HexCoord) -> bool:
 	return true
 
 ## Lose control of a hex node
-func lose_node(coord: HexCoord) -> bool:
+func lose_node(coord: HexCoord, reason: String = "unknown") -> bool:
 	var hex_grid_manager: Node = _get_hex_grid_manager()
 	if not hex_grid_manager:
 		return false
@@ -245,6 +248,8 @@ func lose_node(coord: HexCoord) -> bool:
 
 	if not node.is_controlled_by_player():
 		return false
+
+	var node_name: String = node.name if node.name else "Unknown"
 
 	node.controller = "neutral"
 	node.garrison.clear()
@@ -257,7 +262,7 @@ func lose_node(coord: HexCoord) -> bool:
 
 	var event_bus: Node = _get_event_bus()
 	if event_bus:
-		event_bus.emit_signal("territory_lost", node.id)
+		event_bus.emit_signal("territory_lost", node.id, node_name, reason)
 
 	return true
 

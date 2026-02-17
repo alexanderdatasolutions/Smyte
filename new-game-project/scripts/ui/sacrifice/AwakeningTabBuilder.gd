@@ -191,7 +191,7 @@ func refresh_awakening_god_list():
 
 	# Create god cards using factory
 	for god in awakenable_gods:
-		var god_card = CardFactory.create_god_card(CardFactory.CardPreset.AWAKENING_SELECTION)
+		var god_card = CardFactory.create_god_card(CardFactory.CardPreset.AWAKENING)
 		var card_style = GodCardScript.CardStyle.AWAKENING_READY if awakening_system.can_awaken_god(god) else GodCardScript.CardStyle.NORMAL
 		awakening_god_grid.add_child(god_card)
 		god_card.setup_god_card(god, card_style)

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b470flmjaky8x"
-path="res://.godot/imported/Frigg.png-ae9168bd003965803ebd9fa69e1e07c5.ctex"
+uid="uid://b1owhfd1t0qjd"
+path="res://.godot/imported/frigg.png-c3a6a692172a36ae8e57a9c5c0a2ed64.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/gods/Frigg.png"
-dest_files=["res://.godot/imported/Frigg.png-ae9168bd003965803ebd9fa69e1e07c5.ctex"]
+source_file="res://assets/gods/frigg.png"
+dest_files=["res://.godot/imported/frigg.png-c3a6a692172a36ae8e57a9c5c0a2ed64.ctex"]
 
 [params]
 

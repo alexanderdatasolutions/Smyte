@@ -80,7 +80,9 @@
       "Bash(comm:*)",
       "Bash(\"C:\\\\Program Files\\\\Godot\\\\Godot.exe\" --headless --check-only)",
       "Bash(\"/c/Users/alexa/Documents/Godot/Godot_v4.5-stable_win64.exe/Godot_v4.5-stable_win64.exe\" --headless --check-only)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(git mv:*)",
+      "Bash(cat:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

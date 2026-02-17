@@ -42,10 +42,10 @@ func _register_screen_scenes():
 		"battle": "res://scenes/BattleScreen.tscn",
 		"battle_setup": "res://scenes/BattleSetupScreen.tscn",
 		"shop": "res://scenes/ShopScreen.tscn",
-		"specialization": "res://scenes/GodSpecializationScreen.tscn",
 		"tower": "res://scenes/TowerScreen.tscn",
 		"arena": "res://scenes/ArenaScreen.tscn",
-		"pvp_territory": "res://scenes/PvPHexTerritoryScreen.tscn"
+		"pvp_territory": "res://scenes/PvPHexTerritoryScreen.tscn",
+		"leaderboard": "res://scenes/LeaderboardScreen.tscn"
 	}
 
 func _normalize_screen_name(screen_name: String) -> String:
@@ -66,8 +66,6 @@ func _normalize_screen_name(screen_name: String) -> String:
 		"battlescreen": "battle",
 		"battlesetupscreen": "battle_setup",
 		"shopscreen": "shop",
-		"specializationscreen": "specialization",
-		"godspecializationscreen": "specialization",
 		"towerscreen": "tower",
 		"infinitetower": "tower",
 		"arenascreen": "arena",
@@ -76,7 +74,9 @@ func _normalize_screen_name(screen_name: String) -> String:
 		"pvpterritory": "pvp_territory",
 		"pvphexterritoryscreen": "pvp_territory",
 		"pvpmapselection": "pvp_territory",
-		"pvpmapselectionscreen": "pvp_territory"
+		"pvpmapselectionscreen": "pvp_territory",
+		"leaderboardscreen": "leaderboard",
+		"leaderboards": "leaderboard"
 	}
 
 	if aliases.has(normalized):
@@ -130,7 +130,8 @@ const MAIN_SCREENS: Array[String] = [
 	"equipment",      # Equipment screen
 	"shop",           # Shop screen
 	"tower",          # Tower screen
-	"arena"           # PvP Arena
+	"arena",          # PvP Arena
+	"leaderboard"     # Leaderboard
 ]
 
 ## Screens that should NEVER be returned to via back button
@@ -143,7 +144,6 @@ const BLOCKED_BACK_SCREENS: Array[String] = [
 ## When leaving certain screens, this defines the FALLBACK if previous_screen is unknown
 ## These are only used when previous_screen is empty or blocked
 const BACK_REDIRECT_FALLBACK: Dictionary = {
-	"specialization": "collection",      # Specialization -> Collection
 	"sacrifice_selection": "sacrifice",  # Sacrifice selection -> Sacrifice
 	"battle_setup": "dungeon",           # Battle setup -> Dungeon (fallback only)
 	"battle": "dungeon"                  # Battle -> Dungeon

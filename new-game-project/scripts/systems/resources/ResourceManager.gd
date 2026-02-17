@@ -30,7 +30,6 @@ func _load_resource_definitions() -> void:
 ## Initialize resource limits from configuration
 func _load_resource_limits() -> void:
 	resource_limits = {
-		"energy": 100,
 		"guild_tokens": 50,
 		"honor_points": 9999,
 		"gold": -1,
@@ -229,4 +228,3 @@ func initialize_new_game() -> void:
 	player_resources["gold"] = 10000
 	player_resources["mana"] = 0
 	player_resources["divine_crystals"] = 0
-	player_resources["energy"] = 80

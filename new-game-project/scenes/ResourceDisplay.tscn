@@ -74,23 +74,6 @@ theme_override_font_sizes/font_size = 14
 text = "0"
 vertical_alignment = 1
 
-[node name="EnergyContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="EnergyIcon" type="Label" parent="MarginContainer/HBoxContainer/EnergyContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.3, 0.9, 0.4, 1)
-theme_override_font_sizes/font_size = 16
-text = "⚡"
-
-[node name="EnergyLabel" type="Label" parent="MarginContainer/HBoxContainer/EnergyContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.95, 0.7, 1)
-theme_override_font_sizes/font_size = 14
-text = "80/80"
-vertical_alignment = 1
-
 [node name="TicketsContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 4

@@ -47,17 +47,12 @@ func start_dungeon_battle(dungeon_id: String, difficulty: String, team: Array) -
 	# Validate not already in battle
 	if battle_in_progress:
 		return {"success": false, "error": "Battle already in progress"}
-	
-	# Validate energy cost
-	var energy_cost: int = _get_energy_cost(dungeon_id, difficulty)
-	if not resource_manager or not resource_manager.can_spend("energy", energy_cost):
-		return {"success": false, "error": "Not enough energy"}
-	
+
 	# Validate team
 	var team_validation: Dictionary = _validate_battle_team(team)
 	if not team_validation.success:
 		return team_validation
-	
+
 	# Get dungeon battle data
 	var registry: SystemRegistry = SystemRegistry.get_instance()
 	if not registry:
@@ -69,45 +64,28 @@ func start_dungeon_battle(dungeon_id: String, difficulty: String, team: Array) -
 	var battle_config: Dictionary = dungeon_manager.get_battle_configuration(dungeon_id, difficulty)
 	if battle_config.is_empty():
 		return {"success": false, "error": "Invalid dungeon configuration"}
-	
-	# Spend energy
-	if not resource_manager.spend("energy", energy_cost):
-		return {"success": false, "error": "Failed to spend energy"}
-	
+
 	# Setup battle state
 	current_dungeon_battle = {
 		"dungeon_id": dungeon_id,
 		"difficulty": difficulty,
 		"team": team,
-		"energy_spent": energy_cost,
 		"start_time": Time.get_unix_time_from_system()
 	}
-	
+
 	battle_in_progress = true
-	
+
 	# Start battle through BattleCoordinator
 	if battle_coordinator:
 		var battle_result: Dictionary = battle_coordinator.start_battle(team, battle_config.enemies, battle_config)
 		if not battle_result.success:
 			_reset_battle_state()
-			resource_manager.add("energy", energy_cost)  # Refund energy
 			return battle_result
-	
+
 	# Emit signal for UI
 	dungeon_battle_started.emit(dungeon_id, difficulty)
-	
-	return {"success": true, "message": "Dungeon battle started"}
 
-func _get_energy_cost(dungeon_id: String, difficulty: String) -> int:
-	var registry: SystemRegistry = SystemRegistry.get_instance()
-	if not registry:
-		return 10
-	var dungeon_manager: Node = registry.get_system("DungeonManager")
-	if dungeon_manager:
-		var dungeon_info: Dictionary = dungeon_manager.get_dungeon_info(dungeon_id)
-		var difficulty_info: Dictionary = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
-		return difficulty_info.get("energy_cost", 10)
-	return 10
+	return {"success": true, "message": "Dungeon battle started"}
 
 func _validate_battle_team(team: Array) -> Dictionary:
 	if team.is_empty():

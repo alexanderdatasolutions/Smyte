@@ -388,12 +388,13 @@ func _update_available_gods() -> void:
 		_add_available_god_item(god)
 
 func _add_available_god_item(god: God) -> void:
-	"""Add an available god item to the list"""
+	"""Add an available god item to the list with element-colored styling"""
 	var matches_element = _god_matches_node_element(god)
-	var element_str = _get_element_string(god.element)
+	var element_emoji = GodUIHelpers.get_element_emoji(god.element)
+	var tier_stars = GodUIHelpers.get_tier_stars(god.tier)
 	var power = _calculate_god_power(god)
 
-	var display_text = "%s (Lv %d, %s) - Power: %.0f" % [god.name, god.level, element_str, power]
+	var display_text = "%s %s | Lv.%d %s | ⚔%d" % [element_emoji, god.name, god.level, tier_stars, int(power)]
 	if matches_element:
 		display_text = "★ " + display_text
 
@@ -403,13 +404,29 @@ func _add_available_god_item(god: God) -> void:
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.pressed.connect(_on_god_selected.bind(god.id))
 
+	# Use element colors for button styling
+	var element_color = GodUIHelpers.get_element_color(god.element)
+	var bg_color = GodUIHelpers.get_subtle_element_color(god.element)
+
+	var normal_style = StyleBoxFlat.new()
+	normal_style.bg_color = bg_color
+	normal_style.border_color = element_color.darkened(0.3)
+	normal_style.set_border_width_all(1)
+	normal_style.set_corner_radius_all(4)
+	button.add_theme_stylebox_override("normal", normal_style)
+
 	# Highlight if selected
 	if _selected_god_id == god.id:
 		var selected_style = StyleBoxFlat.new()
-		selected_style.bg_color = Color(0.3, 0.5, 0.7, 1)
+		selected_style.bg_color = bg_color.lightened(0.2)
+		selected_style.border_color = Color(1.0, 0.85, 0.2, 1.0)  # Gold for selection
+		selected_style.set_border_width_all(2)
+		selected_style.set_corner_radius_all(4)
 		button.add_theme_stylebox_override("normal", selected_style)
 	elif matches_element:
-		# Gold tint for element match
+		# Brighter border for element match
+		normal_style.border_color = element_color
+		normal_style.set_border_width_all(2)
 		button.add_theme_color_override("font_color", Color(1.0, 0.95, 0.7))
 
 	_available_gods_container.add_child(button)
@@ -589,18 +606,7 @@ func _god_matches_node_element(god_data: God) -> bool:
 		return false
 	return god_data.element == node_element
 
-func _get_element_string(element) -> String:
-	"""Convert element enum to display string"""
-	if element == null:
-		return "?"
-	match element:
-		God.ElementType.FIRE: return "Fire"
-		God.ElementType.WATER: return "Water"
-		God.ElementType.EARTH: return "Earth"
-		God.ElementType.LIGHTNING: return "Lightning"
-		God.ElementType.LIGHT: return "Light"
-		God.ElementType.DARK: return "Dark"
-		_: return "?"
+# _get_element_string replaced with GodUIHelpers.get_element_name()
 
 func _calculate_god_power(god_data: God) -> float:
 	"""Calculate combat power of a god"""

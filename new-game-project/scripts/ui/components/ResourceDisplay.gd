@@ -1,10 +1,11 @@
 # scripts/ui/ResourceDisplay.gd
 #
 # ResourceDisplay manages the main resource UI shown across all game screens
-# Displays: Mana (primary currency), Divine Crystals (premium), Energy (stamina), etc.
+# Displays: Mana (primary currency), Divine Crystals (premium), etc.
 #
 # Architecture: Uses singleton pattern to sync all instances globally
-# Data Source: GameManager.player_data via PlayerData.get_resource() method
+# Data Source: ResourceManager via SystemRegistry
+# Config Source: resources.json - all resource metadata loaded from JSON
 #
 extends PanelContainer
 
@@ -14,6 +15,10 @@ static func _get_system_registry():
 	if registry_script and registry_script.has_method("get_instance"):
 		return registry_script.get_instance()
 	return null
+
+# === CONFIG CACHE ===
+static var _resource_config: Dictionary = {}
+static var _resource_config_loaded: bool = false
 
 # === SINGLETON PATTERN ===
 # All ResourceDisplay instances sync updates globally when resources change
@@ -30,7 +35,6 @@ var _tween: Tween = null
 @onready var player_level_label: Label = null # Player level - created dynamically if needed
 @onready var mana_label: Label = $MarginContainer/HBoxContainer/ManaContainer/ManaLabel
 @onready var crystal_label: Label = $MarginContainer/HBoxContainer/CrystalContainer/CrystalLabel
-@onready var energy_label: Label = $MarginContainer/HBoxContainer/EnergyContainer/EnergyLabel
 @onready var tickets_label: Label = $MarginContainer/HBoxContainer/TicketsContainer/TicketsLabel
 @onready var materials_button: Button = $MarginContainer/HBoxContainer/MaterialsButton
 @onready var materials_count_label: Label = $MarginContainer/HBoxContainer/MaterialsCountLabel
@@ -262,11 +266,13 @@ func _create_expanded_panel():
 	scroll.name = "ResourceScroll"
 	scroll.custom_minimum_size = Vector2(0, 260)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	margin.add_child(scroll)
 
 	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.name = "ResourceContent"
 	vbox.add_theme_constant_override("separation", 10)
+	vbox.size_flags_vertical = Control.SIZE_SHRINK_BEGIN  # Don't expand beyond content
 	scroll.add_child(vbox)
 
 	# Populate with all player resources
@@ -338,56 +344,114 @@ func _add_category_section(vbox: VBoxContainer, header_text: String, resources: 
 	for res_id: String in resources:
 		_add_resource_to_grid(grid, res_id, resources[res_id])
 
+static func _load_resource_config() -> void:
+	"""Load resource definitions from resources.json"""
+	if _resource_config_loaded:
+		return
+	_resource_config_loaded = true
+
+	var file: FileAccess = FileAccess.open("res://data/resources.json", FileAccess.READ)
+	if not file:
+		push_warning("ResourceDisplay: Could not load resources.json")
+		return
+	var json_text: String = file.get_as_text()
+	file.close()
+	var parsed: Variant = JSON.parse_string(json_text)
+	if parsed is Dictionary:
+		_resource_config = parsed as Dictionary
+
 static func _get_resource_metadata() -> Dictionary:
-	"""Resource metadata for display names, categories, and descriptions"""
-	return {
-		# Currencies
-		"gold": {"name": "Gold", "icon": "💰", "category": "currency", "desc": "Currency for shop purchases and node upgrades"},
-		"mana": {"name": "Mana", "icon": "✦", "category": "currency", "desc": "Primary currency for leveling, enhancement, and crafting"},
-		"divine_crystals": {"name": "Divine Crystals", "icon": "◆", "category": "currency", "desc": "Premium currency for summons and special items"},
-		"energy": {"name": "Energy", "icon": "⚡", "category": "currency", "desc": "Used to enter dungeons and battles. Regenerates over time"},
-		"summon_tickets": {"name": "Summon Tickets", "icon": "★", "category": "currency", "desc": "Free summon attempts. Obtained from events and rewards"},
-		"experience": {"name": "Experience", "icon": "📈", "category": "currency", "desc": "Player experience points for account level"},
-		# Raw materials (T1)
-		"ore": {"name": "Ore", "icon": "🪨", "category": "raw", "desc": "T1 material from resource nodes. Used in basic equipment crafting"},
-		"wood": {"name": "Wood", "icon": "🪵", "category": "raw", "desc": "T1 material from resource nodes. Used in bows and accessories"},
-		"herbs": {"name": "Herbs", "icon": "🌿", "category": "raw", "desc": "T1 material from resource nodes. Used in amulets and potions"},
-		"monster_parts": {"name": "Monster Parts", "icon": "🦴", "category": "raw", "desc": "Dropped from garrison defense battles. Used in armor crafting"},
-		"stone": {"name": "Stone", "icon": "🧱", "category": "raw", "desc": "Basic building material from resource nodes"},
-		"cloth": {"name": "Cloth", "icon": "🧵", "category": "raw", "desc": "Used in light armor and accessory crafting"},
-		# Processed materials (T2)
-		"iron_ingots": {"name": "Iron Ingots", "icon": "🔩", "category": "processed", "desc": "Processed ore. Used in advanced equipment"},
-		"steel_ingots": {"name": "Steel Ingots", "icon": "⚙️", "category": "processed", "desc": "High-quality metal for rare equipment"},
-		"planks": {"name": "Planks", "icon": "🪓", "category": "processed", "desc": "Processed wood for construction"},
-		"hardwood": {"name": "Hardwood", "icon": "🪵", "category": "processed", "desc": "Quality timber for rare weapons"},
-		"leather": {"name": "Leather", "icon": "🥊", "category": "processed", "desc": "Processed beast scales for armor"},
-		"bone_fragments": {"name": "Bone Fragments", "icon": "🦴", "category": "processed", "desc": "Processed monster parts"},
-		"herb_essence": {"name": "Herb Essence", "icon": "💧", "category": "processed", "desc": "Concentrated herbs for enchanting"},
-		"refined_metal": {"name": "Refined Metal", "icon": "⚙️", "category": "processed", "desc": "T2 forge material. Used in rare/epic equipment crafting"},
-		"quality_timber": {"name": "Quality Timber", "icon": "🪵", "category": "processed", "desc": "T2 material from ancient groves"},
-		"rare_herbs": {"name": "Rare Herbs", "icon": "🌿", "category": "processed", "desc": "T2 material for advanced accessories"},
-		"beast_scales": {"name": "Beast Scales", "icon": "🐉", "category": "processed", "desc": "T2 defense drop. Used in rare armor crafting"},
-		# Special/Enhancement (T3+)
-		"socket_crystal": {"name": "Socket Crystal", "icon": "💎", "category": "special", "desc": "Add gem sockets to equipment"},
-		"socket_crystals": {"name": "Socket Crystals", "icon": "💎", "category": "special", "desc": "Add gem sockets to equipment"},
-		"divine_essence": {"name": "Divine Essence", "icon": "🌟", "category": "special", "desc": "T3 shrine material. Used in epic accessories and awakening"},
-		"mana_crystals": {"name": "Mana Crystals", "icon": "💠", "category": "special", "desc": "Concentrated mana from shrines. Used in enchanting"},
-		"crystal_shards": {"name": "Crystal Shards", "icon": "💠", "category": "special", "desc": "Used for gem crafting and socketing"},
-		"forging_flame": {"name": "Forging Flame", "icon": "🔥", "category": "special", "desc": "T3 forge material. Required for epic equipment crafting"},
-		"magic_crystals": {"name": "Magic Crystals", "icon": "💎", "category": "special", "desc": "T3 material. Used in epic equipment and enchanting"},
-		"blessed_oil": {"name": "Blessed Oil", "icon": "🛢️", "category": "special", "desc": "T3 shrine material for divine enchanting"},
-		# T4 PvP Materials
-		"celestial_ore": {"name": "Celestial Ore", "icon": "⭐", "category": "special", "desc": "T4 PvP-only material. Required for legendary weapons"},
-		"dragon_parts": {"name": "Dragon Parts", "icon": "🐲", "category": "special", "desc": "T4 PvP defense drop. Used in legendary crafting"},
-		"ascension_crystal": {"name": "Ascension Crystal", "icon": "🌌", "category": "special", "desc": "T4 shrine material. Used for final awakening stages"},
-		# Elemental
-		"fire_crystals": {"name": "Fire Crystals", "icon": "🔥", "category": "special", "desc": "Elemental gem for fire damage bonus"},
-		"water_crystals": {"name": "Water Crystals", "icon": "💧", "category": "special", "desc": "Elemental gem for HP bonus"},
-		"earth_crystals": {"name": "Earth Crystals", "icon": "🌍", "category": "special", "desc": "Elemental gem for defense bonus"},
-		"lightning_crystals": {"name": "Lightning Crystals", "icon": "⚡", "category": "special", "desc": "Elemental gem for speed bonus"},
-		"light_crystals": {"name": "Light Crystals", "icon": "☀️", "category": "special", "desc": "Elemental gem for crit rate bonus"},
-		"dark_crystals": {"name": "Dark Crystals", "icon": "🌑", "category": "special", "desc": "Elemental gem for accuracy bonus"},
+	"""Build resource metadata from resources.json - config-driven"""
+	_load_resource_config()
+
+	var result: Dictionary = {}
+
+	# Emoji fallbacks for common resources (JSON has icon names, we need emojis for display)
+	var emoji_map: Dictionary = {
+		"mana": "✦", "gold": "💰", "divine_crystals": "◆",
+		"ore": "🪨", "wood": "🪵", "herbs": "🌿",
+		"fine_ore": "🪨", "hardwood": "🪵", "exotic_herbs": "🌿",
+		"arcane_ore": "🪨", "ancient_wood": "🪵", "mystic_herbs": "🌿",
+		"celestial_ore": "⭐",
+		"refined_metal": "⚙️", "quality_timber": "🪵", "rare_herbs": "🌿",
+		"steel_ingot": "⚙️", "treated_lumber": "🪵", "alchemical_extract": "💧",
+		"prometheum": "⚙️", "enchanted_wood": "🪵", "mystic_bloom": "🌸",
+		"astral_shard": "💠", "divine_metal": "✨",
+		"monster_parts": "🦴", "beast_scales": "🐉", "elemental_cores": "🔮", "dragon_parts": "🐲",
+		"basic_flame": "🔥", "forging_flame": "🔥", "divine_flame": "🔥", "eternal_flame": "🔥",
+		"magic_crystals": "💎", "socket_crystal": "💎", "blessed_oil": "🛢️",
+		"divine_essence": "🌟", "mana_crystals": "💠",
+		"awakening_essence": "✨", "ascension_crystal": "🌌",
+		"common_soul": "👻", "rare_soul": "👻", "epic_soul": "👻", "legendary_soul": "👻",
+		"fire_powder": "🔥", "water_powder": "💧", "earth_powder": "🌍",
+		"lightning_powder": "⚡", "light_powder": "☀️", "dark_powder": "🌑",
+		"ruby": "🔴", "sapphire": "🔵", "emerald": "🟢", "topaz": "🟡", "diamond": "⚪", "onyx": "⚫",
 	}
+
+	# Category mapping from JSON categories to display categories
+	var category_map: Dictionary = {
+		"currency": "currency",
+		"premium_currency": "currency",
+		"crafting_material": "raw",  # Will be overridden by material_type
+		"enhancement_material": "special",
+		"gemstone": "special",
+		"awakening_material": "special",
+		"summoning_material": "special",
+		"element_powder": "special",
+		"divine_material": "special",
+		"pantheon_token": "special",
+	}
+
+	# Process each section of resources.json
+	for section_key: String in _resource_config:
+		if section_key.begins_with("_"):
+			continue
+		var section: Variant = _resource_config[section_key]
+		if not section is Dictionary:
+			continue
+
+		for resource_id: String in section:
+			if resource_id.begins_with("_"):
+				continue
+			var def: Variant = section[resource_id]
+			if not def is Dictionary:
+				continue
+
+			var res_name: String = str(def.get("name", resource_id.capitalize().replace("_", " ")))
+			var res_desc: String = str(def.get("description", ""))
+			var json_category: String = str(def.get("category", ""))
+			var material_type: String = str(def.get("material_type", ""))
+
+			# Determine display category
+			var display_category: String = category_map.get(json_category, "special")
+			if json_category == "crafting_material":
+				# Use material_type for more specific categorization
+				if material_type == "raw":
+					display_category = "raw"
+				elif material_type == "processed":
+					display_category = "processed"
+				else:
+					display_category = "special"  # flames, defense_drops, etc.
+
+			# Get emoji (fallback to generic)
+			var emoji: String = emoji_map.get(resource_id, "📦")
+
+			result[resource_id] = {
+				"name": res_name,
+				"icon": emoji,
+				"category": display_category,
+				"desc": res_desc
+			}
+
+	# Add experience (player XP) which may not be in resources.json
+	if not result.has("experience"):
+		result["experience"] = {"name": "Experience", "icon": "📈", "category": "currency", "desc": "Player experience points for account level"}
+
+	# Add summon_tickets if not present
+	if not result.has("summon_tickets"):
+		result["summon_tickets"] = {"name": "Summon Tickets", "icon": "★", "category": "currency", "desc": "Free summon attempts"}
+
+	return result
 
 func _create_resource_grid(columns: int) -> GridContainer:
 	"""Create a grid for displaying resources"""
@@ -615,7 +679,6 @@ func _update_this_instance():
 	_update_player_level_display()
 	_update_mana_display()
 	_update_crystals_display()
-	_update_energy_display()
 	_update_tickets_display()
 	_update_materials_count()
 	_update_expanded_panel_values()
@@ -668,15 +731,6 @@ func _update_materials_count():
 		var materials_total = _get_total_materials_count()
 		materials_count_label.text = "(%d)" % materials_total
 
-func _update_energy_display():
-	"""Update energy display (stamina for battles)"""
-	if energy_label:
-		var system_registry = _get_system_registry()
-		var resource_mgr = system_registry.get_system("ResourceManager") if system_registry else null
-		var energy_value = resource_mgr.get_resource("energy") if resource_mgr else 0
-		var energy_limit = resource_mgr.get_resource_limit("energy") if resource_mgr else 100
-		energy_label.text = "%d/%d" % [energy_value, energy_limit]
-
 # === UTILITY FUNCTIONS ===
 
 func format_large_number(number: int) -> String:
@@ -691,36 +745,22 @@ func format_large_number(number: int) -> String:
 		return str(number)
 
 func _get_total_materials_count() -> int:
-	"""Calculate total count of all materials in player inventory"""
+	"""Calculate total count of all crafting materials in player inventory (config-driven)"""
 	var resource_mgr = _get_system_registry().get_system("ResourceManager") if _get_system_registry() else null
 	if not resource_mgr:
 		return 0
 
-	var total: int = 0
-	# Count all crafting-relevant materials (T1-T4 raw and processed)
-	var material_types = [
-		# T1 Raw
-		"ore", "wood", "herbs", "monster_parts",
-		# T1 Processed
-		"refined_metal", "quality_timber", "rare_herbs",
-		# T2 Raw
-		"fine_ore", "hardwood", "exotic_herbs", "beast_scales",
-		# T2 Processed
-		"steel_ingot", "treated_lumber", "alchemical_extract",
-		# T3 Raw
-		"arcane_ore", "ancient_wood", "mystic_herbs", "elemental_cores", "magic_crystals",
-		# T3 Processed
-		"prometheum", "enchanted_wood", "mystic_bloom", "astral_shard",
-		# T4 (PvP)
-		"celestial_ore", "world_tree_bark", "cosmic_herbs", "dragon_parts",
-		"divine_metal", "world_tree_plank", "void_essence",
-		# Flames
-		"basic_flame", "forging_flame", "divine_flame", "eternal_flame"
-	]
+	_load_resource_config()
 
-	for material_id in material_types:
-		var count = resource_mgr.get_resource(material_id) if resource_mgr.has_method("get_resource") else 0
-		total += count
+	var total: int = 0
+	# Count all crafting materials from resources.json crafting_materials section
+	var crafting_section: Variant = _resource_config.get("crafting_materials", {})
+	if crafting_section is Dictionary:
+		for material_id: String in crafting_section:
+			if material_id.begins_with("_"):
+				continue
+			var count: int = resource_mgr.get_resource(material_id) if resource_mgr.has_method("get_resource") else 0
+			total += count
 
 	return total
 

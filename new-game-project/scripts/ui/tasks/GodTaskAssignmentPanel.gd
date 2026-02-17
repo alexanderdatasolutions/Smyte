@@ -186,10 +186,11 @@ func _create_god_card(god: God) -> Control:
 	var card = PanelContainer.new()
 	card.custom_minimum_size = Vector2(0, 70)
 
+	# Use element colors for card background (consistent with standardized GodCard)
 	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.11, 0.15, 0.9)
-	style.border_color = Color(0.3, 0.28, 0.35, 0.7)
-	style.set_border_width_all(1)
+	style.bg_color = GodUIHelpers.get_subtle_element_color(god.element)
+	style.border_color = GodUIHelpers.get_element_border_color(god.element)
+	style.set_border_width_all(2)
 	style.set_corner_radius_all(6)
 	card.add_theme_stylebox_override("panel", style)
 
@@ -209,9 +210,10 @@ func _create_god_card(god: God) -> Control:
 	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(info_vbox)
 
-	# Name + level
+	# Name + level + tier stars (consistent with standardized GodCard)
 	var name_label = Label.new()
-	name_label.text = "%s (Lv.%d)" % [god.get_display_name(), god.level]
+	var tier_stars: String = GodUIHelpers.get_tier_stars(god.tier)
+	name_label.text = "%s | Lv.%d %s" % [god.get_display_name(), god.level, tier_stars]
 	name_label.add_theme_font_size_override("font_size", 14)
 	info_vbox.add_child(name_label)
 

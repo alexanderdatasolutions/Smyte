@@ -43,6 +43,11 @@ func _get_event_bus():
 	var registry = SystemRegistry.get_instance()
 	return registry.get_system("EventBus") if registry else null
 
+## Helper method to get DebugLogger from SystemRegistry
+func _get_debug_logger():
+	var registry = SystemRegistry.get_instance()
+	return registry.get_system("DebugLogger") if registry else null
+
 ## Start a new battle with the given configuration
 func start_battle(config) -> bool:
 
@@ -109,6 +114,16 @@ func start_battle(config) -> bool:
 			"enemy_power": enemy_power
 		})
 
+	# Log battle start
+	var debug_logger = _get_debug_logger()
+	if debug_logger:
+		debug_logger.log_battle_start(
+			config.get_battle_type_name() if config.has_method("get_battle_type_name") else str(config.battle_type),
+			valid_attackers.size(),
+			battle_state.get_enemy_units().size(),
+			battle_state.max_waves
+		)
+
 	# Begin battle flow (defer to next frame to let UI initialize)
 	_begin_battle_flow.call_deferred()
 
@@ -135,27 +150,45 @@ func _force_cleanup_stale_battle():
 ## End the current battle with the given result
 func end_battle(result: BattleResult):
 	if not is_battle_active:
+		push_warning("BattleCoordinator: end_battle called but is_battle_active is false")
 		return
+
+	print("BattleCoordinator: end_battle called - victory=%s, reason=%s" % [result.victory, result.victory_condition if result.victory else result.defeat_reason])
 
 	# Stop auto-battle if active
 	auto_battle_enabled = false
-	
+
 	# Calculate final battle statistics
-	result.duration = battle_state.get_battle_duration()
-	result.battle_type = current_battle_config.get_battle_type_name()
+	result.duration = battle_state.get_battle_duration() if battle_state else 0.0
+	result.battle_type = current_battle_config.get_battle_type_name() if current_battle_config else "unknown"
 
 	# Award rewards if victory
 	if result.victory:
 		result.rewards = _calculate_battle_rewards()
 		_award_battle_rewards(result.rewards)
+		print("BattleCoordinator: Victory rewards calculated: %s" % str(result.rewards))
 
 	# Emit battle_ended BEFORE cleanup so handlers can access battle_state
 	# (e.g., TowerScreen needs to save HP for next floor)
 	is_battle_active = false
+	print("BattleCoordinator: Emitting battle_ended signal")
 	battle_ended.emit(result)
+
+	# Log battle end for debugging
+	var debug_logger = _get_debug_logger()
+	if debug_logger:
+		debug_logger.log_battle_end(
+			result.victory,
+			result.duration,
+			result.victory_condition if result.victory else result.defeat_reason
+		)
+
+	# Log analytics for BigQuery/Tableau
+	_log_battle_analytics(result)
 
 	# Cleanup battle state AFTER signal handlers have run
 	_cleanup_battle()
+	print("BattleCoordinator: Battle cleanup complete")
 
 ## Toggle auto-battle mode
 func set_auto_battle(enabled: bool):
@@ -174,9 +207,11 @@ func execute_action(action) -> bool:
 
 	var success = action_processor.execute_action(action, battle_state)
 
-	# Advance turn after successful action (same as auto-battle flow)
+	# Check if battle ended due to this action before advancing turns
 	if success:
-		turn_manager.advance_turn()
+		var should_end = _check_battle_end_conditions()
+		if not should_end and is_battle_active:
+			turn_manager.advance_turn()
 
 	return success
 
@@ -246,6 +281,12 @@ func _process_auto_battle():
 	if not current_unit:
 		return
 
+	# Safety check - unit might have died from DoT
+	if not current_unit.is_alive:
+		print("BattleCoordinator: _process_auto_battle called for dead unit %s, advancing turn" % current_unit.display_name)
+		turn_manager.advance_turn()
+		return
+
 	# Let AI choose action for enemy units, or auto-battle for player units
 	var action: BattleAction
 
@@ -258,42 +299,30 @@ func _process_auto_battle():
 		action_processor.execute_action(action, battle_state)
 		# End turn after action (same as enemy turn processing)
 		turn_manager.advance_turn()
+	else:
+		# No valid action found (e.g., all enemies dead) - check battle end conditions
+		# This handles the case where wave ends and we need to advance to next wave
+		var battle_ended_or_wave_advanced: bool = _check_battle_end_conditions()
+
+		if not battle_ended_or_wave_advanced and is_battle_active:
+			# Battle continues but no valid targets - skip this turn
+			print("BattleCoordinator: Auto-battle no valid action, skipping turn for %s" % current_unit.display_name)
+			turn_manager.advance_turn()
 
 func _choose_auto_battle_action(unit: BattleUnit) -> BattleAction:
-	"""Choose the best action for auto-battle"""
-	# Simple auto-battle AI - always try to use most powerful available skill
-	for i in range(unit.skills.size() - 1, -1, -1):  # Check from most powerful skill
-		var skill = unit.skills[i]
-		if unit.can_use_skill(i):
-			var targets = _find_best_targets(skill, battle_state.get_enemy_units())
-			if not targets.is_empty():
-				return BattleAction.create_skill_action(unit, skill, targets)
-	
-	# Fallback to basic attack
-	var target = _find_best_target(battle_state.get_enemy_units())
-	if target:
-		return BattleAction.create_attack_action(unit, target)
-	
-	return null
+	"""Choose the best action for auto-battle using smart AI"""
+	# Use the same smart AI as enemies - this ensures fair Arena PvP
+	var action: BattleAction = BattleAI.choose_auto_action(unit, battle_state)
 
-func _find_best_targets(skill: Skill, potential_targets: Array) -> Array:
-	"""Find the best targets for a given skill"""
-	# Simple targeting: prioritize lowest HP enemies
-	var valid_targets = potential_targets.filter(func(unit): return unit.is_alive)
-	if valid_targets.is_empty():
-		return []
-	
-	# Sort by current HP (lowest first)
-	valid_targets.sort_custom(func(a, b): return a.current_hp < b.current_hp)
-	
-	# Return appropriate number of targets based on skill
-	var target_count = skill.get_target_count()
-	return valid_targets.slice(0, min(target_count, valid_targets.size()))
+	if action:
+		var skill_name: String = action.skill.name if action.skill else "Basic Attack"
+		var target_names: String = ", ".join(action.targets.map(func(t): return t.display_name))
+		print("[AutoBattle] %s: %s -> %s" % [unit.display_name, skill_name, target_names])
+	else:
+		var enemy_units: Array[BattleUnit] = battle_state.get_living_enemy_units()
+		print("[AutoBattle] %s: No valid action found! Skills: %d, Living enemies: %d" % [unit.display_name, unit.skills.size(), enemy_units.size()])
 
-func _find_best_target(potential_targets: Array) -> BattleUnit:
-	"""Find the best single target"""
-	var targets = _find_best_targets(null, potential_targets)
-	return targets[0] if not targets.is_empty() else null
+	return action
 
 func _calculate_battle_rewards() -> Dictionary:
 	"""Calculate rewards based on battle type and performance"""
@@ -374,6 +403,11 @@ func _award_god_experience(rewards: Dictionary):
 	if not battle_state:
 		return
 
+	# Skip XP for tower battles - TowerManager handles all rewards at end of run
+	var battle_type_name: String = current_battle_config.get_battle_type_name() if current_battle_config else ""
+	if battle_type_name == "tower":
+		return
+
 	var god_progression = SystemRegistry.get_instance().get_system("GodProgressionManager")
 	if not god_progression:
 		push_warning("BattleCoordinator: GodProgressionManager not found, skipping god XP")
@@ -387,30 +421,73 @@ func _award_god_experience(rewards: Dictionary):
 	var xp_per_god = base_xp + wave_bonus
 
 	# Award XP to each player unit that has a source god
-	var gods_rewarded = 0
 	for unit in battle_state.get_player_units():
 		if unit.source_god:
 			god_progression.add_experience_to_god(unit.source_god, xp_per_god)
-			gods_rewarded += 1
 
-	# Notify player of XP gain
-	if gods_rewarded > 0:
-		var NotificationQueueClass = load("res://scripts/ui/components/NotificationQueue.gd")
-		if NotificationQueueClass:
-			NotificationQueueClass.show_message("Team Experience", "Gods gained %d XP each!" % xp_per_god)
+func _log_battle_analytics(result: BattleResult):
+	"""Log detailed battle analytics for BigQuery/Tableau"""
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		return
+	var analytics = registry.get_system("FirebaseAnalytics")
+	if not analytics:
+		return
+
+	# Get battle stats
+	var stats: Dictionary = battle_state.get_battle_statistics() if battle_state else {}
+	var battle_type_name: String = current_battle_config.get_battle_type_name() if current_battle_config else "unknown"
+	var difficulty: String = current_battle_config.difficulty_name if current_battle_config and current_battle_config.has_method("get") else ""
+
+	# Calculate team power
+	var team_power: int = 0
+	var gods_died: int = 0
+	if battle_state:
+		for unit in battle_state.get_player_units():
+			team_power += unit.max_hp + (unit.attack * 2) + unit.defense + unit.speed
+			if not unit.is_alive:
+				gods_died += 1
+
+	# Log overall battle stats
+	analytics.log_battle_stats(
+		battle_type_name,
+		difficulty,
+		result.victory,
+		stats.get("current_turn", 0),
+		stats.get("total_damage_dealt", 0),
+		stats.get("total_damage_received", 0),
+		gods_died,
+		stats.get("enemy_units_alive", 0) + (battle_state.enemy_units.size() if battle_state else 0),
+		team_power
+	)
+
+	# Log individual god usage for balance analytics
+	if battle_state:
+		for unit in battle_state.get_player_units():
+			if unit.source_god:
+				analytics.log_god_usage(
+					unit.source_god.id,
+					unit.source_god.tier,
+					unit.source_god.element,
+					battle_type_name,
+					unit.damage_dealt if "damage_dealt" in unit else 0,
+					unit.damage_received if "damage_received" in unit else 0,
+					unit.kills if "kills" in unit else 0,
+					not unit.is_alive
+				)
 
 func _cleanup_battle():
 	"""Clean up battle state and systems"""
 	if battle_state:
 		battle_state.cleanup()
 		battle_state = null
-	
+
 	if turn_manager:
 		turn_manager.end_battle()
-	
+
 	if wave_manager:
 		wave_manager.reset()
-	
+
 	current_battle_config = null
 
 # ============================================================================
@@ -418,21 +495,43 @@ func _cleanup_battle():
 # ============================================================================
 
 func _on_turn_started(unit: BattleUnit):
+	if not is_battle_active:
+		print("BattleCoordinator: _on_turn_started called but battle not active, ignoring")
+		return
+
 	turn_changed.emit(unit)
 
 	# Process enemy turns automatically (AI takes action)
 	if unit.is_enemy():
 		# Add small delay for visual feedback
 		await get_tree().create_timer(0.5).timeout
+		if not is_battle_active:
+			return  # Battle ended during delay
+		if not unit.is_alive:
+			print("BattleCoordinator: Enemy %s died during delay (DoT), skipping turn" % unit.display_name)
+			turn_manager.advance_turn()
+			return
 		_process_enemy_turn(unit)
 	elif auto_battle_enabled:
 		# Process auto-battle for player units if enabled
 		await get_tree().create_timer(0.5).timeout
+		if not is_battle_active:
+			return  # Battle ended during delay
+		if not unit.is_alive:
+			print("BattleCoordinator: Player unit %s died during delay (DoT), skipping turn" % unit.display_name)
+			turn_manager.advance_turn()
+			return
 		_process_auto_battle()
 
 func _process_enemy_turn(unit: BattleUnit):
 	"""Process an enemy unit's turn using AI"""
 	if not is_battle_active:
+		return
+
+	# Safety check - unit might have died from DoT or other effects
+	if not unit.is_alive:
+		print("BattleCoordinator: _process_enemy_turn called for dead unit %s, skipping" % unit.display_name)
+		turn_manager.advance_turn()
 		return
 
 	# Let AI choose action for enemy
@@ -441,6 +540,13 @@ func _process_enemy_turn(unit: BattleUnit):
 		action_processor.execute_action(action, battle_state)
 		# End turn after action
 		turn_manager.advance_turn()
+	else:
+		# No valid action found (e.g., all player units dead) - check battle end conditions
+		var should_end: bool = _check_battle_end_conditions()
+		if not should_end and is_battle_active:
+			# Battle continues but no valid targets - skip this turn
+			print("BattleCoordinator: Enemy %s has no valid action, skipping turn" % unit.display_name)
+			turn_manager.advance_turn()
 
 func _on_turn_ended(_unit: BattleUnit):
 	# Check for battle end conditions after turn ends
@@ -483,45 +589,64 @@ func _advance_to_next_wave():
 		push_warning("BattleCoordinator: _advance_to_next_wave called but config/state is null")
 		return
 
+	print("BattleCoordinator: _advance_to_next_wave - current wave %d" % battle_state.current_wave)
+
 	# Mark current wave as complete
 	wave_manager.complete_current_wave()
 
 	# Get next wave enemies from config
 	var next_wave_index = battle_state.current_wave  # current_wave is 1-indexed, array is 0-indexed
 	if not current_battle_config.enemy_waves or next_wave_index >= current_battle_config.enemy_waves.size():
-		push_error("BattleCoordinator: No more wave data available")
+		push_error("BattleCoordinator: No more wave data available (index %d, waves %d)" % [next_wave_index, current_battle_config.enemy_waves.size() if current_battle_config.enemy_waves else 0])
+		# Force end battle as victory since we ran out of waves
+		end_battle(BattleResult.create_victory("All waves completed"))
 		return
 
 	var next_wave_enemies = current_battle_config.enemy_waves[next_wave_index]
+	print("BattleCoordinator: Loading wave %d with %d enemies" % [next_wave_index + 1, next_wave_enemies.size()])
+
+	# Log wave transition
+	var debug_logger = _get_debug_logger()
+	if debug_logger:
+		debug_logger.log_wave_transition(battle_state.current_wave, next_wave_index + 1, battle_state.max_waves)
 
 	# Advance battle state to next wave (this creates new enemy BattleUnits)
 	battle_state.advance_to_next_wave(next_wave_enemies)
 
-	# Update turn manager with new enemies
-	turn_manager.add_units(battle_state.get_enemy_units())
+	# Replace enemy units in turn manager (removes dead ones, adds new wave)
+	turn_manager.replace_enemy_units(battle_state.get_enemy_units())
 
 func _check_battle_end_conditions() -> bool:
 	"""Check if battle should end and end it if necessary"""
 	if not battle_state or not current_battle_config:
+		print("BattleCoordinator: _check_battle_end_conditions - no valid state, ending")
 		return true  # No valid state, battle should end
 
 	# Check if all player units are defeated
-	var player_units_alive = battle_state.get_player_units().any(func(unit): return unit.is_alive)
+	var player_units = battle_state.get_player_units()
+	var player_units_alive = player_units.any(func(unit): return unit.is_alive)
 	if not player_units_alive:
+		print("BattleCoordinator: All player units defeated (%d total)" % player_units.size())
 		end_battle(BattleResult.create_defeat("All player units defeated"))
 		return true
 
 	# Check if all enemy units are defeated (for PvE battles with waves, check if wave defeated)
-	var enemy_units_alive = battle_state.get_enemy_units().any(func(unit): return unit.is_alive)
+	var enemy_units = battle_state.get_enemy_units()
+	var enemy_units_alive = enemy_units.any(func(unit): return unit.is_alive)
 	if not enemy_units_alive:
 		# All enemies in current wave are defeated
 		var no_waves = not current_battle_config.enemy_waves or current_battle_config.enemy_waves.is_empty()
+		var wave_info = "wave %d/%d" % [battle_state.current_wave, battle_state.max_waves]
+		print("BattleCoordinator: All enemies defeated in %s (no_waves=%s)" % [wave_info, no_waves])
+
 		if no_waves or battle_state.current_wave >= battle_state.max_waves:
 			# No more waves or all waves completed
+			print("BattleCoordinator: Final wave complete, ending with victory")
 			end_battle(BattleResult.create_victory("All enemies defeated"))
 			return true
 		else:
 			# More waves remaining - advance to next wave
+			print("BattleCoordinator: Advancing to next wave")
 			_advance_to_next_wave()
 			return false  # Battle continues
 

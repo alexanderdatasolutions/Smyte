@@ -198,6 +198,10 @@ func load_save_data(data: Dictionary):
 			# Use internal add to avoid triggering save during load
 			gods.append(god)
 			gods_by_id[god.id] = god
+
+	# Migration: Reset base stats to template values (fixes double-dipping from old flat bonus system)
+	GodFactory.migrate_collection_base_stats(gods)
+
 	# Load equipment
 	var equipment_data = data.get("equipment", [])
 

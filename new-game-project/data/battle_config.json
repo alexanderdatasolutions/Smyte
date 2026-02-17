@@ -59,16 +59,16 @@
   },
   "enemy_scaling": {
     "base_stats": {
-      "hp": 120,
-      "attack": 50,
-      "defense": 60,
-      "speed": 55
+      "hp": 150,
+      "attack": 55,
+      "defense": 50,
+      "speed": 45
     },
     "tier_multipliers": {
       "basic": 1.0,
-      "leader": 1.4,
-      "elite": 1.8,
-      "boss": 2.5
+      "leader": 1.5,
+      "elite": 2.0,
+      "boss": 3.0
     },
     "level_scaling_per_level": 0.1,
     "speed_per_level": 2,
@@ -88,7 +88,16 @@
       "legendary": 4.0
     },
     "power_level_base": 10,
-    "power_level_scaling": 0.1
+    "power_level_scaling": 0.1,
+    "reward_multipliers": {
+      "beginner": 1.0,
+      "intermediate": 1.2,
+      "advanced": 1.5,
+      "expert": 2.0,
+      "master": 2.5,
+      "heroic": 2.0,
+      "legendary": 3.0
+    }
   },
   "elemental_relationships": {
     "fire": {

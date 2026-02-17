@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cq35l6bct30t8"
-path="res://.godot/imported/ODIN.png-4f1b3e93fc4ce9fafae28b78907ff8fd.ctex"
+uid="uid://cm3fcc2miku7g"
+path="res://.godot/imported/odin.png-461004384d93f866ba918914d30be696.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/gods/ODIN.png"
-dest_files=["res://.godot/imported/ODIN.png-4f1b3e93fc4ce9fafae28b78907ff8fd.ctex"]
+source_file="res://assets/gods/odin.png"
+dest_files=["res://.godot/imported/odin.png-461004384d93f866ba918914d30be696.ctex"]
 
 [params]
 

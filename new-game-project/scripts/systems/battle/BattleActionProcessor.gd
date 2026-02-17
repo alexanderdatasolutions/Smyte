@@ -58,30 +58,82 @@ func _execute_attack(action: BattleAction, result: ActionResult) -> void:
 		result.success = false
 		result.message = attacker.display_name + " attacks " + target.display_name + ", but they are already defeated!"
 		return
-	
+
 	# Use existing CombatCalculator for authentic SW combat
-	var damage_result: DamageResult = CombatCalculator.calculate_damage(attacker, target)
+	var damage_result: DamageResult = CombatCalculator.calculate_damage(attacker, target, null, battle_state)
 	var damage_amount: int = damage_result.total
-	
-	# Apply damage
-	target.take_damage(damage_amount)
-	
+
+	# Apply damage using new system (handles shields, death defiance, thorns, reflect, sleep break)
+	var damage_info: Dictionary = target.apply_damage(damage_amount)
+	target.on_damage_received()  # Track vengeance stacks
+
+	# Check if damage was blocked by immunity
+	if damage_info.get("damage_immune", false):
+		result.message = attacker.display_name + " attacks " + target.display_name + ", but they are immune to damage!"
+		return
+
+	# Handle sleep broken
+	if damage_info.get("sleep_broken", false):
+		result.message += " %s wakes up!" % target.display_name
+
+	# Handle thorns damage (Aegis set)
+	if damage_info.thorns_damage > 0 and attacker.is_alive:
+		attacker.take_damage(damage_info.thorns_damage)
+		result.message += " Thorns deals %d damage back!" % damage_info.thorns_damage
+
+	# Handle reflect damage (from status effect)
+	if damage_info.get("reflect_damage", 0) > 0 and attacker.is_alive:
+		attacker.take_damage(damage_info.reflect_damage)
+		result.message += " Reflected %d damage!" % damage_info.reflect_damage
+
+	# Handle Styx life steal
+	_apply_set_life_steal(attacker, damage_amount, target.is_alive, result)
+
+	# Handle Tempest chain lightning
+	_apply_chain_lightning(attacker, target, damage_result, result)
+
 	# Check if target was defeated
 	if not target.is_alive:
 		battle_state.record_unit_defeat()
-	
+
+	# Apply Despair petrify/stun effect (Gaze of Medusa)
+	if target.is_alive and attacker.should_petrify():
+		if not target.try_block_debuff():
+			var stun_effect: StatusEffect = StatusEffect.create_stun(attacker, 1)
+			stun_effect.target_name = target.display_name
+			stun_effect.caster_name = attacker.display_name
+			target.add_status_effect(stun_effect)
+			result.message += " %s is petrified!" % target.display_name
+
+	# Handle counter-attack (Fury of the Erinyes / Revenge set OR status effect)
+	if target.is_alive and attacker.is_alive:
+		if target.should_counter_attack() or target.has_counter_attack_buff():
+			_execute_counter_attack(target, attacker, result)
+
 	# Create damage result for tracking
 	var attack_result := DamageResult.new(damage_amount, damage_result.is_critical, damage_result.is_glancing)
 	result.add_damage_result(attack_result)
-	result.message = attacker.display_name + " attacks " + target.display_name + " for " + str(damage_amount) + " damage!"
+
+	var msg: String = attacker.display_name + " attacks " + target.display_name + " for " + str(damage_amount) + " damage!"
+	if damage_info.shield_absorbed > 0:
+		msg += " (Shield absorbed %d)" % damage_info.shield_absorbed
+	if damage_info.death_defied:
+		msg += " %s defies death!" % target.display_name
+	result.message = msg
 
 func _execute_skill(action: BattleAction, result: ActionResult) -> void:
 	var caster: BattleUnit = action.caster
 	var skill: Skill = action.skill
 	var targets: Array = action.targets
 
-	# Check if skill is on cooldown
+	# Check if caster is silenced (can only use basic attack, index 0)
 	var skill_index: int = caster.skills.find(skill)
+	if caster.is_silenced() and skill_index > 0:
+		result.success = false
+		result.message = caster.display_name + " is silenced and cannot use abilities!"
+		return
+
+	# Check if skill is on cooldown
 	if skill_index >= 0 and not caster.can_use_skill(skill_index):
 		result.success = false
 		result.message = skill.name + " is on cooldown!"
@@ -98,14 +150,45 @@ func _execute_skill(action: BattleAction, result: ActionResult) -> void:
 
 		if skill.targets_enemies:
 			# Use existing skill damage calculation
-			var skill_result: DamageResult = CombatCalculator.calculate_damage(caster, target, skill)
-			target.take_damage(skill_result.total)
+			var skill_result: DamageResult = CombatCalculator.calculate_damage(caster, target, skill, battle_state)
+
+			# Apply damage using new system (handles shields, death defiance, thorns, reflect, immunity)
+			var damage_info: Dictionary = target.apply_damage(skill_result.total)
+			target.on_damage_received()  # Track vengeance stacks
+
+			# Check if damage was blocked by immunity
+			if damage_info.get("damage_immune", false):
+				result.message += " %s is immune to damage!" % target.display_name
+				continue
+
+			# Handle sleep broken
+			if damage_info.get("sleep_broken", false):
+				result.message += " %s wakes up!" % target.display_name
+
+			# Handle thorns damage (Aegis set)
+			if damage_info.thorns_damage > 0 and caster.is_alive:
+				caster.take_damage(damage_info.thorns_damage)
+				result.message += " Thorns deals %d back!" % damage_info.thorns_damage
+
+			# Handle reflect damage (from status effect)
+			if damage_info.get("reflect_damage", 0) > 0 and caster.is_alive:
+				caster.take_damage(damage_info.reflect_damage)
+				result.message += " Reflected %d!" % damage_info.reflect_damage
+
+			# Handle chain lightning (only on first target)
+			if target == targets[0]:
+				_apply_chain_lightning(caster, target, skill_result, result)
 
 			var skill_damage := DamageResult.new(skill_result.total, skill_result.is_critical, skill_result.is_glancing)
 			result.add_damage_result(skill_damage)
 
 			if not target.is_alive:
 				battle_state.record_unit_defeat()
+				# Soul drinker bonus on kill
+				_apply_set_life_steal(caster, skill_result.total, false, result)
+			else:
+				# Normal life steal
+				_apply_set_life_steal(caster, skill_result.total, true, result)
 		else:
 			# Healing or buff skill
 			var heal_amount: int = int(caster.attack * skill.damage_multiplier)
@@ -193,6 +276,11 @@ func _apply_debuff_effect(effect_data: Dictionary, caster: BattleUnit, target: B
 	# Roll for chance
 	var roll: float = randf() * 100
 	if roll > chance:
+		return
+
+	# Check for debuff immunity (Will set, Olympus first debuff)
+	if target.try_block_debuff():
+		result.message += " %s resists the debuff!" % target.display_name
 		return
 
 	# Create the appropriate status effect using factory methods
@@ -344,3 +432,90 @@ func _apply_life_drain(effect_data: Dictionary, caster: BattleUnit, _target: Bat
 	if heal_amount > 0:
 		caster.heal(heal_amount)
 		result.message += " %s drains %d HP!" % [caster.display_name, heal_amount]
+
+## Apply Styx set life steal effect
+func _apply_set_life_steal(attacker: BattleUnit, damage_dealt: int, target_alive: bool, result: ActionResult) -> void:
+	if not attacker.has_set_effect("life_steal") and not attacker.has_set_effect("soul_drinker"):
+		return
+
+	# Get life steal percentage from set effect
+	var life_steal_pct: float = 0.0
+	if attacker.has_set_effect("soul_drinker"):
+		life_steal_pct = attacker.get_set_effect_value("soul_drinker")
+	elif attacker.has_set_effect("life_steal"):
+		life_steal_pct = attacker.get_set_effect_value("life_steal")
+
+	if life_steal_pct <= 0:
+		return
+
+	var heal_amount: int = int(damage_dealt * life_steal_pct)
+	if heal_amount > 0:
+		attacker.heal(heal_amount)
+		result.message += " %s drains %d HP!" % [attacker.display_name, heal_amount]
+
+	# Soul drinker bonus: kills restore additional 15% max HP
+	if not target_alive and attacker.has_set_effect("soul_drinker"):
+		var bonus_heal: int = int(attacker.max_hp * 0.15)
+		attacker.heal(bonus_heal)
+		result.message += " Soul Drinker restores %d HP!" % bonus_heal
+
+## Apply Tempest chain lightning effect
+func _apply_chain_lightning(attacker: BattleUnit, primary_target: BattleUnit, damage_result: DamageResult, result: ActionResult) -> void:
+	if not attacker.has_set_effect("chain_lightning"):
+		return
+
+	var chain_chance: float = attacker.get_set_effect_chance("chain_lightning")
+	if randf() > chain_chance:
+		return
+
+	# Find another random enemy target
+	var potential_targets: Array[BattleUnit] = []
+	if battle_state:
+		if attacker.is_player_unit:
+			for unit: BattleUnit in battle_state.get_living_enemy_units():
+				if unit != primary_target:
+					potential_targets.append(unit)
+		else:
+			for unit: BattleUnit in battle_state.get_living_player_units():
+				if unit != primary_target:
+					potential_targets.append(unit)
+
+	if potential_targets.is_empty():
+		return
+
+	# Chain to random target for 50% damage
+	var chain_target: BattleUnit = potential_targets[randi() % potential_targets.size()]
+	var chain_damage: int = int(damage_result.total * 0.5)
+
+	var _chain_info: Dictionary = chain_target.apply_damage(chain_damage)
+	chain_target.on_damage_received()
+
+	if not chain_target.is_alive:
+		battle_state.record_unit_defeat()
+
+	result.message += " Chain Lightning hits %s for %d!" % [chain_target.display_name, chain_damage]
+
+	# Add chain damage to results
+	var chain_result := DamageResult.new(chain_damage, false, false)
+	result.add_damage_result(chain_result)
+
+## Execute a counter-attack (Fury of the Erinyes / Revenge set)
+func _execute_counter_attack(counter_attacker: BattleUnit, original_attacker: BattleUnit, result: ActionResult) -> void:
+	if not counter_attacker.is_alive or not original_attacker.is_alive:
+		return
+
+	# Calculate counter damage (reduced to 75% of normal attack)
+	var counter_damage_result: DamageResult = CombatCalculator.calculate_damage(counter_attacker, original_attacker, null, battle_state)
+	var counter_damage: int = int(counter_damage_result.total * 0.75)
+
+	# Apply counter damage
+	var _counter_info: Dictionary = original_attacker.apply_damage(counter_damage)
+
+	if not original_attacker.is_alive:
+		battle_state.record_unit_defeat()
+
+	result.message += " %s counter-attacks for %d damage!" % [counter_attacker.display_name, counter_damage]
+
+	# Add counter damage to results
+	var counter_result := DamageResult.new(counter_damage, false, false)
+	result.add_damage_result(counter_result)

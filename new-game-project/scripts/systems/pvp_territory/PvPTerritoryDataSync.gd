@@ -81,8 +81,16 @@ func _initialize_firebase() -> void:
 	if firebase_integration.has_method("get_user_id"):
 		_user_id = firebase_integration.get_user_id()
 
-	if firebase_integration.has_method("get_user_display_name"):
-		_display_name = firebase_integration.get_user_display_name()
+	# Get display name from SaveManager (where user sets it after signup)
+	var save_manager: Variant = system_registry.get_system("SaveManager")
+	if save_manager and save_manager.has_method("get_player_value"):
+		_display_name = save_manager.get_player_value("display_name", "")
+
+	# Fallback to email username if no display name in save
+	if _display_name.is_empty() and firebase_integration.has_method("get_user_email"):
+		var email: String = firebase_integration.get_user_email()
+		if not email.is_empty() and "@" in email:
+			_display_name = email.split("@")[0]
 
 
 func is_ready() -> bool:

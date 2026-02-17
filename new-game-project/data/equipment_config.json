@@ -1,46 +1,46 @@
 {
   "equipment_types": {
     "weapon": {
-      "name": "Sword",
+      "name": "Divine Weapon",
       "slot": 0,
       "primary_stats": ["attack"],
       "secondary_stats": ["hp", "defense", "crit_rate"],
-      "set_types": ["berserker", "guardian", "swift"]
+      "set_types": ["wrath", "titan", "tempest", "styx", "hermes", "despair"]
     },
     "armor": {
-      "name": "Armor",
+      "name": "Sacred Armor",
       "slot": 1,
       "primary_stats": ["defense", "hp"],
       "secondary_stats": ["attack", "speed", "crit_damage"],
-      "set_types": ["guardian", "berserker", "swift"]
+      "set_types": ["aegis", "titan", "oracle", "olympus", "vengeance", "will", "revenge"]
     },
     "helm": {
-      "name": "Helmet",
+      "name": "Blessed Helm",
       "slot": 2,
       "primary_stats": ["hp", "defense"],
       "secondary_stats": ["attack", "speed", "crit_rate"],
-      "set_types": ["guardian", "berserker", "swift"]
+      "set_types": ["aegis", "oracle", "olympus", "vengeance", "titan", "will", "revenge"]
     },
     "boots": {
-      "name": "Boots",
+      "name": "Winged Sandals",
       "slot": 3,
       "primary_stats": ["speed"],
       "secondary_stats": ["hp", "defense", "attack"],
-      "set_types": ["swift", "guardian", "berserker"]
+      "set_types": ["hermes", "tempest", "olympus", "hunter", "wrath", "despair"]
     },
     "amulet": {
-      "name": "Amulet",
+      "name": "Divine Amulet",
       "slot": 4,
       "primary_stats": ["crit_rate", "crit_damage"],
       "secondary_stats": ["attack", "hp", "defense"],
-      "set_types": ["berserker", "swift", "guardian"]
+      "set_types": ["hunter", "wrath", "tempest", "styx", "olympus", "despair"]
     },
     "ring": {
-      "name": "Ring",
+      "name": "Celestial Ring",
       "slot": 5,
       "primary_stats": ["resistance", "accuracy"],
       "secondary_stats": ["attack", "hp", "speed"],
-      "set_types": ["guardian", "swift", "berserker"]
+      "set_types": ["oracle", "hunter", "aegis", "vengeance", "olympus", "will", "revenge"]
     }
   },
   "equipment_rarities": {
@@ -81,139 +81,219 @@
     }
   },
   "equipment_sets": {
-    "berserker": {
-      "name": "Berserker",
+    "_design_note": "Set bonuses reduced ~40% to match equipment stat reduction. 6pc bonus ~200-400 total stats. PvP sets added at bottom.",
+
+    "wrath": {
+      "name": "Wrath of Ares",
+      "description": "Channel divine fury - the lower your health, the harder you strike",
+      "focus": "PvE/Offense",
       "bonuses": {
-        "2": {"attack": 50},
-        "4": {"attack": 100},
-        "6": {"attack": 200}
+        "2": {"attack": 25},
+        "4": {"attack": 50, "crit_rate": 5},
+        "6": {"attack": 90, "crit_rate": 10, "special_effect": "fury_scaling", "effect_comment": "Gain +1% ATK for each 2% HP missing (up to +50%)"}
       }
     },
-    "guardian": {
-      "name": "Guardian",
+    "aegis": {
+      "name": "Aegis of Athena",
+      "description": "The legendary shield that turns attacks back upon aggressors",
+      "focus": "PvE/Tank",
       "bonuses": {
-        "2": {"defense": 75},
-        "4": {"hp": 500},
-        "6": {"defense": 150}
+        "2": {"defense": 40},
+        "4": {"hp": 250, "defense": 25},
+        "6": {"hp": 500, "defense": 75, "special_effect": "thorns", "effect_value": 0.15, "effect_comment": "Reflect 15% of damage taken back to attacker"}
       }
     },
-    "swift": {
-      "name": "Swift",
+    "hermes": {
+      "name": "Wings of Hermes",
+      "description": "Divine swiftness grants the first strike advantage",
+      "focus": "PvP/Speed",
       "bonuses": {
-        "2": {"speed": 25},
-        "4": {"speed": 50},
-        "6": {"attack": 100}
+        "2": {"speed": 15},
+        "4": {"speed": 30, "accuracy": 10},
+        "6": {"speed": 45, "accuracy": 15, "special_effect": "ambush", "effect_value": 0.40, "effect_comment": "First attack each battle deals +40% damage"}
       }
     },
-    "warrior": {
-      "name": "Warrior",
+    "titan": {
+      "name": "Titan's Resolve",
+      "description": "The strength of the Titans - overwhelm foes with raw power",
+      "focus": "PvE/Bruiser",
       "bonuses": {
-        "2": {"attack": 40},
-        "4": {"attack": 80},
-        "6": {"defense": 40}
+        "2": {"attack": 20, "defense": 15},
+        "4": {"attack": 45, "defense": 25, "hp": 175},
+        "6": {"attack": 80, "defense": 40, "hp": 350, "special_effect": "overwhelm", "effect_value": 0.20, "effect_comment": "Deal +20% damage to enemies with less max HP than you"}
       }
     },
-    "sage": {
-      "name": "Sage",
+    "oracle": {
+      "name": "Oracle's Foresight",
+      "description": "See fate itself and cheat death once per battle",
+      "focus": "PvP/Survival",
       "bonuses": {
-        "2": {"hp": 400},
-        "4": {"defense": 50},
-        "6": {"speed": 20}
+        "2": {"hp": 200, "resistance": 8},
+        "4": {"hp": 375, "defense": 30, "resistance": 12},
+        "6": {"hp": 550, "defense": 50, "resistance": 18, "special_effect": "death_defiance", "effect_comment": "Once per battle, survive fatal damage with 1 HP and gain 25% HP shield"}
       }
     },
-    "speed": {
-      "name": "Speed",
+    "hunter": {
+      "name": "Artemis's Hunt",
+      "description": "Track weaknesses with predatory precision",
+      "focus": "PvE/Crit",
       "bonuses": {
-        "2": {"speed": 25},
-        "4": {"speed": 50},
-        "6": {"attack": 100}
+        "2": {"accuracy": 10, "crit_rate": 4},
+        "4": {"accuracy": 20, "crit_rate": 8, "crit_damage": 12},
+        "6": {"accuracy": 30, "crit_rate": 14, "crit_damage": 28, "special_effect": "marked_prey", "effect_value": 0.40, "effect_comment": "Crits mark target: next attack on them ignores 40% defense"}
       }
     },
-    "precision": {
-      "name": "Precision",
+    "olympus": {
+      "name": "Blessing of Olympus",
+      "description": "Favor of the gods grants protection and might",
+      "focus": "Hybrid",
       "bonuses": {
-        "2": {"accuracy": 15},
-        "4": {"accuracy": 30},
-        "6": {"attack": 50}
+        "2": {"attack": 18, "defense": 18, "hp": 125},
+        "4": {"attack": 38, "defense": 38, "hp": 275, "speed": 10},
+        "6": {"attack": 70, "defense": 70, "hp": 450, "speed": 18, "special_effect": "divine_favor", "effect_comment": "Start battle with 20% max HP shield; immune to first debuff"}
+      }
+    },
+    "styx": {
+      "name": "Waters of the Styx",
+      "description": "The river of death grants unholy sustain",
+      "focus": "PvE/Sustain",
+      "bonuses": {
+        "2": {"attack": 20, "special_effect": "life_steal", "effect_value": 0.08},
+        "4": {"attack": 40, "hp": 225, "special_effect": "life_steal", "effect_value": 0.15},
+        "6": {"attack": 65, "hp": 425, "speed": 10, "special_effect": "soul_drinker", "effect_value": 0.20, "effect_comment": "20% life steal; kills restore additional 15% max HP"}
+      }
+    },
+    "vengeance": {
+      "name": "Nemesis's Vengeance",
+      "description": "Divine retribution grows with each wound received",
+      "focus": "PvP/Counter",
+      "bonuses": {
+        "2": {"defense": 25, "attack": 15},
+        "4": {"defense": 45, "attack": 35, "hp": 200},
+        "6": {"defense": 65, "attack": 60, "hp": 350, "special_effect": "retribution", "effect_comment": "Each time you take damage, gain +8% ATK for 2 turns (stacks up to 40%)"}
+      }
+    },
+    "tempest": {
+      "name": "Storm of Zeus",
+      "description": "Lightning strikes multiple times",
+      "focus": "PvE/AoE",
+      "bonuses": {
+        "2": {"attack": 22, "speed": 8},
+        "4": {"attack": 48, "speed": 18, "crit_rate": 6},
+        "6": {"attack": 85, "speed": 28, "crit_rate": 12, "special_effect": "chain_lightning", "effect_chance": 0.25, "effect_comment": "25% chance attacks hit an additional random enemy for 50% damage"}
+      }
+    },
+
+    "_pvp_sets_comment": "=== PVP-FOCUSED SETS BELOW ===",
+
+    "will": {
+      "name": "Iron Will",
+      "description": "Unshakeable resolve grants immunity to enemy manipulation",
+      "focus": "PvP/Immunity",
+      "bonuses": {
+        "2": {"resistance": 12, "hp": 100},
+        "4": {"resistance": 20, "hp": 225, "defense": 20},
+        "6": {"resistance": 30, "hp": 400, "defense": 40, "special_effect": "immunity", "effect_value": 1, "effect_comment": "Start battle immune to debuffs for 1 turn"}
+      }
+    },
+    "despair": {
+      "name": "Gaze of Medusa",
+      "description": "Your strikes carry the petrifying power of the Gorgon",
+      "focus": "PvP/Control",
+      "bonuses": {
+        "2": {"attack": 20, "accuracy": 8},
+        "4": {"attack": 45, "accuracy": 15, "hp": 150},
+        "6": {"attack": 75, "accuracy": 22, "hp": 300, "special_effect": "petrify_chance", "effect_chance": 0.15, "effect_comment": "15% chance to stun enemy for 1 turn on attack"}
+      }
+    },
+    "revenge": {
+      "name": "Fury of the Erinyes",
+      "description": "The vengeful Furies strike back at those who dare attack",
+      "focus": "PvP/Counter",
+      "bonuses": {
+        "2": {"defense": 30, "hp": 125},
+        "4": {"defense": 55, "hp": 275, "attack": 25},
+        "6": {"defense": 80, "hp": 450, "attack": 50, "special_effect": "counter_attack", "effect_chance": 0.20, "effect_comment": "20% chance to counter-attack when hit"}
       }
     }
   },
   "stat_ranges": {
+    "_design_note": "Stats reduced ~40% so equipment complements gods rather than overshadowing them. Target: 6pc legendary +15 = ~600-900 power per god",
     "base_values": {
       "attack": {
-        "weapon": [50, 120],
-        "armor": [10, 30],
-        "helm": [10, 30],
-        "boots": [10, 30],
-        "amulet": [20, 50],
-        "ring": [20, 50]
+        "weapon": [25, 60],
+        "armor": [5, 15],
+        "helm": [5, 15],
+        "boots": [5, 15],
+        "amulet": [10, 25],
+        "ring": [10, 25]
       },
       "defense": {
-        "weapon": [10, 30],
-        "armor": [40, 100],
-        "helm": [30, 70],
-        "boots": [10, 30],
-        "amulet": [15, 40],
-        "ring": [15, 40]
+        "weapon": [5, 15],
+        "armor": [20, 50],
+        "helm": [15, 35],
+        "boots": [5, 15],
+        "amulet": [8, 20],
+        "ring": [8, 20]
       },
       "hp": {
-        "weapon": [100, 300],
-        "armor": [300, 800],
-        "helm": [200, 500],
-        "boots": [100, 300],
-        "amulet": [150, 400],
-        "ring": [150, 400]
+        "weapon": [50, 150],
+        "armor": [150, 400],
+        "helm": [100, 250],
+        "boots": [50, 150],
+        "amulet": [75, 200],
+        "ring": [75, 200]
       },
       "speed": {
-        "boots": [15, 40],
-        "weapon": [3, 8],
-        "armor": [3, 8],
-        "helm": [3, 8],
-        "amulet": [5, 15],
-        "ring": [5, 15]
+        "boots": [8, 20],
+        "weapon": [2, 5],
+        "armor": [2, 5],
+        "helm": [2, 5],
+        "amulet": [3, 8],
+        "ring": [3, 8]
       },
       "crit_rate": {
-        "amulet": [5, 20],
+        "amulet": [3, 12],
+        "weapon": [2, 8],
+        "armor": [1, 5],
+        "helm": [1, 5],
+        "boots": [1, 5],
+        "ring": [2, 8]
+      },
+      "crit_damage": {
+        "amulet": [6, 18],
         "weapon": [3, 12],
         "armor": [2, 8],
         "helm": [2, 8],
         "boots": [2, 8],
         "ring": [3, 12]
       },
-      "crit_damage": {
-        "amulet": [10, 30],
-        "weapon": [5, 20],
-        "armor": [3, 15],
-        "helm": [3, 15],
-        "boots": [3, 15],
-        "ring": [5, 20]
-      },
       "resistance": {
-        "ring": [10, 30],
-        "armor": [5, 20],
-        "helm": [5, 20],
-        "weapon": [2, 10],
-        "boots": [2, 10],
-        "amulet": [3, 15]
+        "ring": [6, 18],
+        "armor": [3, 12],
+        "helm": [3, 12],
+        "weapon": [1, 6],
+        "boots": [1, 6],
+        "amulet": [2, 8]
       },
       "accuracy": {
-        "ring": [10, 30],
-        "weapon": [5, 20],
-        "amulet": [5, 20],
-        "armor": [2, 10],
-        "helm": [2, 10],
-        "boots": [2, 10]
+        "ring": [6, 18],
+        "weapon": [3, 12],
+        "amulet": [3, 12],
+        "armor": [1, 6],
+        "helm": [1, 6],
+        "boots": [1, 6]
       }
     },
     "substat_values": {
-      "attack": [10, 35],
-      "defense": [8, 25],
-      "hp": [50, 200],
-      "speed": [2, 12],
-      "crit_rate": [2, 8],
-      "crit_damage": [3, 12],
-      "resistance": [3, 15],
-      "accuracy": [3, 15]
+      "attack": [5, 18],
+      "defense": [4, 12],
+      "hp": [25, 100],
+      "speed": [1, 6],
+      "crit_rate": [1, 5],
+      "crit_damage": [2, 8],
+      "resistance": [2, 8],
+      "accuracy": [2, 8]
     }
   },
   "enhancement_system": {
@@ -278,6 +358,26 @@
       "name": "Green Speed Gem",
       "stat_bonus": {"speed": 8}
     }
+  },
+  "crafting_system": {
+    "god_exp_base": 10,
+    "god_exp_per_level": 2,
+    "_comment": "Gods gain exp_base + (level * exp_per_level) exp when used for crafting"
+  },
+  "forge_config": {
+    "crafting_building_types": ["blacksmith", "weapon_forge", "armor_forge", "divine_forge"],
+    "max_crafts_per_tier": {
+      "1": 1,
+      "2": 1,
+      "3": 2,
+      "4": 2
+    },
+    "default_max_workers": 3,
+    "_comment": "max_crafts_per_tier: how many concurrent crafts a forge supports based on tier. default_max_workers is fallback if building config missing."
+  },
+  "equipment_slots": {
+    "max_slots": 6,
+    "slot_types": ["weapon", "armor", "helm", "boots", "amulet", "ring"]
   },
   "equipment_origins": {
     "weapon": {

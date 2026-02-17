@@ -96,6 +96,7 @@ func display_god(god_id: String):
 	# Convert God object to dictionary format for UI compatibility
 	current_god_data = {
 		"id": god.id,
+		"template_id": god.template_id,
 		"name": god.name,
 		"pantheon": god.pantheon,
 		"element": god.element,
@@ -108,6 +109,7 @@ func display_god(god_id: String):
 		"speed": god.base_speed,
 		"total_power": GodCalculator.get_power_rating(god),
 		"stationed_territory": god.stationed_territory,
+		"equipped_skin_id": god.equipped_skin_id,
 		"abilities": god.active_abilities if god.has_meta("active_abilities") else []
 	}
 	_build_god_details()
@@ -302,7 +304,10 @@ Territory: %s""" % [
 			abilities_section.add_child(ability_container)
 		
 		content.add_child(abilities_section)
-	
+
+	# Skin Selection Section (only if feature unlocked and skins available)
+	_create_skin_section(content)
+
 
 func _create_god_header():
 	"""Create the god header with name and basic info"""
@@ -343,7 +348,7 @@ func _create_god_header():
 	info_container.add_child(element_label)
 	
 	var level_label: Label = Label.new()
-	level_label.text = "Level: " + str(current_god_data.get("level", 1)) + "/" + str(current_god_data.get("max_level", 40))
+	level_label.text = "Level: " + str(current_god_data.get("level", 1)) + "/" + str(God.get_max_level())
 	info_container.add_child(level_label)
 
 func _create_stats_section():
@@ -495,17 +500,28 @@ func _on_awaken_pressed():
 
 # Helper functions for beautiful styling
 func _get_god_sprite(god_id: String) -> Texture2D:
-	"""Load god sprite texture"""
+	"""Load god sprite texture with skin support"""
+	# Check for equipped skin first
+	var skin_id: String = current_god_data.get("equipped_skin_id", "")
+	if skin_id != "":
+		var registry: Node = SystemRegistry.get_instance()
+		var skin_manager: Node = registry.get_system("SkinManager") if registry else null
+		if skin_manager:
+			var skin: Dictionary = skin_manager.get_skin(skin_id)
+			var skin_path: String = skin.get("portrait_path", "")
+			if skin_path != "" and ResourceLoader.exists(skin_path):
+				return load(skin_path)
+
 	# Try to load from assets/gods/ folder
 	var sprite_path: String = "res://assets/gods/" + god_id + ".png"
 	if ResourceLoader.exists(sprite_path):
 		return load(sprite_path)
-	
+
 	# Try alternative paths
 	sprite_path = "res://assets/gods/" + god_id + ".jpg"
 	if ResourceLoader.exists(sprite_path):
 		return load(sprite_path)
-	
+
 	# No sprite found
 	return null
 
@@ -513,3 +529,112 @@ func _get_experience_to_next_level(level: int) -> int:
 	"""Calculate experience needed for next level"""
 	# Simple formula - can be made more complex later
 	return level * 100
+
+func _create_skin_section(parent_container: VBoxContainer) -> void:
+	"""Create the skin selection section"""
+	var registry: Node = SystemRegistry.get_instance()
+	var feature_unlock_manager: Node = registry.get_system("FeatureUnlockManager") if registry else null
+	var skin_manager: Node = registry.get_system("SkinManager") if registry else null
+
+	# Check if skin_selection feature is unlocked
+	if not feature_unlock_manager or not feature_unlock_manager.is_feature_unlocked("skin_selection"):
+		return
+
+	if not skin_manager:
+		return
+
+	# Get skins for this god's template
+	var available_skins: Array = skin_manager.get_skins_for_god(current_god_id)
+
+	if available_skins.is_empty():
+		return  # No skins available for this god
+
+	# Create section container
+	var skin_section: VBoxContainer = VBoxContainer.new()
+	skin_section.add_theme_constant_override("separation", 5)
+	parent_container.add_child(skin_section)
+
+	# Section header
+	var skin_title: Label = Label.new()
+	skin_title.text = "═══ SKINS ═══"
+	skin_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	skin_title.add_theme_font_size_override("font_size", 14)
+	skin_section.add_child(skin_title)
+
+	# Current skin display
+	var current_skin_id: String = current_god_data.get("equipped_skin_id", "")
+	var current_skin_label: Label = Label.new()
+	if current_skin_id == "":
+		current_skin_label.text = "Current: Default"
+	else:
+		var skin_data: Dictionary = skin_manager.get_skin(current_skin_id)
+		current_skin_label.text = "Current: %s" % skin_data.get("name", current_skin_id)
+	current_skin_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	current_skin_label.add_theme_color_override("font_color", Color.GOLD)
+	skin_section.add_child(current_skin_label)
+
+	# Skin selector grid
+	var skin_grid: HBoxContainer = HBoxContainer.new()
+	skin_grid.add_theme_constant_override("separation", 8)
+	skin_grid.alignment = BoxContainer.ALIGNMENT_CENTER
+	skin_section.add_child(skin_grid)
+
+	# Default skin button
+	var default_btn: Button = Button.new()
+	default_btn.text = "Default"
+	default_btn.custom_minimum_size = Vector2(80, 35)
+	default_btn.disabled = (current_skin_id == "")
+	default_btn.pressed.connect(_on_skin_selected.bind(""))
+	skin_grid.add_child(default_btn)
+
+	# Available skin buttons
+	for skin_id: String in available_skins:
+		var skin_data: Dictionary = skin_manager.get_skin(skin_id)
+		var is_owned: bool = skin_manager.is_skin_owned(skin_id)
+		var is_equipped: bool = (skin_id == current_skin_id)
+
+		var skin_btn: Button = Button.new()
+		skin_btn.custom_minimum_size = Vector2(100, 35)
+
+		if is_owned:
+			skin_btn.text = skin_data.get("name", skin_id)
+			skin_btn.disabled = is_equipped
+			skin_btn.pressed.connect(_on_skin_selected.bind(skin_id))
+			if is_equipped:
+				skin_btn.modulate = Color.GOLD
+		else:
+			var cost: int = int(skin_data.get("cost_crystals", 0))
+			skin_btn.text = "%s (%d)" % [skin_data.get("name", skin_id), cost]
+			skin_btn.pressed.connect(_on_skin_purchase_requested.bind(skin_id))
+			skin_btn.modulate = Color(0.6, 0.6, 0.6)
+
+		# Color border by rarity
+		var rarity: String = skin_data.get("rarity", "common")
+		match rarity:
+			"epic":
+				if is_owned:
+					skin_btn.add_theme_color_override("font_color", Color(0.7, 0.3, 0.9))
+			"legendary":
+				if is_owned:
+					skin_btn.add_theme_color_override("font_color", Color(1.0, 0.7, 0.0))
+
+		skin_grid.add_child(skin_btn)
+
+func _on_skin_selected(skin_id: String) -> void:
+	"""Handle skin selection"""
+	var registry: Node = SystemRegistry.get_instance()
+	var skin_manager: Node = registry.get_system("SkinManager") if registry else null
+	if not skin_manager:
+		return
+
+	if skin_id == "":
+		skin_manager.unequip_skin(current_god_id)
+	else:
+		skin_manager.equip_skin(current_god_id, skin_id)
+
+	# Refresh display to show new skin
+	refresh_current_display()
+
+func _on_skin_purchase_requested(skin_id: String) -> void:
+	"""Handle skin purchase request"""
+	god_action_requested.emit("purchase_skin", current_god_id, {"skin_id": skin_id})

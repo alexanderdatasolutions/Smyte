@@ -313,41 +313,6 @@ func get_other_bonus_for_god(god: God, bonus_type: String) -> float:
 	return total_bonus
 
 # ==============================================================================
-# SPECIALIZATION SUPPORT
-# ==============================================================================
-
-func get_available_specializations_for_god(god: God) -> Array[String]:
-	"""Get all specialization trees available to a god based on their roles"""
-	var result: Array[String] = []
-
-	if not god:
-		return result
-
-	# Get trees from primary role
-	if not god.primary_role.is_empty() and _roles.has(god.primary_role):
-		var primary_role = _roles[god.primary_role]
-		for tree_id in primary_role.get_specialization_trees():
-			if not tree_id in result:
-				result.append(tree_id)
-
-	# Get trees from secondary role (if unlocked via progression)
-	if not god.secondary_role.is_empty() and _roles.has(god.secondary_role):
-		var secondary_role = _roles[god.secondary_role]
-		for tree_id in secondary_role.get_specialization_trees():
-			if not tree_id in result:
-				result.append(tree_id)
-
-	return result
-
-func can_god_access_specialization(god: God, spec_tree_id: String) -> bool:
-	"""Check if a god can access a specific specialization tree"""
-	if not god:
-		return false
-
-	var available_trees = get_available_specializations_for_god(god)
-	return spec_tree_id in available_trees
-
-# ==============================================================================
 # UTILITY
 # ==============================================================================
 

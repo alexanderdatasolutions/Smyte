@@ -7,6 +7,23 @@
 
 ---
 
+## 2026-02-16 - Audit: Add static typing to GodCalculator.gd
+
+**Priority:** Medium (Static Typing)
+**File(s) Modified:** `scripts/systems/collection/GodCalculator.gd`
+
+**Changes:**
+- Added static types to all 26 local variables across 13 functions
+- Typed `base`/`level_bonus`/`equipment_bonus` as `int`, `modifier`/`ascension_bonus` as `float`
+- Typed equipment loop iterator as `Variant` with `Equipment` cast, substat iterator as `Dictionary`
+- Changed `min()` to `mini()` for int caps (crit_rate, accuracy, resistance)
+- Typed JSON parse result as `Variant` with `Dictionary` cast
+- Typed preload as `GDScript`
+
+**Verified:** Ran project, no new errors in debug output. All pre-existing warnings unchanged.
+
+---
+
 ## 2026-02-16 - Audit: Add static typing and cache SystemRegistry in progression files
 
 **Priority:** Medium (Static Typing)

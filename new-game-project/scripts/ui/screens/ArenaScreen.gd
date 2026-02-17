@@ -3,6 +3,8 @@
 extends Control
 class_name ArenaScreen
 
+const ArenaDefensePopupScript = preload("res://scripts/ui/arena/ArenaDefensePopup.gd")
+
 # Signals
 signal back_pressed
 
@@ -32,26 +34,13 @@ var defense_team_slots: Array = []  # Array[Control]
 # Opponent cards
 var opponent_cards: Array = []  # Array[Control]
 
-# Defense popup references
-var defense_popup_overlay: Control = null
-var defense_popup_team_slots: Array = []
-var defense_popup_pending_team: Array = [null, null, null, null]
-var defense_popup_gods_grid: GridContainer = null
-
-# Defense popup sorting state
-enum SortType { POWER, LEVEL, TIER, ELEMENT, NAME }
-var defense_popup_sort: SortType = SortType.POWER
-var defense_popup_sort_ascending: bool = false
-var defense_popup_sort_dropdown: OptionButton = null
-var defense_popup_sort_btn: Button = null
-
-# Defense popup stats display
-var defense_popup_power_label: Label = null
-var defense_popup_bonuses_container: VBoxContainer = null
+# Defense popup helper
+var _defense_popup: RefCounted = null
 
 # Current state
 var selected_opponent: Dictionary = {}
 var is_showing_leaderboard: bool = false
+var _waiting_for_post_result: bool = false
 
 # System reference helper
 func _get_system_registry():
@@ -100,6 +89,16 @@ func _on_visibility_changed() -> void:
 	if visible:
 		_update_header_for_screen()
 		_refresh_data()
+		_check_intro_tutorial()
+
+func _check_intro_tutorial() -> void:
+	"""Check if intro tutorial should be shown for this screen."""
+	var registry = _get_system_registry()
+	if not registry:
+		return
+	var tutorial_orch: Node = registry.get_system("TutorialOrchestrator")
+	if tutorial_orch and not tutorial_orch.is_tutorial_completed("arena_intro"):
+		tutorial_orch.start_tutorial("arena_intro")
 
 func _update_header_for_screen() -> void:
 	var main_ui = get_node_or_null("/root/Main/MainUIOverlay")
@@ -1271,6 +1270,7 @@ func _on_back_pressed() -> void:
 
 func _on_refresh_pressed() -> void:
 	if arena_manager:
+		_show_notification("Refreshing opponents...", Color(0.6, 0.7, 0.8))
 		arena_manager.fetch_opponents()
 
 func _on_fight_pressed(opponent: Dictionary) -> void:
@@ -1299,8 +1299,26 @@ func _on_fight_pressed(opponent: Dictionary) -> void:
 				battle_setup_screen.setup_cancelled.connect(_on_battle_setup_cancelled)
 
 func _on_edit_defense_pressed() -> void:
-	# Show defense team selection popup on top of arena screen
-	_show_defense_team_popup()
+	# Show defense team selection popup using unified TeamSelectionManager
+	_defense_popup = ArenaDefensePopupScript.new()
+	_defense_popup.defense_confirmed.connect(_on_defense_popup_confirmed)
+	_defense_popup.popup_closed.connect(_on_defense_popup_closed)
+
+	var current_team: Array = []
+	if arena_manager:
+		current_team = arena_manager.get_defense_team()
+	_defense_popup.show_popup(self, current_team)
+
+func _on_defense_popup_confirmed(team: Array) -> void:
+	"""Handle defense team confirmation from popup"""
+	if arena_manager:
+		arena_manager.update_defense_team(team)
+	_update_defense_display()
+	_update_player_stats()
+
+func _on_defense_popup_closed() -> void:
+	"""Handle popup close"""
+	_defense_popup = null
 
 func _on_post_defense_pressed() -> void:
 	"""Post current defense team to Firebase for other players to fight"""
@@ -1323,9 +1341,12 @@ func _on_post_defense_pressed() -> void:
 		_show_notification("No defense team set! Set your defense team first.", Color(0.9, 0.6, 0.3))
 		return
 
+	# Show posting notification and track that we're waiting for result
+	_waiting_for_post_result = true
+	_show_notification("Posting defense team...", Color(0.6, 0.7, 0.8))
+
 	# Upload to Firebase via ArenaDataSync
 	arena_manager.post_defense_to_firebase()
-	_show_notification("Defense team posted to arena!", Color(0.4, 0.8, 0.4))
 
 func _show_notification(text: String, color: Color) -> void:
 	"""Show a temporary notification popup"""
@@ -1907,600 +1928,6 @@ func _get_equipment_tier_color(tier: int) -> Color:
 		3: return Color(0.7, 0.4, 0.8)   # Epic - purple
 		4: return Color(1.0, 0.84, 0.0)  # Legendary - gold
 		_: return Color(0.5, 0.5, 0.55)
-
-# ==============================================================================
-# DEFENSE TEAM POPUP
-# ==============================================================================
-
-func _show_defense_team_popup() -> void:
-	"""Show inline defense team selection popup - matches TeamSelectionManager quality"""
-	# Close existing popup if any
-	if defense_popup_overlay and is_instance_valid(defense_popup_overlay):
-		defense_popup_overlay.queue_free()
-
-	# Reset pending team
-	defense_popup_pending_team = [null, null, null, null]
-	defense_popup_team_slots.clear()
-	defense_popup_power_label = null
-	defense_popup_bonuses_container = null
-	defense_popup_sort_dropdown = null
-	defense_popup_sort_btn = null
-
-	# Create overlay
-	defense_popup_overlay = ColorRect.new()
-	defense_popup_overlay.name = "DefensePopupOverlay"
-	defense_popup_overlay.color = Color(0, 0, 0, 0.8)
-	defense_popup_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	defense_popup_overlay.z_index = 100
-	add_child(defense_popup_overlay)
-
-	# Click overlay to close
-	defense_popup_overlay.gui_input.connect(func(event):
-		if event is InputEventMouseButton and event.pressed:
-			_close_defense_popup()
-	)
-
-	# Main popup panel - larger to fit all content
-	var popup_panel: PanelContainer = PanelContainer.new()
-	popup_panel.custom_minimum_size = Vector2(850, 600)
-	popup_panel.set_anchors_preset(Control.PRESET_CENTER)
-	popup_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	popup_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
-	popup_panel.position = Vector2(-425, -300)
-	_style_panel(popup_panel)
-	popup_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	defense_popup_overlay.add_child(popup_panel)
-
-	var margin: MarginContainer = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_top", 15)
-	margin.add_theme_constant_override("margin_bottom", 15)
-	popup_panel.add_child(margin)
-
-	# Main horizontal layout (left stats panel + right gods grid)
-	var main_hbox: HBoxContainer = HBoxContainer.new()
-	main_hbox.add_theme_constant_override("separation", 15)
-	margin.add_child(main_hbox)
-
-	# === LEFT PANEL: Team slots, power, bonuses ===
-	var left_panel: PanelContainer = PanelContainer.new()
-	left_panel.custom_minimum_size = Vector2(260, 0)
-	var left_style: StyleBoxFlat = StyleBoxFlat.new()
-	left_style.bg_color = Color(0.1, 0.08, 0.14, 0.95)
-	left_style.border_color = Color(0.25, 0.2, 0.35, 0.8)
-	left_style.set_border_width_all(1)
-	left_style.set_corner_radius_all(6)
-	left_style.set_content_margin_all(12)
-	left_panel.add_theme_stylebox_override("panel", left_style)
-	main_hbox.add_child(left_panel)
-
-	var left_vbox: VBoxContainer = VBoxContainer.new()
-	left_vbox.add_theme_constant_override("separation", 10)
-	left_panel.add_child(left_vbox)
-
-	# Header with clear button
-	var header_row: HBoxContainer = HBoxContainer.new()
-	left_vbox.add_child(header_row)
-
-	var team_title: Label = Label.new()
-	team_title.text = "YOUR DEFENSE"
-	team_title.add_theme_font_size_override("font_size", 14)
-	team_title.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
-	team_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header_row.add_child(team_title)
-
-	var clear_btn: Button = Button.new()
-	clear_btn.text = "Clear"
-	clear_btn.custom_minimum_size = Vector2(60, 26)
-	clear_btn.pressed.connect(_clear_defense_popup_team)
-	_style_secondary_button(clear_btn)
-	header_row.add_child(clear_btn)
-
-	# Team slots
-	var slots_hbox: HBoxContainer = HBoxContainer.new()
-	slots_hbox.add_theme_constant_override("separation", 8)
-	slots_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	left_vbox.add_child(slots_hbox)
-
-	for i in range(4):
-		var slot = _create_defense_popup_slot(i)
-		defense_popup_team_slots.append(slot)
-		slots_hbox.add_child(slot)
-
-	# Combat power display
-	var power_hbox: HBoxContainer = HBoxContainer.new()
-	power_hbox.add_theme_constant_override("separation", 8)
-	power_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	left_vbox.add_child(power_hbox)
-
-	var power_icon: Label = Label.new()
-	power_icon.text = "⚔️"
-	power_icon.add_theme_font_size_override("font_size", 16)
-	power_hbox.add_child(power_icon)
-
-	var power_title: Label = Label.new()
-	power_title.text = "Combat Power:"
-	power_title.add_theme_font_size_override("font_size", 12)
-	power_title.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
-	power_hbox.add_child(power_title)
-
-	defense_popup_power_label = Label.new()
-	defense_popup_power_label.text = "0"
-	defense_popup_power_label.add_theme_font_size_override("font_size", 16)
-	defense_popup_power_label.add_theme_color_override("font_color", Color.GOLD)
-	power_hbox.add_child(defense_popup_power_label)
-
-	# Separator
-	var sep1: HSeparator = HSeparator.new()
-	sep1.add_theme_constant_override("separation", 6)
-	left_vbox.add_child(sep1)
-
-	# Team bonuses header
-	var bonuses_header: Label = Label.new()
-	bonuses_header.text = "TEAM BONUSES"
-	bonuses_header.add_theme_font_size_override("font_size", 12)
-	bonuses_header.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
-	left_vbox.add_child(bonuses_header)
-
-	# Team bonuses container
-	defense_popup_bonuses_container = VBoxContainer.new()
-	defense_popup_bonuses_container.add_theme_constant_override("separation", 4)
-	left_vbox.add_child(defense_popup_bonuses_container)
-
-	# Spacer to push buttons to bottom
-	var spacer: Control = Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left_vbox.add_child(spacer)
-
-	# Separator before buttons
-	var sep2: HSeparator = HSeparator.new()
-	sep2.add_theme_constant_override("separation", 6)
-	left_vbox.add_child(sep2)
-
-	# Action buttons
-	var buttons_vbox: VBoxContainer = VBoxContainer.new()
-	buttons_vbox.add_theme_constant_override("separation", 8)
-	left_vbox.add_child(buttons_vbox)
-
-	var set_btn: Button = Button.new()
-	set_btn.text = "SET DEFENSE"
-	set_btn.custom_minimum_size = Vector2(0, 40)
-	set_btn.pressed.connect(_confirm_defense_team)
-	_style_primary_button(set_btn)
-	buttons_vbox.add_child(set_btn)
-
-	var cancel_btn: Button = Button.new()
-	cancel_btn.text = "CANCEL"
-	cancel_btn.custom_minimum_size = Vector2(0, 35)
-	cancel_btn.pressed.connect(_close_defense_popup)
-	_style_secondary_button(cancel_btn)
-	buttons_vbox.add_child(cancel_btn)
-
-	# === RIGHT PANEL: Gods selection grid with sorting ===
-	var right_panel: PanelContainer = PanelContainer.new()
-	right_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var right_style: StyleBoxFlat = StyleBoxFlat.new()
-	right_style.bg_color = Color(0.1, 0.08, 0.14, 0.95)
-	right_style.border_color = Color(0.25, 0.2, 0.35, 0.8)
-	right_style.set_border_width_all(1)
-	right_style.set_corner_radius_all(6)
-	right_style.set_content_margin_all(12)
-	right_panel.add_theme_stylebox_override("panel", right_style)
-	main_hbox.add_child(right_panel)
-
-	var right_vbox: VBoxContainer = VBoxContainer.new()
-	right_vbox.add_theme_constant_override("separation", 10)
-	right_panel.add_child(right_vbox)
-
-	# Header with sorting controls
-	var gods_header_row: HBoxContainer = HBoxContainer.new()
-	gods_header_row.add_theme_constant_override("separation", 12)
-	right_vbox.add_child(gods_header_row)
-
-	var gods_title: Label = Label.new()
-	gods_title.text = "SELECT GODS"
-	gods_title.add_theme_font_size_override("font_size", 14)
-	gods_title.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
-	gods_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	gods_header_row.add_child(gods_title)
-
-	# Sorting controls
-	var sort_label: Label = Label.new()
-	sort_label.text = "Sort:"
-	sort_label.add_theme_font_size_override("font_size", 11)
-	sort_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
-	gods_header_row.add_child(sort_label)
-
-	defense_popup_sort_dropdown = OptionButton.new()
-	defense_popup_sort_dropdown.custom_minimum_size = Vector2(90, 28)
-	defense_popup_sort_dropdown.add_item("Power", SortType.POWER)
-	defense_popup_sort_dropdown.add_item("Level", SortType.LEVEL)
-	defense_popup_sort_dropdown.add_item("Tier", SortType.TIER)
-	defense_popup_sort_dropdown.add_item("Element", SortType.ELEMENT)
-	defense_popup_sort_dropdown.add_item("Name", SortType.NAME)
-	defense_popup_sort_dropdown.selected = 0
-	defense_popup_sort_dropdown.item_selected.connect(_on_defense_popup_sort_changed)
-	gods_header_row.add_child(defense_popup_sort_dropdown)
-
-	defense_popup_sort_btn = Button.new()
-	defense_popup_sort_btn.text = "▼"
-	defense_popup_sort_btn.custom_minimum_size = Vector2(30, 28)
-	defense_popup_sort_btn.tooltip_text = "Toggle sort direction"
-	defense_popup_sort_btn.pressed.connect(_toggle_defense_popup_sort_direction)
-	_style_secondary_button(defense_popup_sort_btn)
-	gods_header_row.add_child(defense_popup_sort_btn)
-
-	# Close button
-	var close_btn: Button = Button.new()
-	close_btn.text = "✕"
-	close_btn.custom_minimum_size = Vector2(28, 28)
-	close_btn.pressed.connect(_close_defense_popup)
-	_style_secondary_button(close_btn)
-	gods_header_row.add_child(close_btn)
-
-	# Scrollable gods grid
-	var scroll: ScrollContainer = ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	right_vbox.add_child(scroll)
-
-	defense_popup_gods_grid = GridContainer.new()
-	defense_popup_gods_grid.columns = 5
-	defense_popup_gods_grid.add_theme_constant_override("h_separation", 8)
-	defense_popup_gods_grid.add_theme_constant_override("v_separation", 8)
-	scroll.add_child(defense_popup_gods_grid)
-
-	# Load current defense team into popup if exists
-	if arena_manager:
-		var current_defense = arena_manager.get_defense_team()
-		for i in range(min(4, current_defense.size())):
-			if current_defense[i] != null:
-				defense_popup_pending_team[i] = current_defense[i]
-				_update_defense_popup_slot(i)
-
-	_refresh_defense_popup_gods()
-	_update_defense_popup_stats()
-
-func _create_defense_popup_slot(index: int) -> PanelContainer:
-	var slot: PanelContainer = PanelContainer.new()
-	slot.custom_minimum_size = Vector2(80, 100)
-
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.15, 0.12, 0.2, 0.9)
-	style.border_color = Color(0.4, 0.35, 0.5, 0.6)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(6)
-	slot.add_theme_stylebox_override("panel", style)
-
-	# Placeholder content
-	var center: CenterContainer = CenterContainer.new()
-	center.name = "Content"
-	slot.add_child(center)
-
-	var plus_label: Label = Label.new()
-	plus_label.text = "+"
-	plus_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.45))
-	plus_label.add_theme_font_size_override("font_size", 28)
-	center.add_child(plus_label)
-
-	# Make clickable to remove
-	slot.gui_input.connect(func(event):
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			_on_defense_slot_clicked(index)
-	)
-
-	return slot
-
-func _update_defense_popup_slot(index: int) -> void:
-	if index < 0 or index >= defense_popup_team_slots.size():
-		return
-
-	var slot = defense_popup_team_slots[index]
-	var content = slot.get_node_or_null("Content")
-	if not content:
-		return
-
-	# Clear existing content
-	for child in content.get_children():
-		child.queue_free()
-
-	var god = defense_popup_pending_team[index]
-	if god == null:
-		# Empty slot
-		var plus_label: Label = Label.new()
-		plus_label.text = "+"
-		plus_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.45))
-		plus_label.add_theme_font_size_override("font_size", 28)
-		content.add_child(plus_label)
-
-		# Reset border
-		var style = slot.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
-		style.border_color = Color(0.4, 0.35, 0.5, 0.6)
-		slot.add_theme_stylebox_override("panel", style)
-	else:
-		# Show god
-		var vbox: VBoxContainer = VBoxContainer.new()
-		vbox.add_theme_constant_override("separation", 2)
-		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-		content.add_child(vbox)
-
-		# Portrait
-		var texture_rect: TextureRect = TextureRect.new()
-		texture_rect.custom_minimum_size = Vector2(48, 48)
-		texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-		texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-
-		var template_id = god.template_id if god.template_id else god.id
-		var sprite_path: String = "res://assets/gods/" + template_id + ".png"
-		if ResourceLoader.exists(sprite_path):
-			texture_rect.texture = load(sprite_path)
-
-		var img_center: CenterContainer = CenterContainer.new()
-		img_center.add_child(texture_rect)
-		vbox.add_child(img_center)
-
-		# Name
-		var name_label: Label = Label.new()
-		var display_name = god.name.substr(0, 7) if god.name.length() > 7 else god.name
-		name_label.text = display_name
-		name_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9))
-		name_label.add_theme_font_size_override("font_size", 10)
-		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		vbox.add_child(name_label)
-
-		# Level
-		var level_label: Label = Label.new()
-		level_label.text = "Lv.%d" % god.level
-		level_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
-		level_label.add_theme_font_size_override("font_size", 9)
-		level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		vbox.add_child(level_label)
-
-		# Update border to element color
-		var style = slot.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
-		style.border_color = _get_element_color(god.element)
-		slot.add_theme_stylebox_override("panel", style)
-
-func _on_defense_slot_clicked(index: int) -> void:
-	if defense_popup_pending_team[index] != null:
-		defense_popup_pending_team[index] = null
-		_update_defense_popup_slot(index)
-		_refresh_defense_popup_gods()
-		_update_defense_popup_stats()
-
-func _refresh_defense_popup_gods() -> void:
-	if not defense_popup_gods_grid:
-		return
-
-	# Clear existing
-	for child in defense_popup_gods_grid.get_children():
-		child.queue_free()
-
-	# Get all gods from collection
-	if not collection_manager:
-		return
-
-	var all_gods = collection_manager.get_all_gods()
-
-	# Sort based on current sort settings
-	all_gods = _sort_defense_popup_gods(all_gods)
-
-	# Create cards for each god
-	for god in all_gods:
-		# Check if already in pending team
-		var already_selected: bool = false
-		for selected in defense_popup_pending_team:
-			if selected != null and selected.id == god.id:
-				already_selected = true
-				break
-
-		var card = _create_defense_popup_god_card(god, already_selected)
-		defense_popup_gods_grid.add_child(card)
-
-func _sort_defense_popup_gods(gods: Array) -> Array:
-	"""Sort gods based on current popup sort settings"""
-	var sorted = gods.duplicate()
-
-	match defense_popup_sort:
-		SortType.POWER:
-			sorted.sort_custom(func(a, b):
-				var pa = GodCalculator.get_power_rating(a)
-				var pb = GodCalculator.get_power_rating(b)
-				return pa < pb if defense_popup_sort_ascending else pa > pb)
-		SortType.LEVEL:
-			sorted.sort_custom(func(a, b):
-				return a.level < b.level if defense_popup_sort_ascending else a.level > b.level)
-		SortType.TIER:
-			sorted.sort_custom(func(a, b):
-				return a.tier < b.tier if defense_popup_sort_ascending else a.tier > b.tier)
-		SortType.ELEMENT:
-			sorted.sort_custom(func(a, b):
-				return a.element < b.element if defense_popup_sort_ascending else a.element > b.element)
-		SortType.NAME:
-			sorted.sort_custom(func(a, b):
-				return a.name < b.name if defense_popup_sort_ascending else a.name > b.name)
-
-	return sorted
-
-func _on_defense_popup_sort_changed(index: int) -> void:
-	defense_popup_sort = index as SortType
-	_refresh_defense_popup_gods()
-
-func _toggle_defense_popup_sort_direction() -> void:
-	defense_popup_sort_ascending = not defense_popup_sort_ascending
-	if defense_popup_sort_btn:
-		defense_popup_sort_btn.text = "▲" if defense_popup_sort_ascending else "▼"
-	_refresh_defense_popup_gods()
-
-func _update_defense_popup_stats() -> void:
-	"""Update power and bonuses display for the pending defense team"""
-	# Calculate total power
-	var total_power: int = 0
-	for god in defense_popup_pending_team:
-		if god != null:
-			total_power += GodCalculator.get_power_rating(god)
-
-	if defense_popup_power_label:
-		defense_popup_power_label.text = _format_number(total_power)
-
-	# Update bonuses display
-	if not defense_popup_bonuses_container:
-		return
-
-	# Clear existing
-	for child in defense_popup_bonuses_container.get_children():
-		child.queue_free()
-
-	# Calculate bonuses using TeamStatsCalculator if available, else manual calculation
-	var bonuses = _get_defense_popup_team_bonuses()
-
-	if bonuses.is_empty():
-		var no_bonus: Label = Label.new()
-		no_bonus.text = "No active bonuses"
-		no_bonus.add_theme_font_size_override("font_size", 10)
-		no_bonus.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
-		defense_popup_bonuses_container.add_child(no_bonus)
-	else:
-		for bonus in bonuses:
-			var bonus_row: HBoxContainer = HBoxContainer.new()
-			bonus_row.add_theme_constant_override("separation", 6)
-
-			var name_label: Label = Label.new()
-			name_label.text = bonus.name
-			name_label.add_theme_font_size_override("font_size", 10)
-			name_label.add_theme_color_override("font_color", Color(0.4, 0.8, 0.4))
-			name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			bonus_row.add_child(name_label)
-
-			var desc_label: Label = Label.new()
-			desc_label.text = bonus.desc
-			desc_label.add_theme_font_size_override("font_size", 9)
-			desc_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
-			bonus_row.add_child(desc_label)
-
-			defense_popup_bonuses_container.add_child(bonus_row)
-
-func _get_defense_popup_team_bonuses() -> Array:
-	"""Calculate team bonuses for the pending defense team"""
-	# Use TeamStatsCalculator static method
-	return TeamStatsCalculator.get_team_bonuses(defense_popup_pending_team)
-
-func _create_defense_popup_god_card(god: God, is_selected: bool) -> PanelContainer:
-	var card: PanelContainer = PanelContainer.new()
-	card.custom_minimum_size = Vector2(90, 110)
-
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.1, 0.16, 0.95) if not is_selected else Color(0.15, 0.25, 0.15, 0.95)
-	style.border_color = _get_element_color(god.element)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(6)
-	card.add_theme_stylebox_override("panel", style)
-
-	var vbox: VBoxContainer = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 2)
-	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	card.add_child(vbox)
-
-	# Portrait
-	var texture_rect: TextureRect = TextureRect.new()
-	texture_rect.custom_minimum_size = Vector2(50, 50)
-	texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-
-	var template_id = god.template_id if god.template_id else god.id
-	var sprite_path: String = "res://assets/gods/" + template_id + ".png"
-	if ResourceLoader.exists(sprite_path):
-		texture_rect.texture = load(sprite_path)
-
-	var img_center: CenterContainer = CenterContainer.new()
-	img_center.add_child(texture_rect)
-	vbox.add_child(img_center)
-
-	# Name
-	var name_label: Label = Label.new()
-	name_label.text = god.name
-	name_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9))
-	name_label.add_theme_font_size_override("font_size", 10)
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(name_label)
-
-	# Level and power
-	var info_label: Label = Label.new()
-	var power = GodCalculator.get_power_rating(god)
-	info_label.text = "Lv.%d | %s" % [god.level, _format_number(power)]
-	info_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
-	info_label.add_theme_font_size_override("font_size", 9)
-	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(info_label)
-
-	# Dimmed if already selected
-	if is_selected:
-		var selected_overlay: ColorRect = ColorRect.new()
-		selected_overlay.color = Color(0.1, 0.3, 0.1, 0.5)
-		selected_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-		selected_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		card.add_child(selected_overlay)
-
-		var check_label: Label = Label.new()
-		check_label.text = "✓"
-		check_label.add_theme_color_override("font_color", Color(0.4, 0.8, 0.4))
-		check_label.add_theme_font_size_override("font_size", 20)
-		check_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-		check_label.offset_left = -25
-		check_label.offset_top = 5
-		card.add_child(check_label)
-	else:
-		# Make clickable to add
-		card.gui_input.connect(func(event):
-			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-				_on_defense_popup_god_clicked(god)
-		)
-
-	return card
-
-func _on_defense_popup_god_clicked(god: God) -> void:
-	# Find first empty slot
-	for i in range(defense_popup_pending_team.size()):
-		if defense_popup_pending_team[i] == null:
-			defense_popup_pending_team[i] = god
-			_update_defense_popup_slot(i)
-			_refresh_defense_popup_gods()
-			_update_defense_popup_stats()
-			break
-
-func _clear_defense_popup_team() -> void:
-	for i in range(defense_popup_pending_team.size()):
-		defense_popup_pending_team[i] = null
-		_update_defense_popup_slot(i)
-	_refresh_defense_popup_gods()
-	_update_defense_popup_stats()
-
-func _confirm_defense_team() -> void:
-	# Filter out nulls
-	var valid_team: Array = []
-	for god in defense_popup_pending_team:
-		if god != null:
-			valid_team.append(god)
-
-	if arena_manager:
-		arena_manager.update_defense_team(valid_team)
-
-	_close_defense_popup()
-	_update_defense_display()
-	_update_player_stats()
-
-func _close_defense_popup() -> void:
-	if defense_popup_overlay and is_instance_valid(defense_popup_overlay):
-		defense_popup_overlay.queue_free()
-		defense_popup_overlay = null
-	defense_popup_team_slots.clear()
-	defense_popup_gods_grid = null
-	defense_popup_power_label = null
-	defense_popup_bonuses_container = null
-	defense_popup_sort_dropdown = null
-	defense_popup_sort_btn = null
-
 # ==============================================================================
 # SIGNAL HANDLERS
 # ==============================================================================
@@ -2512,6 +1939,14 @@ func _on_defense_updated(success: bool) -> void:
 	if success:
 		_update_defense_display()
 		_update_player_stats()
+
+	# Show result notification if we were waiting for a Firebase post
+	if _waiting_for_post_result:
+		_waiting_for_post_result = false
+		if success:
+			_show_notification("Defense team posted to arena!", Color(0.4, 0.8, 0.4))
+		else:
+			_show_notification("Failed to post defense team. Check connection.", Color(0.9, 0.4, 0.4))
 
 func _on_leaderboard_loaded(entries: Array) -> void:
 	if not leaderboard_popup or not is_instance_valid(leaderboard_popup):

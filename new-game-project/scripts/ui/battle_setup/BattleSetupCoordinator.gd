@@ -120,6 +120,8 @@ func setup_for_hex_node_capture(hex_node: HexNode):
 		call_deferred("_update_for_context")
 	else:
 		_update_for_context()
+	# Check for team selection tutorial after setup
+	call_deferred("_check_team_selection_tutorial")
 
 func setup_for_tower(floor_number: int = 1):
 	battle_context = {
@@ -408,6 +410,85 @@ func _create_default_defender(tier: int, index: int) -> Dictionary:
 		"skills": []
 	}
 
+
+# ============================================================================
+# TUTORIAL INTEGRATION
+# ============================================================================
+var _tutorial_highlight_overlay: TutorialHighlightOverlay = null
+
+func _check_team_selection_tutorial() -> void:
+	"""Check if team selection tutorial should be shown."""
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		return
+
+	var tutorial_orch: Node = registry.get_system("TutorialOrchestrator")
+	if not tutorial_orch:
+		return
+
+	# Check if team_selection_tutorial should start
+	if not tutorial_orch.is_tutorial_completed("team_selection_tutorial"):
+		# Check prerequisite
+		if tutorial_orch.is_tutorial_completed("hex_capture_tutorial"):
+			tutorial_orch.start_tutorial("team_selection_tutorial")
+			# Connect to highlight requests if not connected
+			if not tutorial_orch.highlight_requested.is_connected(_on_tutorial_highlight_requested):
+				tutorial_orch.highlight_requested.connect(_on_tutorial_highlight_requested)
+			if not tutorial_orch.highlight_cleared.is_connected(_on_tutorial_highlight_cleared):
+				tutorial_orch.highlight_cleared.connect(_on_tutorial_highlight_cleared)
+
+func _on_tutorial_highlight_requested(target_id: String, message: String, title: String, _show_button: bool = true) -> void:
+	"""Handle highlight requests from TutorialOrchestrator."""
+	var tutorial_orch = SystemRegistry.get_instance().get_system("TutorialOrchestrator")
+	if not tutorial_orch:
+		return
+
+	var step_data: Dictionary = tutorial_orch.get_current_step_data()
+	if step_data.get("target_screen", "") != "team_selection":
+		return
+
+	if target_id == "team_bonuses":
+		_highlight_team_bonuses(message, title)
+
+func _highlight_team_bonuses(message: String, title: String) -> void:
+	"""Highlight the team bonuses section."""
+	if not team_manager:
+		return
+
+	var bonuses_container: Control = team_manager.get_team_bonuses_container()
+	if not bonuses_container:
+		# No container, auto-advance
+		_emit_tutorial_action("team_bonuses_seen")
+		return
+
+	# Create highlight overlay if needed
+	if not _tutorial_highlight_overlay:
+		_tutorial_highlight_overlay = TutorialHighlightOverlay.new()
+		var root: Node = get_tree().root
+		if root:
+			root.add_child(_tutorial_highlight_overlay)
+
+	# Show highlight with continue button (not wait for click)
+	_tutorial_highlight_overlay.highlight_target(bonuses_container, message, title, "Got it!", false, true)
+	_tutorial_highlight_overlay.continue_pressed.connect(_on_team_bonuses_seen, CONNECT_ONE_SHOT)
+
+func _on_team_bonuses_seen() -> void:
+	"""Handle team bonuses highlight dismissed."""
+	_emit_tutorial_action("team_bonuses_seen")
+
+func _on_tutorial_highlight_cleared() -> void:
+	"""Clear any active tutorial highlight."""
+	if _tutorial_highlight_overlay:
+		_tutorial_highlight_overlay.clear_highlight()
+
+func _emit_tutorial_action(action_id: String) -> void:
+	"""Emit a tutorial action via EventBus."""
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		return
+	var event_bus: Node = registry.get_system("EventBus")
+	if event_bus and event_bus.has_signal("tutorial_action_completed"):
+		event_bus.tutorial_action_completed.emit(action_id)
 
 func _start_battle_directly(team: Array):
 	"""Start a test battle directly when no context is set"""

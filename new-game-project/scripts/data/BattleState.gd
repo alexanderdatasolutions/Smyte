@@ -23,6 +23,9 @@ var total_damage_received: int = 0
 var units_defeated: int = 0
 var skills_used: int = 0
 
+# Team bonuses (calculated from team composition)
+var team_bonuses: Array = []
+
 func _init():
 	battle_start_time = Time.get_ticks_msec()
 
@@ -54,6 +57,9 @@ func setup_from_config(config: BattleConfig) -> void:
 
 			player_units.append(unit)
 			all_units.append(unit)
+
+	# Calculate and apply team bonuses
+	_calculate_and_apply_team_bonuses(config.attacker_team)
 
 	# Create enemy units based on battle type
 	enemy_units.clear()
@@ -207,6 +213,8 @@ func process_end_of_turn() -> void:
 	for unit: BattleUnit in get_living_units():
 		unit.process_status_effects()
 		unit.tick_cooldowns()
+		unit.tick_immunity()  # Will set immunity countdown
+		unit.tick_vengeance()  # Nemesis vengeance stacks decay
 
 ## Get units sorted by speed (for turn order)
 func get_units_by_speed() -> Array[BattleUnit]:
@@ -237,3 +245,38 @@ func cleanup() -> void:
 	player_units.clear()
 	enemy_units.clear()
 	all_units.clear()
+
+## Calculate team bonuses and apply stat modifiers to player units
+func _calculate_and_apply_team_bonuses(attacker_team: Array) -> void:
+	# Get team bonuses from TeamStatsCalculator
+	team_bonuses = TeamStatsCalculator.get_team_bonuses(attacker_team)
+
+	if team_bonuses.is_empty():
+		return
+
+	# Aggregate all stat bonuses from team bonuses
+	var stat_mults: Dictionary = {"attack": 1.0, "defense": 1.0, "speed": 1.0, "hp": 1.0}
+
+	for bonus: Dictionary in team_bonuses:
+		var bonuses: Dictionary = bonus.get("bonuses", {})
+		if bonuses.has("attack"):
+			stat_mults.attack += bonuses.attack
+		if bonuses.has("defense"):
+			stat_mults.defense += bonuses.defense
+		if bonuses.has("speed"):
+			stat_mults.speed += bonuses.speed
+		if bonuses.has("all_stats"):
+			stat_mults.attack += bonuses.all_stats
+			stat_mults.defense += bonuses.all_stats
+			stat_mults.speed += bonuses.all_stats
+			stat_mults.hp += bonuses.all_stats
+
+	# Apply stat multipliers to each player unit
+	for unit: BattleUnit in player_units:
+		unit.attack = int(unit.attack * stat_mults.attack)
+		unit.defense = int(unit.defense * stat_mults.defense)
+		unit.speed = int(unit.speed * stat_mults.speed)
+		unit.max_hp = int(unit.max_hp * stat_mults.hp)
+		# Only refresh HP if not using HP overrides (Tower mode)
+		if unit.current_hp == unit.max_hp / stat_mults.hp:
+			unit.current_hp = unit.max_hp

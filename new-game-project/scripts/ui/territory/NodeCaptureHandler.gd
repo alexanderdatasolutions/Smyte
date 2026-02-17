@@ -229,8 +229,10 @@ func _is_god_available_for_battle(god_id: String) -> bool:
 
 	return true
 
+const MAX_DEFENDERS: int = 4
+
 func _get_node_defenders(hex_node: HexNode) -> Array:
-	"""Get defender gods from the node"""
+	"""Get defender gods from the node (max 4)"""
 	if not collection_manager:
 		return []
 
@@ -239,12 +241,16 @@ func _get_node_defenders(hex_node: HexNode) -> Array:
 	# For neutral nodes, use base_defenders (PvE enemies from enemies.json)
 	if hex_node.controller == "neutral":
 		for defender_name in hex_node.base_defenders:
+			if defenders.size() >= MAX_DEFENDERS:
+				break
 			var enemy = _create_enemy_from_config(defender_name, hex_node.tier)
 			if enemy:
 				defenders.append(enemy)
 	# For enemy nodes, use garrison (player gods)
 	else:
 		for god_id in hex_node.garrison:
+			if defenders.size() >= MAX_DEFENDERS:
+				break
 			var defender = collection_manager.get_god_by_id(god_id)
 			if defender:
 				defenders.append(defender)

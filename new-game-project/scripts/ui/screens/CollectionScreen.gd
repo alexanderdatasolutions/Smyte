@@ -195,7 +195,7 @@ func _create_right_panel() -> PanelContainer:
 
 	gods_grid = GridContainer.new()
 	gods_grid.name = "GodsGrid"
-	gods_grid.columns = 4
+	gods_grid.columns = 5
 	gods_grid.add_theme_constant_override("h_separation", 12)
 	gods_grid.add_theme_constant_override("v_separation", 12)
 	scroll.add_child(gods_grid)
@@ -206,6 +206,21 @@ func _create_sorting_controls() -> HBoxContainer:
 	"""Create sorting dropdown and direction button"""
 	var container = HBoxContainer.new()
 	container.add_theme_constant_override("separation", 8)
+
+	# Skins button (only if feature unlocked)
+	var skins_btn = Button.new()
+	skins_btn.name = "SkinsButton"
+	skins_btn.text = "🎨 Skins"
+	skins_btn.custom_minimum_size = Vector2(80, 28)
+	skins_btn.pressed.connect(_on_skins_button_pressed)
+	_style_button(skins_btn)
+	container.add_child(skins_btn)
+	_update_skins_button_visibility(skins_btn)
+
+	# Spacer
+	var spacer = Control.new()
+	spacer.custom_minimum_size = Vector2(20, 0)
+	container.add_child(spacer)
 
 	var sort_label = Label.new()
 	sort_label.text = "Sort:"
@@ -286,7 +301,7 @@ func _create_god_card(god: God) -> Control:
 	container.add_theme_stylebox_override("panel", style)
 
 	# God card using global class
-	var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.COLLECTION_DETAILED)
+	var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.LARGE)
 
 	# Apply selected style if this is the selected god
 	var card_style = GodCard.CardStyle.SELECTED if (selected_god and selected_god.id == god.id) else GodCard.CardStyle.NORMAL
@@ -395,3 +410,20 @@ func _style_button(button: Button):
 
 func _on_back_pressed():
 	back_pressed.emit()
+
+# ============================================================================
+# SKINS
+# ============================================================================
+
+func _update_skins_button_visibility(skins_btn: Button) -> void:
+	var registry = SystemRegistry.get_instance()
+	var feature_manager = registry.get_system("FeatureUnlockManager") if registry else null
+	if feature_manager and feature_manager.is_feature_unlocked("skin_selection"):
+		skins_btn.visible = true
+	else:
+		skins_btn.visible = false
+
+func _on_skins_button_pressed() -> void:
+	var popup: SkinManagementPopup = SkinManagementPopup.new()
+	add_child(popup)
+	popup.show_popup()

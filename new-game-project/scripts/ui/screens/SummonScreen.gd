@@ -34,6 +34,10 @@ var current_summon_was_multi: bool = false
 # Summon config cache
 var _summon_config: Dictionary = {}
 
+# Tutorial integration
+const TutorialHighlightOverlayScript = preload("res://scripts/ui/components/TutorialHighlightOverlay.gd")
+var _highlight_overlay: Control = null
+
 func _ready():
 	_load_summon_config()
 	_setup_fullscreen()
@@ -45,6 +49,8 @@ func _ready():
 	_connect_signals()
 	_setup_header()
 	_switch_tab("crystal")
+	# Check tutorial after UI is fully created
+	call_deferred("_check_tutorial")
 
 func _load_summon_config():
 	var config_mgr = _get_config_manager()
@@ -74,6 +80,7 @@ func _notification(what):
 	if what == NOTIFICATION_VISIBILITY_CHANGED and visible:
 		_setup_header()
 		_refresh_ui()
+		_check_tutorial()
 
 func _create_ui():
 	var bg: ColorRect = ColorRect.new()
@@ -173,9 +180,12 @@ func _create_crystal_panel() -> Control:
 	vbox.add_child(_create_rates_label(rates))
 	vbox.add_child(HSeparator.new())
 
+	var single_cost: int = _get_cost("crystal_summon").get("divine_crystals", 100)
+	var multi_cost: int = _get_cost("crystal_summon", true).get("divine_crystals", 900)
+
 	var cost_label: Label = Label.new()
 	cost_label.name = "CostLabel"
-	cost_label.text = "Cost: 100 Crystals (x1) | 900 Crystals (x10)"
+	cost_label.text = "Cost: %d Crystals (x1) | %d Crystals (x10)" % [single_cost, multi_cost]
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_label.add_theme_font_size_override("font_size", 12)
 	cost_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
@@ -187,7 +197,7 @@ func _create_crystal_panel() -> Control:
 
 	var single_btn: Button = Button.new()
 	single_btn.name = "SingleBtn"
-	single_btn.text = "SUMMON x1  (100 Crystals)"
+	single_btn.text = "SUMMON x1  (%d Crystals)" % single_cost
 	single_btn.custom_minimum_size = Vector2(0, 50)
 	single_btn.pressed.connect(_on_crystal_single_pressed)
 	_style_button(single_btn, true)
@@ -195,7 +205,7 @@ func _create_crystal_panel() -> Control:
 
 	var multi_btn: Button = Button.new()
 	multi_btn.name = "MultiBtn"
-	multi_btn.text = "SUMMON x10  (900 Crystals)  10% OFF"
+	multi_btn.text = "SUMMON x10  (%d Crystals)  10%% OFF" % multi_cost
 	multi_btn.custom_minimum_size = Vector2(0, 50)
 	multi_btn.pressed.connect(_on_crystal_multi_pressed)
 	_style_button(multi_btn, true)
@@ -312,9 +322,12 @@ func _create_element_panel() -> Control:
 	cost_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
 	vbox.add_child(cost_label)
 
+	var elem_crystal_cost: int = _get_cost("element_summon").get("divine_crystals", 150)
+	var elem_powder_cost: int = _get_powder_cost()
+
 	var summon_btn: Button = Button.new()
 	summon_btn.name = "ElementSummonBtn"
-	summon_btn.text = "SUMMON (150 Crystals + 10 Powder)"
+	summon_btn.text = "SUMMON (%d Crystals + %d Powder)" % [elem_crystal_cost, elem_powder_cost]
 	summon_btn.custom_minimum_size = Vector2(0, 50)
 	summon_btn.pressed.connect(_on_element_summon_pressed)
 	_style_button(summon_btn, true)
@@ -364,9 +377,12 @@ func _create_pantheon_panel() -> Control:
 	cost_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
 	vbox.add_child(cost_label)
 
+	var panth_crystal_cost: int = _get_cost("pantheon_summon").get("divine_crystals", 150)
+	var panth_token_cost: int = _get_token_cost()
+
 	var summon_btn: Button = Button.new()
 	summon_btn.name = "PantheonSummonBtn"
-	summon_btn.text = "SUMMON (150 Crystals + 1 Token)"
+	summon_btn.text = "SUMMON (%d Crystals + %d Token)" % [panth_crystal_cost, panth_token_cost]
 	summon_btn.custom_minimum_size = Vector2(0, 50)
 	summon_btn.pressed.connect(_on_pantheon_summon_pressed)
 	_style_button(summon_btn, true)
@@ -410,9 +426,11 @@ func _create_mana_panel() -> Control:
 	vbox.add_child(_create_rates_label(rates))
 	vbox.add_child(HSeparator.new())
 
+	var mana_cost: int = _get_cost("mana_summon").get("mana", 10000)
+
 	var cost_label: Label = Label.new()
 	cost_label.name = "ManaCostLabel"
-	cost_label.text = "Cost: 10,000 Mana per summon"
+	cost_label.text = "Cost: %s Mana per summon" % _format_number(mana_cost)
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_label.add_theme_font_size_override("font_size", 12)
 	cost_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
@@ -420,7 +438,7 @@ func _create_mana_panel() -> Control:
 
 	var summon_btn: Button = Button.new()
 	summon_btn.name = "ManaSummonBtn"
-	summon_btn.text = "SUMMON (10,000 Mana)"
+	summon_btn.text = "SUMMON (%s Mana)" % _format_number(mana_cost)
 	summon_btn.custom_minimum_size = Vector2(0, 50)
 	summon_btn.pressed.connect(_on_mana_summon_pressed)
 	_style_button(summon_btn, true)
@@ -482,6 +500,40 @@ func _get_rates(summon_type: String) -> Dictionary:
 			return type_data.rates
 	return default
 
+func _get_cost(summon_type: String, is_multi: bool = false) -> Dictionary:
+	"""Get cost from summon_config.json - single source of truth"""
+	var default_costs: Dictionary = {
+		"crystal_summon": {"divine_crystals": 100},
+		"crystal_summon_10x": {"divine_crystals": 900},
+		"element_summon": {"divine_crystals": 150},
+		"pantheon_summon": {"divine_crystals": 150},
+		"mana_summon": {"mana": 10000}
+	}
+	if _summon_config.has("summon_types"):
+		var type_data: Dictionary = _summon_config.summon_types.get(summon_type, {})
+		if is_multi and type_data.has("cost_10x"):
+			return type_data.cost_10x
+		elif type_data.has("cost"):
+			return type_data.cost
+		elif type_data.has("base_cost"):
+			return type_data.base_cost
+	var key: String = summon_type + ("_10x" if is_multi else "")
+	return default_costs.get(key, default_costs.get(summon_type, {}))
+
+func _get_powder_cost() -> int:
+	"""Get element powder cost from config"""
+	if _summon_config.has("summon_types"):
+		var elem_cfg: Dictionary = _summon_config.summon_types.get("element_summon", {})
+		return int(elem_cfg.get("powder_cost", 10))
+	return 10
+
+func _get_token_cost() -> int:
+	"""Get pantheon token cost from config"""
+	if _summon_config.has("summon_types"):
+		var panth_cfg: Dictionary = _summon_config.summon_types.get("pantheon_summon", {})
+		return int(panth_cfg.get("token_cost", 1))
+	return 1
+
 func _create_right_panel() -> Control:
 	var panel: PanelContainer = PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -516,10 +568,10 @@ func _create_right_panel() -> Control:
 	vbox.add_child(scroll)
 
 	showcase_grid = GridContainer.new()
-	showcase_grid.columns = 3
+	showcase_grid.columns = 6  # 6 columns to fill available space
 	showcase_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	showcase_grid.add_theme_constant_override("h_separation", 10)
-	showcase_grid.add_theme_constant_override("v_separation", 10)
+	showcase_grid.add_theme_constant_override("h_separation", 6)
+	showcase_grid.add_theme_constant_override("v_separation", 6)
 	scroll.add_child(showcase_grid)
 
 	showcase = _SummonShowcaseClass.new(showcase_grid)
@@ -575,6 +627,10 @@ func _switch_tab(tab_id: String):
 	for id in tab_panels:
 		tab_panels[id].visible = (id == tab_id)
 	_refresh_ui()
+
+	# Emit tutorial action for tab switching
+	if tab_id == "free":
+		_emit_tutorial_action("free_tab_pressed")
 
 # === SUMMON ACTIONS ===
 
@@ -779,12 +835,14 @@ func _update_crystal_panel():
 	if not panel: return
 	var resource_mgr = _get_resource_manager()
 	var crystals = resource_mgr.get_resource("divine_crystals") if resource_mgr else 0
+	var single_cost: int = _get_cost("crystal_summon").get("divine_crystals", 100)
+	var multi_cost: int = _get_cost("crystal_summon", true).get("divine_crystals", 900)
 	var single_btn = panel.find_child("SingleBtn", true, false)
 	if single_btn:
-		single_btn.disabled = crystals < 100 or is_processing_summon
+		single_btn.disabled = crystals < single_cost or is_processing_summon
 	var multi_btn = panel.find_child("MultiBtn", true, false)
 	if multi_btn:
-		multi_btn.disabled = crystals < 900 or is_processing_summon
+		multi_btn.disabled = crystals < multi_cost or is_processing_summon
 
 func _update_soul_panel():
 	var panel = tab_panels.get("soul")
@@ -840,12 +898,14 @@ func _update_element_panel():
 	var crystals = resource_mgr.get_resource("divine_crystals") if resource_mgr else 0
 	var powder_id = selected_element + "_powder"
 	var powder = resource_mgr.get_resource(powder_id) if resource_mgr else 0
+	var elem_crystal_cost: int = _get_cost("element_summon").get("divine_crystals", 150)
+	var elem_powder_cost: int = _get_powder_cost()
 	var cost_label = panel.find_child("ElementCostLabel", true, false)
 	if cost_label:
-		cost_label.text = "Cost: 150 Crystals + 10 %s Powder (%d owned)" % [selected_element.capitalize(), powder]
+		cost_label.text = "Cost: %d Crystals + %d %s Powder (%d owned)" % [elem_crystal_cost, elem_powder_cost, selected_element.capitalize(), powder]
 	var summon_btn = panel.find_child("ElementSummonBtn", true, false)
 	if summon_btn:
-		summon_btn.disabled = crystals < 150 or powder < 10 or is_processing_summon
+		summon_btn.disabled = crystals < elem_crystal_cost or powder < elem_powder_cost or is_processing_summon
 
 func _update_pantheon_panel():
 	var panel = tab_panels.get("pantheon")
@@ -859,12 +919,14 @@ func _update_pantheon_panel():
 	var crystals = resource_mgr.get_resource("divine_crystals") if resource_mgr else 0
 	var token_id = selected_pantheon + "_token"
 	var tokens = resource_mgr.get_resource(token_id) if resource_mgr else 0
+	var panth_crystal_cost: int = _get_cost("pantheon_summon").get("divine_crystals", 150)
+	var panth_token_cost: int = _get_token_cost()
 	var cost_label = panel.find_child("PantheonCostLabel", true, false)
 	if cost_label:
-		cost_label.text = "Cost: 150 Crystals + 1 %s Token (%d owned)" % [selected_pantheon.capitalize(), tokens]
+		cost_label.text = "Cost: %d Crystals + %d %s Token (%d owned)" % [panth_crystal_cost, panth_token_cost, selected_pantheon.capitalize(), tokens]
 	var summon_btn = panel.find_child("PantheonSummonBtn", true, false)
 	if summon_btn:
-		summon_btn.disabled = crystals < 150 or tokens < 1 or is_processing_summon
+		summon_btn.disabled = crystals < panth_crystal_cost or tokens < panth_token_cost or is_processing_summon
 
 func _update_free_panel():
 	var panel = tab_panels.get("free")
@@ -889,9 +951,10 @@ func _update_mana_panel():
 	if not panel: return
 	var resource_mgr = _get_resource_manager()
 	var mana = resource_mgr.get_resource("mana") if resource_mgr else 0
+	var mana_cost: int = _get_cost("mana_summon").get("mana", 10000)
 	var summon_btn = panel.find_child("ManaSummonBtn", true, false)
 	if summon_btn:
-		summon_btn.disabled = mana < 10000 or is_processing_summon
+		summon_btn.disabled = mana < mana_cost or is_processing_summon
 
 # === HELPERS ===
 
@@ -919,6 +982,18 @@ func _get_resource_manager():
 
 func _get_config_manager():
 	return SystemRegistry.get_instance().get_system("ConfigurationManager") if SystemRegistry.get_instance() else null
+
+func _format_number(value: int) -> String:
+	"""Format number with commas for readability"""
+	var str_val: String = str(value)
+	var result: String = ""
+	var count: int = 0
+	for i in range(str_val.length() - 1, -1, -1):
+		if count > 0 and count % 3 == 0:
+			result = "," + result
+		result = str_val[i] + result
+		count += 1
+	return result
 
 # === STYLING ===
 
@@ -1019,3 +1094,94 @@ func _style_pantheon_button(button: Button, is_selected: bool):
 	hover.bg_color = style.bg_color.lightened(0.1)
 	button.add_theme_stylebox_override("hover", hover)
 	button.add_theme_font_size_override("font_size", 11)
+
+# ==============================================================================
+# TUTORIAL INTEGRATION
+# ==============================================================================
+
+func _check_tutorial() -> void:
+	"""Check if we need to show tutorial highlight."""
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		return
+
+	var tutorial_orch: Node = registry.get_system("TutorialOrchestrator")
+	if not tutorial_orch or not tutorial_orch.is_tutorial_active():
+		return
+
+	# Connect to highlight signals if not already connected
+	if not tutorial_orch.highlight_requested.is_connected(_on_highlight_requested):
+		tutorial_orch.highlight_requested.connect(_on_highlight_requested)
+	if not tutorial_orch.highlight_cleared.is_connected(_on_highlight_cleared):
+		tutorial_orch.highlight_cleared.connect(_on_highlight_cleared)
+
+	# Check if current tutorial step is waiting for us to show a highlight
+	var info: Dictionary = tutorial_orch.get_current_tutorial_info()
+	if info.is_empty():
+		return
+
+	# Get current step data
+	var tutorial_name: String = info.get("name", "")
+	var step_index: int = info.get("step", 0)
+
+	if tutorial_orch.tutorial_definitions.has(tutorial_name):
+		var definition: Dictionary = tutorial_orch.tutorial_definitions[tutorial_name]
+		var steps: Array = definition.get("steps", [])
+		if step_index < steps.size():
+			var step_data: Dictionary = steps[step_index]
+			if step_data.get("type") == "highlight" and step_data.get("target_screen") == "summon":
+				# This step is for us - show the highlight
+				var target_id: String = step_data.get("target_id", "")
+				var message: String = step_data.get("message", "")
+				var title: String = step_data.get("title", "")
+				call_deferred("_on_highlight_requested", target_id, message, title)
+
+func _on_highlight_requested(target_id: String, message: String, title: String, show_button: bool = true) -> void:
+	"""Handle highlight request from tutorial orchestrator."""
+	var target_button: Control = get_button_for_tutorial(target_id)
+	if not target_button:
+		print("SummonScreen: Tutorial target '%s' not found" % target_id)
+		return
+
+	# Create highlight overlay if needed
+	if not _highlight_overlay or not is_instance_valid(_highlight_overlay):
+		_highlight_overlay = TutorialHighlightOverlayScript.new()
+		_highlight_overlay.name = "TutorialHighlight"
+		add_child(_highlight_overlay)
+
+	# Don't show if already visible with same target
+	if _highlight_overlay.visible:
+		return
+
+	# Connect overlay signals
+	if not _highlight_overlay.target_clicked.is_connected(_on_highlight_target_clicked):
+		_highlight_overlay.target_clicked.connect(_on_highlight_target_clicked)
+
+	print("SummonScreen: Showing tutorial highlight for '%s'" % target_id)
+	# Show the highlight with button option
+	_highlight_overlay.highlight_target(target_button, message, title, "Got it!", true, show_button)
+
+func _on_highlight_cleared() -> void:
+	"""Handle highlight clear request."""
+	if _highlight_overlay and is_instance_valid(_highlight_overlay):
+		_highlight_overlay.clear_highlight()
+
+func _on_highlight_target_clicked() -> void:
+	"""Handle when user clicks the highlighted target."""
+	pass
+
+func get_button_for_tutorial(button_id: String) -> Control:
+	"""Get a button reference by tutorial target ID."""
+	match button_id:
+		"free_tab":
+			return tab_buttons.get("free")
+	return null
+
+func _emit_tutorial_action(action_id: String) -> void:
+	"""Emit a tutorial action via EventBus."""
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		return
+	var event_bus: Node = registry.get_system("EventBus")
+	if event_bus and event_bus.has_signal("tutorial_action_completed"):
+		event_bus.tutorial_action_completed.emit(action_id)

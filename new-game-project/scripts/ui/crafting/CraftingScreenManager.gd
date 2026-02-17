@@ -33,6 +33,45 @@ const BORDER_PANEL := Color(0.3, 0.25, 0.4, 0.8)
 const TEXT_HEADER := Color(0.8, 0.8, 0.9)
 const TEXT_MUTED := Color(0.5, 0.5, 0.55)
 
+# Static config cache
+static var _equipment_config: Dictionary = {}
+static var _buildings_config: Dictionary = {}
+static var _crafting_recipes: Dictionary = {}
+static var _config_loaded: bool = false
+
+static func _load_config() -> void:
+	if _config_loaded:
+		return
+	# Load equipment config
+	var eq_file := FileAccess.open("res://data/equipment_config.json", FileAccess.READ)
+	if eq_file:
+		var parsed: Variant = JSON.parse_string(eq_file.get_as_text())
+		eq_file.close()
+		if parsed is Dictionary:
+			_equipment_config = parsed
+	# Load buildings config
+	var bld_file := FileAccess.open("res://data/buildings.json", FileAccess.READ)
+	if bld_file:
+		var parsed: Variant = JSON.parse_string(bld_file.get_as_text())
+		bld_file.close()
+		if parsed is Dictionary:
+			_buildings_config = parsed.get("buildings", {})
+	# Load crafting recipes (flat structure - recipes at top level)
+	var recipes_file := FileAccess.open("res://data/crafting_recipes.json", FileAccess.READ)
+	if recipes_file:
+		var parsed: Variant = JSON.parse_string(recipes_file.get_as_text())
+		recipes_file.close()
+		if parsed is Dictionary:
+			_crafting_recipes = {}
+			for key: String in parsed.keys():
+				# Skip metadata and comment keys
+				if key.begins_with("_"):
+					continue
+				var recipe: Variant = parsed[key]
+				if recipe is Dictionary:
+					_crafting_recipes[key] = recipe
+	_config_loaded = true
+
 # ==============================================================================
 # STATE
 # ==============================================================================
@@ -41,8 +80,11 @@ var _recipe_grid: GridContainer = null
 var _active_crafts_container: VBoxContainer = null
 var _filter_tabs: HBoxContainer = null
 var _recipe_count_label: Label = null
+var _forge_selector_container: VBoxContainer = null
+var _forge_info_container: VBoxContainer = null
 
-var _current_node = null  # HexNode
+var _current_node = null  # HexNode - currently selected forge
+var _all_forges: Array = []  # All player forges
 var _all_recipes: Array = []
 var _filtered_recipes: Array = []
 var _current_filter: String = "all"
@@ -52,6 +94,7 @@ var _craftable_toggle: Button = null
 
 var _hex_grid_manager = null
 var _resource_manager = null
+var _territory_manager = null
 
 # Signals
 signal craft_started(node, task_id)
@@ -62,7 +105,40 @@ signal popup_closed
 # PUBLIC API
 # ==============================================================================
 
-## Show the crafting screen for a given forge node
+## Show the crafting screen with all player forges (multi-forge mode)
+func show_all_forges(
+	hex_grid_manager,
+	resource_manager,
+	territory_manager,
+	parent_node: Node = null,
+	initial_node = null  # Optional: pre-select this forge
+) -> void:
+	_hex_grid_manager = hex_grid_manager
+	_resource_manager = resource_manager
+	_territory_manager = territory_manager
+	_current_filter = "all"
+
+	# Load all player forges
+	_all_forges = _get_all_player_forges()
+
+	# Select initial forge (first one with workers, or the specified one)
+	if initial_node:
+		_current_node = initial_node
+	elif not _all_forges.is_empty():
+		# Prefer forge with workers assigned
+		for forge in _all_forges:
+			if forge.assigned_workers and not forge.assigned_workers.is_empty():
+				_current_node = forge
+				break
+		if not _current_node:
+			_current_node = _all_forges[0]
+
+	# Load recipes for current forge
+	_load_recipes_for_current_forge()
+
+	_create_popup(parent_node)
+
+## Show the crafting screen for a given forge node (single-forge mode, legacy)
 func show_crafting_screen(
 	node,
 	recipes: Array,
@@ -71,6 +147,7 @@ func show_crafting_screen(
 	parent_node: Node = null
 ) -> void:
 	_current_node = node
+	_all_forges = [node] if node else []
 	_all_recipes = recipes
 	_hex_grid_manager = hex_grid_manager
 	_resource_manager = resource_manager
@@ -85,6 +162,124 @@ func close() -> void:
 		_popup.queue_free()
 		_popup = null
 	popup_closed.emit()
+
+# ==============================================================================
+# FORGE MANAGEMENT
+# ==============================================================================
+
+func _get_all_player_forges() -> Array:
+	"""Get all player-owned forge nodes with crafting buildings"""
+	var forges: Array = []
+	if not _territory_manager:
+		return forges
+
+	var crafting_buildings: Array = ["blacksmith", "weapon_forge", "armor_forge", "divine_forge", "jeweler"]
+	var controlled_nodes: Array = _territory_manager.get_controlled_nodes()
+
+	for node in controlled_nodes:
+		var placed_building: String = ""
+		if "placed_building" in node:
+			placed_building = str(node.placed_building)
+
+		# Check if it's a crafting building OR a forge node type
+		if placed_building in crafting_buildings or node.node_type == "forge":
+			forges.append(node)
+
+	# Sort by tier descending, then by name
+	forges.sort_custom(func(a, b):
+		if a.tier != b.tier:
+			return a.tier > b.tier
+		return a.name < b.name
+	)
+
+	return forges
+
+func _load_recipes_for_current_forge() -> void:
+	"""Load available recipes for the currently selected forge"""
+	_all_recipes = []
+	if not _current_node:
+		return
+
+	# Load crafting recipes from cached data
+	_load_config()
+
+	for recipe_id: String in _crafting_recipes:
+		var recipe: Dictionary = _crafting_recipes[recipe_id].duplicate()
+		recipe["id"] = recipe_id
+
+		# Check tier requirement
+		var required_tier: int = recipe.get("tier", 1)
+		if _current_node.tier >= required_tier:
+			_all_recipes.append(recipe)
+
+	_filtered_recipes = _all_recipes.duplicate()
+
+func _select_forge(node) -> void:
+	"""Select a forge and update the UI"""
+	_current_node = node
+	_load_recipes_for_current_forge()
+	_apply_filter_and_sort()
+	_update_active_crafts()
+	_update_forge_info()
+	_update_forge_selector_styles()
+
+func _update_forge_info() -> void:
+	"""Update the forge info section for the selected forge"""
+	if not _forge_info_container:
+		return
+
+	# Clear existing
+	for child in _forge_info_container.get_children():
+		child.queue_free()
+
+	if not _current_node:
+		var no_forge := Label.new()
+		no_forge.text = "No forge selected"
+		no_forge.add_theme_font_size_override("font_size", 11)
+		no_forge.add_theme_color_override("font_color", TEXT_MUTED)
+		_forge_info_container.add_child(no_forge)
+		return
+
+	# Tier with stars
+	var tier_row := _create_info_row("Tier:", _get_tier_stars(_current_node.tier))
+	_forge_info_container.add_child(tier_row)
+
+	# Workers
+	var workers_assigned: int = _current_node.assigned_workers.size() if _current_node.assigned_workers else 0
+	_load_config()
+	var forge_cfg: Dictionary = _equipment_config.get("forge_config", {})
+	var default_max: int = int(forge_cfg.get("default_max_workers", 3))
+	var building_cfg: Dictionary = _buildings_config.get(_current_node.placed_building, {})
+	var max_workers: int = int(building_cfg.get("max_workers", default_max))
+	var workers_row := _create_info_row("Workers:", "%d/%d" % [workers_assigned, max_workers])
+	_forge_info_container.add_child(workers_row)
+
+	# Warning if no workers
+	if workers_assigned == 0:
+		var warning_label := Label.new()
+		warning_label.text = "⚠️ Assign a worker to craft!"
+		warning_label.add_theme_font_size_override("font_size", 10)
+		warning_label.add_theme_color_override("font_color", Color(1, 0.6, 0.3))
+		_forge_info_container.add_child(warning_label)
+
+	# Craft slots
+	var max_crafts := _get_max_crafts_for_tier(_current_node.tier)
+	var active_crafts: int = 0
+	if _hex_grid_manager and _hex_grid_manager.has_method("get_active_crafts_for_node"):
+		active_crafts = _hex_grid_manager.get_active_crafts_for_node(_current_node.id).size()
+	var craft_slots_row := _create_info_row("Craft Slots:", "%d/%d" % [active_crafts, max_crafts])
+	_forge_info_container.add_child(craft_slots_row)
+
+func _update_forge_selector_styles() -> void:
+	"""Update the visual state of forge selector buttons"""
+	if not _forge_selector_container:
+		return
+
+	for child in _forge_selector_container.get_children():
+		if child is Button:
+			var forge_node = child.get_meta("forge_node", null)
+			var is_selected: bool = forge_node == _current_node
+			_style_forge_button(child, is_selected, forge_node)
 
 # ==============================================================================
 # POPUP CREATION
@@ -163,6 +358,11 @@ func _create_popup(parent_node: Node) -> void:
 			main_node.add_child(_popup)
 		else:
 			parent_node.add_child(_popup)
+
+	# IMPORTANT: Store reference to self in popup to prevent garbage collection
+	# CraftingScreenManager extends RefCounted, so without this reference the manager
+	# can be garbage collected while the popup is still visible, breaking button callbacks
+	_popup.set_meta("_manager_ref", self)
 
 	# Initial population
 	_apply_filter_and_sort()
@@ -247,6 +447,11 @@ func _build_left_panel() -> PanelContainer:
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(content)
 
+	# Forge Selector section (if multiple forges)
+	if _all_forges.size() > 1:
+		content.add_child(_build_forge_selector_section())
+		content.add_child(HSeparator.new())
+
 	# Active Crafts section
 	content.add_child(_build_active_crafts_section())
 
@@ -263,6 +468,83 @@ func _build_left_panel() -> PanelContainer:
 	content.add_child(_build_set_bonuses_section())
 
 	return panel
+
+func _build_forge_selector_section() -> VBoxContainer:
+	var section := VBoxContainer.new()
+	section.add_theme_constant_override("separation", 6)
+
+	var header := Label.new()
+	header.text = "YOUR FORGES"
+	header.add_theme_font_size_override("font_size", 12)
+	header.add_theme_color_override("font_color", TEXT_HEADER)
+	section.add_child(header)
+
+	_forge_selector_container = VBoxContainer.new()
+	_forge_selector_container.add_theme_constant_override("separation", 4)
+	section.add_child(_forge_selector_container)
+
+	# Add a button for each forge
+	for forge in _all_forges:
+		var btn := Button.new()
+		var workers_count: int = forge.assigned_workers.size() if forge.assigned_workers else 0
+		var active_crafts: int = 0
+		if _hex_grid_manager and _hex_grid_manager.has_method("get_active_crafts_for_node"):
+			active_crafts = _hex_grid_manager.get_active_crafts_for_node(forge.id).size()
+
+		# Format: "★★ Forge Name (2 workers, 1 craft)"
+		var stars: String = "★".repeat(forge.tier)
+		var status_parts: Array = []
+		if workers_count > 0:
+			status_parts.append("%d worker%s" % [workers_count, "s" if workers_count > 1 else ""])
+		if active_crafts > 0:
+			status_parts.append("%d active" % active_crafts)
+
+		var status_text: String = " - " + ", ".join(status_parts) if not status_parts.is_empty() else ""
+		btn.text = "%s %s%s" % [stars, forge.name, status_text]
+		btn.custom_minimum_size = Vector2(0, 36)
+		btn.set_meta("forge_node", forge)
+		btn.pressed.connect(_on_forge_button_pressed.bind(forge))
+
+		var is_selected: bool = forge == _current_node
+		_style_forge_button(btn, is_selected, forge)
+		_forge_selector_container.add_child(btn)
+
+	return section
+
+func _on_forge_button_pressed(forge) -> void:
+	_select_forge(forge)
+
+func _style_forge_button(btn: Button, is_selected: bool, forge) -> void:
+	var has_workers: bool = forge.assigned_workers and not forge.assigned_workers.is_empty()
+
+	var style := StyleBoxFlat.new()
+	if is_selected:
+		style.bg_color = Color(0.25, 0.35, 0.45, 0.95)
+		style.border_color = Color(0.4, 0.6, 0.8, 1)
+		style.set_border_width_all(2)
+	elif not has_workers:
+		style.bg_color = Color(0.15, 0.12, 0.18, 0.7)
+		style.border_color = Color(0.4, 0.3, 0.3, 0.5)
+		style.set_border_width_all(1)
+	else:
+		style.bg_color = Color(0.15, 0.18, 0.22, 0.9)
+		style.border_color = Color(0.3, 0.4, 0.5, 0.7)
+		style.set_border_width_all(1)
+
+	style.set_corner_radius_all(4)
+	btn.add_theme_stylebox_override("normal", style)
+	btn.add_theme_font_size_override("font_size", 11)
+
+	if not has_workers:
+		btn.add_theme_color_override("font_color", Color(0.5, 0.45, 0.45))
+	elif is_selected:
+		btn.add_theme_color_override("font_color", Color(0.95, 0.95, 1))
+	else:
+		btn.add_theme_color_override("font_color", Color(0.8, 0.8, 0.85))
+
+	var hover := style.duplicate()
+	hover.bg_color = style.bg_color.lightened(0.1)
+	btn.add_theme_stylebox_override("hover", hover)
 
 func _style_section_panel(panel: PanelContainer) -> void:
 	var style := StyleBoxFlat.new()
@@ -302,21 +584,13 @@ func _build_forge_info_section() -> VBoxContainer:
 	header.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
 	section.add_child(header)
 
-	if _current_node:
-		# Tier with stars
-		var tier_row := _create_info_row("Tier:", _get_tier_stars(_current_node.tier))
-		section.add_child(tier_row)
+	# Dynamic content container - stored for updates when switching forges
+	_forge_info_container = VBoxContainer.new()
+	_forge_info_container.add_theme_constant_override("separation", 4)
+	section.add_child(_forge_info_container)
 
-		# Workers
-		var workers_assigned: int = _current_node.assigned_workers.size() if _current_node.assigned_workers else 0
-		var max_workers: int = 3  # Default
-		var workers_row := _create_info_row("Workers:", "%d/%d" % [workers_assigned, max_workers])
-		section.add_child(workers_row)
-
-		# Craft slots
-		var max_crafts := _get_max_crafts_for_tier(_current_node.tier)
-		var craft_slots_row := _create_info_row("Craft Slots:", str(max_crafts))
-		section.add_child(craft_slots_row)
+	# Populate initial content
+	_update_forge_info()
 
 	return section
 
@@ -345,8 +619,10 @@ func _get_tier_stars(tier: int) -> String:
 	return stars + " (T%d)" % tier
 
 func _get_max_crafts_for_tier(tier: int) -> int:
-	# Default: 1 craft slot per forge, could be expanded by tier
-	return 1
+	_load_config()
+	var forge_cfg: Dictionary = _equipment_config.get("forge_config", {})
+	var max_crafts_cfg: Dictionary = forge_cfg.get("max_crafts_per_tier", {})
+	return int(max_crafts_cfg.get(str(tier), 1))
 
 func _build_set_bonuses_section() -> VBoxContainer:
 	var section := VBoxContainer.new()
@@ -769,10 +1045,24 @@ func _on_craft_pressed(task: Dictionary, _auto_repeat = null) -> void:
 	if task_id.is_empty():
 		return
 
+	# Check if node has workers assigned (required for crafting)
+	if _current_node.assigned_workers.is_empty():
+		_show_error_message("Assign a worker to this forge first!")
+		return
+
+	# Check if node is at craft limit (from config)
+	if _hex_grid_manager.has_method("get_active_crafts_for_node"):
+		var active: Array = _hex_grid_manager.get_active_crafts_for_node(_current_node.id)
+		var max_crafts: int = _get_max_crafts_for_tier(_current_node.tier)
+		if active.size() >= max_crafts:
+			_show_error_message("This forge already has max active crafts")
+			return
+
 	# Check and spend resources
 	var costs := CraftingUIUtils.get_recipe_costs(task)
 	if not costs.is_empty() and _resource_manager:
 		if not _resource_manager.can_afford(costs):
+			_show_error_message("Not enough resources!")
 			return
 		if not _resource_manager.spend_resources(costs):
 			return
@@ -783,6 +1073,8 @@ func _on_craft_pressed(task: Dictionary, _auto_repeat = null) -> void:
 		craft_started.emit(_current_node, task_id)
 		_update_active_crafts()
 		_populate_recipe_grid()  # Refresh affordability
+	else:
+		_show_error_message("Could not start craft")
 
 func _on_cancel_craft(craft_data: Dictionary) -> void:
 	if not _current_node or not _hex_grid_manager:
@@ -798,6 +1090,33 @@ func _on_cancel_craft(craft_data: Dictionary) -> void:
 		craft_cancelled.emit(_current_node, task_id)
 		_update_active_crafts()
 		_populate_recipe_grid()
+
+func _show_error_message(message: String) -> void:
+	"""Show a temporary error message in the UI"""
+	if not _popup or not is_instance_valid(_popup):
+		return
+
+	# Find or create error label
+	var error_label: Label = _popup.get_node_or_null("ErrorLabel") as Label
+	if not error_label:
+		error_label = Label.new()
+		error_label.name = "ErrorLabel"
+		error_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		error_label.add_theme_font_size_override("font_size", 14)
+		error_label.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
+		error_label.z_index = 101
+		error_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+		error_label.position.y = 80
+		_popup.add_child(error_label)
+
+	error_label.text = message
+	error_label.visible = true
+
+	# Fade out after 2 seconds
+	var tween: Tween = _popup.create_tween()
+	tween.tween_interval(2.0)
+	tween.tween_property(error_label, "modulate:a", 0.0, 0.5)
+	tween.tween_callback(func(): error_label.visible = false; error_label.modulate.a = 1.0)
 
 # ==============================================================================
 # EVENT HANDLERS

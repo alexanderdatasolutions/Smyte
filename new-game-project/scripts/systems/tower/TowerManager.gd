@@ -182,12 +182,12 @@ func advance_to_next_floor():
 
 func get_current_floor_enemies() -> Array:
 	"""Generate enemies for the current floor"""
-	var enemies = []
-	var is_boss_floor = (current_floor % BOSS_FLOOR_INTERVAL == 0)
-	var enemy_count = 1 if is_boss_floor else ENEMIES_PER_FLOOR
+	var enemies: Array = []
+	var is_boss: bool = (current_floor % BOSS_FLOOR_INTERVAL == 0)
+	var enemy_count: int = 1 if is_boss else ENEMIES_PER_FLOOR
 
 	for i in range(enemy_count):
-		var enemy = _create_scaled_enemy(current_floor, is_boss_floor)
+		var enemy: Dictionary = _create_scaled_enemy(current_floor, is_boss)
 		if enemy:
 			enemies.append(enemy)
 
@@ -221,16 +221,22 @@ func end_tower_run(_victory: bool = false):
 	var is_new_record = false
 	var total_rewards = run_total_rewards.duplicate()
 
+	# Award god XP based on floors cleared (XP is only given at end of run)
+	_award_tower_god_experience(final_floor)
+
 	# Check for new record
 	if final_floor > best_floor:
 		best_floor = final_floor
 		best_floor_timestamp = int(Time.get_unix_time_from_system())
 		is_new_record = true
-		# Trigger save via EventBus (SaveManager handles periodic saves)
-		var system_registry := SystemRegistry.get_instance()
-		if system_registry:
-			var event_bus := system_registry.get_system("EventBus")
-			if event_bus:
+
+	# Emit to EventBus for leaderboard sync and save
+	var system_registry := SystemRegistry.get_instance()
+	if system_registry:
+		var event_bus := system_registry.get_system("EventBus")
+		if event_bus:
+			event_bus.tower_run_ended.emit(final_floor, is_new_record)
+			if is_new_record:
 				event_bus.save_requested.emit()
 
 	tower_run_ended.emit(final_floor, is_new_record, total_rewards)
@@ -240,6 +246,38 @@ func end_tower_run(_victory: bool = false):
 	current_floor = 0
 	team_hp_state.clear()
 	run_total_rewards.clear()
+
+func _award_tower_god_experience(final_floor: int) -> void:
+	"""Award XP to all gods that participated in the tower run based on floors cleared"""
+	if current_team.is_empty() or final_floor <= 0:
+		return
+
+	var system_registry := SystemRegistry.get_instance()
+	if not system_registry:
+		return
+
+	var god_progression: Node = system_registry.get_system("GodProgressionManager")
+	if not god_progression:
+		push_warning("TowerManager: GodProgressionManager not found, skipping god XP")
+		return
+
+	# Base XP per floor + bonus for boss floors (from config)
+	var xp_cfg: Dictionary = _tower_config.get("god_xp_rewards", {})
+	var base_xp_per_floor: int = xp_cfg.get("base_xp_per_floor", 50)
+	var boss_bonus: int = xp_cfg.get("boss_xp_bonus", 100)
+	var total_xp: int = 0
+
+	for floor_num in range(1, final_floor + 1):
+		total_xp += base_xp_per_floor
+		if floor_num % BOSS_FLOOR_INTERVAL == 0:
+			total_xp += boss_bonus
+
+	# Award XP to each god in the team
+	for god in current_team:
+		if god and god is God:
+			god_progression.add_experience_to_god(god, total_xp)
+
+	print("TowerManager: Awarded %d XP to %d gods for reaching floor %d" % [total_xp, current_team.size(), final_floor])
 
 func get_current_floor() -> int:
 	return current_floor
@@ -377,63 +415,45 @@ func _calculate_floor_rewards(floor_num: int) -> Dictionary:
 	# === TIER-BASED REWARDS (based on floor brackets) ===
 	var tier = _get_floor_tier(floor_num)
 
-	# Crafting materials based on tier
-	match tier:
-		1:  # Floors 1-10: T1 raw materials
-			if randf() < 0.4:
-				rewards["ore"] = randi_range(2, 5)
-			if randf() < 0.3:
-				rewards["wood"] = randi_range(2, 5)
-			if randf() < 0.3:
-				rewards["herbs"] = randi_range(2, 5)
-		2:  # Floors 11-25: T1 processed + chance at T2 raw
-			if randf() < 0.5:
-				rewards["refined_metal"] = randi_range(1, 3)
-			if randf() < 0.3:
-				rewards["monster_parts"] = randi_range(1, 2)
-			if randf() < 0.2:
-				rewards["fine_ore"] = randi_range(1, 2)
-		3:  # Floors 26-50: T2 materials
-			if randf() < 0.5:
-				rewards["fine_ore"] = randi_range(2, 4)
-			if randf() < 0.4:
-				rewards["beast_scales"] = randi_range(1, 3)
-			if randf() < 0.3:
-				rewards["steel_ingot"] = randi_range(1, 2)
-		4:  # Floors 51-100: T2 processed + T3 raw
-			if randf() < 0.5:
-				rewards["steel_ingot"] = randi_range(2, 4)
-			if randf() < 0.4:
-				rewards["forging_flame"] = randi_range(1, 2)
-			if randf() < 0.25:
-				rewards["arcane_ore"] = randi_range(1, 2)
-		_:  # Floors 100+: T3+ materials
-			if randf() < 0.5:
-				rewards["arcane_ore"] = randi_range(2, 5)
-			if randf() < 0.4:
-				rewards["elemental_cores"] = randi_range(1, 3)
-			if randf() < 0.3:
-				rewards["prometheum"] = randi_range(1, 2)
-			if randf() < 0.2:
-				rewards["divine_flame"] = randi_range(1, 2)
+	# Crafting materials based on tier (drop rates from config)
+	var drop_rates: Dictionary = _tower_config.get("material_drop_rates", {})
+	var tier_key: String = "tier_%d" % tier
+	var tier_rates: Dictionary = drop_rates.get(tier_key, {})
 
-	# Element powder drops (random element)
-	if randf() < 0.25 + (floor_num * 0.005):  # Increases with floor
+	# Apply tier-specific material drops from config
+	for material_id: String in tier_rates:
+		if randf() < tier_rates[material_id]:
+			var base_amount: int = 1 + (tier - 1)
+			var max_amount: int = 3 + tier
+			rewards[material_id] = randi_range(base_amount, max_amount)
+
+	# Element powder drops (random element) - rates from config
+	var powder_base: float = reward_cfg.get("element_powder_base_chance", 0.25)
+	var powder_per_floor: float = reward_cfg.get("element_powder_chance_per_floor", 0.005)
+	if randf() < powder_base + (floor_num * powder_per_floor):
 		var elements = ["fire", "water", "earth", "lightning", "light", "dark"]
 		var powder_id = elements[randi() % elements.size()] + "_powder"
 		@warning_ignore("integer_division")
 		rewards[powder_id] = randi_range(1, 3 + floor_num / 20)
 
-	# Soul drops based on floor progression
-	if floor_num >= 5 and randf() < 0.15:
+	# Soul drops based on floor progression - thresholds from config
+	var soul_cfg: Dictionary = reward_cfg.get("soul_thresholds", {})
+	var common_soul_cfg: Dictionary = soul_cfg.get("common_soul", {"min_floor": 5, "chance": 0.15})
+	var rare_soul_cfg: Dictionary = soul_cfg.get("rare_soul", {"min_floor": 25, "chance": 0.1})
+	var epic_soul_cfg: Dictionary = soul_cfg.get("epic_soul", {"min_floor": 75, "chance": 0.05})
+
+	if floor_num >= common_soul_cfg.get("min_floor", 5) and randf() < common_soul_cfg.get("chance", 0.15):
 		rewards["common_soul"] = randi_range(1, 2)
-	if floor_num >= 25 and randf() < 0.1:
+	if floor_num >= rare_soul_cfg.get("min_floor", 25) and randf() < rare_soul_cfg.get("chance", 0.1):
 		rewards["rare_soul"] = 1
-	if floor_num >= 75 and randf() < 0.05:
+	if floor_num >= epic_soul_cfg.get("min_floor", 75) and randf() < epic_soul_cfg.get("chance", 0.05):
 		rewards["epic_soul"] = 1
 
-	# Awakening essence at higher floors
-	if floor_num >= 20 and randf() < 0.1 + (floor_num * 0.002):
+	# Awakening essence at higher floors - from config
+	var essence_min_floor: int = reward_cfg.get("awakening_essence_min_floor", 20)
+	var essence_base: float = reward_cfg.get("awakening_essence_base_chance", 0.1)
+	var essence_per_floor: float = reward_cfg.get("awakening_essence_chance_per_floor", 0.002)
+	if floor_num >= essence_min_floor and randf() < essence_base + (floor_num * essence_per_floor):
 		@warning_ignore("integer_division")
 		rewards["awakening_essence"] = randi_range(1, 2 + floor_num / 50)
 
@@ -445,12 +465,17 @@ func _calculate_floor_rewards(floor_num: int) -> Dictionary:
 		@warning_ignore("integer_division")
 		rewards["divine_crystals"] = 3 + floor_num / 5
 
-		# Guaranteed soul based on boss floor
-		if floor_num <= 20:
+		# Guaranteed soul based on boss floor - thresholds from config
+		var boss_thresholds: Dictionary = _tower_config.get("boss_soul_thresholds", {})
+		var common_max: int = boss_thresholds.get("common_max_floor", 20)
+		var rare_max: int = boss_thresholds.get("rare_max_floor", 50)
+		var epic_max: int = boss_thresholds.get("epic_max_floor", 100)
+
+		if floor_num <= common_max:
 			rewards["common_soul"] = rewards.get("common_soul", 0) + 1
-		elif floor_num <= 50:
+		elif floor_num <= rare_max:
 			rewards["rare_soul"] = rewards.get("rare_soul", 0) + 1
-		elif floor_num <= 100:
+		elif floor_num <= epic_max:
 			rewards["epic_soul"] = rewards.get("epic_soul", 0) + 1
 		else:
 			rewards["legendary_soul"] = rewards.get("legendary_soul", 0) + 1
@@ -543,7 +568,8 @@ func create_tower_battle_config() -> BattleConfig:
 	config.battle_type = BattleConfig.BattleType.TOWER
 	config.attacker_team = current_team.duplicate()
 	config.defender_team = get_current_floor_enemies()
-	config.max_turns = 100  # More turns for tower battles
+	var scaling: Dictionary = _tower_config.get("floor_scaling", {})
+	config.max_turns = scaling.get("max_turns", 100)  # From config
 	config.allow_auto_battle = true
 	config.allow_speed_up = true
 	config.victory_condition = "defeat_all_enemies"

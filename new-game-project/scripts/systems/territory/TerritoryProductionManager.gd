@@ -170,31 +170,6 @@ func apply_connected_bonus(node: HexNode) -> float:
 	else:
 		return 0.0
 
-func apply_spec_bonus(node: HexNode, god: God) -> float:
-	if not node or not god:
-		return 0.0
-
-	var registry: Variant = SystemRegistry.get_instance()
-	if not registry:
-		return 0.0
-
-	var spec_manager: Variant = registry.get_system("SpecializationManager")
-	if not spec_manager:
-		return 0.0
-
-	var task_bonuses: Dictionary = spec_manager.get_total_task_bonuses_for_god(god)
-	var total_bonus: float = 0.0
-
-	var mapping: Dictionary = get_node_task_mapping()
-	var relevant_tasks: Array = mapping.get(node.node_type, [])
-
-	for task_id: String in relevant_tasks:
-		var bonus: float = task_bonuses.get(task_id, 0.0)
-		if bonus > total_bonus:
-			total_bonus = bonus
-
-	return total_bonus
-
 func _calculate_worker_efficiency(node: HexNode) -> float:
 	if not node or node.assigned_workers.is_empty():
 		return 0.0
@@ -208,7 +183,6 @@ func _calculate_worker_efficiency(node: HexNode) -> float:
 		return 0.0
 
 	var collection_manager: Variant = registry.get_system("CollectionManager")
-	var spec_manager: Variant = registry.get_system("SpecializationManager")
 
 	if not collection_manager:
 		return 0.0
@@ -216,64 +190,56 @@ func _calculate_worker_efficiency(node: HexNode) -> float:
 	var worker_base: float = get_worker_base_bonus()
 	var level_bonus_rate: float = get_god_level_bonus_per_level()
 	var total_bonus: float = 0.0
+	var worker_gods: Array[God] = []
 
 	for god_id: String in node.assigned_workers:
 		var god: Variant = collection_manager.get_god_by_id(god_id)
 		if not god:
 			continue
 
+		worker_gods.append(god)
 		var worker_bonus: float = worker_base
 
-		if spec_manager:
-			var spec_bonus: float = apply_spec_bonus(node, god)
-			worker_bonus += spec_bonus
-
+		# Level bonus
 		worker_bonus += (god.level * level_bonus_rate)
+
+		# Equipment/Power bonus from config (default: +0.5% per 100 power rating)
+		var power_rating: int = GodCalculator.get_power_rating(god)
+		var power_rate: float = _config.get("production_bonuses", {}).get("power_bonus_rate", 0.005)
+		var power_bonus: float = (power_rating / 100.0) * power_rate
+		worker_bonus += power_bonus
+
 		total_bonus += worker_bonus
 
-	var pantheon_bonus: float = _calculate_pantheon_bonus(node.assigned_workers, collection_manager)
-	total_bonus += pantheon_bonus
+	# Apply team bonuses from TeamStatsCalculator (element/pantheon synergies)
+	if worker_gods.size() >= 2:
+		var team_bonus: float = _calculate_worker_team_bonus(worker_gods)
+		total_bonus += team_bonus
 
 	return total_bonus
 
-func _calculate_pantheon_bonus(god_ids: Array, collection_manager: Variant) -> float:
-	if god_ids.size() < 2 or not collection_manager:
+## Calculate team bonus for workers using TeamStatsCalculator
+func _calculate_worker_team_bonus(gods: Array[God]) -> float:
+	if gods.size() < 2:
 		return 0.0
 
-	var pantheon_counts: Dictionary = {}
-	for god_id: Variant in god_ids:
-		var god: Variant = collection_manager.get_god_by_id(god_id)
-		if god and god.pantheon:
-			var pantheon: String = god.pantheon.to_lower()
-			pantheon_counts[pantheon] = pantheon_counts.get(pantheon, 0) + 1
+	var team_bonuses: Array = TeamStatsCalculator.get_team_bonuses(gods)
+	var total_bonus: float = 0.0
 
-	var max_count: int = 0
-	for pantheon: String in pantheon_counts:
-		if pantheon_counts[pantheon] > max_count:
-			max_count = pantheon_counts[pantheon]
+	for bonus: Dictionary in team_bonuses:
+		var bonuses: Dictionary = bonus.get("bonuses", {})
+		# Production-relevant bonuses (multipliers from config)
+		var prod_cfg: Dictionary = _config.get("production_bonuses", {})
+		if bonuses.has("production"):
+			total_bonus += bonuses.production
+		# Speed helps gathering efficiency
+		if bonuses.has("speed"):
+			total_bonus += bonuses.speed * prod_cfg.get("speed_multiplier", 0.3)
+		# All stats helps a bit
+		if bonuses.has("all_stats"):
+			total_bonus += bonuses.all_stats * prod_cfg.get("all_stats_multiplier", 0.5)
 
-	var registry: Variant = SystemRegistry.get_instance()
-	if not registry:
-		return 0.0
-
-	var config_manager: Variant = registry.get_system("ConfigurationManager")
-	var production_bonus: float = 0.0
-
-	if config_manager:
-		var team_bonuses: Dictionary = config_manager.get_team_bonuses_config()
-		var pantheon_bonuses: Dictionary = team_bonuses.get("pantheon_bonuses", {})
-
-		if max_count == god_ids.size() and max_count >= 2:
-			var full_bonus: Dictionary = pantheon_bonuses.get("full_match", {}).get("bonuses", {})
-			production_bonus = full_bonus.get("production", 0.25)
-		elif max_count >= 3:
-			var majority_bonus: Dictionary = pantheon_bonuses.get("majority_match", {}).get("bonuses", {})
-			production_bonus = majority_bonus.get("production", 0.10)
-		elif max_count >= 2:
-			var duo_bonus: Dictionary = pantheon_bonuses.get("duo_match", {}).get("bonuses", {})
-			production_bonus = duo_bonus.get("production", 0.05)
-
-	return production_bonus
+	return total_bonus
 
 func get_node_hourly_production(node: HexNode) -> Dictionary:
 	return calculate_node_production(node)
@@ -295,6 +261,58 @@ func get_all_hex_nodes_production() -> Dictionary:
 			total_production[resource_id] = total_production.get(resource_id, 0) + node_production[resource_id]
 
 	return total_production
+
+func get_active_conversions() -> Array:
+	"""Returns active conversion buildings with their input/output/rates for UI display"""
+	var conversions: Array = []
+	var registry: Variant = SystemRegistry.get_instance()
+	if not registry:
+		return conversions
+
+	var territory_manager: Variant = registry.get_system("TerritoryManager")
+	if not territory_manager or not territory_manager.has_method("get_controlled_nodes"):
+		return conversions
+
+	var building_manager: Variant = _get_building_manager()
+	if not building_manager:
+		return conversions
+
+	var controlled_nodes: Array = territory_manager.get_controlled_nodes()
+	for node: Variant in controlled_nodes:
+		if not node or not node.is_controlled_by_player():
+			continue
+		if node.placed_building.is_empty():
+			continue
+		if node.assigned_workers.is_empty():
+			continue
+
+		# Check if garrison power is sufficient for workers
+		if not territory_manager.can_assign_workers(node):
+			continue
+
+		var building: Dictionary = building_manager.get_building(node.placed_building)
+		var consumes: Dictionary = building.get("consumes", {})
+		var produces: Dictionary = building.get("production", {})
+
+		if consumes.is_empty() or produces.is_empty():
+			continue
+
+		# This is a conversion building - add each input->output pair
+		for input_id: String in consumes:
+			var input_rate: int = int(consumes[input_id])
+			for output_id: String in produces:
+				var output_rate: int = int(produces[output_id])
+				conversions.append({
+					"node_name": node.name,
+					"building": node.placed_building,
+					"input": input_id,
+					"output": output_id,
+					"input_rate": input_rate,
+					"output_rate": output_rate,
+					"rate": output_rate  # For backwards compat with widget
+				})
+
+	return conversions
 
 func _process_hex_node_generation() -> void:
 	var registry: Variant = SystemRegistry.get_instance()
@@ -324,6 +342,9 @@ func _process_hex_node_generation() -> void:
 			_process_conversion_building(node, controlled_nodes, current_time)
 		else:
 			_process_extraction_building(node, current_time)
+
+		# Process Day Care XP for assigned gods
+		_process_day_care_xp(node)
 
 func _process_extraction_building(node: HexNode, current_time: float) -> void:
 	var hourly_production: Dictionary = calculate_node_production(node)
@@ -454,6 +475,17 @@ func calculate_offline_hex_production(node: HexNode) -> Dictionary:
 		return {}
 
 	var current_time: int = int(Time.get_unix_time_from_system())
+
+	# If last_production_time is 0 or invalid (more than max_offline_days old), initialize it
+	# This prevents exploits from closing/reopening the game
+	_load_config()
+	var max_offline_days: int = _config.get("generation_timing", {}).get("max_offline_days", 30)
+	var max_reasonable_time: int = max_offline_days * 24 * 3600
+	if node.last_production_time <= 0 or (current_time - node.last_production_time) > max_reasonable_time:
+		print("[TerritoryProductionManager] Initializing last_production_time for node %s (was %d)" % [node.id, node.last_production_time])
+		node.last_production_time = current_time
+		return {}
+
 	var time_diff: int = current_time - node.last_production_time
 	var hours_passed: float = time_diff / 3600.0
 
@@ -525,3 +557,56 @@ func collect_node_resources(node_id: String) -> Dictionary:
 	resources_generated.emit(node_id, collected_resources)
 
 	return collected_resources
+
+# ==============================================================================
+# DAY CARE XP PROCESSING
+# ==============================================================================
+
+func _process_day_care_xp(node: HexNode) -> void:
+	"""Process XP gain for gods assigned to Day Care buildings"""
+	if not node or node.placed_building != "day_care":
+		return
+
+	# Get building effects to find XP rate
+	var building_manager: Variant = _get_building_manager()
+	if not building_manager:
+		return
+
+	var building: Dictionary = building_manager.get_building("day_care")
+	var effects: Dictionary = building.get("effects", {})
+	var xp_per_hour: int = effects.get("xp_per_hour", 100)
+
+	# Scale XP by building level (same scaling as production, from config)
+	_load_config()
+	var level_multipliers: Dictionary = _config.get("building_level_multipliers", {"1": 1.0, "2": 1.15, "3": 1.35, "4": 1.60, "5": 2.00})
+	var level_mult: float = level_multipliers.get(str(node.building_level), 1.0)
+	xp_per_hour = int(xp_per_hour * level_mult)
+
+	# Calculate XP per tick (tick is 1 minute, so divide hourly by 60)
+	@warning_ignore("integer_division")
+	var xp_per_tick: int = maxi(1, xp_per_hour / 60)
+
+	# Get all assigned gods (garrison + workers)
+	var god_ids: Array = []
+	god_ids.append_array(node.garrison)
+	god_ids.append_array(node.assigned_workers)
+
+	if god_ids.is_empty():
+		return
+
+	var registry: Variant = SystemRegistry.get_instance()
+	if not registry:
+		return
+
+	var collection_manager: Variant = registry.get_system("CollectionManager")
+	var god_progression: Variant = registry.get_system("GodProgressionManager")
+
+	if not collection_manager or not god_progression:
+		return
+
+	# Award XP to each assigned god
+	for god_id: Variant in god_ids:
+		if god_id is String and not god_id.is_empty():
+			var god: Variant = collection_manager.get_god_by_id(god_id)
+			if god and god_progression.has_method("add_experience_to_god"):
+				god_progression.add_experience_to_god(god, xp_per_tick)

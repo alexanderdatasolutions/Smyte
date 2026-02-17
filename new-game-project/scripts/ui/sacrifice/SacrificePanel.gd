@@ -355,6 +355,12 @@ func _populate_material_grid():
 
 func _sort_gods(gods: Array):
 	gods.sort_custom(func(a, b):
+		# Assigned gods always go to the bottom
+		var a_assigned: bool = _is_god_assigned(a)
+		var b_assigned: bool = _is_god_assigned(b)
+		if a_assigned != b_assigned:
+			return not a_assigned  # Available gods come first
+
 		var result = false
 		match current_sort:
 			SortType.POWER: result = GodCalculator.get_power_rating(a) > GodCalculator.get_power_rating(b)
@@ -364,6 +370,22 @@ func _sort_gods(gods: Array):
 			SortType.NAME: result = a.name < b.name
 		return result if not sort_ascending else !result
 	)
+
+func _is_god_assigned(god: God) -> bool:
+	"""Check if god is assigned to garrison or worker"""
+	var registry: Node = SystemRegistry.get_instance()
+	if not registry:
+		return false
+	var territory_manager: Node = registry.get_system("TerritoryManager")
+	if not territory_manager:
+		return false
+	var controlled: Array = territory_manager.get_controlled_nodes()
+	for node: Variant in controlled:
+		if node.garrison.find(god.id) != -1:
+			return true
+		if node.assigned_workers.find(god.id) != -1:
+			return true
+	return false
 
 func _create_god_item(god: God) -> Control:
 	var item = Panel.new()

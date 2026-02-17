@@ -105,7 +105,7 @@ func _check_emulating() -> void:
 func _load_config() -> void:
 	if not (_config.apiKey != "" and _config.authDomain != ""):
 		var env = ConfigFile.new()
-		var err = env.load("res://addons/godot-firebase/.env")
+		var err = env.load("res://addons/godot-firebase/firebase_config.cfg")
 		if err == OK:
 			for key in _config.keys():
 				var config_value = _config[key]
@@ -122,7 +122,17 @@ func _load_config() -> void:
 					else:
 						_config[key] = value
 		else:
-			_printerr("Unable to read .env file at path 'res://addons/godot-firebase/.env'")
+			# Fallback to hardcoded config for exported builds
+			_print("Config file not found, using embedded config")
+			_config["apiKey"] = "AIzaSyDCFl8VwwZPnLKJrWgwY6pC5b0lReZEbGg"
+			_config["authDomain"] = "smyte-1f475.firebaseapp.com"
+			_config["projectId"] = "smyte-1f475"
+			_config["databaseName"] = "(default)"
+			_config["storageBucket"] = "smyte-1f475.firebasestorage.app"
+			_config["messagingSenderId"] = "902335582009"
+			_config["appId"] = "1:902335582009:web:ac8cbaec3fdc3a5d61e2e8"
+			_config["measurementId"] = "G-R7E15YZKG8"
+			_config["clientId"] = "902335582009-mjirvdpm3nda5r40tr81rpqmtro6d1aa.apps.googleusercontent.com"
 
 	_setup_modules()
 

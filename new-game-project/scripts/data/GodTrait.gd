@@ -1,5 +1,5 @@
 # scripts/data/GodTrait.gd
-# Data class for god traits - affects task efficiency and specialization
+# Data class for god traits - affects task efficiency and combat
 # Note: Named GodTrait because 'Trait' is a reserved keyword in Godot 4
 extends Resource
 class_name GodTrait

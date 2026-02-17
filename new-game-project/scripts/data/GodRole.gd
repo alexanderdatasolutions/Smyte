@@ -1,6 +1,6 @@
 # scripts/data/GodRole.gd
 # Data class for god roles - defines primary function and progression paths
-# Roles determine stat bonuses, task efficiency, and specialization options
+# Roles determine stat bonuses and task efficiency
 extends Resource
 class_name GodRole
 
@@ -47,10 +47,6 @@ enum RoleType {
 # Other misc bonuses
 # e.g., {"xp_gain_percent": 0.25, "scouting_range_percent": 0.15}
 @export var other_bonuses: Dictionary = {}
-
-# Specialization trees available to this role
-# e.g., ["berserker", "guardian", "tactician", "assassin"]
-@export var specialization_trees: Array[String] = []
 
 func _init(role_id: String = "", role_name: String = ""):
 	id = role_id
@@ -136,16 +132,6 @@ func get_all_other_bonuses() -> Dictionary:
 	"""Get all other bonuses"""
 	return other_bonuses.duplicate()
 
-# === SPECIALIZATION ===
-
-func get_specialization_trees() -> Array[String]:
-	"""Get list of available specialization trees"""
-	return specialization_trees.duplicate()
-
-func has_specialization_tree(tree_id: String) -> bool:
-	"""Check if a specialization tree is available"""
-	return tree_id in specialization_trees
-
 # === ENUM HELPERS ===
 
 static func role_type_to_string(role_enum: RoleType) -> String:
@@ -213,11 +199,6 @@ func get_tooltip() -> String:
 		for bonus_name in other_bonuses:
 			tooltip += "  • %s: +%d%%\n" % [bonus_name.replace("_percent", "").replace("_", " ").capitalize(), int(other_bonuses[bonus_name] * 100)]
 
-	if not specialization_trees.is_empty():
-		tooltip += "\nAvailable Specializations:\n"
-		for tree_id in specialization_trees:
-			tooltip += "  • %s\n" % tree_id.capitalize()
-
 	return tooltip
 
 # === SERIALIZATION ===
@@ -236,8 +217,7 @@ func to_dict() -> Dictionary:
 		"resource_bonuses": resource_bonuses.duplicate(),
 		"crafting_bonuses": crafting_bonuses.duplicate(),
 		"aura_bonuses": aura_bonuses.duplicate(),
-		"other_bonuses": other_bonuses.duplicate(),
-		"specialization_trees": specialization_trees.duplicate()
+		"other_bonuses": other_bonuses.duplicate()
 	}
 
 static func from_dict(data: Dictionary):
@@ -256,12 +236,5 @@ static func from_dict(data: Dictionary):
 	new_role.crafting_bonuses = data.get("crafting_bonuses", {})
 	new_role.aura_bonuses = data.get("aura_bonuses", {})
 	new_role.other_bonuses = data.get("other_bonuses", {})
-
-	# Convert Array to Array[String] for specialization_trees
-	var trees_array: Array[String] = []
-	var trees_data = data.get("specialization_trees", [])
-	for tree_element in trees_data:
-		trees_array.append(str(tree_element))
-	new_role.specialization_trees = trees_array
 
 	return new_role

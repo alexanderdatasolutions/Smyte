@@ -29,8 +29,10 @@ signal experience_gained(god, amount)
 signal god_sacrifice_completed(sacrifice_data: Dictionary)  # {target_god_id, target_tier, material_count, total_xp, levels_gained}
 signal god_awakening_completed(awakening_data: Dictionary)  # {god_id, god_name, element, old_tier, new_tier}
 signal equipment_obtained(equipment)
+signal equipment_crafted(equipment, recipe_id: String)
 signal equipment_equipped(god, equipment, slot)
 signal equipment_unequipped(god, equipment, slot)
+signal player_level_up(new_level: int)
 
 # ============================================================================
 # RESOURCE EVENTS
@@ -51,14 +53,10 @@ signal collection_updated(collection_type)
 # ============================================================================
 # TERRITORY EVENTS
 # ============================================================================
-signal territory_captured(territory, capturing_guild)
+signal territory_captured(territory_id: String)
+signal territory_lost(territory_id: String, node_name: String, reason: String)  # reason: "no_garrison", "pvp_attack", "garrison_defeated"
 signal garrison_updated(garrison_data: Dictionary)  # {node_id, node_tier, god_ids, total_power}
 signal workers_updated(worker_data: Dictionary)  # {node_id, node_tier, god_ids, task_ids}
-
-# ============================================================================
-# SPECIALIZATION EVENTS
-# ============================================================================
-signal specialization_unlocked(god_id: String, spec_id: String)
 
 # ============================================================================
 # ACHIEVEMENT EVENTS
@@ -77,8 +75,15 @@ signal league_changed(league_data: Dictionary)  # {old_league, new_league, elo, 
 signal screen_changed(old_screen: String, new_screen: String)
 signal notification_requested(message: String, type: String, duration: float)
 signal show_tutorial_requested(tutorial_data: Dictionary)
+signal tutorial_action_completed(action_id: String)
 signal loading_started(operation: String)
 signal loading_completed(operation: String)
+
+# ============================================================================
+# TOWER EVENTS
+# ============================================================================
+signal tower_floor_cleared(floor_number: int)
+signal tower_run_ended(final_floor: int, is_new_record: bool)
 
 # ============================================================================
 # DUNGEON EVENTS

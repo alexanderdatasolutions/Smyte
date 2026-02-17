@@ -84,16 +84,36 @@ func _setup_ui():
 	
 
 func _create_back_button():
-	"""Create and position the back button"""
+	"""Create header bar with back button and skins button"""
+	var header_bar: HBoxContainer = HBoxContainer.new()
+	header_bar.name = "HeaderBar"
+	header_bar.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	header_bar.offset_bottom = 45
+	header_bar.add_theme_constant_override("separation", 10)
+	add_child(header_bar)
+
 	back_button = Button.new()
 	back_button.name = "BackButton"
 	back_button.text = "← Back"
 	back_button.custom_minimum_size = Vector2(100, 40)
-	back_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-	back_button.offset_right = 100
-	back_button.offset_bottom = 40
 	back_button.pressed.connect(_on_back_pressed)
-	add_child(back_button)
+	header_bar.add_child(back_button)
+
+	# Spacer to push skins button to the right
+	var spacer: Control = Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_bar.add_child(spacer)
+
+	# Skins button (only visible if feature unlocked)
+	var skins_button: Button = Button.new()
+	skins_button.name = "SkinsButton"
+	skins_button.text = "🎨 Skins"
+	skins_button.custom_minimum_size = Vector2(100, 40)
+	skins_button.pressed.connect(_on_skins_button_pressed)
+	header_bar.add_child(skins_button)
+
+	# Check if skins feature is unlocked
+	_update_skins_button_visibility(skins_button)
 
 func _setup_left_panel():
 	"""Setup the left panel with god list and filtering"""
@@ -244,3 +264,26 @@ func _refresh_god_details(god_id: String = ""):
 		details_panel.display_god(god_id)
 	elif details_panel:
 		details_panel.refresh_current_display()
+
+func _update_skins_button_visibility(skins_button: Button) -> void:
+	"""Show/hide skins button based on feature unlock"""
+	var registry = SystemRegistry.get_instance()
+	var feature_manager = registry.get_system("FeatureUnlockManager") if registry else null
+	if feature_manager and feature_manager.is_feature_unlocked("skin_selection"):
+		skins_button.visible = true
+	else:
+		skins_button.visible = false
+
+func _on_skins_button_pressed() -> void:
+	"""Open the skin management popup"""
+	var registry = SystemRegistry.get_instance()
+	var skin_manager: Node = registry.get_system("SkinManager") if registry else null
+	var collection_mgr: Node = registry.get_system("CollectionManager") if registry else null
+
+	if not skin_manager or not collection_mgr:
+		return
+
+	# Create and show skin management popup
+	var popup: SkinManagementPopup = SkinManagementPopup.new()
+	add_child(popup)
+	popup.show_popup()

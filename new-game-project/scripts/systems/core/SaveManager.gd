@@ -1,8 +1,8 @@
 # scripts/systems/core/SaveManager.gd
 class_name SaveManager extends Node
 
-# Save/Load system following clean architecture
-# Supports local saves and cloud saves (Firestore) when signed in
+# CLOUD-ONLY Save/Load system
+# All save data goes to/from Firestore - no local files to prevent cheating
 
 signal save_completed(success: bool)
 signal load_completed(success: bool, data: Dictionary)
@@ -11,17 +11,19 @@ signal load_failed(error: String)
 signal cloud_sync_completed
 signal cloud_sync_failed(error: String)
 
-const SAVE_FILE_PATH = "user://save_game.dat"  # Match GameCoordinator path
 const SAVE_VERSION = "1.2"
 const KNOWN_VERSIONS: Array[String] = ["1.0", "1.1", "1.2"]
 
 var auto_save_enabled: bool = true
-var auto_save_interval: float = 60.0  # 1 minute - shorter interval to prevent data loss
+var auto_save_interval: float = 15.0  # 15 seconds - more frequent to prevent data loss
 var last_auto_save: float = 0.0
-var cloud_save_enabled: bool = true  # Sync to cloud when signed in
+var _pending_save: bool = false  # Track if save is needed due to important event
 
 # Player-specific data that doesn't belong to any system
 var player_data: Dictionary = {}
+
+# Track if data was loaded from cloud (prevents new game setup if already loaded)
+var data_loaded: bool = false
 
 # Firebase integration reference (set during initialization)
 var _firebase_integration = null
@@ -33,17 +35,50 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		save_game()
 		get_tree().quit()
+	# Save when app loses focus (user switches apps, mobile backgrounding)
+	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		if data_loaded:
+			print("SaveManager: App lost focus, saving...")
+			save_game()
+	# Also handle pause (mobile apps get paused before being killed)
+	elif what == NOTIFICATION_APPLICATION_PAUSED:
+		if data_loaded:
+			print("SaveManager: App paused, saving...")
+			save_game()
 
 func _process(delta: float) -> void:
-	if auto_save_enabled:
+	if auto_save_enabled and data_loaded:
 		last_auto_save += delta
 		if last_auto_save >= auto_save_interval:
 			auto_save()
 			last_auto_save = 0.0
 
-## Save game data
+## Save game data to cloud
 func save_game() -> bool:
+	if not _firebase_integration:
+		print("SaveManager: No Firebase integration, cannot save")
+		save_failed.emit("Firebase not available")
+		return false
 
+	if not _firebase_integration.is_signed_in():
+		print("SaveManager: Not signed in, cannot save")
+		save_failed.emit("Not signed in")
+		return false
+
+	if not _firebase_integration.is_cloud_save_ready():
+		print("SaveManager: Cloud save not ready")
+		save_failed.emit("Cloud save not ready")
+		return false
+
+	var save_data = _collect_save_data()
+
+	print("SaveManager: Saving to cloud...")
+	_firebase_integration.save_to_cloud(save_data)
+	save_completed.emit(true)
+	return true
+
+## Collect all save data from systems
+func _collect_save_data() -> Dictionary:
 	var save_data = {}
 	save_data["version"] = SAVE_VERSION
 	save_data["timestamp"] = Time.get_unix_time_from_system()
@@ -53,11 +88,11 @@ func save_game() -> bool:
 	var resource_manager = system_registry.get_system("ResourceManager") if system_registry else null
 	if resource_manager and resource_manager.has_method("get_save_data"):
 		save_data["resources"] = resource_manager.get_save_data()
-	
+
 	var collection_manager = system_registry.get_system("CollectionManager") if system_registry else null
 	if collection_manager and collection_manager.has_method("get_save_data"):
 		save_data["collection"] = collection_manager.get_save_data()
-	
+
 	var battle_coordinator = system_registry.get_system("BattleCoordinator") if system_registry else null
 	if battle_coordinator and battle_coordinator.has_method("get_save_data"):
 		save_data["battle"] = battle_coordinator.get_save_data()
@@ -121,78 +156,17 @@ func save_game() -> bool:
 	# Save player-specific data
 	save_data["player_data"] = player_data
 
-	# Write to file
-	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.WRITE)
-	if not file:
-		var error = "Failed to open save file for writing"
-		save_failed.emit(error)
-		return false
-	
-	var json_string = JSON.stringify(save_data)
-	file.store_string(json_string)
-	file.close()
+	# Also save unlocked_features at top level for reliability
+	save_data["unlocked_features"] = player_data.get("unlocked_features", {})
 
-	save_completed.emit(true)
-
-	# Trigger cloud save if signed in
-	_trigger_cloud_save(save_data)
-
-	return true
-
-## Load game data
-func load_game() -> bool:
-
-	var save_data: Dictionary = _read_save_file()
-	if save_data.is_empty():
-		return false
-
-	# Validate save data structure before loading
-	if not _validate_save_data(save_data):
-		load_failed.emit("Save data failed validation — may be corrupted")
-		return false
-
-	# Migrate save data if version differs
-	var version: String = save_data.get("version", "0.0")
-	if version != SAVE_VERSION:
-		save_data = _migrate_save_data(save_data, version)
-
-	# Load data into all systems
-	var system_registry := SystemRegistry.get_instance()
-	_load_systems_from_data(save_data, system_registry)
-
-	load_completed.emit(true, save_data)
-	return true
-
-## Read and parse the local save file, returning the parsed Dictionary (empty on failure)
-func _read_save_file() -> Dictionary:
-	if not FileAccess.file_exists(SAVE_FILE_PATH):
-		var error := "Save file does not exist"
-		load_failed.emit(error)
-		return {}
-
-	var file := FileAccess.open(SAVE_FILE_PATH, FileAccess.READ)
-	if not file:
-		var error := "Failed to open save file for reading"
-		load_failed.emit(error)
-		return {}
-
-	var json_string := file.get_as_text()
-	file.close()
-
-	var json := JSON.new()
-	var parse_result := json.parse(json_string)
-	if parse_result != OK:
-		var error := "Failed to parse save file JSON"
-		load_failed.emit(error)
-		return {}
-
-	var save_data: Dictionary = json.data
 	return save_data
 
-## Validate save data structure — checks required keys and expected types.
-## Returns true if the data looks safe to load, false if corrupted.
+## Check if we have loaded data (replaces has_save_file for cloud-only)
+func has_data() -> bool:
+	return data_loaded
+
+## Validate save data structure
 func _validate_save_data(save_data: Dictionary) -> bool:
-	# Required top-level keys
 	if not save_data.has("version"):
 		push_warning("SaveManager: Save data missing 'version' key")
 		return false
@@ -205,7 +179,6 @@ func _validate_save_data(save_data: Dictionary) -> bool:
 		push_warning("SaveManager: Save data missing 'timestamp' key")
 		return false
 
-	# Validate that known section keys, when present, are Dictionaries
 	var dict_sections: Array[String] = [
 		"resources", "collection", "battle", "hex_grid", "territory",
 		"dungeon", "summon", "tutorial", "arena", "player_progression",
@@ -216,7 +189,6 @@ func _validate_save_data(save_data: Dictionary) -> bool:
 			push_warning("SaveManager: Section '%s' expected Dictionary, got %s" % [key, typeof(save_data[key])])
 			return false
 
-	# Validate collection section has expected structure if present
 	if save_data.has("collection"):
 		var collection: Dictionary = save_data["collection"]
 		if collection.has("gods") and not collection["gods"] is Array:
@@ -277,7 +249,24 @@ func _load_systems_from_data(save_data: Dictionary, system_registry) -> void:
 			tutorial_orchestrator.load_tutorial_save_data(save_data.tutorial)
 
 	if save_data.has("player_data"):
-		player_data = save_data.player_data
+		# MERGE player_data - once unlocked = always unlocked
+		var cloud_player_data: Dictionary = save_data.player_data
+
+		var local_unlocks: Dictionary = player_data.get("unlocked_features", {})
+		var cloud_unlocks: Dictionary = cloud_player_data.get("unlocked_features", {})
+		var top_level_unlocks: Dictionary = save_data.get("unlocked_features", {})
+
+		var merged_unlocks: Dictionary = local_unlocks.duplicate()
+		for feature in cloud_unlocks:
+			merged_unlocks[feature] = true
+		for feature in top_level_unlocks:
+			merged_unlocks[feature] = true
+
+		player_data = cloud_player_data
+		player_data["unlocked_features"] = merged_unlocks
+
+		# Cleanup old territory loss alerts (older than 48 hours)
+		_cleanup_old_territory_alerts()
 
 ## Helper: load a single system's data if present in save_data
 func _load_system_data(system_registry, system_name: String, data_key: String, save_data: Dictionary) -> void:
@@ -287,7 +276,7 @@ func _load_system_data(system_registry, system_name: String, data_key: String, s
 	if system and system.has_method("load_save_data"):
 		system.load_save_data(save_data[data_key])
 
-## Migrate save data from older versions to current version via sequential upgrades
+## Migrate save data from older versions
 func _migrate_save_data(save_data: Dictionary, from_version: String) -> Dictionary:
 	var current: String = from_version
 	if current not in KNOWN_VERSIONS:
@@ -295,7 +284,6 @@ func _migrate_save_data(save_data: Dictionary, from_version: String) -> Dictiona
 		save_data["version"] = SAVE_VERSION
 		return save_data
 
-	# Apply migrations sequentially: 1.0 → 1.1 → ...
 	if current == "1.0":
 		save_data = _migrate_1_0_to_1_1(save_data)
 		current = "1.1"
@@ -304,17 +292,10 @@ func _migrate_save_data(save_data: Dictionary, from_version: String) -> Dictiona
 		save_data = _migrate_1_1_to_1_2(save_data)
 		current = "1.2"
 
-	# Future migrations go here:
-	# if current == "1.2":
-	#     save_data = _migrate_1_2_to_1_3(save_data)
-	#     current = "1.3"
-
 	save_data["version"] = SAVE_VERSION
 	return save_data
 
-## Migrate from 1.0 → 1.1: move achievements from player_data bag to top-level key
 func _migrate_1_0_to_1_1(save_data: Dictionary) -> Dictionary:
-	# Achievements were stored inside player_data in v1.0 — promote to top-level
 	if not save_data.has("achievements") and save_data.has("player_data"):
 		var pd: Dictionary = save_data.get("player_data", {})
 		if pd.has("achievements"):
@@ -322,7 +303,6 @@ func _migrate_1_0_to_1_1(save_data: Dictionary) -> Dictionary:
 			pd.erase("achievements")
 	return save_data
 
-## Migrate from 1.1 → 1.2: move tower data from player_data bag to top-level key
 func _migrate_1_1_to_1_2(save_data: Dictionary) -> Dictionary:
 	if not save_data.has("tower") and save_data.has("player_data"):
 		var pd: Dictionary = save_data.get("player_data", {})
@@ -339,18 +319,6 @@ func _migrate_1_1_to_1_2(save_data: Dictionary) -> Dictionary:
 func auto_save():
 	save_game()
 
-## Check if save file exists
-func has_save_file() -> bool:
-	var exists = FileAccess.file_exists(SAVE_FILE_PATH)
-	return exists
-
-## Delete save file
-func delete_save_file() -> bool:
-	if FileAccess.file_exists(SAVE_FILE_PATH):
-		DirAccess.remove_absolute(SAVE_FILE_PATH)
-		return true
-	return false
-
 ## Get player data dictionary
 func get_player_data() -> Dictionary:
 	return player_data
@@ -363,8 +331,7 @@ func set_player_value(key: String, value) -> void:
 func get_player_value(key: String, default = null):
 	return player_data.get(key, default)
 
-## Calculate offline production and store in nodes for manual collection
-## Player collects via "Collect All" on territory screen for satisfying reward moment
+## Calculate offline production
 func _calculate_offline_production_rewards(system_registry, hex_grid_manager) -> void:
 	if not system_registry or not hex_grid_manager:
 		return
@@ -373,13 +340,10 @@ func _calculate_offline_production_rewards(system_registry, hex_grid_manager) ->
 	if not territory_production_manager:
 		return
 
-	# Get all player-controlled nodes
 	var player_nodes: Array = hex_grid_manager.get_player_nodes()
 	if player_nodes.is_empty():
 		return
 
-	# Calculate offline production for each node
-	# calculate_offline_hex_production() adds to node.accumulated_resources automatically
 	for node in player_nodes:
 		territory_production_manager.calculate_offline_hex_production(node)
 
@@ -388,12 +352,9 @@ func _calculate_offline_production_rewards(system_registry, hex_grid_manager) ->
 # ==============================================================================
 
 func _connect_firebase():
-	"""Connect to FirebaseIntegration for cloud saves"""
-	# Defer to allow systems to initialize
 	_connect_firebase_deferred.call_deferred()
 
 func _connect_firebase_deferred():
-	"""Deferred connection to Firebase"""
 	var system_registry = SystemRegistry.get_instance()
 	if not system_registry:
 		return
@@ -406,24 +367,140 @@ func _connect_firebase_deferred():
 		_firebase_integration.cloud_load_failed.connect(_on_cloud_load_failed)
 		_firebase_integration.cloud_save_not_found.connect(_on_cloud_save_not_found)
 
-func _trigger_cloud_save(save_data: Dictionary):
-	"""Trigger cloud save if signed in and enabled"""
-	if not cloud_save_enabled:
+	# Connect to EventBus for event-based saving on important actions
+	_connect_event_bus_for_saves(system_registry)
+
+func _connect_event_bus_for_saves(system_registry) -> void:
+	"""Connect to important events that should trigger immediate saves"""
+	var event_bus = system_registry.get_system("EventBus")
+	if not event_bus:
 		return
 
-	if not _firebase_integration:
+	# Territory captured - major progress
+	if event_bus.has_signal("territory_captured"):
+		event_bus.territory_captured.connect(_on_important_event)
+
+	# God obtained - valuable acquisition
+	if event_bus.has_signal("god_obtained"):
+		event_bus.god_obtained.connect(_on_important_event)
+
+	# Battle completed - rewards earned
+	if event_bus.has_signal("battle_ended"):
+		event_bus.battle_ended.connect(_on_important_event)
+
+	# Equipment changes
+	if event_bus.has_signal("equipment_equipped"):
+		event_bus.equipment_equipped.connect(_on_important_event_multi)
+	if event_bus.has_signal("equipment_obtained"):
+		event_bus.equipment_obtained.connect(_on_important_event)
+
+	# Arena battles
+	if event_bus.has_signal("arena_battle_completed"):
+		event_bus.arena_battle_completed.connect(_on_important_event)
+
+	# Dungeon completed
+	if event_bus.has_signal("dungeon_completed"):
+		event_bus.dungeon_completed.connect(_on_important_event_multi)
+
+	# Summon performed
+	if event_bus.has_signal("summon_performed"):
+		event_bus.summon_performed.connect(_on_important_event_multi)
+
+	# Territory lost - track for alerts
+	if event_bus.has_signal("territory_lost"):
+		event_bus.territory_lost.connect(_on_territory_lost)
+
+	# Explicit save requests from other systems
+	if event_bus.has_signal("save_requested"):
+		event_bus.save_requested.connect(_on_save_requested)
+
+func _on_important_event(_arg = null) -> void:
+	"""Handle important events that warrant an immediate save"""
+	if data_loaded:
+		_pending_save = true
+		# Small delay to batch rapid events, then save
+		_save_after_delay()
+
+func _on_important_event_multi(_arg1 = null, _arg2 = null, _arg3 = null) -> void:
+	"""Handle important events with multiple arguments"""
+	_on_important_event()
+
+func _on_save_requested() -> void:
+	"""Handle explicit save requests from other systems"""
+	if data_loaded:
+		save_game()
+
+func _on_territory_lost(territory_id: String, node_name: String, reason: String) -> void:
+	"""Track territory losses for UI alerts"""
+	var lost_territories: Array = player_data.get("lost_territories", [])
+
+	# Map reason to alert type for UI display
+	var alert_type: String = "lost"
+	match reason:
+		"no_garrison":
+			alert_type = "lost_garrison"
+		"pvp_attack":
+			alert_type = "lost_pvp"
+		"garrison_defeated":
+			alert_type = "lost_garrison"
+		_:
+			alert_type = "lost_garrison"  # Default fallback
+
+	# Add new loss entry
+	var loss_entry: Dictionary = {
+		"type": alert_type,
+		"node_id": territory_id,
+		"node_name": node_name,
+		"reason": reason,
+		"timestamp": int(Time.get_unix_time_from_system())
+	}
+	lost_territories.append(loss_entry)
+
+	# Keep only last 10 losses to prevent unbounded growth
+	if lost_territories.size() > 10:
+		lost_territories = lost_territories.slice(-10)
+
+	player_data["lost_territories"] = lost_territories
+
+	# Trigger save for this important event
+	_on_important_event()
+
+func _cleanup_old_territory_alerts() -> void:
+	"""Remove territory loss alerts older than 48 hours"""
+	var lost_territories: Array = player_data.get("lost_territories", [])
+	if lost_territories.is_empty():
 		return
 
-	if not _firebase_integration.is_signed_in():
-		return
+	var current_time: int = int(Time.get_unix_time_from_system())
+	var max_age_seconds: int = 48 * 3600  # 48 hours
 
-	if not _firebase_integration.is_cloud_save_ready():
-		return
+	var filtered: Array = []
+	for loss in lost_territories:
+		if loss is Dictionary:
+			var timestamp: int = int(loss.get("timestamp", 0))
+			if current_time - timestamp < max_age_seconds:
+				filtered.append(loss)
 
-	_firebase_integration.save_to_cloud(save_data)
+	player_data["lost_territories"] = filtered
+
+func clear_territory_alerts() -> void:
+	"""Manually clear all territory loss alerts (called from UI)"""
+	player_data["lost_territories"] = []
+
+var _save_timer: SceneTreeTimer = null
+func _save_after_delay() -> void:
+	"""Save after a short delay to batch rapid events"""
+	if _save_timer != null:
+		return  # Already have a pending save timer
+	_save_timer = get_tree().create_timer(1.0)  # 1 second delay
+	_save_timer.timeout.connect(func():
+		_save_timer = null
+		if _pending_save and data_loaded:
+			_pending_save = false
+			save_game()
+	)
 
 func load_from_cloud():
-	"""Manually load save data from cloud"""
 	if not _firebase_integration:
 		cloud_sync_failed.emit("Firebase not available")
 		return
@@ -435,29 +512,22 @@ func load_from_cloud():
 	_firebase_integration.load_from_cloud()
 
 func _on_cloud_save_completed():
-	"""Handle successful cloud save"""
 	cloud_sync_completed.emit()
 
 func _on_cloud_save_failed(error: String):
-	"""Handle failed cloud save"""
 	cloud_sync_failed.emit(error)
 
 func _on_cloud_load_completed(save_data: Dictionary):
-	"""Handle successful cloud load - apply save data to game"""
-
-	# Safety check: Don't apply empty or invalid cloud saves
-	# This prevents wiping local data if cloud save is corrupted/empty
 	if save_data.is_empty():
 		push_warning("SaveManager: Cloud save is empty, ignoring")
 		return
 
-	# Validate structure before applying
 	if not _validate_save_data(save_data):
 		push_warning("SaveManager: Cloud save failed validation, ignoring")
 		cloud_sync_failed.emit("Cloud save data corrupted")
 		return
 
-	# Check if cloud save has ACTUAL gods/equipment, not just empty arrays
+	# Check if cloud save has ACTUAL gods/equipment
 	var has_gods = false
 	var has_equipment = false
 	if save_data.has("collection"):
@@ -471,32 +541,18 @@ func _on_cloud_load_completed(save_data: Dictionary):
 	if not has_gods and not has_equipment:
 		return
 
-	_apply_save_data(save_data)
+	apply_save_data(save_data)
 	cloud_sync_completed.emit()
 
 func _on_cloud_load_failed(error: String):
-	"""Handle failed cloud load"""
 	cloud_sync_failed.emit(error)
 
 func _on_cloud_save_not_found():
-	"""Handle case where no cloud save exists - push local save to cloud"""
+	# No cloud save - this is a new player, they'll get starter stuff
+	print("SaveManager: No cloud save found - new player")
 
-	# Safety check: Only push to cloud if we have a local save with actual data
-	if not has_save_file():
-		return
-
-	# Extra safety: Check if collection has data before pushing
-	var system_registry = SystemRegistry.get_instance()
-	if system_registry:
-		var collection_manager = system_registry.get_system("CollectionManager")
-		if collection_manager:
-			var gods = collection_manager.get_all_gods()
-			if gods.is_empty():
-				return
-
-	save_game()  # This will trigger cloud save after local save
-
-func _apply_save_data(save_data: Dictionary) -> void:
+## Apply save data from cloud to all systems
+func apply_save_data(save_data: Dictionary) -> void:
 	var system_registry := SystemRegistry.get_instance()
 	if not system_registry:
 		load_failed.emit("SystemRegistry not available")
@@ -508,4 +564,8 @@ func _apply_save_data(save_data: Dictionary) -> void:
 		save_data = _migrate_save_data(save_data, version)
 
 	_load_systems_from_data(save_data, system_registry)
+
+	# Mark that we have loaded data
+	data_loaded = true
+
 	load_completed.emit(true, save_data)

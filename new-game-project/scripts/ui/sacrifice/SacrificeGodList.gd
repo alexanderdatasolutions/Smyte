@@ -88,40 +88,19 @@ func _populate_gods():
 		god_grid.add_child(god_card)
 
 func _create_god_card(god: God) -> Control:
-	"""Create a god card with selection support"""
-	var card = UICardFactory.create_god_card(god)
-	
-	# Style the card based on whether it's the current target
-	_style_god_card(card, god)
-	
-	# Make it selectable - single click for target selection
-	var button = card.get_node("SelectButton")
-	if button:
-		button.pressed.connect(_on_god_card_selected.bind(god))
-		
-		# Add right-click or ctrl-click for material selection
-		button.gui_input.connect(_on_god_card_input.bind(god))
-	
-	return card
+	"""Create a god card with selection support using standardized GodCard"""
+	# Determine card style based on selection state
+	var card_style: GodCard.CardStyle = GodCard.CardStyle.SELECTED if god == current_target_god else GodCard.CardStyle.NORMAL
+	var card = UICardFactory.create_god_card_styled(god, UICardFactory.CardStyle.STANDARD, card_style)
 
-func _style_god_card(card: Control, god: God):
-	"""Style the god card based on its selection state"""
-	if not card:
-		return
-		
-	# Find the main panel to style
-	var panel = card.get_node("Panel") if card.has_node("Panel") else card
-	
-	if god == current_target_god:
-		# Highlight target god
-		var style = StyleBoxFlat.new()
-		style.bg_color = Color(0.3, 0.6, 0.3, 0.8)  # Green for target
-		style.border_color = Color(0.5, 1.0, 0.5, 1.0)
-		style.border_width_left = 3
-		style.border_width_right = 3
-		style.border_width_top = 3
-		style.border_width_bottom = 3
-		panel.add_theme_stylebox_override("panel", style)
+	# Connect god_selected signal from GodCard
+	if card and card.has_signal("god_selected"):
+		card.god_selected.connect(_on_god_card_selected)
+
+		# Add right-click handler for material selection
+		card.gui_input.connect(_on_god_card_input.bind(god))
+
+	return card
 
 func _on_god_card_selected(god: God):
 	"""Handle god card single-click - select as target"""

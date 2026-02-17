@@ -2,17 +2,50 @@
 	"generation_timing": {
 		"tick_interval_seconds": 60.0,
 		"max_storage_hours": 12.0,
-		"manual_collection_bonus": 1.0
+		"manual_collection_bonus": 1.0,
+		"max_offline_days": 30
 	},
 	"production_bonuses": {
 		"upgrade_bonus_per_level": 0.10,
 		"worker_base_bonus": 0.10,
-		"god_level_bonus_per_level": 0.01
+		"god_level_bonus_per_level": 0.01,
+		"power_bonus_rate": 0.005,
+		"speed_multiplier": 0.3,
+		"all_stats_multiplier": 0.5
 	},
 	"connected_bonuses": {
 		"2": 0.10,
 		"3": 0.20,
 		"4": 0.30
+	},
+	"defense": {
+		"garrison_power_requirements": {
+			"1": 500,
+			"2": 2000,
+			"3": 5000,
+			"4": 15000,
+			"5": 40000
+		},
+		"defense_level_bonus_per_level": 0.1,
+		"distance_penalty_per_hex": 0.05,
+		"distance_penalty_cap": 0.95
+	},
+	"capture_rewards": {
+		"tier_rewards": {
+			"1": 10,
+			"2": 25,
+			"3": 50,
+			"4": 100,
+			"5": 200
+		},
+		"early_game_bonuses": [300, 200, 200, 100, 100, 100, 100, 100, 100, 50]
+	},
+	"building_level_multipliers": {
+		"1": 1.0,
+		"2": 1.15,
+		"3": 1.35,
+		"4": 1.60,
+		"5": 2.00
 	},
 	"node_task_mapping": {
 		"mine": ["mining", "mine_ore", "mine_gems", "deep_mining", "gem_cutting"],

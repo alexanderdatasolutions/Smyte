@@ -30,7 +30,7 @@ func _build_icon():
 	var bg_panel = Panel.new()
 	bg_panel.custom_minimum_size = ICON_SIZE
 	bg_panel.size = ICON_SIZE
-	bg_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Allow mouse events to pass through to parent
+	bg_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg_panel)
 
 	# Style the background based on effect type and color
@@ -47,17 +47,43 @@ func _build_icon():
 	bg_style.corner_radius_bottom_right = 3
 	bg_panel.add_theme_stylebox_override("panel", bg_style)
 
-	# Symbol label based on effect
-	var symbol_label = Label.new()
-	symbol_label.custom_minimum_size = ICON_SIZE
-	symbol_label.size = ICON_SIZE
-	symbol_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	symbol_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	symbol_label.add_theme_font_size_override("font_size", 10)
-	symbol_label.text = _get_effect_symbol()
-	symbol_label.modulate = _get_effect_type_color()
-	symbol_label.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Allow mouse events to pass through to parent
-	add_child(symbol_label)
+	# Try to load PNG icon first
+	var icon_loaded: bool = false
+	var icon_path: String = _get_icon_path()
+	if icon_path != "" and ResourceLoader.exists(icon_path):
+		var texture: Texture2D = ResourceLoader.load(icon_path) as Texture2D
+		if texture:
+			# Create a container to clip the icon
+			var icon_container = Control.new()
+			icon_container.custom_minimum_size = ICON_SIZE - Vector2(4, 4)
+			icon_container.size = ICON_SIZE - Vector2(4, 4)
+			icon_container.position = Vector2(2, 2)
+			icon_container.clip_contents = true
+			icon_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			add_child(icon_container)
+
+			var icon_rect = TextureRect.new()
+			icon_rect.texture = texture
+			# EXPAND_FIT_WIDTH scales texture to fit the container width
+			icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH
+			icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			icon_container.add_child(icon_rect)
+			icon_loaded = true
+
+	# Fallback to symbol if no icon
+	if not icon_loaded:
+		var symbol_label = Label.new()
+		symbol_label.custom_minimum_size = ICON_SIZE
+		symbol_label.size = ICON_SIZE
+		symbol_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		symbol_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		symbol_label.add_theme_font_size_override("font_size", 10)
+		symbol_label.text = _get_effect_symbol()
+		symbol_label.modulate = _get_effect_type_color()
+		symbol_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(symbol_label)
 
 	# Stack count label (if stackable and has stacks > 1)
 	if status_effect.can_stack and status_effect.stacks > 1:
@@ -181,6 +207,74 @@ func _on_mouse_entered():
 func _on_mouse_exited():
 	if tooltip_panel:
 		tooltip_panel.visible = false
+
+func _get_icon_path() -> String:
+	"""Get the PNG icon path for this effect, with smart fallbacks"""
+	const ICON_BASE := "res://assets/status_effects/"
+
+	# Direct mappings for effects with exact icons
+	var icon_map: Dictionary = {
+		# Buffs
+		"attack_boost": "attack_buff_nobg.png",
+		"defense_boost": "defense_buff_nobg.png",
+		"speed_boost": "speed_buff_nobg.png",
+		"crit_boost": "crit_rate_buff_nobg.png",
+		"crit_damage_boost": "crit_rate_buff_nobg.png",
+		"shield": "shield_nobg.png",
+		"regeneration": "regen_nobg.png",
+		"debuff_immunity": "immunity_nobg.png",
+		"damage_immunity": "invincibility_nobg.png",
+		"counter_attack": "thorns_nobg.png",
+		"reflect_damage": "reflect_nobg.png",
+		"untargetable": "invincibility_nobg.png",  # Fallback
+		"accuracy_boost": "crit_rate_buff_nobg.png",  # Fallback - similar concept
+		"evasion_boost": "speed_buff_nobg.png",  # Fallback - dodge related
+		"wisdom_boost": "immunity_nobg.png",  # Fallback
+
+		# Debuffs
+		"stun": "stun_nobg.png",
+		"burn": "burn_nobg.png",
+		"burning": "burn_nobg.png",
+		"continuous_damage": "burn_nobg.png",
+		"poison": "poison_nobg.png",
+		"poisoned": "poison_nobg.png",
+		"bleed": "bleed_nobg.png",
+		"bleeding": "bleed_nobg.png",
+		"freeze": "freeze_nobg.png",
+		"frozen": "freeze_nobg.png",
+		"sleep": "sleep_nobg.png",
+		"sleeping": "sleep_nobg.png",
+		"silence": "silence_nobg.png",
+		"silenced": "silence_nobg.png",
+		"slow": "slow_nobg.png",
+		"slowed": "slow_nobg.png",
+		"blind": "blind_nobg.png",
+		"blinded": "blind_nobg.png",
+		"provoke": "provoke_nobg.png",
+		"provoked": "provoke_nobg.png",
+		"heal_block": "heal_block_nobg.png",
+		"defense_reduction": "defense_break_nobg.png",
+		"attack_reduction": "attack_break_nobg.png",
+		"fear": "doom_nobg.png",  # Fallback
+		"feared": "doom_nobg.png",
+		"charm": "confuse_nobg.png",  # Fallback
+		"charmed": "confuse_nobg.png",
+		"curse": "doom_nobg.png",  # Fallback
+		"cursed": "doom_nobg.png",
+		"immobilize": "stun_nobg.png",  # Fallback
+		"immobilized": "stun_nobg.png",
+		"marked_for_death": "doom_nobg.png",
+		"analyze_weakness": "blind_nobg.png",  # Fallback - target analysis
+	}
+
+	if status_effect.id in icon_map:
+		return ICON_BASE + icon_map[status_effect.id]
+
+	# Check if effect has a custom icon_path set
+	if status_effect.icon_path != "":
+		return status_effect.icon_path
+
+	return ""
 
 func _get_effect_background_color() -> Color:
 	"""Get background color based on effect type"""

@@ -585,6 +585,18 @@ func _on_hex_selected(hex_node: HexNode) -> void:
 	selected_node = hex_node
 	_show_node_info(hex_node)
 
+	# Clear hex highlight when user selects a hex
+	if _tutorial_highlight_overlay:
+		_tutorial_highlight_overlay.clear_highlight()
+
+	# Emit tutorial action for hex selection
+	_emit_tutorial_action("hex_node_selected")
+
+	# Trigger hex capture tutorial if applicable (shows Capture button highlight)
+	var tutorial_orchestrator = SystemRegistry.get_instance().get_system("TutorialOrchestrator")
+	if tutorial_orchestrator and not hex_node.is_controlled_by_player():
+		tutorial_orchestrator.trigger_hex_selected_tutorial()
+
 func _on_hex_hovered(hex_node: HexNode) -> void:
 	"""Handle hex node hover (optional tooltip in future)"""
 	pass  # Could show tooltip in future
@@ -1120,6 +1132,8 @@ func _on_capture_succeeded(hex_node: HexNode, _rewards: Dictionary) -> void:
 
 	# Refresh the map (updates node colors/states)
 	refresh()
+	# NOTE: Don't trigger tutorials here - we're still on battle screen
+	# Tutorial will be triggered in _handle_pending_captured_node when we return
 
 func _handle_pending_captured_node() -> void:
 	"""Show info panel for recently captured node when returning from battle"""
@@ -1133,9 +1147,30 @@ func _handle_pending_captured_node() -> void:
 
 		# Show building selection popup for blank buildable tiles
 		if node_to_show.can_place_building() and building_selection_popup:
-			# Small delay for UI to settle
-			await get_tree().create_timer(0.3).timeout
-			building_selection_popup.show_for_node(node_to_show)
+			# Trigger building tutorial FIRST (shows dialog explaining buildings)
+			var tutorial_orchestrator = SystemRegistry.get_instance().get_system("TutorialOrchestrator")
+			var should_show_popup := true
+
+			if tutorial_orchestrator:
+				var started: bool = tutorial_orchestrator.trigger_first_capture_complete()
+				if started:
+					# Wait for tutorial dialog to be dismissed before showing popup
+					await _wait_for_tutorial_dialog(tutorial_orchestrator)
+
+			# Now show building selection popup
+			if should_show_popup:
+				await get_tree().create_timer(0.3).timeout
+				building_selection_popup.show_for_node(node_to_show)
+
+func _wait_for_tutorial_dialog(tutorial_orch: Node) -> void:
+	"""Wait for the current tutorial dialog to be dismissed."""
+	# Wait for tutorial to either complete or advance past dialog step
+	while tutorial_orch.is_tutorial_active():
+		var step_data: Dictionary = tutorial_orch.get_current_step_data()
+		# If current step is not a dialog, we're done waiting
+		if step_data.get("type", "") != "dialog":
+			break
+		await get_tree().create_timer(0.1).timeout
 
 func _on_capture_failed(hex_node: HexNode) -> void:
 	"""Handle failed node capture from NodeCaptureHandler"""
@@ -1161,7 +1196,9 @@ func _on_building_selection_cancelled(hex_node: HexNode) -> void:
 
 func _on_building_popup_closed() -> void:
 	"""Handle building popup fully closed"""
-	pass
+	# After building popup closes, check for pending tutorial highlights on node info panel
+	if node_info_panel and node_info_panel.visible:
+		node_info_panel.check_pending_tutorial()
 
 func _on_select_building_requested(hex_node: HexNode) -> void:
 	"""Handle select building request from node info panel"""
@@ -1290,6 +1327,8 @@ func _refresh_resource_display() -> void:
 # ==============================================================================
 # TUTORIAL INTEGRATION
 # ==============================================================================
+var _tutorial_highlight_overlay: TutorialHighlightOverlay = null
+
 func _check_tutorial() -> void:
 	"""Check if tutorial should be shown for first time opening hex map"""
 	var tutorial_orchestrator = SystemRegistry.get_instance().get_system("TutorialOrchestrator")
@@ -1300,9 +1339,101 @@ func _check_tutorial() -> void:
 	if not tutorial_orchestrator.is_tutorial_completed("hex_territory_intro"):
 		# Use call_deferred to ensure screen is fully loaded
 		call_deferred("_start_hex_territory_tutorial")
+	else:
+		# Check if there's a pending highlight for this screen
+		call_deferred("_check_pending_hex_highlight")
 
 func _start_hex_territory_tutorial() -> void:
 	"""Start the hex territory introduction tutorial"""
 	var tutorial_orchestrator = SystemRegistry.get_instance().get_system("TutorialOrchestrator")
 	if tutorial_orchestrator:
 		tutorial_orchestrator.start_tutorial("hex_territory_intro")
+		# Connect to highlight requests
+		if not tutorial_orchestrator.highlight_requested.is_connected(_on_tutorial_highlight_requested):
+			tutorial_orchestrator.highlight_requested.connect(_on_tutorial_highlight_requested)
+		if not tutorial_orchestrator.highlight_cleared.is_connected(_on_tutorial_highlight_cleared):
+			tutorial_orchestrator.highlight_cleared.connect(_on_tutorial_highlight_cleared)
+
+func _check_pending_hex_highlight() -> void:
+	"""Check if tutorial orchestrator has a pending highlight for hex territory."""
+	var tutorial_orchestrator = SystemRegistry.get_instance().get_system("TutorialOrchestrator")
+	if not tutorial_orchestrator or not tutorial_orchestrator.is_tutorial_active():
+		return
+
+	var step_data: Dictionary = tutorial_orchestrator.get_current_step_data()
+	if step_data.is_empty():
+		return
+
+	if step_data.get("type") == "highlight" and step_data.get("target_screen") == "hex_territory":
+		var target_id: String = step_data.get("target_id", "")
+		var message: String = step_data.get("message", "")
+		var title: String = step_data.get("title", "")
+		call_deferred("_on_tutorial_highlight_requested", target_id, message, title)
+
+func _on_tutorial_highlight_requested(target_id: String, message: String, title: String, _show_button: bool = true) -> void:
+	"""Handle highlight requests from TutorialOrchestrator."""
+	if not visible:
+		return
+
+	# Check if this highlight is for hex_territory screen
+	var tutorial_orchestrator = SystemRegistry.get_instance().get_system("TutorialOrchestrator")
+	if not tutorial_orchestrator:
+		return
+
+	var step_data: Dictionary = tutorial_orchestrator.get_current_step_data()
+	if step_data.get("target_screen", "") != "hex_territory":
+		return
+
+	# Handle "barren_outcrop_hex" - find first neutral Barren Outcrop
+	if target_id == "barren_outcrop_hex":
+		_highlight_barren_outcrop(message, title)
+
+func _highlight_barren_outcrop(message: String, title: String) -> void:
+	"""Find and highlight the first neutral Barren Outcrop hex tile."""
+	if not hex_map_view or not hex_map_view.hex_grid_manager:
+		return
+
+	# Find first neutral "Barren Outcrop" node
+	var all_nodes: Array = hex_map_view.hex_grid_manager.get_all_nodes()
+	var target_node: HexNode = null
+
+	for hex_node in all_nodes:
+		if not hex_node.is_controlled_by_player() and hex_node.name == "Barren Outcrop":
+			target_node = hex_node
+			break
+
+	if not target_node:
+		# No neutral Barren Outcrop found, skip this step
+		var tutorial_orchestrator = SystemRegistry.get_instance().get_system("TutorialOrchestrator")
+		if tutorial_orchestrator:
+			tutorial_orchestrator.advance_tutorial()
+		return
+
+	# Get the HexTile for this node
+	var tile_key := "%d,%d" % [target_node.coord.q, target_node.coord.r]
+	if not hex_map_view._hex_tiles.has(tile_key):
+		return
+
+	var hex_tile: HexTile = hex_map_view._hex_tiles[tile_key]
+
+	# Create or get highlight overlay
+	if not _tutorial_highlight_overlay:
+		_tutorial_highlight_overlay = TutorialHighlightOverlay.new()
+		add_child(_tutorial_highlight_overlay)
+
+	# Highlight the hex tile
+	_tutorial_highlight_overlay.highlight_target(hex_tile, message, title, "Got it!", true, false)
+
+func _on_tutorial_highlight_cleared() -> void:
+	"""Clear any active highlight."""
+	if _tutorial_highlight_overlay:
+		_tutorial_highlight_overlay.clear_highlight()
+
+func _emit_tutorial_action(action_id: String) -> void:
+	"""Emit a tutorial action via EventBus."""
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		return
+	var event_bus: Node = registry.get_system("EventBus")
+	if event_bus and event_bus.has_signal("tutorial_action_completed"):
+		event_bus.tutorial_action_completed.emit(action_id)

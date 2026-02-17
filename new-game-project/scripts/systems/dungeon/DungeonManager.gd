@@ -221,8 +221,7 @@ func get_dungeon_categories() -> Dictionary:
 func validate_dungeon_entry(dungeon_id: String, difficulty: String, team: Array) -> Dictionary:
 	var result: Dictionary = {
 		"success": false,
-		"error_message": "",
-		"energy_cost": 0
+		"error_message": ""
 	}
 
 	var dungeon_info: Dictionary = get_dungeon_info(dungeon_id)
@@ -243,17 +242,6 @@ func validate_dungeon_entry(dungeon_id: String, difficulty: String, team: Array)
 		var daily_limit: int = get_daily_limit(dungeon_id)
 		result.error_message = "Daily limit reached (%d/%d completions today)" % [daily_limit, daily_limit]
 		return result
-
-	var difficulty_info: Dictionary = difficulties[difficulty]
-	var energy_cost: int = difficulty_info.get("energy_cost", 8)
-	result.energy_cost = energy_cost
-
-	var resource_manager: Node = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
-	if resource_manager:
-		var current_energy: int = resource_manager.get_resource("energy")
-		if current_energy < energy_cost:
-			result.error_message = "Not enough energy (%d required, %d available)" % [energy_cost, current_energy]
-			return result
 
 	result.success = true
 	return result

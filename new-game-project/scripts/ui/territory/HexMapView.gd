@@ -56,6 +56,11 @@ var _connection_layer: Control = null
 var _tooltip_label: Label = null
 var _camera_tween: Tween = null
 
+# Buff radius visualization
+var _buff_radius_overlays: Array[Control] = []
+var _buff_radius_layer: Control = null
+var _building_buff_manager = null
+
 # ==============================================================================
 # LIFECYCLE
 # ==============================================================================
@@ -73,6 +78,7 @@ func _init_systems() -> void:
 	hex_grid_manager = registry.get_system("HexGridManager")
 	territory_manager = registry.get_system("TerritoryManager")
 	node_requirement_checker = registry.get_system("NodeRequirementChecker")
+	_building_buff_manager = registry.get_system("BuildingBuffManager")
 
 func _setup_ui() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -100,6 +106,13 @@ func _create_grid_container() -> void:
 	_grid_container.name = "GridContainer"
 	_grid_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_grid_container)
+
+	# Buff radius layer (below connection layer)
+	_buff_radius_layer = Control.new()
+	_buff_radius_layer.name = "BuffRadiusLayer"
+	_buff_radius_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_buff_radius_layer.z_index = -2
+	_grid_container.add_child(_buff_radius_layer)
 
 	_connection_layer = Control.new()
 	_connection_layer.name = "ConnectionLayer"
@@ -550,7 +563,7 @@ func _animate_connection_line(line: Line2D) -> void:
 		return
 
 	var tween = create_tween()
-	tween.set_loops(-1).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	tween.set_loops(0).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)  # 0 = infinite loops
 	tween.tween_property(line, "default_color", Color(0.3, 0.7, 0.3, 0.7), 1.5)
 	tween.tween_property(line, "default_color", Color(0.3, 0.7, 0.3, 0.3), 1.5)
 	tween.parallel().tween_property(line, "width", 4.0, 1.5)
@@ -587,3 +600,92 @@ func _refresh_pending_indicators() -> void:
 	for tile in _hex_tiles.values():
 		if is_instance_valid(tile):
 			tile._update_pending_resources_indicator()
+
+# ==============================================================================
+# BUFF RADIUS VISUALIZATION
+# ==============================================================================
+
+func show_buff_radius(hex_node: HexNode) -> void:
+	"""Show buff radius overlay for a building with buff effects"""
+	clear_buff_radius()
+
+	if not hex_node or hex_node.placed_building.is_empty():
+		return
+
+	if not _building_buff_manager:
+		return
+
+	var radius: int = _building_buff_manager.get_building_buff_radius(hex_node.placed_building)
+	if radius <= 0:
+		return
+
+	var affected_hexes: Array = _building_buff_manager.get_nodes_in_buff_radius(hex_node.coord, hex_node.placed_building)
+	var buff_color: Color = _get_buff_color(hex_node.placed_building)
+
+	for affected_node in affected_hexes:
+		if not affected_node:
+			continue
+		_create_buff_overlay(affected_node.coord, buff_color)
+
+func _get_buff_color(building_id: String) -> Color:
+	"""Get the overlay color based on building type"""
+	var effects: Dictionary = _building_buff_manager.get_building_buff_effects(building_id) if _building_buff_manager else {}
+
+	if effects.has("defense_bonus"):
+		return Color(0.3, 0.5, 0.9, 0.25)  # Blue for defense
+	elif effects.has("production_bonus"):
+		return Color(0.9, 0.7, 0.2, 0.25)  # Gold for production
+	elif effects.has("garrison_bonus"):
+		return Color(0.5, 0.9, 0.3, 0.25)  # Green for garrison
+
+	return Color(0.5, 0.5, 0.8, 0.2)  # Default purple
+
+func _create_buff_overlay(coord: HexCoord, color: Color) -> void:
+	"""Create a colored overlay on a hex to show buff radius"""
+	if not _buff_radius_layer:
+		return
+
+	var overlay: ColorRect = ColorRect.new()
+	overlay.color = color
+	overlay.size = Vector2(HEX_WIDTH, HEX_HEIGHT)
+	overlay.position = _coord_to_screen_position(coord)
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	_buff_radius_layer.add_child(overlay)
+	_buff_radius_overlays.append(overlay)
+
+	# Add pulsing animation
+	var tween: Tween = create_tween()
+	tween.set_loops(0).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(overlay, "color:a", color.a * 1.5, 0.8)
+	tween.tween_property(overlay, "color:a", color.a * 0.5, 0.8)
+
+func clear_buff_radius() -> void:
+	"""Clear all buff radius overlays"""
+	for overlay in _buff_radius_overlays:
+		if is_instance_valid(overlay):
+			overlay.queue_free()
+	_buff_radius_overlays.clear()
+
+func show_all_buff_radii() -> void:
+	"""Show buff radii for all buildings with effects (for overview)"""
+	clear_buff_radius()
+
+	if not hex_grid_manager or not _building_buff_manager:
+		return
+
+	var all_nodes: Array = hex_grid_manager.get_all_nodes()
+	for node in all_nodes:
+		if not node or not node.is_controlled_by_player():
+			continue
+		if node.placed_building.is_empty():
+			continue
+
+		var radius: int = _building_buff_manager.get_building_buff_radius(node.placed_building)
+		if radius > 0:
+			var affected: Array = _building_buff_manager.get_nodes_in_buff_radius(node.coord, node.placed_building)
+			var color: Color = _get_buff_color(node.placed_building)
+
+			for affected_node in affected:
+				if affected_node:
+					_create_buff_overlay(affected_node.coord, color)

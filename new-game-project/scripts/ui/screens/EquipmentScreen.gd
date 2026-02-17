@@ -69,6 +69,16 @@ func _on_visibility_changed():
 	"""Update header when this screen becomes visible"""
 	if visible:
 		_update_header_for_screen()
+		_check_intro_tutorial()
+
+func _check_intro_tutorial() -> void:
+	"""Check if intro tutorial should be shown for this screen."""
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		return
+	var tutorial_orch: Node = registry.get_system("TutorialOrchestrator")
+	if tutorial_orch and not tutorial_orch.is_tutorial_completed("equipment_intro"):
+		tutorial_orch.start_tutorial("equipment_intro")
 
 func _update_header_for_screen():
 	"""Apply this screen's header settings"""

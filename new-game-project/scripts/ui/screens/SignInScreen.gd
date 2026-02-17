@@ -5,10 +5,12 @@ class_name SignInScreen extends Control
 signal sign_in_completed(signed_in: bool)
 
 var _firebase_integration = null
+var _save_manager = null
 var _signing_in: bool = false
 var _is_signup_mode: bool = false
+var _needs_display_name: bool = false  # True after signup to prompt for display name
 
-# UI References
+# UI References - Auth
 var _email_input: LineEdit
 var _password_input: LineEdit
 var _auth_button: Button
@@ -16,9 +18,15 @@ var _toggle_button: Button
 var _skip_button: Button
 var _status_label: Label
 
+# UI References - Display Name (shown after signup)
+var _display_name_container: VBoxContainer
+var _display_name_input: LineEdit
+var _display_name_button: Button
+
 func _ready():
 	_build_ui()
 	_connect_firebase()
+	_connect_save_manager()
 
 func _build_ui():
 	# Full screen dark overlay
@@ -272,15 +280,55 @@ func _on_skip_pressed():
 	sign_in_completed.emit(false)
 	queue_free()
 
-func _on_sign_in_completed(user_data: Dictionary):
+func _on_sign_in_completed(_user_data: Dictionary):
 	_signing_in = false
-	var email = user_data.get("email", "User")
 	_status_label.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
-	_set_status("Welcome!")
+	_set_status("Loading cloud save...")
 
-	await get_tree().create_timer(0.8).timeout
-	sign_in_completed.emit(true)
-	queue_free()
+	# Wait a moment for cloud save manager to initialize
+	await get_tree().create_timer(0.3).timeout
+
+	# Load from cloud (authoritative source - no local file editing)
+	if _firebase_integration and _firebase_integration.is_cloud_save_ready():
+		# Connect to cloud load signals (one-shot)
+		_firebase_integration.cloud_load_completed.connect(_on_cloud_data_loaded, CONNECT_ONE_SHOT)
+		_firebase_integration.cloud_load_failed.connect(_on_cloud_load_failed, CONNECT_ONE_SHOT)
+		_firebase_integration.cloud_save_not_found.connect(_on_cloud_save_not_found, CONNECT_ONE_SHOT)
+		_firebase_integration.load_from_cloud()
+	else:
+		# Cloud not ready - proceed anyway (new user or offline)
+		_on_cloud_save_not_found()
+
+func _on_cloud_data_loaded(save_data: Dictionary):
+	"""Cloud data loaded - apply it and continue"""
+	_set_status("Welcome back!")
+
+	# Apply cloud data via SaveManager
+	if _save_manager and not save_data.is_empty():
+		_save_manager.apply_save_data(save_data)
+
+	await get_tree().create_timer(0.3).timeout
+	_finish_sign_in()
+
+func _on_cloud_load_failed(_error: String):
+	"""Cloud load failed - proceed with fresh data"""
+	_set_status("Welcome!")
+	await get_tree().create_timer(0.3).timeout
+	_finish_sign_in()
+
+func _on_cloud_save_not_found():
+	"""No cloud save - new user"""
+	_set_status("Welcome, new player!")
+	await get_tree().create_timer(0.3).timeout
+	_finish_sign_in()
+
+func _finish_sign_in():
+	"""Final step - check display name and proceed"""
+	if _check_needs_display_name():
+		_show_display_name_prompt()
+	else:
+		sign_in_completed.emit(true)
+		queue_free()
 
 func _on_sign_in_failed(error: String):
 	_signing_in = false
@@ -315,3 +363,117 @@ func _set_buttons_enabled(enabled: bool):
 		_email_input.editable = enabled
 	if _password_input:
 		_password_input.editable = enabled
+
+func _connect_save_manager():
+	var system_registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
+	if not system_registry_script:
+		return
+	var registry = system_registry_script.get_instance()
+	if registry:
+		_save_manager = registry.get_system("SaveManager")
+
+func _check_needs_display_name() -> bool:
+	"""Check if user needs to set a display name (cloud data already loaded)"""
+	if not _save_manager:
+		_connect_save_manager()
+	if not _save_manager:
+		return true  # Assume they need one if we can't check
+
+	# Cloud data is already loaded - just check in-memory player_data
+	var existing_name: String = _save_manager.get_player_value("display_name", "")
+	return existing_name.is_empty()
+
+func _show_display_name_prompt():
+	"""Show the display name input UI"""
+	_needs_display_name = true
+
+	# Hide auth UI
+	_email_input.get_parent().get_parent().visible = false  # Hide the panel
+
+	# Create display name panel
+	var center = get_node("CenterContainer")
+
+	var panel = PanelContainer.new()
+	panel.name = "DisplayNamePanel"
+	panel.custom_minimum_size = Vector2(400, 280)
+
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.12, 0.1, 0.16, 0.98)
+	panel_style.border_color = Color(0.4, 0.35, 0.6, 0.8)
+	panel_style.set_border_width_all(2)
+	panel_style.set_corner_radius_all(12)
+	panel_style.content_margin_left = 30
+	panel_style.content_margin_right = 30
+	panel_style.content_margin_top = 30
+	panel_style.content_margin_bottom = 30
+	panel.add_theme_stylebox_override("panel", panel_style)
+	center.add_child(panel)
+
+	_display_name_container = VBoxContainer.new()
+	_display_name_container.add_theme_constant_override("separation", 15)
+	panel.add_child(_display_name_container)
+
+	# Title
+	var title = Label.new()
+	title.text = "Choose Your Name"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 28)
+	title.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
+	_display_name_container.add_child(title)
+
+	# Subtitle
+	var subtitle = Label.new()
+	subtitle.text = "This will be shown in the Discord when you flex achievements"
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle.add_theme_font_size_override("font_size", 14)
+	subtitle.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_display_name_container.add_child(subtitle)
+
+	# Spacer
+	var spacer = Control.new()
+	spacer.custom_minimum_size = Vector2(0, 10)
+	_display_name_container.add_child(spacer)
+
+	# Input
+	_display_name_input = LineEdit.new()
+	_display_name_input.placeholder_text = "Enter your display name"
+	_display_name_input.custom_minimum_size = Vector2(0, 45)
+	_display_name_input.max_length = 20
+	_style_input(_display_name_input)
+	_display_name_input.text_submitted.connect(_on_display_name_submitted)
+	_display_name_container.add_child(_display_name_input)
+
+	# Button
+	_display_name_button = Button.new()
+	_display_name_button.text = "Let's Go!"
+	_display_name_button.custom_minimum_size = Vector2(0, 45)
+	_display_name_button.add_theme_font_size_override("font_size", 16)
+	_style_primary_button(_display_name_button)
+	_display_name_button.pressed.connect(_on_display_name_confirmed)
+	_display_name_container.add_child(_display_name_button)
+
+	# Focus the input
+	_display_name_input.grab_focus()
+
+func _on_display_name_submitted(_text: String):
+	_on_display_name_confirmed()
+
+func _on_display_name_confirmed():
+	var display_name: String = _display_name_input.text.strip_edges()
+
+	if display_name.is_empty():
+		display_name = "Player"  # Default if they skip
+
+	# Save to SaveManager
+	if _save_manager:
+		_save_manager.set_player_value("display_name", display_name)
+		_save_manager.save_game()
+
+	# Set on analytics for tracking
+	if _firebase_integration and _firebase_integration.analytics:
+		_firebase_integration.analytics.set_display_name(display_name)
+
+	# Done - proceed to game
+	sign_in_completed.emit(true)
+	queue_free()

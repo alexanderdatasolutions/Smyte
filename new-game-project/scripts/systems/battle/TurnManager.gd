@@ -154,6 +154,37 @@ func add_units(new_units: Array) -> void:
 			# Initialize their turn bar (start at 0 so existing units get to act first)
 			unit.current_turn_bar = 0.0
 
+## Remove dead enemy units (for wave cleanup)
+func remove_dead_enemies() -> void:
+	"""Remove dead enemy units from tracking - call before adding new wave"""
+	var to_remove: Array = []
+	for unit in battle_units:
+		if unit.is_enemy() and not unit.is_alive:
+			to_remove.append(unit)
+	for unit in to_remove:
+		battle_units.erase(unit)
+		turn_queue.erase(unit)
+	print("TurnManager: Removed %d dead enemies" % to_remove.size())
+
+## Replace all enemy units (for wave transitions)
+func replace_enemy_units(new_enemies: Array) -> void:
+	"""Replace all enemy units with new wave - clears dead ones and adds new"""
+	# Remove all enemy units (dead or alive)
+	var to_remove: Array = []
+	for unit in battle_units:
+		if unit.is_enemy():
+			to_remove.append(unit)
+	for unit in to_remove:
+		battle_units.erase(unit)
+		turn_queue.erase(unit)
+
+	# Add new enemies
+	for unit in new_enemies:
+		if unit and unit not in battle_units:
+			battle_units.append(unit)
+			unit.current_turn_bar = 0.0
+	print("TurnManager: Replaced enemies - removed %d, added %d" % [to_remove.size(), new_enemies.size()])
+
 ## End the battle
 func end_battle() -> void:
 	battle_units.clear()
@@ -183,10 +214,19 @@ func _calculate_initial_turn_order() -> void:
 func _fill_turn_queue() -> void:
 	"""Fill the turn queue by advancing turn bars until someone is ready"""
 	var safety_counter: int = 0
-	
+
+	# Early exit if no living units (battle should end)
+	var living_units = battle_units.filter(func(unit): return unit.is_alive)
+	if living_units.is_empty():
+		return
+
 	while turn_queue.is_empty() and safety_counter < _max_turn_iterations:
+		# Re-check living units each iteration (units can die mid-battle)
+		living_units = battle_units.filter(func(unit): return unit.is_alive)
+		if living_units.is_empty():
+			return  # All units died, bail out
+
 		# Advance all living units' turn bars
-		var living_units = battle_units.filter(func(unit): return unit.is_alive)
 		
 		for unit in living_units:
 			unit.advance_turn_bar()
@@ -200,7 +240,7 @@ func _fill_turn_queue() -> void:
 	if safety_counter >= _max_turn_iterations:
 		push_error("TurnManager: Turn calculation exceeded maximum iterations")
 		# Fallback: give turn to first living unit
-		var living_units = battle_units.filter(func(unit): return unit.is_alive)
+		living_units = battle_units.filter(func(unit): return unit.is_alive)
 		if not living_units.is_empty():
 			living_units[0].current_turn_bar = _turn_bar_threshold
 			turn_queue.append(living_units[0])
@@ -234,6 +274,13 @@ func _begin_next_turn() -> void:
 
 	# Process status effects at start of turn (DoT/HoT, reduce durations)
 	active_unit.process_status_effects()
+
+	# Check if unit died from DoT (poison, burn, bleed, etc.)
+	if not active_unit.is_alive:
+		print("TurnManager: Unit %s died from status effects, skipping turn" % active_unit.display_name)
+		active_unit = null
+		_begin_next_turn()
+		return
 
 	# Check if unit can act (not stunned, frozen, sleeping, etc.)
 	if not active_unit.can_act():

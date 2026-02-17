@@ -29,6 +29,28 @@ static func get_element_color_from_string(element: String) -> Color:
 		"nature": return Color(0.3, 0.7, 0.3)
 		_: return Color(0.5, 0.5, 0.5)
 
+# Subtle element colors for card backgrounds (darker/muted versions)
+static func get_subtle_element_color(element: God.ElementType) -> Color:
+	match element:
+		God.ElementType.FIRE: return Color(0.35, 0.15, 0.1, 0.8)
+		God.ElementType.WATER: return Color(0.12, 0.2, 0.35, 0.8)
+		God.ElementType.EARTH: return Color(0.25, 0.18, 0.1, 0.8)
+		God.ElementType.LIGHTNING: return Color(0.35, 0.32, 0.12, 0.8)
+		God.ElementType.LIGHT: return Color(0.35, 0.35, 0.28, 0.8)
+		God.ElementType.DARK: return Color(0.2, 0.12, 0.25, 0.8)
+		_: return Color(0.2, 0.2, 0.25, 0.8)
+
+# Element border colors (brighter for visibility)
+static func get_element_border_color(element: God.ElementType) -> Color:
+	match element:
+		God.ElementType.FIRE: return Color(1.0, 0.5, 0.3, 0.9)
+		God.ElementType.WATER: return Color(0.4, 0.7, 1.0, 0.9)
+		God.ElementType.EARTH: return Color(0.7, 0.55, 0.3, 0.9)
+		God.ElementType.LIGHTNING: return Color(1.0, 0.95, 0.4, 0.9)
+		God.ElementType.LIGHT: return Color(1.0, 1.0, 0.9, 0.9)
+		God.ElementType.DARK: return Color(0.6, 0.4, 0.7, 0.9)
+		_: return Color(0.5, 0.5, 0.6, 0.9)
+
 # =============================================================================
 # ELEMENT NAMES
 # =============================================================================

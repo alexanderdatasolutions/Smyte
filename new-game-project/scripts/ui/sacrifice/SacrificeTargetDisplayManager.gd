@@ -175,7 +175,7 @@ func update_xp_bar_with_preview(preview_xp: int, levels_gained: int):
 	
 	var current_level = current_target_god.level
 	var current_xp = current_target_god.experience
-	var max_level = 40  # Updated to level 40 like SW
+	var max_level: int = God.get_max_level()  # Single source of truth from progression_config.json
 	
 	if current_level >= max_level:
 		# Max level display

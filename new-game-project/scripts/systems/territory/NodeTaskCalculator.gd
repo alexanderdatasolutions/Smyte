@@ -81,11 +81,8 @@ func calculate_output_rate(node: HexNode, god: God) -> int:
 	# Affinity bonus
 	var affinity_bonus: float = _get_affinity_bonus(node, god)
 
-	# Specialization bonus (from SpecializationManager)
-	var spec_bonus: float = _get_specialization_bonus(node, god)
-
 	# Calculate final output
-	var output: float = base_rate * tier_multiplier * level_bonus * affinity_bonus * (1.0 + spec_bonus)
+	var output: float = base_rate * tier_multiplier * level_bonus * affinity_bonus
 
 	return int(output)
 
@@ -145,47 +142,6 @@ func _get_affinity_bonus(node: HexNode, god: God) -> float:
 	if has_affinity_match(node, god):
 		return float(_get_node_output_config().get("affinity_match_multiplier", 1.5))
 	return 1.0
-
-func _get_specialization_bonus(node: HexNode, god: God) -> float:
-	"""Get specialization bonus from god's spec for this node type."""
-	if not node or not god:
-		return 0.0
-
-	# Try to use SpecializationManager if available
-	var spec_manager = SystemRegistry.get_instance().get_system("SpecializationManager")
-	if not spec_manager:
-		return _calculate_fallback_spec_bonus(god)
-
-	# Check for spec bonuses related to this node type
-	if spec_manager.has_method("get_total_task_bonuses_for_god"):
-		var task_bonuses = spec_manager.get_total_task_bonuses_for_god(god)
-		var relevant_tasks = _get_relevant_tasks_for_node(node.node_type)
-
-		var best_bonus = 0.0
-		for task_id in relevant_tasks:
-			var bonus = task_bonuses.get(task_id, 0.0)
-			if bonus > best_bonus:
-				best_bonus = bonus
-
-		return best_bonus
-
-	return _calculate_fallback_spec_bonus(god)
-
-func _calculate_fallback_spec_bonus(god: God) -> float:
-	"""Calculate a simple spec bonus when SpecializationManager isn't available."""
-	var spec_tier: int = god.get_specialization_tier()
-	var fallback_bonuses: Dictionary = _get_node_output_config().get("fallback_spec_bonuses", {"0": 0.0, "1": 0.5, "2": 1.0, "3": 2.0})
-	return float(fallback_bonuses.get(str(spec_tier), 0.0))
-
-func _get_relevant_tasks_for_node(node_type: String) -> Array:
-	"""Get relevant task IDs for a node type (for spec bonus lookup)."""
-	var relevant_map: Dictionary = _get_node_mappings().get("relevant_tasks_map", {
-		"resource_node": ["gathering", "mining", "logging", "herbalism", "foraging"],
-		"forge": ["smithing", "crafting", "armor_crafting", "weapon_crafting", "enchanting"],
-		"shrine": ["meditation", "blessing", "divine_communion", "research"],
-		"base": ["management"]
-	})
-	return relevant_map.get(node_type, [])
 
 func _get_resource_short_name(resource_id: String) -> String:
 	"""Convert resource ID to short display name."""

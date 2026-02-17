@@ -9,7 +9,7 @@
     "first_summon": {
       "name": "First Summon",
       "description": "Summon your first god",
-      "trigger": { "type": "god_count", "target": 1 },
+      "trigger": { "type": "summon_count", "target": 1 },
       "rewards": { "gold": 500, "divine_crystals": 100 },
       "unlocks": "territory"
     },
@@ -47,6 +47,13 @@
       "trigger": { "type": "max_god_level", "target": 30 },
       "rewards": { "mana": 5000 },
       "unlocks": "awakening"
+    },
+    "legendary_champion": {
+      "name": "Legendary Champion",
+      "description": "Level a legendary god to 40",
+      "trigger": { "type": "legendary_god_level_40" },
+      "rewards": { "divine_crystals": 500 },
+      "unlocks": "skin_selection"
     },
     "first_building": {
       "name": "Builder",
@@ -118,6 +125,7 @@
     "territory_count": "Number of controlled territories",
     "max_territory_tier": "Highest tier territory captured",
     "max_god_level": "Highest level reached by any god",
+    "legendary_god_level_40": "First legendary god to reach level 40",
     "building_count": "Number of buildings placed",
     "dungeon_clears": "Total dungeons completed",
     "battle_wins": "Total battles won",

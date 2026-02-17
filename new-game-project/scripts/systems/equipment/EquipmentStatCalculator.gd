@@ -174,7 +174,7 @@ func _get_set_bonus_effects(equipment_set: String, piece_count: int) -> Dictiona
 	"""Get set bonus effects based on set name and piece count from config"""
 	Equipment.load_equipment_config()
 	var sets: Dictionary = Equipment.equipment_config.get("equipment_sets", {})
-	var set_data: Dictionary = sets.get(equipment_set, {})
+	var set_data: Dictionary = sets.get(equipment_set.to_lower(), {})
 	var bonuses: Dictionary = set_data.get("bonuses", {})
 
 	# Find highest threshold met
@@ -185,6 +185,46 @@ func _get_set_bonus_effects(equipment_set: String, piece_count: int) -> Dictiona
 			best_bonus = bonuses[threshold_str]
 
 	return best_bonus
+
+func get_set_special_effects(god: God) -> Array:
+	"""Get all active special effects from god's equipped set bonuses"""
+	if not god or not god.equipment:
+		return []
+
+	# Count equipment by set
+	var set_counts: Dictionary = {}
+	for equip in god.equipment:
+		if equip and equip is Equipment and equip.equipment_set_type != "":
+			var equip_set: String = equip.equipment_set_type.to_lower()
+			set_counts[equip_set] = set_counts.get(equip_set, 0) + 1
+
+	# Collect special effects from qualifying set bonuses
+	var effects: Array = []
+	Equipment.load_equipment_config()
+	var sets: Dictionary = Equipment.equipment_config.get("equipment_sets", {})
+
+	for equipment_set: String in set_counts:
+		var count: int = set_counts[equipment_set]
+		var set_data: Dictionary = sets.get(equipment_set, {})
+		var bonuses: Dictionary = set_data.get("bonuses", {})
+
+		# Check each threshold for special effects
+		for threshold_str: String in bonuses:
+			var threshold: int = int(threshold_str)
+			if count >= threshold:
+				var bonus: Dictionary = bonuses[threshold_str]
+				if bonus.has("special_effect"):
+					effects.append({
+						"set": equipment_set,
+						"set_name": set_data.get("name", equipment_set),
+						"pieces": count,
+						"threshold": threshold,
+						"effect": bonus.get("special_effect", ""),
+						"effect_value": bonus.get("effect_value", 0.0),
+						"effect_chance": bonus.get("effect_chance", 1.0)
+					})
+
+	return effects
 
 # === ENHANCEMENT PREVIEW ===
 

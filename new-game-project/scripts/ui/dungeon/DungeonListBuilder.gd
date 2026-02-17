@@ -48,14 +48,12 @@ static func create_dungeon_button(dungeon_info: Dictionary, container: Node, on_
 	# Get power information for first available difficulty (not just beginner)
 	var difficulty_levels = dungeon_info.get("difficulty_levels", {})
 	var first_difficulty = _get_first_difficulty(difficulty_levels)
-	var energy_cost = first_difficulty.get("energy_cost", 0)
 	var enemy_power = first_difficulty.get("enemy_power", 0)
 	var recommended_level = first_difficulty.get("recommended_level", 1)
 
-	# Create button text with power info
+	# Create button text with power info (energy cost removed)
 	var button_text = dungeon_name + "\n"
-	button_text += "⚡%d  ⚔%s  Lv.%d+" % [
-		energy_cost,
+	button_text += "⚔%s  Lv.%d+" % [
 		_format_power(enemy_power),
 		recommended_level
 	]

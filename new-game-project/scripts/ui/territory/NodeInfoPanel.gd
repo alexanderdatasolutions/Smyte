@@ -359,6 +359,9 @@ func show_node(hex_node: HexNode, locked: bool = false) -> void:
 	_update_all_displays()
 	visible = true
 
+	# Check for garrison tutorial when showing a controlled node with no garrison
+	_check_garrison_tutorial()
+
 func hide_panel() -> void:
 	"""Hide the panel"""
 	current_node = null
@@ -368,6 +371,10 @@ func refresh() -> void:
 	"""Refresh the display with current node data"""
 	if current_node:
 		_update_all_displays()
+
+func check_pending_tutorial() -> void:
+	"""Check for and show any pending tutorial highlights for node_info screen."""
+	call_deferred("_check_node_info_tutorial")
 
 func show_crafting_tab() -> void:
 	"""Public method to open the crafting popup for the current node.
@@ -847,9 +854,6 @@ func _calculate_worker_efficiency_display() -> float:
 			# Add level bonus (1% per level)
 			efficiency += god.level * 0.01
 
-			# TODO: Add specialization bonus when SpecializationManager is available
-			# For now, just use base + level
-
 			total_efficiency += efficiency
 
 	return total_efficiency
@@ -1260,6 +1264,10 @@ func _update_action_buttons() -> void:
 		capture_btn.pressed.connect(_on_capture_pressed)
 		capture_btn.disabled = not can_capture
 		_action_buttons.add_child(capture_btn)
+		# Store reference for tutorial highlighting
+		_capture_button_ref = capture_btn
+		# Check if we should highlight capture button for tutorial
+		call_deferred("_check_capture_button_tutorial")
 	elif current_node.is_controlled_by_player() and current_node.can_place_building():
 		# Player-controlled blank tile - show select building button
 		var build_btn = _create_button("🏗️ Select Building", Color(0.5, 0.4, 0.2, 1))
@@ -1278,6 +1286,9 @@ func _create_empty_slot(node: HexNode, slot_type: String, slot_index: int, disab
 	"""Create an empty slot with '+' icon (60x60px tap target)"""
 	var slot: Panel = Panel.new()
 	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
+	# Mark as empty for tutorial highlighting
+	slot.set_meta("is_empty", true)
+	slot.set_meta("slot_type", slot_type)
 
 	# Greyed out style if disabled
 	var border_color: Color = Color(0.3, 0.3, 0.35, 0.5) if disabled else Color(0.4, 0.4, 0.45, 0.7)
@@ -1302,6 +1313,9 @@ func _create_filled_slot(node: HexNode, slot_type: String, slot_index: int, god:
 	"""Create a filled slot showing god portrait (60x60px). Inactive shows grayed out."""
 	var slot: Panel = Panel.new()
 	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
+	# Mark as filled for tutorial highlighting
+	slot.set_meta("is_empty", false)
+	slot.set_meta("slot_type", slot_type)
 	var border_color = ELEMENT_COLORS.get(god.element, Color.GRAY) if god else Color(0.5, 0.5, 0.5)
 	if inactive:
 		border_color = border_color * 0.5  # Dim the border color
@@ -1492,6 +1506,10 @@ func _on_production_updated(territory_id: String, _new_rate: int) -> void:
 func _on_capture_pressed() -> void:
 	"""Handle capture button press"""
 	if current_node:
+		# Clear any tutorial highlight
+		_clear_tutorial_highlight()
+		# Emit tutorial action
+		_emit_tutorial_action("capture_button_pressed")
 		capture_requested.emit(current_node)
 
 func _on_select_building_pressed() -> void:
@@ -1512,6 +1530,9 @@ func _on_close_pressed() -> void:
 
 func _on_slot_tapped(node: HexNode, slot_type: String, slot_index: int) -> void:
 	"""Handle empty slot tap - emit signal for parent to open god selection"""
+	# Emit tutorial action for garrison slot tap
+	if slot_type == "garrison":
+		_emit_tutorial_action("garrison_slot_tapped")
 	slot_tapped.emit(node, slot_type, slot_index)
 
 func _on_filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
@@ -2219,3 +2240,187 @@ func _show_craft_started_feedback(task: Dictionary) -> void:
 	tween.tween_interval(2.0)
 	tween.tween_property(feedback, "modulate:a", 0.0, 0.5)
 	tween.tween_callback(feedback.queue_free)
+
+# ==============================================================================
+# TUTORIAL INTEGRATION
+# ==============================================================================
+var _tutorial_highlight_overlay: TutorialHighlightOverlay = null
+var _capture_button_ref: Button = null
+
+func _check_garrison_tutorial() -> void:
+	"""Check if garrison tutorial should be shown for this node."""
+	if not current_node:
+		return
+
+	# Only show tutorial for player-controlled nodes with no garrison
+	if not current_node.is_controlled_by_player():
+		return
+
+	if not current_node.garrison.is_empty():
+		return
+
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		return
+
+	var tutorial_orch: Node = registry.get_system("TutorialOrchestrator")
+	if not tutorial_orch:
+		return
+
+	# Trigger the garrison intro tutorial
+	tutorial_orch.trigger_node_info_opened()
+
+func _check_node_info_tutorial() -> void:
+	"""Check if any node_info tutorial highlight should be shown."""
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		return
+
+	var tutorial_orch: Node = registry.get_system("TutorialOrchestrator")
+	if not tutorial_orch:
+		return
+
+	# Connect to highlight signals if not already connected
+	if tutorial_orch.has_signal("highlight_requested"):
+		if not tutorial_orch.highlight_requested.is_connected(_on_tutorial_highlight_requested):
+			tutorial_orch.highlight_requested.connect(_on_tutorial_highlight_requested)
+	if tutorial_orch.has_signal("highlight_cleared"):
+		if not tutorial_orch.highlight_cleared.is_connected(_on_tutorial_highlight_cleared):
+			tutorial_orch.highlight_cleared.connect(_on_tutorial_highlight_cleared)
+
+	if not tutorial_orch.is_tutorial_active():
+		return
+
+	var step_data: Dictionary = tutorial_orch.get_current_step_data()
+	if step_data.is_empty():
+		return
+
+	# Check if current step wants to highlight something on node_info screen
+	if step_data.get("type") == "highlight" and step_data.get("target_screen") == "node_info":
+		var target_id: String = step_data.get("target_id", "")
+		var message: String = step_data.get("message", "")
+		var title: String = step_data.get("title", "")
+		var show_button: bool = step_data.get("show_button", false)
+		var wait_for_action: String = step_data.get("wait_for_action", "")
+
+		call_deferred("_show_tutorial_highlight", target_id, message, title, show_button, wait_for_action)
+
+func _on_tutorial_highlight_requested(_target_id: String, _message: String, _title: String, _show_button: bool = true) -> void:
+	"""Handle highlight request from TutorialOrchestrator."""
+	if not visible:
+		return
+	# Re-check current step data (may be different from signal params)
+	_check_node_info_tutorial()
+
+func _on_tutorial_highlight_cleared() -> void:
+	"""Handle highlight cleared signal."""
+	_clear_tutorial_highlight()
+
+func _check_capture_button_tutorial() -> void:
+	"""Check if capture button tutorial should be shown (legacy, calls generic method)."""
+	if not current_node or current_node.is_controlled_by_player():
+		return
+	_check_node_info_tutorial()
+
+func _get_highlightable_element(target_id: String) -> Control:
+	"""Get the Control element to highlight by target_id."""
+	match target_id:
+		"capture_button":
+			return _capture_button_ref
+		"production_section":
+			return _production_container
+		"garrison_section":
+			return _garrison_container
+		"workers_section":
+			return _workers_container
+		"garrison_slot":
+			# Return first empty garrison slot
+			return _get_first_empty_garrison_slot()
+		"worker_slot":
+			# Return first empty worker slot
+			return _get_first_empty_worker_slot()
+	return null
+
+func _get_first_empty_garrison_slot() -> Control:
+	"""Find the first empty garrison slot for highlighting."""
+	if not _garrison_container:
+		return null
+	# Look for slot boxes in garrison container
+	for child in _garrison_container.get_children():
+		if child is HBoxContainer:  # Slots row
+			for slot in child.get_children():
+				if slot.has_meta("is_empty") and slot.get_meta("is_empty"):
+					if slot.has_meta("slot_type") and slot.get_meta("slot_type") == "garrison":
+						return slot
+	return _garrison_container  # Fallback to container
+
+func _get_first_empty_worker_slot() -> Control:
+	"""Find the first empty worker slot for highlighting."""
+	if not _workers_container:
+		return null
+	# Look for slot boxes in workers container
+	for child in _workers_container.get_children():
+		if child is HBoxContainer:  # Slots row
+			for slot in child.get_children():
+				if slot.has_meta("is_empty") and slot.get_meta("is_empty"):
+					if slot.has_meta("slot_type") and slot.get_meta("slot_type") == "worker":
+						return slot
+	return _workers_container  # Fallback to container
+
+func _show_tutorial_highlight(target_id: String, message: String, title: String, show_button: bool, wait_for_action: String) -> void:
+	"""Show tutorial highlight for a target element."""
+	var target: Control = _get_highlightable_element(target_id)
+	if not target or not is_instance_valid(target):
+		print("NodeInfoPanel: Could not find highlight target '%s'" % target_id)
+		return
+
+	# Create highlight overlay if needed
+	if not _tutorial_highlight_overlay:
+		_tutorial_highlight_overlay = TutorialHighlightOverlay.new()
+		# Add to root to ensure proper z-ordering
+		var root: Node = get_tree().root
+		if root:
+			root.add_child(_tutorial_highlight_overlay)
+
+	# Disconnect any existing signals to avoid duplicates
+	if _tutorial_highlight_overlay.continue_pressed.is_connected(_on_tutorial_continue_pressed):
+		_tutorial_highlight_overlay.continue_pressed.disconnect(_on_tutorial_continue_pressed)
+
+	# Connect continue signal if showing button
+	if show_button:
+		_tutorial_highlight_overlay.continue_pressed.connect(_on_tutorial_continue_pressed, CONNECT_ONE_SHOT)
+
+	# wait_for_click should be true only if we're waiting for a specific action (like slot tap)
+	var wait_for_click: bool = not wait_for_action.is_empty() and not show_button
+
+	_tutorial_highlight_overlay.highlight_target(target, message, title, "Got it!", wait_for_click, show_button)
+
+func _on_tutorial_continue_pressed() -> void:
+	"""Handle continue button press on tutorial highlight."""
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		return
+
+	var tutorial_orch: Node = registry.get_system("TutorialOrchestrator")
+	if tutorial_orch:
+		tutorial_orch.advance_tutorial()
+		# Check for next highlight after advancing
+		call_deferred("_check_node_info_tutorial")
+
+func _highlight_capture_button(message: String, title: String) -> void:
+	"""Highlight the capture button for tutorial (legacy method)."""
+	_show_tutorial_highlight("capture_button", message, title, false, "")
+
+func _clear_tutorial_highlight() -> void:
+	"""Clear any active tutorial highlight."""
+	if _tutorial_highlight_overlay:
+		_tutorial_highlight_overlay.clear_highlight()
+
+func _emit_tutorial_action(action_id: String) -> void:
+	"""Emit a tutorial action via EventBus."""
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		return
+	var event_bus: Node = registry.get_system("EventBus")
+	if event_bus and event_bus.has_signal("tutorial_action_completed"):
+		event_bus.tutorial_action_completed.emit(action_id)

@@ -528,11 +528,14 @@ func is_loaded() -> bool:
 # ==============================================================================
 
 func get_save_data() -> Dictionary:
-	"""Get grid state for saving (node states, not definitions)"""
+	"""Get grid state for saving - ONLY dynamic player state, not template data.
+	Reduces save size by ~90% by not duplicating static hex_tiles.json data."""
 	var node_states: Dictionary = {}
 	for node_id: String in _nodes:
 		var node: HexNode = _nodes[node_id]
-		node_states[node_id] = node.to_dict()
+		# Only save nodes that have player modifications
+		if node.has_player_modifications():
+			node_states[node_id] = node.to_save_dict()
 
 	var save: Dictionary = {"nodes": node_states}
 

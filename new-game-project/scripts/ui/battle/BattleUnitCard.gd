@@ -234,11 +234,13 @@ func _populate_unit_data():
 	if name_label:
 		name_label.text = battle_unit.display_name
 
-	# Set level (from source_god if available)
+	# Set level (from source_god or source_enemy)
 	if level_label:
-		var level = 1
+		var level: int = 1
 		if battle_unit.source_god:
 			level = battle_unit.source_god.level
+		elif not battle_unit.source_enemy.is_empty():
+			level = int(battle_unit.source_enemy.get("level", 1))
 		level_label.text = "Lv.%d" % level
 
 	# Update HP display
@@ -257,10 +259,9 @@ func _load_portrait():
 
 	var texture_loaded = false
 
-	# Try to load from source_god - use template_id for asset path
+	# Try to load from source_god - with skin support
 	if battle_unit.source_god:
-		var god_template = battle_unit.source_god.template_id if battle_unit.source_god.template_id else battle_unit.source_god.id
-		var sprite_path = "res://assets/gods/" + god_template + ".png"
+		var sprite_path: String = GodPortraitHelper.get_portrait_path(battle_unit.source_god)
 		if ResourceLoader.exists(sprite_path):
 			portrait_rect.texture = load(sprite_path)
 			texture_loaded = true
@@ -465,6 +466,11 @@ func update_status_effects():
 	if not status_container or not battle_unit:
 		return
 
+	# Debug: Log status effects count
+	if battle_unit.status_effects.size() > 0:
+		print("BattleUnitCard: %s has %d status effects" % [battle_unit.display_name, battle_unit.status_effects.size()])
+		for e in battle_unit.status_effects:
+			print("  - Effect: %s (type: %s, duration: %d)" % [e.name, e.effect_type, e.duration])
 
 	# Clear existing icons
 	for child in status_container.get_children():

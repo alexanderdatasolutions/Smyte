@@ -1,4 +1,5 @@
 # GodSelectionPanel - Left-sliding overlay for god selection
+# Uses standardized GodCard component for consistent appearance
 class_name GodSelectionPanel
 extends Control
 
@@ -6,7 +7,7 @@ extends Control
 GodSelectionPanel - Mobile-friendly sliding panel for god selection
 
 Slides in from the LEFT side of the screen (opposite of TerritoryOverviewScreen which slides from RIGHT).
-Contains a GodSelectionGrid and additional filter options for Worker/Garrison selection.
+Uses standardized GodCard components for consistent UI across all god selection screens.
 
 Usage:
   panel.show_for_garrison(excluded_ids)  # Filter for combat-ready gods
@@ -23,11 +24,6 @@ enum SortType { RECOMMENDED, POWER, LEVEL, TIER, ELEMENT, NAME }
 
 const PANEL_WIDTH := 400  # Width of the sliding panel
 const SLIDE_DURATION := 0.25  # Animation duration in seconds
-const ELEMENT_COLORS = {
-	God.ElementType.FIRE: Color(0.9, 0.2, 0.1), God.ElementType.WATER: Color(0.2, 0.5, 0.9),
-	God.ElementType.EARTH: Color(0.6, 0.4, 0.2), God.ElementType.LIGHTNING: Color(0.6, 0.8, 1.0),
-	God.ElementType.LIGHT: Color(1.0, 0.85, 0.3), God.ElementType.DARK: Color(0.5, 0.2, 0.6)
-}
 
 # UI Components
 var _overlay_bg: ColorRect
@@ -308,6 +304,7 @@ func _build_god_grid() -> void:
 	grid.name = "GodGrid"
 	grid.columns = 4  # Fit in narrower panel
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
 	scroll.add_child(grid)
@@ -350,8 +347,8 @@ func _style_filter_button(button: Button, active: bool) -> void:
 
 func _style_element_button(button: Button, element: God.ElementType, active: bool) -> void:
 	"""Apply element-specific button styling"""
-	var elem_color = ELEMENT_COLORS.get(element, Color.GRAY)
-	var bg_color = elem_color.darkened(0.4) if active else Color(0.15, 0.15, 0.2, 0.8)
+	var elem_color: Color = GodUIHelpers.get_element_color(element)
+	var bg_color: Color = elem_color.darkened(0.4) if active else Color(0.15, 0.15, 0.2, 0.8)
 
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = bg_color
@@ -730,7 +727,7 @@ func _create_god_card(god: God) -> Control:
 	var is_unavailable = is_assigned or is_stationed_elsewhere or is_working
 
 	# Style with element border (dimmed if unavailable)
-	var element_color = ELEMENT_COLORS.get(god.element, Color.GRAY)
+	var element_color = GodUIHelpers.get_element_color(god.element)
 	if is_unavailable:
 		element_color = element_color * 0.4  # Dim the border color
 
@@ -809,7 +806,7 @@ func _create_god_card(god: God) -> Control:
 	var elem_label: Label = Label.new()
 	elem_label.text = _get_element_icon(god.element)
 	elem_label.add_theme_font_size_override("font_size", 9)
-	var elem_color = ELEMENT_COLORS.get(god.element, Color.GRAY)
+	var elem_color = GodUIHelpers.get_element_color(god.element)
 	if is_unavailable:
 		elem_color = elem_color * 0.5
 	elem_label.add_theme_color_override("font_color", elem_color)
@@ -836,7 +833,7 @@ func _create_portrait(god: God) -> Control:
 	if ResourceLoader.exists(sprite_path):
 		portrait.texture = load(sprite_path)
 	else:
-		var element_color = ELEMENT_COLORS.get(god.element, Color.GRAY)
+		var element_color = GodUIHelpers.get_element_color(god.element)
 		var image = Image.create(40, 40, false, Image.FORMAT_RGBA8)
 		image.fill(element_color)
 		portrait.texture = ImageTexture.create_from_image(image)

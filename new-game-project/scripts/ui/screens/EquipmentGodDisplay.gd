@@ -102,7 +102,7 @@ func populate_god_grid():
 	for god in gods:
 		if god != null:
 			# Create card using factory
-			var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.BATTLE_SELECTION)
+			var god_card = GodCardFactory.create_god_card(GodCardFactory.CardPreset.STANDARD)
 			god_grid.add_child(god_card)
 			god_card.setup_god_card(god)
 			god_card.god_selected.connect(_on_god_selected)

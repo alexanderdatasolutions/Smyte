@@ -1,9 +1,4 @@
 {
-	"level_cap": {
-		"max_level": 40,
-		"awakened_max_level": 50,
-		"specialization_unlock_level": 20
-	},
 	"default_stats": {
 		"crit_rate": 15,
 		"crit_damage": 50,

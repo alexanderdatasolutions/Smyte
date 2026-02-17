@@ -41,12 +41,22 @@ static func _get_stat_scaling() -> Dictionary:
 	return _config.get("stat_scaling", {"level_stat_scale": 0.1, "power_per_level": 50, "power_per_tier": 500})
 
 ## Calculate damage between attacker and target
-static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Skill = null) -> DamageResult:
+## Optional battle_state parameter allows applying team bonuses to damage
+static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Skill = null, battle_state: BattleState = null) -> DamageResult:
 	var formula: Dictionary = _get_damage_formula()
 	var hit_config: Dictionary = _get_hit_types()
-	var base_attack: int = attacker.attack
-	var defense: int = target.defense
+
+	# Use modified attack (includes status effects, Wrath fury scaling, Nemesis vengeance stacks)
+	var base_attack: int = attacker.get_modified_attack()
+	# Use modified defense (includes status effect buffs/debuffs)
+	var defense: int = target.get_modified_defense()
 	var multiplier: float = skill.get_damage_multiplier() if skill else 1.0
+
+	# Apply Artemis Hunt marked_prey effect - if target is marked, ignore defense %
+	if attacker.is_target_marked(target.unit_id):
+		var defense_ignore: float = attacker.get_set_effect_value("marked_prey")
+		defense = int(defense * (1.0 - defense_ignore))
+		attacker.clear_mark(target.unit_id)
 
 	# Summoners War damage formula: ATK * Multiplier * (NUM / (BASE + SCALE * DEF))
 	var dmg_numerator: float = formula.get("numerator", 1000.0)
@@ -54,12 +64,26 @@ static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Sk
 	var dmg_def_scale: float = formula.get("defense_scale", 3.5)
 	var base_damage: float = base_attack * multiplier * (dmg_numerator / (dmg_denom_base + dmg_def_scale * defense))
 
+	# Apply Hermes Ambush effect - first attack deals +40% damage
+	if not attacker.first_attack_done and attacker.has_set_effect("ambush"):
+		base_damage *= (1.0 + attacker.get_set_effect_value("ambush"))
+		attacker.first_attack_done = true
+
+	# Apply Titan Overwhelm effect - bonus damage to targets with less max HP
+	if attacker.has_set_effect("overwhelm") and target.max_hp < attacker.max_hp:
+		base_damage *= (1.0 + attacker.get_set_effect_value("overwhelm"))
+
 	# Check for critical hit
 	var is_critical: bool = _check_critical_hit(attacker, target)
 	var crit_mult: float = 1.0
 	if is_critical:
-		crit_mult = 1.0 + attacker.crit_damage / 100.0
+		# Use modified crit damage (includes status effect buffs)
+		crit_mult = 1.0 + float(attacker.get_modified_crit_damage()) / 100.0
 		base_damage *= crit_mult
+
+		# Apply Artemis Hunt - crits mark target for next attack
+		if attacker.has_set_effect("marked_prey"):
+			attacker.mark_target(target.unit_id)
 
 	# Check for glancing hit (opposite of critical)
 	var glancing_chance: float = hit_config.get("glancing_chance", 0.15)
@@ -74,6 +98,20 @@ static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Sk
 	var target_element := _get_unit_element(target)
 	var element_mult := _get_element_multiplier(attacker_element, target_element)
 	base_damage *= element_mult
+
+	# Apply team bonus damage modifiers (for player attacks)
+	if battle_state and attacker.is_player_unit:
+		var team_damage_mult: float = _get_team_damage_multiplier(battle_state.team_bonuses)
+		base_damage *= team_damage_mult
+
+	# Apply team resistance (reduces damage for enemy attacks on players)
+	if battle_state and target.is_player_unit and not attacker.is_player_unit:
+		var team_resist: float = _get_team_resistance(battle_state.team_bonuses)
+		base_damage *= (1.0 - team_resist)
+
+	# Apply status effect damage taken modifiers (marked_for_death, analyze_weakness)
+	var damage_taken_mult: float = target.get_damage_taken_modifier()
+	base_damage *= damage_taken_mult
 
 	# Store raw damage before variance
 	var raw_damage: float = base_damage
@@ -104,6 +142,26 @@ static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Sk
 	result.skill_name = skill.name if skill else ""
 
 	return result
+
+## Get team damage multiplier from team bonuses
+static func _get_team_damage_multiplier(team_bonuses: Array) -> float:
+	var mult: float = 1.0
+	for bonus: Dictionary in team_bonuses:
+		var bonuses: Dictionary = bonus.get("bonuses", {})
+		if bonuses.has("elemental_damage"):
+			mult += bonuses.elemental_damage
+		if bonuses.has("skill_damage"):
+			mult += bonuses.skill_damage
+	return mult
+
+## Get team resistance from team bonuses (caps at 50%)
+static func _get_team_resistance(team_bonuses: Array) -> float:
+	var resist: float = 0.0
+	for bonus: Dictionary in team_bonuses:
+		var bonuses: Dictionary = bonus.get("bonuses", {})
+		if bonuses.has("elemental_resistance"):
+			resist += bonuses.elemental_resistance
+	return minf(resist, 0.5)  # Cap at 50% reduction
 
 ## Get element type from a BattleUnit (from source god or enemy data)
 static func _get_unit_element(unit: BattleUnit) -> God.ElementType:
@@ -137,8 +195,8 @@ static func _get_element_multiplier(attacker_element: God.ElementType, target_el
 
 ## Check if attack is a critical hit
 static func _check_critical_hit(attacker: BattleUnit, _target: BattleUnit) -> bool:
-	var base_crit_rate: float = attacker.crit_rate
-	var effective_crit_rate: float = base_crit_rate  # Could apply accuracy vs resistance here
+	# Use modified crit rate (includes status effect buffs like crit_boost)
+	var effective_crit_rate: float = float(attacker.get_modified_crit_rate())
 	return randf() * 100.0 < effective_crit_rate
 
 ## Get detailed attack breakdown for UI/debugging
@@ -207,14 +265,7 @@ static func get_detailed_speed_breakdown(god: God) -> Dictionary:
 		"final_value": base_speed + level_bonus + equipment_bonus + buff_bonus
 	}
 
-## Calculate total power rating for a god (RULE 3 compliance - logic in calculator, not data class)
+## Calculate total power rating for a god
+## Uses GodCalculator stats (HP + ATK + DEF + SPD) with proper tier/level/equipment scaling
 static func calculate_total_power(god: God) -> int:
-	var scaling: Dictionary = _get_stat_scaling()
-	var power_per_level: int = int(scaling.get("power_per_level", 50))
-	var power_per_tier: int = int(scaling.get("power_per_tier", 500))
-	var base_power: float = (god.base_hp + god.base_attack + god.base_defense) / 3.0
-	var level_bonus: int = god.level * power_per_level
-	var tier_bonus: int = god.tier * power_per_tier
-	var total_power: float = base_power + level_bonus + tier_bonus
-
-	return int(total_power)
+	return GodCalculator.get_power_rating(god)

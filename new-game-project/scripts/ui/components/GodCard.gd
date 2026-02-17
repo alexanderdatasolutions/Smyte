@@ -1,6 +1,6 @@
 # scripts/ui/components/GodCard.gd
-# Reusable God Card UI Component - RULE 2: Single Responsibility
-# Handles god display across Collection, Sacrifice, Awakening, Battle Setup, etc.
+# Reusable God Card UI Component - Compact layout with big PNG
+# Layout: Image -> "Lv.X Name ★★" -> "⚔Power 🛡Equip" -> "📍Location"
 class_name GodCard extends Panel
 
 signal god_selected(god: God)
@@ -11,9 +11,9 @@ enum CardStyle { NORMAL, SELECTED, AWAKENING_READY, BATTLE_READY }
 
 # Card properties
 @export var card_size: CardSize = CardSize.MEDIUM
-@export var show_experience_bar: bool = true
 @export var show_power_rating: bool = true
-@export var show_territory_assignment: bool = false
+@export var show_territory_assignment: bool = true
+@export var show_equipment_status: bool = true
 @export var show_awakening_status: bool = false
 @export var clickable: bool = true
 
@@ -21,45 +21,34 @@ enum CardStyle { NORMAL, SELECTED, AWAKENING_READY, BATTLE_READY }
 var god_data: God = null
 var current_style: CardStyle = CardStyle.NORMAL
 
-# UI Elements (created dynamically)
+# UI Elements
 var god_image: TextureRect
-var name_label: Label
-var level_tier_label: Label
-var info_label: Label
-var experience_container: VBoxContainer
-var experience_bar: ProgressBar
-var territory_indicator: Label
+var info_panel: PanelContainer  # Container for text info
+var name_row_label: Label      # "Lv.X Name ★★★"
+var stats_row_label: Label     # "⚔Power 🛡X/6"
+var location_label: Label      # "📍Location"
 var awakening_indicator: Label
 
 func _ready():
-	# Only setup structure if not already done (to avoid clearing nodes created before adding to tree)
 	if not god_image:
 		_setup_card_structure()
 		_apply_card_size()
 
 func setup_god_card(god: God, style: CardStyle = CardStyle.NORMAL):
-	"""Setup card with god data and style"""
 	god_data = god
 	current_style = style
-	
-	# Ensure structure is ready
+
 	if not god_image:
 		_setup_card_structure()
-		
-	# Apply card size immediately after structure setup
+
 	_apply_card_size()
-	
-	# Populate data and apply style
 	_populate_god_data()
 	_apply_card_style()
 
 func _setup_card_structure():
-	"""Create the card UI structure based on size"""
-	# Clear existing children
 	for child in get_children():
 		child.queue_free()
-	
-	# Main container with margins
+
 	var margin = MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(margin)
@@ -67,117 +56,102 @@ func _setup_card_structure():
 	var vbox = VBoxContainer.new()
 	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 4)
+	vbox.add_theme_constant_override("separation", 1)
 	margin.add_child(vbox)
-	
-	# God image - centered in container
-	var image_container = CenterContainer.new()
-	image_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_child(image_container)
 
+	# God image - no extra container, just the image
 	god_image = TextureRect.new()
-	god_image.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	god_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	god_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	image_container.add_child(god_image)
-	
-	# God name
-	name_label = Label.new()
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_label.add_theme_color_override("font_color", Color.WHITE)
-	name_label.add_theme_constant_override("outline_size", 1)  # Bold effect via outline
-	vbox.add_child(name_label)
-	
-	# Level and tier
-	level_tier_label = Label.new()
-	level_tier_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(level_tier_label)
-	
-	# Experience bar (conditionally shown)
-	if show_experience_bar:
-		experience_container = VBoxContainer.new()
-		experience_container.add_theme_constant_override("separation", 2)
-		
-		experience_bar = ProgressBar.new()
-		experience_bar.min_value = 0.0
-		experience_bar.max_value = 100.0
-		experience_bar.show_percentage = false
-		experience_container.add_child(experience_bar)
-		
-		vbox.add_child(experience_container)
-	
-	# Info label (power, element, etc.)
-	if show_power_rating:
-		info_label = Label.new()
-		info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		info_label.modulate = Color.LIGHT_GRAY
-		vbox.add_child(info_label)
-	
-	# Territory assignment indicator
+	god_image.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	vbox.add_child(god_image)
+
+	# Info panel - wraps all text labels
+	info_panel = PanelContainer.new()
+	info_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var info_style = StyleBoxFlat.new()
+	info_style.bg_color = Color(0.0, 0.0, 0.0, 0.4)
+	info_style.set_corner_radius_all(4)
+	info_style.content_margin_left = 4
+	info_style.content_margin_right = 4
+	info_style.content_margin_top = 2
+	info_style.content_margin_bottom = 2
+	info_panel.add_theme_stylebox_override("panel", info_style)
+	vbox.add_child(info_panel)
+
+	var info_vbox = VBoxContainer.new()
+	info_vbox.add_theme_constant_override("separation", 0)
+	info_panel.add_child(info_vbox)
+
+	# Name row: "Lv.X Name ★★★"
+	name_row_label = Label.new()
+	name_row_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_row_label.add_theme_color_override("font_color", Color.WHITE)
+	info_vbox.add_child(name_row_label)
+
+	# Stats row: "⚔Power 🛡X/6"
+	if show_power_rating or show_equipment_status:
+		stats_row_label = Label.new()
+		stats_row_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		info_vbox.add_child(stats_row_label)
+
+	# Location row: "📍Location"
 	if show_territory_assignment:
-		territory_indicator = Label.new()
-		territory_indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		territory_indicator.add_theme_font_size_override("font_size", 8)
-		territory_indicator.modulate = Color.YELLOW
-		vbox.add_child(territory_indicator)
-	
-	# Awakening status indicator
+		location_label = Label.new()
+		location_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		info_vbox.add_child(location_label)
+
+	# Awakening indicator
 	if show_awakening_status:
 		awakening_indicator = Label.new()
 		awakening_indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		awakening_indicator.add_theme_font_size_override("font_size", 8)
-		awakening_indicator.modulate = Color.GREEN
-		vbox.add_child(awakening_indicator)
-	
-	# Make clickable if enabled - add button to margin container, not directly to card
+		awakening_indicator.modulate = Color(0.5, 1.0, 0.5)
+		info_vbox.add_child(awakening_indicator)
+
+	# Clickable button overlay
 	if clickable:
 		var button = Button.new()
 		button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		button.flat = true
 		button.pressed.connect(_on_card_clicked)
-		margin.add_child(button)  # Add to margin instead of card root
+		margin.add_child(button)
 
 func _apply_card_size():
-	"""Apply size settings based on card_size"""
-	# Don't apply if structure isn't set up yet
 	if not god_image:
 		return
-		
+
 	match card_size:
 		CardSize.SMALL:
-			custom_minimum_size = Vector2(70, 90)
-			_set_margins(4, 4, 4, 4)
-			god_image.custom_minimum_size = Vector2(40, 40)
-			name_label.add_theme_font_size_override("font_size", 9)
-			level_tier_label.add_theme_font_size_override("font_size", 8)
-			if info_label:
-				info_label.add_theme_font_size_override("font_size", 10)
-		
+			custom_minimum_size = Vector2(100, 140)
+			_set_margins(1, 1, 1, 1)
+			god_image.custom_minimum_size = Vector2(98, 98)
+			name_row_label.add_theme_font_size_override("font_size", 10)
+			if stats_row_label:
+				stats_row_label.add_theme_font_size_override("font_size", 9)
+			if location_label:
+				location_label.add_theme_font_size_override("font_size", 9)
+
 		CardSize.MEDIUM:
-			custom_minimum_size = Vector2(160, 200)
-			_set_margins(8, 7, 8, 7)
-			god_image.custom_minimum_size = Vector2(70, 70)
-			name_label.add_theme_font_size_override("font_size", 13)
-			level_tier_label.add_theme_font_size_override("font_size", 10)
-			if info_label:
-				info_label.add_theme_font_size_override("font_size", 10)
-			if experience_bar:
-				experience_bar.custom_minimum_size = Vector2(140, 10)
-		
+			custom_minimum_size = Vector2(120, 165)
+			_set_margins(1, 1, 1, 1)
+			god_image.custom_minimum_size = Vector2(118, 118)
+			name_row_label.add_theme_font_size_override("font_size", 11)
+			if stats_row_label:
+				stats_row_label.add_theme_font_size_override("font_size", 10)
+			if location_label:
+				location_label.add_theme_font_size_override("font_size", 10)
+
 		CardSize.LARGE:
-			custom_minimum_size = Vector2(160, 220)
-			_set_margins(8, 8, 8, 8)
-			god_image.custom_minimum_size = Vector2(80, 80)
-			name_label.add_theme_font_size_override("font_size", 13)
-			level_tier_label.add_theme_font_size_override("font_size", 11)
-			if info_label:
-				info_label.add_theme_font_size_override("font_size", 8)
-			if experience_bar:
-				experience_bar.custom_minimum_size = Vector2(140, 12)
+			custom_minimum_size = Vector2(145, 195)
+			_set_margins(1, 1, 1, 1)
+			god_image.custom_minimum_size = Vector2(143, 143)
+			name_row_label.add_theme_font_size_override("font_size", 13)
+			if stats_row_label:
+				stats_row_label.add_theme_font_size_override("font_size", 11)
+			if location_label:
+				location_label.add_theme_font_size_override("font_size", 11)
 
 func _set_margins(left: int, top: int, right: int, bottom: int):
-	"""Set margins on the margin container"""
 	var margin_container = get_child(0) as MarginContainer
 	if margin_container:
 		margin_container.add_theme_constant_override("margin_left", left)
@@ -186,155 +160,94 @@ func _set_margins(left: int, top: int, right: int, bottom: int):
 		margin_container.add_theme_constant_override("margin_bottom", bottom)
 
 func _populate_god_data():
-	"""Fill card with god data"""
 	if not god_data:
 		return
-	
-	# Load god image - use template_id for asset path (id is unique instance)
+
+	# Load god image (with skin support)
 	if god_image:
-		var god_template = god_data.template_id if god_data.template_id else god_data.id
-		var sprite_path = "res://assets/gods/" + god_template + ".png"
+		var sprite_path: String = GodPortraitHelper.get_portrait_path(god_data)
 		if ResourceLoader.exists(sprite_path):
 			god_image.texture = load(sprite_path)
 		else:
-			# Create a colorful placeholder instead of just null
 			var placeholder_image = ImageTexture.new()
 			var image = Image.create(100, 100, false, Image.FORMAT_RGB8)
-			# Use element color for placeholder
 			var element_color := GodUIHelpers.get_element_color(god_data.element)
 			image.fill(element_color)
 			placeholder_image.set_image(image)
 			god_image.texture = placeholder_image
-	
-	# Set name with better styling
-	if name_label:
-		name_label.text = god_data.name
-	
-	# Set level and tier with better styling
-	if level_tier_label:
-		level_tier_label.text = "Lv.%d %s" % [god_data.level, GodUIHelpers.get_tier_short_name(god_data.tier)]
-		level_tier_label.modulate = GodUIHelpers.get_tier_color(god_data.tier)
-	
-	# Set experience bar
-	if experience_bar and god_data:
-		var progress = _get_experience_progress(god_data)
-		experience_bar.value = progress
-		
-		# Style experience bar
-		var exp_fill_style = StyleBoxFlat.new()
-		if god_data.level >= 40:
-			exp_fill_style.bg_color = Color.GOLD
+
+	# Name row: "Lv.X Name ★★★"
+	if name_row_label:
+		var tier_stars: String = GodUIHelpers.get_tier_stars(god_data.tier)
+		name_row_label.text = "Lv.%d %s %s" % [god_data.level, god_data.name, tier_stars]
+
+	# Stats row: "⚔Power 🛡X/6"
+	if stats_row_label:
+		var parts: Array = []
+		if show_power_rating:
+			var power = GodCalculator.get_power_rating(god_data)
+			parts.append("⚔%d" % power)
+		if show_equipment_status:
+			var equipped_count: int = 0
+			for equipment in god_data.equipment:
+				if equipment != null:
+					equipped_count += 1
+			parts.append("🛡%d/6" % equipped_count)
+		stats_row_label.text = " ".join(parts)
+		stats_row_label.modulate = Color(0.75, 0.75, 0.8)
+
+	# Location row
+	if location_label:
+		if god_data.stationed_territory != "":
+			location_label.text = "📍%s" % god_data.stationed_territory.capitalize()
+			location_label.modulate = Color(0.9, 0.8, 0.5)
 		else:
-			exp_fill_style.bg_color = Color(0.2, 0.6, 1.0, 0.9)
-		exp_fill_style.corner_radius_top_left = 3
-		exp_fill_style.corner_radius_top_right = 3
-		exp_fill_style.corner_radius_bottom_left = 3
-		exp_fill_style.corner_radius_bottom_right = 3
-		experience_bar.add_theme_stylebox_override("fill", exp_fill_style)
-	
-	# Set info label with enhanced information
-	if info_label:
-		var power = _get_power_rating(god_data)
-		var element := GodUIHelpers.get_element_name_with_emoji(god_data.element)
-		var tier_stars := GodUIHelpers.get_tier_stars_emoji(god_data.tier)
-		
-		# Get current stats through GodCalculator (RULE 3 compliance)
-		var attack = GodCalculator.get_current_attack(god_data)
-		var defense = GodCalculator.get_current_defense(god_data)
-		var hp = GodCalculator.get_current_hp(god_data)
-		var speed = GodCalculator.get_current_speed(god_data)
-		
-		# Get equipment count
-		var equipped_count = 0
-		for equipment in god_data.equipment:
-			if equipment != null:
-				equipped_count += 1
-		
-		var stats_text = "ATK:%d DEF:%d HP:%d SPD:%d" % [attack, defense, hp, speed]
-		var equipment_text = "Equipment: %d/6" % equipped_count
-		info_label.text = "%s %s | Power: %d\n%s\n%s" % [element, tier_stars, power, stats_text, equipment_text]
-	
-	# Set territory assignment
-	if territory_indicator and god_data.stationed_territory != "":
-		territory_indicator.text = "📍 " + god_data.stationed_territory.capitalize()
-		territory_indicator.visible = true
-	elif territory_indicator:
-		territory_indicator.visible = false
-	
-	# Set awakening status
+			location_label.text = "📍Available"
+			location_label.modulate = Color(0.5, 0.7, 0.5)
+
+	# Awakening - use soft cap from config
 	if awakening_indicator:
-		if god_data.tier >= God.TierType.EPIC and god_data.level >= 40:
-			awakening_indicator.text = "✨ Ready to Awaken"
+		if god_data.tier >= God.TierType.EPIC and god_data.level >= God.get_soft_cap_level():
+			awakening_indicator.text = "✨ Awaken"
 			awakening_indicator.visible = true
 		else:
 			awakening_indicator.visible = false
 
 func _apply_card_style():
-	"""Apply visual style based on current_style"""
 	var style = StyleBoxFlat.new()
-	
+	var element: God.ElementType = god_data.element if god_data else God.ElementType.FIRE
+
 	match current_style:
 		CardStyle.NORMAL:
-			style.bg_color = GodUIHelpers.get_subtle_tier_color(god_data.tier if god_data else 0)
-			style.border_color = GodUIHelpers.get_tier_border_color(god_data.tier if god_data else 0)
+			style.bg_color = GodUIHelpers.get_subtle_element_color(element)
+			style.border_color = GodUIHelpers.get_element_border_color(element)
 
 		CardStyle.SELECTED:
-			# Keep tier background color but use yellow border for distinction
-			style.bg_color = GodUIHelpers.get_subtle_tier_color(god_data.tier if god_data else 0)
-			style.border_color = Color(1.0, 0.8, 0.0, 1.0)  # Yellow/gold for clear selection indicator
-		
+			style.bg_color = GodUIHelpers.get_subtle_element_color(element)
+			style.border_color = Color(1.0, 0.85, 0.2, 1.0)
+
 		CardStyle.AWAKENING_READY:
-			style.bg_color = Color(0.2, 0.4, 0.2, 0.8)  # Green for awakenable
-			style.border_color = Color(1.0, 0.8, 0.2, 1.0)  # Gold border
-		
+			var base: Color = GodUIHelpers.get_subtle_element_color(element)
+			style.bg_color = base.lerp(Color(0.2, 0.4, 0.2, 0.8), 0.3)
+			style.border_color = Color(0.5, 0.9, 0.4, 1.0)
+
 		CardStyle.BATTLE_READY:
-			style.bg_color = Color(0.2, 0.2, 0.4, 0.8)  # Blue for battle
-			style.border_color = Color(0.2, 0.8, 1.0, 1.0)  # Cyan border
-	
-	# Apply border and corner radius
-	# Use thicker border for selected cards
-	var border_width = 3 if current_style == CardStyle.SELECTED else 2
+			var base: Color = GodUIHelpers.get_subtle_element_color(element)
+			style.bg_color = base.lerp(Color(0.2, 0.3, 0.4, 0.8), 0.3)
+			style.border_color = Color(0.3, 0.8, 1.0, 1.0)
+
+	var border_width: int = 3 if current_style == CardStyle.SELECTED else 2
 	style.border_width_left = border_width
 	style.border_width_right = border_width
 	style.border_width_top = border_width
 	style.border_width_bottom = border_width
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
 
 	add_theme_stylebox_override("panel", style)
 
 func _on_card_clicked():
-	"""Handle card click"""
 	if god_data:
 		god_selected.emit(god_data)
-
-# =============================================================================
-# UTILITY FUNCTIONS - God data helpers
-# =============================================================================
-
-
-func _get_power_rating(god: God) -> int:
-	"""Calculate power rating using GodCalculator - RULE 3 compliance"""
-	if not god:
-		return 0
-	
-	# Use GodCalculator for proper stat calculation (RULE 3: no logic in data classes)
-	return GodCalculator.get_power_rating(god)
-
-func _get_experience_progress(god: God) -> float:
-	"""Get experience progress percentage"""
-	if not god or god.level >= 40:
-		return 100.0
-	
-	# Simple progress calculation - can be enhanced with proper exp tables
-	var current_level_base = god.level * 100
-	var next_level_base = (god.level + 1) * 100
-	var level_exp_needed = next_level_base - current_level_base
-	var current_level_progress = god.experience - current_level_base
-	
-	if level_exp_needed <= 0:
-		return 100.0
-	
-	return (float(current_level_progress) / float(level_exp_needed)) * 100.0

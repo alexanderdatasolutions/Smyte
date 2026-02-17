@@ -24,6 +24,16 @@ var current_turn_bar: float = 0.0  # Turn bar progress (0-100)
 var skill_cooldowns: Array = [0, 0, 0, 0]  # Array[int] - Cooldowns for each skill
 var status_effects: Array = []  # Array[StatusEffect]
 
+# Equipment set special effects (loaded from god's equipment)
+var set_effects: Array = []  # Array[Dictionary] - Active set effects
+var first_attack_done: bool = false  # Track for Hermes ambush
+var death_defiance_used: bool = false  # Track for Oracle death defiance
+var vengeance_stacks: int = 0  # Track for Nemesis vengeance stacks
+var marked_targets: Array = []  # Track for Artemis hunt marks
+var shield_amount: int = 0  # Divine/Oracle shields
+var immunity_turns: int = 0  # Track for Will set debuff immunity
+var first_debuff_blocked: bool = false  # Track for Olympus first debuff immunity
+
 # Skills (battle references)
 var skills: Array = []  # Array[Skill]
 var passive_skills: Array = []  # Array[Skill]
@@ -39,13 +49,13 @@ static func from_god(god: God) -> BattleUnit:
 	unit.display_name = god.name
 	unit.is_player_unit = true
 	unit.source_god = god
-	
+
 	# Use existing CombatCalculator for authentic SW stats
 	var attack_breakdown = CombatCalculator.get_detailed_attack_breakdown(god)
 	var defense_breakdown = CombatCalculator.get_detailed_defense_breakdown(god)
 	var hp_breakdown = CombatCalculator.get_detailed_hp_breakdown(god)
 	var speed_breakdown = CombatCalculator.get_detailed_speed_breakdown(god)
-	
+
 	unit.max_hp = hp_breakdown.final_value
 	unit.current_hp = unit.max_hp
 	unit.attack = attack_breakdown.final_value
@@ -55,10 +65,13 @@ static func from_god(god: God) -> BattleUnit:
 	unit.crit_damage = god.get_current_crit_damage() if god.has_method("get_current_crit_damage") else 50
 	unit.accuracy = god.get_current_accuracy() if god.has_method("get_current_accuracy") else 0
 	unit.resistance = god.get_current_resistance() if god.has_method("get_current_resistance") else 15
-	
+
 	# Load skills
 	unit._load_god_skills(god)
-	
+
+	# Load equipment set special effects
+	unit._load_set_effects(god)
+
 	return unit
 
 ## Create BattleUnit from enemy data
@@ -91,9 +104,13 @@ func take_damage(damage: int):
 	if current_hp <= 0:
 		is_alive = false
 
-## Heal the unit
-func heal(amount: int):
-	current_hp = min(max_hp, current_hp + amount)
+## Heal the unit (applies healing modifiers from status effects)
+func heal(amount: int) -> int:
+	var healing_modifier: float = get_healing_modifier()
+	var actual_heal: int = int(float(amount) * healing_modifier)
+	if actual_heal > 0:
+		current_hp = min(max_hp, current_hp + actual_heal)
+	return actual_heal
 
 ## Check if unit can use a specific skill
 func can_use_skill(skill_index: int) -> bool:
@@ -253,18 +270,329 @@ func _load_god_skills(god: God):
 func _load_enemy_skills(enemy_data: Dictionary):
 	"""Load skills from enemy data"""
 	skills.clear()
-	
+
 	var enemy_skills = enemy_data.get("skills", ["basic_attack"])
 	for skill_id in enemy_skills:
 		var skill = Skill.load_from_id(skill_id)
 		if skill:
 			skills.append(skill)
-	
+
 	# Ensure at least basic attack
 	if skills.is_empty():
 		skills.append(Skill.create_basic_attack())
-	
+
 	# Initialize cooldowns
 	skill_cooldowns.resize(skills.size())
 	for i in range(skill_cooldowns.size()):
 		skill_cooldowns[i] = 0
+
+func _load_set_effects(god: God) -> void:
+	"""Load equipment set special effects from god's equipment"""
+	set_effects.clear()
+
+	# Get EquipmentManager through SystemRegistry
+	var system_registry: Variant = SystemRegistry.get_instance()
+	if not system_registry:
+		return
+
+	var equipment_manager: Variant = system_registry.get_system("EquipmentManager")
+	if not equipment_manager or not equipment_manager.stat_calculator:
+		return
+
+	# Get special effects from the stat calculator
+	set_effects = equipment_manager.stat_calculator.get_set_special_effects(god)
+
+	# Apply battle-start effects
+	for effect: Dictionary in set_effects:
+		match effect.get("effect", ""):
+			"divine_favor":
+				# Olympus: Start with 20% HP shield + first debuff immunity
+				shield_amount = int(max_hp * 0.20)
+				first_debuff_blocked = false  # Will block first debuff
+			"shield_on_start":
+				# Generic shield at start
+				shield_amount = int(max_hp * effect.get("effect_value", 0.20))
+			"immunity":
+				# Will set: Start with X turns of debuff immunity
+				immunity_turns = int(effect.get("effect_value", 1))
+
+## Check if unit has a specific set effect active
+func has_set_effect(effect_name: String) -> bool:
+	for effect: Dictionary in set_effects:
+		if effect.get("effect", "") == effect_name:
+			return true
+	return false
+
+## Get a specific set effect's value
+func get_set_effect_value(effect_name: String) -> float:
+	for effect: Dictionary in set_effects:
+		if effect.get("effect", "") == effect_name:
+			return effect.get("effect_value", 0.0)
+	return 0.0
+
+## Get a specific set effect's chance
+func get_set_effect_chance(effect_name: String) -> float:
+	for effect: Dictionary in set_effects:
+		if effect.get("effect", "") == effect_name:
+			return effect.get("effect_chance", 1.0)
+	return 0.0
+
+## Apply damage to unit (with shield, immunity, sleep break, and death defiance support)
+func apply_damage(damage: int) -> Dictionary:
+	var result: Dictionary = {"damage_dealt": 0, "shield_absorbed": 0, "death_defied": false, "thorns_damage": 0, "reflect_damage": 0, "sleep_broken": false, "damage_immune": false}
+
+	# Check for damage immunity first
+	if is_damage_immune():
+		result.damage_immune = true
+		return result
+
+	var remaining_damage: int = damage
+
+	# Check for shield absorption (from status effects)
+	var shield_effect: StatusEffect = get_status_effect("shield")
+	if shield_effect and shield_effect.shield_value > 0:
+		var absorbed: int = mini(shield_effect.shield_value, remaining_damage)
+		shield_effect.shield_value -= absorbed
+		remaining_damage -= absorbed
+		result.shield_absorbed += absorbed
+		# Remove shield if depleted
+		if shield_effect.shield_value <= 0:
+			remove_status_effect("shield")
+
+	# Check for equipment shield absorption
+	if shield_amount > 0:
+		var absorbed: int = mini(shield_amount, remaining_damage)
+		shield_amount -= absorbed
+		remaining_damage -= absorbed
+		result.shield_absorbed += absorbed
+
+	# Apply remaining damage to HP
+	if remaining_damage > 0:
+		current_hp = max(0, current_hp - remaining_damage)
+		result.damage_dealt = remaining_damage
+
+		# Sleep breaks on damage
+		if has_status_effect("sleep"):
+			remove_status_effect("sleep")
+			result.sleep_broken = true
+
+	# Check for death defiance (Oracle set)
+	if current_hp <= 0 and not death_defiance_used and has_set_effect("death_defiance"):
+		death_defiance_used = true
+		current_hp = 1
+		shield_amount = int(max_hp * 0.25)  # 25% HP shield
+		result.death_defied = true
+		is_alive = true
+	elif current_hp <= 0:
+		is_alive = false
+
+	# Calculate thorns damage (Aegis set)
+	if has_set_effect("thorns"):
+		result.thorns_damage = int(damage * get_set_effect_value("thorns"))
+
+	# Calculate reflect damage (from status effect)
+	var reflect_mult: float = get_reflect_damage_percent()
+	if reflect_mult > 0:
+		result.reflect_damage = int(damage * reflect_mult)
+
+	return result
+
+## Check if unit is immune to damage
+func is_damage_immune() -> bool:
+	for effect: StatusEffect in status_effects:
+		if effect.damage_immunity:
+			return true
+	return false
+
+## Get total reflect damage percentage from status effects
+func get_reflect_damage_percent() -> float:
+	var total: float = 0.0
+	for effect: StatusEffect in status_effects:
+		if effect.reflect_damage > 0:
+			total += effect.reflect_damage
+	return total
+
+## Check if unit is silenced (cannot use abilities, only basic attack)
+func is_silenced() -> bool:
+	for effect: StatusEffect in status_effects:
+		if effect.silenced:
+			return true
+	return false
+
+## Check if unit is provoked (must attack the provoker)
+func is_provoked() -> bool:
+	for effect: StatusEffect in status_effects:
+		if effect.provoked:
+			return true
+	return false
+
+## Get the provoker (caster of provoke effect)
+func get_provoker_name() -> String:
+	for effect: StatusEffect in status_effects:
+		if effect.provoked:
+			return effect.caster_name
+	return ""
+
+## Check if unit is charmed (attacks allies instead of enemies)
+func is_charmed() -> bool:
+	for effect: StatusEffect in status_effects:
+		if effect.charmed:
+			return true
+	return false
+
+## Check if unit is untargetable
+func is_untargetable() -> bool:
+	for effect: StatusEffect in status_effects:
+		if effect.untargetable:
+			return true
+	return false
+
+## Check if unit has counter attack buff (from status effect, not equipment)
+func has_counter_attack_buff() -> bool:
+	for effect: StatusEffect in status_effects:
+		if effect.counter_attack:
+			return true
+	return false
+
+## Called when this unit takes damage - for vengeance stacking
+func on_damage_received() -> void:
+	if has_set_effect("retribution"):
+		vengeance_stacks = mini(vengeance_stacks + 1, 5)  # Max 5 stacks = 40%
+
+## Get current attack with all modifiers (fury, vengeance, status effects)
+func get_modified_attack() -> int:
+	var modified: float = float(attack)
+
+	# Apply status effect modifiers
+	modified *= (1.0 + get_status_effect_modifier("attack"))
+
+	# Wrath of Ares: +1% ATK per 2% HP missing (up to +50%)
+	if has_set_effect("fury_scaling"):
+		var hp_missing_percent: float = (1.0 - (float(current_hp) / float(max_hp))) * 100.0
+		var fury_bonus: float = minf(hp_missing_percent / 2.0, 50.0) / 100.0
+		modified *= (1.0 + fury_bonus)
+
+	# Nemesis Vengeance: +8% per stack (up to 40%)
+	if has_set_effect("retribution") and vengeance_stacks > 0:
+		var vengeance_bonus: float = vengeance_stacks * 0.08
+		modified *= (1.0 + vengeance_bonus)
+
+	return int(modified)
+
+## Get current defense with status effect modifiers
+func get_modified_defense() -> int:
+	var modified: float = float(defense)
+	modified *= (1.0 + get_status_effect_modifier("defense"))
+	return int(modified)
+
+## Get current speed with status effect modifiers
+func get_modified_speed() -> int:
+	var modified: float = float(speed)
+	modified *= (1.0 + get_status_effect_modifier("speed"))
+	return max(1, int(modified))  # Speed can't go below 1
+
+## Get current crit rate with status effect modifiers
+func get_modified_crit_rate() -> int:
+	var modified: float = float(crit_rate)
+	modified += get_status_effect_modifier("critical_chance") * 100.0  # Convert from decimal
+	return int(clamp(modified, 0, 100))
+
+## Get current crit damage with status effect modifiers
+func get_modified_crit_damage() -> int:
+	var modified: float = float(crit_damage)
+	modified += get_status_effect_modifier("critical_damage") * 100.0  # Convert from decimal
+	return int(modified)
+
+## Get current accuracy with status effect modifiers
+func get_modified_accuracy() -> int:
+	var modified: float = float(accuracy)
+	modified += get_status_effect_modifier("accuracy") * 100.0  # Convert from decimal
+	return int(modified)
+
+## Get total stat modifier from all active status effects
+func get_status_effect_modifier(stat_name: String) -> float:
+	var total_modifier: float = 0.0
+	for effect: StatusEffect in status_effects:
+		total_modifier += effect.get_stat_modifier(stat_name)
+	return total_modifier
+
+## Check if unit has a specific status effect
+func has_status_effect(effect_id: String) -> bool:
+	for effect: StatusEffect in status_effects:
+		if effect.id == effect_id:
+			return true
+	return false
+
+## Get a specific status effect by ID
+func get_status_effect(effect_id: String) -> StatusEffect:
+	for effect: StatusEffect in status_effects:
+		if effect.id == effect_id:
+			return effect
+	return null
+
+## Check if healing is blocked or reduced
+func get_healing_modifier() -> float:
+	var modifier: float = 1.0 + get_status_effect_modifier("healing_received")
+	return maxf(0.0, modifier)  # Can't go negative
+
+## Check if unit takes increased damage (marked_for_death, analyze_weakness)
+func get_damage_taken_modifier() -> float:
+	return 1.0 + get_status_effect_modifier("damage_taken")
+
+## Tick vengeance stacks down at end of turn
+func tick_vengeance() -> void:
+	if vengeance_stacks > 0:
+		vengeance_stacks -= 1
+
+## Mark a target (Artemis Hunt)
+func mark_target(target_id: String) -> void:
+	if not marked_targets.has(target_id):
+		marked_targets.append(target_id)
+
+## Check if a target is marked
+func is_target_marked(target_id: String) -> bool:
+	return marked_targets.has(target_id)
+
+## Clear a mark from target
+func clear_mark(target_id: String) -> void:
+	marked_targets.erase(target_id)
+
+## Check if unit is immune to debuffs (Will set or Olympus first debuff)
+func is_debuff_immune() -> bool:
+	# Will set immunity turns
+	if immunity_turns > 0:
+		return true
+	# Olympus first debuff immunity (only blocks one)
+	if has_set_effect("divine_favor") and not first_debuff_blocked:
+		return true
+	return false
+
+## Called when a debuff would be applied - returns true if blocked
+func try_block_debuff() -> bool:
+	# Will set immunity turns
+	if immunity_turns > 0:
+		return true
+	# Olympus first debuff immunity
+	if has_set_effect("divine_favor") and not first_debuff_blocked:
+		first_debuff_blocked = true
+		return true
+	return false
+
+## Tick immunity turns down at end of turn
+func tick_immunity() -> void:
+	if immunity_turns > 0:
+		immunity_turns -= 1
+
+## Check if unit should counter-attack (Revenge set)
+func should_counter_attack() -> bool:
+	if has_set_effect("counter_attack"):
+		var counter_chance: float = get_set_effect_chance("counter_attack")
+		return randf() < counter_chance
+	return false
+
+## Check if attack should apply petrify/stun (Despair set)
+func should_petrify() -> bool:
+	if has_set_effect("petrify_chance"):
+		var petrify_chance: float = get_set_effect_chance("petrify_chance")
+		return randf() < petrify_chance
+	return false

@@ -136,6 +136,9 @@ func _perform_summon(cost: Dictionary, summon_type: String, banner_type: String,
 	var event_bus: Node = registry.get_system("EventBus") if registry else null
 	if event_bus:
 		event_bus.save_requested.emit()
+		# Emit summon_performed for AchievementManager to check summon_count achievements
+		print("SummonManager: Emitting summon_performed signal for banner '%s'" % banner_type)
+		event_bus.summon_performed.emit(banner_type, [god])
 		# Emit detailed analytics event
 		event_bus.summon_completed_detailed.emit({
 			"banner_id": banner_type,
@@ -605,6 +608,8 @@ func _perform_multi_summon(cost: Dictionary, summon_type: String, banner_type: S
 	var event_bus: Node = registry.get_system("EventBus") if registry else null
 	if event_bus:
 		event_bus.save_requested.emit()
+		# Emit summon_performed for AchievementManager to check summon_count achievements
+		event_bus.summon_performed.emit(banner_type, summoned_gods)
 		# Emit detailed analytics event for multi-summon
 		var gods_data: Array = []
 		for g: God in summoned_gods:

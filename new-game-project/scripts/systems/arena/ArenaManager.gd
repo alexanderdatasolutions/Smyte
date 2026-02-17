@@ -120,7 +120,15 @@ func _connect_signals() -> void:
 
 func fetch_opponents() -> void:
 	"""Fetch opponents within ELO range from Firebase"""
+	print("[ArenaManager] fetch_opponents called")
+
+	# Try to refresh connection if not ready
+	if _data_sync != null and not _data_sync.is_ready():
+		print("[ArenaManager] DataSync not ready for fetch, attempting refresh")
+		_data_sync.refresh_firebase_connection()
+
 	if _data_sync != null and _data_sync.is_ready():
+		print("[ArenaManager] Fetching opponents from Firebase (ELO range: %d-%d)" % [player_elo - MAX_ELO_RANGE, player_elo + MAX_ELO_RANGE])
 		_data_sync.fetch_opponents_in_range(
 			player_elo - MAX_ELO_RANGE,
 			player_elo + MAX_ELO_RANGE,
@@ -128,6 +136,7 @@ func fetch_opponents() -> void:
 		)
 	else:
 		# Generate mock opponents for testing without Firebase
+		print("[ArenaManager] DataSync not ready, using mock opponents")
 		_generate_mock_opponents()
 
 func update_defense_team(team: Array) -> void:
@@ -151,15 +160,22 @@ func get_defense_team() -> Array[God]:
 
 func post_defense_to_firebase() -> void:
 	"""Explicitly upload current defense team to Firebase for PvP arena"""
+	print("[ArenaManager] post_defense_to_firebase called with %d gods" % defense_team.size())
 	if defense_team.is_empty():
 		push_warning("[ArenaManager] No defense team to post")
 		return
 
+	# Try to refresh connection if not ready (user may have signed in after initialization)
+	if _data_sync != null and not _data_sync.is_ready():
+		print("[ArenaManager] DataSync not ready, attempting refresh")
+		_data_sync.refresh_firebase_connection()
+
 	if _data_sync != null and _data_sync.is_ready():
+		print("[ArenaManager] DataSync ready, uploading defense team")
 		_data_sync.upload_defense_team(_serialize_defense_team(defense_team))
 	else:
-		push_warning("[ArenaManager] DataSync not ready, defense not posted")
-		defense_updated.emit(true)
+		push_warning("[ArenaManager] DataSync still not ready after refresh, defense not posted")
+		defense_updated.emit(false)
 
 func can_attack_opponent(opponent_uid: String) -> bool:
 	"""Check if attack cooldown has expired for this opponent"""
@@ -411,6 +427,7 @@ func _serialize_god_for_pvp(god: God) -> Dictionary:
 		"element": god.element,
 		"is_awakened": god.is_awakened,
 		"awakened_name": god.awakened_name,
+		"equipped_skin_id": god.equipped_skin_id,  # God skin - visible to opponents
 		"base_hp": god.base_hp,
 		"base_attack": god.base_attack,
 		"base_defense": god.base_defense,
@@ -423,8 +440,7 @@ func _serialize_god_for_pvp(god: God) -> Dictionary:
 		"abilities": god.abilities,
 		"active_abilities": god.active_abilities,
 		"passive_abilities": god.passive_abilities,
-		"innate_traits": god.innate_traits,
-		"specialization_path": god.specialization_path
+		"innate_traits": god.innate_traits
 	}
 
 func _serialize_equipment(eq: Equipment) -> Dictionary:
@@ -456,6 +472,7 @@ func deserialize_god_for_battle(data: Dictionary) -> God:
 	god.element = data.get("element", 0)
 	god.is_awakened = data.get("is_awakened", false)
 	god.awakened_name = data.get("awakened_name", "")
+	god.equipped_skin_id = data.get("equipped_skin_id", "")  # God skin
 	god.base_hp = data.get("base_hp", 1000)
 	god.base_attack = data.get("base_attack", 100)
 	god.base_defense = data.get("base_defense", 100)
@@ -472,12 +489,6 @@ func deserialize_god_for_battle(data: Dictionary) -> God:
 	var traits_data: Array = data.get("innate_traits", [])
 	for trait_id: Variant in traits_data:
 		god.innate_traits.append(str(trait_id))
-
-	var spec_data: Array = data.get("specialization_path", ["", "", ""])
-	if spec_data.size() >= 3:
-		god.specialization_path[0] = str(spec_data[0])
-		god.specialization_path[1] = str(spec_data[1])
-		god.specialization_path[2] = str(spec_data[2])
 
 	# Equipment stats are baked into base stats for PvP opponents
 	# This ensures equipment effects apply even though we can't reconstruct Equipment objects

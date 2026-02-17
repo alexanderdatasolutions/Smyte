@@ -16,15 +16,6 @@
           "weight": 30
         },
         {
-          "id": "energy_refill",
-          "name": "Energy Refill (50)",
-          "cost": {
-            "crystals": 30
-          },
-          "daily_limit": 10,
-          "weight": 50
-        },
-        {
           "id": "gold_pack",
           "name": "Gold Pack (10k)",
           "cost": {
@@ -59,7 +50,7 @@
       "contents": {
         "crystals": 500,
         "mystical_scrolls": 5,
-        "energy": 200
+        "mana": 10000
       }
     }
   ]

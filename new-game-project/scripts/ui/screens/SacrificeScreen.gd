@@ -64,6 +64,16 @@ func _on_visibility_changed():
 	"""Update header when this screen becomes visible"""
 	if visible:
 		_update_header_for_screen()
+		_check_intro_tutorial()
+
+func _check_intro_tutorial() -> void:
+	"""Check if intro tutorial should be shown for this screen."""
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		return
+	var tutorial_orch: Node = registry.get_system("TutorialOrchestrator")
+	if tutorial_orch and not tutorial_orch.is_tutorial_completed("sacrifice_intro"):
+		tutorial_orch.start_tutorial("sacrifice_intro")
 
 func _update_header_for_screen():
 	"""Apply this screen's header settings"""
@@ -108,9 +118,9 @@ func setup_tabbed_interface():
 	# Style tabs to show active state indicator
 	_style_tab_container()
 
-	# Create sacrifice tab using builder
+	# Create sacrifice tab using builder (now handles full sacrifice flow)
 	sacrifice_tab_builder = SacrificeTabBuilder.create_sacrifice_tab(tab_container, collection_manager)
-	sacrifice_tab_builder.sacrifice_requested.connect(_on_sacrifice_requested)
+	sacrifice_tab_builder.sacrifice_completed.connect(_on_sacrifice_completed)
 
 	# Create awakening tab using builder
 	awakening_tab_builder = AwakeningTabBuilder.create_awakening_tab(tab_container,
@@ -146,17 +156,11 @@ func _style_tab_container():
 	tab_container.add_theme_font_size_override("font_size", 16)  # Increase tab text to 16px
 	tab_container.add_theme_constant_override("h_separation", 12)  # Add 12px horizontal spacing between tabs
 
-func _on_sacrifice_requested(god: God):
-	"""Handle sacrifice request from sacrifice tab"""
-	var system_registry = SystemRegistry.get_instance()
-	if system_registry:
-		var sacrifice_manager = system_registry.get_system("SacrificeManager")
-		if sacrifice_manager:
-			sacrifice_manager.set_temporary_target_god(god)
-
-		var screen_manager = system_registry.get_system("ScreenManager")
-		if screen_manager:
-			screen_manager.change_screen("sacrifice_selection")
+func _on_sacrifice_completed(_xp_gained: int):
+	"""Handle sacrifice completion - refresh awakening tab if needed"""
+	# Refresh awakening tab in case sacrifice affects awakening options
+	if awakening_tab_builder:
+		awakening_tab_builder.refresh_awakening_god_list()
 
 func _on_god_awakened(_god: God):
 	"""Handle god awakened from awakening tab"""

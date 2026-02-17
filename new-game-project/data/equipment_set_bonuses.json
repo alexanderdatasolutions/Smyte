@@ -1,215 +1,265 @@
 {
   "_metadata": {
-    "version": "1.0.0",
-    "description": "Detailed equipment set bonus information for UI display",
-    "last_updated": "2026-02-11",
+    "version": "2.0.0",
+    "description": "Equipment set bonuses themed around Greek mythology",
+    "last_updated": "2026-02-17",
     "design_notes": {
       "purpose": "Provides detailed descriptions and UI display info for equipment sets",
-      "extends": "equipment_config.json equipment_sets section",
+      "extends": "equipment_config.json equipment_sets section - MUST stay in sync",
       "usage": "Used by equipment screen to show detailed bonus breakdowns"
     }
   },
 
   "sets": {
-    "berserker": {
-      "id": "berserker",
-      "name": "Berserker",
-      "description": "Favored by warriors who prefer offense over defense",
+    "wrath": {
+      "id": "wrath",
+      "name": "Wrath of Ares",
+      "description": "Channel divine fury - the lower your health, the harder you strike",
       "color": "#FF4444",
-      "icon": "berserker_set",
+      "icon": "wrath_set",
       "bonuses": {
         "2": {
           "stats": {"attack": 50},
           "description": "+50 Attack",
-          "display_name": "Minor Fury"
+          "display_name": "Battle Hunger"
         },
         "4": {
-          "stats": {"attack": 100, "crit_rate": 5},
-          "description": "+100 Attack, +5% Crit Rate",
-          "display_name": "Battle Rage"
+          "stats": {"attack": 100, "crit_rate": 8},
+          "description": "+100 Attack, +8% Crit Rate",
+          "display_name": "Bloodlust"
         },
         "6": {
-          "stats": {"attack": 200, "crit_rate": 10, "crit_damage": 20},
-          "description": "+200 Attack, +10% Crit Rate, +20% Crit Damage",
-          "display_name": "Berserker's Wrath",
-          "special_effect": "Attacks have 15% chance to deal double damage"
+          "stats": {"attack": 180, "crit_rate": 15},
+          "description": "+180 Attack, +15% Crit Rate",
+          "display_name": "God of War",
+          "special_effect": "Gain +1% ATK for each 2% HP missing (up to +50%)"
         }
       }
     },
-    "guardian": {
-      "id": "guardian",
-      "name": "Guardian",
-      "description": "Worn by those who protect others from harm",
+    "aegis": {
+      "id": "aegis",
+      "name": "Aegis of Athena",
+      "description": "The legendary shield that turns attacks back upon aggressors",
       "color": "#4488FF",
-      "icon": "guardian_set",
+      "icon": "aegis_set",
       "bonuses": {
         "2": {
           "stats": {"defense": 75},
           "description": "+75 Defense",
-          "display_name": "Minor Shield"
+          "display_name": "Shield Wall"
         },
         "4": {
           "stats": {"hp": 500, "defense": 50},
           "description": "+500 HP, +50 Defense",
-          "display_name": "Iron Will"
+          "display_name": "Stalwart"
         },
         "6": {
-          "stats": {"hp": 1000, "defense": 150, "resistance": 15},
-          "description": "+1000 HP, +150 Defense, +15% Resistance",
-          "display_name": "Aegis of Protection",
-          "special_effect": "Reduces incoming damage by 10%"
+          "stats": {"hp": 1000, "defense": 150},
+          "description": "+1000 HP, +150 Defense",
+          "display_name": "Athena's Protection",
+          "special_effect": "Reflect 15% of damage taken back to attacker"
         }
       }
     },
-    "swift": {
-      "id": "swift",
-      "name": "Swift",
-      "description": "Enchanted to grant supernatural speed",
+    "hermes": {
+      "id": "hermes",
+      "name": "Wings of Hermes",
+      "description": "Divine swiftness grants the first strike advantage",
       "color": "#44FF88",
-      "icon": "swift_set",
+      "icon": "hermes_set",
       "bonuses": {
         "2": {
-          "stats": {"speed": 25},
-          "description": "+25 Speed",
-          "display_name": "Quick Step"
+          "stats": {"speed": 30},
+          "description": "+30 Speed",
+          "display_name": "Fleet Footed"
         },
         "4": {
-          "stats": {"speed": 50, "accuracy": 10},
-          "description": "+50 Speed, +10% Accuracy",
+          "stats": {"speed": 60, "accuracy": 15},
+          "description": "+60 Speed, +15% Accuracy",
           "display_name": "Wind Walker"
         },
         "6": {
-          "stats": {"speed": 80, "attack": 100, "accuracy": 20},
-          "description": "+80 Speed, +100 Attack, +20% Accuracy",
-          "display_name": "Lightning Reflexes",
-          "special_effect": "25% chance to take an extra turn"
+          "stats": {"speed": 90, "accuracy": 25},
+          "description": "+90 Speed, +25% Accuracy",
+          "display_name": "Messenger's Speed",
+          "special_effect": "First attack each battle deals +40% damage"
         }
       }
     },
-    "warrior": {
-      "id": "warrior",
-      "name": "Warrior",
-      "description": "Balanced set for versatile combat",
+    "titan": {
+      "id": "titan",
+      "name": "Titan's Resolve",
+      "description": "The strength of the Titans - overwhelm foes with raw power",
       "color": "#FF8844",
-      "icon": "warrior_set",
+      "icon": "titan_set",
       "bonuses": {
         "2": {
-          "stats": {"attack": 40, "defense": 20},
-          "description": "+40 Attack, +20 Defense",
-          "display_name": "Soldier's Training"
+          "stats": {"attack": 40, "defense": 25},
+          "description": "+40 Attack, +25 Defense",
+          "display_name": "Giant's Might"
         },
         "4": {
-          "stats": {"attack": 80, "defense": 40, "hp": 300},
-          "description": "+80 Attack, +40 Defense, +300 HP",
-          "display_name": "Veteran's Might"
+          "stats": {"attack": 90, "defense": 45, "hp": 350},
+          "description": "+90 Attack, +45 Defense, +350 HP",
+          "display_name": "Titanic Power"
         },
         "6": {
-          "stats": {"attack": 150, "defense": 80, "hp": 600},
-          "description": "+150 Attack, +80 Defense, +600 HP",
-          "display_name": "Champion's Glory",
-          "special_effect": "Gain 5% of damage dealt as healing"
+          "stats": {"attack": 160, "defense": 80, "hp": 700},
+          "description": "+160 Attack, +80 Defense, +700 HP",
+          "display_name": "Primordial Strength",
+          "special_effect": "Deal +20% damage to enemies with less max HP than you"
         }
       }
     },
-    "sage": {
-      "id": "sage",
-      "name": "Sage",
-      "description": "Ancient wisdom grants longevity in battle",
+    "oracle": {
+      "id": "oracle",
+      "name": "Oracle's Foresight",
+      "description": "See fate itself and cheat death once per battle",
       "color": "#AA88FF",
-      "icon": "sage_set",
+      "icon": "oracle_set",
       "bonuses": {
         "2": {
-          "stats": {"hp": 400, "resistance": 10},
-          "description": "+400 HP, +10% Resistance",
-          "display_name": "Scholar's Vitality"
+          "stats": {"hp": 400, "resistance": 12},
+          "description": "+400 HP, +12% Resistance",
+          "display_name": "Prophecy"
         },
         "4": {
-          "stats": {"hp": 700, "defense": 50, "resistance": 15},
-          "description": "+700 HP, +50 Defense, +15% Resistance",
-          "display_name": "Mystic Endurance"
+          "stats": {"hp": 750, "defense": 60, "resistance": 18},
+          "description": "+750 HP, +60 Defense, +18% Resistance",
+          "display_name": "Fate's Whisper"
         },
         "6": {
-          "stats": {"hp": 1200, "defense": 100, "resistance": 25, "speed": 20},
-          "description": "+1200 HP, +100 Defense, +25% Resistance, +20 Speed",
-          "display_name": "Transcendent Mind",
-          "special_effect": "Recover 5% max HP at end of each turn"
+          "stats": {"hp": 1100, "defense": 100, "resistance": 30},
+          "description": "+1100 HP, +100 Defense, +30% Resistance",
+          "display_name": "Delphi's Blessing",
+          "special_effect": "Once per battle, survive fatal damage with 1 HP and gain 25% HP shield"
         }
       }
     },
-    "precision": {
-      "id": "precision",
-      "name": "Precision",
-      "description": "Every strike hits its mark with deadly accuracy",
+    "hunter": {
+      "id": "hunter",
+      "name": "Artemis's Hunt",
+      "description": "Track weaknesses with predatory precision",
       "color": "#FFFF44",
-      "icon": "precision_set",
+      "icon": "hunter_set",
       "bonuses": {
         "2": {
-          "stats": {"accuracy": 15, "crit_rate": 5},
-          "description": "+15% Accuracy, +5% Crit Rate",
-          "display_name": "Steady Hand"
+          "stats": {"accuracy": 18, "crit_rate": 6},
+          "description": "+18% Accuracy, +6% Crit Rate",
+          "display_name": "Keen Eye"
         },
         "4": {
-          "stats": {"accuracy": 30, "crit_rate": 10, "crit_damage": 15},
-          "description": "+30% Accuracy, +10% Crit Rate, +15% Crit Damage",
-          "display_name": "Marksman's Focus"
+          "stats": {"accuracy": 35, "crit_rate": 12, "crit_damage": 20},
+          "description": "+35% Accuracy, +12% Crit Rate, +20% Crit Damage",
+          "display_name": "Predator's Focus"
         },
         "6": {
-          "stats": {"accuracy": 50, "crit_rate": 20, "crit_damage": 40, "attack": 50},
-          "description": "+50% Accuracy, +20% Crit Rate, +40% Crit Damage, +50 Attack",
-          "display_name": "Perfect Execution",
-          "special_effect": "Critical hits ignore 30% of enemy defense"
+          "stats": {"accuracy": 50, "crit_rate": 22, "crit_damage": 45},
+          "description": "+50% Accuracy, +22% Crit Rate, +45% Crit Damage",
+          "display_name": "Perfect Hunt",
+          "special_effect": "Crits mark target: next attack on them ignores 40% defense"
         }
       }
     },
-    "divine": {
-      "id": "divine",
-      "name": "Divine",
-      "description": "Blessed by the gods themselves",
+    "olympus": {
+      "id": "olympus",
+      "name": "Blessing of Olympus",
+      "description": "Favor of the gods grants protection and might",
       "color": "#FFD700",
-      "icon": "divine_set",
+      "icon": "olympus_set",
       "bonuses": {
         "2": {
-          "stats": {"attack": 30, "defense": 30, "hp": 200},
-          "description": "+30 Attack, +30 Defense, +200 HP",
-          "display_name": "Divine Blessing"
+          "stats": {"attack": 35, "defense": 35, "hp": 250},
+          "description": "+35 Attack, +35 Defense, +250 HP",
+          "display_name": "Olympian Touch"
         },
         "4": {
-          "stats": {"attack": 70, "defense": 70, "hp": 500, "speed": 15},
-          "description": "+70 Attack/Defense, +500 HP, +15 Speed",
-          "display_name": "Celestial Favor"
+          "stats": {"attack": 75, "defense": 75, "hp": 550, "speed": 18},
+          "description": "+75 Attack/Defense, +550 HP, +18 Speed",
+          "display_name": "Divine Grace"
         },
         "6": {
-          "stats": {"attack": 150, "defense": 150, "hp": 1000, "speed": 30, "crit_rate": 15},
-          "description": "All stats significantly increased",
-          "display_name": "Avatar of Divinity",
-          "special_effect": "Start battle with a shield equal to 20% max HP"
+          "stats": {"attack": 140, "defense": 140, "hp": 900, "speed": 30},
+          "description": "+140 Attack/Defense, +900 HP, +30 Speed",
+          "display_name": "Avatar of Olympus",
+          "special_effect": "Start battle with 20% max HP shield; immune to first debuff"
         }
       }
     },
-    "vampire": {
-      "id": "vampire",
-      "name": "Vampire",
-      "description": "Drain life force from your enemies",
+    "styx": {
+      "id": "styx",
+      "name": "Waters of the Styx",
+      "description": "The river of death grants unholy sustain",
       "color": "#880044",
-      "icon": "vampire_set",
+      "icon": "styx_set",
       "bonuses": {
         "2": {
-          "stats": {"attack": 35},
-          "description": "+35 Attack, +5% Life Steal",
-          "display_name": "Blood Thirst",
-          "special_effect": "5% of damage dealt heals you"
+          "stats": {"attack": 40},
+          "description": "+40 Attack, 8% Life Steal",
+          "display_name": "Death's Touch",
+          "special_effect": "8% of damage dealt heals you"
         },
         "4": {
-          "stats": {"attack": 70, "hp": 400},
-          "description": "+70 Attack, +400 HP, +10% Life Steal",
-          "display_name": "Sanguine Power",
-          "special_effect": "10% of damage dealt heals you"
+          "stats": {"attack": 80, "hp": 450},
+          "description": "+80 Attack, +450 HP, 15% Life Steal",
+          "display_name": "River's Embrace",
+          "special_effect": "15% of damage dealt heals you"
         },
         "6": {
-          "stats": {"attack": 120, "hp": 800, "speed": 20},
-          "description": "+120 Attack, +800 HP, +20 Speed, +20% Life Steal",
-          "display_name": "Nosferatu",
-          "special_effect": "20% of damage dealt heals you"
+          "stats": {"attack": 130, "hp": 850, "speed": 20},
+          "description": "+130 Attack, +850 HP, +20 Speed",
+          "display_name": "Charon's Blessing",
+          "special_effect": "20% life steal; kills restore additional 15% max HP"
+        }
+      }
+    },
+    "vengeance": {
+      "id": "vengeance",
+      "name": "Nemesis's Vengeance",
+      "description": "Divine retribution grows with each wound received",
+      "color": "#CC44CC",
+      "icon": "vengeance_set",
+      "bonuses": {
+        "2": {
+          "stats": {"defense": 50, "attack": 30},
+          "description": "+50 Defense, +30 Attack",
+          "display_name": "Grudge Bearer"
+        },
+        "4": {
+          "stats": {"defense": 90, "attack": 70, "hp": 400},
+          "description": "+90 Defense, +70 Attack, +400 HP",
+          "display_name": "Righteous Fury"
+        },
+        "6": {
+          "stats": {"defense": 130, "attack": 120, "hp": 700},
+          "description": "+130 Defense, +120 Attack, +700 HP",
+          "display_name": "Divine Retribution",
+          "special_effect": "Each time you take damage, gain +8% ATK for 2 turns (stacks up to 40%)"
+        }
+      }
+    },
+    "tempest": {
+      "id": "tempest",
+      "name": "Storm of Zeus",
+      "description": "Lightning strikes multiple times",
+      "color": "#6688FF",
+      "icon": "tempest_set",
+      "bonuses": {
+        "2": {
+          "stats": {"attack": 45, "speed": 15},
+          "description": "+45 Attack, +15 Speed",
+          "display_name": "Static Charge"
+        },
+        "4": {
+          "stats": {"attack": 95, "speed": 35, "crit_rate": 10},
+          "description": "+95 Attack, +35 Speed, +10% Crit Rate",
+          "display_name": "Thunderstrike"
+        },
+        "6": {
+          "stats": {"attack": 170, "speed": 55, "crit_rate": 18},
+          "description": "+170 Attack, +55 Speed, +18% Crit Rate",
+          "display_name": "Lord of Lightning",
+          "special_effect": "25% chance attacks hit an additional random enemy for 50% damage"
         }
       }
     }

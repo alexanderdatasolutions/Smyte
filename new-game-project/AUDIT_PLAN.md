@@ -538,8 +538,8 @@
     "priority": "medium",
     "file": "scripts/systems/collection/GodCalculator.gd",
     "issue": "26 untyped local variables",
-    "action": "Add static types",
-    "passes": false
+    "action": "Added static types to all 26 local variables across 13 functions. Typed base/level_bonus/equipment_bonus as int, modifier/ascension_bonus as float. Typed equipment loop iterator as Variant with Equipment cast, substat iterator as Dictionary. Changed min() to mini() for int caps (crit_rate, accuracy, resistance). Typed JSON parse result as Variant with Dictionary cast. Typed preload as GDScript.",
+    "passes": true
   },
   {
     "priority": "low",

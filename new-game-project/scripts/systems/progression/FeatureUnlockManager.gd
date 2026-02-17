@@ -51,6 +51,11 @@ var feature_introductions: Dictionary = {
 		"title": "Awakening System",
 		"message": "Awaken your gods to unlock their true potential!",
 		"unlock_source": "god_level_30"
+	},
+	"skin_selection": {
+		"title": "God Skins Unlocked!",
+		"message": "Your legendary champion has earned the right to a new look! Choose a free skin from your collection.",
+		"unlock_source": "legendary_champion"
 	}
 }
 
@@ -63,7 +68,8 @@ var all_features: Array[String] = [
 	"tower",
 	"arena",
 	"pvp",
-	"awakening"
+	"awakening",
+	"skin_selection"
 ]
 
 func _ready() -> void:
@@ -82,6 +88,8 @@ func _cache_system_references() -> void:
 	_save_manager = registry.get_system("SaveManager")
 
 func unlock_feature(feature_name: String) -> void:
+	print("FeatureUnlockManager: unlock_feature('%s') called" % feature_name)
+
 	if not _save_manager:
 		push_error("FeatureUnlockManager: SaveManager not found")
 		return
@@ -91,15 +99,18 @@ func unlock_feature(feature_name: String) -> void:
 		unlocked_features = {}
 
 	if unlocked_features.has(feature_name):
+		# Already unlocked - silently skip to avoid log spam
 		return
 
 	unlocked_features[feature_name] = true
 	_save_manager.set_player_value("unlocked_features", unlocked_features)
+	print("FeatureUnlockManager: Set unlocked_features[%s] = true, saving..." % feature_name)
 	_save_manager.save_game()
 
 	var feature_data: Dictionary = get_feature_data(feature_name)
 	feature_unlocked.emit(feature_name, feature_data)
 	_show_feature_introduction(feature_name)
+	print("FeatureUnlockManager: Feature '%s' unlocked successfully!" % feature_name)
 
 func is_feature_unlocked(feature_name: String) -> bool:
 	if not _save_manager:

@@ -185,3 +185,46 @@ static func _generate_unique_id(template_id: String) -> String:
 	var timestamp: int = int(Time.get_unix_time_from_system())
 	var random_part: int = randi() % 100000
 	return "%s_%d_%05d" % [template_id, timestamp, random_part]
+
+## Reset a god's base stats to their original template values
+## Keeps level, XP, equipment, etc. - only resets base_hp, base_attack, base_defense, base_speed
+static func reset_base_stats_to_template(god: God) -> bool:
+	if not god or god.template_id.is_empty():
+		return false
+
+	var registry: Variant = SystemRegistry.get_instance()
+	if not registry:
+		return false
+	var config_manager: Variant = registry.get_system("ConfigurationManager")
+	if not config_manager:
+		return false
+
+	var god_data: Dictionary = config_manager.get_god_config(god.template_id)
+	if god_data.is_empty():
+		push_warning("GodFactory: Could not find template for " + god.template_id)
+		return false
+
+	# Reset base stats to template values
+	var base_stats: Dictionary = god_data.get("base_stats", {})
+	god.base_hp = base_stats.get("hp", god_data.get("base_hp", 100))
+	god.base_attack = base_stats.get("attack", god_data.get("base_attack", 50))
+	god.base_defense = base_stats.get("defense", god_data.get("base_defense", 30))
+	god.base_speed = base_stats.get("speed", god_data.get("base_speed", 100))
+	god.base_crit_rate = base_stats.get("crit_rate", god_data.get("base_crit_rate", God.get_default_crit_rate()))
+	god.base_crit_damage = base_stats.get("crit_damage", god_data.get("base_crit_damage", God.get_default_crit_damage()))
+	god.base_resistance = base_stats.get("resistance", god_data.get("base_resistance", God.get_default_resistance()))
+	god.base_accuracy = base_stats.get("accuracy", god_data.get("base_accuracy", God.get_default_accuracy()))
+
+	return true
+
+## Migrate all gods in a collection to have correct base stats
+## Call this once after loading a save to fix gods with inflated stats
+static func migrate_collection_base_stats(gods: Array) -> int:
+	var fixed_count: int = 0
+	for god: Variant in gods:
+		if god is God:
+			if reset_base_stats_to_template(god):
+				fixed_count += 1
+	if fixed_count > 0:
+		print("GodFactory: Reset base stats for %d gods" % fixed_count)
+	return fixed_count

@@ -114,6 +114,7 @@ const BUILDING_ICONS = {
 	"temple": "⛪",
 	"sanctum": "🏛️",
 	"soul_nexus": "👻",
+	"day_care": "🌱",
 	# Infrastructure
 	"watchtower": "🗼",
 	"barracks": "🏰",

@@ -6,6 +6,21 @@ signal node_unlocked(node_id: String, unlock_source: String)
 
 var _territory_manager: Node = null
 
+# Cached config from territory_config.json
+static var _config: Dictionary = {}
+static var _config_loaded: bool = false
+
+static func _load_config() -> void:
+	if _config_loaded:
+		return
+	var file := FileAccess.open("res://data/territory_config.json", FileAccess.READ)
+	if file:
+		var parsed: Variant = JSON.parse_string(file.get_as_text())
+		file.close()
+		if parsed is Dictionary:
+			_config = parsed
+	_config_loaded = true
+
 func initialize(territory_manager: Node) -> void:
 	_territory_manager = territory_manager
 	_connect_to_dungeon_coordinator()
@@ -14,7 +29,7 @@ func initialize(territory_manager: Node) -> void:
 # GARRISON POWER AND DEFENSE
 # ==============================================================================
 
-## Calculate total combat power of gods in garrison
+## Calculate total combat power of gods in garrison (includes equipment!)
 func calculate_garrison_power(node: HexNode) -> float:
 	if not node or node.garrison.size() == 0:
 		return 0.0
@@ -25,30 +40,50 @@ func calculate_garrison_power(node: HexNode) -> float:
 		return 0.0
 
 	var total_power: float = 0.0
+	var garrison_gods: Array[God] = []
+
 	for god_id: String in node.garrison:
 		var god_obj: God = collection_manager.get_god_by_id(god_id)
 		if god_obj:
-			var hp: int = god_obj.base_hp
-			var attack: int = god_obj.base_attack
-			var defense: int = god_obj.base_defense
-			var speed: int = god_obj.base_speed
-			var level: int = god_obj.level
-			var awakening_bonus: float = 1.0 + (god_obj.ascension_level * 0.1)
+			# Use GodCalculator for proper stats including equipment
+			total_power += GodCalculator.get_power_rating(god_obj)
+			garrison_gods.append(god_obj)
 
-			var god_power: float = (hp + attack * 2 + defense + speed) * (1.0 + level * 0.05) * awakening_bonus
-			total_power += god_power
+	# Apply team bonuses to garrison power (element/pantheon synergies)
+	if garrison_gods.size() >= 2:
+		var team_bonus_mult: float = _calculate_garrison_team_bonus(garrison_gods)
+		total_power *= (1.0 + team_bonus_mult)
 
 	return total_power
 
-## Get minimum garrison power required for workers based on node tier
+## Calculate team bonus multiplier for garrison defense
+func _calculate_garrison_team_bonus(gods: Array[God]) -> float:
+	if gods.size() < 2:
+		return 0.0
+
+	var team_bonuses: Array = TeamStatsCalculator.get_team_bonuses(gods)
+	var total_bonus: float = 0.0
+
+	for bonus: Dictionary in team_bonuses:
+		var bonuses: Dictionary = bonus.get("bonuses", {})
+		# Defense-relevant bonuses
+		if bonuses.has("defense"):
+			total_bonus += bonuses.defense
+		if bonuses.has("hp"):
+			total_bonus += bonuses.hp * 0.5  # HP bonus contributes half
+		if bonuses.has("all_stats"):
+			total_bonus += bonuses.all_stats
+		# Elemental resistance helps defense
+		if bonuses.has("elemental_resistance"):
+			total_bonus += bonuses.elemental_resistance
+
+	return total_bonus
+
+## Get minimum garrison power required for workers based on node tier (from config)
 func get_min_garrison_power_for_tier(tier: int) -> int:
-	match tier:
-		1: return 500
-		2: return 2000
-		3: return 5000
-		4: return 15000
-		5: return 40000
-		_: return 500
+	_load_config()
+	var requirements: Dictionary = _config.get("defense", {}).get("garrison_power_requirements", {})
+	return int(requirements.get(str(tier), 500))
 
 ## Check if a node's garrison meets the minimum power requirement for workers
 func can_assign_workers(node: HexNode) -> bool:
@@ -87,21 +122,28 @@ func get_node_defense_rating(coord: HexCoord) -> float:
 	if not node:
 		return 0.0
 
+	_load_config()
+	var defense_cfg: Dictionary = _config.get("defense", {})
 	var base_defense: float = calculate_garrison_power(node)
-	var defense_bonus: float = 1.0 + (node.defense_level - 1) * 0.1
+	var level_bonus_rate: float = defense_cfg.get("defense_level_bonus_per_level", 0.1)
+	var defense_bonus: float = 1.0 + (node.defense_level - 1) * level_bonus_rate
 	var distance_penalty: float = calculate_distance_penalty(coord)
 	var connected_bonus: float = get_connected_bonus(coord)
 
 	return base_defense * defense_bonus * (1.0 - distance_penalty) * (1.0 + connected_bonus)
 
-## Calculate defense penalty based on distance from base (5% per hex)
+## Calculate defense penalty based on distance from base (from config)
 func calculate_distance_penalty(coord: HexCoord) -> float:
 	var hex_grid_manager: Node = _get_hex_grid_manager()
 	if not hex_grid_manager:
 		return 0.0
 
+	_load_config()
+	var defense_cfg: Dictionary = _config.get("defense", {})
+	var penalty_per_hex: float = defense_cfg.get("distance_penalty_per_hex", 0.05)
+	var penalty_cap: float = defense_cfg.get("distance_penalty_cap", 0.95)
 	var distance: int = hex_grid_manager.get_distance_from_base(coord)
-	return min(distance * 0.05, 0.95)
+	return min(distance * penalty_per_hex, penalty_cap)
 
 ## Calculate bonus from connected controlled nodes
 func get_connected_bonus(coord: HexCoord) -> float:
@@ -115,12 +157,14 @@ func get_connected_bonus(coord: HexCoord) -> float:
 
 	var connected_count: int = _count_connected_nodes(coord, hex_grid_manager)
 
+	_load_config()
+	var bonuses: Dictionary = _config.get("connected_bonuses", {"2": 0.10, "3": 0.20, "4": 0.30})
 	if connected_count >= 4:
-		return 0.30
+		return bonuses.get("4", 0.30)
 	elif connected_count >= 3:
-		return 0.20
+		return bonuses.get("3", 0.20)
 	elif connected_count >= 2:
-		return 0.10
+		return bonuses.get("2", 0.10)
 	else:
 		return 0.0
 
@@ -203,7 +247,7 @@ func _handle_node_attack(node: HexNode) -> void:
 			event_bus.emit_notification("Territory Lost: %s (No garrison!)" % [node.name if node.name else "Unknown"], "warning", 4.0)
 
 		if _territory_manager:
-			_territory_manager.lose_node(node.coord)
+			_territory_manager.lose_node(node.coord, "no_garrison")
 	else:
 		if event_bus:
 			event_bus.emit_notification("Territory Under Attack: %s" % [node.name if node.name else "Unknown"], "danger", 5.0)
@@ -234,28 +278,20 @@ func award_capture_rewards(node: HexNode, territories_owned: int) -> void:
 
 	var event_bus: Node = _get_event_bus()
 
-	# Early game bonus: First 10 territories give bonus crystals
-	# Goal: ~1000 crystals from first 10 territories (enough for one 10x multi-summon)
-	var early_game_bonus: int = 0
-	if territories_owned == 1:
-		early_game_bonus = 300
-	elif territories_owned <= 3:
-		early_game_bonus = 200
-	elif territories_owned <= 6:
-		early_game_bonus = 100
-	elif territories_owned <= 10:
-		early_game_bonus = 50
+	_load_config()
+	var rewards_cfg: Dictionary = _config.get("capture_rewards", {})
 
-	# Tier-based rewards (higher tier nodes = more crystals)
+	# Early game bonus from config array (first 10 territories)
+	var early_bonuses: Array = rewards_cfg.get("early_game_bonuses", [300, 200, 200, 100, 100, 100, 100, 100, 100, 50])
+	var early_game_bonus: int = 0
+	if territories_owned >= 1 and territories_owned <= early_bonuses.size():
+		early_game_bonus = int(early_bonuses[territories_owned - 1])
+
+	# Tier-based rewards from config
+	var tier_rewards: Dictionary = rewards_cfg.get("tier_rewards", {"1": 10, "2": 25, "3": 50, "4": 100, "5": 200})
 	var tier_reward: int = 0
 	if node and node.tier:
-		match node.tier:
-			1: tier_reward = 10
-			2: tier_reward = 25
-			3: tier_reward = 50
-			4: tier_reward = 100
-			5: tier_reward = 200
-			_: tier_reward = 10
+		tier_reward = int(tier_rewards.get(str(node.tier), 10))
 
 	var total_crystals: int = early_game_bonus + tier_reward
 

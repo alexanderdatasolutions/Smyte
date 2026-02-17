@@ -6,10 +6,12 @@ enum ElementType { FIRE, WATER, EARTH, LIGHTNING, LIGHT, DARK }
 enum TierType { COMMON, RARE, EPIC, LEGENDARY }
 
 # ==============================================================================
-# CONFIG - Loaded from data/god_config.json (static cache)
+# CONFIG - Loaded from JSON files (static cache)
 # ==============================================================================
 static var _config: Dictionary = {}
 static var _config_loaded: bool = false
+static var _progression_config: Dictionary = {}
+static var _progression_loaded: bool = false
 
 static func _load_god_config() -> void:
 	if _config_loaded:
@@ -21,18 +23,31 @@ static func _load_god_config() -> void:
 		if parsed is Dictionary:
 			_config = parsed
 
+static func _load_progression_config() -> void:
+	if _progression_loaded:
+		return
+	_progression_loaded = true
+	var file := FileAccess.open("res://data/progression_config.json", FileAccess.READ)
+	if file:
+		var parsed: Variant = JSON.parse_string(file.get_as_text())
+		if parsed is Dictionary:
+			_progression_config = parsed
+
+# Level config comes from progression_config.json (single source of truth)
 static func get_max_level() -> int:
-	_load_god_config()
-	return _config.get("level_cap", {}).get("max_level", 40)
+	_load_progression_config()
+	return _progression_config.get("god_leveling", {}).get("max_god_level", 999)
 
 static func get_awakened_max_level() -> int:
-	_load_god_config()
-	return _config.get("level_cap", {}).get("awakened_max_level", 50)
+	_load_progression_config()
+	return _progression_config.get("god_leveling", {}).get("awakened_max_level", 999)
 
-static func get_specialization_unlock_level() -> int:
-	_load_god_config()
-	return _config.get("level_cap", {}).get("specialization_unlock_level", 20)
+static func get_soft_cap_level() -> int:
+	"""Level where diminishing returns begin (not a hard cap)"""
+	_load_progression_config()
+	return _progression_config.get("god_leveling", {}).get("soft_cap_level", 40)
 
+# Default stats come from god_config.json
 static func get_default_crit_rate() -> int:
 	_load_god_config()
 	return _config.get("default_stats", {}).get("crit_rate", 15)
@@ -51,8 +66,8 @@ static func get_default_accuracy() -> int:
 
 # Legacy const aliases for backward compatibility with @export defaults and external callers
 # These keep the same values as fallback defaults; config overrides via static methods above
-const MAX_LEVEL: int = 40
-const MIN_SPECIALIZATION_LEVEL: int = 20
+const MAX_LEVEL: int = 999  # No hard cap - use get_soft_cap_level() for diminishing returns threshold
+const SOFT_CAP_LEVEL: int = 40  # Where diminishing returns begin
 const DEFAULT_CRIT_RATE: int = 15
 const DEFAULT_CRIT_DAMAGE: int = 50
 const DEFAULT_RESISTANCE: int = 15
@@ -107,11 +122,10 @@ const DEFAULT_ACCURACY: int = 0
 @export var learned_traits: Array[String] = []  # Traits gained through gameplay
 
 # ==============================================================================
-# ROLE & SPECIALIZATION SYSTEM
+# ROLE SYSTEM
 # ==============================================================================
 @export var primary_role: String = ""  # Primary role ID (fighter, gatherer, crafter, scholar, support)
 @export var secondary_role: String = ""  # Optional secondary role ID (50% bonus strength)
-@export var specialization_path: Array[String] = ["", "", ""]  # [tier1_id, tier2_id, tier3_id]
 
 # ==============================================================================
 # TERRITORY SYSTEM
@@ -186,8 +200,12 @@ func is_valid() -> bool:
 	return id != "" and name != "" and base_hp > 0 and base_attack > 0
 
 func can_level_up() -> bool:
-	"""Simple level cap check - RULE 3 compliant"""
+	"""Check if god can level up (no hard cap, but technically limited to 999)"""
 	return level < God.get_max_level()
+
+func is_past_soft_cap() -> bool:
+	"""Check if god has leveled past the soft cap (diminishing returns zone)"""
+	return level >= God.get_soft_cap_level()
 
 func has_ability(ability_id: String) -> bool:
 	for ability: Dictionary in active_abilities:
@@ -319,57 +337,3 @@ func get_role_ids() -> Array[String]:
 		role_ids.append(secondary_role)
 	return role_ids
 
-# ==============================================================================
-# SPECIALIZATION SYSTEM HELPERS - Simple state checks (logic in SpecializationManager)
-# ==============================================================================
-
-func can_specialize() -> bool:
-	"""Check if god meets basic requirements for specialization"""
-	return level >= God.get_specialization_unlock_level() and primary_role != ""
-
-func has_specialization() -> bool:
-	"""Check if god has any specialization unlocked"""
-	return specialization_path[0] != ""
-
-func get_specialization_tier() -> int:
-	"""Get current specialization tier (0=none, 1-3=tier)"""
-	if specialization_path[2] != "":
-		return 3
-	if specialization_path[1] != "":
-		return 2
-	if specialization_path[0] != "":
-		return 1
-	return 0
-
-func get_current_specialization() -> String:
-	"""Get the highest tier specialization ID"""
-	if specialization_path[2] != "":
-		return specialization_path[2]
-	if specialization_path[1] != "":
-		return specialization_path[1]
-	if specialization_path[0] != "":
-		return specialization_path[0]
-	return ""
-
-func get_tier_specialization(current_tier: int) -> String:
-	"""Get specialization ID at specific tier (1-3)"""
-	if current_tier < 1 or current_tier > 3:
-		return ""
-	return specialization_path[current_tier - 1]
-
-func has_specialization_at_tier(current_tier: int) -> bool:
-	"""Check if god has a specialization at a specific tier"""
-	return get_tier_specialization(current_tier) != ""
-
-func get_available_specializations() -> Array[String]:
-	"""Get available specializations for next tier - delegates to SpecializationManager"""
-	# This is a placeholder - actual logic is in SpecializationManager
-	# UI code should call: SystemRegistry.get_system("SpecializationManager").get_available_specializations_for_god(god)
-	return []
-
-func apply_specialization(_spec_id: String, _current_tier: int) -> bool:
-	"""Apply a specialization at a specific tier - delegates to SpecializationManager"""
-	# This is a placeholder - actual logic is in SpecializationManager
-	# Game code should call: SystemRegistry.get_system("SpecializationManager").unlock_specialization(god_id, spec_id)
-	# This method is just here for API clarity
-	return false

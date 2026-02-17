@@ -1,6 +1,7 @@
 # scripts/ui/territory/TerritoryOverviewScreen.gd
 extends Control
 class_name TerritoryOverviewScreen
+# CraftingScreenManager is a global class_name, no preload needed
 
 signal back_pressed()
 signal manage_node_requested(node: HexNode)
@@ -54,9 +55,7 @@ var _claim_button: Button
 var _filter_type: String = ""
 
 # Crafting system
-var _tasks_data: Dictionary = {}
-var _craft_popup: Control = null
-var _current_craft_node: HexNode = null
+var _crafting_manager_ui: CraftingScreenManager = null
 var _craft_update_timer: float = 0.0
 
 # ==============================================================================
@@ -66,7 +65,6 @@ var _refresh_timer: Timer
 
 func _ready():
 	_init_systems()
-	_load_tasks_data()
 	_build_ui()
 	_refresh_display()
 	_setup_refresh_timer()
@@ -107,34 +105,6 @@ func _init_systems():
 	production_manager = registry.get_system("TerritoryProductionManager")
 	resource_manager = registry.get_system("ResourceManager")
 	hex_grid_manager = registry.get_system("HexGridManager")
-
-func _load_tasks_data() -> void:
-	"""Load crafting recipes from JSON file"""
-	var file_path: String = "res://data/crafting_recipes.json"
-	var file = FileAccess.open(file_path, FileAccess.READ)
-	if not file:
-		push_error("TerritoryOverviewScreen: Could not load crafting_recipes.json")
-		return
-
-	var json_text = file.get_as_text()
-	file.close()
-
-	var json: JSON = JSON.new()
-	var parse_result = json.parse(json_text)
-	if parse_result != OK:
-		push_error("TerritoryOverviewScreen: Failed to parse crafting_recipes.json")
-		return
-
-	var data = json.get_data()
-	# Load recipes from flattened structure (recipes at top level)
-	_tasks_data = {}
-	for recipe_id in data.keys():
-		# Skip metadata and comment keys
-		if recipe_id.begins_with("_"):
-			continue
-		var recipe = data[recipe_id]
-		if recipe is Dictionary:
-			_tasks_data[recipe_id] = recipe
 
 # ==============================================================================
 # UI BUILD
@@ -1005,12 +975,9 @@ func _create_crafting_section(node: HexNode) -> HBoxContainer:
 			var progress_card = _create_craft_progress_card(craft_data)
 			section.add_child(progress_card)
 
-	# Get available recipes count
-	var available_tasks = _get_available_tasks_for_forge(node.tier)
-
 	# Open Crafting button - compact
 	var craft_btn: Button = Button.new()
-	craft_btn.text = "⚒️ (%d)" % available_tasks.size()
+	craft_btn.text = "⚒️ Craft"
 	craft_btn.custom_minimum_size = Vector2(60, 24)
 	craft_btn.pressed.connect(_on_open_crafting.bind(node))
 	_style_button(craft_btn, Color(0.55, 0.35, 0.2))
@@ -1090,248 +1057,31 @@ func _create_craft_progress_card(craft_data: Dictionary) -> PanelContainer:
 
 	return card
 
-func _get_available_tasks_for_forge(tier: int) -> Array:
-	"""Get crafting recipes available for a forge at the given tier"""
-	var available: Array = []
-
-	for recipe_id in _tasks_data.keys():
-		var recipe = _tasks_data[recipe_id]
-
-		# Check if this recipe can be crafted at a forge
-		var territory_type = recipe.get("territory_type_requirement", "")
-		var territory_required = recipe.get("territory_required", false)
-
-		# Skip recipes that specifically require shrine (not forge)
-		if territory_type == "shrine":
-			continue
-
-		# Get tier requirement (default to 1 if not specified)
-		var required_tier = recipe.get("territory_tier_requirement", 1)
-
-		# If territory is not required, can craft at any forge (tier 1+)
-		if not territory_required:
-			required_tier = 1
-
-		# Must meet tier requirement
-		if tier < required_tier:
-			continue
-
-		# Add to available (include recipe_id in the data)
-		var recipe_with_id = recipe.duplicate()
-		recipe_with_id["id"] = recipe_id
-		available.append(recipe_with_id)
-
-	return available
-
 func _on_open_crafting(node: HexNode) -> void:
-	"""Handle opening the crafting popup for a node"""
-	_current_craft_node = node
-	_show_craft_popup(node)
+	"""Handle opening the crafting screen for a node - uses unified CraftingScreenManager"""
+	# Close existing screen if any
+	if _crafting_manager_ui:
+		_crafting_manager_ui.close()
 
-func _show_craft_popup(node: HexNode) -> void:
-	"""Show the crafting recipe popup"""
-	# Remove existing popup
-	if _craft_popup and is_instance_valid(_craft_popup):
-		_craft_popup.queue_free()
-
-	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
-	var available_tasks = _get_available_tasks_for_forge(node.tier)
-
-	# Create popup
-	_craft_popup = Control.new()
-	_craft_popup.name = "CraftPopup"
-	_craft_popup.z_index = 100
-	_craft_popup.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_craft_popup.size = viewport_size
-
-	# Dark background
-	var bg_overlay: ColorRect = ColorRect.new()
-	bg_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg_overlay.size = viewport_size
-	bg_overlay.color = Color(0, 0, 0, 0.7)
-	bg_overlay.gui_input.connect(_on_popup_bg_clicked)
-	_craft_popup.add_child(bg_overlay)
-
-	# Panel
-	var popup_panel: PanelContainer = PanelContainer.new()
-	var panel_width = viewport_size.x * 0.85
-	var panel_height = viewport_size.y * 0.75
-	popup_panel.custom_minimum_size = Vector2(panel_width, panel_height)
-	popup_panel.size = Vector2(panel_width, panel_height)
-	popup_panel.position = Vector2(
-		(viewport_size.x - panel_width) / 2,
-		(viewport_size.y - panel_height) / 2
+	# Use the unified CraftingScreenManager with all forges
+	_crafting_manager_ui = CraftingScreenManager.new()
+	_crafting_manager_ui.popup_closed.connect(_on_craft_popup_closed)
+	_crafting_manager_ui.craft_started.connect(_on_craft_started)
+	_crafting_manager_ui.show_all_forges(
+		hex_grid_manager,
+		resource_manager,
+		territory_manager,
+		self,
+		node  # Pre-select this forge
 	)
 
-	var panel_style: StyleBoxFlat = StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.12, 0.1, 0.15, 0.98)
-	panel_style.border_color = Color(0.6, 0.45, 0.3, 1)
-	panel_style.set_border_width_all(3)
-	panel_style.set_corner_radius_all(12)
-	panel_style.content_margin_left = 15
-	panel_style.content_margin_right = 15
-	panel_style.content_margin_top = 15
-	panel_style.content_margin_bottom = 15
-	popup_panel.add_theme_stylebox_override("panel", panel_style)
-	_craft_popup.add_child(popup_panel)
+func _on_craft_popup_closed() -> void:
+	"""Handle craft popup being closed"""
+	_crafting_manager_ui = null
 
-	# Content
-	var content: VBoxContainer = VBoxContainer.new()
-	content.add_theme_constant_override("separation", 10)
-	popup_panel.add_child(content)
-
-	# Header
-	var header: HBoxContainer = HBoxContainer.new()
-	header.add_theme_constant_override("separation", 10)
-	content.add_child(header)
-
-	var title: Label = Label.new()
-	title.text = "⚒️ %s FORGE RECIPES" % node.name.to_upper()
-	title.add_theme_font_size_override("font_size", 18)
-	title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.6))
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(title)
-
-	var close_btn: Button = Button.new()
-	close_btn.text = "✕"
-	close_btn.custom_minimum_size = Vector2(40, 40)
-	close_btn.pressed.connect(_close_craft_popup)
-	var close_style: StyleBoxFlat = StyleBoxFlat.new()
-	close_style.bg_color = Color(0.5, 0.2, 0.2, 0.9)
-	close_style.set_corner_radius_all(6)
-	close_btn.add_theme_stylebox_override("normal", close_style)
-	close_btn.add_theme_font_size_override("font_size", 18)
-	header.add_child(close_btn)
-
-	# Tier info
-	var tier_label: Label = Label.new()
-	tier_label.text = "Tier %d Forge - %d recipes unlocked" % [node.tier, available_tasks.size()]
-	tier_label.add_theme_font_size_override("font_size", 12)
-	tier_label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8))
-	content.add_child(tier_label)
-
-	# Separator
-	var sep: HSeparator = HSeparator.new()
-	content.add_child(sep)
-
-	# Scroll container
-	var scroll: ScrollContainer = ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	content.add_child(scroll)
-
-	# Grid container with 3 columns for recipe cards
-	var recipes_grid = CraftingUIUtils.create_recipe_grid(3)
-	scroll.add_child(recipes_grid)
-
-	# Add recipe cards using unified component
-	for task in available_tasks:
-		var costs = CraftingUIUtils.get_recipe_costs(task)
-		var can_afford = _can_afford_craft(costs)
-		var is_conversion = CraftingUIUtils.is_conversion_recipe(task)
-
-		# Create callback that binds the node for this craft
-		var craft_callback = func(t: Dictionary, auto_repeat): _on_start_craft(t, node)
-
-		var card = CraftingUIUtils.create_recipe_card(
-			task,
-			can_afford,
-			craft_callback,
-			is_conversion,  # show auto-repeat for conversions
-			resource_manager  # pass manager for detailed cost display
-		)
-		recipes_grid.add_child(card)
-
-	# Add to main
-	var main_node = get_tree().root.get_node_or_null("Main")
-	if main_node:
-		main_node.add_child(_craft_popup)
-	else:
-		add_child(_craft_popup)
-
-func _can_afford_craft(costs: Dictionary) -> bool:
-	"""Check if player can afford the craft costs"""
-	if costs.is_empty():
-		return true
-	if not resource_manager:
-		return true
-	return resource_manager.can_afford(costs)
-
-func _on_popup_bg_clicked(event: InputEvent) -> void:
-	"""Handle click on popup background"""
-	if event is InputEventMouseButton and event.pressed:
-		_close_craft_popup()
-
-func _close_craft_popup() -> void:
-	"""Close the crafting popup"""
-	if _craft_popup and is_instance_valid(_craft_popup):
-		_craft_popup.queue_free()
-		_craft_popup = null
-	_current_craft_node = null
-
-func _on_start_craft(task: Dictionary, node: HexNode) -> void:
-	"""Handle starting a craft task"""
-	var task_id = task.get("id", "")
-	if task_id.is_empty():
-		return
-
-	# Check and spend resources - use "materials" from crafting_recipes.json
-	var costs = task.get("materials", task.get("resource_costs", {}))
-	if not costs.is_empty():
-		if not resource_manager:
-			return
-		if not resource_manager.can_afford(costs):
-			return
-		if not resource_manager.spend_resources(costs):
-			return
-
-
-	# Track the craft using shared tracker
-	var craft_started: bool = false
-	if hex_grid_manager:
-		craft_started = hex_grid_manager.start_craft(node.id, task_id, task)
-
-	if not craft_started:
-		# Refund the resources
-		for resource_id in costs:
-			resource_manager.add_resource(resource_id, costs[resource_id])
-		_show_craft_error_feedback("Forge already busy or no worker assigned")
-		return
-
-	_close_craft_popup()
-	_show_craft_started_feedback(task)
+func _on_craft_started(_node: Variant, _task_id: String) -> void:
+	"""Handle craft being started from popup"""
 	_populate_nodes()
-
-func _show_craft_error_feedback(message: String) -> void:
-	"""Show error feedback when craft cannot start"""
-	var feedback: PanelContainer = PanelContainer.new()
-	feedback.z_index = 150
-
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.4, 0.15, 0.15, 0.95)
-	style.border_color = Color(0.8, 0.3, 0.3, 1)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(8)
-	style.content_margin_left = 16
-	style.content_margin_right = 16
-	style.content_margin_top = 12
-	style.content_margin_bottom = 12
-	feedback.add_theme_stylebox_override("panel", style)
-
-	var label: Label = Label.new()
-	label.text = "❌ " + message
-	label.add_theme_font_size_override("font_size", 12)
-	label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.8))
-	feedback.add_child(label)
-
-	add_child(feedback)
-	feedback.position = Vector2(size.x / 2 - 150, 100)
-
-	# Fade out and remove
-	var tween = create_tween()
-	tween.tween_interval(2.0)
-	tween.tween_property(feedback, "modulate:a", 0.0, 0.5)
-	tween.tween_callback(feedback.queue_free)
 
 func _on_craft_complete_clicked(craft_data: Dictionary) -> void:
 	"""Handle clicking on a completed craft"""
@@ -1371,69 +1121,8 @@ func _award_craft_rewards(task_data: Dictionary) -> void:
 		if item is Dictionary:
 			var chance = item.get("chance", 1.0)
 			if randf() <= chance:
-				var item_id = item.get("id", "")
-				var item_rarity = item.get("rarity", "common")
-
-func _show_craft_started_feedback(task: Dictionary) -> void:
-	"""Show feedback when craft starts"""
-	var task_name = task.get("name", "Recipe")
-	var duration = task.get("base_duration_seconds", 0)
-	var duration_text = CraftingUIUtils.format_duration(duration)
-
-	var feedback: PanelContainer = PanelContainer.new()
-	feedback.z_index = 150
-
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.2, 0.4, 0.3, 0.95)
-	style.border_color = Color(0.4, 0.7, 0.5, 1)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(8)
-	style.content_margin_left = 15
-	style.content_margin_right = 15
-	style.content_margin_top = 10
-	style.content_margin_bottom = 10
-	feedback.add_theme_stylebox_override("panel", style)
-
-	var content: VBoxContainer = VBoxContainer.new()
-	content.add_theme_constant_override("separation", 4)
-	feedback.add_child(content)
-
-	var title_label: Label = Label.new()
-	title_label.text = "⚒️ Crafting Started!"
-	title_label.add_theme_font_size_override("font_size", 16)
-	title_label.add_theme_color_override("font_color", Color(0.9, 1.0, 0.9))
-	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	content.add_child(title_label)
-
-	var task_label: Label = Label.new()
-	task_label.text = task_name
-	task_label.add_theme_font_size_override("font_size", 14)
-	task_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.7))
-	task_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	content.add_child(task_label)
-
-	var time_label: Label = Label.new()
-	time_label.text = "Completes in: %s" % duration_text
-	time_label.add_theme_font_size_override("font_size", 12)
-	time_label.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9))
-	time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	content.add_child(time_label)
-
-	# Add to main first, then position (anchors need parent)
-	var main_node = get_tree().root.get_node_or_null("Main")
-	if main_node:
-		main_node.add_child(feedback)
-	else:
-		add_child(feedback)
-
-	# Position at center of screen AFTER adding to tree
-	feedback.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	feedback.custom_minimum_size = Vector2(300, 100)
-
-	var tween = create_tween()
-	tween.tween_interval(2.0)
-	tween.tween_property(feedback, "modulate:a", 0.0, 0.5)
-	tween.tween_callback(feedback.queue_free)
+				var _item_id = item.get("id", "")
+				var _item_rarity = item.get("rarity", "common")
 
 func _show_craft_collected_feedback(task_data: Dictionary) -> void:
 	"""Show feedback when a craft is collected"""

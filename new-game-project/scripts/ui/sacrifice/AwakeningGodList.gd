@@ -96,59 +96,23 @@ func _populate_gods():
 		god_grid.add_child(god_card)
 
 func _create_god_card(god: God) -> Control:
-	"""Create a god card for awakening selection"""
-	var card = UICardFactory.create_god_card(god)
-	
-	# Style the card based on awakening eligibility
-	_style_god_card(card, god)
-	
-	# Make it selectable
-	var button = card.get_node("SelectButton")
-	if button:
-		button.pressed.connect(_on_god_card_selected.bind(god))
-	
-	return card
-
-func _style_god_card(card: Control, god: God):
-	"""Style the god card based on awakening status"""
-	if not card:
-		return
-		
-	# Find the main panel to style
-	var panel = card.get_node("Panel") if card.has_node("Panel") else card
-	
-	var style = StyleBoxFlat.new()
-	
+	"""Create a god card for awakening selection using standardized GodCard"""
+	# Determine card style based on selection state
+	var card_style: GodCard.CardStyle
 	if god == current_target_god:
-		# Selected god
-		style.bg_color = Color(0.4, 0.2, 0.6, 0.8)  # Purple for selected
-		style.border_color = Color(0.8, 0.4, 1.0, 1.0)
-		style.border_width_left = 3
-		style.border_width_right = 3
-		style.border_width_top = 3
-		style.border_width_bottom = 3
+		card_style = GodCard.CardStyle.SELECTED
 	elif _can_god_be_awakened(god):
-		# Can be awakened
-		style.bg_color = Color(0.2, 0.4, 0.2, 0.8)  # Green tint
-		style.border_color = Color(1.0, 0.8, 0.2, 1.0)  # Gold border for awakenable
-		style.border_width_left = 2
-		style.border_width_right = 2
-		style.border_width_top = 2
-		style.border_width_bottom = 2
+		card_style = GodCard.CardStyle.AWAKENING_READY
 	else:
-		# Not ready for awakening
-		style.bg_color = Color(0.2, 0.2, 0.2, 0.5)  # Dark gray
-		style.border_color = Color(0.4, 0.4, 0.4, 0.8)
-		style.border_width_left = 1
-		style.border_width_right = 1
-		style.border_width_top = 1
-		style.border_width_bottom = 1
-	
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_left = 4
-	style.corner_radius_bottom_right = 4
-	panel.add_theme_stylebox_override("panel", style)
+		card_style = GodCard.CardStyle.NORMAL
+
+	var card = UICardFactory.create_god_card_styled(god, UICardFactory.CardStyle.AWAKENING, card_style)
+
+	# Connect god_selected signal from GodCard
+	if card and card.has_signal("god_selected"):
+		card.god_selected.connect(_on_god_card_selected)
+
+	return card
 
 func _can_god_be_awakened(god: God) -> bool:
 	"""Check if a god can be awakened"""

@@ -220,6 +220,28 @@ func _on_visibility_changed():
 	"""Update header when this screen becomes visible"""
 	if visible:
 		_update_header_for_screen()
+		_check_intro_tutorial()
+
+func _check_intro_tutorial() -> void:
+	"""Check if intro tutorial should be shown for this screen."""
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		return
+	var tutorial_orch: Node = registry.get_system("TutorialOrchestrator")
+	if not tutorial_orch:
+		return
+
+	# If user reached DungeonScreen, mark dungeon_intro as complete
+	# The tutorial is meant to guide them HERE - if they're here, goal achieved!
+	if not tutorial_orch.is_tutorial_completed("dungeon_intro"):
+		# Skip/complete the tutorial since they found the dungeons
+		if tutorial_orch.is_tutorial_active():
+			var info: Dictionary = tutorial_orch.get_current_tutorial_info()
+			if info.get("name", "") == "dungeon_intro":
+				tutorial_orch.skip_tutorial()
+		else:
+			# Mark as complete without showing it
+			tutorial_orch.completed_tutorials.append("dungeon_intro")
 
 func _update_header_for_screen():
 	"""Apply this screen's header settings"""

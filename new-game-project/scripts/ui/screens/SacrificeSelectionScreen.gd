@@ -348,6 +348,7 @@ func _on_visibility_changed():
 	"""Update header when this screen becomes visible"""
 	if visible:
 		_update_header_for_screen()
+		_reset_and_reinitialize()
 
 func _update_header_for_screen():
 	"""Apply this screen's header settings"""
@@ -356,6 +357,26 @@ func _update_header_for_screen():
 		main_ui.set_screen_title("SACRIFICE SELECTION")
 		main_ui.show_header_back_button(true)
 		main_ui.connect_header_back_button(_on_back_pressed)
+
+func _reset_and_reinitialize():
+	"""Reset state and reinitialize with target god when screen becomes visible"""
+	# Clear old selections - they may reference sacrificed gods
+	selected_materials.clear()
+	locked_in = false
+
+	# Get fresh target god from SacrificeManager
+	var system_registry = SystemRegistry.get_instance()
+	if system_registry:
+		var sacrifice_manager = system_registry.get_system("SacrificeManager")
+		if sacrifice_manager:
+			var temp_target_god = sacrifice_manager.get_temporary_target_god()
+			if temp_target_god:
+				target_god = temp_target_god
+				update_all_displays()
+				return
+
+	# If no target god available, just refresh displays
+	update_all_displays()
 
 func initialize_with_god(god: God):
 	"""Initialize the screen with a target god"""

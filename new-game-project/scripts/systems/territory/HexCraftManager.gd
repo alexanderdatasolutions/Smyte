@@ -102,8 +102,16 @@ func complete_craft(node_id: String, task_id: String) -> Dictionary:
 	if node and node.active_tasks.has(task_id):
 		node.active_tasks.erase(task_id)
 
+	# Check if this is an equipment craft and create the equipment
+	var task_data: Dictionary = craft_data.get("task_data", {})
+	if task_data.has("equipment_type"):
+		_create_equipment_from_craft(task_data, task_id)
+	else:
+		# Regular resource craft - award resources
+		_award_craft_rewards(task_data)
+
 	# Emit completion signal
-	craft_completed.emit(node_id, task_id, craft_data.get("task_data", {}))
+	craft_completed.emit(node_id, task_id, task_data)
 
 	return craft_data
 
@@ -383,3 +391,65 @@ func _get_resource_manager() -> Node:
 		if registry:
 			return registry.get_system("ResourceManager")
 	return null
+
+func _create_equipment_from_craft(task_data: Dictionary, recipe_id: String) -> void:
+	"""Create equipment from a completed forge craft and add to inventory"""
+	var equipment_type: String = task_data.get("equipment_type", "")
+	var rarity: String = task_data.get("rarity", "common")
+	var level: int = task_data.get("level", 1)
+
+	if equipment_type.is_empty():
+		push_error("HexCraftManager: Cannot create equipment - missing equipment_type")
+		return
+
+	# Create the equipment using Equipment.create_from_dungeon
+	var equipment = Equipment.create_from_dungeon("crafted_" + recipe_id, equipment_type, rarity, level)
+	if equipment == null:
+		push_error("HexCraftManager: Failed to create equipment for type: %s" % equipment_type)
+		return
+
+	# Apply recipe-specific guaranteed substats
+	var guaranteed_substats: Array = task_data.get("guaranteed_substats", [])
+	for substat_data in guaranteed_substats:
+		if substat_data is Dictionary:
+			equipment.add_substat(substat_data.get("stat", ""), substat_data.get("value", 0))
+
+	# Apply recipe-specific base stats as bonuses
+	var base_stats: Dictionary = task_data.get("base_stats", {})
+	for stat_name: String in base_stats:
+		equipment.add_stat_bonus(stat_name, base_stats[stat_name])
+
+	# Set equipment set info from recipe
+	if task_data.has("equipment_set"):
+		equipment.equipment_set_type = task_data.get("equipment_set", "")
+		equipment.equipment_set_name = task_data.get("equipment_set", "").capitalize()
+
+	print("[HexCraftManager] Created equipment: %s (id: %s, type: %s, rarity: %s)" % [
+		equipment.name, equipment.id, equipment_type, rarity
+	])
+
+	# Add to inventory via SystemRegistry
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		push_error("HexCraftManager: SystemRegistry not available - equipment created but not added to inventory!")
+		return
+
+	var equipment_manager = registry.get_system("EquipmentManager")
+	if equipment_manager:
+		equipment_manager.add_equipment_to_inventory(equipment)
+		print("[HexCraftManager] Added equipment to EquipmentManager")
+	else:
+		push_error("HexCraftManager: Could not find EquipmentManager")
+
+	var collection_manager = registry.get_system("CollectionManager")
+	if collection_manager:
+		var added: bool = collection_manager.add_equipment(equipment)
+		print("[HexCraftManager] Added equipment to CollectionManager (success: %s)" % str(added))
+	else:
+		push_error("HexCraftManager: Could not find CollectionManager")
+
+	# Trigger save
+	var event_bus = registry.get_system("EventBus")
+	if event_bus:
+		event_bus.save_requested.emit()
+		print("[HexCraftManager] Triggered save after equipment craft")

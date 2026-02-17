@@ -50,30 +50,11 @@ func validate_dungeon_entry(dungeon_id: String, difficulty: String) -> Dictionar
 	if available_gods.is_empty():
 		result.message = "You need at least one god to enter a dungeon!"
 		return result
-	
-	# Check energy requirements
-	var resource_manager = system_registry.get_system("ResourceManager")
-	if resource_manager:
-		var energy_cost = get_energy_cost(dungeon_id, difficulty)
-		if not resource_manager.can_spend("energy", energy_cost):
-			result.message = "Not enough energy! Need %d energy." % energy_cost
-			return result
-	
-	# All checks passed
+
+	# All checks passed (energy cost removed)
 	result.can_enter = true
 	result.message = "Ready to enter!"
 	return result
-
-func get_energy_cost(dungeon_id: String, difficulty: String) -> int:
-	"""Get energy cost from dungeon config data (dungeons.json)"""
-	var system_registry: SystemRegistry = SystemRegistry.get_instance()
-	if system_registry:
-		var dungeon_manager: Node = system_registry.get_system("DungeonManager")
-		if dungeon_manager:
-			var dungeon_info: Dictionary = dungeon_manager.get_dungeon_info(dungeon_id)
-			var difficulty_info: Dictionary = dungeon_info.get("difficulty_levels", {}).get(difficulty, {})
-			return difficulty_info.get("energy_cost", 10)
-	return 10
 
 func start_dungeon_battle(dungeon_id: String, difficulty: String):
 	"""Start the dungeon battle - RULE 5: Use SystemRegistry"""
@@ -90,10 +71,7 @@ func start_dungeon_battle(dungeon_id: String, difficulty: String):
 	
 	# Prepare player team (simplified - first 5 gods)
 	var player_team = prepare_player_team(collection_manager)
-	
-	# Spend energy
-	spend_energy_for_entry(dungeon_id, difficulty)
-	
+
 	# Start dungeon battle through dungeon manager
 	var battle_result = dungeon_manager.start_dungeon_battle(dungeon_id, difficulty, player_team)
 	
@@ -113,17 +91,6 @@ func prepare_player_team(collection_manager) -> Array:
 		team.append(available_gods[i])
 	
 	return team
-
-func spend_energy_for_entry(dungeon_id: String, difficulty: String):
-	"""Spend energy for dungeon entry - RULE 5: Use SystemRegistry"""
-	var system_registry = SystemRegistry.get_instance()
-	if not system_registry:
-		return
-	
-	var resource_manager = system_registry.get_system("ResourceManager")
-	if resource_manager:
-		var energy_cost = get_energy_cost(dungeon_id, difficulty)
-		resource_manager.spend("energy", energy_cost)
 
 func handle_battle_result(dungeon_id: String, difficulty: String, battle_result: Dictionary):
 	"""Handle the result of dungeon battle"""

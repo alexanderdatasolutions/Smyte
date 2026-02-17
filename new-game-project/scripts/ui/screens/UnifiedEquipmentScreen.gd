@@ -60,6 +60,7 @@ var inventory_scroll: ScrollContainer
 var god_sort_btn: OptionButton
 var equip_sort_btn: OptionButton
 var filter_hint_label: Label
+var auto_equip_btn: Button
 
 func _ready():
 	_setup_fullscreen()
@@ -201,12 +202,25 @@ func _create_left_panel() -> PanelContainer:
 	sep1.add_theme_constant_override("separation", 4)
 	vbox.add_child(sep1)
 
-	# Equipment slots section - compact header
+	# Equipment slots section - compact header with Auto Equip button
+	var equip_header_row: HBoxContainer = HBoxContainer.new()
+	equip_header_row.add_theme_constant_override("separation", 8)
+	vbox.add_child(equip_header_row)
+
 	var equip_header: Label = Label.new()
 	equip_header.text = "EQUIPMENT"
 	equip_header.add_theme_font_size_override("font_size", 11)
 	equip_header.add_theme_color_override("font_color", COLOR_MUTED)
-	vbox.add_child(equip_header)
+	equip_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	equip_header_row.add_child(equip_header)
+
+	auto_equip_btn = Button.new()
+	auto_equip_btn.text = "Auto"
+	auto_equip_btn.custom_minimum_size = Vector2(50, 24)
+	auto_equip_btn.disabled = true  # Disabled until god selected
+	auto_equip_btn.pressed.connect(_on_auto_equip_pressed)
+	_style_small_button(auto_equip_btn)
+	equip_header_row.add_child(auto_equip_btn)
 
 	equipment_slots_grid = _create_equipment_slots()
 	vbox.add_child(equipment_slots_grid)
@@ -520,24 +534,44 @@ func _load_gods():
 	_populate_god_selector()
 
 func _sort_gods():
-	match god_sort_type:
-		GodSortType.POWER:
-			all_gods.sort_custom(func(a, b):
+	# Sort with assigned gods (garrison/worker) always at the bottom
+	all_gods.sort_custom(func(a, b):
+		var a_assigned: bool = _is_god_assigned(a)
+		var b_assigned: bool = _is_god_assigned(b)
+		if a_assigned != b_assigned:
+			return not a_assigned  # Available gods come first
+
+		match god_sort_type:
+			GodSortType.POWER:
 				var pa = _calculate_power(a)
 				var pb = _calculate_power(b)
-				return pa > pb if not god_sort_ascending else pa < pb)
-		GodSortType.LEVEL:
-			all_gods.sort_custom(func(a, b):
-				return a.level > b.level if not god_sort_ascending else a.level < b.level)
-		GodSortType.TIER:
-			all_gods.sort_custom(func(a, b):
-				return a.tier > b.tier if not god_sort_ascending else a.tier < b.tier)
-		GodSortType.ELEMENT:
-			all_gods.sort_custom(func(a, b):
-				return a.element < b.element if not god_sort_ascending else a.element > b.element)
-		GodSortType.NAME:
-			all_gods.sort_custom(func(a, b):
-				return a.name < b.name if not god_sort_ascending else a.name > b.name)
+				return pa > pb if not god_sort_ascending else pa < pb
+			GodSortType.LEVEL:
+				return a.level > b.level if not god_sort_ascending else a.level < b.level
+			GodSortType.TIER:
+				return a.tier > b.tier if not god_sort_ascending else a.tier < b.tier
+			GodSortType.ELEMENT:
+				return a.element < b.element if not god_sort_ascending else a.element > b.element
+			GodSortType.NAME:
+				return a.name < b.name if not god_sort_ascending else a.name > b.name
+		return false
+	)
+
+func _is_god_assigned(god: God) -> bool:
+	"""Check if god is assigned to garrison or worker"""
+	var registry: Node = SystemRegistry.get_instance()
+	if not registry:
+		return false
+	var territory_manager: Node = registry.get_system("TerritoryManager")
+	if not territory_manager:
+		return false
+	var controlled: Array = territory_manager.get_controlled_nodes()
+	for node: Variant in controlled:
+		if node.garrison.find(god.id) != -1:
+			return true
+		if node.assigned_workers.find(god.id) != -1:
+			return true
+	return false
 
 func _calculate_power(god: God) -> int:
 	return god.base_hp + god.base_attack * 5 + god.base_defense * 3 + god.base_speed * 2
@@ -566,11 +600,10 @@ func _populate_god_selector():
 		i += 2
 
 func _create_god_card(god: God) -> Control:
-	# Use GodCard component for proper portraits
+	# Use GodCard component for proper portraits - MEDIUM size for readability
 	var card: GodCardScript = GodCardScript.new()
-	card.card_size = GodCardScript.CardSize.SMALL
-	card.show_experience_bar = false
-	card.show_power_rating = false
+	card.card_size = GodCardScript.CardSize.MEDIUM
+	card.show_power_rating = true  # Show power for equipment decisions
 	card.show_territory_assignment = false
 	card.show_awakening_status = false
 	card.clickable = false  # We'll handle clicks ourselves
@@ -578,9 +611,6 @@ func _create_god_card(god: God) -> Control:
 	var is_selected = selected_god and selected_god.id == god.id
 	var style_type = GodCardScript.CardStyle.SELECTED if is_selected else GodCardScript.CardStyle.NORMAL
 	card.setup_god_card(god, style_type)
-
-	# Override size for our layout
-	card.custom_minimum_size = Vector2(100, 120)
 
 	# Add selection styling
 	if is_selected:
@@ -813,7 +843,13 @@ func _refresh_god_display():
 		god_info_label.text = "from the right panel"
 		god_portrait.texture = null
 		_clear_stats()
+		if auto_equip_btn:
+			auto_equip_btn.disabled = true
 		return
+
+	# Enable auto equip button when god is selected
+	if auto_equip_btn:
+		auto_equip_btn.disabled = false
 
 	god_name_label.text = selected_god.name
 	god_info_label.text = "Lv.%d | %s | %s" % [selected_god.level, God.element_to_string(selected_god.element).capitalize(), "★".repeat(selected_god.tier + 1)]
@@ -1156,3 +1192,15 @@ func _on_god_sort_direction_toggled(btn: Button):
 func _on_equip_sort_changed(index: int):
 	equip_sort_type = index as EquipSortType
 	_refresh_inventory()
+
+func _on_auto_equip_pressed():
+	if not selected_god or not equipment_manager:
+		return
+
+	var count: int = equipment_manager.auto_equip_god(selected_god)
+	if count > 0:
+		_refresh_all()
+		# Show feedback
+		var notification_manager = SystemRegistry.get_instance().get_system("NotificationManager")
+		if notification_manager:
+			notification_manager.show_notification("Auto-equipped %d item(s)" % count, "success")

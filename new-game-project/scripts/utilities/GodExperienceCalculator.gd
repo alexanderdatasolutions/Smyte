@@ -27,8 +27,8 @@ static func _get_level_multiplier() -> float:
 	return _config.get("xp_curve", {}).get("level_multiplier", 1.5)
 
 static func _get_max_level() -> int:
-	_load_config()
-	return _config.get("level_cap", {}).get("max_level", 40)
+	# Use God class as single source of truth for level config
+	return God.get_max_level()
 
 ## Calculate what level a god should be based on total experience
 static func calculate_level_from_experience(total_xp: int) -> int:

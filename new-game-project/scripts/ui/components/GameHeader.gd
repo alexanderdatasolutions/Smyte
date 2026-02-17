@@ -98,6 +98,11 @@ func _create_header_layout():
 	if resource_scene:
 		resource_display = resource_scene.instantiate()
 		resource_display.name = "HeaderResourceDisplay"
+
+		# CRITICAL: Set layout_mode to 2 (SIZE_FLAGS) BEFORE adding to HBoxContainer
+		# This makes it participate in the container's layout instead of using anchors
+		resource_display.set("layout_mode", 2)
+
 		# Reset anchors/offsets - the scene has top-right positioning we need to override
 		resource_display.anchor_left = 0.0
 		resource_display.anchor_top = 0.0
@@ -107,10 +112,12 @@ func _create_header_layout():
 		resource_display.offset_top = 0
 		resource_display.offset_right = 0
 		resource_display.offset_bottom = 0
+
 		# Let it size to content within HBoxContainer
 		resource_display.size_flags_horizontal = Control.SIZE_SHRINK_END
 		resource_display.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		resource_display.custom_minimum_size = Vector2(0, 30)
+		resource_display.custom_minimum_size = Vector2(200, 30)
+
 		hbox.add_child(resource_display)
 
 func _setup_back_button_style():

@@ -80,6 +80,8 @@ func _get_wave_data(dungeon_id: String, difficulty: String) -> Array:
 
 	return waves
 
+const MAX_ENEMIES_PER_WAVE: int = 4
+
 func _convert_wave_data_to_battle_config(wave_data: Array) -> Array:
 	var enemy_waves: Array = []
 
@@ -95,6 +97,10 @@ func _convert_wave_data_to_battle_config(wave_data: Array) -> Array:
 			var element: String = enemy_def.get("type", "neutral")
 
 			for i: int in range(count):
+				# Enforce max 4 enemies per wave
+				if wave_enemies.size() >= MAX_ENEMIES_PER_WAVE:
+					break
+
 				var stats: Dictionary = _calculate_enemy_stats(level, tier)
 				wave_enemies.append({
 					"name": enemy_name,
@@ -106,6 +112,10 @@ func _convert_wave_data_to_battle_config(wave_data: Array) -> Array:
 					"element": element,
 					"tier": tier
 				})
+
+			# Also check after processing each enemy type
+			if wave_enemies.size() >= MAX_ENEMIES_PER_WAVE:
+				break
 
 		enemy_waves.append(wave_enemies)
 

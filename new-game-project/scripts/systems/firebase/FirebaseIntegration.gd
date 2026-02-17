@@ -116,29 +116,12 @@ func _connect_event_bus() -> void:
 	if not _event_bus:
 		return
 
-	# Connect to core gameplay signals
-	_safe_connect(_event_bus, "battle_ended", _on_battle_ended)
-	_safe_connect(_event_bus, "god_obtained", _on_god_obtained)
-	_safe_connect(_event_bus, "god_level_up", _on_god_level_up)
-	_safe_connect(_event_bus, "dungeon_completed", _on_dungeon_completed)
-	_safe_connect(_event_bus, "resource_changed", _on_resource_changed)
-	_safe_connect(_event_bus, "territory_captured", _on_territory_captured)
-	_safe_connect(_event_bus, "screen_changed", _on_screen_changed)
-	_safe_connect(_event_bus, "error_occurred", _on_error_occurred)
+	# Delegate all event tracking to FirebaseAnalytics (centralized, clean format)
+	if analytics:
+		analytics.connect_to_event_bus(_event_bus)
 
-	# Extended analytics signals
-	_safe_connect(_event_bus, "summon_completed_detailed", _on_summon_detailed)
-	_safe_connect(_event_bus, "god_sacrifice_completed", _on_sacrifice)
-	_safe_connect(_event_bus, "god_awakening_completed", _on_awakening)
-	_safe_connect(_event_bus, "battle_team_entered", _on_battle_team)
-	_safe_connect(_event_bus, "garrison_updated", _on_garrison)
-	_safe_connect(_event_bus, "workers_updated", _on_workers)
-	_safe_connect(_event_bus, "achievement_unlocked", _on_achievement)
-	_safe_connect(_event_bus, "arena_battle_completed", _on_arena_battle)
-	_safe_connect(_event_bus, "league_changed", _on_league_change)
-	_safe_connect(_event_bus, "specialization_unlocked", _on_specialization)
-	_safe_connect(_event_bus, "equipment_equipped", _on_equipment_equipped)
-	_safe_connect(_event_bus, "equipment_unequipped", _on_equipment_unequipped)
+	# Keep resource_changed here with throttling (high frequency event)
+	_safe_connect(_event_bus, "resource_changed", _on_resource_changed)
 
 func _safe_connect(source: Object, signal_name: String, callable: Callable) -> void:
 	"""Safely connect to signal if it exists"""
@@ -271,6 +254,13 @@ func get_user_email() -> String:
 func get_user_photo_url() -> String:
 	return user_data.get("photo_url", "")
 
+func get_firestore() -> Variant:
+	"""Get the Firestore reference for direct database access (used by ArenaDataSync)"""
+	var firebase: Node = _get_firebase()
+	if firebase and firebase.Firestore:
+		return firebase.Firestore
+	return null
+
 func _on_login_succeeded(auth_result: Dictionary) -> void:
 	"""Handle successful Firebase login"""
 	# Skip if already signed in (e.g., from token refresh on session restore)
@@ -280,11 +270,15 @@ func _on_login_succeeded(auth_result: Dictionary) -> void:
 	user_data = _extract_user_data(auth_result)
 	auth_state = AuthState.SIGNED_IN
 	analytics.set_user_id(user_data.get("uid", ""))
+	_load_display_name_for_analytics()
 
 	# Save auth for persistent login
 	var firebase: Node = _get_firebase()
 	if firebase and firebase.Auth:
+		print("FirebaseIntegration: Saving auth to file...")
 		firebase.Auth.save_auth(auth_result)
+	else:
+		print("FirebaseIntegration: Cannot save auth - firebase=%s" % (firebase != null))
 
 	# Initialize cloud save manager with Firestore
 	_initialize_cloud_saves()
@@ -303,6 +297,7 @@ func _on_logout_succeeded() -> void:
 	user_data.clear()
 	auth_state = AuthState.SIGNED_OUT
 	analytics.set_user_id("anonymous")
+	analytics.set_display_name("Anonymous")
 	if cloud_save_manager:
 		cloud_save_manager.clear()
 	# Remove saved auth file
@@ -356,6 +351,11 @@ func load_from_cloud() -> void:
 
 func is_cloud_save_ready() -> bool:
 	"""Check if cloud saves are available"""
+	# Auto-reinitialize if signed in but CloudSaveManager lost its state (scene reload)
+	if cloud_save_manager and not cloud_save_manager.is_ready():
+		if auth_state == AuthState.SIGNED_IN and not user_data.get("uid", "").is_empty():
+			print("FirebaseIntegration: Re-initializing cloud saves (scene reload fix)")
+			_initialize_cloud_saves(false)
 	return cloud_save_manager != null and cloud_save_manager.is_ready()
 
 func _restore_session(auth_data: Dictionary) -> void:
@@ -365,59 +365,45 @@ func _restore_session(auth_data: Dictionary) -> void:
 	if not user_data.get("uid", "").is_empty():
 		auth_state = AuthState.SIGNED_IN
 		analytics.set_user_id(user_data.get("uid", ""))
+		_load_display_name_for_analytics()
 		# Don't auto-load from cloud on session restore - local save is current
 		_initialize_cloud_saves(false)
 		sign_in_completed.emit(user_data)
 
+func _load_display_name_for_analytics() -> void:
+	"""Load display name from SaveManager and set on analytics"""
+	var registry: Node = SystemRegistry.get_instance()
+	if not registry:
+		return
+	var save_manager: Node = registry.get_system("SaveManager")
+	if not save_manager:
+		return
+
+	# Try to get display name now (if save already loaded)
+	if save_manager.has_method("get_player_value"):
+		var display_name: String = save_manager.get_player_value("display_name", "")
+		if not display_name.is_empty():
+			analytics.set_display_name(display_name)
+			return
+
+	# If not loaded yet, wait for load_completed signal
+	if save_manager.has_signal("load_completed") and not save_manager.load_completed.is_connected(_on_save_loaded_for_display_name):
+		save_manager.load_completed.connect(_on_save_loaded_for_display_name, CONNECT_ONE_SHOT)
+
+func _on_save_loaded_for_display_name(_success: bool, _data: Dictionary) -> void:
+	"""Called when SaveManager finishes loading - get display name"""
+	var registry: Node = SystemRegistry.get_instance()
+	if not registry:
+		return
+	var save_manager: Node = registry.get_system("SaveManager")
+	if save_manager and save_manager.has_method("get_player_value"):
+		var display_name: String = save_manager.get_player_value("display_name", "")
+		if not display_name.is_empty():
+			analytics.set_display_name(display_name)
+
 # ==============================================================================
-# EVENTBUS SIGNAL HANDLERS -> ANALYTICS
+# EVENTBUS SIGNAL HANDLERS (kept here for throttling)
 # ==============================================================================
-
-func _on_battle_ended(result: Variant) -> void:
-	"""Log battle completion"""
-	if result is Dictionary:
-		analytics.log_battle_completed(
-			result.get("victory", false),
-			result.get("battle_type", "unknown"),
-			result.get("duration", 0.0),
-			result.get("team_power", 0),
-			{
-				"enemy_count": result.get("enemy_count", 0),
-				"rewards": result.get("rewards", {})
-			}
-		)
-
-func _on_god_obtained(god: Variant) -> void:
-	"""Log god obtained"""
-	if god:
-		var tier_str: String = "unknown"
-		var element_str: String = "unknown"
-
-		# Handle God object
-		if god.has_method("get"):
-			tier_str = str(god.tier) if "tier" in god else "unknown"
-			element_str = str(god.element) if "element" in god else "unknown"
-		elif god is Dictionary:
-			tier_str = str(god.get("tier", "unknown"))
-			element_str = str(god.get("element", "unknown"))
-
-		analytics.log_god_obtained(
-			god.id if "id" in god else str(god),
-			tier_str,
-			element_str,
-			"summon"  # Could be passed as parameter
-		)
-
-func _on_god_level_up(god_id: String, new_level: int, old_level: int) -> void:
-	"""Log god level up"""
-	analytics.log_god_leveled(god_id, old_level, new_level)
-
-func _on_dungeon_completed(dungeon_id: String, rewards: Variant = null) -> void:
-	"""Log dungeon completion"""
-	var rewards_dict: Dictionary = {}
-	if rewards is Dictionary:
-		rewards_dict = rewards
-	analytics.log_dungeon_completed(dungeon_id, "normal", rewards_dict)
 
 func _on_resource_changed(resource_id: String, _new_amount: int, delta: int) -> void:
 	"""Log significant resource changes (filter noise + throttle)"""
@@ -429,99 +415,7 @@ func _on_resource_changed(resource_id: String, _new_amount: int, delta: int) -> 
 	# Only log significant changes to avoid spam
 	if abs(delta) >= 100 or resource_id in ["divine_crystals", "legendary_soul", "epic_soul"]:
 		_last_resource_log_time = now
-		var source: String = "gained" if delta > 0 else "spent"
-		analytics.log_resource_transaction(resource_id, delta, source)
-
-func _on_territory_captured(territory: Variant) -> void:
-	"""Log territory capture"""
-	var territory_id: String = ""
-	if territory is Dictionary:
-		territory_id = territory.get("id", str(territory))
-	elif "id" in territory:
-		territory_id = territory.id
-	else:
-		territory_id = str(territory)
-
-	analytics.log_territory_captured(territory_id, 0)
-
-func _on_screen_changed(_old_screen: String, new_screen: String) -> void:
-	"""Log screen navigation"""
-	analytics.log_screen_view(new_screen)
-
-func _on_error_occurred(error_message: String, context: Variant = null) -> void:
-	"""Log errors"""
-	var context_dict: Dictionary = {}
-	if context is Dictionary:
-		context_dict = context
-	elif context:
-		context_dict = {"context": str(context)}
-	analytics.log_error("game_error", error_message, context_dict)
-
-# ==============================================================================
-# EXTENDED ANALYTICS HANDLERS
-# ==============================================================================
-
-func _on_summon_detailed(summon_data: Dictionary) -> void:
-	"""Log detailed summon event"""
-	analytics.log_summon_detailed(summon_data)
-
-func _on_sacrifice(sacrifice_data: Dictionary) -> void:
-	"""Log god sacrifice"""
-	analytics.log_sacrifice(sacrifice_data)
-
-func _on_awakening(awakening_data: Dictionary) -> void:
-	"""Log god awakening"""
-	analytics.log_awakening(awakening_data)
-
-func _on_battle_team(team_data: Dictionary) -> void:
-	"""Log battle team composition"""
-	analytics.log_battle_team(team_data)
-
-func _on_garrison(garrison_data: Dictionary) -> void:
-	"""Log garrison assignment"""
-	analytics.log_garrison(garrison_data)
-
-func _on_workers(worker_data: Dictionary) -> void:
-	"""Log worker assignment"""
-	analytics.log_workers(worker_data)
-
-func _on_achievement(achievement_id: String) -> void:
-	"""Log achievement unlock"""
-	analytics.log_achievement(achievement_id, {})
-
-func _on_arena_battle(arena_data: Dictionary) -> void:
-	"""Log arena battle result"""
-	analytics.log_arena_battle(arena_data)
-
-func _on_league_change(league_data: Dictionary) -> void:
-	"""Log league promotion/demotion"""
-	analytics.log_league_change(league_data)
-
-func _on_specialization(god_id: String, spec_id: String) -> void:
-	"""Log specialization unlock"""
-	analytics.log_specialization({"god_id": god_id, "spec_id": spec_id})
-
-func _on_equipment_equipped(god: Variant, equipment: Variant, slot: int) -> void:
-	"""Log equipment equip"""
-	if not god or not equipment:
-		return
-	analytics.log_equipment_change({
-		"action": "equip",
-		"god_id": god.id if "id" in god else str(god),
-		"slot": slot,
-		"equipment_id": equipment.id if "id" in equipment else str(equipment)
-	})
-
-func _on_equipment_unequipped(god: Variant, equipment: Variant, slot: int) -> void:
-	"""Log equipment unequip"""
-	if not god:
-		return
-	analytics.log_equipment_change({
-		"action": "unequip",
-		"god_id": god.id if "id" in god else str(god),
-		"slot": slot,
-		"equipment_id": equipment.id if equipment and "id" in equipment else ""
-	})
+		analytics.track("resource_changed", "economy", resource_id, delta)
 
 # ==============================================================================
 # SHUTDOWN
@@ -529,5 +423,9 @@ func _on_equipment_unequipped(god: Variant, equipment: Variant, slot: int) -> vo
 
 func shutdown() -> void:
 	"""Called by SystemRegistry on shutdown"""
+	# Force any pending cloud saves to execute immediately (bypass debounce)
+	if cloud_save_manager:
+		cloud_save_manager.force_save_now()
+
 	if analytics:
 		await analytics.flush_queue()

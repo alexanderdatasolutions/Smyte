@@ -225,6 +225,9 @@ func _on_battle_started(config):
 	if auto_battle_enabled and battle_coordinator:
 		battle_coordinator.set_auto_battle(true)
 
+	# Check for battle intro tutorial
+	_check_battle_tutorial()
+
 func _on_battle_ended(result: BattleResult):
 	"""Handle battle end - RULE 4: UI listens to events"""
 	# Clear active unit highlighting
@@ -240,16 +243,17 @@ func _on_battle_ended(result: BattleResult):
 	# Hide wave indicator when battle ends
 	_hide_wave_indicator()
 
-	# Reset auto battle on victory
+	# Skip showing result overlay for Tower battles - TowerScreen handles the flow
+	# Also keep auto-battle enabled between tower floors
+	if result.battle_type.to_lower() == "tower":
+		return
+
+	# Reset auto battle on victory (but not for tower - handled above)
 	if result.victory:
 		auto_battle_enabled = false
 		_update_auto_button_text()
 		if battle_coordinator:
 			battle_coordinator.set_auto_battle(false)
-
-	# Skip showing result overlay for Tower battles - TowerScreen handles the flow
-	if result.battle_type.to_lower() == "tower":
-		return
 
 	# Show the battle result overlay with rewards
 	_show_battle_result_overlay(result)
@@ -1124,3 +1128,22 @@ func _update_auto_button_text():
 	"""Update auto button text based on state"""
 	if auto_button:
 		auto_button.text = "AUTO: ON" if auto_battle_enabled else "AUTO: OFF"
+
+# =============================================================================
+# TUTORIAL INTEGRATION
+# =============================================================================
+
+func _check_battle_tutorial() -> void:
+	"""Check if battle intro tutorial should be shown."""
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		return
+
+	var tutorial_orch: Node = registry.get_system("TutorialOrchestrator")
+	if not tutorial_orch:
+		return
+
+	# Check if battle_intro_tutorial should start (prerequisite: hex_capture_tutorial)
+	if not tutorial_orch.is_tutorial_completed("battle_intro_tutorial"):
+		if tutorial_orch.is_tutorial_completed("hex_capture_tutorial"):
+			tutorial_orch.start_tutorial("battle_intro_tutorial")

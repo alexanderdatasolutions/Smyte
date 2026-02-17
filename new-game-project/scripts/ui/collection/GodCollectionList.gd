@@ -279,8 +279,8 @@ func _create_god_card(god: Dictionary):
 	god_image.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	god_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	
-	# Try to load god sprite
-	var god_texture = _get_god_sprite(god.get("id", ""))
+	# Try to load god sprite (with skin support)
+	var god_texture = _get_god_sprite(god.get("id", ""), god)
 	if god_texture:
 		god_image.texture = god_texture
 		vbox.add_child(god_image)
@@ -360,18 +360,29 @@ func _on_god_card_input(event: InputEvent, god_id: String):
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			god_action_requested.emit("context_menu", god_id, {})
 
-func _get_god_sprite(god_id: String) -> Texture2D:
-	"""Load god sprite texture"""
+func _get_god_sprite(god_id: String, god_data: Dictionary = {}) -> Texture2D:
+	"""Load god sprite texture with skin support"""
+	# Check for equipped skin first
+	var skin_id: String = god_data.get("equipped_skin_id", "")
+	if skin_id != "":
+		var registry: Node = SystemRegistry.get_instance()
+		var skin_manager: Node = registry.get_system("SkinManager") if registry else null
+		if skin_manager:
+			var skin: Dictionary = skin_manager.get_skin(skin_id)
+			var skin_path: String = skin.get("portrait_path", "")
+			if skin_path != "" and ResourceLoader.exists(skin_path):
+				return load(skin_path)
+
 	# Try to load from assets/gods/ folder
 	var sprite_path = "res://assets/gods/" + god_id + ".png"
 	if ResourceLoader.exists(sprite_path):
 		return load(sprite_path)
-	
+
 	# Try alternative paths
 	sprite_path = "res://assets/gods/" + god_id + ".jpg"
 	if ResourceLoader.exists(sprite_path):
 		return load(sprite_path)
-	
+
 	# No sprite found
 	return null
 

@@ -7,23 +7,25 @@ class_name EquipmentManager
 
 """
 Equipment Management Coordinator
-Coordinates between all equipment subsystems: inventory, crafting, and sockets
+Coordinates between equipment subsystems: inventory and sockets
 This is the main entry point for the equipment system (like Summoners War equipment)
-According to prompt.prompt.md: "EquipmentManager - Equipment system (200 lines)"
+Note: Time-based crafting is handled by HexCraftManager in the territory system
 """
 
 # Main equipment system signals
 signal equipment_equipped(god: God, equipment: Equipment, slot: int)
 signal equipment_unequipped(god: God, slot: int)
-signal equipment_crafted(equipment: Equipment, recipe_id: String)
 signal socket_unlocked(equipment: Equipment, socket_index: int)
 signal gem_socketed(equipment: Equipment, socket_index: int, gem: Dictionary)
 
 # Component managers for focused responsibilities
 var inventory_manager: EquipmentInventoryManager
-var crafting_manager: EquipmentCraftingManager
 var socket_manager: EquipmentSocketManager
 var stat_calculator
+
+# Cached config
+var _equipment_config: Dictionary = {}
+var _max_equipment_slots: int = 6  # Default fallback
 
 func _ready():
 	"""Initialize the equipment management system"""
@@ -36,15 +38,11 @@ func setup_component_managers():
 	# Create inventory manager
 	inventory_manager = EquipmentInventoryManager.new()
 	add_child(inventory_manager)
-	
-	# Create crafting manager
-	crafting_manager = EquipmentCraftingManager.new()
-	add_child(crafting_manager)
 
 	# Create socket manager
 	socket_manager = EquipmentSocketManager.new()
 	add_child(socket_manager)
-	
+
 	# Create stat calculator
 	stat_calculator = preload("res://scripts/systems/equipment/EquipmentStatCalculator.gd").new()
 	add_child(stat_calculator)
@@ -55,10 +53,6 @@ func connect_component_signals():
 	if inventory_manager:
 		inventory_manager.equipment_equipped.connect(_on_equipment_equipped)
 		inventory_manager.equipment_unequipped.connect(_on_equipment_unequipped)
-	
-	# Crafting manager signals
-	if crafting_manager:
-		crafting_manager.equipment_crafted.connect(_on_equipment_crafted)
 
 	# Socket manager signals
 	if socket_manager:
@@ -71,7 +65,20 @@ func load_equipment_configuration():
 	if system_registry:
 		var config_manager = system_registry.get_system("ConfigurationManager")
 		if config_manager:
-			pass  # Configuration loaded successfully
+			_equipment_config = config_manager.get_equipment_config()
+			var slots_cfg: Dictionary = _equipment_config.get("equipment_slots", {})
+			_max_equipment_slots = int(slots_cfg.get("max_slots", 6))
+
+	# Fallback: load config directly if SystemRegistry wasn't available
+	if _equipment_config.is_empty():
+		var file := FileAccess.open("res://data/equipment_config.json", FileAccess.READ)
+		if file:
+			var parsed: Variant = JSON.parse_string(file.get_as_text())
+			file.close()
+			if parsed is Dictionary:
+				_equipment_config = parsed
+				var slots_cfg: Dictionary = _equipment_config.get("equipment_slots", {})
+				_max_equipment_slots = int(slots_cfg.get("max_slots", 6))
 
 	# Load existing equipment from equipment.json
 	_load_existing_equipment()
@@ -116,8 +123,8 @@ func equip_equipment_to_god(god: God, equipment: Equipment, slot: int) -> bool:
 	if not god.equipment:
 		god.equipment = []
 
-	# Resize array if needed (6 equipment slots)
-	while god.equipment.size() < 6:
+	# Resize array if needed (slots from config)
+	while god.equipment.size() < _max_equipment_slots:
 		god.equipment.append(null)
 
 	# Unequip existing equipment in this slot
@@ -183,25 +190,52 @@ func get_equipment_by_slot_type(slot_type: Equipment.EquipmentType) -> Array:
 		return inventory_manager.get_equipment_by_slot_type(slot_type)
 	return []
 
-# === CRAFTING OPERATIONS ===
+func auto_equip_god(god: God) -> int:
+	"""Auto-equip best available equipment to a god. Returns number of items equipped."""
+	if not god:
+		return 0
 
-func can_craft_equipment(recipe_id: String, territory_id: String = "") -> Dictionary:
-	"""Check if equipment can be crafted - delegate to crafting manager"""
-	if crafting_manager:
-		return crafting_manager.can_craft_equipment(recipe_id, territory_id)
-	return {"can_craft": false, "reason": "Crafting manager not available"}
+	var equipped_count: int = 0
+	var slot_types: Array = [
+		Equipment.EquipmentType.WEAPON,
+		Equipment.EquipmentType.ARMOR,
+		Equipment.EquipmentType.HELM,
+		Equipment.EquipmentType.BOOTS,
+		Equipment.EquipmentType.AMULET,
+		Equipment.EquipmentType.RING
+	]
 
-func craft_equipment(recipe_id: String, crafting_god_id: String = "", territory_id: String = "") -> Equipment:
-	"""Craft equipment - delegate to crafting manager"""
-	if crafting_manager:
-		return crafting_manager.craft_equipment(recipe_id, crafting_god_id, territory_id)
-	return null
+	for slot_index in range(_max_equipment_slots):
+		var slot_type = slot_types[slot_index]
+		var best_equipment = _find_best_equipment_for_slot(god, slot_type)
 
-func get_available_recipes(territory_id: String = "") -> Array:
-	"""Get available crafting recipes - delegate to crafting manager"""
-	if crafting_manager:
-		return crafting_manager.get_available_recipes(territory_id)
-	return []
+		if best_equipment:
+			var success = equip_equipment_to_god(god, best_equipment, slot_index)
+			if success:
+				equipped_count += 1
+
+	return equipped_count
+
+func _find_best_equipment_for_slot(_god: God, slot_type: Equipment.EquipmentType) -> Equipment:
+	"""Find the best unequipped equipment for a given slot type"""
+	var candidates: Array = get_unequipped_equipment().filter(func(e): return e.type == slot_type)
+
+	if candidates.is_empty():
+		return null
+
+	# Sort by: rarity (desc), then main stat value (desc), then enhancement level (desc)
+	candidates.sort_custom(func(a, b):
+		# First compare rarity (higher is better)
+		if a.rarity != b.rarity:
+			return a.rarity > b.rarity
+		# Then compare main stat value
+		if a.main_stat_value != b.main_stat_value:
+			return a.main_stat_value > b.main_stat_value
+		# Finally compare enhancement level
+		return a.enhancement_level > b.enhancement_level
+	)
+
+	return candidates[0]
 
 # === SOCKET OPERATIONS ===
 
@@ -238,11 +272,6 @@ func _on_equipment_equipped(god: God, equipment: Equipment, slot: int):
 func _on_equipment_unequipped(god: God, slot: int):
 	"""Handle equipment unequipped event"""
 	equipment_unequipped.emit(god, slot)
-	_trigger_save()
-
-func _on_equipment_crafted(equipment: Equipment, recipe_id: String):
-	"""Handle equipment crafted event"""
-	equipment_crafted.emit(equipment, recipe_id)
 	_trigger_save()
 
 func _on_socket_unlocked(equipment: Equipment, socket_index: int):
@@ -330,24 +359,17 @@ func get_equipment_summary() -> Dictionary:
 	"""Get summary of all equipment systems"""
 	var summary = {
 		"inventory": {},
-		"crafting": {},
 		"sockets": {}
 	}
-	
+
 	if inventory_manager:
 		summary.inventory = inventory_manager.get_inventory_summary()
-	
-	if crafting_manager:
-		summary.crafting = {
-			"available_recipes": crafting_manager.get_available_recipes().size(),
-			"total_recipes": crafting_manager.get_all_recipes().size()
-		}
-	
+
 	if socket_manager:
 		summary.sockets = {
 			"total_gems": socket_manager.get_gem_inventory().size()
 		}
-	
+
 	return summary
 
 # === SAVE/LOAD INTEGRATION ===
@@ -392,9 +414,6 @@ func _exit_tree():
 	# Just ensure any remaining connections are cleared
 	if inventory_manager and inventory_manager.equipment_equipped.is_connected(_on_equipment_equipped):
 		inventory_manager.equipment_equipped.disconnect(_on_equipment_equipped)
-	
-	if crafting_manager and crafting_manager.equipment_crafted.is_connected(_on_equipment_crafted):
-		crafting_manager.equipment_crafted.disconnect(_on_equipment_crafted)
 
 	if socket_manager and socket_manager.socket_unlocked.is_connected(_on_socket_unlocked):
 		socket_manager.socket_unlocked.disconnect(_on_socket_unlocked)

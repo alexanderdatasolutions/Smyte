@@ -1,22 +1,39 @@
 {
 	"floor_scaling": {
 		"base_enemy_level": 1,
-		"level_scaling_per_floor": 1.5,
-		"stat_scaling_per_floor": 1.08,
+		"level_scaling_per_floor": 0.5,
+		"stat_scaling_per_floor": 1.04,
 		"enemies_per_floor": 3,
 		"boss_floor_interval": 10,
 		"boss_stat_multiplier": 2.5,
-		"boss_level_multiplier": 1.5
+		"boss_level_multiplier": 1.3,
+		"max_turns": 100
+	},
+	"god_xp_rewards": {
+		"base_xp_per_floor": 50,
+		"boss_xp_bonus": 100
+	},
+	"material_drop_rates": {
+		"tier_1": {"ore": 0.4, "wood": 0.3, "herbs": 0.3},
+		"tier_2": {"refined_metal": 0.5, "monster_parts": 0.3, "fine_ore": 0.2},
+		"tier_3": {"fine_ore": 0.5, "beast_scales": 0.4, "steel_ingot": 0.3},
+		"tier_4": {"steel_ingot": 0.5, "forging_flame": 0.4, "arcane_ore": 0.25},
+		"tier_5": {"arcane_ore": 0.5, "elemental_cores": 0.4, "prometheum": 0.3, "divine_flame": 0.2}
+	},
+	"boss_soul_thresholds": {
+		"common_max_floor": 20,
+		"rare_max_floor": 50,
+		"epic_max_floor": 100
 	},
 	"base_enemy_stats": {
-		"hp": 100,
-		"hp_per_level": 8,
-		"attack": 40,
-		"attack_per_level": 3,
-		"defense": 30,
-		"defense_per_level": 2,
+		"hp": 150,
+		"hp_per_level": 12,
+		"attack": 55,
+		"attack_per_level": 5,
+		"defense": 50,
+		"defense_per_level": 4,
 		"speed": 45,
-		"speed_per_level": 1
+		"speed_per_level": 2
 	},
 	"milestone_floors": [10, 25, 50, 100, 150, 200, 250, 500, 1000],
 	"rewards": {

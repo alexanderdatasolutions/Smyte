@@ -174,10 +174,9 @@ func _load_portrait_texture(rect: TextureRect, unit: BattleUnit):
 	"""Load the appropriate texture for a unit"""
 	var texture_loaded = false
 
-	# Try source_god - use template_id for asset path
+	# Try source_god - with skin support
 	if unit.source_god:
-		var god_template = unit.source_god.template_id if unit.source_god.template_id else unit.source_god.id
-		var sprite_path = "res://assets/gods/" + god_template + ".png"
+		var sprite_path: String = GodPortraitHelper.get_portrait_path(unit.source_god)
 		if ResourceLoader.exists(sprite_path):
 			rect.texture = load(sprite_path)
 			texture_loaded = true

@@ -1,6 +1,7 @@
 # scripts/ui/summon/SummonResultOverlay.gd
 # RULE 1: UI component - displays summon results as a modal overlay
 # RULE 2: Single responsibility - only handles result display UI
+# Updated to match unified team selection UI patterns
 class_name SummonResultOverlay
 extends Control
 
@@ -8,9 +9,25 @@ signal view_collection_pressed
 signal summon_again_pressed
 signal close_pressed
 
+# UI Design Pattern Colors (matching TeamSelectionManager)
+const COLOR_BG = Color(0.08, 0.06, 0.12)
+const COLOR_PANEL_BG = Color(0.12, 0.1, 0.16, 0.95)
+const COLOR_PANEL_BORDER = Color(0.3, 0.25, 0.4, 0.8)
+const COLOR_HEADER = Color(0.8, 0.8, 0.9)
+const COLOR_TEXT = Color(0.7, 0.7, 0.8)
+const COLOR_MUTED = Color(0.5, 0.5, 0.55)
+
+# Tier colors
+const TIER_COLORS := {
+	"common": Color(0.6, 0.6, 0.6),
+	"rare": Color(0.3, 0.6, 1.0),
+	"epic": Color(0.7, 0.3, 0.9),
+	"legendary": Color(1.0, 0.84, 0.0)
+}
+
 # UI Components
 var backdrop: ColorRect
-var content_panel: Panel
+var content_panel: PanelContainer
 var title_label: Label
 var summary_label: Label
 var gods_grid: GridContainer
@@ -29,15 +46,9 @@ var last_summon_banner_data: Dictionary = {}
 var _reveal_tween: Tween
 var _is_animating: bool = false
 
-# Constants
-const CARD_SIZE := Vector2(140, 200)
-const GRID_COLUMNS := 5
-const RARITY_COLORS := {
-	"common": Color(0.7, 0.7, 0.7, 1.0),
-	"rare": Color(0.3, 0.5, 1.0, 1.0),
-	"epic": Color(0.6, 0.2, 0.8, 1.0),
-	"legendary": Color(1.0, 0.84, 0.0, 1.0)
-}
+# Constants - match GodCard MEDIUM size for consistency
+const CARD_SIZE := Vector2(120, 165)
+const GRID_COLUMNS := 7
 
 func _ready():
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -50,7 +61,7 @@ func _create_ui():
 	backdrop = ColorRect.new()
 	backdrop.name = "Backdrop"
 	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
-	backdrop.color = Color(0.0, 0.0, 0.0, 0.9)
+	backdrop.color = Color(0.0, 0.0, 0.0, 0.85)
 	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(backdrop)
 
@@ -61,10 +72,10 @@ func _create_ui():
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(center)
 
-	# Main content panel
-	content_panel = Panel.new()
+	# Main content panel - sized for 7 columns of 120px cards
+	content_panel = PanelContainer.new()
 	content_panel.name = "ContentPanel"
-	content_panel.custom_minimum_size = Vector2(800, 550)
+	content_panel.custom_minimum_size = Vector2(950, 580)
 	_style_content_panel()
 	center.add_child(content_panel)
 
@@ -87,29 +98,26 @@ func _create_ui():
 	title_label.name = "TitleLabel"
 	title_label.text = "SUMMON RESULTS"
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title_label.add_theme_font_size_override("font_size", 28)
-	title_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.7))
-	title_label.add_theme_color_override("font_outline_color", Color.BLACK)
-	title_label.add_theme_constant_override("outline_size", 2)
+	title_label.add_theme_font_size_override("font_size", 24)
+	title_label.add_theme_color_override("font_color", Color.GOLD)
 	main_vbox.add_child(title_label)
 
-	# Summary (e.g., "You obtained 10 gods! 2 NEW")
+	# Summary (e.g., "You obtained 10 gods! 2 LEGENDARY")
 	summary_label = Label.new()
 	summary_label.name = "SummaryLabel"
 	summary_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	summary_label.add_theme_font_size_override("font_size", 14)
-	summary_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	summary_label.add_theme_color_override("font_color", COLOR_TEXT)
 	main_vbox.add_child(summary_label)
 
 	# Separator
 	var sep = HSeparator.new()
-	sep.add_theme_constant_override("separation", 8)
 	main_vbox.add_child(sep)
 
 	# Scroll container for gods grid
 	scroll_container = ScrollContainer.new()
 	scroll_container.name = "ScrollContainer"
-	scroll_container.custom_minimum_size = Vector2(750, 340)
+	scroll_container.custom_minimum_size = Vector2(900, 380)
 	scroll_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll_container.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	main_vbox.add_child(scroll_container)
@@ -118,15 +126,10 @@ func _create_ui():
 	gods_grid = GridContainer.new()
 	gods_grid.name = "GodsGrid"
 	gods_grid.columns = GRID_COLUMNS
-	gods_grid.add_theme_constant_override("h_separation", 12)
-	gods_grid.add_theme_constant_override("v_separation", 12)
+	gods_grid.add_theme_constant_override("h_separation", 10)
+	gods_grid.add_theme_constant_override("v_separation", 10)
 	gods_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll_container.add_child(gods_grid)
-
-	# Spacer
-	var spacer = Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main_vbox.add_child(spacer)
 
 	# Button container
 	button_container = HBoxContainer.new()
@@ -138,63 +141,55 @@ func _create_ui():
 	# View Collection button
 	view_collection_button = Button.new()
 	view_collection_button.name = "ViewCollectionButton"
-	view_collection_button.text = "View in Collection"
-	view_collection_button.custom_minimum_size = Vector2(160, 45)
+	view_collection_button.text = "View Collection"
+	view_collection_button.custom_minimum_size = Vector2(150, 45)
 	view_collection_button.pressed.connect(_on_view_collection_pressed)
-	_style_button(view_collection_button, Color(0.3, 0.5, 0.7))
+	_style_button(view_collection_button, false)
 	button_container.add_child(view_collection_button)
 
 	# Summon Again button
 	summon_again_button = Button.new()
 	summon_again_button.name = "SummonAgainButton"
 	summon_again_button.text = "Summon Again"
-	summon_again_button.custom_minimum_size = Vector2(160, 45)
+	summon_again_button.custom_minimum_size = Vector2(150, 45)
 	summon_again_button.pressed.connect(_on_summon_again_pressed)
-	_style_button(summon_again_button, Color(0.6, 0.4, 0.8))
+	_style_button(summon_again_button, true)
 	button_container.add_child(summon_again_button)
 
 	# Close button
 	close_button = Button.new()
 	close_button.name = "CloseButton"
 	close_button.text = "Close"
-	close_button.custom_minimum_size = Vector2(120, 45)
+	close_button.custom_minimum_size = Vector2(100, 45)
 	close_button.pressed.connect(_on_close_pressed)
-	_style_button(close_button, Color(0.4, 0.4, 0.4))
+	_style_button(close_button, false)
 	button_container.add_child(close_button)
 
 func _style_content_panel():
 	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.07, 0.12, 0.98)
+	style.bg_color = COLOR_PANEL_BG
 	style.border_color = Color(0.5, 0.45, 0.6, 0.9)
-	style.set_border_width_all(3)
+	style.set_border_width_all(2)
 	style.set_corner_radius_all(12)
-	style.shadow_color = Color(0.0, 0.0, 0.0, 0.5)
-	style.shadow_size = 10
 	content_panel.add_theme_stylebox_override("panel", style)
 
-func _style_button(btn: Button, accent_color: Color):
-	var normal_style = StyleBoxFlat.new()
-	normal_style.bg_color = accent_color.darkened(0.3)
-	normal_style.border_color = accent_color
-	normal_style.set_border_width_all(2)
-	normal_style.set_corner_radius_all(8)
-	btn.add_theme_stylebox_override("normal", normal_style)
+func _style_button(btn: Button, primary: bool = false):
+	var style_normal = StyleBoxFlat.new()
+	if primary:
+		style_normal.bg_color = Color(0.2, 0.5, 0.3, 0.9)
+		style_normal.border_color = Color(0.3, 0.7, 0.4, 0.8)
+	else:
+		style_normal.bg_color = Color(0.15, 0.12, 0.2, 0.9)
+		style_normal.border_color = COLOR_PANEL_BORDER
+	style_normal.set_border_width_all(1)
+	style_normal.set_corner_radius_all(6)
+	btn.add_theme_stylebox_override("normal", style_normal)
 
-	var hover_style = StyleBoxFlat.new()
-	hover_style.bg_color = accent_color.darkened(0.1)
-	hover_style.border_color = accent_color.lightened(0.2)
-	hover_style.set_border_width_all(2)
-	hover_style.set_corner_radius_all(8)
-	btn.add_theme_stylebox_override("hover", hover_style)
+	var style_hover = style_normal.duplicate()
+	style_hover.bg_color = style_normal.bg_color.lightened(0.15)
+	btn.add_theme_stylebox_override("hover", style_hover)
 
-	var pressed_style = StyleBoxFlat.new()
-	pressed_style.bg_color = accent_color
-	pressed_style.border_color = accent_color.lightened(0.3)
-	pressed_style.set_border_width_all(2)
-	pressed_style.set_corner_radius_all(8)
-	btn.add_theme_stylebox_override("pressed", pressed_style)
-
-	btn.add_theme_color_override("font_color", Color.WHITE)
+	btn.add_theme_color_override("font_color", COLOR_TEXT)
 	btn.add_theme_color_override("font_hover_color", Color.WHITE)
 	btn.add_theme_font_size_override("font_size", 14)
 
@@ -228,115 +223,104 @@ func _clear_grid():
 		child.queue_free()
 
 func _populate_grid():
-	var collection_mgr = _get_collection_manager()
-
 	# Reverse order so newest summons appear at the top
 	var gods_reversed = displayed_gods.duplicate()
 	gods_reversed.reverse()
 
 	for god in gods_reversed:
-		var card = _create_god_card(god, collection_mgr)
+		var card = _create_god_card(god)
 		gods_grid.add_child(card)
 		god_cards.append(card)
 		# Start hidden for animation
 		card.modulate.a = 0.0
 		card.scale = Vector2(0.8, 0.8)
 
-func _create_god_card(god: God, _collection_mgr) -> PanelContainer:
+func _create_god_card(god: God) -> PanelContainer:
 	var card = PanelContainer.new()
 	card.custom_minimum_size = CARD_SIZE
 
-	# Style card based on rarity
+	# Style card based on tier
 	var tier_string = God.tier_to_string(god.tier).to_lower()
-	var tier_color = RARITY_COLORS.get(tier_string, RARITY_COLORS.common)
+	var tier_color = TIER_COLORS.get(tier_string, TIER_COLORS.common)
 	_style_god_card(card, tier_color)
 
-	# Content container
-	var content = VBoxContainer.new()
-	content.add_theme_constant_override("separation", 4)
-	card.add_child(content)
+	# Content VBox
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+	card.add_child(vbox)
 
-	# Margin
-	var margin = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
-	content.add_child(margin)
+	# NEW badge for all summoned gods
+	var badge_container = CenterContainer.new()
+	vbox.add_child(badge_container)
 
-	var inner_vbox = VBoxContainer.new()
-	inner_vbox.add_theme_constant_override("separation", 4)
-	margin.add_child(inner_vbox)
+	var badge = Label.new()
+	badge.text = "NEW!"
+	badge.add_theme_font_size_override("font_size", 10)
+	badge.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+	badge_container.add_child(badge)
 
-	# NEW badge
-	var badge_label = Label.new()
-	badge_label.text = "NEW!"
-	badge_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
-	badge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	badge_label.add_theme_font_size_override("font_size", 10)
-	inner_vbox.add_child(badge_label)
-
-	# God portrait
+	# God portrait - match GodCard MEDIUM (118x118)
 	var portrait_container = CenterContainer.new()
-	portrait_container.custom_minimum_size = Vector2(80, 80)
-	inner_vbox.add_child(portrait_container)
+	portrait_container.custom_minimum_size = Vector2(118, 118)
+	vbox.add_child(portrait_container)
 
 	var portrait = TextureRect.new()
-	portrait.custom_minimum_size = Vector2(70, 70)
+	portrait.custom_minimum_size = Vector2(118, 118)
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 
 	var god_template = god.template_id if god.template_id else god.id
 	var sprite_path = "res://assets/gods/" + god_template + ".png"
 	if ResourceLoader.exists(sprite_path):
 		portrait.texture = load(sprite_path)
-	else:
-		# Placeholder
-		var placeholder = ColorRect.new()
-		placeholder.custom_minimum_size = Vector2(70, 70)
-		placeholder.color = tier_color.darkened(0.3)
-		portrait_container.add_child(placeholder)
-
 	portrait_container.add_child(portrait)
 
 	# God name
 	var name_label = Label.new()
-	name_label.text = god.name
+	name_label.text = god.name if god.name.length() <= 12 else god.name.substr(0, 11) + ".."
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.add_theme_font_size_override("font_size", 12)
-	name_label.add_theme_color_override("font_color", Color.WHITE)
-	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_label.custom_minimum_size.x = CARD_SIZE.x - 20
-	inner_vbox.add_child(name_label)
+	name_label.add_theme_color_override("font_color", COLOR_HEADER)
+	vbox.add_child(name_label)
 
-	# Tier and element
+	# Tier + Element row
 	var tier_label = Label.new()
-	var element_string = God.element_to_string(god.element).capitalize()
-	tier_label.text = "%s %s" % [tier_string.capitalize(), element_string]
+	tier_label.text = "%s %s" % [tier_string.capitalize(), God.element_to_string(god.element)]
 	tier_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tier_label.add_theme_font_size_override("font_size", 10)
 	tier_label.add_theme_color_override("font_color", tier_color)
-	inner_vbox.add_child(tier_label)
+	vbox.add_child(tier_label)
 
-	# Stats preview (compact)
-	var stats_label = Label.new()
+	# Stats row - matching team selection format
 	var stats = _get_god_stats(god)
+	var stats_label = Label.new()
 	stats_label.text = "HP:%d ATK:%d" % [stats.hp, stats.attack]
 	stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	stats_label.add_theme_font_size_override("font_size", 9)
-	stats_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-	inner_vbox.add_child(stats_label)
+	stats_label.add_theme_color_override("font_color", COLOR_MUTED)
+	vbox.add_child(stats_label)
+
+	# Power rating
+	var power = GodCalculator.get_power_rating(god)
+	var power_label = Label.new()
+	power_label.text = str(power)
+	power_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	power_label.add_theme_font_size_override("font_size", 10)
+	power_label.add_theme_color_override("font_color", Color.GOLD)
+	vbox.add_child(power_label)
 
 	return card
 
 func _style_god_card(card: PanelContainer, tier_color: Color):
 	var style = StyleBoxFlat.new()
-	style.bg_color = tier_color.darkened(0.7)
-	style.bg_color.a = 0.95
-	style.border_color = tier_color.lightened(0.2)
-
+	style.bg_color = COLOR_PANEL_BG
+	style.border_color = tier_color
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(8)
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 6
+	style.content_margin_bottom = 6
 	card.add_theme_stylebox_override("panel", style)
 
 func _get_god_stats(god: God) -> Dictionary:
@@ -354,13 +338,15 @@ func _update_summary():
 	var total = displayed_gods.size()
 	var legendary_count = 0
 	var epic_count = 0
+	var rare_count = 0
 
 	for god in displayed_gods:
-		# Count rarities
 		if god.tier == God.TierType.LEGENDARY:
 			legendary_count += 1
 		elif god.tier == God.TierType.EPIC:
 			epic_count += 1
+		elif god.tier == God.TierType.RARE:
+			rare_count += 1
 
 	# Build summary text
 	var parts: Array[String] = []
@@ -370,16 +356,20 @@ func _update_summary():
 		parts.append("%d LEGENDARY" % legendary_count)
 	if epic_count > 0:
 		parts.append("%d Epic" % epic_count)
+	if rare_count > 0:
+		parts.append("%d Rare" % rare_count)
 
 	summary_label.text = " ".join(parts)
 
 	# Color based on best pull
 	if legendary_count > 0:
-		summary_label.add_theme_color_override("font_color", RARITY_COLORS.legendary)
+		summary_label.add_theme_color_override("font_color", TIER_COLORS.legendary)
 	elif epic_count > 0:
-		summary_label.add_theme_color_override("font_color", RARITY_COLORS.epic)
+		summary_label.add_theme_color_override("font_color", TIER_COLORS.epic)
+	elif rare_count > 0:
+		summary_label.add_theme_color_override("font_color", TIER_COLORS.rare)
 	else:
-		summary_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+		summary_label.add_theme_color_override("font_color", COLOR_TEXT)
 
 func _animate_show():
 	_is_animating = true

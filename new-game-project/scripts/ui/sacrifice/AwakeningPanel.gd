@@ -242,10 +242,11 @@ func _update_requirements():
 	# Get requirements
 	var requirements = sacrifice_manager.get_awakening_requirements(current_target_god)
 	
-	# Basic requirements
+	# Basic requirements - use soft cap from config
+	var soft_cap: int = God.get_soft_cap_level()
 	var level_req = Label.new()
-	level_req.text = "• Level 40 (Max Level): %s" % ("✓" if current_target_god.level >= 40 else "✗")
-	level_req.modulate = Color.GREEN if current_target_god.level >= 40 else Color.RED
+	level_req.text = "• Level %d (Soft Cap): %s" % [soft_cap, "✓" if current_target_god.level >= soft_cap else "✗"]
+	level_req.modulate = Color.GREEN if current_target_god.level >= soft_cap else Color.RED
 	requirements_container.add_child(level_req)
 	
 	var tier_req = Label.new()

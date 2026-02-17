@@ -16,12 +16,14 @@ var _current_craft_node: HexNode = null
 var _crafting_screen_manager: CraftingScreenManager = null
 var _recipes_data: Dictionary = {}
 var _buildings_data: Dictionary = {}
+var _equipment_config: Dictionary = {}
 var _widget: PanelContainer = null  # Parent widget for tree access
 
 func initialize(content_container: VBoxContainer, widget: PanelContainer) -> void:
 	_widget = widget
 	_load_buildings_data()
 	_load_recipes_data()
+	_load_equipment_config()
 	_create_craft_section(content_container)
 
 func _load_buildings_data() -> void:
@@ -43,6 +45,21 @@ func _load_recipes_data() -> void:
 			if data is Dictionary:
 				_recipes_data = data
 		file.close()
+
+func _load_equipment_config() -> void:
+	var file: FileAccess = FileAccess.open("res://data/equipment_config.json", FileAccess.READ)
+	if file:
+		var json: JSON = JSON.new()
+		if json.parse(file.get_as_text()) == OK:
+			var data: Variant = json.get_data()
+			if data is Dictionary:
+				_equipment_config = data
+		file.close()
+
+func _get_crafting_building_types() -> Array:
+	var forge_cfg: Dictionary = _equipment_config.get("forge_config", {})
+	var types: Array = forge_cfg.get("crafting_building_types", ["blacksmith", "weapon_forge", "armor_forge", "divine_forge"])
+	return types
 
 func get_refiner_conversions(_hex_grid_manager: Variant, player_nodes: Array) -> Array:
 	var conversions: Array = []
@@ -133,7 +150,7 @@ func update_craft_display(hex_grid_manager: Variant) -> void:
 
 func _get_player_blacksmith_nodes(hex_grid_manager: Variant) -> Array:
 	var nodes: Array = []
-	var crafting_types: Array[String] = ["blacksmith", "weapon_forge", "armor_forge", "divine_forge"]
+	var crafting_types: Array = _get_crafting_building_types()
 
 	var all_nodes: Array = []
 	if hex_grid_manager.has_method("get_nodes_by_controller"):
@@ -483,7 +500,7 @@ func _on_craft_button_pressed() -> void:
 	if not hex_grid_manager:
 		return
 
-	var crafting_types: Array[String] = ["blacksmith", "weapon_forge", "armor_forge", "divine_forge"]
+	var crafting_types: Array = _get_crafting_building_types()
 	var player_smithy: HexNode = null
 
 	for building_type: String in crafting_types:

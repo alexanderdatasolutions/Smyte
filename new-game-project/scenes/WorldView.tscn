@@ -45,32 +45,8 @@ grow_vertical = 2
 alignment = 1
 theme_override_constants/separation = 40
 
-[node name="TitleSection" type="VBoxContainer" parent="ContentContainer"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/separation = 8
-
-[node name="TitleLabel" type="Label" parent="ContentContainer/TitleSection"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.85, 0.6, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
-theme_override_colors/font_outline_color = Color(0.6, 0.4, 0.1, 0.5)
-theme_override_constants/shadow_offset_x = 3
-theme_override_constants/shadow_offset_y = 3
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 42
-text = "SMYTE"
-horizontal_alignment = 1
-
-[node name="SubtitleLabel" type="Label" parent="ContentContainer/TitleSection"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.65, 0.55, 1)
-theme_override_font_sizes/font_size = 14
-text = "DIVINE NEXUS"
-horizontal_alignment = 1
-
 [node name="Spacer" type="Control" parent="ContentContainer"]
-custom_minimum_size = Vector2(0, 20)
+custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 
 [node name="ButtonGrid" type="GridContainer" parent="ContentContainer"]
@@ -79,7 +55,7 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_constants/h_separation = 15
 theme_override_constants/v_separation = 15
-columns = 4
+columns = 5
 
 [node name="SummonButton" type="Button" parent="ContentContainer/ButtonGrid"]
 custom_minimum_size = Vector2(170, 85)
@@ -117,11 +93,6 @@ custom_minimum_size = Vector2(170, 85)
 layout_mode = 2
 text = "SHOP"
 
-[node name="SpecializationButton" type="Button" parent="ContentContainer/ButtonGrid"]
-custom_minimum_size = Vector2(170, 85)
-layout_mode = 2
-text = "SPECIALIZE"
-
 [node name="TowerButton" type="Button" parent="ContentContainer/ButtonGrid"]
 custom_minimum_size = Vector2(170, 85)
 layout_mode = 2
@@ -136,3 +107,8 @@ text = "ARENA"
 custom_minimum_size = Vector2(170, 85)
 layout_mode = 2
 text = "PVP MAP"
+
+[node name="LeaderboardButton" type="Button" parent="ContentContainer/ButtonGrid"]
+custom_minimum_size = Vector2(170, 85)
+layout_mode = 2
+text = "LEADERBOARD"

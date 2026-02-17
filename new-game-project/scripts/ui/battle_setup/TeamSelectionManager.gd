@@ -16,6 +16,7 @@ const TeamStatsPanelScript = preload("res://scripts/ui/battle_setup/TeamStatsPan
 var available_gods_grid: GridContainer = null
 var start_battle_button: Button = null
 var cancel_button: Button = null
+var remember_team_btn: Button = null
 
 # Sorting UI references
 var sort_dropdown: OptionButton = null
@@ -33,6 +34,16 @@ var battle_context: Dictionary = {}
 enum SortType { POWER, LEVEL, TIER, ELEMENT, NAME }
 var current_sort: SortType = SortType.POWER
 var sort_ascending: bool = false
+
+# Confirm button customization
+var _confirm_button_text: String = "START BATTLE"
+var _confirm_callback: Callable = Callable()
+
+# Section visibility controls
+var _show_enemies: bool = true
+var _show_rewards: bool = true
+var _show_equipment: bool = true
+var _custom_top_section: Control = null
 
 # Delegate helpers
 var _stats_panel_helper: RefCounted = null
@@ -197,7 +208,7 @@ func _refresh_team_slots() -> void:
 func _create_team_slot(index: int) -> Control:
 	var slot: Panel = Panel.new()
 	slot.name = "TeamSlot_" + str(index)
-	slot.custom_minimum_size = Vector2(65, 85)
+	slot.custom_minimum_size = Vector2(102, 142)
 
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.12, 0.2, 0.8)
@@ -276,7 +287,7 @@ func _update_slot_display(slot_index: int) -> void:
 		empty_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		god_display.add_child(empty_label)
 	else:
-		var god_card: Control = GodCardFactory.create_god_card(GodCardFactory.CardPreset.COMPACT_LIST)
+		var god_card: Control = GodCardFactory.create_god_card(GodCardFactory.CardPreset.COMPACT)
 		god_card.setup_god_card(god)
 		god_card.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		god_display.add_child(god_card)
@@ -304,6 +315,15 @@ func _load_available_gods() -> void:
 			available_gods.append(god)
 		else:
 			unavailable_gods.append({"god": god, "assignment": assignment})
+
+	# Auto-load remembered team if no gods selected yet
+	var has_selection: bool = false
+	for god: Variant in selected_team:
+		if god != null:
+			has_selection = true
+			break
+	if not has_selection:
+		_load_remembered_team()
 
 	_refresh_gods_grid()
 
@@ -338,13 +358,13 @@ func _create_god_card_for_grid(god: God, assignment: String = "") -> Control:
 	var is_unavailable: bool = not assignment.is_empty()
 
 	var container: Panel = Panel.new()
-	container.custom_minimum_size = Vector2(160, 200)
+	container.custom_minimum_size = Vector2(122, 167)
 
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0, 0, 0, 0)
 	container.add_theme_stylebox_override("panel", style)
 
-	var god_card: Control = GodCardFactory.create_god_card(GodCardFactory.CardPreset.BATTLE_SELECTION)
+	var god_card: Control = GodCardFactory.create_god_card(GodCardFactory.CardPreset.STANDARD)
 	god_card.setup_god_card(god)
 	god_card.set_anchors_preset(Control.PRESET_FULL_RECT)
 	god_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -443,10 +463,102 @@ func _on_start_battle_pressed() -> void:
 				notification_manager.show_error("Please select at least one god for battle")
 		return
 
-	battle_start_requested.emit(selected_team)
+	# Skip team_selection_tutorial if still active (user starting battle)
+	_skip_team_selection_tutorial()
+
+	# Use custom callback if set, otherwise emit signal
+	if _confirm_callback.is_valid():
+		_confirm_callback.call(selected_team)
+	else:
+		battle_start_requested.emit(selected_team)
+
+func _skip_team_selection_tutorial() -> void:
+	"""Skip the team selection tutorial when battle starts."""
+	var registry: Node = SystemRegistry.get_instance()
+	if not registry:
+		return
+
+	var tutorial_orch: Node = registry.get_system("TutorialOrchestrator")
+	if not tutorial_orch:
+		return
+
+	# If team_selection_tutorial is active, skip it so battle tutorial can show
+	if tutorial_orch.is_tutorial_active():
+		var info: Dictionary = tutorial_orch.get_current_tutorial_info()
+		if info.get("name", "") == "team_selection_tutorial":
+			tutorial_orch.skip_tutorial()
 
 func _on_cancel_pressed() -> void:
 	setup_cancelled.emit()
+
+func _on_remember_team_pressed() -> void:
+	"""Save the current team to auto-select next time"""
+	var registry: Node = SystemRegistry.get_instance()
+	if not registry:
+		return
+
+	# Save god IDs (not references, since they get recreated on load)
+	var team_ids: Array = []
+	for god: Variant in selected_team:
+		if god != null:
+			team_ids.append(god.id)
+		else:
+			team_ids.append("")
+
+	var save_manager: Node = registry.get_system("SaveManager")
+	if save_manager:
+		save_manager.set_player_value("remembered_team", team_ids)
+
+		# Show feedback
+		var notification_manager: Node = registry.get_system("NotificationManager")
+		if notification_manager:
+			var count: int = 0
+			for id: String in team_ids:
+				if id != "":
+					count += 1
+			notification_manager.show_notification("Team saved! (%d gods)" % count, "success")
+
+func _load_remembered_team() -> void:
+	"""Load the saved team and auto-select gods"""
+	var registry: Node = SystemRegistry.get_instance()
+	if not registry:
+		return
+
+	var save_manager: Node = registry.get_system("SaveManager")
+	if not save_manager:
+		return
+
+	var team_ids: Variant = save_manager.get_player_value("remembered_team", [])
+	if team_ids is not Array or team_ids.is_empty():
+		return
+
+	var collection_manager: Node = registry.get_system("CollectionManager")
+	if not collection_manager:
+		return
+
+	# Try to assign each saved god to their slot
+	for i: int in range(min(team_ids.size(), max_team_size)):
+		var god_id: String = team_ids[i] if team_ids[i] is String else ""
+		if god_id.is_empty():
+			continue
+
+		# Find the god by ID
+		var god: God = collection_manager.get_god_by_id(god_id)
+		if god == null:
+			continue
+
+		# Check if god is available (not assigned to garrison/worker)
+		var assignment: String = _get_god_assignment(god)
+		if not assignment.is_empty():
+			continue
+
+		# Assign to slot
+		selected_team[i] = god
+		_update_slot_display(i)
+
+	_refresh_gods_grid()
+	_update_team_stats()
+	team_changed.emit(selected_team)
 
 # ============================================================================
 # HELPER FUNCTIONS
@@ -490,7 +602,13 @@ func _create_full_ui(parent: Control) -> void:
 	main_vbox.add_child(content_hbox)
 
 	# Left panel - stats (delegated to TeamStatsPanel)
-	var left_panel: Control = _stats_panel_helper.create_stats_panel(_clear_team)
+	var left_panel: Control = _stats_panel_helper.create_stats_panel(
+		_clear_team,
+		_show_equipment,
+		_show_enemies,
+		_show_rewards,
+		_custom_top_section
+	)
 	left_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content_hbox.add_child(left_panel)
 
@@ -539,7 +657,7 @@ func _create_full_ui(parent: Control) -> void:
 	right_vbox.add_child(scroll)
 
 	available_gods_grid = GridContainer.new()
-	available_gods_grid.columns = 4
+	available_gods_grid.columns = 5
 	available_gods_grid.add_theme_constant_override("h_separation", 10)
 	available_gods_grid.add_theme_constant_override("v_separation", 10)
 	scroll.add_child(available_gods_grid)
@@ -569,8 +687,16 @@ func _create_full_ui(parent: Control) -> void:
 	_style_button(cancel_button, false)
 	buttons_hbox.add_child(cancel_button)
 
+	remember_team_btn = Button.new()
+	remember_team_btn.text = "REMEMBER TEAM"
+	remember_team_btn.custom_minimum_size = Vector2(150, 40)
+	remember_team_btn.tooltip_text = "Save this team to auto-select next time"
+	remember_team_btn.pressed.connect(_on_remember_team_pressed)
+	_style_button(remember_team_btn, false)
+	buttons_hbox.add_child(remember_team_btn)
+
 	start_battle_button = Button.new()
-	start_battle_button.text = "START BATTLE"
+	start_battle_button.text = _confirm_button_text
 	start_battle_button.custom_minimum_size = Vector2(160, 40)
 	start_battle_button.pressed.connect(_on_start_battle_pressed)
 	_style_button(start_battle_button, true)
@@ -586,6 +712,12 @@ func _create_full_ui(parent: Control) -> void:
 func get_selected_team() -> Array:
 	return selected_team.duplicate()
 
+func get_team_bonuses_container() -> Control:
+	"""Get the team bonuses container for tutorial highlighting."""
+	if _stats_panel_helper:
+		return _stats_panel_helper.team_bonuses_container
+	return null
+
 func set_team(team: Array) -> void:
 	selected_team = team.duplicate()
 	selected_team.resize(max_team_size)
@@ -594,3 +726,24 @@ func set_team(team: Array) -> void:
 	_refresh_gods_grid()
 	_update_team_stats()
 	team_changed.emit(selected_team)
+
+func set_confirm_button(text: String, callback: Callable) -> void:
+	"""Set custom confirm button text and callback for different contexts (tower, arena, etc.)"""
+	_confirm_button_text = text
+	_confirm_callback = callback
+	if start_battle_button:
+		start_battle_button.text = text
+
+func hide_section(section: String) -> void:
+	"""Hide a section of the left panel. Call before initialize_full()."""
+	match section:
+		"enemies":
+			_show_enemies = false
+		"rewards":
+			_show_rewards = false
+		"equipment":
+			_show_equipment = false
+
+func inject_top_section(content: Control) -> void:
+	"""Inject a custom section at the top of the left panel (e.g., tower floor info)."""
+	_custom_top_section = content

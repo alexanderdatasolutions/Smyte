@@ -38,15 +38,6 @@
       "icon": "crystal_icon",
       "max_storage": 99999,
       "category": "premium_currency"
-    },
-    "energy": {
-      "id": "energy",
-      "name": "Energy",
-      "description": "Used to enter dungeons and battles",
-      "icon": "energy_icon",
-      "max_storage": 150,
-      "regen_rate": 300,
-      "category": "consumable_currency"
     }
   },
 

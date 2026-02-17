@@ -28,31 +28,49 @@ func _ready() -> void:
 
 func _initialize_firebase() -> void:
 	"""Initialize Firebase connection"""
+	print("[ArenaDataSync] _initialize_firebase called")
 	var system_registry: Variant = _get_system_registry()
 	if not system_registry:
+		print("[ArenaDataSync] ERROR: SystemRegistry not available")
 		return
 
 	var firebase_integration: Variant = system_registry.get_system("FirebaseIntegration")
 	if not firebase_integration:
+		print("[ArenaDataSync] ERROR: FirebaseIntegration not found")
 		return
 
 	# Get Firestore reference
 	if firebase_integration.has_method("get_firestore"):
 		_firestore = firebase_integration.get_firestore()
+		print("[ArenaDataSync] Firestore reference: %s" % ("obtained" if _firestore != null else "NULL"))
 
 	# Get user ID
 	if firebase_integration.has_method("get_user_id"):
 		_user_id = firebase_integration.get_user_id()
+		print("[ArenaDataSync] User ID: '%s'" % _user_id)
 
-	# Get display name
-	if firebase_integration.has_method("get_user_display_name"):
-		_display_name = firebase_integration.get_user_display_name()
+	# Get display name from SaveManager (where user sets it after signup)
+	var save_manager: Variant = system_registry.get_system("SaveManager")
+	if save_manager and save_manager.has_method("get_player_value"):
+		_display_name = save_manager.get_player_value("display_name", "")
+		print("[ArenaDataSync] Display name from SaveManager: '%s'" % _display_name)
 
-	if is_ready():
-		pass
+	# Fallback to email username if no display name in save
+	if _display_name.is_empty() and firebase_integration.has_method("get_user_email"):
+		var email: String = firebase_integration.get_user_email()
+		if not email.is_empty() and "@" in email:
+			_display_name = email.split("@")[0]
+			print("[ArenaDataSync] Display name from email: '%s'" % _display_name)
+
+	print("[ArenaDataSync] is_ready(): %s" % is_ready())
 func is_ready() -> bool:
 	"""Check if Firebase sync is available"""
 	return _firestore != null and not _user_id.is_empty()
+
+func refresh_firebase_connection() -> void:
+	"""Refresh Firebase connection - call this after user signs in"""
+	print("[ArenaDataSync] refresh_firebase_connection called")
+	_initialize_firebase()
 
 func get_user_id() -> String:
 	return _user_id
@@ -151,20 +169,28 @@ func _get_doc_value(doc: Variant, key: String) -> Variant:
 	return null
 
 func _get_league_for_elo(elo: int) -> String:
-	"""Determine league from ELO"""
-	const THRESHOLDS = {
-		"legend": 2200,
-		"diamond": 1800,
-		"platinum": 1500,
-		"gold": 1300,
-		"silver": 1100,
-		"bronze": 0
-	}
+	"""Determine league from ELO using arena_config.json thresholds"""
+	var thresholds: Dictionary = _get_league_thresholds()
 
 	for league: String in ["legend", "diamond", "platinum", "gold", "silver", "bronze"]:
-		if elo >= THRESHOLDS[league]:
+		if elo >= thresholds.get(league, 0):
 			return league
 	return "bronze"
+
+static var _arena_config: Dictionary = {}
+static var _arena_config_loaded: bool = false
+
+func _get_league_thresholds() -> Dictionary:
+	"""Load league thresholds from arena_config.json (single source of truth)"""
+	if not _arena_config_loaded:
+		var file := FileAccess.open("res://data/arena_config.json", FileAccess.READ)
+		if file:
+			var parsed: Variant = JSON.parse_string(file.get_as_text())
+			file.close()
+			if parsed is Dictionary:
+				_arena_config = parsed
+		_arena_config_loaded = true
+	return _arena_config.get("leagues", {}).get("thresholds", {"legend": 2200, "diamond": 1800, "platinum": 1500, "gold": 1300, "silver": 1100, "bronze": 0})
 
 # ==============================================================================
 # DEFENSE TEAM UPLOAD
@@ -172,18 +198,39 @@ func _get_league_for_elo(elo: int) -> String:
 
 func upload_defense_team(serialized_team: Array) -> void:
 	"""Upload defense team to Firestore"""
+	print("[ArenaDataSync] upload_defense_team called with %d gods" % serialized_team.size())
 	if not is_ready():
+		print("[ArenaDataSync] ERROR: Not ready! firestore=%s, user_id='%s'" % [_firestore != null, _user_id])
 		defense_uploaded.emit(false)
 		return
 
+	print("[ArenaDataSync] Calling _do_upload_defense deferred")
 	_do_upload_defense.call_deferred(serialized_team)
 
 func _do_upload_defense(serialized_team: Array) -> void:
 	"""Async defense upload operation"""
+	print("[ArenaDataSync] _do_upload_defense starting")
 	var collection: Variant = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
 	if not collection:
+		print("[ArenaDataSync] ERROR: Could not get collection '%s'" % COLLECTION_ARENA_PLAYERS)
 		defense_uploaded.emit(false)
 		return
+
+	print("[ArenaDataSync] Got collection reference: %s" % collection)
+
+	# Debug: Check if collection has auth (use 'in' operator for Node properties)
+	if "auth" in collection:
+		var auth_dict: Variant = collection.auth
+		if auth_dict is Dictionary:
+			print("[ArenaDataSync] Collection auth keys: %s" % (auth_dict as Dictionary).keys())
+			if (auth_dict as Dictionary).has("idtoken"):
+				print("[ArenaDataSync] Auth has idtoken (length: %d)" % (auth_dict as Dictionary).get("idtoken", "").length())
+			else:
+				print("[ArenaDataSync] WARNING: Auth does NOT have idtoken!")
+		else:
+			print("[ArenaDataSync] WARNING: collection.auth is not a Dictionary: %s" % typeof(auth_dict))
+	else:
+		print("[ArenaDataSync] WARNING: collection has no 'auth' property")
 
 	var data: Dictionary = {
 		"user_id": _user_id,
@@ -193,8 +240,20 @@ func _do_upload_defense(serialized_team: Array) -> void:
 		"last_defense_update": Time.get_unix_time_from_system()
 	}
 
-	var result: Variant = await collection.add(_user_id, data)
-	defense_uploaded.emit(result != null)
+	print("[ArenaDataSync] Uploading data for user '%s' with %d gods, power=%d" % [_user_id, serialized_team.size(), data.defense_power])
+
+	# Use set_doc instead of add - set_doc creates or overwrites the document
+	# add() uses POST which fails if document already exists
+	await collection.set_doc(_user_id, data)
+
+	# set_doc returns void, so verify by fetching the document
+	var verify: Variant = await collection.get_doc(_user_id)
+	var success: bool = verify != null
+
+	print("[ArenaDataSync] Upload verify result: %s (success: %s)" % [verify, success])
+	if not success:
+		print("[ArenaDataSync] ERROR: Upload verification failed")
+	defense_uploaded.emit(success)
 
 func _calculate_serialized_team_power(team: Array) -> int:
 	"""Calculate power from serialized god data"""
@@ -236,8 +295,10 @@ func _do_update_stats(elo: int, wins: int, losses: int) -> void:
 		"last_active": Time.get_unix_time_from_system()
 	}
 
-	var result: Variant = await collection.add(_user_id, data)
-	player_stats_updated.emit(result != null)
+	# Use set_doc to update existing document (same as defense team posting)
+	await collection.set_doc(_user_id, data)
+	var verify: Variant = await collection.get_doc(_user_id)
+	player_stats_updated.emit(verify != null)
 
 # ==============================================================================
 # BATTLE RECORDING
@@ -258,6 +319,10 @@ func _do_record_battle(opponent_uid: String, victory: bool, elo_change: int) -> 
 		battle_recorded.emit(false)
 		return
 
+	# Generate unique battle ID using timestamp and user IDs
+	var timestamp: int = int(Time.get_unix_time_from_system() * 1000)
+	var battle_id: String = "%s_%s_%d" % [_user_id, opponent_uid, timestamp]
+
 	var battle_data: Dictionary = {
 		"attacker_uid": _user_id,
 		"defender_uid": opponent_uid,
@@ -266,7 +331,8 @@ func _do_record_battle(opponent_uid: String, victory: bool, elo_change: int) -> 
 		"timestamp": Time.get_unix_time_from_system()
 	}
 
-	var result: Variant = await collection.add("", battle_data)
+	# Use add with unique ID for battle records
+	var result: Variant = await collection.add(battle_id, battle_data)
 	battle_recorded.emit(result != null)
 
 # ==============================================================================

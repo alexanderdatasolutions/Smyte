@@ -54,10 +54,9 @@ func _create_god_card(god: God) -> GodCard:
 	"""Create a GodCard for god selection"""
 	var god_card = preload("res://scripts/ui/components/GodCard.gd").new()
 
-	# Configure card for equipment screen use - SMALL size to fit more cards
-	god_card.card_size = GodCard.CardSize.SMALL
-	god_card.show_experience_bar = false  # Keep it cleaner for selection
-	god_card.show_power_rating = false  # Compact view
+	# Configure card for equipment screen use - MEDIUM size for readable cards
+	god_card.card_size = GodCard.CardSize.MEDIUM
+	god_card.show_power_rating = true  # Show power for equipment decisions
 	god_card.show_territory_assignment = false  # Compact view
 	god_card.show_awakening_status = false
 	god_card.clickable = true

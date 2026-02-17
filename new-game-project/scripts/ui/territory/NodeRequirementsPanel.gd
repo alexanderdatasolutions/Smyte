@@ -10,8 +10,6 @@ RULE 1: Under 500 lines
 
 Shows:
 - Level requirement (green check if met, red X if not)
-- Specialization tier requirement (green check if met, red X if not)
-- Specialization role requirement (green check if met, red X if not)
 - Power requirement (green check if met, red X if not)
 - "What you need" text explanation for unmet requirements
 """
@@ -220,11 +218,6 @@ func _update_requirements_display() -> void:
 
 	# Build requirement rows
 	_add_level_requirement_row(status.get("level", {}))
-
-	var spec_status = status.get("specialization", {})
-	if spec_status.get("tier_required", 0) > 0:
-		_add_specialization_requirement_row(spec_status)
-
 	_add_power_requirement_row(status.get("power", {}))
 
 	# Update explanation
@@ -240,23 +233,6 @@ func _add_level_requirement_row(level_status: Dictionary) -> void:
 	var met = level_status.get("met", false)
 
 	var row_text = "Player Level %d (Currently: %d)" % [required, current]
-	_add_requirement_row(row_text, met)
-
-func _add_specialization_requirement_row(spec_status: Dictionary) -> void:
-	"""Add specialization requirement row"""
-	if spec_status.is_empty():
-		return
-
-	var tier_required = spec_status.get("tier_required", 0)
-	var role_required = spec_status.get("role_required", "")
-	var met = spec_status.get("met", false)
-
-	var row_text = ""
-	if role_required != "":
-		row_text = "%s Specialization Tier %d" % [role_required.capitalize(), tier_required]
-	else:
-		row_text = "Any Specialization Tier %d" % tier_required
-
 	_add_requirement_row(row_text, met)
 
 func _add_power_requirement_row(power_status: Dictionary) -> void:

@@ -79,3 +79,10 @@ func _prune_old_events():
 func get_all_events() -> Array:
 	"""Get copy of all events (for debugging)"""
 	return _queue.duplicate()
+
+func update_display_name(new_name: String) -> void:
+	"""Update display_name in all queued events (called when user identity is confirmed)"""
+	for event in _queue:
+		var params: Dictionary = event.get("params", {})
+		if params.get("display_name", "") == "Anonymous":
+			params["display_name"] = new_name

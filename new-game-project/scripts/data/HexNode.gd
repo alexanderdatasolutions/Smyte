@@ -89,9 +89,7 @@ Following CLAUDE.md architecture:
 # UNLOCK REQUIREMENTS (from JSON)
 # ==============================================================================
 @export var unlock_requirements: Dictionary = {
-	"player_level": 1,
-	"specialization_tier": 0,  # 0=none, 1=tier1, 2=tier2, 3=tier3
-	"specialization_role": ""  # Empty or "fighter", "gatherer", etc.
+	"player_level": 1
 }
 
 # ==============================================================================
@@ -210,14 +208,6 @@ func get_attack_timer_percent() -> float:
 	var max_seconds = attack_timer_hours * 3600.0
 	return clampf(attack_timer_remaining / max_seconds, 0.0, 1.0)
 
-func get_required_spec_tier() -> int:
-	"""Get required specialization tier from unlock requirements"""
-	return unlock_requirements.get("specialization_tier", 0)
-
-func get_required_spec_role() -> String:
-	"""Get required specialization role from unlock requirements"""
-	return unlock_requirements.get("specialization_role", "")
-
 func get_required_level() -> int:
 	"""Get required player level from unlock requirements"""
 	return unlock_requirements.get("player_level", 1)
@@ -226,8 +216,55 @@ func get_required_level() -> int:
 # SERIALIZATION
 # ==============================================================================
 
+func to_save_dict() -> Dictionary:
+	"""Serialize ONLY dynamic player state for cloud/local saves.
+	Static template data (name, tier, coords, base_production, etc.) is NOT saved -
+	it's loaded from hex_tiles.json on startup. This reduces save size by ~90%."""
+	return {
+		# Core dynamic state
+		"controller": controller,
+		"is_revealed": is_revealed,
+		"is_contested": is_contested,
+		"contested_until": contested_until,
+		# Player assignments
+		"garrison": garrison,
+		"assigned_workers": assigned_workers,
+		"active_tasks": active_tasks,
+		# Building state
+		"placed_building": placed_building,
+		"building_level": building_level,
+		# Production state
+		"accumulated_resources": accumulated_resources,
+		"last_production_time": last_production_time,
+		"production_level": production_level,
+		"defense_level": defense_level,
+		# Timers
+		"attack_timer_remaining": attack_timer_remaining,
+		"last_attack_check_time": last_attack_check_time,
+		"last_raid_time": last_raid_time,
+		"raid_cooldown": raid_cooldown,
+	}
+
+func has_player_modifications() -> bool:
+	"""Check if node has any player-related state worth saving."""
+	if controller == "player":
+		return true
+	if is_revealed:
+		return true
+	if not garrison.is_empty():
+		return true
+	if not assigned_workers.is_empty():
+		return true
+	if not placed_building.is_empty():
+		return true
+	if not accumulated_resources.is_empty():
+		return true
+	if is_contested:
+		return true
+	return false
+
 func to_dict() -> Dictionary:
-	"""Serialize to dictionary for saving"""
+	"""Full serialization (used for debugging/inspection, NOT for saves)"""
 	return {
 		"id": id,
 		"name": name,
@@ -346,9 +383,7 @@ static func from_dict(data: Dictionary):
 
 	# Unlock requirements
 	node.unlock_requirements = data.get("unlock_requirements", {
-		"player_level": 1,
-		"specialization_tier": 0,
-		"specialization_role": ""
+		"player_level": 1
 	})
 
 	return node

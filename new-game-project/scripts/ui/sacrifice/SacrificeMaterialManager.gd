@@ -256,16 +256,22 @@ func can_use_as_material(god: God) -> bool:
 	"""Check if god can be used as sacrifice material"""
 	# Add filtering logic here
 	# For example: not equipped, not in defense team, not max level if preserving, etc.
-	
-	# Basic example - don't sacrifice max level gods
-	if god.level >= 40:
+
+	# Basic example - don't sacrifice gods at soft cap (those are valuable)
+	if god.level >= God.get_soft_cap_level():
 		return false
-	
+
 	return true
 
 func sort_gods(gods: Array):
-	"""Sort gods array based on current sort settings"""
+	"""Sort gods array based on current sort settings, with assigned gods at bottom"""
 	gods.sort_custom(func(a: God, b: God):
+		# Assigned gods always go to the bottom
+		var a_assigned: bool = _is_god_assigned(a)
+		var b_assigned: bool = _is_god_assigned(b)
+		if a_assigned != b_assigned:
+			return not a_assigned  # Available gods come first
+
 		var result = false
 		match current_sort:
 			SortType.POWER:
@@ -278,10 +284,26 @@ func sort_gods(gods: Array):
 				result = God.element_to_string(a.element) < God.element_to_string(b.element)
 			SortType.NAME:
 				result = a.name < b.name
-		
+
 		# Apply sort direction
 		return result if not sort_ascending else !result
 	)
+
+func _is_god_assigned(god: God) -> bool:
+	"""Check if god is assigned to garrison or worker"""
+	var registry: Node = SystemRegistry.get_instance()
+	if not registry:
+		return false
+	var territory_manager: Node = registry.get_system("TerritoryManager")
+	if not territory_manager:
+		return false
+	var controlled: Array = territory_manager.get_controlled_nodes()
+	for node: Variant in controlled:
+		if node.garrison.find(god.id) != -1:
+			return true
+		if node.assigned_workers.find(god.id) != -1:
+			return true
+	return false
 
 func load_gods_in_batches(gods: Array):
 	"""Load gods in batches for smooth performance"""

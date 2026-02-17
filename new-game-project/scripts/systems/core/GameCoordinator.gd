@@ -2,6 +2,9 @@
 # Main game orchestration - replaces the 1203-line GameManager god class
 extends Node
 
+# Discord webhook for announcements
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1473115579559710845/jowJ3u5ZMyVmFdhhpQPlCyH1RnTfeCrvPSQ_CiI3qJREu8ooZe6TfAZr-XClFkscv0J2"
+
 # Core components - untyped to avoid parse-time class_name resolution issues
 var system_registry  # SystemRegistry
 var event_bus  # EventBus
@@ -86,7 +89,6 @@ func _connect_global_events():
 		event_bus.loading_completed.connect(_on_loading_completed)
 		event_bus.save_requested.connect(_on_save_requested)
 		event_bus.show_tutorial_requested.connect(_on_show_tutorial_requested)
-		event_bus.specialization_unlocked.connect(_on_specialization_unlocked)
 
 ## Load game data from JSON files
 func _load_game_data():
@@ -104,46 +106,127 @@ func _load_game_data():
 ## Initialize game systems and start game
 func _initialize_game():
 	_emit_loading("Initializing systems...")
-	
+
 	# Initialize all registered systems
 	system_registry.initialize_all_systems()
-	
-	# Try to load save game using SaveManager
-	var save_manager = system_registry.get_system("SaveManager")
-	var has_save = save_manager.has_save_file() if save_manager else false
 
-	if save_manager and has_save:
-		_load_save_game()
+	# Connect to achievement completions for global popups (like free skin pick)
+	var achievement_manager = system_registry.get_system("AchievementManager")
+	if achievement_manager and achievement_manager.has_signal("achievement_completed"):
+		achievement_manager.achievement_completed.connect(_on_achievement_completed_global)
+
+	# Check if data was already loaded from cloud (via SignInScreen)
+	var save_manager = system_registry.get_system("SaveManager")
+	var data_already_loaded = save_manager.has_data() if save_manager else false
+
+	if data_already_loaded:
+		print("GameCoordinator: Data already loaded from cloud")
+		_post_load_setup()
 	else:
+		print("GameCoordinator: No cloud data - starting new game")
 		_start_new_game()
-	
+
 	is_initialized = true
 	_emit_loading_complete("Initializing systems...")
 
-## Load existing save game
-func _load_save_game():
-	var save_manager = system_registry.get_system("SaveManager")
-	if save_manager and save_manager.load_game():
-		event_bus.game_loaded.emit()
+## Post-load setup after cloud data is loaded
+func _post_load_setup():
+	event_bus.game_loaded.emit()
 
-		# Check if we need to add starter equipment to existing save
-		var equipment_manager = system_registry.get_system("EquipmentManager")
-		if equipment_manager and equipment_manager.get_unequipped_equipment().is_empty():
-			_setup_starting_equipment()
-			# Save the updated game
+	var save_manager = system_registry.get_system("SaveManager")
+
+	# Check if we need to add starter equipment to existing save
+	var equipment_manager = system_registry.get_system("EquipmentManager")
+	if equipment_manager and equipment_manager.get_unequipped_equipment().is_empty():
+		_setup_starting_equipment()
+		if save_manager:
 			save_manager.save_game()
-	else:
-		push_warning("GameCoordinator: Failed to load save game, starting new game")
-		_start_new_game()
+
+	# Safety check: if save loaded but no gods, give starter gods
+	var collection_manager = system_registry.get_system("CollectionManager")
+	if collection_manager and collection_manager.gods.is_empty():
+		print("GameCoordinator: Save had no gods, adding starters")
+		_setup_starting_gods()
+		if save_manager:
+			save_manager.save_game()
 
 ## Start a new game
 func _start_new_game():
+	print("GameCoordinator: Setting up new game...")
+
 	# Give player starting resources and gods
 	_setup_starting_resources()
 	_setup_starting_gods()
 	_setup_starting_equipment()
 
+	# Mark data as loaded so auto-save works for new players too
+	var save_manager = system_registry.get_system("SaveManager")
+	if save_manager:
+		save_manager.data_loaded = true
+		# Immediately save to cloud so new player data persists
+		print("GameCoordinator: Saving new game to cloud...")
+		save_manager.save_game()
+
+	# Announce new player to Discord
+	_announce_new_player_to_discord()
+
 	event_bus.emit_notification("Welcome to the world of gods!", "info", 3.0)
+
+	# Emit game_loaded so WorldView and other systems know game is ready
+	event_bus.game_loaded.emit()
+
+## Announce new player welcome to Discord
+func _announce_new_player_to_discord():
+	if DISCORD_WEBHOOK_URL.is_empty():
+		return
+
+	# Get player display name - try multiple sources
+	var player_name: String = "A new adventurer"
+
+	# Try SaveManager first
+	var save_manager = system_registry.get_system("SaveManager")
+	if save_manager:
+		var saved_name: String = save_manager.get_player_value("display_name", "")
+		if not saved_name.is_empty():
+			player_name = saved_name
+			print("GameCoordinator: Found display_name in SaveManager: %s" % player_name)
+
+	# Fallback: try Firebase user_data
+	if player_name == "A new adventurer":
+		var firebase = system_registry.get_system("FirebaseIntegration")
+		if firebase and firebase.user_data:
+			var fb_name: String = firebase.user_data.get("displayname", "")
+			if fb_name.is_empty():
+				fb_name = firebase.user_data.get("display_name", "")
+			if fb_name.is_empty():
+				# Try email prefix as last resort
+				var email: String = firebase.user_data.get("email", "")
+				if not email.is_empty() and "@" in email:
+					fb_name = email.split("@")[0]
+			if not fb_name.is_empty():
+				player_name = fb_name
+				print("GameCoordinator: Found display_name in Firebase: %s" % player_name)
+
+	# Build Discord embed
+	var embed: Dictionary = {
+		"title": "👋 New Player",
+		"description": "**%s** just joined!" % player_name,
+		"color": 5814783,  # Blue color
+		"timestamp": Time.get_datetime_string_from_system(true)
+	}
+
+	var payload: Dictionary = {
+		"embeds": [embed]
+	}
+
+	# Fire and forget HTTP request
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_result, _code, _headers, _body): http.queue_free())
+
+	var json_body: String = JSON.stringify(payload)
+	var headers: Array = ["Content-Type: application/json"]
+	http.request(DISCORD_WEBHOOK_URL, headers, HTTPClient.METHOD_POST, json_body)
 
 ## Setup starting resources for new players
 func _setup_starting_resources():
@@ -156,16 +239,30 @@ func _setup_starting_resources():
 ## Setup starting gods for new players
 func _setup_starting_gods():
 	var collection_manager = system_registry.get_system("CollectionManager")
-	if collection_manager:
-		# Give player a starter god from each element
-		var starter_gods = ["ares", "poseidon", "artemis"]  # Fire, Water, Wind
+	if not collection_manager:
+		push_error("GameCoordinator: CollectionManager not found!")
+		return
 
-		# Use late binding to avoid parse-time GodFactory class reference
-		var god_factory_script = load("res://scripts/systems/collection/GodFactory.gd")
-		for god_id in starter_gods:
-			var god = god_factory_script.create_from_json(god_id)
-			if god:
-				collection_manager.add_god(god)
+	# Give player a starter god from each element
+	var starter_gods = ["ares", "poseidon", "artemis"]  # Fire, Water, Wind
+
+	# Use late binding to avoid parse-time GodFactory class reference
+	var god_factory_script = load("res://scripts/systems/collection/GodFactory.gd")
+	if not god_factory_script:
+		push_error("GameCoordinator: GodFactory script not found!")
+		return
+
+	var gods_added = 0
+	for god_id in starter_gods:
+		var god = god_factory_script.create_from_json(god_id)
+		if god:
+			collection_manager.add_god(god)
+			gods_added += 1
+			print("GameCoordinator: Added starter god '%s'" % god_id)
+		else:
+			push_error("GameCoordinator: Failed to create god '%s'" % god_id)
+
+	print("GameCoordinator: Added %d starter gods (total: %d)" % [gods_added, collection_manager.gods.size()])
 ## Setup starting equipment for new players
 func _setup_starting_equipment():
 	var equipment_manager = system_registry.get_system("EquipmentManager")
@@ -287,22 +384,6 @@ func _on_show_tutorial_requested(tutorial_data: Dictionary):
 		if tutorial_orchestrator and not tutorial_dialog.dialog_completed.is_connected(tutorial_orchestrator.advance_tutorial):
 			tutorial_dialog.dialog_completed.connect(tutorial_orchestrator.advance_tutorial)
 
-func _on_specialization_unlocked(god_id: String, spec_id: String):
-	"""Trigger tutorial when tier 2+ specialization is unlocked"""
-	var specialization_manager = system_registry.get_system("SpecializationManager")
-	if not specialization_manager:
-		return
-
-	var spec = specialization_manager.get_specialization(spec_id)
-	if not spec:
-		return
-
-	# Check if this is tier 2 or higher
-	if spec.tier >= 2:
-		var tutorial_orchestrator = system_registry.get_system("TutorialOrchestrator")
-		if tutorial_orchestrator and not tutorial_orchestrator.is_tutorial_completed("hex_specialization_unlock"):
-			tutorial_orchestrator.start_tutorial("hex_specialization_unlock")
-
 # ============================================================================
 # HELPER METHODS
 # ============================================================================
@@ -327,3 +408,26 @@ func get_debug_info() -> Dictionary:
 		"loading_operations": loading_operations.duplicate(),
 		"system_registry": system_registry.get_debug_info() if system_registry else {}
 	}
+
+## Handle global achievement completions (for popups that should show regardless of screen)
+func _on_achievement_completed_global(achievement_id: String, _achievement_data: Dictionary) -> void:
+	if achievement_id == "legendary_champion":
+		_show_free_skin_popup()
+
+## Show the free skin selection popup
+func _show_free_skin_popup() -> void:
+	var skin_manager: Node = system_registry.get_system("SkinManager") if system_registry else null
+	if not skin_manager:
+		return
+
+	var pending_god_id: String = skin_manager.get_pending_free_skin_god()
+	if pending_god_id.is_empty():
+		return
+
+	# Create and show the popup on the current scene
+	var popup: FreeSkinPickPopup = FreeSkinPickPopup.new()
+	var current_scene: Node = get_tree().current_scene
+	if current_scene:
+		current_scene.add_child(popup)
+		popup.show_for_god(pending_god_id)
+		print("GameCoordinator: Showing free skin popup for god: %s" % pending_god_id)
