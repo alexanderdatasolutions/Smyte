@@ -128,17 +128,20 @@ func _create_ui() -> void:
 	# Refinery section
 	var refinery_section: PanelContainer = _create_section_panel("🔄 REFINERY")
 	_right_column.add_child(refinery_section)
-	_refinery_container = refinery_section.get_child(0).get_child(1)  # Get content container
+	# Path: PanelContainer > VBoxContainer (inner) > Control (wrapper) > ScrollContainer > VBoxContainer (content)
+	_refinery_container = refinery_section.get_child(0).get_child(1).get_child(0).get_child(0)
 
 	# Crafting section
 	var crafting_section: PanelContainer = _create_section_panel("🔨 CRAFTING")
 	_right_column.add_child(crafting_section)
-	_crafting_container = crafting_section.get_child(0).get_child(1)
+	_crafting_container = crafting_section.get_child(0).get_child(1).get_child(0).get_child(0)
 
 	# Territory Alerts section
 	var alerts_section: PanelContainer = _create_section_panel("⚠️ TERRITORY ALERTS")
 	_right_column.add_child(alerts_section)
-	_alerts_container = alerts_section.get_child(0).get_child(1)
+	_alerts_container = alerts_section.get_child(0).get_child(1).get_child(0).get_child(0)
+
+const MAX_SECTION_HEIGHT: int = 55  # Max height for scrollable sections (fits ~2-3 rows)
 
 func _create_section_panel(title: String) -> PanelContainer:
 	var panel: PanelContainer = PanelContainer.new()
@@ -164,9 +167,25 @@ func _create_section_panel(title: String) -> PanelContainer:
 	header.add_theme_color_override("font_color", COLOR_SECTION)
 	inner.add_child(header)
 
+	# Use a Control wrapper with fixed size to limit scroll height
+	var scroll_wrapper: Control = Control.new()
+	scroll_wrapper.custom_minimum_size = Vector2(0, MAX_SECTION_HEIGHT)
+	scroll_wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll_wrapper.clip_contents = true
+	inner.add_child(scroll_wrapper)
+
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	scroll_wrapper.add_child(scroll)
+
 	var content: VBoxContainer = VBoxContainer.new()
 	content.add_theme_constant_override("separation", 4)
-	inner.add_child(content)
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(content)
 
 	return panel
 
@@ -449,26 +468,52 @@ func _get_territory_alerts() -> Array:
 	var save_manager: Variant = _get_save_manager()
 	var territory_manager: Variant = _get_territory_manager()
 
-	# Check save data for recent territory losses
-	if save_manager and save_manager.has_method("get_player_value"):
-		var lost_territories: Array = save_manager.get_player_value("lost_territories", [])
-		for loss in lost_territories:
-			if loss is Dictionary:
-				alerts.append(loss)
-
-	# Check for low garrison nodes
+	# Build set of currently controlled node IDs
+	var controlled_node_ids: Dictionary = {}
 	if territory_manager and territory_manager.has_method("get_controlled_nodes"):
 		var nodes: Array = territory_manager.get_controlled_nodes()
 		for node in nodes:
+			var node_id: String = ""
+			if node is Dictionary:
+				node_id = str(node.get("id", ""))
+			elif "id" in node:
+				node_id = str(node.id)
+			if node_id != "":
+				controlled_node_ids[node_id] = true
+
 			# Check if garrison is low (if applicable)
 			if "garrison_strength" in node and "max_garrison" in node:
 				var strength: float = float(node.garrison_strength)
 				var max_str: float = float(node.max_garrison)
 				if max_str > 0 and strength / max_str < 0.25:
+					var node_name: String = ""
+					if node is Dictionary:
+						node_name = str(node.get("name", "Unknown"))
+					elif "name" in node:
+						node_name = str(node.name)
+					else:
+						node_name = "Unknown"
 					alerts.append({
 						"type": "low_garrison",
-						"node_name": node.name if "name" in node else "Unknown"
+						"node_name": node_name
 					})
+
+	# Check save data for recent territory losses - filter out recaptured nodes
+	if save_manager and save_manager.has_method("get_player_value"):
+		var lost_territories: Array = save_manager.get_player_value("lost_territories", [])
+		var still_lost: Array = []
+
+		for loss in lost_territories:
+			if loss is Dictionary:
+				var node_id: String = str(loss.get("node_id", ""))
+				# Only show alert if node is NOT currently controlled (still lost)
+				if node_id == "" or not controlled_node_ids.has(node_id):
+					alerts.append(loss)
+					still_lost.append(loss)
+
+		# Clean up save data - remove recaptured nodes from lost_territories
+		if still_lost.size() != lost_territories.size():
+			save_manager.set_player_value("lost_territories", still_lost)
 
 	return alerts
 

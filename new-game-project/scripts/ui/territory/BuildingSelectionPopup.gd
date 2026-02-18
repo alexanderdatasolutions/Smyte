@@ -124,6 +124,9 @@ var buildings_list: VBoxContainer = null  # Changed from GridContainer to VBoxCo
 var sort_button: Button = null
 var sort_direction_btn: Button = null
 
+# Cached owned building counts
+var owned_building_counts: Dictionary = {}  # building_id -> count
+
 # ==============================================================================
 # INITIALIZATION
 # ==============================================================================
@@ -227,6 +230,9 @@ func _build_popup_ui() -> void:
 
 	# Load all available buildings
 	all_buildings = _get_available_buildings()
+
+	# Count how many of each building the player owns
+	_count_owned_buildings()
 
 	# === Left Panel: Categories ===
 	_build_left_panel()
@@ -412,8 +418,17 @@ func _build_column_headers(parent: Control) -> void:
 	name_header.add_theme_font_size_override("font_size", 10)
 	name_header.add_theme_color_override("font_color", COLOR_MUTED)
 	name_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_header.custom_minimum_size = Vector2(140, 0)
+	name_header.custom_minimum_size = Vector2(120, 0)
 	parent.add_child(name_header)
+
+	# Owned column
+	var owned_header = Label.new()
+	owned_header.text = "OWNED"
+	owned_header.add_theme_font_size_override("font_size", 10)
+	owned_header.add_theme_color_override("font_color", COLOR_MUTED)
+	owned_header.custom_minimum_size = Vector2(50, 0)
+	owned_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	parent.add_child(owned_header)
 
 	# Tier column
 	var tier_header = Label.new()
@@ -429,7 +444,7 @@ func _build_column_headers(parent: Control) -> void:
 	prod_header.add_theme_font_size_override("font_size", 10)
 	prod_header.add_theme_color_override("font_color", COLOR_MUTED)
 	prod_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	prod_header.custom_minimum_size = Vector2(180, 0)
+	prod_header.custom_minimum_size = Vector2(160, 0)
 	parent.add_child(prod_header)
 
 	# Action column
@@ -574,6 +589,25 @@ func _get_available_buildings() -> Array:
 
 	return building_manager.get_available_buildings_for_tile(current_node)
 
+func _count_owned_buildings() -> void:
+	"""Count how many of each building type the player currently owns"""
+	owned_building_counts.clear()
+
+	var territory_manager = SystemRegistry.get_instance().get_system("TerritoryManager")
+	if not territory_manager or not territory_manager.has_method("get_controlled_nodes"):
+		return
+
+	var controlled_nodes: Array = territory_manager.get_controlled_nodes()
+	for node in controlled_nodes:
+		var placed_building: String = ""
+		if node is Dictionary:
+			placed_building = str(node.get("placed_building", ""))
+		elif "placed_building" in node:
+			placed_building = str(node.placed_building)
+
+		if not placed_building.is_empty():
+			owned_building_counts[placed_building] = owned_building_counts.get(placed_building, 0) + 1
+
 func _create_building_row(building: Dictionary) -> PanelContainer:
 	"""Create a single-row building entry for the list"""
 	var row = PanelContainer.new()
@@ -603,7 +637,7 @@ func _create_building_row(building: Dictionary) -> PanelContainer:
 	# Name + description column (expands)
 	var name_vbox = VBoxContainer.new()
 	name_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_vbox.custom_minimum_size = Vector2(140, 0)
+	name_vbox.custom_minimum_size = Vector2(120, 0)
 	name_vbox.add_theme_constant_override("separation", 0)
 	content.add_child(name_vbox)
 
@@ -621,6 +655,20 @@ func _create_building_row(building: Dictionary) -> PanelContainer:
 	desc_label.clip_text = true
 	name_vbox.add_child(desc_label)
 
+	# Owned count column (fixed width)
+	var owned_count: int = owned_building_counts.get(building_id, 0)
+	var owned_label = Label.new()
+	owned_label.custom_minimum_size = Vector2(50, 0)
+	owned_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	owned_label.add_theme_font_size_override("font_size", 13)
+	if owned_count > 0:
+		owned_label.text = str(owned_count)
+		owned_label.add_theme_color_override("font_color", COLOR_SUCCESS)
+	else:
+		owned_label.text = "—"
+		owned_label.add_theme_color_override("font_color", COLOR_MUTED)
+	content.add_child(owned_label)
+
 	# Tier column (fixed width)
 	var tier_label = Label.new()
 	var tier_stars = ""
@@ -636,7 +684,7 @@ func _create_building_row(building: Dictionary) -> PanelContainer:
 	# Production column (expands)
 	var prod_label = Label.new()
 	prod_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	prod_label.custom_minimum_size = Vector2(180, 0)
+	prod_label.custom_minimum_size = Vector2(160, 0)
 	prod_label.add_theme_font_size_override("font_size", 11)
 	prod_label.clip_text = true
 
