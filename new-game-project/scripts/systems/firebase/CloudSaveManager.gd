@@ -26,7 +26,8 @@ func initialize(firestore, user_id: String):
 	"""Initialize with Firestore reference and user ID"""
 	_firestore = firestore
 	_user_id = user_id
-	print("CloudSaveManager: Initialized for user %s, firestore=%s" % [user_id, firestore != null])
+	print("CloudSaveManager: Initialized for user '%s'" % user_id)
+	print("CloudSaveManager: Firestore=%s, collection=%s" % [firestore != null, COLLECTION_NAME])
 
 func clear():
 	"""Clear state when user signs out"""
@@ -130,9 +131,11 @@ const INITIAL_BACKOFF_SECONDS: float = 1.0
 
 func _do_save(cloud_data: Dictionary, retry_attempt: int = 0) -> void:
 	"""Perform the actual save operation (async) with retry and exponential backoff"""
+	print("CloudSaveManager: _do_save called, firestore=%s" % (_firestore != null))
 	var collection = _firestore.collection(COLLECTION_NAME) if _firestore else null
 	if not collection:
 		_save_in_progress = false
+		print("CloudSaveManager: ERROR - Firestore collection unavailable!")
 		cloud_save_failed.emit("Firestore collection unavailable")
 		_check_pending_save()
 		return
@@ -140,7 +143,7 @@ func _do_save(cloud_data: Dictionary, retry_attempt: int = 0) -> void:
 	# Use set_doc instead of add - set_doc creates or overwrites the document
 	# add() uses POST which fails if document exists, set_doc() uses PATCH
 	if retry_attempt == 0:
-		print("CloudSaveManager: Saving to document '%s'" % _user_id)
+		print("CloudSaveManager: Saving to collection '%s', document '%s'" % [COLLECTION_NAME, _user_id])
 	else:
 		print("CloudSaveManager: Retry attempt %d for document '%s'" % [retry_attempt, _user_id])
 

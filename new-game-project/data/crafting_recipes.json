@@ -1,8 +1,8 @@
 {
   "_metadata": {
-    "version": "5.1.0",
-    "description": "Equipment crafting recipes with mythological set bonuses",
-    "last_updated": "2026-02-15",
+    "version": "5.2.0",
+    "description": "Equipment crafting recipes and processing/refining recipes",
+    "last_updated": "2026-02-17",
     "design_notes": {
       "structure": "Flat structure - equipment recipes at top level",
       "set_bonuses": "2-piece and 4-piece bonuses for complete sets",
@@ -29,6 +29,120 @@
       "conquest": {"2pc": "+20% ATK in PvP", "4pc": "+40% ATK in PvP, ignore 15% DEF"},
       "eternal": {"2pc": "+20% DEF in PvP", "4pc": "+40% DEF in PvP, +25% HP"}
     }
+  },
+
+  "_comment_processing": "=== PROCESSING/REFINING RECIPES ===",
+  "_processing_notes": "Manual crafting versions of what refiners automate. Available in Forge and Alchemist buildings.",
+
+  "refine_metal": {
+    "id": "refine_metal",
+    "name": "Refine Metal",
+    "description": "Smelt raw ore into refined metal ingots",
+    "category": "processing",
+    "tier": 1,
+    "materials": {"ore": 40},
+    "output": {"refined_metal": 20},
+    "craft_time_seconds": 30,
+    "icon": "refined_metal"
+  },
+  "refine_timber": {
+    "id": "refine_timber",
+    "name": "Process Timber",
+    "description": "Cut and treat raw wood into quality timber",
+    "category": "processing",
+    "tier": 1,
+    "materials": {"wood": 40},
+    "output": {"quality_timber": 20},
+    "craft_time_seconds": 30,
+    "icon": "quality_timber"
+  },
+  "refine_herbs": {
+    "id": "refine_herbs",
+    "name": "Process Herbs",
+    "description": "Dry and prepare herbs into rare medicinal compounds",
+    "category": "processing",
+    "tier": 1,
+    "materials": {"herbs": 40},
+    "output": {"rare_herbs": 20},
+    "craft_time_seconds": 30,
+    "icon": "rare_herbs"
+  },
+  "forge_steel": {
+    "id": "forge_steel",
+    "name": "Forge Steel Ingots",
+    "description": "Combine fine ore and raw ore to forge steel",
+    "category": "processing",
+    "tier": 2,
+    "materials": {"fine_ore": 25, "ore": 15},
+    "output": {"steel_ingot": 15},
+    "craft_time_seconds": 60,
+    "icon": "steel_ingot"
+  },
+  "treat_lumber": {
+    "id": "treat_lumber",
+    "name": "Treat Lumber",
+    "description": "Treat hardwood and wood for enhanced durability",
+    "category": "processing",
+    "tier": 2,
+    "materials": {"hardwood": 25, "wood": 15},
+    "output": {"treated_lumber": 15},
+    "craft_time_seconds": 60,
+    "icon": "treated_lumber"
+  },
+  "extract_alchemy": {
+    "id": "extract_alchemy",
+    "name": "Create Alchemical Extract",
+    "description": "Distill exotic and common herbs into potent extracts",
+    "category": "processing",
+    "tier": 2,
+    "materials": {"exotic_herbs": 25, "herbs": 15},
+    "output": {"alchemical_extract": 15},
+    "craft_time_seconds": 60,
+    "icon": "alchemical_extract"
+  },
+  "forge_prometheum": {
+    "id": "forge_prometheum",
+    "name": "Forge Prometheum",
+    "description": "Forge divine prometheum from arcane and fine ores",
+    "category": "processing",
+    "tier": 3,
+    "materials": {"arcane_ore": 20, "fine_ore": 15},
+    "output": {"prometheum": 8},
+    "craft_time_seconds": 120,
+    "icon": "prometheum"
+  },
+  "enchant_wood": {
+    "id": "enchant_wood",
+    "name": "Enchant Wood",
+    "description": "Infuse ancient and hardwood with magical properties",
+    "category": "processing",
+    "tier": 3,
+    "materials": {"ancient_wood": 20, "hardwood": 15},
+    "output": {"enchanted_wood": 8},
+    "craft_time_seconds": 120,
+    "icon": "enchanted_wood"
+  },
+  "distill_bloom": {
+    "id": "distill_bloom",
+    "name": "Distill Mystic Bloom",
+    "description": "Distill mystic herbs into concentrated blooms",
+    "category": "processing",
+    "tier": 3,
+    "materials": {"mystic_herbs": 20, "exotic_herbs": 15},
+    "output": {"mystic_bloom": 8},
+    "craft_time_seconds": 120,
+    "icon": "mystic_bloom"
+  },
+  "refine_astral": {
+    "id": "refine_astral",
+    "name": "Refine Astral Shards",
+    "description": "Crystallize magic crystals into astral shards",
+    "category": "processing",
+    "tier": 3,
+    "materials": {"magic_crystals": 15},
+    "output": {"astral_shard": 6},
+    "craft_time_seconds": 120,
+    "icon": "astral_shard"
   },
 
   "_comment_t1_wrath": "=== T1 WRATH SET (ATK focused) ===",

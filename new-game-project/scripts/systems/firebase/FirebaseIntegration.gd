@@ -244,10 +244,17 @@ func sign_in_with_steam() -> void:
 func _initialize_cloud_saves_for_steam() -> void:
 	"""Initialize cloud saves using Steam ID as the user identifier"""
 	var firebase: Node = _get_firebase()
+	print("FirebaseIntegration: _initialize_cloud_saves_for_steam - firebase=%s" % (firebase != null))
+	if firebase:
+		print("FirebaseIntegration: firebase.Firestore=%s" % (firebase.Firestore != null))
+	print("FirebaseIntegration: cloud_save_manager=%s" % (cloud_save_manager != null))
+
 	if firebase and firebase.Firestore and cloud_save_manager:
 		var steam_user_id: String = "steam_%d" % _steam_id
 		cloud_save_manager.initialize(firebase.Firestore, steam_user_id)
 		print("FirebaseIntegration: Cloud saves initialized for Steam user %s" % steam_user_id)
+	else:
+		print("FirebaseIntegration: WARNING - Could not initialize cloud saves!")
 
 func is_steam_available() -> bool:
 	"""Check if Steam is available for authentication"""

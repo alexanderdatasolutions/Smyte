@@ -9,6 +9,9 @@ signal popup_closed()
 var _current_node: HexNode = null
 var _tasks_data: Dictionary = {}
 var _panel: PanelContainer = null
+var _recipes_grid: GridContainer = null
+var _category_dropdown: OptionButton = null
+var _current_category: String = "equipment"  # "equipment" or "processing"
 
 # System references (obtained from SystemRegistry)
 var _resource_manager: Variant = null
@@ -67,7 +70,6 @@ func _build_ui() -> void:
 		return
 
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
-	var available_tasks: Array = _get_available_tasks_for_forge(_current_node.tier)
 
 	# Setup self
 	name = "CraftSelectionPopup"
@@ -135,12 +137,42 @@ func _build_ui() -> void:
 	close_btn.add_theme_font_size_override("font_size", 18)
 	header.add_child(close_btn)
 
-	# Tier info
+	# Tier info + Category dropdown row
+	var tier_row: HBoxContainer = HBoxContainer.new()
+	tier_row.add_theme_constant_override("separation", 15)
+	content.add_child(tier_row)
+
 	var tier_label: Label = Label.new()
-	tier_label.text = "Tier %d Forge - %d recipes unlocked" % [_current_node.tier, available_tasks.size()]
+	tier_label.text = "Tier %d Forge" % _current_node.tier
 	tier_label.add_theme_font_size_override("font_size", 12)
 	tier_label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8))
-	content.add_child(tier_label)
+	tier_row.add_child(tier_label)
+
+	# Spacer
+	var spacer: Control = Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tier_row.add_child(spacer)
+
+	# Category label
+	var cat_label: Label = Label.new()
+	cat_label.text = "Category:"
+	cat_label.add_theme_font_size_override("font_size", 12)
+	cat_label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8))
+	tier_row.add_child(cat_label)
+
+	# Category dropdown
+	_category_dropdown = OptionButton.new()
+	_category_dropdown.add_item("Equipment", 0)
+	_category_dropdown.add_item("Processing", 1)
+	_category_dropdown.custom_minimum_size = Vector2(120, 30)
+	_category_dropdown.item_selected.connect(_on_category_changed)
+	var dd_style: StyleBoxFlat = StyleBoxFlat.new()
+	dd_style.bg_color = Color(0.15, 0.13, 0.2, 1)
+	dd_style.border_color = Color(0.4, 0.35, 0.5, 0.8)
+	dd_style.set_border_width_all(1)
+	dd_style.set_corner_radius_all(4)
+	_category_dropdown.add_theme_stylebox_override("normal", dd_style)
+	tier_row.add_child(_category_dropdown)
 
 	# Separator
 	var sep: HSeparator = HSeparator.new()
@@ -153,8 +185,22 @@ func _build_ui() -> void:
 	content.add_child(scroll)
 
 	# Grid container with 3 columns for recipe cards
-	var recipes_grid: GridContainer = CraftingUIUtils.create_recipe_grid(3)
-	scroll.add_child(recipes_grid)
+	_recipes_grid = CraftingUIUtils.create_recipe_grid(3)
+	scroll.add_child(_recipes_grid)
+
+	# Populate recipes for current category
+	_populate_recipes()
+
+func _populate_recipes() -> void:
+	"""Populate the recipes grid based on current category"""
+	if not _recipes_grid or not _current_node:
+		return
+
+	# Clear existing cards
+	for child in _recipes_grid.get_children():
+		child.queue_free()
+
+	var available_tasks: Array = _get_available_tasks_for_forge(_current_node.tier)
 
 	# Add recipe cards
 	for task in available_tasks:
@@ -171,14 +217,28 @@ func _build_ui() -> void:
 			is_conversion,
 			_resource_manager
 		)
-		recipes_grid.add_child(card)
+		_recipes_grid.add_child(card)
+
+func _on_category_changed(index: int) -> void:
+	"""Handle category dropdown selection change"""
+	match index:
+		0:
+			_current_category = "equipment"
+		1:
+			_current_category = "processing"
+	_populate_recipes()
 
 func _get_available_tasks_for_forge(tier: int) -> Array:
-	"""Get crafting recipes available for a forge at the given tier"""
+	"""Get crafting recipes available for a forge at the given tier, filtered by category"""
 	var available: Array = []
 
 	for recipe_id: String in _tasks_data.keys():
 		var recipe: Dictionary = _tasks_data[recipe_id]
+
+		# Filter by category
+		var recipe_category: String = recipe.get("category", "equipment")
+		if recipe_category != _current_category:
+			continue
 
 		# Check if this recipe can be crafted at a forge
 		var territory_type: String = recipe.get("territory_type_requirement", "")
@@ -192,8 +252,9 @@ func _get_available_tasks_for_forge(tier: int) -> Array:
 		var territory_required: bool = recipe.get("territory_required", false)
 
 		# If territory is not required, can craft at any forge (tier 1+)
-		if not territory_required:
-			required_tier = 1
+		# Processing recipes never require territory
+		if not territory_required or recipe_category == "processing":
+			required_tier = recipe.get("tier", 1)
 
 		# Check if tier is sufficient
 		if tier >= required_tier:
