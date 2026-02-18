@@ -39,7 +39,13 @@ var _log_file_path: String = "user://steam_debug.log"
 
 func _ready() -> void:
 	name = "SteamManager"
-	# Initialize Steam early so SignInScreen can detect it
+	# Initialize Steam after a short delay to let overlay inject
+	_delayed_init()
+
+func _delayed_init() -> void:
+	# Wait 2 frames for Steam overlay to fully inject
+	await get_tree().process_frame
+	await get_tree().process_frame
 	_init_steam()
 
 # ==============================================================================
@@ -108,8 +114,9 @@ func _init_steam() -> void:
 	_steam = Engine.get_singleton("Steam")
 	_log("Steam singleton obtained")
 
-	# Initialize Steam with explicit app ID
-	var init_result: Dictionary = _steam.steamInitEx(true, STEAM_APP_ID)
+	# Use steamInitEx with no app ID - let Steam detect it
+	_log("Calling steamInitEx()...")
+	var init_result: Dictionary = _steam.steamInitEx()
 	_log("steamInitEx result: %s" % str(init_result))
 
 	# Check status: 0 = OK, 1 = failed, 2 = no client
