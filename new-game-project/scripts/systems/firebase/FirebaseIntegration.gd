@@ -372,6 +372,12 @@ func _on_login_succeeded(auth_result: Dictionary) -> void:
 
 func _on_login_failed(error_code: Variant, error_message: Variant) -> void:
 	"""Handle failed Firebase login"""
+	# Don't reset auth state if we're already signed in via Steam
+	# (Firebase Auth failures don't affect Steam-based auth)
+	if _auth_provider == "steam" and auth_state == AuthState.SIGNED_IN:
+		print("FirebaseIntegration: Ignoring Firebase Auth failure (using Steam auth)")
+		return
+
 	auth_state = AuthState.SIGNED_OUT
 	var error_str: String = "%s: %s" % [error_code, error_message]
 	sign_in_failed.emit(error_str)
