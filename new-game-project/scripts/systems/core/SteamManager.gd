@@ -28,12 +28,65 @@ var _is_initialized: bool = false
 var _steam: Object = null  # Reference to Steam singleton
 var _stats_received: bool = false  # True after Steam stats are loaded
 
+# Debug log for troubleshooting (since console may not be visible)
+var _debug_log: Array[String] = []
+const MAX_DEBUG_LOG: int = 50
+var _log_file_path: String = "user://steam_debug.log"
+
 # ==============================================================================
 # INITIALIZATION
 # ==============================================================================
 
 func _ready() -> void:
 	name = "SteamManager"
+	# Initialize Steam early so SignInScreen can detect it
+	_init_steam()
+
+# ==============================================================================
+# DEBUG LOGGING
+# ==============================================================================
+
+func _log(message: String) -> void:
+	"""Log message to console, debug array, and file"""
+	var timestamp: String = Time.get_datetime_string_from_system()
+	var full_msg: String = "[%s] %s" % [timestamp, message]
+	print(full_msg)
+
+	_debug_log.append(full_msg)
+	if _debug_log.size() > MAX_DEBUG_LOG:
+		_debug_log.remove_at(0)
+
+	# Write to file
+	var file := FileAccess.open(_log_file_path, FileAccess.WRITE)
+	if file:
+		for log_line: String in _debug_log:
+			file.store_line(log_line)
+		file.close()
+
+func get_debug_status() -> String:
+	"""Get current Steam status for in-game display"""
+	var lines: Array[String] = []
+	lines.append("=== STEAM DEBUG STATUS ===")
+	lines.append("Steam singleton exists: %s" % Engine.has_singleton("Steam"))
+	lines.append("Steam running: %s" % _steam_running)
+	lines.append("Stats received: %s" % _stats_received)
+	lines.append("Initialized: %s" % _is_initialized)
+
+	if _steam_running and _steam:
+		lines.append("Steam ID: %d" % _steam.getSteamID())
+		lines.append("Persona: %s" % _steam.getPersonaName())
+
+	lines.append("")
+	lines.append("=== RECENT LOG ===")
+	var start_idx: int = maxi(0, _debug_log.size() - 10)
+	for i in range(start_idx, _debug_log.size()):
+		lines.append(_debug_log[i])
+
+	return "\n".join(lines)
+
+func get_debug_log() -> Array[String]:
+	"""Get full debug log"""
+	return _debug_log
 
 func initialize() -> void:
 	"""Called by SystemRegistry after all systems registered."""
@@ -41,19 +94,23 @@ func initialize() -> void:
 		return
 	_is_initialized = true
 
-	_init_steam()
+	# Steam is already initialized in _ready(), just connect to events
 	_connect_to_achievement_events()
 
 func _init_steam() -> void:
 	"""Initialize Steam SDK"""
+	_log("_init_steam() called")
+
 	if not Engine.has_singleton("Steam"):
-		print("SteamManager: Steam singleton not found - running without Steam")
+		_log("Steam singleton not found - running without Steam")
 		return
 
 	_steam = Engine.get_singleton("Steam")
+	_log("Steam singleton obtained")
 
-	# Initialize Steam
+	# Initialize Steam with explicit app ID
 	var init_result: Dictionary = _steam.steamInitEx(true, STEAM_APP_ID)
+	_log("steamInitEx result: %s" % str(init_result))
 
 	# Check status: 0 = OK, 1 = failed, 2 = no client
 	var status: int = init_result.get("status", 1)
@@ -63,29 +120,32 @@ func _init_steam() -> void:
 		_steam_running = true
 		var steam_id: int = _steam.getSteamID()
 		var persona_name: String = _steam.getPersonaName()
-		print("SteamManager: Steam initialized successfully!")
-		print("SteamManager: Logged in as: %s (ID: %d)" % [persona_name, steam_id])
+		_log("Steam initialized successfully!")
+		_log("Logged in as: %s (ID: %d)" % [persona_name, steam_id])
 
 		# Connect to stats received callback
 		_steam.current_stats_received.connect(_on_stats_received)
 
 		# Request current stats from Steam (required before setting achievements)
 		_steam.requestCurrentStats()
-		print("SteamManager: Requesting stats from Steam...")
+		_log("Requesting stats from Steam...")
 	else:
 		_steam_running = false
-		print("SteamManager: Steam init failed - %s" % verbal)
+		_log("Steam init failed - %s" % verbal)
 
 func _connect_to_achievement_events() -> void:
 	"""Connect to AchievementManager to sync Steam achievements"""
 	var registry: Node = SystemRegistry.get_instance()
 	if not registry:
+		_log("SystemRegistry not found!")
 		return
 
 	var achievement_manager: Node = registry.get_system("AchievementManager")
 	if achievement_manager:
 		achievement_manager.achievement_completed.connect(_on_achievement_completed)
-		print("SteamManager: Connected to AchievementManager")
+		_log("Connected to AchievementManager")
+	else:
+		_log("AchievementManager not found!")
 
 # ==============================================================================
 # STEAM CALLBACKS
@@ -100,9 +160,9 @@ func _on_stats_received(game_id: int, result: int) -> void:
 	"""Called when Steam stats are received - must happen before setting achievements"""
 	if result == 1:  # k_EResultOK
 		_stats_received = true
-		print("SteamManager: Stats received successfully for game %d" % game_id)
+		_log("Stats received successfully for game %d" % game_id)
 	else:
-		print("SteamManager: Failed to receive stats (result: %d)" % result)
+		_log("Failed to receive stats (result: %d)" % result)
 
 # ==============================================================================
 # ACHIEVEMENTS
@@ -110,31 +170,35 @@ func _on_stats_received(game_id: int, result: int) -> void:
 
 func _on_achievement_completed(achievement_id: String, _achievement_data: Dictionary) -> void:
 	"""When in-game achievement completes, unlock on Steam too"""
+	_log("Received achievement_completed signal for: %s" % achievement_id)
 	unlock_achievement(achievement_id)
 
 func unlock_achievement(achievement_id: String) -> bool:
 	"""Unlock a Steam achievement by API name"""
+	_log("unlock_achievement called with: %s" % achievement_id)
+
 	if not _steam_running or not _steam:
-		print("SteamManager: Steam not running, skipping achievement: %s" % achievement_id)
+		_log("Steam not running, skipping achievement: %s" % achievement_id)
 		return false
 
 	if not _stats_received:
-		print("SteamManager: Stats not received yet, cannot unlock: %s" % achievement_id)
+		_log("Stats not received yet, cannot unlock: %s" % achievement_id)
 		return false
 
-	print("SteamManager: Attempting to unlock Steam achievement: %s" % achievement_id)
+	_log("Attempting to unlock Steam achievement: %s" % achievement_id)
 
 	# Set the achievement
 	var success: bool = _steam.setAchievement(achievement_id)
+	_log("setAchievement returned: %s" % success)
 
 	if success:
 		# Store stats to Steam servers
 		var store_success: bool = _steam.storeStats()
-		print("SteamManager: Unlocked Steam achievement: %s (storeStats: %s)" % [achievement_id, store_success])
+		_log("Unlocked Steam achievement: %s (storeStats: %s)" % [achievement_id, store_success])
 	else:
 		# Check if it's already unlocked
 		var status: Dictionary = _steam.getAchievement(achievement_id)
-		print("SteamManager: Failed to unlock '%s' - current status: %s" % [achievement_id, status])
+		_log("Failed to unlock '%s' - current status: %s" % [achievement_id, status])
 
 	return success
 
@@ -146,7 +210,7 @@ func clear_achievement(achievement_id: String) -> bool:
 	var success: bool = _steam.clearAchievement(achievement_id)
 	if success:
 		_steam.storeStats()
-		print("SteamManager: Cleared achievement: %s" % achievement_id)
+		_log("Cleared achievement: %s" % achievement_id)
 	return success
 
 func get_achievement_status(achievement_id: String) -> Dictionary:
@@ -163,7 +227,7 @@ func reset_all_achievements() -> void:
 		return
 
 	_steam.resetAllStats(true)  # true = also reset achievements
-	print("SteamManager: Reset all stats and achievements")
+	_log("Reset all stats and achievements")
 
 # ==============================================================================
 # STATS

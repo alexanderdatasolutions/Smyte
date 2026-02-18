@@ -116,6 +116,13 @@ func register_core_systems() -> void:
 
 ## Phase 1-2: Core infrastructure and resources (no dependencies)
 func _register_core_infrastructure() -> void:
+	# Steam MUST be initialized first, before SignInScreen checks for it
+	# Note: Don't initialize immediately - AchievementManager isn't registered yet
+	# Steam SDK init happens in _ready(), event connection happens in initialize()
+	if ResourceLoader.exists("res://scripts/systems/core/SteamManager.gd"):
+		var steam_manager := preload("res://scripts/systems/core/SteamManager.gd").new()
+		register_system("SteamManager", steam_manager, false)  # defer initialize()
+
 	var event_bus := preload("res://scripts/systems/core/EventBus.gd").new()
 	register_system("EventBus", event_bus)
 
@@ -232,10 +239,7 @@ func _register_progression() -> void:
 		var achievement_manager := preload("res://scripts/systems/progression/AchievementManager.gd").new()
 		register_system("AchievementManager", achievement_manager)
 
-	# Steam integration - connects to AchievementManager for Steam achievement sync
-	if ResourceLoader.exists("res://scripts/systems/core/SteamManager.gd"):
-		var steam_manager := preload("res://scripts/systems/core/SteamManager.gd").new()
-		register_system("SteamManager", steam_manager)
+	# SteamManager is registered in _register_core_infrastructure() (early init)
 
 	if ResourceLoader.exists("res://scripts/systems/tasks/TaskAssignmentManager.gd"):
 		var task_assignment_manager := preload("res://scripts/systems/tasks/TaskAssignmentManager.gd").new()

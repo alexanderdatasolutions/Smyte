@@ -35,11 +35,21 @@ func _ready():
 
 func _check_steam_available():
 	"""Check if Steam is running and available for auth"""
+	# Use SteamManager which tracks if steamInitEx() succeeded, not just if client is running
+	var registry: SystemRegistry = SystemRegistry.get_instance()
+	if registry:
+		var steam_manager: Node = registry.get_system("SteamManager")
+		if steam_manager and steam_manager.is_steam_running():
+			_steam_available = true
+			print("SignInScreen: Steam detected - %s" % steam_manager.get_persona_name())
+			return
+
+	# Fallback: SteamManager not available yet
 	if Engine.has_singleton("Steam"):
-		var steam: Object = Engine.get_singleton("Steam")
-		_steam_available = steam.isSteamRunning()
-		if _steam_available:
-			print("SignInScreen: Steam detected - %s" % steam.getPersonaName())
+		# isSteamRunning() only checks if Steam client is running, NOT if our app authenticated
+		# We need steamInitEx() to succeed first, so skip this fallback
+		print("SignInScreen: Steam singleton exists but SteamManager not ready - skipping Steam auth")
+	_steam_available = false
 
 func _build_ui():
 	# Full screen dark overlay
