@@ -33,10 +33,6 @@ func _ensure_managers() -> void:
 	if not tutorial_manager:
 		tutorial_manager = registry.get_system("TutorialOrchestrator")
 
-func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.keycode == KEY_F1:
-		toggle_debug_panel()
-
 func toggle_debug_panel() -> void:
 	debug_panel_visible = !debug_panel_visible
 	visible = debug_panel_visible

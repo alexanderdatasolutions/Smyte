@@ -118,6 +118,10 @@ func _on_battle_started(config):
 	display_manager.create_battle_displays(config.attacker_team, config.defender_team)
 	status_tracker.initialize_tracking(config.attacker_team, config.defender_team)
 	log_manager.clear_log()
+
+	# Set battle type for settings persistence (tower/dungeon remember speed/auto)
+	var battle_type_str: String = BattleConfig.BattleType.keys()[config.battle_type].to_lower()
+	controls_ui.set_battle_type(battle_type_str)
 	controls_ui.enable_battle_controls()
 
 func _on_battle_ended(_result):

@@ -248,11 +248,13 @@ func _create_team_slot(index: int) -> Control:
 	vbox.name = "VBoxContainer"
 	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	vbox.add_theme_constant_override("separation", 2)
+	vbox.mouse_filter = Control.MOUSE_FILTER_PASS  # Pass clicks to slot
 	slot.add_child(vbox)
 
 	var god_display: Control = Control.new()
 	god_display.name = "GodDisplay"
 	god_display.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	god_display.mouse_filter = Control.MOUSE_FILTER_PASS  # Pass clicks to slot
 	vbox.add_child(god_display)
 
 	var empty_label: Label = Label.new()
@@ -262,6 +264,7 @@ func _create_team_slot(index: int) -> Control:
 	empty_label.add_theme_font_size_override("font_size", 24)
 	empty_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.5))
 	empty_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	empty_label.mouse_filter = Control.MOUSE_FILTER_PASS  # Pass clicks to slot
 	god_display.add_child(empty_label)
 
 	slot.gui_input.connect(_on_slot_clicked.bind(index))
@@ -272,6 +275,13 @@ func _on_slot_clicked(event: InputEvent, index: int) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if selected_team[index] != null:
 			_clear_slot(index)
+
+func _set_mouse_filter_recursive(node: Control, filter: Control.MouseFilter) -> void:
+	"""Set mouse_filter on node and all Control children recursively"""
+	node.mouse_filter = filter
+	for child in node.get_children():
+		if child is Control:
+			_set_mouse_filter_recursive(child, filter)
 
 func _clear_slot(slot_index: int) -> void:
 	selected_team[slot_index] = null
@@ -312,11 +322,15 @@ func _update_slot_display(slot_index: int) -> void:
 		empty_label.add_theme_font_size_override("font_size", 24)
 		empty_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.5))
 		empty_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		empty_label.mouse_filter = Control.MOUSE_FILTER_PASS  # Pass clicks to slot
 		god_display.add_child(empty_label)
 	else:
 		var god_card: Control = GodCardFactory.create_god_card(GodCardFactory.CardPreset.COMPACT)
 		god_card.setup_god_card(god)
 		god_card.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		# Allow clicks to pass through to the slot for removal
+		god_card.mouse_filter = Control.MOUSE_FILTER_PASS
+		_set_mouse_filter_recursive(god_card, Control.MOUSE_FILTER_PASS)
 		god_display.add_child(god_card)
 
 # ============================================================================

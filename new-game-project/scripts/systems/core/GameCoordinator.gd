@@ -15,19 +15,11 @@ var is_paused: bool = false
 var loading_operations: Array = []  # Array[String]
 var _sign_in_shown: bool = false
 
-# Debug overlay
-var _steam_debug_overlay: Control = null
-
 func _ready():
 	_setup_core_systems()
 	_connect_global_events()
 	_load_game_data()
 	_show_sign_in_screen()
-
-func _input(event: InputEvent) -> void:
-	# F10 toggles Steam debug overlay
-	if event is InputEventKey and event.pressed and event.keycode == KEY_F10:
-		_toggle_steam_debug_overlay()
 
 ## Show sign-in screen before initializing game
 func _show_sign_in_screen():
@@ -440,98 +432,3 @@ func _show_free_skin_popup() -> void:
 		popup.show_for_god(pending_god_id)
 		print("GameCoordinator: Showing free skin popup for god: %s" % pending_god_id)
 
-# ============================================================================
-# STEAM DEBUG OVERLAY
-# ============================================================================
-
-func _toggle_steam_debug_overlay() -> void:
-	"""Toggle Steam debug overlay (F12)"""
-	if _steam_debug_overlay and is_instance_valid(_steam_debug_overlay):
-		_steam_debug_overlay.queue_free()
-		_steam_debug_overlay = null
-		return
-
-	# Create overlay
-	_steam_debug_overlay = _create_steam_debug_overlay()
-	get_tree().root.add_child(_steam_debug_overlay)
-
-func _create_steam_debug_overlay() -> Control:
-	"""Create Steam debug overlay UI"""
-	var overlay := Control.new()
-	overlay.name = "SteamDebugOverlay"
-	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	# Background panel (semi-transparent, top-left corner)
-	var panel := Panel.new()
-	panel.custom_minimum_size = Vector2(500, 400)
-	panel.position = Vector2(10, 10)
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.0, 0.0, 0.0, 0.85)
-	style.border_color = Color(0.3, 0.6, 1.0, 0.8)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(8)
-	panel.add_theme_stylebox_override("panel", style)
-	overlay.add_child(panel)
-
-	# VBox for content
-	var vbox := VBoxContainer.new()
-	vbox.position = Vector2(10, 10)
-	vbox.custom_minimum_size = Vector2(480, 380)
-	panel.add_child(vbox)
-
-	# Title
-	var title := Label.new()
-	title.text = "STEAM DEBUG (F10 to close)"
-	title.add_theme_color_override("font_color", Color(0.3, 0.8, 1.0))
-	title.add_theme_font_size_override("font_size", 18)
-	vbox.add_child(title)
-
-	# Status label (will be updated)
-	var status_label := Label.new()
-	status_label.name = "StatusLabel"
-	status_label.add_theme_font_size_override("font_size", 14)
-	status_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
-	vbox.add_child(status_label)
-
-	# Test button - use the actual achievement ID from achievements.json
-	var test_btn := Button.new()
-	test_btn.text = "Test Unlock 'first_territory' Achievement"
-	test_btn.pressed.connect(_test_steam_achievement)
-	vbox.add_child(test_btn)
-
-	# Refresh button
-	var refresh_btn := Button.new()
-	refresh_btn.text = "Refresh Status"
-	refresh_btn.pressed.connect(_refresh_steam_debug)
-	vbox.add_child(refresh_btn)
-
-	# Initial status update
-	_update_steam_debug_status(status_label)
-
-	return overlay
-
-func _update_steam_debug_status(label: Label) -> void:
-	"""Update debug status text"""
-	var steam_manager: Node = system_registry.get_system("SteamManager") if system_registry else null
-	if steam_manager and steam_manager.has_method("get_debug_status"):
-		label.text = steam_manager.get_debug_status()
-	else:
-		label.text = "SteamManager not found or no get_debug_status method"
-
-func _refresh_steam_debug() -> void:
-	"""Refresh the debug overlay"""
-	if _steam_debug_overlay and is_instance_valid(_steam_debug_overlay):
-		var label: Label = _steam_debug_overlay.find_child("StatusLabel", true, false)
-		if label:
-			_update_steam_debug_status(label)
-
-func _test_steam_achievement() -> void:
-	"""Test unlocking an achievement directly"""
-	var steam_manager: Node = system_registry.get_system("SteamManager") if system_registry else null
-	if steam_manager and steam_manager.has_method("unlock_achievement"):
-		# Use the actual achievement ID from achievements.json, NOT the display name
-		steam_manager.unlock_achievement("first_territory")
-		# Refresh display after attempt
-		_refresh_steam_debug()

@@ -16,7 +16,9 @@ var battle_stats: Dictionary = {
 	"dungeon_clears": {},
 	"territory_conquests": 0,
 	"longest_win_streak": 0,
-	"current_win_streak": 0
+	"current_win_streak": 0,
+	"total_enemies_killed": 0,
+	"tower_floors_cleared": 0
 }
 
 # Resource Statistics
@@ -28,7 +30,9 @@ var resource_stats: Dictionary = {
 	"legendary_summons": 0,
 	"epic_summons": 0,
 	"gods_sacrificed": 0,
-	"equipment_crafted": 0
+	"equipment_crafted": 0,
+	"legendary_gods_obtained": 0,
+	"epic_gods_obtained": 0
 }
 
 func _ready() -> void:
@@ -50,6 +54,10 @@ func _connect_events() -> void:
 		event_bus.god_sacrifice_completed.connect(_on_sacrifice_completed)
 	if event_bus.has_signal("equipment_crafted"):
 		event_bus.equipment_crafted.connect(_on_equipment_crafted)
+	if event_bus.has_signal("tower_floor_cleared"):
+		event_bus.tower_floor_cleared.connect(_on_tower_floor_cleared)
+	if event_bus.has_signal("god_obtained"):
+		event_bus.god_obtained.connect(_on_god_obtained)
 
 # ==============================================================================
 # EVENT HANDLERS
@@ -59,10 +67,19 @@ func _on_battle_ended(result) -> void:
 	if not result:
 		return
 	battle_stats["total_battles"] += 1
+
+	# Track enemies killed
+	if "units_defeated" in result:
+		battle_stats["total_enemies_killed"] += result.units_defeated
+
 	if result.victory:
 		battle_stats["battles_won"] += 1
 		battle_stats["current_win_streak"] += 1
 		battle_stats["longest_win_streak"] = maxi(battle_stats["longest_win_streak"], battle_stats["current_win_streak"])
+
+		# Track perfect victories
+		if result.has_method("is_perfect_victory") and result.is_perfect_victory():
+			battle_stats["perfect_victories"] += 1
 	else:
 		battle_stats["battles_lost"] += 1
 		battle_stats["current_win_streak"] = 0
@@ -78,12 +95,31 @@ func _on_territory_captured(_territory_id) -> void:
 func _on_summon_performed(_banner_id: String, results: Array) -> void:
 	resource_stats["total_summons_performed"] += results.size()
 
+	# Count legendary and epic summons
+	for god in results:
+		if god and "tier" in god:
+			if god.tier == God.TierType.LEGENDARY:
+				resource_stats["legendary_summons"] += 1
+			elif god.tier == God.TierType.EPIC:
+				resource_stats["epic_summons"] += 1
+
 func _on_sacrifice_completed(sacrifice_data: Dictionary) -> void:
 	var material_count: int = sacrifice_data.get("material_count", 0)
 	resource_stats["gods_sacrificed"] += material_count
 
 func _on_equipment_crafted(_equipment: Variant, _recipe_id: String) -> void:
 	resource_stats["equipment_crafted"] += 1
+
+func _on_tower_floor_cleared(_floor_number: int) -> void:
+	battle_stats["tower_floors_cleared"] += 1
+
+func _on_god_obtained(god) -> void:
+	if not god or not "tier" in god:
+		return
+	if god.tier == God.TierType.LEGENDARY:
+		resource_stats["legendary_gods_obtained"] += 1
+	elif god.tier == God.TierType.EPIC:
+		resource_stats["epic_gods_obtained"] += 1
 
 # ==============================================================================
 # PUBLIC RECORD API (for systems that don't go through EventBus)

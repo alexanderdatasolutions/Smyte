@@ -164,6 +164,7 @@ func end_battle(result: BattleResult):
 	# Calculate final battle statistics
 	result.duration = battle_state.get_battle_duration() if battle_state else 0.0
 	result.battle_type = current_battle_config.get_battle_type_name() if current_battle_config else "unknown"
+	result.units_defeated = battle_state.units_defeated if battle_state else 0
 
 	# Award rewards if victory
 	if result.victory:
@@ -171,11 +172,23 @@ func end_battle(result: BattleResult):
 		_award_battle_rewards(result.rewards)
 		print("BattleCoordinator: Victory rewards calculated: %s" % str(result.rewards))
 
+	# Add participating god IDs to result for achievement tracking
+	if battle_state:
+		for unit in battle_state.get_player_units():
+			if unit.source_god:
+				# Track which gods participated (using add_experience_gained with 0)
+				result.add_experience_gained(unit.source_god.id, 0)
+
 	# Emit battle_ended BEFORE cleanup so handlers can access battle_state
 	# (e.g., TowerScreen needs to save HP for next floor)
 	is_battle_active = false
 	print("BattleCoordinator: Emitting battle_ended signal")
 	battle_ended.emit(result)
+
+	# Also emit to EventBus for global listeners (AchievementManager, StatisticsManager, etc.)
+	var event_bus = _get_event_bus()
+	if event_bus:
+		event_bus.battle_ended.emit(result)
 
 	# Log battle end for debugging
 	var debug_logger = _get_debug_logger()

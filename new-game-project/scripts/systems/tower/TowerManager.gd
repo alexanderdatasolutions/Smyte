@@ -202,6 +202,13 @@ func complete_current_floor() -> Dictionary:
 	var rewards = _calculate_floor_rewards(current_floor)
 	floor_completed.emit(current_floor, rewards)
 
+	# Emit to EventBus for statistics tracking
+	var system_registry := SystemRegistry.get_instance()
+	if system_registry:
+		var event_bus := system_registry.get_system("EventBus")
+		if event_bus:
+			event_bus.tower_floor_cleared.emit(current_floor)
+
 	# Award rewards immediately
 	_award_rewards(rewards)
 

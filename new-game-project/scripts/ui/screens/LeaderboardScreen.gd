@@ -42,7 +42,9 @@ const CATEGORY_GROUPS := {
 			["unique_gods_collected", "Unique Gods"],
 			["legendary_gods", "Legendary Gods"],
 			["epic_gods", "Epic Gods"],
-			["max_level_gods", "Max Level Gods"]
+			["max_level_gods", "Max Level Gods"],
+			["legendary_gods_obtained", "Legendary Summons (Total)"],
+			["epic_gods_obtained", "Epic Summons (Total)"]
 		]
 	},
 	"combat": {
@@ -52,8 +54,10 @@ const CATEGORY_GROUPS := {
 			["total_battles", "Total Battles"],
 			["perfect_victories", "Perfect Victories"],
 			["longest_win_streak", "Longest Win Streak"],
+			["total_enemies_killed", "Enemies Killed"],
 			["dungeons_cleared", "Dungeons Cleared"],
-			["tower_best_floor", "Tower Floor"],
+			["tower_best_floor", "Tower Best Floor"],
+			["tower_floors_cleared", "Tower Floors Cleared"],
 			["arena_elo", "Arena Rating"]
 		]
 	},

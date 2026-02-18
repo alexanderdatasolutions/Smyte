@@ -21,13 +21,17 @@ const METRICS := {
 	"legendary_gods": "Legendary Gods",
 	"epic_gods": "Epic Gods",
 	"max_level_gods": "Max Level Gods",
+	"legendary_gods_obtained": "Legendary Summons (Owned)",
+	"epic_gods_obtained": "Epic Summons (Owned)",
 	# Combat
 	"battles_won": "Battles Won",
 	"total_battles": "Total Battles",
 	"perfect_victories": "Perfect Victories",
 	"longest_win_streak": "Longest Win Streak",
+	"total_enemies_killed": "Enemies Killed",
 	"dungeons_cleared": "Dungeons Cleared",
-	"tower_best_floor": "Tower Floor",
+	"tower_best_floor": "Tower Best Floor",
+	"tower_floors_cleared": "Tower Floors Cleared",
 	"arena_elo": "Arena Rating",
 	# Territory & Buildings
 	"territories_owned": "Territories Owned",
@@ -58,13 +62,17 @@ const LEADERBOARD_CATEGORIES: Array[String] = [
 	"legendary_gods",
 	"epic_gods",
 	"max_level_gods",
+	"legendary_gods_obtained",
+	"epic_gods_obtained",
 	# Combat
 	"battles_won",
 	"total_battles",
 	"perfect_victories",
 	"longest_win_streak",
+	"total_enemies_killed",
 	"dungeons_cleared",
 	"tower_best_floor",
+	"tower_floors_cleared",
 	"arena_elo",
 	# Territory & Buildings
 	"territories_owned",
@@ -242,6 +250,8 @@ func _collect_stats() -> Dictionary:
 		stats["perfect_victories"] = bs.get("perfect_victories", 0)
 		stats["longest_win_streak"] = bs.get("longest_win_streak", 0)
 		stats["territory_conquests"] = bs.get("territory_conquests", 0)
+		stats["total_enemies_killed"] = bs.get("total_enemies_killed", 0)
+		stats["tower_floors_cleared"] = bs.get("tower_floors_cleared", 0)
 		stats["gold_earned"] = bs.get("gold_earned", 0)
 		stats["mana_earned"] = bs.get("mana_earned", 0)
 	if sm and sm.has_method("get_total_dungeon_clears"):
@@ -254,6 +264,8 @@ func _collect_stats() -> Dictionary:
 		stats["total_summons"] = rs.get("total_summons_performed", 0)
 		stats["legendary_summons"] = rs.get("legendary_summons", 0)
 		stats["epic_summons"] = rs.get("epic_summons", 0)
+		stats["legendary_gods_obtained"] = rs.get("legendary_gods_obtained", 0)
+		stats["epic_gods_obtained"] = rs.get("epic_gods_obtained", 0)
 
 	# Collection - gods collected, total power, highest level god, highest god power, highest team power
 	var cm := reg.get_system("CollectionManager")
@@ -284,11 +296,11 @@ func _collect_stats() -> Dictionary:
 				# Track unique templates
 				var template_id: String = god.template_id if "template_id" in god and god.template_id else god.id
 				unique_templates[template_id] = true
-				# Track tier-based counts
-				var god_tier: int = god.tier if "tier" in god else 1
-				if god_tier >= 5:
+				# Track tier-based counts (COMMON=0, RARE=1, EPIC=2, LEGENDARY=3)
+				var god_tier: int = god.tier if "tier" in god else 0
+				if god_tier == God.TierType.LEGENDARY:
 					legendary_count += 1
-				if god_tier >= 4:
+				if god_tier >= God.TierType.EPIC:  # Epic or higher
 					epic_count += 1
 		stats["total_power"] = total_power
 		stats["highest_god_level"] = highest_level

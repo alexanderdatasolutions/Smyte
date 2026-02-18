@@ -143,8 +143,9 @@ func _connect_to_events() -> void:
 # ==============================================================================
 
 func _on_god_obtained(_god) -> void:
-	"""Handle god obtained - check god_count achievements"""
+	"""Handle god obtained - check god_count and legendary_count achievements"""
 	_check_god_count_achievements()
+	_check_legendary_count_achievements()
 
 func _on_god_level_up(god_id: String, new_level: int, _old_level: int) -> void:
 	"""Handle god level up - check max_god_level and legendary_god_level_40 achievements"""
@@ -160,9 +161,10 @@ func _on_summon_performed(_banner_id: String, results: Array) -> void:
 	_check_summon_count_achievements_with_count(new_count)
 
 func _on_battle_ended(result) -> void:
-	"""Handle battle end - check battle_wins achievements"""
+	"""Handle battle end - check battle_wins and legendary_team achievements"""
 	if result and result.victory:
 		_check_battle_wins_achievements()
+		_check_legendary_team_achievement(result)
 
 func _on_dungeon_completed(_dungeon_id: String, _rewards: Array) -> void:
 	"""Handle dungeon completion - check dungeon_clears achievements"""
@@ -367,9 +369,53 @@ func _check_building_count_achievements() -> void:
 			if building_count >= target and not is_achievement_completed(achievement_id):
 				complete_achievement(achievement_id)
 
+func _check_legendary_count_achievements() -> void:
+	"""Check achievements with trigger type: legendary_count"""
+	if not _collection_manager:
+		return
+
+	# Count legendary gods in collection
+	var legendary_count: int = 0
+	for god in _collection_manager.gods:
+		if god and god.tier == God.TierType.LEGENDARY:
+			legendary_count += 1
+
+	for achievement_id in _achievements:
+		var achievement: Dictionary = _achievements[achievement_id]
+		var trigger: Dictionary = achievement.get("trigger", {})
+
+		if trigger.get("type") == "legendary_count":
+			var target: int = trigger.get("target", 0)
+			if legendary_count >= target and not is_achievement_completed(achievement_id):
+				complete_achievement(achievement_id)
+
+func _check_legendary_team_achievement(result) -> void:
+	"""Check if player fielded a full team of 4 legendary gods"""
+	if is_achievement_completed("full_team_legendary"):
+		return
+
+	if not _collection_manager or not result:
+		return
+
+	# Get gods that participated from experience_gained (god_id -> exp)
+	var experience_gained: Dictionary = result.experience_gained if "experience_gained" in result else {}
+	if experience_gained.size() < 4:
+		return  # Need exactly 4 gods for a full team
+
+	# Check if all participating gods are legendary
+	var legendary_count: int = 0
+	for god_id in experience_gained:
+		var god: God = _collection_manager.get_god_by_id(god_id)
+		if god and god.tier == God.TierType.LEGENDARY:
+			legendary_count += 1
+
+	if legendary_count >= 4:
+		complete_achievement("full_team_legendary")
+
 func _validate_all_achievements() -> void:
 	"""Check all achievements against current progress (catch-up on load)"""
 	_check_god_count_achievements()
+	_check_legendary_count_achievements()
 	_check_territory_count_achievements()
 	_check_building_count_achievements()
 	_check_battle_wins_achievements()
@@ -562,6 +608,17 @@ func _get_current_value_for_trigger(trigger_type: String) -> int:
 	match trigger_type:
 		"god_count":
 			return _collection_manager.gods.size() if _collection_manager else 0
+		"legendary_count":
+			if not _collection_manager:
+				return 0
+			var count: int = 0
+			for god in _collection_manager.gods:
+				if god and god.tier == God.TierType.LEGENDARY:
+					count += 1
+			return count
+		"legendary_team":
+			# This is checked on battle end, not progressively tracked
+			return 1 if is_achievement_completed("full_team_legendary") else 0
 		"territory_count":
 			if not _hex_grid_manager:
 				return 0

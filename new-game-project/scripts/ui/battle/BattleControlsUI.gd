@@ -14,6 +14,9 @@ var speed_buttons: Array[Button] = []
 var auto_battle_enabled: bool = false
 var speed_multiplier: float = 1.0
 
+# Battle type for saving settings per mode (tower, dungeon, etc.)
+var _current_battle_type: String = ""
+
 func initialize_controls(container: Control):
 	"""Initialize control button references"""
 	if not container:
@@ -83,12 +86,14 @@ func _on_auto_pressed():
 	auto_battle_enabled = not auto_battle_enabled
 	_update_auto_button_text()
 	auto_battle_toggled.emit(auto_battle_enabled)
+	_save_settings()
 
 func _on_speed_pressed(multiplier: float):
 	"""Handle speed button pressed"""
 	speed_multiplier = multiplier
 	_update_speed_button_states()
 	speed_changed.emit(multiplier)
+	_save_settings()
 
 func _update_speed_button_states():
 	"""Update speed button visual states"""
@@ -99,3 +104,65 @@ func _update_speed_button_states():
 		# Update button appearance based on current speed
 		if button:
 			button.modulate = Color.YELLOW if expected_speed == speed_multiplier else Color.WHITE
+
+# ============================================================================
+# BATTLE SETTINGS PERSISTENCE (per battle type)
+# ============================================================================
+
+func set_battle_type(battle_type: String) -> void:
+	"""Set the current battle type and load saved settings for it"""
+	_current_battle_type = battle_type
+	_load_saved_settings()
+
+func _load_saved_settings() -> void:
+	"""Load saved speed/auto settings for the current battle type"""
+	if _current_battle_type.is_empty():
+		return
+
+	var save_manager: Node = _get_save_manager()
+	if not save_manager:
+		return
+
+	# Load settings for this battle type (tower, dungeon, etc.)
+	var settings_key: String = "battle_settings_%s" % _current_battle_type
+	var settings: Dictionary = save_manager.get_player_value(settings_key, {})
+
+	# Apply saved speed
+	var saved_speed: float = settings.get("speed", 1.0)
+	if saved_speed != speed_multiplier:
+		speed_multiplier = saved_speed
+		_update_speed_button_states()
+		speed_changed.emit(speed_multiplier)
+
+	# Apply saved auto
+	var saved_auto: bool = settings.get("auto", false)
+	if saved_auto != auto_battle_enabled:
+		auto_battle_enabled = saved_auto
+		_update_auto_button_text()
+		auto_battle_toggled.emit(auto_battle_enabled)
+
+func _save_settings() -> void:
+	"""Save current speed/auto settings for the current battle type"""
+	if _current_battle_type.is_empty():
+		return
+
+	var save_manager: Node = _get_save_manager()
+	if not save_manager:
+		return
+
+	var settings_key: String = "battle_settings_%s" % _current_battle_type
+	var settings: Dictionary = {
+		"speed": speed_multiplier,
+		"auto": auto_battle_enabled
+	}
+	save_manager.set_player_value(settings_key, settings)
+
+func _get_save_manager() -> Node:
+	"""Get SaveManager from SystemRegistry"""
+	var registry_script: GDScript = load("res://scripts/systems/core/SystemRegistry.gd") as GDScript
+	if not registry_script:
+		return null
+	var registry: Node = registry_script.get_instance()
+	if not registry:
+		return null
+	return registry.get_system("SaveManager")
