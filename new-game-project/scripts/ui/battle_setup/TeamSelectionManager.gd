@@ -79,6 +79,33 @@ func setup_for_context(context: Dictionary) -> void:
 	battle_context = context
 	_update_ui_for_context()
 
+func refresh() -> void:
+	"""Refresh the available gods list and selected team (call when returning to screen)"""
+	# Refresh selected team with fresh god data from CollectionManager
+	_refresh_selected_team_data()
+	_load_available_gods()
+	_update_team_stats()
+	# Update slot displays with fresh god data
+	for i: int in range(selected_team.size()):
+		_update_slot_display(i)
+
+func _refresh_selected_team_data() -> void:
+	"""Refresh selected team with latest god data from CollectionManager"""
+	var registry: Node = SystemRegistry.get_instance()
+	if not registry:
+		return
+	var collection_manager: Node = registry.get_system("CollectionManager")
+	if not collection_manager:
+		return
+
+	for i: int in range(selected_team.size()):
+		var god: Variant = selected_team[i]
+		if god != null and god is God:
+			# Get fresh god data from CollectionManager
+			var fresh_god: God = collection_manager.get_god_by_id(god.id)
+			if fresh_god:
+				selected_team[i] = fresh_god
+
 func _update_ui_for_context() -> void:
 	match battle_context.get("type", ""):
 		"territory", "dungeon", "pvp", "hex_capture", "tower", \

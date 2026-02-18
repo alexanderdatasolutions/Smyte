@@ -51,20 +51,28 @@ func _build_popup() -> void:
 	for child in get_children():
 		child.queue_free()
 
+	# Get viewport size for manual positioning
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+
+	# Make this control fill the screen
+	position = Vector2.ZERO
+	size = viewport_size
+
 	# Semi-transparent overlay
 	_overlay = ColorRect.new()
-	_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_overlay.position = Vector2.ZERO
+	_overlay.size = viewport_size
 	_overlay.color = Color(0, 0, 0, 0.7)
 	_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_overlay)
 
-	# Main panel
+	# Main panel - manually centered (BIG for this special moment)
+	var panel_size: Vector2 = Vector2(750, 550)
 	_panel = Panel.new()
-	_panel.custom_minimum_size = Vector2(450, 400)
-	_panel.set_anchors_preset(Control.PRESET_CENTER)
-	_panel.position = -_panel.custom_minimum_size / 2
-	_panel.size = _panel.custom_minimum_size
+	_panel.size = panel_size
+	_panel.position = (viewport_size - panel_size) / 2
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_panel)
 
 	var panel_style: StyleBoxFlat = StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.12, 0.1, 0.16, 0.98)
@@ -120,21 +128,23 @@ func _build_popup() -> void:
 	var sep: HSeparator = HSeparator.new()
 	vbox.add_child(sep)
 
-	# Skins grid
-	var skins_scroll: ScrollContainer = ScrollContainer.new()
-	skins_scroll.custom_minimum_size = Vector2(0, 200)
-	skins_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.add_child(skins_scroll)
+	# Skins row - centered, 1 row of up to 3 big cards
+	var skins_center: CenterContainer = CenterContainer.new()
+	skins_center.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(skins_center)
 
-	var skins_grid: GridContainer = GridContainer.new()
-	skins_grid.columns = 2
-	skins_grid.add_theme_constant_override("h_separation", 10)
-	skins_grid.add_theme_constant_override("v_separation", 10)
-	skins_scroll.add_child(skins_grid)
+	var skins_row: HBoxContainer = HBoxContainer.new()
+	skins_row.add_theme_constant_override("separation", 20)
+	skins_center.add_child(skins_row)
 
+	# Track added skins to avoid duplicates
+	var added_skins: Dictionary = {}
 	for skin_id: String in _available_skins:
+		if added_skins.has(skin_id):
+			continue
+		added_skins[skin_id] = true
 		var skin_data: Dictionary = _skin_manager.get_skin(skin_id)
-		_create_skin_card(skins_grid, skin_id, skin_data)
+		_create_skin_card(skins_row, skin_id, skin_data)
 
 	# Skip button (if player doesn't want to choose now)
 	var skip_btn: Button = Button.new()
@@ -144,10 +154,10 @@ func _build_popup() -> void:
 	skip_btn.pressed.connect(_on_skip_pressed)
 	vbox.add_child(skip_btn)
 
-func _create_skin_card(parent: GridContainer, skin_id: String, skin_data: Dictionary) -> void:
-	"""Create a skin selection card"""
+func _create_skin_card(parent: Control, skin_id: String, skin_data: Dictionary) -> void:
+	"""Create a BIG skin selection card with portrait preview"""
 	var card: Panel = Panel.new()
-	card.custom_minimum_size = Vector2(190, 80)
+	card.custom_minimum_size = Vector2(210, 320)
 
 	var rarity: String = skin_data.get("rarity", "common")
 	var border_color: Color = Color.WHITE
@@ -183,10 +193,28 @@ func _create_skin_card(parent: GridContainer, skin_id: String, skin_data: Dictio
 	card_vbox.add_theme_constant_override("separation", 4)
 	card_margin.add_child(card_vbox)
 
-	# Skin name
+	# Portrait image - BIG for this special moment
+	var portrait_container: CenterContainer = CenterContainer.new()
+	portrait_container.custom_minimum_size = Vector2(0, 180)
+	card_vbox.add_child(portrait_container)
+
+	var portrait: TextureRect = TextureRect.new()
+	portrait.custom_minimum_size = Vector2(170, 170)
+	portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+
+	var portrait_path: String = skin_data.get("portrait_path", "")
+	if portrait_path != "" and ResourceLoader.exists(portrait_path):
+		portrait.texture = load(portrait_path)
+	else:
+		portrait.modulate = Color(0.5, 0.5, 0.5)
+
+	portrait_container.add_child(portrait)
+
+	# Skin name - bigger text
 	var name_label: Label = Label.new()
 	name_label.text = skin_data.get("name", skin_id)
-	name_label.add_theme_font_size_override("font_size", 14)
+	name_label.add_theme_font_size_override("font_size", 18)
 	name_label.add_theme_color_override("font_color", border_color)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card_vbox.add_child(name_label)
@@ -194,14 +222,15 @@ func _create_skin_card(parent: GridContainer, skin_id: String, skin_data: Dictio
 	# Rarity
 	var rarity_label: Label = Label.new()
 	rarity_label.text = rarity.capitalize()
-	rarity_label.add_theme_font_size_override("font_size", 10)
+	rarity_label.add_theme_font_size_override("font_size", 12)
+	rarity_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
 	rarity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card_vbox.add_child(rarity_label)
 
-	# Select button
+	# Select button - bigger
 	var select_btn: Button = Button.new()
-	select_btn.text = "Select"
-	select_btn.custom_minimum_size = Vector2(80, 25)
+	select_btn.text = "SELECT"
+	select_btn.custom_minimum_size = Vector2(120, 35)
 	select_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	select_btn.pressed.connect(_on_skin_chosen.bind(skin_id))
 	card_vbox.add_child(select_btn)

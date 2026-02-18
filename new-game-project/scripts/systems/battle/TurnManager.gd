@@ -284,6 +284,8 @@ func _begin_next_turn() -> void:
 
 	# Check if unit can act (not stunned, frozen, sleeping, etc.)
 	if not active_unit.can_act():
+		var reason: String = active_unit.get_action_prevention_reason() if active_unit.has_method("get_action_prevention_reason") else "unknown"
+		print("TurnManager: %s cannot act (reason: %s), skipping turn" % [active_unit.display_name, reason])
 		# Still emit turn_started so UI can show the skip
 		turn_started.emit(active_unit)
 		# Auto-skip to next turn after brief delay

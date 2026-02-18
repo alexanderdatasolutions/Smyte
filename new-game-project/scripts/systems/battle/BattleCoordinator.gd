@@ -12,6 +12,7 @@ var battle_state: BattleState
 var current_battle_config
 var is_battle_active: bool = false
 var auto_battle_enabled: bool = false
+var _auto_battle_processing: bool = false  # Guard against overlapping auto-battle
 
 # Signals for battle events
 signal battle_started(config)
@@ -133,6 +134,7 @@ func start_battle(config) -> bool:
 func _force_cleanup_stale_battle():
 	"""Emergency cleanup for stale battle state - used to fix perma-defeat bug"""
 	auto_battle_enabled = false
+	_auto_battle_processing = false
 
 	if battle_state:
 		battle_state.cleanup()
@@ -157,6 +159,7 @@ func end_battle(result: BattleResult):
 
 	# Stop auto-battle if active
 	auto_battle_enabled = false
+	_auto_battle_processing = false
 
 	# Calculate final battle statistics
 	result.duration = battle_state.get_battle_duration() if battle_state else 0.0
@@ -193,6 +196,7 @@ func end_battle(result: BattleResult):
 ## Toggle auto-battle mode
 func set_auto_battle(enabled: bool):
 	auto_battle_enabled = enabled
+	_auto_battle_processing = false  # Reset processing flag on toggle
 	if enabled:
 		_process_auto_battle()
 
@@ -276,14 +280,21 @@ func _process_auto_battle():
 	if not auto_battle_enabled or not is_battle_active:
 		return
 
+	# Prevent overlapping auto-battle processing
+	if _auto_battle_processing:
+		return
+	_auto_battle_processing = true
+
 	# Get current unit's turn
 	var current_unit = turn_manager.get_current_unit()
 	if not current_unit:
+		_auto_battle_processing = false
 		return
 
 	# Safety check - unit might have died from DoT
 	if not current_unit.is_alive:
 		print("BattleCoordinator: _process_auto_battle called for dead unit %s, advancing turn" % current_unit.display_name)
+		_auto_battle_processing = false
 		turn_manager.advance_turn()
 		return
 
@@ -298,6 +309,7 @@ func _process_auto_battle():
 	if action:
 		action_processor.execute_action(action, battle_state)
 		# End turn after action (same as enemy turn processing)
+		_auto_battle_processing = false
 		turn_manager.advance_turn()
 	else:
 		# No valid action found (e.g., all enemies dead) - check battle end conditions
@@ -307,7 +319,10 @@ func _process_auto_battle():
 		if not battle_ended_or_wave_advanced and is_battle_active:
 			# Battle continues but no valid targets - skip this turn
 			print("BattleCoordinator: Auto-battle no valid action, skipping turn for %s" % current_unit.display_name)
+			_auto_battle_processing = false
 			turn_manager.advance_turn()
+		else:
+			_auto_battle_processing = false
 
 func _choose_auto_battle_action(unit: BattleUnit) -> BattleAction:
 	"""Choose the best action for auto-battle using smart AI"""
@@ -520,6 +535,11 @@ func _on_turn_started(unit: BattleUnit):
 		if not unit.is_alive:
 			print("BattleCoordinator: Player unit %s died during delay (DoT), skipping turn" % unit.display_name)
 			turn_manager.advance_turn()
+			return
+		# Check if the turn already moved on (can happen if turn was skipped due to status effects)
+		var current_unit = turn_manager.get_current_unit()
+		if current_unit != unit:
+			print("BattleCoordinator: Turn moved on from %s to %s during delay, not processing" % [unit.display_name, current_unit.display_name if current_unit else "none"])
 			return
 		_process_auto_battle()
 

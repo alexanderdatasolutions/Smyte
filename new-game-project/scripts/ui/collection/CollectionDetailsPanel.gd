@@ -610,8 +610,8 @@ static func _create_set_bonus_row(set_type: String, count: int, config: Dictiona
 	row.add_child(bonuses_container)
 	return row
 
-static func _create_ability_panel(ability_data: Dictionary, ability_id: String, skill_level: int, slot_num: int) -> PanelContainer:
-	"""Create a detailed ability panel"""
+static func _create_ability_panel(ability_data: Dictionary, ability_id: String, skill_level: int, _slot_num: int) -> PanelContainer:
+	"""Create a detailed ability panel with icon"""
 	var panel: PanelContainer = PanelContainer.new()
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.08, 0.14, 0.7)
@@ -624,19 +624,48 @@ static func _create_ability_panel(ability_data: Dictionary, ability_id: String, 
 	style.content_margin_bottom = 8
 	panel.add_theme_stylebox_override("panel", style)
 
-	var content: VBoxContainer = VBoxContainer.new()
-	content.add_theme_constant_override("separation", 4)
+	var content: HBoxContainer = HBoxContainer.new()
+	content.add_theme_constant_override("separation", 10)
 
-	# Header row: Slot number, Name, Level, Cooldown
+	# Ability Icon - fixed 50x50 size
+	var icon_container: PanelContainer = PanelContainer.new()
+	icon_container.custom_minimum_size = Vector2(54, 54)
+	icon_container.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	icon_container.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	var icon_style: StyleBoxFlat = StyleBoxFlat.new()
+	icon_style.bg_color = Color(0.15, 0.12, 0.2, 0.8)
+	icon_style.border_color = Color.YELLOW.darkened(0.3)
+	icon_style.set_border_width_all(2)
+	icon_style.set_corner_radius_all(4)
+	icon_container.add_theme_stylebox_override("panel", icon_style)
+
+	var icon_rect: TextureRect = TextureRect.new()
+	icon_rect.custom_minimum_size = Vector2(50, 50)
+	icon_rect.size = Vector2(50, 50)
+	icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+
+	# Try to load ability icon
+	var icon_path: String = "res://assets/abilities/%s.png" % ability_id
+	if ResourceLoader.exists(icon_path):
+		icon_rect.texture = load(icon_path)
+	else:
+		# Try with _nobg suffix
+		icon_path = "res://assets/abilities/%s_nobg.png" % ability_id
+		if ResourceLoader.exists(icon_path):
+			icon_rect.texture = load(icon_path)
+
+	icon_container.add_child(icon_rect)
+	content.add_child(icon_container)
+
+	# Right side - ability info
+	var info_vbox: VBoxContainer = VBoxContainer.new()
+	info_vbox.add_theme_constant_override("separation", 4)
+	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	# Header row: Name, Level, Cooldown
 	var header: HBoxContainer = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 8)
-
-	# Slot indicator
-	var slot_label: Label = Label.new()
-	slot_label.text = "S%d" % slot_num
-	slot_label.add_theme_font_size_override("font_size", 10)
-	slot_label.add_theme_color_override("font_color", COLOR_MUTED)
-	header.add_child(slot_label)
 
 	# Ability name
 	var name_label: Label = Label.new()
@@ -658,7 +687,7 @@ static func _create_ability_panel(ability_data: Dictionary, ability_id: String, 
 	cd_label.add_theme_color_override("font_color", Color(0.8, 0.6, 0.4) if cooldown > 0 else COLOR_SUCCESS)
 	header.add_child(cd_label)
 
-	content.add_child(header)
+	info_vbox.add_child(header)
 
 	# Stats row: Damage, Scaling, Targets
 	var stats_row: HBoxContainer = HBoxContainer.new()
@@ -705,7 +734,7 @@ static func _create_ability_panel(ability_data: Dictionary, ability_id: String, 
 	target_container.add_child(target_text)
 
 	stats_row.add_child(target_container)
-	content.add_child(stats_row)
+	info_vbox.add_child(stats_row)
 
 	# Description
 	var desc = ability_data.get("description", "No description available")
@@ -714,7 +743,7 @@ static func _create_ability_panel(ability_data: Dictionary, ability_id: String, 
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_label.add_theme_font_size_override("font_size", 10)
 	desc_label.add_theme_color_override("font_color", COLOR_TEXT)
-	content.add_child(desc_label)
+	info_vbox.add_child(desc_label)
 
 	# Effects (if any special effects)
 	var effects = ability_data.get("effects", [])
@@ -724,11 +753,12 @@ static func _create_ability_panel(ability_data: Dictionary, ability_id: String, 
 			var debuff_name = effect.get("debuff", "effect").capitalize()
 			var chance = effect.get("chance", 100)
 			var duration = effect.get("duration", 1)
-			effect_label.text = "  • %d%% chance: %s for %d turn(s)" % [chance, debuff_name, duration]
+			effect_label.text = "• %d%% chance: %s for %d turn(s)" % [chance, debuff_name, duration]
 			effect_label.add_theme_font_size_override("font_size", 9)
 			effect_label.add_theme_color_override("font_color", Color(0.9, 0.6, 0.6))
-			content.add_child(effect_label)
+			info_vbox.add_child(effect_label)
 
+	content.add_child(info_vbox)
 	panel.add_child(content)
 	return panel
 

@@ -10,9 +10,17 @@ var _collection_manager: Node = null
 var _overlay: ColorRect = null
 var _panel: Panel = null
 var _god_list_container: VBoxContainer = null
-var _skin_grid_container: GridContainer = null
+var _skin_carousel: HBoxContainer = null
 var _selected_god_id: String = ""
 var _skins_title_label: Label = null
+
+# Carousel state
+var _all_skin_data: Array = []  # Array of {skin_id, skin_name, rarity, is_equipped, portrait_path}
+var _carousel_index: int = 0
+const CARDS_PER_PAGE: int = 3
+var _prev_btn: Button = null
+var _next_btn: Button = null
+var _page_label: Label = null
 
 func _ready() -> void:
 	visible = false
@@ -46,9 +54,9 @@ func _build_popup() -> void:
 	_overlay.gui_input.connect(_on_overlay_input)
 	add_child(_overlay)
 
-	# Main panel
+	# Main panel - wider to fit 3 cards + nav buttons
 	_panel = Panel.new()
-	_panel.custom_minimum_size = Vector2(800, 550)
+	_panel.custom_minimum_size = Vector2(950, 550)
 	_panel.set_anchors_preset(Control.PRESET_CENTER)
 	_panel.position = -_panel.custom_minimum_size / 2
 	_panel.size = _panel.custom_minimum_size
@@ -150,18 +158,51 @@ func _build_popup() -> void:
 	_skins_title_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
 	right_panel.add_child(_skins_title_label)
 
-	var skin_scroll: ScrollContainer = ScrollContainer.new()
-	skin_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	skin_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	skin_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	right_panel.add_child(skin_scroll)
+	# Carousel container - navigation + cards + navigation
+	var carousel_container: VBoxContainer = VBoxContainer.new()
+	carousel_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	carousel_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	carousel_container.add_theme_constant_override("separation", 10)
+	right_panel.add_child(carousel_container)
 
-	_skin_grid_container = GridContainer.new()
-	_skin_grid_container.columns = 4
-	_skin_grid_container.add_theme_constant_override("h_separation", 10)
-	_skin_grid_container.add_theme_constant_override("v_separation", 10)
-	_skin_grid_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	skin_scroll.add_child(_skin_grid_container)
+	# Carousel row with nav buttons
+	var carousel_row: HBoxContainer = HBoxContainer.new()
+	carousel_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	carousel_row.add_theme_constant_override("separation", 10)
+	carousel_container.add_child(carousel_row)
+
+	# Previous button
+	_prev_btn = Button.new()
+	_prev_btn.text = "◀"
+	_prev_btn.custom_minimum_size = Vector2(40, 0)
+	_prev_btn.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_prev_btn.pressed.connect(_on_prev_pressed)
+	carousel_row.add_child(_prev_btn)
+
+	# Skin cards container (centered)
+	var cards_center: CenterContainer = CenterContainer.new()
+	cards_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cards_center.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	carousel_row.add_child(cards_center)
+
+	_skin_carousel = HBoxContainer.new()
+	_skin_carousel.add_theme_constant_override("separation", 15)
+	cards_center.add_child(_skin_carousel)
+
+	# Next button
+	_next_btn = Button.new()
+	_next_btn.text = "▶"
+	_next_btn.custom_minimum_size = Vector2(40, 0)
+	_next_btn.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_next_btn.pressed.connect(_on_next_pressed)
+	carousel_row.add_child(_next_btn)
+
+	# Page indicator
+	_page_label = Label.new()
+	_page_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_page_label.add_theme_font_size_override("font_size", 12)
+	_page_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
+	carousel_container.add_child(_page_label)
 
 	# Populate god list
 	_populate_god_list()
@@ -174,15 +215,15 @@ func _populate_god_list() -> void:
 	var gods: Array = _collection_manager.get_all_gods()
 	var gods_with_skins: Array = []
 
-	# Filter to gods that have skins available
+	# Filter to gods that have OWNED skins (unowned skins are secret/hidden)
 	for god: God in gods:
-		var available_skins: Array = _skin_manager.get_skins_for_god(god.id)
-		if not available_skins.is_empty():
+		var owned_skins: Array = _skin_manager.get_owned_skins_for_god(god.id)
+		if not owned_skins.is_empty():
 			gods_with_skins.append(god)
 
 	if gods_with_skins.is_empty():
 		var no_gods_label: Label = Label.new()
-		no_gods_label.text = "No gods with\navailable skins"
+		no_gods_label.text = "No skins unlocked yet"
 		no_gods_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
 		_god_list_container.add_child(no_gods_label)
 		return
@@ -215,9 +256,11 @@ func _on_god_clicked(god_id: String) -> void:
 	_populate_skin_grid(god_id)
 
 func _populate_skin_grid(god_id: String) -> void:
-	# Clear existing
-	for child in _skin_grid_container.get_children():
+	# Clear existing carousel
+	for child in _skin_carousel.get_children():
 		child.queue_free()
+	_all_skin_data.clear()
+	_carousel_index = 0
 
 	var god: God = _collection_manager.get_god_by_id(god_id)
 	if not god:
@@ -228,8 +271,14 @@ func _populate_skin_grid(god_id: String) -> void:
 	# Get default portrait path
 	var default_portrait: String = "res://assets/gods/%s.png" % (god.template_id if god.template_id else god.id)
 
-	# Default skin option (always available)
-	_create_skin_card("", "Default", "", current_skin_id == "", default_portrait)
+	# Add default skin to data
+	_all_skin_data.append({
+		"skin_id": "",
+		"skin_name": "Default",
+		"rarity": "",
+		"is_equipped": current_skin_id == "",
+		"portrait_path": default_portrait
+	})
 
 	# Only show OWNED skins (unowned skins are secret/hidden)
 	var owned_skins: Array = _skin_manager.get_owned_skins_for_god(god_id)
@@ -239,20 +288,56 @@ func _populate_skin_grid(god_id: String) -> void:
 
 	for skin_id: String in owned_skins:
 		if added_skins.has(skin_id):
-			continue  # Skip duplicates
+			continue
 		added_skins[skin_id] = true
 
 		var skin_data: Dictionary = _skin_manager.get_skin(skin_id)
-		var skin_name: String = skin_data.get("name", skin_id)
-		var rarity: String = skin_data.get("rarity", "common")
-		var portrait_path: String = skin_data.get("portrait_path", "")
-		var is_equipped: bool = (skin_id == current_skin_id)
+		_all_skin_data.append({
+			"skin_id": skin_id,
+			"skin_name": skin_data.get("name", skin_id),
+			"rarity": skin_data.get("rarity", "common"),
+			"is_equipped": skin_id == current_skin_id,
+			"portrait_path": skin_data.get("portrait_path", "")
+		})
 
-		_create_skin_card(skin_id, skin_name, rarity, is_equipped, portrait_path)
+	_refresh_carousel()
+
+func _refresh_carousel() -> void:
+	"""Refresh the carousel to show current page of skins"""
+	# Clear existing cards
+	for child in _skin_carousel.get_children():
+		child.queue_free()
+
+	# Calculate which skins to show
+	var start_idx: int = _carousel_index * CARDS_PER_PAGE
+	var end_idx: int = mini(start_idx + CARDS_PER_PAGE, _all_skin_data.size())
+
+	for i in range(start_idx, end_idx):
+		var data: Dictionary = _all_skin_data[i]
+		_create_skin_card(data.skin_id, data.skin_name, data.rarity, data.is_equipped, data.portrait_path)
+
+	# Update navigation
+	var total_pages: int = ceili(float(_all_skin_data.size()) / CARDS_PER_PAGE)
+	_prev_btn.disabled = _carousel_index <= 0
+	_next_btn.disabled = _carousel_index >= total_pages - 1
+	_page_label.text = "%d / %d" % [_carousel_index + 1, total_pages] if total_pages > 1 else ""
+	_page_label.visible = total_pages > 1
+
+func _on_prev_pressed() -> void:
+	if _carousel_index > 0:
+		_carousel_index -= 1
+		_refresh_carousel()
+
+func _on_next_pressed() -> void:
+	var total_pages: int = ceili(float(_all_skin_data.size()) / CARDS_PER_PAGE)
+	if _carousel_index < total_pages - 1:
+		_carousel_index += 1
+		_refresh_carousel()
 
 func _create_skin_card(skin_id: String, skin_name: String, rarity: String, is_equipped: bool, portrait_path: String) -> void:
+	"""Create a BIG skin card for the carousel"""
 	var card: Panel = Panel.new()
-	card.custom_minimum_size = Vector2(120, 160)
+	card.custom_minimum_size = Vector2(160, 280)
 
 	var border_color: Color = Color.WHITE
 	match rarity:
@@ -268,40 +353,46 @@ func _create_skin_card(skin_id: String, skin_name: String, rarity: String, is_eq
 	card_style.border_width_right = 2
 	card_style.border_width_top = 2
 	card_style.border_width_bottom = 2
-	card_style.corner_radius_top_left = 4
-	card_style.corner_radius_top_right = 4
-	card_style.corner_radius_bottom_left = 4
-	card_style.corner_radius_bottom_right = 4
+	card_style.corner_radius_top_left = 6
+	card_style.corner_radius_top_right = 6
+	card_style.corner_radius_bottom_left = 6
+	card_style.corner_radius_bottom_right = 6
 	card.add_theme_stylebox_override("panel", card_style)
-	_skin_grid_container.add_child(card)
+	_skin_carousel.add_child(card)
+
+	var card_margin: MarginContainer = MarginContainer.new()
+	card_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	card_margin.add_theme_constant_override("margin_left", 8)
+	card_margin.add_theme_constant_override("margin_right", 8)
+	card_margin.add_theme_constant_override("margin_top", 8)
+	card_margin.add_theme_constant_override("margin_bottom", 8)
+	card.add_child(card_margin)
 
 	var card_vbox: VBoxContainer = VBoxContainer.new()
-	card_vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	card_vbox.add_theme_constant_override("separation", 4)
-	card.add_child(card_vbox)
+	card_vbox.add_theme_constant_override("separation", 6)
+	card_margin.add_child(card_vbox)
 
-	# Portrait image
+	# Portrait image - BIG
 	var portrait_container: CenterContainer = CenterContainer.new()
-	portrait_container.custom_minimum_size = Vector2(0, 80)
+	portrait_container.custom_minimum_size = Vector2(0, 140)
 	card_vbox.add_child(portrait_container)
 
 	var portrait: TextureRect = TextureRect.new()
-	portrait.custom_minimum_size = Vector2(70, 70)
+	portrait.custom_minimum_size = Vector2(130, 130)
 	portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
 	if portrait_path != "" and ResourceLoader.exists(portrait_path):
 		portrait.texture = load(portrait_path)
 	else:
-		# Fallback - show placeholder
 		portrait.modulate = Color(0.5, 0.5, 0.5)
 
 	portrait_container.add_child(portrait)
 
-	# Skin name
+	# Skin name - bigger
 	var name_label: Label = Label.new()
 	name_label.text = skin_name
-	name_label.add_theme_font_size_override("font_size", 12)
+	name_label.add_theme_font_size_override("font_size", 16)
 	name_label.add_theme_color_override("font_color", border_color)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card_vbox.add_child(name_label)
@@ -313,21 +404,21 @@ func _create_skin_card(skin_id: String, skin_name: String, rarity: String, is_eq
 		status_label.add_theme_color_override("font_color", Color(0.5, 0.9, 0.5))
 	else:
 		status_label.text = rarity.capitalize() if rarity else ""
-		status_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
-	status_label.add_theme_font_size_override("font_size", 10)
+		status_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
+	status_label.add_theme_font_size_override("font_size", 12)
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card_vbox.add_child(status_label)
 
-	# Action button
+	# Action button - bigger
 	var action_btn: Button = Button.new()
-	action_btn.custom_minimum_size = Vector2(80, 25)
+	action_btn.custom_minimum_size = Vector2(100, 30)
 	action_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 
 	if is_equipped:
 		action_btn.text = "Equipped"
 		action_btn.disabled = true
 	else:
-		action_btn.text = "Equip"
+		action_btn.text = "EQUIP"
 		action_btn.pressed.connect(_on_equip_skin.bind(skin_id))
 
 	card_vbox.add_child(action_btn)

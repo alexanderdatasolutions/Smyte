@@ -117,6 +117,250 @@
       "trigger": { "type": "max_god_level", "target": 20 },
       "rewards": { "mana": 2000 },
       "unlocks": null
+    },
+    "twenty_gods": {
+      "name": "Growing Pantheon",
+      "description": "Collect 20 gods",
+      "trigger": { "type": "god_count", "target": 20 },
+      "rewards": { "divine_crystals": 800 },
+      "unlocks": null
+    },
+    "fifty_gods": {
+      "name": "Olympian Council",
+      "description": "Collect 50 gods",
+      "trigger": { "type": "god_count", "target": 50 },
+      "rewards": { "divine_crystals": 2000 },
+      "unlocks": null
+    },
+    "twenty_territories": {
+      "name": "Realm Expander",
+      "description": "Control 20 territories",
+      "trigger": { "type": "territory_count", "target": 20 },
+      "rewards": { "divine_crystals": 1500 },
+      "unlocks": null
+    },
+    "fifty_battles": {
+      "name": "Battle Hardened",
+      "description": "Win 50 battles",
+      "trigger": { "type": "battle_wins", "target": 50 },
+      "rewards": { "divine_crystals": 500 },
+      "unlocks": null
+    },
+    "hundred_battles": {
+      "name": "War God",
+      "description": "Win 100 battles",
+      "trigger": { "type": "battle_wins", "target": 100 },
+      "rewards": { "divine_crystals": 1000 },
+      "unlocks": null
+    },
+    "first_sacrifice": {
+      "name": "Blood Offering",
+      "description": "Sacrifice your first god",
+      "trigger": { "type": "sacrifice_count", "target": 1 },
+      "rewards": { "gold": 500 },
+      "unlocks": null
+    },
+    "ten_sacrifices": {
+      "name": "Collector of Souls",
+      "description": "Sacrifice 10 gods",
+      "trigger": { "type": "sacrifice_count", "target": 10 },
+      "rewards": { "divine_crystals": 300 },
+      "unlocks": null
+    },
+    "first_legendary": {
+      "name": "Legendary Find",
+      "description": "Summon your first legendary god",
+      "trigger": { "type": "legendary_count", "target": 1 },
+      "rewards": { "divine_crystals": 500 },
+      "unlocks": null
+    },
+    "five_legendaries": {
+      "name": "Legendary Collector",
+      "description": "Collect 5 legendary gods",
+      "trigger": { "type": "legendary_count", "target": 5 },
+      "rewards": { "divine_crystals": 1500 },
+      "unlocks": null
+    },
+    "first_epic": {
+      "name": "Epic Discovery",
+      "description": "Summon your first epic god",
+      "trigger": { "type": "epic_count", "target": 1 },
+      "rewards": { "divine_crystals": 200 },
+      "unlocks": null
+    },
+    "tower_floor_10": {
+      "name": "Tower Climber",
+      "description": "Reach floor 10 in the Tower",
+      "trigger": { "type": "tower_floor", "target": 10 },
+      "rewards": { "divine_crystals": 300 },
+      "unlocks": null
+    },
+    "tower_floor_25": {
+      "name": "Tower Ascender",
+      "description": "Reach floor 25 in the Tower",
+      "trigger": { "type": "tower_floor", "target": 25 },
+      "rewards": { "divine_crystals": 500 },
+      "unlocks": null
+    },
+    "tower_floor_50": {
+      "name": "Tower Master",
+      "description": "Reach floor 50 in the Tower",
+      "trigger": { "type": "tower_floor", "target": 50 },
+      "rewards": { "divine_crystals": 1000 },
+      "unlocks": null,
+      "hidden": true
+    },
+    "first_arena_win": {
+      "name": "Arena Champion",
+      "description": "Win your first arena battle",
+      "trigger": { "type": "arena_wins", "target": 1 },
+      "rewards": { "divine_crystals": 200 },
+      "unlocks": null
+    },
+    "ten_arena_wins": {
+      "name": "Arena Gladiator",
+      "description": "Win 10 arena battles",
+      "trigger": { "type": "arena_wins", "target": 10 },
+      "rewards": { "divine_crystals": 500 },
+      "unlocks": null
+    },
+    "max_level_god": {
+      "name": "Ascended Deity",
+      "description": "Reach maximum level with any god",
+      "trigger": { "type": "max_god_level", "target": 60 },
+      "rewards": { "divine_crystals": 2000 },
+      "unlocks": null,
+      "hidden": true
+    },
+    "all_elements": {
+      "name": "Elemental Master",
+      "description": "Collect at least one god of each element",
+      "trigger": { "type": "all_elements" },
+      "rewards": { "divine_crystals": 500 },
+      "unlocks": null
+    },
+    "full_team_legendary": {
+      "name": "Legendary Squad",
+      "description": "Field a team of 4 legendary gods in battle",
+      "trigger": { "type": "legendary_team" },
+      "rewards": { "divine_crystals": 1000 },
+      "unlocks": null,
+      "hidden": true
+    },
+    "first_awakening": {
+      "name": "Awakened Power",
+      "description": "Awaken your first god",
+      "trigger": { "type": "awakening_count", "target": 1 },
+      "rewards": { "divine_crystals": 300 },
+      "unlocks": null
+    },
+    "dungeon_clear_10": {
+      "name": "Dungeon Explorer",
+      "description": "Clear 10 dungeons",
+      "trigger": { "type": "dungeon_clears", "target": 10 },
+      "rewards": { "divine_crystals": 300 },
+      "unlocks": null
+    },
+    "dungeon_clear_50": {
+      "name": "Dungeon Conqueror",
+      "description": "Clear 50 dungeons",
+      "trigger": { "type": "dungeon_clears", "target": 50 },
+      "rewards": { "divine_crystals": 800 },
+      "unlocks": null
+    },
+    "first_equipment": {
+      "name": "Armed and Ready",
+      "description": "Equip your first piece of equipment",
+      "trigger": { "type": "equipment_count", "target": 1 },
+      "rewards": { "gold": 500 },
+      "unlocks": null
+    },
+    "full_equipment": {
+      "name": "Fully Equipped",
+      "description": "Fully equip one god with all 6 slots",
+      "trigger": { "type": "full_equipment" },
+      "rewards": { "divine_crystals": 500 },
+      "unlocks": null
+    },
+    "speed_demon": {
+      "name": "Speed Demon",
+      "description": "Win a battle in under 30 seconds",
+      "trigger": { "type": "fast_battle", "target": 30 },
+      "rewards": { "divine_crystals": 300 },
+      "unlocks": null,
+      "hidden": true
+    },
+    "underdog": {
+      "name": "Underdog Victory",
+      "description": "Win a battle with only 1 god surviving at 10% HP or less",
+      "trigger": { "type": "underdog_win" },
+      "rewards": { "divine_crystals": 500 },
+      "unlocks": null,
+      "hidden": true
+    },
+    "no_damage": {
+      "name": "Untouchable",
+      "description": "Win a battle without taking any damage",
+      "trigger": { "type": "flawless_victory" },
+      "rewards": { "divine_crystals": 500 },
+      "unlocks": null,
+      "hidden": true
+    },
+    "one_shot": {
+      "name": "One Punch God",
+      "description": "Defeat an enemy with a single hit dealing 10000+ damage",
+      "trigger": { "type": "massive_damage", "target": 10000 },
+      "rewards": { "divine_crystals": 300 },
+      "unlocks": null,
+      "hidden": true
+    },
+    "comeback_kid": {
+      "name": "Comeback Kid",
+      "description": "Win a battle after 3 of your gods have fallen",
+      "trigger": { "type": "solo_comeback" },
+      "rewards": { "divine_crystals": 800 },
+      "unlocks": null,
+      "hidden": true
+    },
+    "summoning_spree": {
+      "name": "Summoning Spree",
+      "description": "Perform 100 summons",
+      "trigger": { "type": "summon_count", "target": 100 },
+      "rewards": { "divine_crystals": 1000 },
+      "unlocks": null,
+      "hidden": true
+    },
+    "whale": {
+      "name": "Devoted Summoner",
+      "description": "Perform 500 summons",
+      "trigger": { "type": "summon_count", "target": 500 },
+      "rewards": { "divine_crystals": 5000 },
+      "unlocks": null,
+      "hidden": true
+    },
+    "element_team_fire": {
+      "name": "Inferno Squad",
+      "description": "Win a battle using only Fire element gods",
+      "trigger": { "type": "mono_element_win", "element": "fire" },
+      "rewards": { "divine_crystals": 300 },
+      "unlocks": null,
+      "hidden": true
+    },
+    "tower_no_deaths": {
+      "name": "Perfect Climb",
+      "description": "Clear 10 tower floors without any god dying",
+      "trigger": { "type": "tower_perfect_run", "target": 10 },
+      "rewards": { "divine_crystals": 1000 },
+      "unlocks": null,
+      "hidden": true
+    },
+    "night_owl": {
+      "name": "Night Owl",
+      "description": "Play the game between 2 AM and 5 AM",
+      "trigger": { "type": "late_night_play" },
+      "rewards": { "gold": 1000 },
+      "unlocks": null,
+      "hidden": true
     }
   },
 
@@ -129,6 +373,24 @@
     "building_count": "Number of buildings placed",
     "dungeon_clears": "Total dungeons completed",
     "battle_wins": "Total battles won",
-    "summon_count": "Total summons performed"
+    "summon_count": "Total summons performed",
+    "sacrifice_count": "Total gods sacrificed",
+    "legendary_count": "Number of legendary gods collected",
+    "epic_count": "Number of epic gods collected",
+    "tower_floor": "Highest tower floor reached",
+    "arena_wins": "Total arena battles won",
+    "all_elements": "Has at least one god of each element",
+    "legendary_team": "Used 4 legendary gods in a battle",
+    "awakening_count": "Number of gods awakened",
+    "equipment_count": "Number of equipment pieces equipped",
+    "full_equipment": "Has a god with all 6 equipment slots filled",
+    "fast_battle": "Won a battle within target seconds",
+    "underdog_win": "Won with 1 god at 10% HP or less",
+    "flawless_victory": "Won without taking damage",
+    "massive_damage": "Dealt target damage in single hit",
+    "solo_comeback": "Won after 3 gods died",
+    "mono_element_win": "Won with all same element team",
+    "tower_perfect_run": "Cleared target floors with no deaths",
+    "late_night_play": "Played between 2-5 AM"
   }
 }

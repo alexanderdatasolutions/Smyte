@@ -18,6 +18,8 @@ var auto_save_enabled: bool = true
 var auto_save_interval: float = 15.0  # 15 seconds - more frequent to prevent data loss
 var last_auto_save: float = 0.0
 var _pending_save: bool = false  # Track if save is needed due to important event
+var _save_debounce_time: float = 0.0  # Debounce timer to prevent rapid saves
+const SAVE_DEBOUNCE_INTERVAL: float = 2.0  # Minimum seconds between saves
 
 # Player-specific data that doesn't belong to any system
 var player_data: Dictionary = {}
@@ -47,14 +49,32 @@ func _notification(what: int) -> void:
 			save_game()
 
 func _process(delta: float) -> void:
+	# Update debounce timer
+	if _save_debounce_time > 0.0:
+		_save_debounce_time -= delta
+
+	# Handle pending saves after debounce clears
+	if _pending_save and _save_debounce_time <= 0.0:
+		_pending_save = false
+		_do_save()
+
 	if auto_save_enabled and data_loaded:
 		last_auto_save += delta
 		if last_auto_save >= auto_save_interval:
 			auto_save()
 			last_auto_save = 0.0
 
-## Save game data to cloud
+## Save game data to cloud (with debouncing to prevent rapid saves)
 func save_game() -> bool:
+	# If we're within the debounce window, queue the save for later
+	if _save_debounce_time > 0.0:
+		_pending_save = true
+		return true  # Will save after debounce clears
+
+	return _do_save()
+
+## Internal save function - performs actual cloud save
+func _do_save() -> bool:
 	if not _firebase_integration:
 		print("SaveManager: No Firebase integration, cannot save")
 		save_failed.emit("Firebase not available")
@@ -75,6 +95,9 @@ func save_game() -> bool:
 	print("SaveManager: Saving to cloud...")
 	_firebase_integration.save_to_cloud(save_data)
 	save_completed.emit(true)
+
+	# Start debounce timer to prevent rapid saves
+	_save_debounce_time = SAVE_DEBOUNCE_INTERVAL
 	return true
 
 ## Collect all save data from systems

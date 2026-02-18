@@ -257,44 +257,58 @@ func _update_crafting_section() -> void:
 	# Get forge nodes from territory
 	var forge_nodes: Array = _get_forge_nodes()
 
-	if forge_nodes.is_empty() and (not crafting_manager or not crafting_manager.has_method("get_active_crafts")):
-		_add_status_label(_crafting_container, "No forges available", COLOR_MUTED)
-		return
-
 	# Get active crafts from HexCraftManager (returns Dictionary)
 	var active_crafts: Dictionary = {}
 	if crafting_manager and crafting_manager.has_method("get_active_crafts"):
 		active_crafts = crafting_manager.get_active_crafts()
 
-	# Show each forge node with its status
-	var shown_any: bool = false
+	if forge_nodes.is_empty() and active_crafts.is_empty():
+		_add_status_label(_crafting_container, "No forges available", COLOR_MUTED)
+		return
+
+	# Build a set of valid forge node IDs
+	var forge_node_ids: Dictionary = {}
 	for node in forge_nodes:
-		# HexNode is a Resource, access properties directly
+		var node_id: String = str(node.id) if "id" in node else ""
+		if node_id != "":
+			forge_node_ids[node_id] = node
+
+	var shown_any: bool = false
+	var shown_node_ids: Dictionary = {}  # Track which nodes we've shown crafts for
+
+	# FIRST: Show active crafts only from actual forges
+	for craft_key: String in active_crafts:
+		var craft: Dictionary = active_crafts[craft_key]
+		var craft_node_id: String = str(craft.get("node_id", ""))
+
+		# Skip crafts from non-forge nodes
+		if not forge_node_ids.has(craft_node_id):
+			continue
+
+		shown_node_ids[craft_node_id] = true
+
+		var task_data: Dictionary = craft.get("task_data", {})
+		var task_id: String = str(craft.get("task_id", ""))
+		var task_name: String = str(task_data.get("name", task_data.get("task_id", "Crafting"))).replace("_", " ").capitalize()
+		var start_time: int = int(craft.get("start_time", current_time))
+		var end_time: int = int(craft.get("end_time", current_time))
+		var duration: int = end_time - start_time
+		var elapsed: int = current_time - start_time
+		var progress: float = clampf(float(elapsed) / float(duration), 0.0, 1.0) if duration > 0 else 1.0
+		var time_left: int = maxi(0, end_time - current_time)
+		_add_craft_progress_row(_crafting_container, task_name, progress, time_left, craft_node_id, task_id)
+		shown_any = true
+
+	# SECOND: Show idle forges (those with workers but no active craft)
+	for node in forge_nodes:
 		var node_id: String = str(node.id) if "id" in node else ""
 		var node_name: String = str(node.name) if "name" in node else "Forge"
 
-		# Find active craft for this node
-		var node_craft: Dictionary = {}
-		for craft_key: String in active_crafts:
-			var craft: Dictionary = active_crafts[craft_key]
-			if str(craft.get("node_id", "")) == node_id:
-				node_craft = craft
-				break
+		# Skip if we already showed a craft for this node
+		if shown_node_ids.has(node_id):
+			continue
 
-		if node_craft.is_empty():
-			# No active craft - show Start Craft button
-			_add_forge_idle_row(_crafting_container, node_name, node_id)
-		else:
-			# Active craft - show progress
-			var task_data: Dictionary = node_craft.get("task_data", {})
-			var task_name: String = str(task_data.get("name", task_data.get("task_id", "Crafting"))).replace("_", " ").capitalize()
-			var start_time: int = int(node_craft.get("start_time", current_time))
-			var end_time: int = int(node_craft.get("end_time", current_time))
-			var duration: int = end_time - start_time
-			var elapsed: int = current_time - start_time
-			var progress: float = clampf(float(elapsed) / float(duration), 0.0, 1.0) if duration > 0 else 1.0
-			var time_left: int = maxi(0, end_time - current_time)
-			_add_craft_progress_row(_crafting_container, task_name, progress, time_left)
+		_add_forge_idle_row(_crafting_container, node_name, node_id)
 		shown_any = true
 
 	if not shown_any:
@@ -391,13 +405,14 @@ func _on_forge_start_craft_pressed(node_id: String) -> void:
 func _on_craft_popup_closed() -> void:
 	"""Handle craft popup being closed"""
 	_crafting_manager_ui = null
+	_update_display()
 
 func _on_craft_started(_node: Variant, _task_id: String) -> void:
 	"""Handle craft being started from popup"""
-	_update_display()
+	_update_crafting_section()
 
 func _get_resource_manager() -> Variant:
-	var registry: Variant = _get_system_registry()
+	var registry: Node = SystemRegistry.get_instance()
 	if registry:
 		return registry.get_system("ResourceManager")
 	return null
@@ -486,25 +501,55 @@ func _add_conversion_row(container: Control, input_text: String, output_text: St
 
 	container.add_child(row)
 
-func _add_craft_progress_row(container: Control, item_name: String, progress: float, time_left: int) -> void:
-	var row: VBoxContainer = VBoxContainer.new()
-	row.add_theme_constant_override("separation", 2)
+func _add_craft_progress_row(container: Control, item_name: String, progress: float, time_left: int, node_id: String = "", task_id: String = "") -> void:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+
+	var info_col: VBoxContainer = VBoxContainer.new()
+	info_col.add_theme_constant_override("separation", 2)
+	info_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(info_col)
 
 	var label: Label = Label.new()
-	var time_str: String = _format_time(time_left)
-	label.text = "%s - %s left" % [item_name, time_str]
 	label.add_theme_font_size_override("font_size", 11)
-	label.add_theme_color_override("font_color", COLOR_TEXT)
-	row.add_child(label)
+
+	if time_left <= 0:
+		label.text = "%s - Done!" % item_name
+		label.add_theme_color_override("font_color", COLOR_SUCCESS)
+	else:
+		var time_str: String = _format_time(time_left)
+		label.text = "%s - %s" % [item_name, time_str]
+		label.add_theme_color_override("font_color", COLOR_TEXT)
+	info_col.add_child(label)
 
 	# Progress bar
 	var progress_bar: ProgressBar = ProgressBar.new()
 	progress_bar.value = progress * 100
-	progress_bar.custom_minimum_size = Vector2(0, 8)
+	progress_bar.custom_minimum_size = Vector2(0, 6)
 	progress_bar.show_percentage = false
-	row.add_child(progress_bar)
+	if time_left <= 0:
+		var fill_style: StyleBoxFlat = StyleBoxFlat.new()
+		fill_style.bg_color = COLOR_SUCCESS
+		fill_style.set_corner_radius_all(3)
+		progress_bar.add_theme_stylebox_override("fill", fill_style)
+	info_col.add_child(progress_bar)
+
+	# Collect button when done
+	if time_left <= 0 and node_id != "" and task_id != "":
+		var collect_btn: Button = Button.new()
+		collect_btn.text = "Collect"
+		collect_btn.add_theme_font_size_override("font_size", 10)
+		collect_btn.pressed.connect(_on_collect_craft_pressed.bind(node_id, task_id))
+		row.add_child(collect_btn)
 
 	container.add_child(row)
+
+func _on_collect_craft_pressed(node_id: String, task_id: String) -> void:
+	"""Collect a completed craft"""
+	var hex_grid_manager: Variant = _get_hex_grid_manager()
+	if hex_grid_manager and hex_grid_manager.has_method("complete_craft"):
+		hex_grid_manager.complete_craft(node_id, task_id)
+		_update_crafting_section()
 
 func _add_action_row(container: Control, text: String, button_text: String, callback: Callable) -> void:
 	var row: HBoxContainer = HBoxContainer.new()
@@ -615,44 +660,38 @@ func _get_player_nodes(_hex_grid_manager: Variant) -> Array:
 # ==============================================================================
 
 func _get_production_manager() -> Variant:
-	var registry: Variant = _get_system_registry()
+	var registry: Node = SystemRegistry.get_instance()
 	if registry:
 		return registry.get_system("TerritoryProductionManager")
 	return null
 
 func _get_hex_grid_manager() -> Variant:
-	var registry: Variant = _get_system_registry()
+	var registry: Node = SystemRegistry.get_instance()
 	if registry:
 		return registry.get_system("HexGridManager")
 	return null
 
 func _get_territory_manager() -> Variant:
-	var registry: Variant = _get_system_registry()
+	var registry: Node = SystemRegistry.get_instance()
 	if registry:
 		return registry.get_system("TerritoryManager")
 	return null
 
 func _get_crafting_manager() -> Variant:
-	# HexCraftManager handles time-based forge crafting
-	var registry: Variant = _get_system_registry()
+	# HexCraftManager is internal to HexGridManager - use HexGridManager which delegates craft methods
+	var registry: Node = SystemRegistry.get_instance()
 	if registry:
-		return registry.get_system("HexCraftManager")
+		return registry.get_system("HexGridManager")
 	return null
 
 func _get_save_manager() -> Variant:
-	var registry: Variant = _get_system_registry()
+	var registry: Node = SystemRegistry.get_instance()
 	if registry:
 		return registry.get_system("SaveManager")
 	return null
 
 func _get_screen_manager() -> Variant:
-	var registry: Variant = _get_system_registry()
+	var registry: Node = SystemRegistry.get_instance()
 	if registry:
 		return registry.get_system("ScreenManager")
-	return null
-
-func _get_system_registry() -> Variant:
-	var registry_script: Variant = load("res://scripts/systems/core/SystemRegistry.gd")
-	if registry_script and registry_script.has_method("get_instance"):
-		return registry_script.get_instance()
 	return null

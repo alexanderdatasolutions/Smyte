@@ -461,11 +461,16 @@ func _award_rewards(rewards: Dictionary) -> void:
 
 func _unlock_feature(feature_name: String) -> void:
 	"""Unlock a feature via FeatureUnlockManager"""
-	print("AchievementManager: Unlocking feature '%s'" % feature_name)
-	if _feature_unlock_manager:
-		_feature_unlock_manager.unlock_feature(feature_name)
-	else:
+	if not _feature_unlock_manager:
 		push_error("AchievementManager: FeatureUnlockManager not found, cannot unlock '%s'" % feature_name)
+		return
+
+	# Skip if already unlocked to avoid log spam on load
+	if _feature_unlock_manager.is_feature_unlocked(feature_name):
+		return
+
+	print("AchievementManager: Unlocking feature '%s'" % feature_name)
+	_feature_unlock_manager.unlock_feature(feature_name)
 
 func _show_achievement_notification(achievement: Dictionary) -> void:
 	"""Show achievement unlock notification using NotificationQueue"""

@@ -52,6 +52,9 @@ var selected_skill_index: int = -1
 # Auto battle state
 var auto_battle_enabled: bool = false
 
+# Battle speed
+var battle_speed: float = 1.0
+
 # Battle result overlay
 var battle_result_overlay = null  # BattleResultOverlay instance
 
@@ -71,6 +74,9 @@ func _ready():
 	if auto_button:
 		auto_button.pressed.connect(_on_auto_button_pressed)
 		_update_auto_button_text()
+
+	# Connect speed buttons
+	_connect_speed_buttons()
 
 	# Connect ability bar signal (RULE 4: UI signals)
 	if ability_bar:
@@ -186,9 +192,14 @@ func _notification(what: int) -> void:
 
 func _on_visibility_changed():
 	"""Handle visibility change - clean up battle result overlay when screen is hidden OR shown"""
-	if not visible and battle_result_overlay:
-		# Screen is being hidden, hide the battle result overlay
-		_hide_battle_result_overlay()
+	if not visible:
+		# Reset battle speed when leaving battle screen
+		battle_speed = 1.0
+		Engine.time_scale = 1.0
+
+		if battle_result_overlay:
+			# Screen is being hidden, hide the battle result overlay
+			_hide_battle_result_overlay()
 	elif visible and battle_result_overlay and battle_result_overlay.visible:
 		# Screen is being shown but battle result overlay is still visible from previous battle
 		# This happens when user navigates back to battle screen after returning to map
@@ -197,6 +208,10 @@ func _on_visibility_changed():
 
 func _on_back_pressed():
 	"""Handle back button press - RULE 4: UI signals"""
+	# Reset battle speed to normal when leaving
+	battle_speed = 1.0
+	Engine.time_scale = 1.0
+
 	# Hide battle result overlay if it's showing (prevents it from reappearing when returning to this screen)
 	if battle_result_overlay and battle_result_overlay.visible:
 		_hide_battle_result_overlay()
@@ -244,9 +259,14 @@ func _on_battle_ended(result: BattleResult):
 	_hide_wave_indicator()
 
 	# Skip showing result overlay for Tower battles - TowerScreen handles the flow
-	# Also keep auto-battle enabled between tower floors
+	# Also keep auto-battle AND speed enabled between tower floors
 	if result.battle_type.to_lower() == "tower":
 		return
+
+	# Reset battle speed to normal (but not for tower - handled above)
+	battle_speed = 1.0
+	Engine.time_scale = 1.0
+	_update_speed_button_visuals()
 
 	# Reset auto battle on victory (but not for tower - handled above)
 	if result.victory:
@@ -1128,6 +1148,49 @@ func _update_auto_button_text():
 	"""Update auto button text based on state"""
 	if auto_button:
 		auto_button.text = "AUTO: ON" if auto_battle_enabled else "AUTO: OFF"
+
+func _connect_speed_buttons():
+	"""Connect speed control buttons"""
+	var speed_container = get_node_or_null("BottomContainer/ButtonContainer/SpeedControlContainer")
+	if not speed_container:
+		return
+
+	var speed_1x = speed_container.get_node_or_null("Speed1xButton")
+	var speed_2x = speed_container.get_node_or_null("Speed2xButton")
+	var speed_3x = speed_container.get_node_or_null("Speed3xButton")
+
+	if speed_1x:
+		speed_1x.pressed.connect(_on_speed_pressed.bind(1.0))
+	if speed_2x:
+		speed_2x.pressed.connect(_on_speed_pressed.bind(2.0))
+	if speed_3x:
+		speed_3x.pressed.connect(_on_speed_pressed.bind(3.0))
+
+	_update_speed_button_visuals()
+
+func _on_speed_pressed(multiplier: float):
+	"""Handle speed button press"""
+	battle_speed = multiplier
+	Engine.time_scale = multiplier
+	_update_speed_button_visuals()
+
+func _update_speed_button_visuals():
+	"""Update speed button visual states"""
+	var speed_container = get_node_or_null("BottomContainer/ButtonContainer/SpeedControlContainer")
+	if not speed_container:
+		return
+
+	var buttons = [
+		[speed_container.get_node_or_null("Speed1xButton"), 1.0],
+		[speed_container.get_node_or_null("Speed2xButton"), 2.0],
+		[speed_container.get_node_or_null("Speed3xButton"), 3.0]
+	]
+
+	for button_data in buttons:
+		var button: Button = button_data[0]
+		var speed: float = button_data[1]
+		if button:
+			button.modulate = Color.YELLOW if speed == battle_speed else Color.WHITE
 
 # =============================================================================
 # TUTORIAL INTEGRATION

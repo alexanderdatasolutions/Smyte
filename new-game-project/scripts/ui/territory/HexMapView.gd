@@ -51,6 +51,7 @@ var _hovered_tile: HexTile = null
 
 var _hex_tiles: Dictionary = {}
 var _connection_lines: Array[Line2D] = []
+var _connection_tweens: Array[Tween] = []  # Track infinite tweens to kill on cleanup
 var _grid_container: Control = null
 var _connection_layer: Control = null
 var _tooltip_label: Label = null
@@ -58,6 +59,7 @@ var _camera_tween: Tween = null
 
 # Buff radius visualization
 var _buff_radius_overlays: Array[Control] = []
+var _buff_radius_tweens: Array[Tween] = []  # Track infinite tweens to kill on cleanup
 var _buff_radius_layer: Control = null
 var _building_buff_manager = null
 
@@ -68,6 +70,21 @@ func _ready() -> void:
 	_init_systems()
 	_setup_ui()
 	mouse_filter = Control.MOUSE_FILTER_PASS
+
+func _exit_tree() -> void:
+	# Kill all infinite tweens to prevent "Infinite loop detected" errors
+	for tween in _connection_tweens:
+		if tween and tween.is_valid():
+			tween.kill()
+	_connection_tweens.clear()
+
+	for tween in _buff_radius_tweens:
+		if tween and tween.is_valid():
+			tween.kill()
+	_buff_radius_tweens.clear()
+
+	if _camera_tween and _camera_tween.is_valid():
+		_camera_tween.kill()
 
 func _init_systems() -> void:
 	var registry = SystemRegistry.get_instance()
@@ -271,6 +288,12 @@ func _clear_tiles() -> void:
 			tile.queue_free()
 	_hex_tiles.clear()
 
+	# Kill connection tweens before freeing lines
+	for tween in _connection_tweens:
+		if tween and tween.is_valid():
+			tween.kill()
+	_connection_tweens.clear()
+
 	for line in _connection_lines:
 		if is_instance_valid(line):
 			line.queue_free()
@@ -305,6 +328,12 @@ func _calculate_grid_bounds() -> Rect2:
 func update_connection_lines() -> void:
 	if not territory_manager or not hex_grid_manager:
 		return
+
+	# Kill all infinite tweens before freeing lines
+	for tween in _connection_tweens:
+		if tween and tween.is_valid():
+			tween.kill()
+	_connection_tweens.clear()
 
 	for line in _connection_lines:
 		if is_instance_valid(line):
@@ -568,6 +597,7 @@ func _animate_connection_line(line: Line2D) -> void:
 	tween.tween_property(line, "default_color", Color(0.3, 0.7, 0.3, 0.3), 1.5)
 	tween.parallel().tween_property(line, "width", 4.0, 1.5)
 	tween.tween_property(line, "width", 3.0, 1.5)
+	_connection_tweens.append(tween)  # Track for cleanup
 
 # ==============================================================================
 # TOOLTIP
@@ -659,9 +689,16 @@ func _create_buff_overlay(coord: HexCoord, color: Color) -> void:
 	tween.set_loops(0).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(overlay, "color:a", color.a * 1.5, 0.8)
 	tween.tween_property(overlay, "color:a", color.a * 0.5, 0.8)
+	_buff_radius_tweens.append(tween)  # Track for cleanup
 
 func clear_buff_radius() -> void:
 	"""Clear all buff radius overlays"""
+	# Kill all infinite tweens before freeing overlays
+	for tween in _buff_radius_tweens:
+		if tween and tween.is_valid():
+			tween.kill()
+	_buff_radius_tweens.clear()
+
 	for overlay in _buff_radius_overlays:
 		if is_instance_valid(overlay):
 			overlay.queue_free()

@@ -87,6 +87,10 @@ func get_skin(skin_id: String) -> Dictionary:
 func is_skin_owned(skin_id: String) -> bool:
 	return skin_id in _owned_skins
 
+func get_all_owned_skins() -> Array:
+	"""Get all owned skin IDs"""
+	return _owned_skins.duplicate()
+
 func get_skins_for_god(god_id: String) -> Array:
 	"""Get all available skins for a god (by template_id)"""
 	var template_id: String = _get_god_template_id(god_id)

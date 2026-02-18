@@ -418,12 +418,26 @@ func _on_back_pressed():
 func _update_skins_button_visibility(skins_btn: Button) -> void:
 	var registry = SystemRegistry.get_instance()
 	var feature_manager = registry.get_system("FeatureUnlockManager") if registry else null
+	var skin_manager = registry.get_system("SkinManager") if registry else null
+
+	# Only show if feature is unlocked AND player has at least one skin
 	if feature_manager and feature_manager.is_feature_unlocked("skin_selection"):
-		skins_btn.visible = true
+		if skin_manager and skin_manager.has_method("get_all_owned_skins"):
+			var owned_skins: Array = skin_manager.get_all_owned_skins()
+			skins_btn.visible = not owned_skins.is_empty()
+		else:
+			skins_btn.visible = false
 	else:
 		skins_btn.visible = false
 
 func _on_skins_button_pressed() -> void:
 	var popup: SkinManagementPopup = SkinManagementPopup.new()
 	add_child(popup)
+	popup.popup_closed.connect(_on_skin_popup_closed)
 	popup.show_popup()
+
+func _on_skin_popup_closed() -> void:
+	# Refresh the collection to show updated skins
+	_load_gods()
+	if selected_god:
+		_show_god_details(selected_god)

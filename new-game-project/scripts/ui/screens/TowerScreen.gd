@@ -42,6 +42,9 @@ func _on_visibility_changed() -> void:
 		_check_intro_tutorial()
 		_refresh_tower_info()
 		_update_start_button_text()
+		# Refresh gods list in case user summoned new gods
+		if team_manager:
+			team_manager.refresh()
 
 func _check_intro_tutorial() -> void:
 	"""Check if intro tutorial should be shown for this screen."""

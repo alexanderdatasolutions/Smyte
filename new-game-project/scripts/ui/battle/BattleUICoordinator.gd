@@ -76,6 +76,7 @@ func _setup_event_listeners():
 	action_ui.action_selected.connect(_on_action_selected)
 	controls_ui.back_pressed.connect(_on_back_pressed)
 	controls_ui.auto_battle_toggled.connect(_on_auto_battle_toggled)
+	controls_ui.speed_changed.connect(_on_speed_changed)
 	
 
 ## Public interface for starting battles
@@ -122,6 +123,7 @@ func _on_battle_started(config):
 func _on_battle_ended(_result):
 	"""Handle battle ended - show results"""
 	controls_ui.disable_battle_controls()
+	Engine.time_scale = 1.0  # Reset speed to normal
 	# Victory screen will be handled by BattleVictoryScreen component
 	
 func _on_turn_started(unit):
@@ -157,6 +159,10 @@ func _on_auto_battle_toggled(enabled: bool):
 	"""Handle auto battle toggle"""
 	if battle_coordinator:
 		battle_coordinator.set_auto_battle(enabled)
+
+func _on_speed_changed(multiplier: float):
+	"""Handle battle speed change"""
+	Engine.time_scale = multiplier
 
 ## Helper methods
 

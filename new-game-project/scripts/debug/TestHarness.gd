@@ -563,6 +563,38 @@ func _input(event: InputEvent) -> void:
 		# F7: Grant a skin to Zeus for testing
 		elif event.keycode == KEY_F7:
 			_debug_grant_zeus_skin()
+		# F6: Show free skin pick popup for Zeus
+		elif event.keycode == KEY_F6:
+			_debug_show_free_skin_popup()
+
+
+func _debug_show_free_skin_popup() -> void:
+	var collection_manager = _get_system("CollectionManager")
+	if not collection_manager:
+		print("DEBUG: CollectionManager not found")
+		return
+
+	# Find Zeus in collection
+	var gods: Array = collection_manager.get_all_gods()
+	var zeus: God = null
+	for god: God in gods:
+		if god.template_id == "zeus" or god.id.begins_with("zeus"):
+			zeus = god
+			break
+
+	if not zeus:
+		print("DEBUG: No Zeus found in collection")
+		return
+
+	# Create and show the popup
+	var popup: FreeSkinPickPopup = FreeSkinPickPopup.new()
+	var current_scene: Node = get_tree().current_scene
+	if current_scene:
+		current_scene.add_child(popup)
+		popup.show_for_god(zeus.id)
+		print("DEBUG: Showing FreeSkinPickPopup for %s" % zeus.name)
+	else:
+		print("DEBUG: No current scene")
 
 
 func _debug_grant_zeus_skin() -> void:
