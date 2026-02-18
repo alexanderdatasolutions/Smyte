@@ -1,5 +1,5 @@
 # scripts/ui/screens/SignInScreen.gd
-# Sign-in screen shown on game load - Email/Password auth or skip to local save
+# Sign-in screen shown on game load - Steam/Email auth or skip to local save
 class_name SignInScreen extends Control
 
 signal sign_in_completed(signed_in: bool)
@@ -9,14 +9,18 @@ var _save_manager = null
 var _signing_in: bool = false
 var _is_signup_mode: bool = false
 var _needs_display_name: bool = false  # True after signup to prompt for display name
+var _steam_available: bool = false
 
 # UI References - Auth
+var _steam_button: Button
+var _email_section: VBoxContainer
 var _email_input: LineEdit
 var _password_input: LineEdit
 var _auth_button: Button
 var _toggle_button: Button
 var _skip_button: Button
 var _status_label: Label
+var _or_divider: HBoxContainer
 
 # UI References - Display Name (shown after signup)
 var _display_name_container: VBoxContainer
@@ -24,9 +28,18 @@ var _display_name_input: LineEdit
 var _display_name_button: Button
 
 func _ready():
+	_check_steam_available()
 	_build_ui()
 	_connect_firebase()
 	_connect_save_manager()
+
+func _check_steam_available():
+	"""Check if Steam is running and available for auth"""
+	if Engine.has_singleton("Steam"):
+		var steam: Object = Engine.get_singleton("Steam")
+		_steam_available = steam.isSteamRunning()
+		if _steam_available:
+			print("SignInScreen: Steam detected - %s" % steam.getPersonaName())
 
 func _build_ui():
 	# Full screen dark overlay
@@ -42,10 +55,10 @@ func _build_ui():
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 
-	# Main panel
+	# Main panel - taller if showing both Steam and email
 	var panel = PanelContainer.new()
 	panel.name = "Panel"
-	panel.custom_minimum_size = Vector2(400, 450)
+	panel.custom_minimum_size = Vector2(400, 520 if _steam_available else 450)
 
 	var panel_style = StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.12, 0.1, 0.16, 0.98)
@@ -62,7 +75,7 @@ func _build_ui():
 	# VBox for content
 	var vbox = VBoxContainer.new()
 	vbox.name = "VBox"
-	vbox.add_theme_constant_override("separation", 15)
+	vbox.add_theme_constant_override("separation", 12)
 	panel.add_child(vbox)
 
 	# Logo/Title
@@ -85,29 +98,69 @@ func _build_ui():
 
 	# Spacer
 	var spacer1 = Control.new()
-	spacer1.custom_minimum_size = Vector2(0, 10)
+	spacer1.custom_minimum_size = Vector2(0, 8)
 	vbox.add_child(spacer1)
+
+	# Steam Sign In Button (if Steam available)
+	if _steam_available:
+		_steam_button = Button.new()
+		_steam_button.name = "SteamButton"
+		_steam_button.text = "Sign in with Steam"
+		_steam_button.custom_minimum_size = Vector2(0, 50)
+		_steam_button.add_theme_font_size_override("font_size", 18)
+		_style_steam_button(_steam_button)
+		_steam_button.pressed.connect(_on_steam_pressed)
+		vbox.add_child(_steam_button)
+
+		# "OR" divider
+		_or_divider = HBoxContainer.new()
+		_or_divider.name = "OrDivider"
+		_or_divider.alignment = BoxContainer.ALIGNMENT_CENTER
+
+		var line1 = HSeparator.new()
+		line1.custom_minimum_size = Vector2(80, 0)
+		line1.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_or_divider.add_child(line1)
+
+		var or_label = Label.new()
+		or_label.text = "  OR  "
+		or_label.add_theme_font_size_override("font_size", 12)
+		or_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
+		_or_divider.add_child(or_label)
+
+		var line2 = HSeparator.new()
+		line2.custom_minimum_size = Vector2(80, 0)
+		line2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_or_divider.add_child(line2)
+
+		vbox.add_child(_or_divider)
+
+	# Email section container
+	_email_section = VBoxContainer.new()
+	_email_section.name = "EmailSection"
+	_email_section.add_theme_constant_override("separation", 10)
+	vbox.add_child(_email_section)
 
 	# Email input
 	var email_label = Label.new()
 	email_label.text = "Email"
 	email_label.add_theme_font_size_override("font_size", 14)
 	email_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
-	vbox.add_child(email_label)
+	_email_section.add_child(email_label)
 
 	_email_input = LineEdit.new()
 	_email_input.name = "EmailInput"
 	_email_input.placeholder_text = "Enter your email"
 	_email_input.custom_minimum_size = Vector2(0, 40)
 	_style_input(_email_input)
-	vbox.add_child(_email_input)
+	_email_section.add_child(_email_input)
 
 	# Password input
 	var password_label = Label.new()
 	password_label.text = "Password"
 	password_label.add_theme_font_size_override("font_size", 14)
 	password_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
-	vbox.add_child(password_label)
+	_email_section.add_child(password_label)
 
 	_password_input = LineEdit.new()
 	_password_input.name = "PasswordInput"
@@ -116,22 +169,17 @@ func _build_ui():
 	_password_input.custom_minimum_size = Vector2(0, 40)
 	_style_input(_password_input)
 	_password_input.text_submitted.connect(_on_password_submitted)
-	vbox.add_child(_password_input)
-
-	# Spacer
-	var spacer2 = Control.new()
-	spacer2.custom_minimum_size = Vector2(0, 5)
-	vbox.add_child(spacer2)
+	_email_section.add_child(_password_input)
 
 	# Sign In / Sign Up Button
 	_auth_button = Button.new()
 	_auth_button.name = "AuthButton"
-	_auth_button.text = "Sign In"
-	_auth_button.custom_minimum_size = Vector2(0, 45)
-	_auth_button.add_theme_font_size_override("font_size", 16)
+	_auth_button.text = "Sign In with Email"
+	_auth_button.custom_minimum_size = Vector2(0, 42)
+	_auth_button.add_theme_font_size_override("font_size", 15)
 	_style_primary_button(_auth_button)
 	_auth_button.pressed.connect(_on_auth_pressed)
-	vbox.add_child(_auth_button)
+	_email_section.add_child(_auth_button)
 
 	# Toggle between Sign In / Sign Up
 	_toggle_button = Button.new()
@@ -141,9 +189,9 @@ func _build_ui():
 	_toggle_button.add_theme_font_size_override("font_size", 12)
 	_toggle_button.add_theme_color_override("font_color", Color(0.5, 0.6, 0.8))
 	_toggle_button.pressed.connect(_on_toggle_mode)
-	vbox.add_child(_toggle_button)
+	_email_section.add_child(_toggle_button)
 
-	# Status label
+	# Status label (in main vbox, not email section)
 	_status_label = Label.new()
 	_status_label.name = "StatusLabel"
 	_status_label.text = ""
@@ -206,6 +254,29 @@ func _style_secondary_button(btn: Button):
 	hover.bg_color = Color(0.22, 0.2, 0.28, 0.9)
 	btn.add_theme_stylebox_override("hover", hover)
 
+func _style_steam_button(btn: Button):
+	# Steam brand color is a dark blue/teal
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.1, 0.2, 0.3, 1.0)  # Steam dark blue
+	style.set_corner_radius_all(8)
+	style.border_color = Color(0.2, 0.4, 0.6, 0.8)
+	style.set_border_width_all(2)
+	btn.add_theme_stylebox_override("normal", style)
+	btn.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0))
+
+	var hover = style.duplicate()
+	hover.bg_color = Color(0.15, 0.3, 0.45, 1.0)
+	hover.border_color = Color(0.3, 0.5, 0.7, 1.0)
+	btn.add_theme_stylebox_override("hover", hover)
+
+	var pressed = style.duplicate()
+	pressed.bg_color = Color(0.08, 0.15, 0.25, 1.0)
+	btn.add_theme_stylebox_override("pressed", pressed)
+
+	var disabled = style.duplicate()
+	disabled.bg_color = Color(0.15, 0.15, 0.2, 0.5)
+	btn.add_theme_stylebox_override("disabled", disabled)
+
 func _connect_firebase():
 	var system_registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
 	if not system_registry_script:
@@ -226,6 +297,39 @@ func _connect_firebase():
 			await get_tree().create_timer(0.5).timeout
 			sign_in_completed.emit(true)
 			queue_free()
+			return
+
+		# Auto sign-in with Steam if available (no button click needed)
+		if _steam_available and _firebase_integration.is_steam_available():
+			_auto_sign_in_steam()
+
+func _auto_sign_in_steam():
+	"""Automatically sign in with Steam - seamless for PC players"""
+	_signing_in = true
+	_set_buttons_enabled(false)
+	_set_status("Signing in with Steam...")
+
+	# Small delay so user sees the status
+	await get_tree().create_timer(0.3).timeout
+	_firebase_integration.sign_in_with_steam()
+
+func _on_steam_pressed():
+	"""Handle Steam sign-in button press"""
+	if _signing_in:
+		return
+
+	if not _firebase_integration:
+		_set_status("Firebase not available")
+		return
+
+	if not _firebase_integration.is_steam_available():
+		_set_status("Steam is not running")
+		return
+
+	_signing_in = true
+	_set_buttons_enabled(false)
+	_set_status("Signing in with Steam...")
+	_firebase_integration.sign_in_with_steam()
 
 func _on_toggle_mode():
 	_is_signup_mode = not _is_signup_mode
@@ -233,7 +337,7 @@ func _on_toggle_mode():
 		_auth_button.text = "Create Account"
 		_toggle_button.text = "Already have an account? Sign In"
 	else:
-		_auth_button.text = "Sign In"
+		_auth_button.text = "Sign In with Email"
 		_toggle_button.text = "Don't have an account? Sign Up"
 	_set_status("")
 
@@ -353,6 +457,8 @@ func _set_status(text: String):
 		_status_label.text = text
 
 func _set_buttons_enabled(enabled: bool):
+	if _steam_button:
+		_steam_button.disabled = not enabled
 	if _auth_button:
 		_auth_button.disabled = not enabled
 	if _skip_button:

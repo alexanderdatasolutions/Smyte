@@ -28,6 +28,10 @@ var _event_bus: Node = null
 var _last_resource_log_time: float = 0.0
 const RESOURCE_LOG_COOLDOWN: float = 5.0  # seconds between resource logs
 
+# Steam authentication (uses Steam ID directly, no Cloud Function needed)
+var _steam_id: int = 0
+var _auth_provider: String = ""  # "google", "steam", "email"
+
 func _ready() -> void:
 	name = "FirebaseIntegration"
 
@@ -183,9 +187,82 @@ func sign_in_with_google() -> void:
 
 	auth_state = AuthState.SIGNING_IN
 	sign_in_started.emit()
+	_auth_provider = "google"
 
 	# GodotFirebase opens browser for OAuth, captures token via local server
 	firebase.Auth.get_auth_localhost(google_provider)
+
+func sign_in_with_steam() -> void:
+	"""Sign in using Steam - uses Steam ID directly as user identifier.
+	No Cloud Function needed - Steam client is trusted on PC."""
+	if auth_state == AuthState.SIGNING_IN:
+		return
+
+	# Check if Steam is available
+	if not Engine.has_singleton("Steam"):
+		sign_in_failed.emit("Steam not available")
+		return
+
+	var steam: Object = Engine.get_singleton("Steam")
+
+	# Check if Steam is initialized
+	if not steam.isSteamRunning():
+		sign_in_failed.emit("Steam is not running")
+		return
+
+	auth_state = AuthState.SIGNING_IN
+	sign_in_started.emit()
+	_auth_provider = "steam"
+
+	# Get Steam ID and persona name
+	_steam_id = steam.getSteamID()
+	var persona_name: String = steam.getPersonaName()
+
+	print("FirebaseIntegration: Steam sign-in for %s (ID: %d)" % [persona_name, _steam_id])
+
+	# Create user data from Steam info - no server verification needed
+	# Steam ID is trusted because it comes from the Steam client
+	user_data = {
+		"uid": "steam_%d" % _steam_id,
+		"email": "",
+		"display_name": persona_name,
+		"photo_url": "",
+		"provider": "steam",
+		"steam_id": str(_steam_id),
+		"steam_name": persona_name
+	}
+
+	auth_state = AuthState.SIGNED_IN
+	if analytics:
+		analytics.set_user_id(user_data.get("uid", ""))
+
+	# Initialize cloud saves with Steam ID
+	_initialize_cloud_saves_for_steam()
+
+	sign_in_completed.emit(user_data)
+
+func _initialize_cloud_saves_for_steam() -> void:
+	"""Initialize cloud saves using Steam ID as the user identifier"""
+	var firebase: Node = _get_firebase()
+	if firebase and firebase.Firestore and cloud_save_manager:
+		var steam_user_id: String = "steam_%d" % _steam_id
+		cloud_save_manager.initialize(firebase.Firestore, steam_user_id)
+		print("FirebaseIntegration: Cloud saves initialized for Steam user %s" % steam_user_id)
+
+func is_steam_available() -> bool:
+	"""Check if Steam is available for authentication"""
+	if not Engine.has_singleton("Steam"):
+		return false
+	var steam: Object = Engine.get_singleton("Steam")
+	return steam.isSteamRunning()
+
+func get_steam_id() -> int:
+	"""Get the current Steam ID if signed in via Steam"""
+	return _steam_id
+
+func get_auth_provider() -> String:
+	"""Get the provider used for current auth session"""
+	return _auth_provider
 
 func sign_in_with_email(email: String, password: String) -> void:
 	"""Sign in with email and password"""
@@ -203,6 +280,7 @@ func sign_in_with_email(email: String, password: String) -> void:
 
 	auth_state = AuthState.SIGNING_IN
 	sign_in_started.emit()
+	_auth_provider = "email"
 
 	# GodotFirebase email/password login
 	firebase.Auth.login_with_email_and_password(email, password)

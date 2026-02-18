@@ -232,6 +232,11 @@ func _register_progression() -> void:
 		var achievement_manager := preload("res://scripts/systems/progression/AchievementManager.gd").new()
 		register_system("AchievementManager", achievement_manager)
 
+	# Steam integration - connects to AchievementManager for Steam achievement sync
+	if ResourceLoader.exists("res://scripts/systems/core/SteamManager.gd"):
+		var steam_manager := preload("res://scripts/systems/core/SteamManager.gd").new()
+		register_system("SteamManager", steam_manager)
+
 	if ResourceLoader.exists("res://scripts/systems/tasks/TaskAssignmentManager.gd"):
 		var task_assignment_manager := preload("res://scripts/systems/tasks/TaskAssignmentManager.gd").new()
 		register_system("TaskAssignmentManager", task_assignment_manager)
