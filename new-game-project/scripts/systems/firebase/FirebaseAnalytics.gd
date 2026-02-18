@@ -50,6 +50,7 @@ func _notification(what):
 func set_firestore(firestore):
 	"""Set Firestore reference from FirebaseIntegration"""
 	_firestore = firestore
+	print("FirebaseAnalytics: Firestore reference set: %s" % (_firestore != null))
 
 func set_user_id(user_id: String):
 	"""Update user ID after sign-in"""
@@ -316,9 +317,10 @@ func _try_send_batch():
 		return
 
 	if not _firestore:
-		print("FirebaseAnalytics: Firestore not configured, events queued locally")
+		print("FirebaseAnalytics: Firestore not configured, events queued locally (queue size: %d)" % _event_queue.size())
 		return
 
+	print("FirebaseAnalytics: Sending batch of events (queue size: %d)" % _event_queue.size())
 	var events_to_send = _event_queue.dequeue_batch(BATCH_SIZE)
 	_send_to_firestore.call_deferred(events_to_send)
 

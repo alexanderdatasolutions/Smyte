@@ -110,6 +110,9 @@ func _setup_firebase() -> void:
 	# Give Firestore reference to analytics
 	if firebase.Firestore:
 		analytics.set_firestore(firebase.Firestore)
+		print("FirebaseIntegration: Analytics Firestore connected")
+	else:
+		print("FirebaseIntegration: WARNING - firebase.Firestore is null!")
 
 func _connect_event_bus() -> void:
 	"""Hook into EventBus for automatic analytics logging"""
