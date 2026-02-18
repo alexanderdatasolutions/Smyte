@@ -1,0 +1,22 @@
+"lang"
+{
+	"Language"		"english"
+	"Tokens"
+	{
+		"#Status_Playing"		"Playing Smyte"
+		"#Status_In_Battle"		"In Battle"
+		"#Status_In_Dungeon"		"Exploring Dungeon"
+		"#Status_Managing_Territory"		"Managing Territory"
+		"#Status_Summoning_Gods"		"Summoning Gods"
+		"#Status_Crafting"		"Crafting Equipment"
+		"#Status_PvP"		"In PvP Battle"
+		"#Status_Tower"		"Climbing Tower"
+		"#Status_Idle"		"Idle"
+		"#Status_Upgrading"		"Upgrading Gods"
+		"#Status_Sacrifice"		"Sacrificing Gods"
+		"#Status_Equipment"		"Managing Equipment"
+		"#Status_Collection"		"Viewing Collection"
+		"#Status_Shop"		"Browsing Shop"
+		"#Status_Main_Menu"		"In Main Menu"
+	}
+}

@@ -130,6 +130,9 @@ func _init_steam() -> void:
 		_log("Steam initialized successfully!")
 		_log("Logged in as: %s (ID: %d)" % [persona_name, steam_id])
 
+		# Set Rich Presence so friends can see we're playing
+		set_default_presence()
+
 		# Connect to stats received callback (signal name varies by GodotSteam version)
 		if _steam.has_signal("current_stats_received"):
 			_steam.current_stats_received.connect(_on_stats_received)
@@ -280,6 +283,47 @@ func store_stats() -> void:
 	if not _steam_running or not _steam:
 		return
 	_steam.storeStats()
+
+# ==============================================================================
+# RICH PRESENCE
+# ==============================================================================
+
+func set_rich_presence(key: String, value: String) -> bool:
+	"""Set a Steam Rich Presence key-value pair"""
+	if not _steam_running or not _steam:
+		return false
+	return _steam.setRichPresence(key, value)
+
+func clear_rich_presence() -> void:
+	"""Clear all Rich Presence data"""
+	if not _steam_running or not _steam:
+		return
+	_steam.clearRichPresence()
+
+func set_playing_status(status: String) -> void:
+	"""Set the 'steam_display' Rich Presence to show what player is doing"""
+	if not _steam_running or not _steam:
+		return
+	# steam_display is the main status shown to friends
+	_steam.setRichPresence("steam_display", "#Status_" + status)
+	# Also set steam_player_group for friend grouping
+	_steam.setRichPresence("status", status)
+	_log("Set Rich Presence status: %s" % status)
+
+func set_default_presence() -> void:
+	"""Set default presence showing the game is running"""
+	set_rich_presence("steam_display", "#Status_Playing")
+	set_rich_presence("status", "Playing Smyte")
+	_log("Set default Rich Presence")
+
+func update_activity(activity: String) -> void:
+	"""Update presence to show current activity (battles, territory, etc.)"""
+	if not _steam_running or not _steam:
+		return
+	# Common activities: "In Battle", "Managing Territory", "Summoning Gods", etc.
+	set_rich_presence("steam_display", "#Status_" + activity.replace(" ", "_"))
+	set_rich_presence("status", activity)
+	_log("Updated activity: %s" % activity)
 
 # ==============================================================================
 # UTILITY

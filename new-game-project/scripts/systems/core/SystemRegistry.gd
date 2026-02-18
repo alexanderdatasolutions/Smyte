@@ -24,6 +24,12 @@ func _init() -> void:
 	else:
 		push_error("SystemRegistry: Multiple instances not allowed. Use get_instance()")
 
+## Handle app close/quit - shutdown all systems in reverse order
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		print("SystemRegistry: Shutdown requested, cleaning up systems...")
+		shutdown_all_systems()
+
 ## Register a system with the registry
 func register_system(system_name: String, system: Node, initialize_immediately: bool = true) -> void:
 	if _systems.has(system_name):
@@ -86,6 +92,23 @@ func initialize_all_systems() -> void:
 		if system and system.has_method("initialize"):
 			system.initialize()
 
+## Shutdown all systems in reverse registration order
+func shutdown_all_systems() -> void:
+	# Reverse order - shutdown dependencies first
+	var reversed_order: Array = _initialization_order.duplicate()
+	reversed_order.reverse()
+
+	for system_name: String in reversed_order:
+		var system: Node = _systems.get(system_name)
+		if system and is_instance_valid(system) and system.has_method("shutdown"):
+			print("SystemRegistry: Shutting down %s" % system_name)
+			# Some shutdowns are async (like FirebaseIntegration.shutdown)
+			var result = system.shutdown()
+			if result is Signal:
+				# If it's a coroutine, we can't easily await here during close
+				# The system should handle its own async cleanup
+				pass
+
 ## Get system registry statistics for debugging
 func get_debug_info() -> Dictionary:
 	var info: Dictionary = {
@@ -122,6 +145,10 @@ func _register_core_infrastructure() -> void:
 	if ResourceLoader.exists("res://scripts/systems/core/SteamManager.gd"):
 		var steam_manager := preload("res://scripts/systems/core/SteamManager.gd").new()
 		register_system("SteamManager", steam_manager, false)  # defer initialize()
+
+	if ResourceLoader.exists("res://scripts/systems/core/DiscordManager.gd"):
+		var discord_manager := preload("res://scripts/systems/core/DiscordManager.gd").new()
+		register_system("DiscordManager", discord_manager, false)  # defer initialize()
 
 	var event_bus := preload("res://scripts/systems/core/EventBus.gd").new()
 	register_system("EventBus", event_bus)

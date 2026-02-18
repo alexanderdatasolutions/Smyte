@@ -394,6 +394,9 @@ func _process_conversion_building(node: HexNode, all_nodes: Array, current_time:
 	if consumes.is_empty() or produces.is_empty():
 		return
 
+	# Require garrison and workers for conversion buildings
+	if node.garrison.is_empty():
+		return
 	if node.assigned_workers.is_empty():
 		return
 

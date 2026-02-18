@@ -8,7 +8,7 @@ signal batch_sent(count: int)
 signal batch_failed(error: String)
 
 const BATCH_SIZE = 25
-const BATCH_INTERVAL = 30.0  # seconds
+const BATCH_INTERVAL = 10.0  # seconds
 
 # BigQuery-friendly flat events collection (one doc per event)
 const FLAT_EVENTS_COLLECTION = "analytics_flat"
@@ -21,6 +21,7 @@ var _session_id: String = ""
 var _session_start_time: int = 0
 var _user_id: String = "anonymous"
 var _display_name: String = "Anonymous"
+var _steam_id: String = ""  # Separate Steam ID for analytics
 var _is_enabled: bool = true
 var _use_flat_events: bool = true  # Enable BigQuery-friendly flat events
 
@@ -30,6 +31,8 @@ var _firestore = null
 func _ready():
 	_event_queue = AnalyticsEventQueue.new()
 	_event_queue.load_from_disk()
+	if not _event_queue.is_empty():
+		print("FirebaseAnalytics: Loaded %d events from previous session" % _event_queue.size())
 	_start_session()
 
 func _process(delta):
@@ -66,6 +69,13 @@ func set_display_name(display_name: String):
 	# Update any events that were queued before we knew the display name
 	if _event_queue and _display_name != "Anonymous":
 		_event_queue.update_display_name(_display_name)
+
+func set_steam_id(steam_id: String):
+	"""Set Steam ID for analytics tracking (separate from user_id)"""
+	_steam_id = steam_id
+	# Update any events that were queued before we knew the Steam ID
+	if _event_queue and not _steam_id.is_empty():
+		_event_queue.update_steam_id(_steam_id)
 
 func set_enabled(enabled: bool):
 	"""Enable/disable analytics"""
@@ -308,13 +318,15 @@ func _enrich_params(params: Dictionary) -> Dictionary:
 	enriched["display_name"] = _display_name
 	enriched["platform"] = OS.get_name()
 	enriched["client_timestamp"] = Time.get_unix_time_from_system()
+	if not _steam_id.is_empty():
+		enriched["steam_id"] = _steam_id
 	return enriched
 
 # ==============================================================================
 # BATCH SENDING
 # ==============================================================================
 
-func _try_send_batch():
+func _try_send_batch(force_sync: bool = false) -> void:
 	"""Attempt to send queued events to Firestore"""
 	if _event_queue.is_empty():
 		return
@@ -323,9 +335,13 @@ func _try_send_batch():
 		print("FirebaseAnalytics: Firestore not configured, events queued locally (queue size: %d)" % _event_queue.size())
 		return
 
-	print("FirebaseAnalytics: Sending batch of events (queue size: %d)" % _event_queue.size())
+	print("FirebaseAnalytics: Sending batch of events (queue size: %d, sync: %s)" % [_event_queue.size(), force_sync])
 	var events_to_send = _event_queue.dequeue_batch(BATCH_SIZE)
-	_send_to_firestore.call_deferred(events_to_send)
+	if force_sync:
+		# During shutdown, send synchronously (no call_deferred)
+		await _send_to_firestore(events_to_send)
+	else:
+		_send_to_firestore.call_deferred(events_to_send)
 
 func _send_to_firestore(events: Array) -> void:
 	"""Send events to Firestore - flat format for BigQuery compatibility"""
@@ -381,13 +397,14 @@ func _flatten_event(event: Dictionary) -> Dictionary:
 		"timestamp": ts,
 		"date": _timestamp_to_date(ts),
 		"user_id": params.get("user_id", _user_id),
+		"steam_id": params.get("steam_id", ""),
 		"player": params.get("display_name", _display_name),
 		"session_id": params.get("session_id", _session_id),
 		"platform": params.get("platform", OS.get_name()),
 	}
 
 	# Flatten ALL params directly to top level (skip already-added core fields)
-	var skip_keys: Array = ["user_id", "session_id", "platform", "client_timestamp", "display_name"]
+	var skip_keys: Array = ["user_id", "steam_id", "session_id", "platform", "client_timestamp", "display_name"]
 	for key in params:
 		if key in skip_keys:
 			continue
@@ -433,15 +450,19 @@ func _send_batched_events(events: Array) -> void:
 
 func flush_queue() -> void:
 	"""Force send all queued events (call before sign-out or app exit)"""
+	print("FirebaseAnalytics: flush_queue() called, queue size: %d, firestore: %s" % [_event_queue.size(), _firestore != null])
 	var max_retries: int = 10
 	var attempts: int = 0
 	while not _event_queue.is_empty() and _firestore and attempts < max_retries:
-		_try_send_batch()
-		await get_tree().create_timer(0.5).timeout
+		await _try_send_batch(true)  # Use sync mode during flush
+		if _event_queue.is_empty():
+			break
+		await get_tree().create_timer(0.3).timeout
 		attempts += 1
 
-	# Save any remaining events that couldn't be sent
-	_event_queue.save_to_disk()
+	if not _event_queue.is_empty():
+		print("FirebaseAnalytics: %d events remaining after flush, saving to disk" % _event_queue.size())
+		_event_queue.save_to_disk()
 
 func get_pending_event_count() -> int:
 	"""Get number of events waiting to be sent"""

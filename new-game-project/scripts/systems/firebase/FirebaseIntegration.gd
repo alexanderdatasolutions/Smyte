@@ -269,6 +269,10 @@ func _complete_steam_sign_in() -> void:
 	# user_data.uid already set to steam_{id} in sign_in_with_steam()
 	if analytics:
 		analytics.set_user_id(user_data.get("uid", ""))
+		# Set Steam ID as a separate field for analytics tracking
+		analytics.set_steam_id(str(_steam_id))
+		# Set display name from Steam persona
+		analytics.set_display_name(user_data.get("display_name", ""))
 
 	# Initialize cloud saves with Steam ID
 	_initialize_cloud_saves_for_steam()
@@ -589,9 +593,14 @@ func _on_resource_changed(resource_id: String, _new_amount: int, delta: int) -> 
 
 func shutdown() -> void:
 	"""Called by SystemRegistry on shutdown"""
+	print("FirebaseIntegration: shutdown() called")
+
 	# Force any pending cloud saves to execute immediately (bypass debounce)
 	if cloud_save_manager:
+		print("FirebaseIntegration: Forcing cloud save...")
 		cloud_save_manager.force_save_now()
 
 	if analytics:
+		print("FirebaseIntegration: Flushing analytics queue...")
 		await analytics.flush_queue()
+		print("FirebaseIntegration: Analytics flush complete")
