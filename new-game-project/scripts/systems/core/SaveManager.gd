@@ -30,25 +30,114 @@ var data_loaded: bool = false
 # Firebase integration reference (set during initialization)
 var _firebase_integration = null
 
+# Close-save tracking
+var _waiting_for_close_save: bool = false
+var _close_save_timeout: float = 0.0
+const CLOSE_SAVE_TIMEOUT: float = 5.0  # Max wait time for save before force-quitting
+var _saving_overlay: CanvasLayer = null
+
 func _ready() -> void:
 	_connect_firebase()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		save_game()
-		get_tree().quit()
+		# Show saving overlay and wait for save to complete before quitting
+		_handle_close_request()
 	# Save when app loses focus (user switches apps, mobile backgrounding)
 	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		if data_loaded:
 			print("SaveManager: App lost focus, saving...")
-			save_game()
+			# Force immediate save - bypass debounce to prevent data loss
+			_do_save()
 	# Also handle pause (mobile apps get paused before being killed)
 	elif what == NOTIFICATION_APPLICATION_PAUSED:
 		if data_loaded:
 			print("SaveManager: App paused, saving...")
-			save_game()
+			# Force immediate save - bypass debounce to prevent data loss
+			_do_save()
+
+func _handle_close_request() -> void:
+	"""Handle window close - show saving overlay, wait for save, then quit"""
+	if _waiting_for_close_save:
+		return  # Already handling close
+
+	# If no data loaded or no firebase, just quit immediately
+	if not data_loaded or not _firebase_integration:
+		get_tree().quit()
+		return
+
+	print("SaveManager: Close requested, saving before quit...")
+	_waiting_for_close_save = true
+	_close_save_timeout = CLOSE_SAVE_TIMEOUT
+
+	# Show saving overlay
+	_show_saving_overlay()
+
+	# Connect to save completion signal (one-shot)
+	if _firebase_integration and not _firebase_integration.cloud_save_completed.is_connected(_on_close_save_completed):
+		_firebase_integration.cloud_save_completed.connect(_on_close_save_completed, CONNECT_ONE_SHOT)
+
+	# Trigger the save
+	_do_save()
+
+func _show_saving_overlay() -> void:
+	"""Show a fullscreen 'Saving...' overlay"""
+	if _saving_overlay:
+		return
+
+	_saving_overlay = CanvasLayer.new()
+	_saving_overlay.layer = 100  # On top of everything
+
+	var bg = ColorRect.new()
+	bg.color = Color(0, 0, 0, 0.85)
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_saving_overlay.add_child(bg)
+
+	var vbox = VBoxContainer.new()
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	_saving_overlay.add_child(vbox)
+
+	var label = Label.new()
+	label.text = "SAVING..."
+	label.add_theme_font_size_override("font_size", 32)
+	label.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(label)
+
+	var sublabel = Label.new()
+	sublabel.text = "Please wait, do not close the game"
+	sublabel.add_theme_font_size_override("font_size", 16)
+	sublabel.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	sublabel.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(sublabel)
+
+	get_tree().root.add_child(_saving_overlay)
+
+func _hide_saving_overlay() -> void:
+	"""Remove the saving overlay"""
+	if _saving_overlay:
+		_saving_overlay.queue_free()
+		_saving_overlay = null
+
+func _on_close_save_completed() -> void:
+	"""Called when the close save completes - now safe to quit"""
+	print("SaveManager: Close save completed, quitting...")
+	_waiting_for_close_save = false
+	_hide_saving_overlay()
+	get_tree().quit()
 
 func _process(delta: float) -> void:
+	# Handle close-save timeout
+	if _waiting_for_close_save:
+		_close_save_timeout -= delta
+		if _close_save_timeout <= 0.0:
+			print("SaveManager: Close save timed out after %ss, force quitting..." % CLOSE_SAVE_TIMEOUT)
+			_waiting_for_close_save = false
+			_hide_saving_overlay()
+			get_tree().quit()
+		return  # Don't process other saves while waiting for close
+
 	# Update debounce timer
 	if _save_debounce_time > 0.0:
 		_save_debounce_time -= delta
@@ -449,9 +538,10 @@ func _on_important_event_multi(_arg1 = null, _arg2 = null, _arg3 = null) -> void
 	_on_important_event()
 
 func _on_save_requested() -> void:
-	"""Handle explicit save requests from other systems"""
+	"""Handle explicit save requests from other systems.
+	These are intentional save triggers from code - bypass debounce to ensure data safety."""
 	if data_loaded:
-		save_game()
+		_do_save()  # Bypass debounce for explicit save requests
 
 func _on_territory_lost(territory_id: String, node_name: String, reason: String) -> void:
 	"""Track territory losses for UI alerts"""

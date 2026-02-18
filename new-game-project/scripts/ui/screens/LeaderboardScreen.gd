@@ -114,10 +114,18 @@ func _ready() -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_VISIBILITY_CHANGED and visible:
+		_update_header_for_screen()
 		if _ui_built:
 			call_deferred("_refresh_leaderboard")
 		else:
 			call_deferred("_ensure_ui_built")
+
+func _update_header_for_screen() -> void:
+	var main_ui: Node = get_node_or_null("/root/Main/MainUIOverlay")
+	if main_ui:
+		main_ui.set_screen_title("GLOBAL LEADERBOARDS")
+		main_ui.show_header_back_button(true)
+		main_ui.connect_header_back_button(_on_back_pressed)
 
 func _ensure_ui_built() -> void:
 	if _ui_built:
@@ -156,20 +164,9 @@ func _build_ui() -> void:
 	add_child(bg)
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	# Header
-	var header := _create_header()
-	add_child(header)
-	header.anchor_left = 0
-	header.anchor_right = 1
-	header.anchor_top = 0
-	header.anchor_bottom = 0
-	header.offset_left = MARGIN
-	header.offset_right = -MARGIN
-	header.offset_top = 10
-	header.offset_bottom = 10 + HEADER_HEIGHT
-
 	# Main content area (sidebar + leaderboard)
-	var content_top := 10 + HEADER_HEIGHT + SPACING
+	# TOP_MARGIN accounts for MainUIOverlay's header
+	var content_top := TOP_MARGIN + SPACING
 	var main_hbox := HBoxContainer.new()
 	main_hbox.add_theme_constant_override("separation", SPACING)
 	add_child(main_hbox)
@@ -203,36 +200,6 @@ func _build_ui() -> void:
 	content_vbox.add_child(footer)
 
 	_refresh_leaderboard()
-
-func _create_header() -> HBoxContainer:
-	var container := HBoxContainer.new()
-	container.name = "Header"
-	container.add_theme_constant_override("separation", 20)
-
-	# Back button - left aligned
-	var back_btn := Button.new()
-	back_btn.text = "< BACK"
-	back_btn.custom_minimum_size = Vector2(100, 40)
-	back_btn.pressed.connect(_on_back_pressed)
-	_style_button(back_btn, false)
-	container.add_child(back_btn)
-
-	# Title - centered with expand
-	var title := Label.new()
-	title.text = "GLOBAL LEADERBOARDS"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 24)
-	title.add_theme_color_override("font_color", TEXT_HEADER)
-	container.add_child(title)
-
-	# Spacer to balance the back button width
-	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(100, 0)
-	container.add_child(spacer)
-
-	return container
 
 func _create_sidebar() -> PanelContainer:
 	var panel := PanelContainer.new()
