@@ -158,6 +158,21 @@ func get_defense_team() -> Array[God]:
 	"""Get the current defense team"""
 	return defense_team
 
+func withdraw_from_arena() -> void:
+	"""Withdraw from arena - clears defense team so you can't be attacked"""
+	print("[ArenaManager] Withdrawing from arena")
+	defense_team.clear()
+	defense_team_ids.clear()
+
+	if _data_sync != null and _data_sync.is_ready():
+		_data_sync.withdraw_from_arena()
+	else:
+		defense_updated.emit(true)
+
+func has_defense_team() -> bool:
+	"""Check if player has an active defense team"""
+	return not defense_team.is_empty()
+
 func post_defense_to_firebase() -> void:
 	"""Explicitly upload current defense team to Firebase for PvP arena"""
 	print("[ArenaManager] post_defense_to_firebase called with %d gods" % defense_team.size())
@@ -207,6 +222,7 @@ func start_pvp_battle(opponent_data: Dictionary) -> Dictionary:
 
 func process_battle_result(victory: bool, opponent_data: Dictionary) -> Dictionary:
 	"""Process battle result, update ELO, return rewards"""
+	print("[ArenaManager] process_battle_result called - victory: %s" % victory)
 	if opponent_data.is_empty():
 		push_warning("[ArenaManager] Empty opponent data in process_battle_result")
 		return {"victory": victory, "elo_change": 0, "rewards": {}}
@@ -222,6 +238,8 @@ func process_battle_result(victory: bool, opponent_data: Dictionary) -> Dictiona
 	else:
 		losses += 1
 
+	print("[ArenaManager] ELO: %d -> %d (change: %+d), W/L: %d/%d" % [old_elo, player_elo, elo_change, wins, losses])
+
 	var old_league: String = player_league
 	_update_league()
 
@@ -229,6 +247,8 @@ func process_battle_result(victory: bool, opponent_data: Dictionary) -> Dictiona
 	if _data_sync != null and _data_sync.is_ready():
 		_data_sync.update_player_stats(player_elo, wins, losses)
 		_data_sync.record_battle(opponent_data.get("user_id", ""), victory, elo_change)
+		# Symmetric ELO: update opponent's ELO and defense stats
+		_data_sync.update_opponent_after_battle(opponent_data.get("user_id", ""), victory, elo_change)
 
 	elo_changed.emit(old_elo, player_elo, elo_change)
 

@@ -41,6 +41,7 @@ var _defense_popup: RefCounted = null
 var selected_opponent: Dictionary = {}
 var is_showing_leaderboard: bool = false
 var _waiting_for_post_result: bool = false
+var _pvp_battle_callback: Callable  # Stores bound callable for proper disconnect
 
 # System reference helper
 func _get_system_registry():
@@ -187,6 +188,14 @@ func _create_left_panel() -> PanelContainer:
 	_style_post_button(post_btn)
 	post_btn.pressed.connect(_on_post_defense_pressed)
 	vbox.add_child(post_btn)
+
+	# Withdraw from Arena Button
+	var withdraw_btn: Button = Button.new()
+	withdraw_btn.text = "🚫 WITHDRAW"
+	withdraw_btn.custom_minimum_size = Vector2(0, 32)
+	_style_withdraw_button(withdraw_btn)
+	withdraw_btn.pressed.connect(_on_withdraw_pressed)
+	vbox.add_child(withdraw_btn)
 
 	return panel
 
@@ -990,6 +999,23 @@ func _style_post_button(button: Button) -> void:
 	style_pressed.bg_color = Color(0.15, 0.25, 0.5, 0.95)
 	button.add_theme_stylebox_override("pressed", style_pressed)
 
+func _style_withdraw_button(button: Button) -> void:
+	var style_normal: StyleBoxFlat = StyleBoxFlat.new()
+	style_normal.bg_color = Color(0.4, 0.2, 0.2, 0.8)
+	style_normal.border_color = Color(0.6, 0.3, 0.3, 0.7)
+	style_normal.set_border_width_all(1)
+	style_normal.set_corner_radius_all(4)
+	button.add_theme_stylebox_override("normal", style_normal)
+	button.add_theme_font_size_override("font_size", 11)
+
+	var style_hover = style_normal.duplicate()
+	style_hover.bg_color = Color(0.5, 0.25, 0.25, 0.9)
+	button.add_theme_stylebox_override("hover", style_hover)
+
+	var style_pressed = style_normal.duplicate()
+	style_pressed.bg_color = Color(0.3, 0.15, 0.15, 0.9)
+	button.add_theme_stylebox_override("pressed", style_pressed)
+
 	var style_disabled: StyleBoxFlat = StyleBoxFlat.new()
 	style_disabled.bg_color = Color(0.15, 0.15, 0.2, 0.7)
 	style_disabled.border_color = Color(0.25, 0.25, 0.35, 0.5)
@@ -1347,6 +1373,16 @@ func _on_post_defense_pressed() -> void:
 
 	# Upload to Firebase via ArenaDataSync
 	arena_manager.post_defense_to_firebase()
+
+func _on_withdraw_pressed() -> void:
+	"""Withdraw from arena - removes defense team so you can't be attacked"""
+	if not arena_manager:
+		return
+
+	# Confirm withdrawal
+	arena_manager.withdraw_from_arena()
+	_show_notification("Withdrawn from arena. You won't appear in opponent lists.", Color(0.7, 0.5, 0.3))
+	_update_defense_display()
 
 func _show_notification(text: String, color: Color) -> void:
 	"""Show a temporary notification popup"""
@@ -2118,25 +2154,39 @@ func _on_battle_setup_complete(context: Dictionary) -> void:
 		if battle_screen and battle_screen.has_method("start_battle"):
 			battle_screen.start_battle(battle_config)
 
-			# Connect to battle end
+			# Connect to battle end (store bound callable for proper disconnect)
 			if battle_coordinator.has_signal("battle_ended"):
-				if not battle_coordinator.battle_ended.is_connected(_on_pvp_battle_ended):
-					battle_coordinator.battle_ended.connect(_on_pvp_battle_ended.bind(selected_opponent))
+				# Disconnect any existing callback first
+				if _pvp_battle_callback.is_valid() and battle_coordinator.battle_ended.is_connected(_pvp_battle_callback):
+					battle_coordinator.battle_ended.disconnect(_pvp_battle_callback)
+				_pvp_battle_callback = _on_pvp_battle_ended.bind(selected_opponent)
+				battle_coordinator.battle_ended.connect(_pvp_battle_callback)
 		else:
 			battle_coordinator.start_battle(battle_config)
 
-func _on_pvp_battle_ended(result: Dictionary, opponent: Dictionary) -> void:
-	var victory = result.get("result", "") == "victory"
+func _on_pvp_battle_ended(result, opponent: Dictionary) -> void:
+	# Handle both BattleResult object and Dictionary formats
+	var victory: bool = false
+	if result is BattleResult:
+		victory = result.victory
+	elif result is Dictionary:
+		victory = result.get("victory", false) or result.get("result", "") == "victory"
+
+	print("[ArenaScreen] PvP battle ended - victory: %s, opponent: %s" % [victory, opponent.get("display_name", "unknown")])
 
 	if arena_manager:
-		arena_manager.process_battle_result(victory, opponent)
+		var elo_result: Dictionary = arena_manager.process_battle_result(victory, opponent)
+		print("[ArenaScreen] ELO result: %s" % elo_result)
+	else:
+		print("[ArenaScreen] ERROR: arena_manager is null!")
 
-	# Disconnect to avoid duplicate handling
+	# Disconnect using stored bound callable
 	var registry = _get_system_registry()
 	var battle_coordinator = registry.get_system("BattleCoordinator") if registry else null
 	if battle_coordinator and battle_coordinator.has_signal("battle_ended"):
-		if battle_coordinator.battle_ended.is_connected(_on_pvp_battle_ended):
-			battle_coordinator.battle_ended.disconnect(_on_pvp_battle_ended)
+		if _pvp_battle_callback.is_valid() and battle_coordinator.battle_ended.is_connected(_pvp_battle_callback):
+			battle_coordinator.battle_ended.disconnect(_pvp_battle_callback)
+			_pvp_battle_callback = Callable()  # Clear the stored callback
 
 func _on_battle_setup_cancelled() -> void:
 	selected_opponent = {}

@@ -61,6 +61,13 @@ static func get_min_turn_bar_increment() -> float:
 func setup_turn_order(units: Array) -> void:  # Array[BattleUnit]
 	_apply_config()
 	battle_units = units.duplicate()
+
+	# Debug: Log all unit speeds for turn order diagnosis
+	print("[TurnManager] Setting up turn order for %d units:" % units.size())
+	for unit in units:
+		var team: String = "PLAYER" if unit.is_player_unit else "ENEMY"
+		print("  [%s] %s - Speed: %d" % [team, unit.display_name, unit.speed])
+
 	_calculate_initial_turn_order()
 
 ## Start the battle turn cycle

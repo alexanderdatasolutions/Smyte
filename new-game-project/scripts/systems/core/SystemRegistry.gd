@@ -10,6 +10,10 @@ var _systems: Dictionary = {}
 var _system_types: Dictionary = {}
 var _initialization_order: Array = []
 
+# Shutdown state
+var _is_shutting_down: bool = false
+var _shutdown_overlay: CanvasLayer = null
+
 ## Get the singleton instance
 static func get_instance() -> SystemRegistry:
 	if not _instance:
@@ -24,11 +28,74 @@ func _init() -> void:
 	else:
 		push_error("SystemRegistry: Multiple instances not allowed. Use get_instance()")
 
+func _ready() -> void:
+	# Prevent auto-quit so we can do async shutdown
+	get_tree().set_auto_accept_quit(false)
+
 ## Handle app close/quit - shutdown all systems in reverse order
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if _is_shutting_down:
+			return  # Already shutting down
 		print("SystemRegistry: Shutdown requested, cleaning up systems...")
-		shutdown_all_systems()
+		_start_async_shutdown()
+
+## Start async shutdown process with UI feedback
+func _start_async_shutdown() -> void:
+	_is_shutting_down = true
+	_show_shutdown_overlay()
+	# Use call_deferred to allow the overlay to render before blocking
+	call_deferred("_perform_async_shutdown")
+
+func _perform_async_shutdown() -> void:
+	await shutdown_all_systems()
+	print("SystemRegistry: All systems shut down, quitting...")
+	_hide_shutdown_overlay()
+	get_tree().quit()
+
+func _show_shutdown_overlay() -> void:
+	if _shutdown_overlay:
+		return
+
+	_shutdown_overlay = CanvasLayer.new()
+	_shutdown_overlay.layer = 128  # On top of everything
+	add_child(_shutdown_overlay)
+
+	# Dark background
+	var bg := ColorRect.new()
+	bg.color = Color(0.05, 0.03, 0.08, 0.95)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_shutdown_overlay.add_child(bg)
+
+	# Center container
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_shutdown_overlay.add_child(center)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 16)
+	center.add_child(vbox)
+
+	# Saving text
+	var label := Label.new()
+	label.text = "Saving..."
+	label.add_theme_font_size_override("font_size", 24)
+	label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(label)
+
+	# Subtitle
+	var subtitle := Label.new()
+	subtitle.text = "Please wait while your progress is saved"
+	subtitle.add_theme_font_size_override("font_size", 14)
+	subtitle.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(subtitle)
+
+func _hide_shutdown_overlay() -> void:
+	if _shutdown_overlay and is_instance_valid(_shutdown_overlay):
+		_shutdown_overlay.queue_free()
+		_shutdown_overlay = null
 
 ## Register a system with the registry
 func register_system(system_name: String, system: Node, initialize_immediately: bool = true) -> void:
@@ -104,10 +171,9 @@ func shutdown_all_systems() -> void:
 			print("SystemRegistry: Shutting down %s" % system_name)
 			# Some shutdowns are async (like FirebaseIntegration.shutdown)
 			var result = system.shutdown()
+			# Await coroutines to ensure they complete before quitting
 			if result is Signal:
-				# If it's a coroutine, we can't easily await here during close
-				# The system should handle its own async cleanup
-				pass
+				await result
 
 ## Get system registry statistics for debugging
 func get_debug_info() -> Dictionary:

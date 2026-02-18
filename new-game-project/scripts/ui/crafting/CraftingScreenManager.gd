@@ -634,37 +634,87 @@ func _build_set_bonuses_section() -> VBoxContainer:
 	header.add_theme_color_override("font_color", Color(0.8, 0.75, 0.5))
 	section.add_child(header)
 
-	# Show a few example set bonuses from metadata
-	var set_bonuses := {
-		"wrath": {"2pc": "+15% ATK", "4pc": "+30% ATK"},
-		"aegis": {"2pc": "+15% DEF", "4pc": "+30% DEF, +15% HP"},
-		"zephyr": {"2pc": "+25 SPD", "4pc": "+50 SPD"},
-		"titan": {"2pc": "+15% HP", "4pc": "+30% HP"},
-		"fury": {"2pc": "+20% Crit Dmg", "4pc": "+40% Crit Dmg"}
-	}
+	# Build set of available sets from current recipes
+	var available_sets: Dictionary = {}  # Use dict as a set
+	for recipe in _all_recipes:
+		var recipe_set: String = recipe.get("equipment_set", "")
+		if not recipe_set.is_empty():
+			available_sets[recipe_set] = true
 
-	for set_name in set_bonuses:
-		var bonus_data: Dictionary = set_bonuses[set_name]
+	# Load sets from equipment_config.json
+	_load_config()
+	var equipment_sets: Dictionary = _equipment_config.get("equipment_sets", {})
+
+	for set_id: String in equipment_sets:
+		# Skip comment/metadata keys
+		if set_id.begins_with("_"):
+			continue
+
+		# Only show sets available in current recipes
+		if not available_sets.has(set_id):
+			continue
+
+		var set_data: Dictionary = equipment_sets[set_id]
+		var set_name: String = set_data.get("name", set_id.capitalize())
+		var bonuses: Dictionary = set_data.get("bonuses", {})
 
 		var set_label := Label.new()
-		set_label.text = "─ %s ─" % set_name.capitalize()
+		set_label.text = "─ %s ─" % set_name
 		set_label.add_theme_font_size_override("font_size", 10)
 		set_label.add_theme_color_override("font_color", CraftingUIUtils.get_rarity_color("rare"))
 		section.add_child(set_label)
 
-		var two_pc := Label.new()
-		two_pc.text = "  2pc: %s" % bonus_data.get("2pc", "")
-		two_pc.add_theme_font_size_override("font_size", 9)
-		two_pc.add_theme_color_override("font_color", TEXT_MUTED)
-		section.add_child(two_pc)
+		# Format 2pc bonus
+		var two_pc_data: Dictionary = bonuses.get("2", {})
+		var two_pc_text: String = _format_set_bonus(two_pc_data)
+		if not two_pc_text.is_empty():
+			var two_pc := Label.new()
+			two_pc.text = "  2pc: %s" % two_pc_text
+			two_pc.add_theme_font_size_override("font_size", 9)
+			two_pc.add_theme_color_override("font_color", TEXT_MUTED)
+			section.add_child(two_pc)
 
-		var four_pc := Label.new()
-		four_pc.text = "  4pc: %s" % bonus_data.get("4pc", "")
-		four_pc.add_theme_font_size_override("font_size", 9)
-		four_pc.add_theme_color_override("font_color", TEXT_MUTED)
-		section.add_child(four_pc)
+		# Format 4pc bonus
+		var four_pc_data: Dictionary = bonuses.get("4", {})
+		var four_pc_text: String = _format_set_bonus(four_pc_data)
+		if not four_pc_text.is_empty():
+			var four_pc := Label.new()
+			four_pc.text = "  4pc: %s" % four_pc_text
+			four_pc.add_theme_font_size_override("font_size", 9)
+			four_pc.add_theme_color_override("font_color", TEXT_MUTED)
+			section.add_child(four_pc)
 
 	return section
+
+func _format_set_bonus(bonus_data: Dictionary) -> String:
+	"""Format set bonus data into readable string"""
+	var parts: Array[String] = []
+	for stat: String in bonus_data:
+		# Skip special effect metadata
+		if stat.begins_with("special") or stat.begins_with("effect"):
+			continue
+		var value: int = int(bonus_data[stat])
+		var stat_name: String = stat.replace("_", " ").capitalize()
+		# Use + prefix for flat stats, format nicely
+		if stat == "hp":
+			parts.append("+%d HP" % value)
+		elif stat == "attack":
+			parts.append("+%d ATK" % value)
+		elif stat == "defense":
+			parts.append("+%d DEF" % value)
+		elif stat == "speed":
+			parts.append("+%d SPD" % value)
+		elif stat == "crit_rate":
+			parts.append("+%d%% Crit" % value)
+		elif stat == "crit_damage":
+			parts.append("+%d%% CritDmg" % value)
+		elif stat == "resistance":
+			parts.append("+%d RES" % value)
+		elif stat == "accuracy":
+			parts.append("+%d ACC" % value)
+		else:
+			parts.append("+%d %s" % [value, stat_name])
+	return ", ".join(parts)
 
 # ==============================================================================
 # RIGHT PANEL

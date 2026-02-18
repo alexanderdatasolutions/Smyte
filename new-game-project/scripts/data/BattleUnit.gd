@@ -50,21 +50,17 @@ static func from_god(god: God) -> BattleUnit:
 	unit.is_player_unit = true
 	unit.source_god = god
 
-	# Use existing CombatCalculator for authentic SW stats
-	var attack_breakdown = CombatCalculator.get_detailed_attack_breakdown(god)
-	var defense_breakdown = CombatCalculator.get_detailed_defense_breakdown(god)
-	var hp_breakdown = CombatCalculator.get_detailed_hp_breakdown(god)
-	var speed_breakdown = CombatCalculator.get_detailed_speed_breakdown(god)
-
-	unit.max_hp = hp_breakdown.final_value
+	# Use GodCalculator for accurate stats (includes equipment, tier, ascension bonuses)
+	# Note: CombatCalculator.get_detailed_* methods do NOT include equipment bonuses
+	unit.max_hp = GodCalculator.get_current_hp(god)
 	unit.current_hp = unit.max_hp
-	unit.attack = attack_breakdown.final_value
-	unit.defense = defense_breakdown.final_value
-	unit.speed = speed_breakdown.final_value
-	unit.crit_rate = god.get_current_crit_rate() if god.has_method("get_current_crit_rate") else 15
-	unit.crit_damage = god.get_current_crit_damage() if god.has_method("get_current_crit_damage") else 50
-	unit.accuracy = god.get_current_accuracy() if god.has_method("get_current_accuracy") else 0
-	unit.resistance = god.get_current_resistance() if god.has_method("get_current_resistance") else 15
+	unit.attack = GodCalculator.get_current_attack(god)
+	unit.defense = GodCalculator.get_current_defense(god)
+	unit.speed = GodCalculator.get_current_speed(god)
+	unit.crit_rate = GodCalculator.get_current_crit_rate(god)
+	unit.crit_damage = GodCalculator.get_current_crit_damage(god)
+	unit.accuracy = GodCalculator.get_current_accuracy(god)
+	unit.resistance = GodCalculator.get_current_resistance(god)
 
 	# Load skills
 	unit._load_god_skills(god)

@@ -289,6 +289,36 @@ func _calculate_serialized_team_power(team: Array) -> int:
 		power += god_data.get("level", 1) * 100
 	return power
 
+func withdraw_from_arena() -> void:
+	"""Remove defense team from arena - makes player unattackable"""
+	if not is_ready():
+		defense_uploaded.emit(false)
+		return
+
+	_do_withdraw.call_deferred()
+
+func _do_withdraw() -> void:
+	"""Async withdraw operation - clears defense team so player won't appear in opponent lists"""
+	var collection: Variant = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
+	if not collection:
+		defense_uploaded.emit(false)
+		return
+
+	# Clear the defense team (empty array means not attackable)
+	var data: Dictionary = {
+		"user_id": _user_id,
+		"display_name": get_display_name(),
+		"defense_team": [],  # Empty = withdrawn
+		"defense_power": 0,
+		"withdrawn": true,
+		"last_defense_update": Time.get_unix_time_from_system()
+	}
+
+	print("[ArenaDataSync] Withdrawing from arena (clearing defense team)")
+	await collection.set_doc(_user_id, data)
+	var verify: Variant = await collection.get_doc(_user_id)
+	defense_uploaded.emit(verify != null)
+
 # ==============================================================================
 # PLAYER STATS
 # ==============================================================================
@@ -322,6 +352,58 @@ func _do_update_stats(elo: int, wins: int, losses: int) -> void:
 	await collection.set_doc(_user_id, data)
 	var verify: Variant = await collection.get_doc(_user_id)
 	player_stats_updated.emit(verify != null)
+
+# ==============================================================================
+# OPPONENT ELO UPDATE (Symmetric ELO)
+# ==============================================================================
+
+func update_opponent_after_battle(opponent_uid: String, attacker_won: bool, elo_change: int) -> void:
+	"""Update opponent's ELO and defense stats after a battle (symmetric ELO)"""
+	if not is_ready() or opponent_uid.is_empty():
+		return
+
+	_do_update_opponent.call_deferred(opponent_uid, attacker_won, elo_change)
+
+func _do_update_opponent(opponent_uid: String, attacker_won: bool, elo_change: int) -> void:
+	"""Async opponent update - adjusts their ELO inversely and tracks defense W/L"""
+	var collection: Variant = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
+	if not collection:
+		return
+
+	# Fetch opponent's current stats
+	var doc: Variant = await collection.get_doc(opponent_uid)
+	if not doc:
+		print("[ArenaDataSync] Could not fetch opponent %s for ELO update" % opponent_uid)
+		return
+
+	var current_elo: int = int(_get_doc_value(doc, "elo")) if _get_doc_value(doc, "elo") else 1000
+	var defense_wins: int = int(_get_doc_value(doc, "defense_wins")) if _get_doc_value(doc, "defense_wins") else 0
+	var defense_losses: int = int(_get_doc_value(doc, "defense_losses")) if _get_doc_value(doc, "defense_losses") else 0
+
+	# Symmetric ELO: opponent loses/gains the inverse
+	var opponent_elo_change: int = -elo_change if attacker_won else abs(elo_change)
+	var new_elo: int = max(0, current_elo + opponent_elo_change)
+
+	# Update defense W/L
+	if attacker_won:
+		defense_losses += 1
+	else:
+		defense_wins += 1
+
+	print("[ArenaDataSync] Updating opponent %s: ELO %d -> %d (%+d), Defense W/L: %d/%d" % [
+		opponent_uid, current_elo, new_elo, opponent_elo_change, defense_wins, defense_losses
+	])
+
+	# Update opponent's record
+	var update_data: Dictionary = {
+		"elo": new_elo,
+		"league": _get_league_for_elo(new_elo),
+		"defense_wins": defense_wins,
+		"defense_losses": defense_losses,
+		"last_defense_battle": Time.get_unix_time_from_system()
+	}
+
+	await collection.set_doc(opponent_uid, update_data)
 
 # ==============================================================================
 # BATTLE RECORDING
