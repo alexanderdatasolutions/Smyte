@@ -347,6 +347,15 @@ func _process_hex_node_generation() -> void:
 		_process_day_care_xp(node)
 
 func _process_extraction_building(node: HexNode, current_time: float) -> void:
+	# Base node (Divine Sanctum) always produces, other nodes need garrison + workers
+	if node.node_type != "base":
+		# Check if node has garrison (required for all non-base nodes)
+		if node.garrison.is_empty():
+			return
+		# Check if node has workers assigned (required for production)
+		if node.assigned_workers.is_empty():
+			return
+
 	var hourly_production: Dictionary = calculate_node_production(node)
 	if hourly_production.is_empty():
 		return
@@ -473,6 +482,11 @@ func _consume_resource(res_id: String, amount: float, all_nodes: Array) -> void:
 func calculate_offline_hex_production(node: HexNode) -> Dictionary:
 	if not node or not node.is_controlled_by_player():
 		return {}
+
+	# Base node (Divine Sanctum) always produces, other nodes need garrison + workers
+	if node.node_type != "base":
+		if node.garrison.is_empty() or node.assigned_workers.is_empty():
+			return {}
 
 	var current_time: int = int(Time.get_unix_time_from_system())
 

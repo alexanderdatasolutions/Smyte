@@ -182,10 +182,19 @@ func perform_sacrifice(target_god: God, material_gods: Array, player_data: Varia
 	var total_xp: int = sacrifice_result.total_xp
 
 	var collection_manager: Variant = player_data
+
+	# Unequip all equipment from material gods before removing them
+	var system_registry: Variant = SystemRegistry.get_instance()
+	var equipment_manager: Variant = null
+	if system_registry:
+		equipment_manager = system_registry.get_system("EquipmentInventoryManager")
+
 	for material_god: Variant in material_gods:
+		# Return equipped items to inventory before removing the god
+		if equipment_manager and material_god is God:
+			_unequip_all_equipment(material_god, equipment_manager)
 		collection_manager.remove_god(material_god)
 
-	var system_registry: Variant = SystemRegistry.get_instance()
 	if not system_registry:
 		sacrifice_failed.emit("SystemRegistry not available")
 		return false
@@ -242,3 +251,15 @@ func validate_sacrifice(target_god: God, material_gods: Array) -> Dictionary:
 		result.errors.append("Target god is already max level")
 
 	return result
+
+func _unequip_all_equipment(god: God, equipment_manager: Variant) -> void:
+	"""Unequip all equipment from a god before sacrifice, returning items to inventory"""
+	if not god or not equipment_manager:
+		return
+
+	# Check all 6 equipment slots
+	for slot: int in range(6):
+		if equipment_manager.has_method("unequip_equipment_from_god"):
+			var unequipped: Variant = equipment_manager.unequip_equipment_from_god(god, slot)
+			if unequipped:
+				print("SacrificeSystem: Returned %s to inventory from sacrificed god %s" % [unequipped.name if unequipped.has_method("get") else str(unequipped), god.name])
