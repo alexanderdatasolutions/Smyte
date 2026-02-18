@@ -249,8 +249,65 @@ func _handle_node_attack(node: HexNode) -> void:
 		if _territory_manager:
 			_territory_manager.lose_node(node.coord, "no_garrison")
 	else:
-		if event_bus:
-			event_bus.emit_notification("Territory Under Attack: %s" % [node.name if node.name else "Unknown"], "danger", 5.0)
+		# Calculate attack strength based on node tier
+		var attack_power: float = _calculate_attack_power(node.tier)
+		var garrison_power: float = calculate_garrison_power(node)
+
+		if garrison_power >= attack_power:
+			# Defense successful - award XP to garrison gods
+			_award_garrison_defense_xp(node)
+
+			# Reset attack timer for next wave
+			start_attack_timer(node)
+
+			if event_bus:
+				event_bus.emit_notification("Defense Victory: %s" % [node.name if node.name else "Unknown"], "success", 3.0)
+		else:
+			# Defense failed - lose node
+			if event_bus:
+				event_bus.emit_notification("Territory Lost: %s (Garrison overwhelmed!)" % [node.name if node.name else "Unknown"], "warning", 4.0)
+
+			if _territory_manager:
+				_territory_manager.lose_node(node.coord, "defense_failed")
+
+## Calculate attack power based on node tier
+func _calculate_attack_power(tier: int) -> float:
+	_load_config()
+	var defense_cfg: Dictionary = _config.get("defense", {})
+	var base_attack: float = defense_cfg.get("base_attack_power", 500.0)
+	var tier_multipliers: Dictionary = defense_cfg.get("attack_tier_multipliers", {"1": 1.0, "2": 1.5, "3": 2.0, "4": 3.0, "5": 4.5})
+	var multiplier: float = float(tier_multipliers.get(str(tier), 1.0))
+	return base_attack * multiplier
+
+## Award XP to garrison gods after successful defense
+func _award_garrison_defense_xp(node: HexNode) -> void:
+	if not node or node.garrison.is_empty():
+		return
+
+	var registry: Node = SystemRegistry.get_instance()
+	if not registry:
+		return
+
+	var god_progression: Node = registry.get_system("GodProgressionManager")
+	var collection_manager: Node = registry.get_system("CollectionManager")
+	if not god_progression or not collection_manager:
+		return
+
+	# XP scales with node tier (same as capturing the node)
+	_load_config()
+	var xp_cfg: Dictionary = _config.get("defense_xp", {})
+	var base_xp: int = xp_cfg.get("base_xp", 100)
+	var tier_bonuses: Dictionary = xp_cfg.get("tier_bonuses", {"1": 0, "2": 50, "3": 100, "4": 200, "5": 350})
+	var tier_bonus: int = int(tier_bonuses.get(str(node.tier), 0))
+	var xp_per_god: int = base_xp + tier_bonus
+
+	# Award XP to each garrison god
+	for god_id: String in node.garrison:
+		var god: God = collection_manager.get_god_by_id(god_id)
+		if god:
+			god_progression.add_experience_to_god(god, xp_per_god)
+
+	print("TerritoryDefenseManager: Awarded %d XP to %d garrison gods at %s" % [xp_per_god, node.garrison.size(), node.name])
 
 ## Reset a node's attack timer after a successful defense battle
 func reset_attack_timer(node_id: String) -> void:

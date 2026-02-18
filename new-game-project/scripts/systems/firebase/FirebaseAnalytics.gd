@@ -55,6 +55,9 @@ func set_firestore(firestore):
 func set_user_id(user_id: String):
 	"""Update user ID after sign-in"""
 	_user_id = user_id if not user_id.is_empty() else "anonymous"
+	# Update any events that were queued before sign-in
+	if _event_queue and _user_id != "anonymous":
+		_event_queue.update_user_id(_user_id)
 	log_event("user_identified", {"user_id": _user_id})
 
 func set_display_name(display_name: String):

@@ -316,8 +316,10 @@ func _create_enemy_from_config(enemy_name: String, tier: int) -> Dictionary:
 	var per_level = enemies_config.get("enemy_scaling", {}).get("per_level_growth", {})
 	var tier_bonus = enemies_config.get("enemy_scaling", {}).get("stat_calculation", {}).get("territory_tier_bonus", {})
 
-	# Calculate level based on tier
-	var level = tier * 10
+	# Calculate level based on tier (T1=8, T2=15, T3=25, T4=35, T5=50)
+	# Progression: early tiers are easier, later tiers ramp up
+	var level_by_tier: Dictionary = {1: 8, 2: 15, 3: 25, 4: 35, 5: 50}
+	var level: int = level_by_tier.get(tier, tier * 8)
 
 	# Calculate stats
 	var tier_mult = float(tier_bonus.get(str(tier), 1.0))

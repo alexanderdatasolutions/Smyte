@@ -86,3 +86,10 @@ func update_display_name(new_name: String) -> void:
 		var params: Dictionary = event.get("params", {})
 		if params.get("display_name", "") == "Anonymous":
 			params["display_name"] = new_name
+
+func update_user_id(new_user_id: String) -> void:
+	"""Update user_id in all queued events (called when user signs in)"""
+	for event in _queue:
+		var params: Dictionary = event.get("params", {})
+		if params.get("user_id", "") == "anonymous":
+			params["user_id"] = new_user_id

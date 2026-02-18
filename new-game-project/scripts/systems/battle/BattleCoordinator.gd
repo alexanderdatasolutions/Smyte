@@ -586,11 +586,18 @@ func _on_wave_started(wave_number: int):
 		event_bus.wave_started.emit(wave_number)
 	battle_log_message.emit("Wave " + str(wave_number) + " started!")
 
-	# Resume auto-battle after wave transition if enabled
-	if auto_battle_enabled and is_battle_active:
-		# Small delay to let UI update with new enemies
-		await get_tree().create_timer(0.8).timeout
+	# Small delay to let UI update with new enemies
+	await get_tree().create_timer(0.8).timeout
+
+	if not is_battle_active:
+		return
+
+	# Resume battle after wave transition
+	if auto_battle_enabled:
 		_process_auto_battle()
+	else:
+		# Manual battle - start the next turn
+		turn_manager.advance_turn()
 
 func _on_wave_completed(wave_number: int):
 	var event_bus = _get_event_bus()
