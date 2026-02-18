@@ -8,8 +8,12 @@ var _firebase_integration = null
 var _save_manager = null
 var _steam_available: bool = false
 var _status_label: Label
+var _bg: ColorRect
 
 func _ready():
+	# IMMEDIATELY show blocking background (before any awaits)
+	_show_loading_screen()
+
 	# Wait for SteamManager's delayed init to complete (it waits 2 frames)
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -26,6 +30,35 @@ func _ready():
 		print("SignInScreen: No Steam, proceeding offline")
 		sign_in_completed.emit(false)
 		queue_free()
+
+func _show_loading_screen():
+	"""Show loading screen immediately to block WorldView"""
+	_bg = ColorRect.new()
+	_bg.color = Color(0.08, 0.06, 0.12, 1.0)
+	_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_bg)
+
+	var center = CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(center)
+
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 20)
+	center.add_child(vbox)
+
+	var title = Label.new()
+	title.text = "SMYTE"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 48)
+	title.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
+	vbox.add_child(title)
+
+	_status_label = Label.new()
+	_status_label.text = "Loading..."
+	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_status_label.add_theme_font_size_override("font_size", 18)
+	_status_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+	vbox.add_child(_status_label)
 
 func _check_steam_available():
 	"""Check if Steam is running and available for auth"""
@@ -53,33 +86,9 @@ func _connect_systems():
 
 func _auto_sign_in_steam():
 	"""Automatically sign in with Steam - seamless for PC players"""
-	# Create minimal loading UI
-	var bg = ColorRect.new()
-	bg.color = Color(0.08, 0.06, 0.12, 1.0)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
-
-	var center = CenterContainer.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(center)
-
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 20)
-	center.add_child(vbox)
-
-	var title = Label.new()
-	title.text = "SMYTE"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 48)
-	title.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
-	vbox.add_child(title)
-
-	_status_label = Label.new()
-	_status_label.text = "Signing in with Steam..."
-	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_status_label.add_theme_font_size_override("font_size", 18)
-	_status_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
-	vbox.add_child(_status_label)
+	# Update status (UI already created by _show_loading_screen)
+	if _status_label:
+		_status_label.text = "Signing in with Steam..."
 
 	# Small delay so user sees status
 	await get_tree().create_timer(0.3).timeout
@@ -87,7 +96,8 @@ func _auto_sign_in_steam():
 	if _firebase_integration:
 		_firebase_integration.sign_in_with_steam()
 	else:
-		_status_label.text = "Starting game..."
+		if _status_label:
+			_status_label.text = "Starting game..."
 		await get_tree().create_timer(0.5).timeout
 		sign_in_completed.emit(false)
 		queue_free()

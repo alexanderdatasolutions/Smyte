@@ -81,7 +81,7 @@ func _do_save() -> bool:
 		return false
 
 	if not _firebase_integration.is_signed_in():
-		print("SaveManager: Not signed in, cannot save")
+		print("SaveManager: Not signed in, cannot save (firebase_integration=%s)" % _firebase_integration)
 		save_failed.emit("Not signed in")
 		return false
 

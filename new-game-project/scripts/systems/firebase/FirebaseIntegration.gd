@@ -31,6 +31,7 @@ const RESOURCE_LOG_COOLDOWN: float = 5.0  # seconds between resource logs
 # Steam authentication (uses Steam ID directly, no Cloud Function needed)
 var _steam_id: int = 0
 var _auth_provider: String = ""  # "google", "steam", "email"
+var _firebase_auth_uid: String = ""  # Firebase Auth UID for Firestore access
 
 func _ready() -> void:
 	name = "FirebaseIntegration"
@@ -93,12 +94,16 @@ func _setup_firebase() -> void:
 		_safe_connect(firebase.Auth, "logged_out", _on_logout_succeeded)
 		_safe_connect(firebase.Auth, "token_refresh_succeeded", _on_token_refresh_succeeded)
 
-		# Check for saved auth file first (persistent login)
-		if firebase.Auth.check_auth_file():
-			pass
-		# Fallback: check if already has auth in memory
-		elif firebase.Auth.auth and not firebase.Auth.auth.is_empty():
-			_restore_session(firebase.Auth.auth)
+		# Skip auth file check for Steam users - they use anonymous auth
+		if is_steam_available():
+			print("FirebaseIntegration: Skipping auth file check (Steam available)")
+		else:
+			# Check for saved auth file first (persistent login)
+			if firebase.Auth.check_auth_file():
+				pass
+			# Fallback: check if already has auth in memory
+			elif firebase.Auth.auth and not firebase.Auth.auth.is_empty():
+				_restore_session(firebase.Auth.auth)
 	else:
 		push_warning("FirebaseIntegration: Firebase.Auth not ready")
 
@@ -194,7 +199,7 @@ func sign_in_with_google() -> void:
 
 func sign_in_with_steam() -> void:
 	"""Sign in using Steam - uses Steam ID directly as user identifier.
-	No Cloud Function needed - Steam client is trusted on PC."""
+	Also signs in anonymously to Firebase for Firestore access."""
 	if auth_state == AuthState.SIGNING_IN:
 		return
 
@@ -220,8 +225,7 @@ func sign_in_with_steam() -> void:
 
 	print("FirebaseIntegration: Steam sign-in for %s (ID: %d)" % [persona_name, _steam_id])
 
-	# Create user data from Steam info - no server verification needed
-	# Steam ID is trusted because it comes from the Steam client
+	# Create user data from Steam info
 	user_data = {
 		"uid": "steam_%d" % _steam_id,
 		"email": "",
@@ -232,7 +236,34 @@ func sign_in_with_steam() -> void:
 		"steam_name": persona_name
 	}
 
+	# Sign in anonymously to Firebase for Firestore access
+	# Steam ID is used as document key, but we need Firebase Auth for write permissions
+	_do_anonymous_firebase_auth.call_deferred()
+
+func _do_anonymous_firebase_auth() -> void:
+	"""Sign in anonymously to Firebase, then complete Steam sign-in"""
+	var firebase: Node = _get_firebase()
+	if firebase and firebase.Auth:
+		print("FirebaseIntegration: Signing in anonymously to Firebase for Firestore access...")
+
+		# Small delay to let any pending auth operations finish
+		await get_tree().create_timer(0.5).timeout
+
+		# login_anonymous doesn't return anything - signals will fire
+		firebase.Auth.login_anonymous()
+
+		# Wait a bit for the auth to complete
+		await get_tree().create_timer(1.0).timeout
+		print("FirebaseIntegration: Anonymous auth attempt completed")
+
+	_complete_steam_sign_in()
+
+func _complete_steam_sign_in() -> void:
+	"""Complete the Steam sign-in process after Firebase auth attempt"""
 	auth_state = AuthState.SIGNED_IN
+	print("FirebaseIntegration: auth_state set to SIGNED_IN for Steam user")
+
+	# user_data.uid already set to steam_{id} in sign_in_with_steam()
 	if analytics:
 		analytics.set_user_id(user_data.get("uid", ""))
 
@@ -242,17 +273,20 @@ func sign_in_with_steam() -> void:
 	sign_in_completed.emit(user_data)
 
 func _initialize_cloud_saves_for_steam() -> void:
-	"""Initialize cloud saves using Steam ID as the user identifier"""
+	"""Initialize cloud saves using Steam ID (consistent across sessions)"""
 	var firebase: Node = _get_firebase()
 	print("FirebaseIntegration: _initialize_cloud_saves_for_steam - firebase=%s" % (firebase != null))
 	if firebase:
 		print("FirebaseIntegration: firebase.Firestore=%s" % (firebase.Firestore != null))
 	print("FirebaseIntegration: cloud_save_manager=%s" % (cloud_save_manager != null))
+	print("FirebaseIntegration: _steam_id=%d" % _steam_id)
 
-	if firebase and firebase.Firestore and cloud_save_manager:
-		var steam_user_id: String = "steam_%d" % _steam_id
-		cloud_save_manager.initialize(firebase.Firestore, steam_user_id)
-		print("FirebaseIntegration: Cloud saves initialized for Steam user %s" % steam_user_id)
+	if firebase and firebase.Firestore and cloud_save_manager and _steam_id != 0:
+		# Use Steam ID as document key (consistent across sessions)
+		# Firebase rules must allow any authenticated user to write
+		var steam_doc_id: String = "steam_%d" % _steam_id
+		cloud_save_manager.initialize(firebase.Firestore, steam_doc_id)
+		print("FirebaseIntegration: Cloud saves initialized with Steam ID %s" % steam_doc_id)
 	else:
 		print("FirebaseIntegration: WARNING - Could not initialize cloud saves!")
 
@@ -325,7 +359,10 @@ func sign_out() -> void:
 		firebase.Auth.logout()
 
 func is_signed_in() -> bool:
-	return auth_state == AuthState.SIGNED_IN
+	var result: bool = auth_state == AuthState.SIGNED_IN
+	if not result:
+		print("FirebaseIntegration: is_signed_in() = false (auth_state=%s, provider=%s)" % [auth_state, _auth_provider])
+	return result
 
 func get_user_id() -> String:
 	return user_data.get("uid", "")
@@ -352,6 +389,21 @@ func _on_login_succeeded(auth_result: Dictionary) -> void:
 	if auth_state == AuthState.SIGNED_IN:
 		return
 
+	# For Steam users, DON'T overwrite user_data - keep Steam info
+	# Just store the Firebase auth UID separately for Firestore access
+	if _auth_provider == "steam":
+		var firebase_data: Dictionary = _extract_user_data(auth_result)
+		_firebase_auth_uid = firebase_data.get("uid", "")
+		print("FirebaseIntegration: Steam user - stored Firebase UID: %s (keeping Steam user_data)" % _firebase_auth_uid)
+		# Don't change auth_state or user_data - _complete_steam_sign_in handles that
+		# Just save the auth file for Firestore access
+		var fb: Node = _get_firebase()
+		if fb and fb.Auth:
+			print("FirebaseIntegration: Saving auth to file...")
+			fb.Auth.save_auth(auth_result)
+		return
+
+	# Non-Steam auth - normal flow
 	user_data = _extract_user_data(auth_result)
 	auth_state = AuthState.SIGNED_IN
 	analytics.set_user_id(user_data.get("uid", ""))
@@ -367,15 +419,21 @@ func _on_login_succeeded(auth_result: Dictionary) -> void:
 
 	# Initialize cloud save manager with Firestore
 	_initialize_cloud_saves()
-
 	sign_in_completed.emit(user_data)
 
 func _on_login_failed(error_code: Variant, error_message: Variant) -> void:
 	"""Handle failed Firebase login"""
+	print("FirebaseIntegration: _on_login_failed called - provider=%s, auth_state=%s" % [_auth_provider, auth_state])
 	# Don't reset auth state if we're already signed in via Steam
 	# (Firebase Auth failures don't affect Steam-based auth)
 	if _auth_provider == "steam" and auth_state == AuthState.SIGNED_IN:
 		print("FirebaseIntegration: Ignoring Firebase Auth failure (using Steam auth)")
+		return
+
+	# Also ignore if we're using Steam but haven't completed sign-in yet
+	# (check_auth_file may trigger failures before Steam sign-in completes)
+	if _auth_provider == "steam":
+		print("FirebaseIntegration: Ignoring Firebase Auth failure (Steam auth in progress)")
 		return
 
 	auth_state = AuthState.SIGNED_OUT
@@ -401,6 +459,11 @@ func _on_token_refresh_succeeded(auth_result: Dictionary) -> void:
 	"""Handle token refresh from saved auth file"""
 	if auth_state == AuthState.SIGNED_IN:
 		return  # Already signed in, just a token refresh
+
+	# Skip for Steam users - we handle auth in _complete_steam_sign_in
+	if _auth_provider == "steam":
+		print("FirebaseIntegration: Skipping token refresh restore (Steam auth)")
+		return
 
 	# This is a session restore from saved auth
 	_restore_session(auth_result)
@@ -444,13 +507,22 @@ func is_cloud_save_ready() -> bool:
 	"""Check if cloud saves are available"""
 	# Auto-reinitialize if signed in but CloudSaveManager lost its state (scene reload)
 	if cloud_save_manager and not cloud_save_manager.is_ready():
-		if auth_state == AuthState.SIGNED_IN and not user_data.get("uid", "").is_empty():
+		if auth_state == AuthState.SIGNED_IN:
 			print("FirebaseIntegration: Re-initializing cloud saves (scene reload fix)")
-			_initialize_cloud_saves(false)
+			# Use correct init method based on auth provider
+			if _auth_provider == "steam" and _steam_id != 0:
+				_initialize_cloud_saves_for_steam()
+			elif not user_data.get("uid", "").is_empty():
+				_initialize_cloud_saves(false)
 	return cloud_save_manager != null and cloud_save_manager.is_ready()
 
 func _restore_session(auth_data: Dictionary) -> void:
 	"""Restore session from cached credentials (token refresh or saved auth)"""
+	# Skip for Steam users - they have their own sign-in flow
+	if _auth_provider == "steam":
+		print("FirebaseIntegration: Skipping session restore (Steam auth)")
+		return
+
 	user_data = _extract_user_data(auth_data)
 
 	if not user_data.get("uid", "").is_empty():

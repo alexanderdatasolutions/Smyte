@@ -130,12 +130,25 @@ func _init_steam() -> void:
 		_log("Steam initialized successfully!")
 		_log("Logged in as: %s (ID: %d)" % [persona_name, steam_id])
 
-		# Connect to stats received callback
-		_steam.current_stats_received.connect(_on_stats_received)
+		# Connect to stats received callback (signal name varies by GodotSteam version)
+		if _steam.has_signal("current_stats_received"):
+			_steam.current_stats_received.connect(_on_stats_received)
+			_log("Connected to current_stats_received signal")
+		else:
+			_log("current_stats_received signal not found - stats will work without callback")
+			_stats_received = true  # Assume stats are ready
 
 		# Request current stats from Steam (required before setting achievements)
-		var stats_requested: bool = _steam.requestCurrentStats()
-		_log("requestCurrentStats() returned: %s" % stats_requested)
+		# Method name varies by GodotSteam version
+		if _steam.has_method("requestCurrentStats"):
+			_steam.requestCurrentStats()
+			_log("requestCurrentStats() called")
+		elif _steam.has_method("requestUserStats"):
+			_steam.requestUserStats(_steam.getSteamID())
+			_log("requestUserStats() called")
+		else:
+			_log("No stats request method found - assuming stats ready")
+			_stats_received = true
 
 		# Set a fallback timeout - if callback doesn't fire in 2 seconds, proceed anyway
 		_start_stats_timeout()
