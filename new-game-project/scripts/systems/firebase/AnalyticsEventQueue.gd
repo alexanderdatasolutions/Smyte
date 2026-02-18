@@ -82,21 +82,39 @@ func get_all_events() -> Array:
 
 func update_display_name(new_name: String) -> void:
 	"""Update display_name in all queued events (called when user identity is confirmed)"""
+	var updated_count: int = 0
 	for event in _queue:
-		var params: Dictionary = event.get("params", {})
+		if not event.has("params"):
+			continue
+		var params: Dictionary = event["params"]
 		if params.get("display_name", "") == "Anonymous":
 			params["display_name"] = new_name
+			updated_count += 1
+	if updated_count > 0:
+		print("AnalyticsEventQueue: Updated display_name to '%s' in %d events" % [new_name, updated_count])
 
 func update_user_id(new_user_id: String) -> void:
 	"""Update user_id in all queued events (called when user signs in)"""
+	var updated_count: int = 0
 	for event in _queue:
-		var params: Dictionary = event.get("params", {})
+		if not event.has("params"):
+			continue
+		var params: Dictionary = event["params"]
 		if params.get("user_id", "") == "anonymous":
 			params["user_id"] = new_user_id
+			updated_count += 1
+	if updated_count > 0:
+		print("AnalyticsEventQueue: Updated user_id to '%s' in %d events" % [new_user_id, updated_count])
 
 func update_steam_id(new_steam_id: String) -> void:
 	"""Update steam_id in all queued events (called when Steam user signs in)"""
+	var updated_count: int = 0
 	for event in _queue:
-		var params: Dictionary = event.get("params", {})
+		if not event.has("params"):
+			continue
+		var params: Dictionary = event["params"]
 		if params.get("steam_id", "").is_empty():
 			params["steam_id"] = new_steam_id
+			updated_count += 1
+	if updated_count > 0:
+		print("AnalyticsEventQueue: Updated steam_id to '%s' in %d events" % [new_steam_id, updated_count])

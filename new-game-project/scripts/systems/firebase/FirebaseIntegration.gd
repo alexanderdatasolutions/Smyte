@@ -32,12 +32,19 @@ const RESOURCE_LOG_COOLDOWN: float = 5.0  # seconds between resource logs
 var _steam_id: int = 0
 var _auth_provider: String = ""  # "google", "steam", "email"
 var _firebase_auth_uid: String = ""  # Firebase Auth UID for Firestore access
+var _initialized: bool = false  # Guard against double initialization
 
 func _ready() -> void:
 	name = "FirebaseIntegration"
 
 func initialize() -> void:
 	"""Called by SystemRegistry after registration"""
+	# Guard against double initialization (can happen on scene reload)
+	if _initialized:
+		print("FirebaseIntegration: Already initialized, skipping")
+		return
+	_initialized = true
+
 	# Check if GodotFirebase addon is available
 	_firebase_available = _check_firebase_addon()
 
@@ -45,14 +52,16 @@ func initialize() -> void:
 		push_warning("FirebaseIntegration: GodotFirebase addon not found. Analytics will be local-only.")
 
 	# Initialize analytics (works even without Firebase - queues locally)
-	analytics = FirebaseAnalytics.new()
-	add_child(analytics)
+	if not analytics:
+		analytics = FirebaseAnalytics.new()
+		add_child(analytics)
 
 	# Initialize cloud save manager
-	cloud_save_manager = CloudSaveManager.new()
-	cloud_save_manager.name = "CloudSaveManager"
-	add_child(cloud_save_manager)
-	_connect_cloud_save_signals()
+	if not cloud_save_manager:
+		cloud_save_manager = CloudSaveManager.new()
+		cloud_save_manager.name = "CloudSaveManager"
+		add_child(cloud_save_manager)
+		_connect_cloud_save_signals()
 
 	if _firebase_available:
 		# Use call_deferred since _setup_firebase is async
@@ -73,8 +82,16 @@ func _get_firebase() -> Node:
 	"""Get the Firebase autoload node"""
 	return get_node_or_null("/root/Firebase")
 
+var _firebase_setup_done: bool = false  # Guard for _setup_firebase
+
 func _setup_firebase() -> void:
 	"""Configure Firebase connections"""
+	# Guard against double setup
+	if _firebase_setup_done:
+		print("FirebaseIntegration: Firebase already set up, skipping")
+		return
+	_firebase_setup_done = true
+
 	# GodotFirebase addon uses @onready for Auth/Firestore, so we need to wait
 	# for the scene tree to be ready before accessing them
 	await get_tree().process_frame

@@ -24,6 +24,7 @@ var _display_name: String = "Anonymous"
 var _steam_id: String = ""  # Separate Steam ID for analytics
 var _is_enabled: bool = true
 var _use_flat_events: bool = true  # Enable BigQuery-friendly flat events
+var _event_bus_connected: bool = false  # Guard against duplicate connections
 
 # Reference to Firebase (set by FirebaseIntegration)
 var _firestore = null
@@ -65,10 +66,13 @@ func set_user_id(user_id: String):
 
 func set_display_name(display_name: String):
 	"""Update display name after sign-in - also updates any queued events"""
+	var old_name: String = _display_name
 	_display_name = display_name if not display_name.is_empty() else "Anonymous"
-	# Update any events that were queued before we knew the display name
-	if _event_queue and _display_name != "Anonymous":
+	print("FirebaseAnalytics: set_display_name('%s' -> '%s'), queue_size=%d" % [old_name, _display_name, _event_queue.size() if _event_queue else 0])
+	# ALWAYS update queued events with the new name (catches any Anonymous events)
+	if _event_queue and not _display_name.is_empty() and _display_name != "Anonymous":
 		_event_queue.update_display_name(_display_name)
+		print("FirebaseAnalytics: Queue updated with display_name '%s'" % _display_name)
 
 func set_steam_id(steam_id: String):
 	"""Set Steam ID for analytics tracking (separate from user_id)"""
@@ -98,6 +102,12 @@ func connect_to_event_bus(event_bus: Node) -> void:
 	"""Connect to EventBus signals for automatic tracking. Call this after systems init."""
 	if not event_bus:
 		return
+
+	# Prevent duplicate connections
+	if _event_bus_connected:
+		print("FirebaseAnalytics: EventBus already connected, skipping duplicate")
+		return
+	_event_bus_connected = true
 
 	# Battle events
 	if event_bus.has_signal("battle_started"):
@@ -297,11 +307,17 @@ func log_event(event_name: String, params: Dictionary = {}):
 	if not _is_enabled:
 		return
 
+	var enriched_params = _enrich_params(params)
 	var event = {
 		"name": event_name,
-		"params": _enrich_params(params),
+		"params": enriched_params,
 		"timestamp": Time.get_unix_time_from_system()
 	}
+
+	# Debug: log display_name for key events
+	if event_name in ["god_obtained", "summon_completed", "battle_ended", "session_start"]:
+		print("FirebaseAnalytics: log_event('%s') display_name='%s' (instance _display_name='%s')" % [
+			event_name, enriched_params.get("display_name", "?"), _display_name])
 
 	_event_queue.enqueue(event)
 	event_logged.emit(event_name)
@@ -318,6 +334,12 @@ func _enrich_params(params: Dictionary) -> Dictionary:
 	enriched["display_name"] = _display_name
 	enriched["platform"] = OS.get_name()
 	enriched["client_timestamp"] = Time.get_unix_time_from_system()
+	# Capture local time at event logging (ISO 8601 format for BigQuery compatibility)
+	var local_dt: Dictionary = Time.get_datetime_dict_from_system()
+	enriched["local_time"] = "%04d-%02d-%02dT%02d:%02d:%02d" % [
+		local_dt.year, local_dt.month, local_dt.day,
+		local_dt.hour, local_dt.minute, local_dt.second
+	]
 	if not _steam_id.is_empty():
 		enriched["steam_id"] = _steam_id
 	return enriched
@@ -396,6 +418,7 @@ func _flatten_event(event: Dictionary) -> Dictionary:
 		"event_name": event.get("name", "unknown"),
 		"timestamp": ts,
 		"date": _timestamp_to_date(ts),
+		"local_time": params.get("local_time", ""),
 		"user_id": params.get("user_id", _user_id),
 		"steam_id": params.get("steam_id", ""),
 		"player": params.get("display_name", _display_name),
@@ -404,7 +427,7 @@ func _flatten_event(event: Dictionary) -> Dictionary:
 	}
 
 	# Flatten ALL params directly to top level (skip already-added core fields)
-	var skip_keys: Array = ["user_id", "steam_id", "session_id", "platform", "client_timestamp", "display_name"]
+	var skip_keys: Array = ["user_id", "steam_id", "session_id", "platform", "client_timestamp", "display_name", "local_time"]
 	for key in params:
 		if key in skip_keys:
 			continue
