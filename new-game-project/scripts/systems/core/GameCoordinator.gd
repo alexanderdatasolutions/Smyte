@@ -266,52 +266,29 @@ func _setup_starting_gods():
 ## Setup starting equipment for new players
 func _setup_starting_equipment():
 	var equipment_manager = system_registry.get_system("EquipmentManager")
-	if equipment_manager:
-		# Use late binding to avoid parse-time Equipment class reference
-		var equipment_script = load("res://scripts/data/Equipment.gd")
+	if not equipment_manager:
+		push_error("GameCoordinator: EquipmentManager not available for starter equipment")
+		return
 
-		# Create basic starter equipment manually for now
-		# Iron Sword (Weapon)
-		var iron_sword = equipment_script.new()
-		iron_sword.id = "iron_sword"
-		iron_sword.name = "Iron Sword"
-		iron_sword.type = equipment_script.EquipmentType.WEAPON
-		iron_sword.rarity = equipment_script.Rarity.COMMON
-		iron_sword.slot = 1
-		iron_sword.main_stat_type = "attack"
-		iron_sword.main_stat_base = 45
-		iron_sword.main_stat_value = 45
-		iron_sword.level = 0
-		iron_sword.equipped_by_god_id = ""  # Ensure unequipped state
-		equipment_manager.add_equipment_to_inventory(iron_sword)
+	# Create T1 Wrath set starter equipment using the proper factory method
+	var starter_items = [
+		{"type": "weapon", "name": "Blade of Wrath", "set": "wrath"},
+		{"type": "armor", "name": "Wrath Chestplate", "set": "wrath"},
+		{"type": "helm", "name": "Helm of Wrath", "set": "wrath"}
+	]
 
-		# Steel Armor (Armor)
-		var steel_armor = equipment_script.new()
-		steel_armor.id = "steel_armor"
-		steel_armor.name = "Steel Armor"
-		steel_armor.type = equipment_script.EquipmentType.ARMOR
-		steel_armor.rarity = equipment_script.Rarity.RARE
-		steel_armor.slot = 2
-		steel_armor.main_stat_type = "defense"
-		steel_armor.main_stat_base = 78
-		steel_armor.main_stat_value = 78
-		steel_armor.level = 0
-		steel_armor.equipped_by_god_id = ""  # Ensure unequipped state
-		equipment_manager.add_equipment_to_inventory(steel_armor)
-
-		# Mystic Helm (Helm)
-		var mystic_helm = equipment_script.new()
-		mystic_helm.id = "mystic_helm"
-		mystic_helm.name = "Mystic Helm"
-		mystic_helm.type = equipment_script.EquipmentType.HELM
-		mystic_helm.rarity = equipment_script.Rarity.EPIC
-		mystic_helm.slot = 3
-		mystic_helm.main_stat_type = "hp"
-		mystic_helm.main_stat_base = 580
-		mystic_helm.main_stat_value = 580
-		mystic_helm.level = 0
-		mystic_helm.equipped_by_god_id = ""  # Ensure unequipped state
-		equipment_manager.add_equipment_to_inventory(mystic_helm)
+	for item_data in starter_items:
+		var equipment = Equipment.create_from_dungeon("starter", item_data.type, "common", 1)
+		if equipment:
+			# Override with wrath set info
+			equipment.name = item_data.name
+			equipment.equipment_set_type = item_data.set
+			equipment.equipment_set_name = item_data.set.capitalize()
+			equipment.equipped_by_god_id = ""  # Ensure unequipped state
+			equipment_manager.add_equipment_to_inventory(equipment)
+			print("GameCoordinator: Added starter equipment '%s'" % equipment.name)
+		else:
+			push_error("GameCoordinator: Failed to create starter equipment '%s'" % item_data.name)
 
 ## Save game to file
 func save_game() -> bool:

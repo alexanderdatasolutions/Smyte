@@ -104,17 +104,26 @@ func _build_ui() -> void:
 	panel_style.corner_radius_bottom_right = 12
 	_panel_container.add_theme_stylebox_override("panel", panel_style)
 
-	# Inner margin container
+	# Inner margin container - fills the panel using anchors
 	var margin: MarginContainer = MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 16)
 	margin.add_theme_constant_override("margin_right", 16)
 	margin.add_theme_constant_override("margin_top", 12)
 	margin.add_theme_constant_override("margin_bottom", 12)
 	_panel_container.add_child(margin)
+	margin.anchor_left = 0
+	margin.anchor_right = 1
+	margin.anchor_top = 0
+	margin.anchor_bottom = 1
+	margin.offset_left = 0
+	margin.offset_right = 0
+	margin.offset_top = 0
+	margin.offset_bottom = 0
 
-	# Main vertical layout
+	# Main vertical layout - MarginContainer auto-sizes its single child
 	_content_container = VBoxContainer.new()
+	_content_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_content_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_content_container.add_theme_constant_override("separation", 12)
 	margin.add_child(_content_container)
 
@@ -289,22 +298,24 @@ func _build_sort_bar() -> void:
 
 func _build_god_grid() -> void:
 	"""Build the embedded god selection grid"""
-	# Create a custom grid view (simpler than embedding GodSelectionGrid)
+	# Create scroll container that expands to fill remaining space
 	var scroll: ScrollContainer = ScrollContainer.new()
 	scroll.name = "GodScrollContainer"
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	# Ensure scroll container receives mouse input
+	scroll.custom_minimum_size = Vector2(0, 200)  # Minimum height fallback
 	scroll.mouse_filter = Control.MOUSE_FILTER_STOP
+	scroll.follow_focus = false  # Prevent scroll jumping
 	_content_container.add_child(scroll)
 
+	# Grid container - must NOT expand vertically so it can grow beyond scroll viewport
 	var grid: GridContainer = GridContainer.new()
 	grid.name = "GodGrid"
-	grid.columns = 4  # Fit in narrower panel
+	grid.columns = 4
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN  # Critical: don't expand, let it grow
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
 	scroll.add_child(grid)
@@ -811,6 +822,18 @@ func _create_god_card(god: God) -> Control:
 		elem_color = elem_color * 0.5
 	elem_label.add_theme_color_override("font_color", elem_color)
 	level_elem_row.add_child(elem_label)
+
+	# Power display
+	var power_label: Label = Label.new()
+	var power = _calculate_god_power(god)
+	power_label.text = "⚔%.0f" % power
+	power_label.add_theme_font_size_override("font_size", 9)
+	if is_unavailable:
+		power_label.add_theme_color_override("font_color", Color(0.5, 0.4, 0.3))
+	else:
+		power_label.add_theme_color_override("font_color", Color.GOLD)
+	power_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(power_label)
 
 	# Invisible tap button
 	var button: Button = Button.new()

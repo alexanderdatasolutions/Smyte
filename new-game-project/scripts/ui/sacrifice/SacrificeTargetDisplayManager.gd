@@ -31,18 +31,25 @@ func preview_sacrifice_result(selected_materials: Array):
 	"""Preview XP gain from selected materials - RULE 4: UI calculations only"""
 	if not current_target_god:
 		return
-	
+
 	# Calculate preview XP through SystemRegistry - RULE 5 compliance
 	var preview_xp = 0
 	var levels_gained = 0
-	
+
 	if selected_materials.size() > 0:
 		var system_registry = SystemRegistry.get_instance()
 		if system_registry:
 			var sacrifice_manager = system_registry.get_system("SacrificeManager")
 			if sacrifice_manager:
-				preview_xp = sacrifice_manager.calculate_sacrifice_xp(selected_materials)
-				levels_gained = sacrifice_manager.calculate_levels_gained(current_target_god, preview_xp)
+				# Convert to typed array for calculate_sacrifice_preview
+				var typed_materials: Array[God] = []
+				for mat in selected_materials:
+					if mat is God:
+						typed_materials.append(mat)
+				# Use calculate_sacrifice_preview which properly includes target_god bonuses
+				var result = sacrifice_manager.calculate_sacrifice_preview(current_target_god, typed_materials)
+				preview_xp = result.get("total_xp", 0)
+				levels_gained = result.get("levels_gained", 0)
 	
 	update_xp_bar_with_preview(preview_xp, levels_gained)
 	xp_preview_changed.emit(preview_xp, levels_gained)

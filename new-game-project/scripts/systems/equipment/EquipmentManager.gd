@@ -422,6 +422,9 @@ func load_save_data(data: Dictionary) -> void:
 			if gem_data is Dictionary:
 				socket_manager.gems_inventory.append(gem_data.duplicate())
 
+	# Run migrations to clean up old/fake equipment
+	_migrate_remove_legacy_equipment()
+
 func _restore_equipped_equipment_to_inventory() -> void:
 	"""Add equipped equipment from gods to inventory tracker after load"""
 	var system_registry = SystemRegistry.get_instance()
@@ -443,6 +446,47 @@ func _restore_equipped_equipment_to_inventory() -> void:
 				eq.equipped_by_god_id = god.id
 				eq.equipped_slot = i
 				inventory_manager.equipment_inventory.append(eq)
+
+func _migrate_remove_legacy_equipment() -> void:
+	"""Remove old fake starter equipment from saves"""
+	const LEGACY_EQUIPMENT_IDS: Array = [
+		"iron_sword", "steel_armor", "mystic_helm",  # Original fake items
+		"power_amulet", "swift_boots", "focus_ring"  # Additional fake items
+	]
+
+	if not inventory_manager:
+		return
+
+	var system_registry = SystemRegistry.get_instance()
+	if not system_registry:
+		return
+
+	var collection_manager = system_registry.get_system("CollectionManager")
+
+	# First, unequip legacy items from any gods
+	if collection_manager:
+		var gods: Array = collection_manager.get_all_gods()
+		for god in gods:
+			if not god or not god.equipment:
+				continue
+			for slot_idx in range(god.equipment.size()):
+				var eq = god.equipment[slot_idx]
+				if eq != null and eq is Equipment and eq.id in LEGACY_EQUIPMENT_IDS:
+					print("[EquipmentManager] Migration: Unequipping legacy item '%s' from god '%s'" % [eq.id, god.name])
+					god.equipment[slot_idx] = null
+
+	# Then remove from inventory
+	var to_remove: Array = []
+	for eq in inventory_manager.equipment_inventory:
+		if eq != null and eq is Equipment and eq.id in LEGACY_EQUIPMENT_IDS:
+			to_remove.append(eq)
+
+	for eq in to_remove:
+		print("[EquipmentManager] Migration: Removing legacy equipment '%s' from inventory" % eq.id)
+		inventory_manager.equipment_inventory.erase(eq)
+
+	if to_remove.size() > 0:
+		print("[EquipmentManager] Migration complete: Removed %d legacy equipment items" % to_remove.size())
 
 # === CLEANUP ===
 

@@ -54,6 +54,7 @@ var auto_battle_enabled: bool = false
 
 # Battle speed
 var battle_speed: float = 1.0
+var _current_battle_type: String = ""  # Track battle type for persistence
 
 # Battle result overlay
 var battle_result_overlay = null  # BattleResultOverlay instance
@@ -193,9 +194,10 @@ func _notification(what: int) -> void:
 func _on_visibility_changed():
 	"""Handle visibility change - clean up battle result overlay when screen is hidden OR shown"""
 	if not visible:
-		# Reset battle speed when leaving battle screen
-		battle_speed = 1.0
-		Engine.time_scale = 1.0
+		# Reset battle speed when leaving battle screen (but not for tower - preserve between floors)
+		if _current_battle_type != "tower":
+			battle_speed = 1.0
+			Engine.time_scale = 1.0
 
 		if battle_result_overlay:
 			# Screen is being hidden, hide the battle result overlay
@@ -226,6 +228,14 @@ func start_battle(battle_config):
 
 func _on_battle_started(config):
 	"""Handle battle start event - populate UI with units"""
+	# Track battle type for speed persistence between floors
+	if config is Dictionary:
+		_current_battle_type = config.get("battle_type", "").to_lower()
+	elif config is BattleConfig:
+		_current_battle_type = BattleConfig.BattleType.keys()[config.battle_type].to_lower() if config.battle_type != null else ""
+	else:
+		_current_battle_type = ""
+
 	_populate_battle_ui()
 
 	# Initialize wave indicator for wave-based battles
@@ -239,6 +249,11 @@ func _on_battle_started(config):
 	# Re-sync auto battle state if it was enabled (e.g., for tower multi-floor)
 	if auto_battle_enabled and battle_coordinator:
 		battle_coordinator.set_auto_battle(true)
+
+	# Re-sync battle speed (e.g., for tower multi-floor)
+	if battle_speed != 1.0:
+		Engine.time_scale = battle_speed
+		_update_speed_button_visuals()
 
 	# Check for battle intro tutorial
 	_check_battle_tutorial()

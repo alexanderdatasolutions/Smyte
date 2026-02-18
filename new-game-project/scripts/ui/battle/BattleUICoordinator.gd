@@ -127,7 +127,9 @@ func _on_battle_started(config):
 func _on_battle_ended(_result):
 	"""Handle battle ended - show results"""
 	controls_ui.disable_battle_controls()
-	Engine.time_scale = 1.0  # Reset speed to normal
+	# Only reset speed for non-tower battles (tower preserves speed between floors)
+	if controls_ui.get_battle_type() != "tower":
+		Engine.time_scale = 1.0
 	# Victory screen will be handled by BattleVictoryScreen component
 	
 func _on_turn_started(unit):

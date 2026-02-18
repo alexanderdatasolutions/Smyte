@@ -506,7 +506,7 @@
 			"base_experience": 300,
 			"repeatable": true,
 			"max_concurrent_workers": 1,
-			"resource_rewards": {"divine_essence": 6, "awakening_stones": 1},
+			"resource_rewards": {"divine_essence": 6, "awakening_essence": 1},
 			"item_rewards": [],
 			"experience_rewards": {"god_xp": 120, "territory_xp": 60},
 			"skill_id": "meditation",

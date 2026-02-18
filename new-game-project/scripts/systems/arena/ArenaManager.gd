@@ -273,6 +273,11 @@ func process_battle_result(victory: bool, opponent_data: Dictionary) -> Dictiona
 	}
 
 	battle_result_processed.emit(result)
+
+	# Trigger save to persist ELO changes locally
+	if event_bus:
+		event_bus.save_requested.emit()
+
 	return result
 
 func fetch_leaderboard() -> void:
@@ -556,10 +561,12 @@ func _generate_mock_leaderboard() -> void:
 # ==============================================================================
 
 func _on_opponents_fetched(opponents: Array) -> void:
+	print("[ArenaManager] _on_opponents_fetched received %d opponents" % opponents.size())
 	cached_opponents.clear()
 	for opp: Variant in opponents:
 		if opp is Dictionary:
 			cached_opponents.append(opp as Dictionary)
+	print("[ArenaManager] Emitting opponents_loaded with %d cached opponents" % cached_opponents.size())
 	opponents_loaded.emit(cached_opponents)
 
 func _on_defense_uploaded(success: bool) -> void:

@@ -484,6 +484,16 @@
       "pvp_gated": true,
       "icon": "ascension_crystal_icon",
       "category": "awakening_material"
+    },
+    "celestial_essence": {
+      "id": "celestial_essence",
+      "name": "Celestial Essence",
+      "description": "Divine power from the heavens - required for mythic awakenings",
+      "tier": 5,
+      "source": "t4_pvp_shrine_boss",
+      "pvp_gated": true,
+      "icon": "celestial_essence_icon",
+      "category": "awakening_material"
     }
   },
 

@@ -114,6 +114,10 @@ func set_battle_type(battle_type: String) -> void:
 	_current_battle_type = battle_type
 	_load_saved_settings()
 
+func get_battle_type() -> String:
+	"""Get the current battle type"""
+	return _current_battle_type
+
 func _load_saved_settings() -> void:
 	"""Load saved speed/auto settings for the current battle type"""
 	if _current_battle_type.is_empty():

@@ -92,23 +92,30 @@ func fetch_opponents_in_range(min_elo: int, max_elo: int, count: int) -> void:
 
 func _do_fetch_opponents(min_elo: int, max_elo: int, count: int) -> void:
 	"""Async opponent fetch operation"""
-	var collection: Variant = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
-	if not collection:
+	print("[ArenaDataSync] _do_fetch_opponents called (ELO: %d-%d, count: %d)" % [min_elo, max_elo, count])
+
+	if not _firestore:
+		print("[ArenaDataSync] ERROR: Firestore not available")
 		opponents_fetched.emit([])
 		return
 
-	var query: Variant = collection.query() if collection.has_method("query") else null
-	if not query:
-		opponents_fetched.emit([])
-		return
-
-	var result: Variant = await query.get()
+	# Use list() to get all documents in collection (same as LeaderboardDataSync)
+	print("[ArenaDataSync] Fetching via list()...")
+	var result: Variant = await _firestore.list(COLLECTION_ARENA_PLAYERS)
 
 	if result == null:
+		print("[ArenaDataSync] ERROR: list() returned null")
 		opponents_fetched.emit([])
 		return
 
+	# Log result details
+	if result is Array:
+		print("[ArenaDataSync] list() returned %d documents" % result.size())
+	else:
+		print("[ArenaDataSync] list() returned non-array: %s" % str(result).substr(0, 200))
+
 	var opponents: Array = _parse_opponent_results(result, min_elo, max_elo, count)
+	print("[ArenaDataSync] Parsed %d valid opponents" % opponents.size())
 	opponents_fetched.emit(opponents)
 
 func _parse_opponent_results(result: Variant, min_elo: int, max_elo: int, count: int) -> Array:
@@ -122,11 +129,16 @@ func _parse_opponent_results(result: Variant, min_elo: int, max_elo: int, count:
 	elif result is Object and result.has_method("keys"):
 		docs = [result]
 
+	print("[ArenaDataSync] Parsing %d docs (my user_id: %s)" % [docs.size(), _user_id])
+
 	for doc: Variant in docs:
 		var user_id: Variant = _get_doc_value(doc, "user_id")
+		var display_name: Variant = _get_doc_value(doc, "display_name")
+		print("[ArenaDataSync] Doc: user_id=%s, display_name=%s" % [str(user_id), str(display_name)])
 
 		# Skip self
 		if user_id == _user_id:
+			print("[ArenaDataSync]   -> Skipped (self)")
 			continue
 
 		var elo: Variant = _get_doc_value(doc, "elo")
@@ -135,23 +147,34 @@ func _parse_opponent_results(result: Variant, min_elo: int, max_elo: int, count:
 
 		# Filter by ELO range
 		if elo < min_elo or elo > max_elo:
+			print("[ArenaDataSync]   -> Skipped (ELO %s out of range %d-%d)" % [str(elo), min_elo, max_elo])
 			continue
+
+		var defense_team: Variant = _get_doc_value(doc, "defense_team")
+		print("[ArenaDataSync]   -> ELO=%s, defense_team=%s" % [str(elo), str(defense_team).substr(0, 100) if defense_team else "null"])
+
+			# Get values with proper null handling
+		var defense_power: Variant = _get_doc_value(doc, "defense_power")
+		var opp_wins: Variant = _get_doc_value(doc, "wins")
+		var opp_losses: Variant = _get_doc_value(doc, "losses")
 
 		var opponent: Dictionary = {
 			"user_id": user_id,
-			"display_name": _get_doc_value(doc, "display_name"),
+			"display_name": display_name,
 			"elo": int(elo),
 			"league": _get_league_for_elo(int(elo)),
-			"defense_team": _get_doc_value(doc, "defense_team"),
-			"defense_power": _get_doc_value(doc, "defense_power"),
-			"wins": _get_doc_value(doc, "wins"),
-			"losses": _get_doc_value(doc, "losses")
+			"defense_team": defense_team,
+			"defense_power": int(defense_power) if defense_power != null else 0,
+			"wins": int(opp_wins) if opp_wins != null else 0,
+			"losses": int(opp_losses) if opp_losses != null else 0
 		}
 
 		# Validate defense team exists
 		if opponent.defense_team == null or opponent.defense_team.is_empty():
+			print("[ArenaDataSync]   -> Skipped (no defense team)")
 			continue
 
+		print("[ArenaDataSync]   -> VALID opponent added!")
 		opponents.append(opponent)
 
 	# Randomize and limit
@@ -349,17 +372,12 @@ func fetch_leaderboard() -> void:
 
 func _do_fetch_leaderboard() -> void:
 	"""Async leaderboard fetch operation"""
-	var collection: Variant = _firestore.collection(COLLECTION_ARENA_PLAYERS) if _firestore else null
-	if not collection:
+	if not _firestore:
 		leaderboard_fetched.emit([])
 		return
 
-	var query: Variant = collection.query() if collection.has_method("query") else null
-	if not query:
-		leaderboard_fetched.emit([])
-		return
-
-	var result: Variant = await query.get()
+	# Use list() to get all documents in collection
+	var result: Variant = await _firestore.list(COLLECTION_ARENA_PLAYERS)
 
 	if result == null:
 		leaderboard_fetched.emit([])

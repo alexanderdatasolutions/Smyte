@@ -185,16 +185,15 @@ func _build_ui() -> void:
 
 	var available_scroll = ScrollContainer.new()
 	available_scroll.custom_minimum_size = Vector2(0, 120)
+	available_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL  # Expand to use available space
+	available_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_main_container.add_child(available_scroll)
 
 	_available_gods_container = VBoxContainer.new()
 	_available_gods_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Don't use SIZE_EXPAND_FILL for vertical - let it grow naturally for scrolling
+	_available_gods_container.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	available_scroll.add_child(_available_gods_container)
-
-	# Spacer
-	var spacer = Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_main_container.add_child(spacer)
 
 	# Close button
 	_close_button = Button.new()

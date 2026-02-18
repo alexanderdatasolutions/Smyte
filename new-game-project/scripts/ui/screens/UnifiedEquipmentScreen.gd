@@ -35,6 +35,9 @@ var selected_god: God = null
 var selected_slot: int = -1
 var all_gods: Array = []
 var _cached_equipment_config: Dictionary = {}  # Cache for equipment config loading
+var _last_slot_click_time: int = 0  # For double-click detection (msec)
+var _last_slot_clicked: int = -1  # Which slot was last clicked
+const DOUBLE_CLICK_THRESHOLD_MS: int = 400  # Max time between clicks for double-click
 
 # Sorting
 enum GodSortType { POWER, LEVEL, TIER, ELEMENT, NAME }
@@ -1160,6 +1163,25 @@ func _on_god_selected(god: God):
 	_refresh_inventory()
 
 func _on_equipment_slot_clicked(slot_index: int):
+	var current_time: int = Time.get_ticks_msec()
+
+	# Check for double-click on same slot
+	if _last_slot_clicked == slot_index and (current_time - _last_slot_click_time) < DOUBLE_CLICK_THRESHOLD_MS:
+		# Double-click detected - unequip if there's equipment in this slot
+		if selected_god and equipment_manager:
+			var success = equipment_manager.unequip_equipment_from_god(selected_god, slot_index)
+			if success:
+				selected_slot = -1
+				_last_slot_clicked = -1
+				_last_slot_click_time = 0
+				_refresh_all()
+				return
+
+	# Update tracking for next potential double-click
+	_last_slot_clicked = slot_index
+	_last_slot_click_time = current_time
+
+	# Single click behavior - toggle selection
 	if selected_slot == slot_index:
 		selected_slot = -1  # Toggle off
 	else:

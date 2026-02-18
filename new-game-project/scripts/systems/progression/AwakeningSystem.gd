@@ -131,15 +131,8 @@ func get_awakening_requirements(god: God) -> Dictionary:
 	return god_awakening.get("awakening_requirements", {})
 
 func get_awakening_materials_cost(god: God) -> Dictionary:
-	var awakened_god_id: String = god.id + "_awakened"
-	var awakened_gods: Dictionary = awakening_data.get("awakened_gods", {})
-	var awakened_god_data: Dictionary = awakened_gods.get(awakened_god_id, {})
-	var per_god_materials: Dictionary = awakened_god_data.get("awakening_materials", {})
-
-	# If per-god materials exist, use those; otherwise fall back to tier-based costs
-	if not per_god_materials.is_empty():
-		return per_god_materials
-
+	# Always use tier-based costs from awakening_config.json (per-god materials in
+	# awakened_gods.json use legacy/invalid material IDs)
 	var tier_name: String = God.tier_to_string(god.tier)
 	return get_costs_for_tier(tier_name)
 

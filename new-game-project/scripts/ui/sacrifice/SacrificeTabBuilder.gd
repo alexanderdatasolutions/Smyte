@@ -614,9 +614,11 @@ func _update_xp_preview():
 		level_preview_label.text = "Level %d (MAX)" % current_level
 		return
 
-	# Calculate progress
+	# Calculate progress within current level
+	# current_xp is TOTAL lifetime XP, so we need to subtract XP needed to reach current level
+	var xp_for_current_level = GodExperienceCalculator.get_total_experience_for_level(current_level)
+	var xp_progress_in_level = current_xp - xp_for_current_level
 	var xp_needed_for_next = GodCalculator.get_experience_to_next_level(selected_target)
-	var xp_progress_in_level = current_xp
 	var current_level_progress: float = float(xp_progress_in_level) / float(xp_needed_for_next) if xp_needed_for_next > 0 else 0.0
 
 	if preview_xp > 0:

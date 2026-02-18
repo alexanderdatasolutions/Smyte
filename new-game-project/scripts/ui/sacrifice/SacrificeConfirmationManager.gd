@@ -34,15 +34,22 @@ func calculate_sacrifice_preview(target_god: God, materials: Array) -> Dictionar
 		"final_level": target_god.level,
 		"materials_count": materials.size()
 	}
-	
+
 	var system_registry = SystemRegistry.get_instance()
 	if system_registry:
 		var sacrifice_manager = system_registry.get_system("SacrificeManager")
 		if sacrifice_manager:
-			preview_data.total_xp = sacrifice_manager.calculate_sacrifice_xp(materials)
-			preview_data.levels_gained = sacrifice_manager.calculate_levels_gained(target_god, preview_data.total_xp)
-			preview_data.final_level = min(target_god.level + preview_data.levels_gained, 40)
-	
+			# Convert to typed array for calculate_sacrifice_preview
+			var typed_materials: Array[God] = []
+			for mat in materials:
+				if mat is God:
+					typed_materials.append(mat)
+			# Use calculate_sacrifice_preview which includes target_god for bonus calculation
+			var result = sacrifice_manager.calculate_sacrifice_preview(target_god, typed_materials)
+			preview_data.total_xp = result.get("total_xp", 0)
+			preview_data.levels_gained = result.get("levels_gained", 0)
+			preview_data.final_level = min(target_god.level + preview_data.levels_gained, God.get_max_level())
+
 	return preview_data
 
 func build_confirmation_text(target_god: God, materials: Array, preview: Dictionary) -> String:
