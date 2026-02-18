@@ -256,6 +256,10 @@ func get_all_hex_nodes_production() -> Dictionary:
 
 	var controlled_nodes: Array = territory_manager.get_controlled_nodes()
 	for node: Variant in controlled_nodes:
+		# Skip nodes without required garrison + workers (except base node)
+		if node.node_type != "base":
+			if node.garrison.is_empty() or node.assigned_workers.is_empty():
+				continue
 		var node_production: Dictionary = calculate_node_production(node)
 		for resource_id: String in node_production:
 			total_production[resource_id] = total_production.get(resource_id, 0) + node_production[resource_id]
@@ -282,6 +286,9 @@ func get_active_conversions() -> Array:
 		if not node or not node.is_controlled_by_player():
 			continue
 		if node.placed_building.is_empty():
+			continue
+		# Require garrison and workers for refineries to show in conversions
+		if node.garrison.is_empty():
 			continue
 		if node.assigned_workers.is_empty():
 			continue
