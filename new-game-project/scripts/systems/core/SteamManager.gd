@@ -134,11 +134,21 @@ func _init_steam() -> void:
 		_steam.current_stats_received.connect(_on_stats_received)
 
 		# Request current stats from Steam (required before setting achievements)
-		_steam.requestCurrentStats()
-		_log("Requesting stats from Steam...")
+		var stats_requested: bool = _steam.requestCurrentStats()
+		_log("requestCurrentStats() returned: %s" % stats_requested)
+
+		# Set a fallback timeout - if callback doesn't fire in 2 seconds, proceed anyway
+		_start_stats_timeout()
 	else:
 		_steam_running = false
 		_log("Steam init failed - %s" % verbal)
+
+func _start_stats_timeout() -> void:
+	"""Fallback if stats callback doesn't fire"""
+	await get_tree().create_timer(2.0).timeout
+	if not _stats_received:
+		_log("Stats timeout - proceeding without callback")
+		_stats_received = true
 
 func _connect_to_achievement_events() -> void:
 	"""Connect to AchievementManager to sync Steam achievements"""
@@ -189,8 +199,8 @@ func unlock_achievement(achievement_id: String) -> bool:
 		return false
 
 	if not _stats_received:
-		_log("Stats not received yet, cannot unlock: %s" % achievement_id)
-		return false
+		_log("Stats not received yet, trying anyway: %s" % achievement_id)
+		# Try anyway - some games don't have stats configured
 
 	_log("Attempting to unlock Steam achievement: %s" % achievement_id)
 
