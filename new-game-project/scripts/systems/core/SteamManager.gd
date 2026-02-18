@@ -26,6 +26,7 @@ const STEAM_APP_ID: int = 4440530
 var _steam_running: bool = false
 var _is_initialized: bool = false
 var _steam: Object = null  # Reference to Steam singleton
+var _stats_received: bool = false  # True after Steam stats are loaded
 
 # ==============================================================================
 # INITIALIZATION
@@ -65,8 +66,12 @@ func _init_steam() -> void:
 		print("SteamManager: Steam initialized successfully!")
 		print("SteamManager: Logged in as: %s (ID: %d)" % [persona_name, steam_id])
 
-		# Request current stats from Steam
+		# Connect to stats received callback
+		_steam.current_stats_received.connect(_on_stats_received)
+
+		# Request current stats from Steam (required before setting achievements)
 		_steam.requestCurrentStats()
+		print("SteamManager: Requesting stats from Steam...")
 	else:
 		_steam_running = false
 		print("SteamManager: Steam init failed - %s" % verbal)
@@ -91,6 +96,14 @@ func _process(_delta: float) -> void:
 	if _steam_running and _steam:
 		_steam.run_callbacks()
 
+func _on_stats_received(game_id: int, result: int) -> void:
+	"""Called when Steam stats are received - must happen before setting achievements"""
+	if result == 1:  # k_EResultOK
+		_stats_received = true
+		print("SteamManager: Stats received successfully for game %d" % game_id)
+	else:
+		print("SteamManager: Failed to receive stats (result: %d)" % result)
+
 # ==============================================================================
 # ACHIEVEMENTS
 # ==============================================================================
@@ -105,15 +118,23 @@ func unlock_achievement(achievement_id: String) -> bool:
 		print("SteamManager: Steam not running, skipping achievement: %s" % achievement_id)
 		return false
 
+	if not _stats_received:
+		print("SteamManager: Stats not received yet, cannot unlock: %s" % achievement_id)
+		return false
+
+	print("SteamManager: Attempting to unlock Steam achievement: %s" % achievement_id)
+
 	# Set the achievement
 	var success: bool = _steam.setAchievement(achievement_id)
 
 	if success:
 		# Store stats to Steam servers
-		_steam.storeStats()
-		print("SteamManager: Unlocked Steam achievement: %s" % achievement_id)
+		var store_success: bool = _steam.storeStats()
+		print("SteamManager: Unlocked Steam achievement: %s (storeStats: %s)" % [achievement_id, store_success])
 	else:
-		push_warning("SteamManager: Failed to unlock achievement: %s" % achievement_id)
+		# Check if it's already unlocked
+		var status: Dictionary = _steam.getAchievement(achievement_id)
+		print("SteamManager: Failed to unlock '%s' - current status: %s" % [achievement_id, status])
 
 	return success
 
