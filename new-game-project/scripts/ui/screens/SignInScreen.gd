@@ -105,8 +105,36 @@ func _style_button(btn: Button):
 func _on_sign_in_completed(_user_data: Dictionary):
 	if _status_label:
 		_status_label.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
-		_status_label.text = "Welcome!"
+		_status_label.text = "Loading save..."
 
+	await get_tree().create_timer(0.3).timeout
+
+	# Load from cloud
+	if _firebase_integration and _firebase_integration.is_cloud_save_ready():
+		_firebase_integration.cloud_load_completed.connect(_on_cloud_data_loaded, CONNECT_ONE_SHOT)
+		_firebase_integration.cloud_load_failed.connect(_on_cloud_load_failed, CONNECT_ONE_SHOT)
+		_firebase_integration.cloud_save_not_found.connect(_on_cloud_save_not_found, CONNECT_ONE_SHOT)
+		_firebase_integration.load_from_cloud()
+	else:
+		_finish_sign_in()
+
+func _on_cloud_data_loaded(save_data: Dictionary):
+	if _status_label:
+		_status_label.text = "Welcome back!"
+	if _save_manager and not save_data.is_empty():
+		_save_manager.apply_save_data(save_data)
+	await get_tree().create_timer(0.3).timeout
+	_finish_sign_in()
+
+func _on_cloud_load_failed(_error: String):
+	if _status_label:
+		_status_label.text = "Welcome!"
+	await get_tree().create_timer(0.3).timeout
+	_finish_sign_in()
+
+func _on_cloud_save_not_found():
+	if _status_label:
+		_status_label.text = "Welcome, new player!"
 	await get_tree().create_timer(0.3).timeout
 	_finish_sign_in()
 
