@@ -10,7 +10,8 @@
 		"opponents_to_fetch": 10
 	},
 	"cooldowns": {
-		"attack_cooldown_seconds": 60.0
+		"attack_cooldown_seconds": 86400.0,
+		"_comment": "24 hours - resets if opponent updates their defense team"
 	},
 	"leagues": {
 		"thresholds": {

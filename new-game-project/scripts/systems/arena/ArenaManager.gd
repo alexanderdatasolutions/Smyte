@@ -46,7 +46,7 @@ var player_league: String = "bronze"
 var defense_team: Array[God] = []
 var defense_team_ids: Array[String] = []  # Persist these for save/load
 var cached_opponents: Array[Dictionary] = []
-var attack_cooldowns: Dictionary = {}  # {opponent_uid: unix_timestamp}
+var attack_cooldowns: Dictionary = {}  # {opponent_uid: {timestamp, team_version}}
 var total_games: int = 0
 var wins: int = 0
 var losses: int = 0
@@ -192,18 +192,42 @@ func post_defense_to_firebase() -> void:
 		push_warning("[ArenaManager] DataSync still not ready after refresh, defense not posted")
 		defense_updated.emit(false)
 
-func can_attack_opponent(opponent_uid: String) -> bool:
-	"""Check if attack cooldown has expired for this opponent"""
+func can_attack_opponent(opponent_uid: String, opponent_data: Dictionary = {}) -> bool:
+	"""Check if attack cooldown has expired OR if opponent updated their team"""
 	if not attack_cooldowns.has(opponent_uid):
 		return true
-	var elapsed: float = Time.get_unix_time_from_system() - attack_cooldowns[opponent_uid]
-	return elapsed > ATTACK_COOLDOWN
 
-func get_attack_cooldown_remaining(opponent_uid: String) -> float:
-	"""Get remaining cooldown time in seconds"""
+	var cooldown_data: Dictionary = attack_cooldowns[opponent_uid]
+	var last_attack_time: float = cooldown_data.get("timestamp", 0.0)
+	var last_team_version: float = cooldown_data.get("team_version", 0.0)
+
+	# Check if 24h cooldown has expired
+	var elapsed: float = Time.get_unix_time_from_system() - last_attack_time
+	if elapsed > ATTACK_COOLDOWN:
+		return true
+
+	# Check if opponent updated their defense team since last attack
+	var current_team_version: float = opponent_data.get("last_defense_update", 0.0)
+	if current_team_version > last_team_version:
+		return true  # Team changed, can attack again
+
+	return false
+
+func get_attack_cooldown_remaining(opponent_uid: String, opponent_data: Dictionary = {}) -> float:
+	"""Get remaining cooldown time in seconds (0 if team changed)"""
 	if not attack_cooldowns.has(opponent_uid):
 		return 0.0
-	var elapsed: float = Time.get_unix_time_from_system() - attack_cooldowns[opponent_uid]
+
+	var cooldown_data: Dictionary = attack_cooldowns[opponent_uid]
+	var last_attack_time: float = cooldown_data.get("timestamp", 0.0)
+	var last_team_version: float = cooldown_data.get("team_version", 0.0)
+
+	# If team changed, no cooldown
+	var current_team_version: float = opponent_data.get("last_defense_update", 0.0)
+	if current_team_version > last_team_version:
+		return 0.0
+
+	var elapsed: float = Time.get_unix_time_from_system() - last_attack_time
 	return max(0.0, ATTACK_COOLDOWN - elapsed)
 
 func start_pvp_battle(opponent_data: Dictionary) -> Dictionary:
@@ -211,7 +235,12 @@ func start_pvp_battle(opponent_data: Dictionary) -> Dictionary:
 	var opponent_uid: String = opponent_data.get("user_id", "")
 	if opponent_uid.is_empty():
 		push_warning("[ArenaManager] Opponent has no user_id")
-	attack_cooldowns[opponent_uid] = Time.get_unix_time_from_system()
+
+	# Store both timestamp and team version for cooldown tracking
+	attack_cooldowns[opponent_uid] = {
+		"timestamp": Time.get_unix_time_from_system(),
+		"team_version": opponent_data.get("last_defense_update", 0.0)
+	}
 	return {
 		"type": "pvp",
 		"opponent": opponent_data,

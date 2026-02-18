@@ -516,12 +516,16 @@ func _create_opponent_card(opponent: Dictionary) -> PanelContainer:
 	fight_btn.custom_minimum_size = Vector2(115, 36)
 	_style_fight_button(fight_btn)
 
-	# Check cooldown
+	# Check cooldown (24h unless they update their team)
 	var opp_uid = opponent.get("user_id", "")
-	if arena_manager and not arena_manager.can_attack_opponent(opp_uid):
+	if arena_manager and not arena_manager.can_attack_opponent(opp_uid, opponent):
 		fight_btn.disabled = true
-		var remaining = arena_manager.get_attack_cooldown_remaining(opp_uid)
-		fight_btn.text = "%ds" % int(remaining)
+		var remaining = arena_manager.get_attack_cooldown_remaining(opp_uid, opponent)
+		# Format as hours if > 1 hour
+		if remaining > 3600:
+			fight_btn.text = "%dh" % int(remaining / 3600)
+		else:
+			fight_btn.text = "%dm" % int(remaining / 60)
 
 	fight_btn.pressed.connect(_on_fight_pressed.bind(opponent))
 	buttons_vbox.add_child(fight_btn)
@@ -1307,7 +1311,7 @@ func _on_fight_pressed(opponent: Dictionary) -> void:
 		return
 
 	var opp_uid = opponent.get("user_id", "")
-	if not arena_manager.can_attack_opponent(opp_uid):
+	if not arena_manager.can_attack_opponent(opp_uid, opponent):
 		return
 
 	# Start PvP battle flow
