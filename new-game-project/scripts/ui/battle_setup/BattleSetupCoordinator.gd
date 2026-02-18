@@ -235,6 +235,10 @@ func _start_pvp_territory_battle(team: Array) -> void:
 	if pvp_hex:
 		battle_config.territory_id = pvp_hex.id
 
+	# Set rewards based on tier (PvP territory battles)
+	battle_config.base_rewards = _calculate_pvp_territory_rewards(tier)
+	battle_config.loot_table_id = "territory_tier" + str(tier)
+
 	if screen_manager.change_screen("battle"):
 		var battle_screen = screen_manager.get_current_screen()
 		if battle_screen and battle_screen.has_method("start_battle"):
@@ -409,6 +413,39 @@ func _create_default_defender(tier: int, index: int) -> Dictionary:
 		"speed": spd,
 		"skills": []
 	}
+
+
+func _calculate_pvp_territory_rewards(tier: int) -> Dictionary:
+	"""Calculate rewards for PvP territory battles based on tier"""
+	# Base rewards scale with tier
+	var mana_base := 100 + (tier * 100)
+	var gold_base := 50 + (tier * 50)
+	var experience_base := 75 + (tier * 50)
+
+	# Add tier-specific crafting materials
+	var rewards := {
+		"mana": mana_base,
+		"gold": gold_base,
+		"experience": experience_base
+	}
+
+	# Add tier-appropriate materials (matches NodeCaptureHandler._get_default_defense_drops)
+	match tier:
+		1:
+			rewards["monster_parts"] = randi_range(5, 15)
+		2:
+			rewards["monster_parts"] = randi_range(10, 25)
+			rewards["beast_scales"] = randi_range(3, 8)
+		3:
+			rewards["monster_parts"] = randi_range(20, 40)
+			rewards["beast_scales"] = randi_range(8, 18)
+			rewards["elemental_cores"] = randi_range(2, 6)
+		4, 5:
+			rewards["dragon_parts"] = randi_range(5, 15)
+			rewards["beast_scales"] = randi_range(15, 35)
+			rewards["elemental_cores"] = randi_range(5, 12)
+
+	return rewards
 
 
 # ============================================================================

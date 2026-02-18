@@ -12,13 +12,21 @@ static func serialize_god(god: God) -> Dictionary:
 	if not god:
 		return {}
 
+	# Serialize equipment array - convert Equipment objects to dictionaries
+	var equipment_data: Array = []
+	for item in god.equipment:
+		if item != null and item is Equipment:
+			equipment_data.append(serialize_equipment(item))
+		else:
+			equipment_data.append(null)
+
 	return {
 		"id": god.id,  # Unique instance ID
 		"template_id": god.template_id,  # Base god template for recreation
 		"level": god.level,
 		"experience": god.experience,
 		"skill_levels": god.skill_levels.duplicate(),
-		"equipment": god.equipment.duplicate(),  # Use correct property name
+		"equipment": equipment_data,  # Properly serialized equipment
 		"current_hp": god.current_hp,
 		"max_hp": _calculate_god_max_hp(god),
 		"awakened": god.is_awakened,  # Use correct property name

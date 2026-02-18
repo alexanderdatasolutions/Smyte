@@ -128,8 +128,7 @@ func equip_equipment_to_god(god: God, equipment: Equipment, slot: int) -> bool:
 		unequip_equipment_from_god(god, slot)
 	
 	# Equip new equipment
-	equipment.is_equipped = true
-	equipment.equipped_god_id = god.id
+	equipment.equipped_by_god_id = god.id
 	equipment.equipped_slot = slot
 	
 	# Update god equipment through SystemRegistry - RULE 5 compliance
@@ -151,7 +150,7 @@ func unequip_equipment_from_god(god: God, slot: int) -> Equipment:
 	
 	# Unequip equipment
 	equipment.is_equipped = false
-	equipment.equipped_god_id = ""
+	equipment.equipped_by_god_id = ""
 	equipment.equipped_slot = -1
 	
 	# Update god equipment through SystemRegistry - RULE 5 compliance
@@ -165,7 +164,7 @@ func unequip_equipment_from_god(god: God, slot: int) -> Equipment:
 func _get_equipped_equipment_in_slot(god: God, slot: int) -> Equipment:
 	"""Get equipment equipped in specific slot"""
 	for equipment in equipment_inventory:
-		if equipment.is_equipped and equipment.equipped_god_id == god.id and equipment.equipped_slot == slot:
+		if equipment.is_equipped and equipment.equipped_by_god_id == god.id and equipment.equipped_slot == slot:
 			return equipment
 	return null
 

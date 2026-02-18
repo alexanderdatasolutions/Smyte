@@ -157,6 +157,11 @@ func _create_capture_battle_config(hex_node: HexNode) -> BattleConfig:
 	config.victory_condition = "defeat_all_enemies"
 	config.defeat_condition = "all_gods_defeated"
 
+	# Pre-calculate capture rewards and set on config so BattleCoordinator can display them
+	config.base_rewards = _generate_capture_loot(hex_node)
+	# Set loot table for territory tier
+	config.loot_table_id = "territory_tier" + str(hex_node.tier)
+
 	# Store config in BattleCoordinator
 	if battle_coordinator:
 		battle_coordinator.current_battle_config = config
@@ -189,6 +194,11 @@ func _create_capture_battle_config_with_team(hex_node: HexNode, team: Array) -> 
 	config.allow_speed_up = true
 	config.victory_condition = "defeat_all_enemies"
 	config.defeat_condition = "all_gods_defeated"
+
+	# Pre-calculate capture rewards and set on config so BattleCoordinator can display them
+	config.base_rewards = _generate_capture_loot(hex_node)
+	# Set loot table for territory tier
+	config.loot_table_id = "territory_tier" + str(hex_node.tier)
 
 	# Store config in BattleCoordinator
 	if battle_coordinator:
@@ -374,14 +384,14 @@ func _on_capture_battle_ended(result: BattleResult) -> void:
 
 	# Check if victory
 	if result.victory and current_capture_node:
-		_handle_capture_victory(current_capture_node)
+		_handle_capture_victory(current_capture_node, result)
 	else:
 		_handle_capture_defeat()
 
 	# Clear current capture node
 	current_capture_node = null
 
-func _handle_capture_victory(hex_node: HexNode) -> void:
+func _handle_capture_victory(hex_node: HexNode, result: BattleResult) -> void:
 	"""Handle successful capture of node"""
 	if not territory_manager or not hex_grid_manager:
 		return
@@ -398,10 +408,9 @@ func _handle_capture_victory(hex_node: HexNode) -> void:
 	# Capture the node in TerritoryManager
 	territory_manager.capture_node(hex_node.coord)
 
-	# Award capture loot from defense_drops
-	last_capture_rewards = _generate_capture_loot(hex_node)
-	if not last_capture_rewards.is_empty():
-		_award_capture_loot(last_capture_rewards)
+	# Use rewards from BattleResult (already awarded by BattleCoordinator)
+	# Don't regenerate or re-award - that would cause double rewards
+	last_capture_rewards = result.rewards.duplicate()
 
 	# Play capture animation
 	if hex_map_view:

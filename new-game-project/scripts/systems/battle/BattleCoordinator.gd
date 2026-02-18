@@ -155,8 +155,6 @@ func end_battle(result: BattleResult):
 		push_warning("BattleCoordinator: end_battle called but is_battle_active is false")
 		return
 
-	print("BattleCoordinator: end_battle called - victory=%s, reason=%s" % [result.victory, result.victory_condition if result.victory else result.defeat_reason])
-
 	# Stop auto-battle if active
 	auto_battle_enabled = false
 	_auto_battle_processing = false
@@ -166,23 +164,31 @@ func end_battle(result: BattleResult):
 	result.battle_type = current_battle_config.get_battle_type_name() if current_battle_config else "unknown"
 	result.units_defeated = battle_state.units_defeated if battle_state else 0
 
+	# Combat highlights for achievements/rewards
+	if battle_state:
+		result.max_single_hit = battle_state.max_single_hit
+		result.player_units_died = battle_state.player_units_died
+		result.lowest_surviving_hp_percent = battle_state.get_lowest_surviving_hp_percent()
+
 	# Award rewards if victory
 	if result.victory:
 		result.rewards = _calculate_battle_rewards()
 		_award_battle_rewards(result.rewards)
-		print("BattleCoordinator: Victory rewards calculated: %s" % str(result.rewards))
 
-	# Add participating god IDs to result for achievement tracking
+	# Add participating god IDs with actual XP to result for display
 	if battle_state:
+		# Calculate the XP that was awarded (same logic as _award_god_experience)
+		var base_xp = result.rewards.get("experience", 100)
+		var wave_bonus = battle_state.current_wave * 25
+		var xp_per_god = base_xp + wave_bonus if result.victory else 0
+
 		for unit in battle_state.get_player_units():
 			if unit.source_god:
-				# Track which gods participated (using add_experience_gained with 0)
-				result.add_experience_gained(unit.source_god.id, 0)
+				result.add_experience_gained(unit.source_god.id, xp_per_god)
 
 	# Emit battle_ended BEFORE cleanup so handlers can access battle_state
 	# (e.g., TowerScreen needs to save HP for next floor)
 	is_battle_active = false
-	print("BattleCoordinator: Emitting battle_ended signal")
 	battle_ended.emit(result)
 
 	# Also emit to EventBus for global listeners (AchievementManager, StatisticsManager, etc.)
@@ -204,7 +210,6 @@ func end_battle(result: BattleResult):
 
 	# Cleanup battle state AFTER signal handlers have run
 	_cleanup_battle()
-	print("BattleCoordinator: Battle cleanup complete")
 
 ## Toggle auto-battle mode
 func set_auto_battle(enabled: bool):
@@ -387,7 +392,16 @@ func _calculate_dungeon_rewards() -> Dictionary:
 	return rewards
 
 func _calculate_territory_rewards() -> Dictionary:
-	return current_battle_config.base_rewards
+	# Use configured rewards if available, otherwise use defaults
+	if not current_battle_config.base_rewards.is_empty():
+		return current_battle_config.base_rewards
+
+	# Default rewards for territory battles
+	return {
+		"mana": 100,
+		"gold": 50,
+		"experience": 75
+	}
 
 func _calculate_arena_rewards() -> Dictionary:
 	return {"gold": 1000, "mana": 500}

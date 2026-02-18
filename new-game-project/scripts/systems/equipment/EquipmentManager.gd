@@ -138,6 +138,11 @@ func equip_equipment_to_god(god: God, equipment: Equipment, slot: int) -> bool:
 		god.equipment[slot] = equipment
 		equipment.equipped_by_god_id = god.id
 		equipment_equipped.emit(god, equipment, slot)
+		# Also emit to EventBus for global listeners (AchievementManager, etc.)
+		var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+		if event_bus:
+			event_bus.equipment_equipped.emit(god, equipment, slot)
+		_trigger_save()
 		return true
 	else:
 		push_error("EquipmentManager: equipment parameter is not an Equipment object: %s" % str(typeof(equipment)))
@@ -267,6 +272,10 @@ func add_gem_to_inventory(gem_id: String, quantity: int = 1):
 func _on_equipment_equipped(god: God, equipment: Equipment, slot: int):
 	"""Handle equipment equipped event"""
 	equipment_equipped.emit(god, equipment, slot)
+	# Also emit to EventBus for global listeners (AchievementManager, etc.)
+	var event_bus = SystemRegistry.get_instance().get_system("EventBus") if SystemRegistry.get_instance() else null
+	if event_bus:
+		event_bus.equipment_equipped.emit(god, equipment, slot)
 	_trigger_save()
 
 func _on_equipment_unequipped(god: God, slot: int):
@@ -383,7 +392,9 @@ func get_save_data() -> Dictionary:
 
 	if inventory_manager:
 		for eq in inventory_manager.get_all_equipment():
-			data.inventory.append(SaveLoadUtility.serialize_equipment(eq))
+			# Only save unequipped equipment - equipped items are saved with their gods
+			if not eq.is_equipped:
+				data.inventory.append(SaveLoadUtility.serialize_equipment(eq))
 
 	if socket_manager:
 		data.gems = socket_manager.get_gem_inventory().duplicate(true)
@@ -394,17 +405,44 @@ func load_save_data(data: Dictionary) -> void:
 	"""Load all equipment data from SaveManager"""
 	if data.has("inventory") and inventory_manager:
 		inventory_manager.clear_inventory()
+		# Load unequipped equipment from save data
 		for eq_data in data.inventory:
 			if eq_data is Dictionary:
 				var eq: Equipment = SaveLoadUtility.deserialize_equipment(eq_data)
 				if eq:
 					inventory_manager.add_equipment_to_inventory(eq)
 
+		# Also add equipped equipment from gods to inventory tracker
+		# Gods are loaded before EquipmentManager, so their equipment exists
+		_restore_equipped_equipment_to_inventory()
+
 	if data.has("gems") and socket_manager:
 		socket_manager.gems_inventory.clear()
 		for gem_data in data.gems:
 			if gem_data is Dictionary:
 				socket_manager.gems_inventory.append(gem_data.duplicate())
+
+func _restore_equipped_equipment_to_inventory() -> void:
+	"""Add equipped equipment from gods to inventory tracker after load"""
+	var system_registry = SystemRegistry.get_instance()
+	if not system_registry:
+		return
+
+	var collection_manager = system_registry.get_system("CollectionManager")
+	if not collection_manager:
+		return
+
+	var gods: Array = collection_manager.get_all_gods()
+	for god in gods:
+		if not god or not god.equipment:
+			continue
+		for i in range(god.equipment.size()):
+			var eq = god.equipment[i]
+			if eq != null and eq is Equipment:
+				# Ensure equipped state is set and add to inventory tracker
+				eq.equipped_by_god_id = god.id
+				eq.equipped_slot = i
+				inventory_manager.equipment_inventory.append(eq)
 
 # === CLEANUP ===
 

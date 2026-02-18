@@ -2,429 +2,304 @@ class_name BattleResultOverlay
 extends Control
 
 """
-BattleResultOverlay.gd - Displays battle result with rewards and navigation
-RULE 2: Single responsibility - ONLY displays battle result UI
-RULE 4: No logic in UI - just displays BattleResult data
-RULE 5: Uses SystemRegistry for navigation
-
-Shows:
-	pass
-- Victory/Defeat banner with rating
-- Rewards earned (resources, experience, loot)
-- Battle statistics summary
-- Return to Map button for navigation
+BattleResultOverlay.gd - Clean, compact battle result display
+Shows victory/defeat, rating, and rewards in a polished format
 """
 
-# Signals for navigation
 signal return_to_map_pressed
 signal continue_pressed
 
-# References to child nodes (will be created in _create_ui)
-var background_panel: Panel
-var result_container: VBoxContainer
-var result_label: Label
-var rating_label: Label
-var stats_container: VBoxContainer
-var rewards_container: VBoxContainer
-var rewards_title: Label
-var loot_container: VBoxContainer
-var button_container: HBoxContainer
-var return_button: Button
-var continue_button: Button
+# UI references
+var _content_panel: Panel
+var _result_label: Label
+var _rating_label: Label
+var _perfect_label: Label
+var _rewards_grid: GridContainer
+var _first_clear_container: VBoxContainer
+var _loot_container: VBoxContainer
+var _button_container: HBoxContainer
+var _return_button: Button
+var _continue_button: Button
 
-# Battle result data
+# Battle result data (needed by BattleScreen for navigation)
 var battle_result: BattleResult
 
-# Animation tracking
-var _reward_rows: Array = []
-var _loot_rows: Array = []
-var _first_clear_container: VBoxContainer
+# Animation
 var _reveal_tween: Tween
-var _is_animating: bool = false
+var _animated_elements: Array = []
+
+# Color palette (from UI_DESIGN_PATTERNS.md)
+const COLOR_BG_DARK = Color(0.08, 0.06, 0.12)
+const COLOR_PANEL_BG = Color(0.12, 0.1, 0.16, 0.98)
+const COLOR_BORDER = Color(0.3, 0.25, 0.4, 0.8)
+const COLOR_BORDER_VICTORY = Color(1.0, 0.85, 0.3, 1.0)
+const COLOR_BORDER_DEFEAT = Color(0.8, 0.3, 0.3, 0.8)
+const COLOR_HEADER = Color(0.8, 0.8, 0.9)
+const COLOR_TEXT = Color(0.7, 0.7, 0.8)
+const COLOR_MUTED = Color(0.5, 0.5, 0.55)
+const COLOR_SUCCESS = Color(0.4, 0.9, 0.4)
+const COLOR_DEFEAT = Color(1.0, 0.4, 0.4)
+const COLOR_GOLD = Color(1.0, 0.85, 0.3)
+const COLOR_REWARD_VALUE = Color(0.6, 0.9, 0.6)
 
 func _ready():
-	# Set up as fullscreen container for centering
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
-
-	# Start hidden
 	visible = false
-
-	# Create UI structure
 	_create_ui()
 
 func _create_ui():
-	"""Create the overlay UI structure"""
-	# Semi-transparent dark background
-	background_panel = Panel.new()
-	background_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# Dark overlay background
+	var bg = ColorRect.new()
+	bg.color = Color(0, 0, 0, 0.85)
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(bg)
 
-	# Create dark semi-transparent style
-	var bg_style = StyleBoxFlat.new()
-	bg_style.bg_color = Color(0.0, 0.0, 0.0, 0.85)
-	background_panel.add_theme_stylebox_override("panel", bg_style)
-	add_child(background_panel)
+	# Center container
+	var center = CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(center)
 
-	# Main content container - centered
-	var center_container = CenterContainer.new()
-	center_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center_container.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Don't block background clicks
-	add_child(center_container)
+	# Main panel - compact size
+	_content_panel = Panel.new()
+	_content_panel.custom_minimum_size = Vector2(420, 320)
+	_style_panel(_content_panel, COLOR_BORDER)
+	center.add_child(_content_panel)
 
-	# Content panel with border - this will be centered by CenterContainer
-	var content_panel = Panel.new()
-	content_panel.custom_minimum_size = Vector2(500, 450)
-	content_panel.size = Vector2(500, 450)  # Force the size
-
-	var panel_style = StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.1, 0.1, 0.15, 1.0)
-	panel_style.border_color = Color(0.4, 0.4, 0.5, 1.0)
-	panel_style.border_width_left = 3
-	panel_style.border_width_right = 3
-	panel_style.border_width_top = 3
-	panel_style.border_width_bottom = 3
-	panel_style.corner_radius_top_left = 10
-	panel_style.corner_radius_top_right = 10
-	panel_style.corner_radius_bottom_left = 10
-	panel_style.corner_radius_bottom_right = 10
-	content_panel.add_theme_stylebox_override("panel", panel_style)
-	center_container.add_child(content_panel)
-
-	# Result container inside content panel
-	result_container = VBoxContainer.new()
-	result_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	result_container.add_theme_constant_override("separation", 15)
-
-	# Add margins
+	# Margin container
 	var margin = MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 30)
-	margin.add_theme_constant_override("margin_right", 30)
-	margin.add_theme_constant_override("margin_top", 30)
-	margin.add_theme_constant_override("margin_bottom", 30)
-	content_panel.add_child(margin)
-	margin.add_child(result_container)
+	margin.add_theme_constant_override("margin_left", 24)
+	margin.add_theme_constant_override("margin_right", 24)
+	margin.add_theme_constant_override("margin_top", 20)
+	margin.add_theme_constant_override("margin_bottom", 20)
+	_content_panel.add_child(margin)
 
-	# Victory/Defeat label
-	result_label = Label.new()
-	result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	result_label.add_theme_font_size_override("font_size", 36)
-	result_container.add_child(result_label)
+	# Main VBox
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+	margin.add_child(vbox)
 
-	# Rating label (S, A, B, C, D)
-	rating_label = Label.new()
-	rating_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	rating_label.add_theme_font_size_override("font_size", 48)
-	result_container.add_child(rating_label)
+	# === HEADER: Victory/Defeat + Rating ===
+	var header = VBoxContainer.new()
+	header.add_theme_constant_override("separation", 4)
+	vbox.add_child(header)
+
+	_result_label = Label.new()
+	_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_result_label.add_theme_font_size_override("font_size", 32)
+	header.add_child(_result_label)
+
+	_rating_label = Label.new()
+	_rating_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_rating_label.add_theme_font_size_override("font_size", 20)
+	header.add_child(_rating_label)
+
+	_perfect_label = Label.new()
+	_perfect_label.text = "PERFECT!"
+	_perfect_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_perfect_label.add_theme_font_size_override("font_size", 14)
+	_perfect_label.add_theme_color_override("font_color", COLOR_GOLD)
+	_perfect_label.visible = false
+	header.add_child(_perfect_label)
 
 	# Separator
-	var sep1 = HSeparator.new()
-	result_container.add_child(sep1)
+	var sep = HSeparator.new()
+	sep.add_theme_color_override("separator", COLOR_BORDER)
+	vbox.add_child(sep)
 
-	# Stats container
-	stats_container = VBoxContainer.new()
-	stats_container.add_theme_constant_override("separation", 5)
-	result_container.add_child(stats_container)
+	# === REWARDS SECTION (scrollable) ===
+	var rewards_scroll = ScrollContainer.new()
+	rewards_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	rewards_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	rewards_scroll.custom_minimum_size = Vector2(0, 80)
+	vbox.add_child(rewards_scroll)
 
-	# Separator
-	var sep2 = HSeparator.new()
-	result_container.add_child(sep2)
+	var rewards_vbox = VBoxContainer.new()
+	rewards_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rewards_vbox.add_theme_constant_override("separation", 8)
+	rewards_scroll.add_child(rewards_vbox)
 
-	# Rewards title
-	rewards_title = Label.new()
-	rewards_title.text = "REWARDS"
-	rewards_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	rewards_title.add_theme_font_size_override("font_size", 20)
-	rewards_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
-	result_container.add_child(rewards_title)
+	# Rewards header
+	var rewards_header = Label.new()
+	rewards_header.text = "REWARDS"
+	rewards_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rewards_header.add_theme_font_size_override("font_size", 16)
+	rewards_header.add_theme_color_override("font_color", COLOR_GOLD)
+	rewards_vbox.add_child(rewards_header)
 
-	# Rewards container
-	rewards_container = VBoxContainer.new()
-	rewards_container.add_theme_constant_override("separation", 5)
-	result_container.add_child(rewards_container)
+	# 3-column rewards grid
+	_rewards_grid = GridContainer.new()
+	_rewards_grid.columns = 3
+	_rewards_grid.add_theme_constant_override("h_separation", 16)
+	_rewards_grid.add_theme_constant_override("v_separation", 6)
+	_rewards_grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	rewards_vbox.add_child(_rewards_grid)
 
-	# First clear bonus container (special section)
+	# First clear bonus (hidden by default)
 	_first_clear_container = VBoxContainer.new()
-	_first_clear_container.add_theme_constant_override("separation", 5)
-	_first_clear_container.visible = false  # Hidden until first clear
-	result_container.add_child(_first_clear_container)
+	_first_clear_container.add_theme_constant_override("separation", 4)
+	_first_clear_container.visible = false
+	rewards_vbox.add_child(_first_clear_container)
 
-	# Loot container (for equipment/items)
-	loot_container = VBoxContainer.new()
-	loot_container.add_theme_constant_override("separation", 5)
-	result_container.add_child(loot_container)
+	# Loot container (hidden by default)
+	_loot_container = VBoxContainer.new()
+	_loot_container.add_theme_constant_override("separation", 4)
+	rewards_vbox.add_child(_loot_container)
 
-	# Spacer
-	var spacer = Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	result_container.add_child(spacer)
+	# === BUTTONS ===
+	_button_container = HBoxContainer.new()
+	_button_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	_button_container.add_theme_constant_override("separation", 16)
+	vbox.add_child(_button_container)
 
-	# Button container
-	button_container = HBoxContainer.new()
-	button_container.alignment = BoxContainer.ALIGNMENT_CENTER
-	button_container.add_theme_constant_override("separation", 20)
-	result_container.add_child(button_container)
+	_return_button = Button.new()
+	_return_button.text = "Close"
+	_return_button.custom_minimum_size = Vector2(120, 36)
+	_return_button.pressed.connect(_on_return_pressed)
+	_style_button(_return_button, true)
+	_button_container.add_child(_return_button)
 
-	# Return to Map button
-	return_button = Button.new()
-	return_button.text = "Return to Map"
-	return_button.custom_minimum_size = Vector2(150, 40)
-	return_button.pressed.connect(_on_return_pressed)
-	button_container.add_child(return_button)
+	_continue_button = Button.new()
+	_continue_button.text = "Continue"
+	_continue_button.custom_minimum_size = Vector2(120, 36)
+	_continue_button.pressed.connect(_on_continue_pressed)
+	_continue_button.visible = false
+	_style_button(_continue_button, false)
+	_button_container.add_child(_continue_button)
 
-	# Continue button (for multi-stage battles or replaying)
-	continue_button = Button.new()
-	continue_button.text = "Continue"
-	continue_button.custom_minimum_size = Vector2(150, 40)
-	continue_button.pressed.connect(_on_continue_pressed)
-	continue_button.visible = false  # Hidden by default
-	button_container.add_child(continue_button)
+func _style_panel(panel: Panel, border_color: Color):
+	var style = StyleBoxFlat.new()
+	style.bg_color = COLOR_PANEL_BG
+	style.border_color = border_color
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	panel.add_theme_stylebox_override("panel", style)
+
+func _style_button(button: Button, primary: bool):
+	var style = StyleBoxFlat.new()
+	if primary:
+		style.bg_color = Color(0.2, 0.45, 0.3, 0.9)
+		style.border_color = Color(0.3, 0.6, 0.4, 0.8)
+	else:
+		style.bg_color = Color(0.15, 0.12, 0.2, 0.9)
+		style.border_color = Color(0.3, 0.25, 0.4, 0.8)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(4)
+	button.add_theme_stylebox_override("normal", style)
+
+	var hover = style.duplicate()
+	hover.bg_color = style.bg_color.lightened(0.15)
+	button.add_theme_stylebox_override("hover", hover)
+
+	var pressed = style.duplicate()
+	pressed.bg_color = style.bg_color.darkened(0.1)
+	button.add_theme_stylebox_override("pressed", pressed)
 
 func show_result(result: BattleResult):
-	"""Display the battle result overlay"""
-	battle_result = result
-
-	# Reset animation state
-	_reward_rows.clear()
-	_loot_rows.clear()
-	_is_animating = false
+	battle_result = result  # Store for external access
+	_animated_elements.clear()
 	if _reveal_tween and _reveal_tween.is_running():
 		_reveal_tween.kill()
 
-	# Update victory/defeat display
+	# Update header
 	if result.victory:
-		result_label.text = "VICTORY!"
-		result_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3, 1.0))
-
-		# Change panel border to gold for victory
-		var panel = background_panel.get_parent().get_child(1).get_child(0)  # Get content panel
-		if panel is Panel:
-			var style = panel.get_theme_stylebox("panel").duplicate()
-			if style is StyleBoxFlat:
-				style.border_color = Color(1.0, 0.85, 0.3, 1.0)
-				panel.add_theme_stylebox_override("panel", style)
+		_result_label.text = "VICTORY"
+		_result_label.add_theme_color_override("font_color", COLOR_SUCCESS)
+		_style_panel(_content_panel, COLOR_BORDER_VICTORY)
 	else:
-		result_label.text = "DEFEAT"
-		result_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3, 1.0))
+		_result_label.text = "DEFEAT"
+		_result_label.add_theme_color_override("font_color", COLOR_DEFEAT)
+		_style_panel(_content_panel, COLOR_BORDER_DEFEAT)
 
-	# Update rating display
+	# Rating
 	var rating = result.get_efficiency_rating()
-	rating_label.text = "Rank: %s" % rating
+	_rating_label.text = "Rank: %s" % rating
+	_rating_label.add_theme_color_override("font_color", _get_rating_color(rating))
 
-	# Color rating based on grade
-	var rating_color = _get_rating_color(rating)
-	rating_label.add_theme_color_override("font_color", rating_color)
+	# Perfect victory
+	_perfect_label.visible = result.is_perfect_victory()
 
-	# Update stats
-	_populate_stats(result)
+	# Populate rewards
+	_populate_rewards(result)
+	_populate_first_clear(result)
+	_populate_loot(result)
 
-	# Prepare rewards (hidden initially for animation)
-	_prepare_rewards(result)
-
-	# Prepare first-clear bonus section
-	_prepare_first_clear_bonus(result)
-
-	# Prepare loot
-	_prepare_loot(result)
-
-	# Show the overlay
 	visible = true
+	_animate_reveal()
 
-	# Play animation - fade in overlay then reveal rewards sequentially
-	_animate_show_with_rewards()
-
-func _get_rating_color(rating: String) -> Color:
-	"""Get color for efficiency rating"""
-	match rating:
-		"S":
-			return Color(1.0, 0.85, 0.0, 1.0)  # Gold
-		"A":
-			return Color(0.6, 0.3, 1.0, 1.0)  # Purple
-		"B":
-			return Color(0.3, 0.6, 1.0, 1.0)  # Blue
-		"C":
-			return Color(0.3, 1.0, 0.3, 1.0)  # Green
-		_:
-			return Color(0.6, 0.6, 0.6, 1.0)  # Gray
-
-func _populate_stats(result: BattleResult):
-	"""Populate battle statistics"""
-	# Clear existing
-	for child in stats_container.get_children():
+func _populate_rewards(result: BattleResult):
+	# Clear grid
+	for child in _rewards_grid.get_children():
 		child.queue_free()
 
-	# Add stat rows
-	_add_stat_row("Duration", result.get_duration_string())
-	_add_stat_row("Turns", str(result.turns_taken))
-	_add_stat_row("Damage Dealt", str(result.damage_dealt))
-	_add_stat_row("Damage Received", str(result.damage_received))
+	# Debug: Print what's in the result
+	print("BattleResultOverlay: rewards = ", result.rewards)
+	print("BattleResultOverlay: experience_gained = ", result.experience_gained)
+	print("BattleResultOverlay: loot_obtained = ", result.loot_obtained)
 
-	if result.is_perfect_victory():
-		var perfect_label = Label.new()
-		perfect_label.text = "PERFECT VICTORY!"
-		perfect_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		perfect_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0, 1.0))
-		perfect_label.add_theme_font_size_override("font_size", 16)
-		stats_container.add_child(perfect_label)
+	# Collect all rewards (resources + experience)
+	var all_rewards: Array = []
 
-func _add_stat_row(stat_name: String, stat_value: String):
-	"""Add a stat row to the stats container"""
-	var row = HBoxContainer.new()
-
-	var name_label = Label.new()
-	name_label.text = stat_name + ":"
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1.0))
-	row.add_child(name_label)
-
-	var value_label = Label.new()
-	value_label.text = stat_value
-	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	value_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
-	row.add_child(value_label)
-
-	stats_container.add_child(row)
-
-func _prepare_rewards(result: BattleResult):
-	"""Prepare rewards for animated reveal (hidden initially)"""
-	# Clear existing
-	for child in rewards_container.get_children():
-		child.queue_free()
-	_reward_rows.clear()
-
-	# Filter out first_clear rewards - they go in the special section
-	var normal_rewards: Dictionary = {}
+	# Add resource rewards (skip first_clear tagged ones)
 	for resource_id in result.rewards:
-		# Check if this is a first-clear reward by checking loot_obtained
 		var is_first_clear = false
-		for loot_item in result.loot_obtained:
-			if loot_item.get("resource_id") == resource_id and loot_item.get("source") == "first_clear":
+		for loot in result.loot_obtained:
+			if loot.get("resource_id") == resource_id and loot.get("source") == "first_clear":
 				is_first_clear = true
 				break
 		if not is_first_clear:
-			normal_rewards[resource_id] = result.rewards[resource_id]
+			all_rewards.append({
+				"name": _format_resource_name(resource_id),
+				"amount": result.rewards[resource_id],
+				"color": _get_resource_color(resource_id)
+			})
 
-	if normal_rewards.is_empty() and result.experience_gained.is_empty():
-		rewards_title.visible = false
-		return
-
-	rewards_title.visible = true
-	rewards_title.modulate.a = 0.0  # Start hidden for animation
-
-	for resource_id in normal_rewards:
-		var amount = normal_rewards[resource_id]
-		var row = _create_reward_row(resource_id, amount)
-		row.modulate.a = 0.0  # Start hidden
-		rewards_container.add_child(row)
-		_reward_rows.append(row)
-
-	# Add experience gained
+	# Add experience
+	var collection_manager = SystemRegistry.get_instance().get_system("CollectionManager") if SystemRegistry.get_instance() else null
 	for god_id in result.experience_gained:
 		var exp_amount = result.experience_gained[god_id]
-		var row = _create_reward_row("EXP (%s)" % god_id, exp_amount)
-		row.modulate.a = 0.0  # Start hidden
-		rewards_container.add_child(row)
-		_reward_rows.append(row)
+		var god_name = "God"
+		if collection_manager:
+			var god = collection_manager.get_god_by_id(god_id)
+			if god:
+				god_name = god.name
+		all_rewards.append({
+			"name": god_name + " XP",
+			"amount": exp_amount,
+			"color": Color(0.5, 0.9, 0.5)
+		})
 
-func _create_reward_row(reward_name: String, amount: int, rarity: String = "common") -> HBoxContainer:
-	"""Create a reward row with optional rarity for glow effect"""
-	var row = HBoxContainer.new()
+	# Create compact reward cells
+	for reward in all_rewards:
+		var cell = _create_reward_cell(str(reward.name), int(reward.amount), reward.color)
+		cell.modulate.a = 0.0
+		_rewards_grid.add_child(cell)
+		_animated_elements.append(cell)
 
-	# Resource icon placeholder (small colored square based on type)
+func _create_reward_cell(reward_name: String, amount: int, icon_color: Color) -> HBoxContainer:
+	var cell = HBoxContainer.new()
+	cell.add_theme_constant_override("separation", 4)
+
+	# Small color indicator
 	var icon = ColorRect.new()
-	icon.custom_minimum_size = Vector2(16, 16)
-	icon.color = _get_resource_icon_color(reward_name)
-	row.add_child(icon)
+	icon.custom_minimum_size = Vector2(8, 8)
+	icon.color = icon_color
+	cell.add_child(icon)
 
-	# Small spacer
-	var spacer = Control.new()
-	spacer.custom_minimum_size = Vector2(8, 0)
-	row.add_child(spacer)
+	# Name + amount combined
+	var label = Label.new()
+	label.text = "%s +%s" % [reward_name, _format_number(amount)]
+	label.add_theme_font_size_override("font_size", 13)
+	label.add_theme_color_override("font_color", COLOR_TEXT)
+	cell.add_child(label)
 
-	var name_label = Label.new()
-	name_label.text = _format_resource_name(reward_name)
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1.0))
-	row.add_child(name_label)
+	return cell
 
-	var amount_label = Label.new()
-	amount_label.text = "+%d" % amount
-	amount_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	amount_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3, 1.0))
-	row.add_child(amount_label)
-
-	# Apply glow effect for rare+ items
-	if rarity in ["rare", "epic", "legendary", "mythic"]:
-		_apply_glow_effect(row, rarity)
-
-	return row
-
-func _get_resource_icon_color(resource_name: String) -> Color:
-	"""Get icon color based on resource type"""
-	var name_lower = resource_name.to_lower()
-	if "mana" in name_lower:
-		return Color(0.3, 0.5, 1.0, 1.0)  # Blue
-	elif "crystal" in name_lower:
-		return Color(0.8, 0.3, 0.9, 1.0)  # Purple
-	elif "fire" in name_lower:
-		return Color(1.0, 0.4, 0.2, 1.0)  # Orange
-	elif "water" in name_lower:
-		return Color(0.2, 0.6, 1.0, 1.0)  # Light blue
-	elif "earth" in name_lower:
-		return Color(0.6, 0.4, 0.2, 1.0)  # Brown
-	elif "lightning" in name_lower:
-		return Color(1.0, 1.0, 0.3, 1.0)  # Yellow
-	elif "light" in name_lower:
-		return Color(1.0, 1.0, 0.8, 1.0)  # Light yellow
-	elif "dark" in name_lower:
-		return Color(0.4, 0.2, 0.5, 1.0)  # Dark purple
-	elif "exp" in name_lower:
-		return Color(0.3, 1.0, 0.3, 1.0)  # Green
-	elif "magic" in name_lower:
-		return Color(0.5, 0.3, 1.0, 1.0)  # Violet
-	else:
-		return Color(0.7, 0.7, 0.7, 1.0)  # Gray
-
-func _apply_glow_effect(row: Control, rarity: String):
-	"""Apply a subtle glow effect to rare+ items"""
-	var glow_color: Color
-	match rarity:
-		"rare":
-			glow_color = Color(0.3, 0.6, 1.0, 0.3)  # Blue glow
-		"epic":
-			glow_color = Color(0.6, 0.3, 1.0, 0.3)  # Purple glow
-		"legendary":
-			glow_color = Color(1.0, 0.6, 0.0, 0.3)  # Orange glow
-		"mythic":
-			glow_color = Color(1.0, 0.3, 0.3, 0.3)  # Red glow
-		_:
-			return
-
-	# Add glow background
-	var glow_bg = Panel.new()
-	var glow_style = StyleBoxFlat.new()
-	glow_style.bg_color = glow_color
-	glow_style.corner_radius_top_left = 4
-	glow_style.corner_radius_top_right = 4
-	glow_style.corner_radius_bottom_left = 4
-	glow_style.corner_radius_bottom_right = 4
-	glow_bg.add_theme_stylebox_override("panel", glow_style)
-	glow_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	glow_bg.z_index = -1
-	row.add_child(glow_bg)
-	row.move_child(glow_bg, 0)  # Move to back
-
-func _format_resource_name(resource_id: String) -> String:
-	"""Format resource ID to display name"""
-	return resource_id.replace("_", " ").capitalize()
-
-func _prepare_first_clear_bonus(result: BattleResult):
-	"""Prepare first-clear bonus section with special header"""
-	# Clear existing
+func _populate_first_clear(result: BattleResult):
 	for child in _first_clear_container.get_children():
 		child.queue_free()
 
-	# Find first-clear rewards from loot_obtained
 	var first_clear_items: Array = []
 	for item in result.loot_obtained:
 		if item.get("source") == "first_clear":
@@ -435,153 +310,128 @@ func _prepare_first_clear_bonus(result: BattleResult):
 		return
 
 	_first_clear_container.visible = true
-	_first_clear_container.modulate.a = 0.0  # Start hidden for animation
+	_first_clear_container.modulate.a = 0.0
+	_animated_elements.append(_first_clear_container)
 
-	# Create special "FIRST CLEAR BONUS!" header
-	var bonus_header = Label.new()
-	bonus_header.text = "🏆 FIRST CLEAR BONUS! 🏆"
-	bonus_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	bonus_header.add_theme_font_size_override("font_size", 20)
-	bonus_header.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0, 1.0))  # Gold
-	_first_clear_container.add_child(bonus_header)
+	# Header
+	var header = Label.new()
+	header.text = "FIRST CLEAR BONUS"
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header.add_theme_font_size_override("font_size", 14)
+	header.add_theme_color_override("font_color", COLOR_GOLD)
+	_first_clear_container.add_child(header)
 
-	# Add first-clear reward rows
+	# Grid for first clear rewards
+	var grid = GridContainer.new()
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 16)
+	grid.add_theme_constant_override("v_separation", 4)
+	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_first_clear_container.add_child(grid)
+
 	for item in first_clear_items:
 		var resource_id = item.get("resource_id", "unknown")
 		var amount = item.get("amount", 0)
-		var row = _create_reward_row(resource_id, amount, "legendary")  # Gold glow for first clear
-		_first_clear_container.add_child(row)
+		var cell = _create_reward_cell(_format_resource_name(resource_id), amount, COLOR_GOLD)
+		grid.add_child(cell)
 
-func _prepare_loot(result: BattleResult):
-	"""Prepare loot items for animated reveal"""
-	# Clear existing
-	for child in loot_container.get_children():
+func _populate_loot(result: BattleResult):
+	for child in _loot_container.get_children():
 		child.queue_free()
-	_loot_rows.clear()
 
-	# Filter to only equipment/item loot (not resources which go in rewards)
 	var equipment_loot: Array = []
 	for item in result.loot_obtained:
-		# Only show items that are actual equipment, not resource materials
 		if item.get("source") != "first_clear" and item.has("name"):
 			equipment_loot.append(item)
 
 	if equipment_loot.is_empty():
 		return
 
-	# Loot title
-	var loot_title = Label.new()
-	loot_title.text = "LOOT"
-	loot_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	loot_title.add_theme_font_size_override("font_size", 18)
-	loot_title.add_theme_color_override("font_color", Color(0.6, 0.3, 1.0, 1.0))
-	loot_title.modulate.a = 0.0  # Start hidden
-	loot_container.add_child(loot_title)
-	_loot_rows.append(loot_title)
+	# Loot header
+	var header = Label.new()
+	header.text = "LOOT"
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header.add_theme_font_size_override("font_size", 14)
+	header.add_theme_color_override("font_color", Color(0.6, 0.4, 0.9))
+	header.modulate.a = 0.0
+	_loot_container.add_child(header)
+	_animated_elements.append(header)
 
 	for item in equipment_loot:
-		var item_name = item.get("name", "Unknown Item")
-		var item_rarity = item.get("rarity", "common")
+		var loot_label = Label.new()
+		loot_label.text = item.get("name", "Unknown")
+		loot_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		loot_label.add_theme_font_size_override("font_size", 13)
+		loot_label.add_theme_color_override("font_color", _get_rarity_color(item.get("rarity", "common")))
+		loot_label.modulate.a = 0.0
+		_loot_container.add_child(loot_label)
+		_animated_elements.append(loot_label)
 
-		var item_label = Label.new()
-		item_label.text = item_name
-		item_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		item_label.add_theme_color_override("font_color", _get_rarity_color(item_rarity))
-		item_label.modulate.a = 0.0  # Start hidden
-		loot_container.add_child(item_label)
-		_loot_rows.append(item_label)
-
-		# Apply glow effect for rare+ loot
-		if item_rarity in ["rare", "epic", "legendary", "mythic"]:
-			_apply_glow_effect(item_label, item_rarity)
-
-func _get_rarity_color(rarity: String) -> Color:
-	"""Get color for item rarity"""
-	match rarity.to_lower():
-		"common":
-			return Color(0.8, 0.8, 0.8, 1.0)
-		"uncommon":
-			return Color(0.3, 1.0, 0.3, 1.0)
-		"rare":
-			return Color(0.3, 0.6, 1.0, 1.0)
-		"epic":
-			return Color(0.6, 0.3, 1.0, 1.0)
-		"legendary":
-			return Color(1.0, 0.6, 0.0, 1.0)
-		"mythic":
-			return Color(1.0, 0.3, 0.3, 1.0)
-		_:
-			return Color(1.0, 1.0, 1.0, 1.0)
-
-func _animate_show_with_rewards():
-	"""Animate the overlay appearing, then reveal rewards sequentially"""
-	_is_animating = true
+func _animate_reveal():
 	modulate.a = 0.0
-
-	# Kill any existing tween
-	if _reveal_tween and _reveal_tween.is_running():
-		_reveal_tween.kill()
-
 	_reveal_tween = create_tween()
 
-	# Step 1: Fade in overlay (0.3s)
-	_reveal_tween.tween_property(self, "modulate:a", 1.0, 0.3).set_ease(Tween.EASE_OUT)
+	# Fade in overlay
+	_reveal_tween.tween_property(self, "modulate:a", 1.0, 0.25).set_ease(Tween.EASE_OUT)
+	_reveal_tween.tween_interval(0.15)
 
-	# Step 2: Brief pause before rewards
-	_reveal_tween.tween_interval(0.2)
-
-	# Step 3: Fade in rewards title
-	if rewards_title.visible:
-		_reveal_tween.tween_property(rewards_title, "modulate:a", 1.0, 0.15).set_ease(Tween.EASE_OUT)
-
-	# Step 4: Reveal each reward row sequentially (100ms delay each)
-	for row in _reward_rows:
-		_reveal_tween.tween_property(row, "modulate:a", 1.0, 0.15).set_ease(Tween.EASE_OUT)
-		_reveal_tween.tween_interval(0.1)  # 100ms delay between each
-
-	# Step 5: Reveal first-clear bonus section (with slight pause before)
-	if _first_clear_container.visible:
-		_reveal_tween.tween_interval(0.2)  # Extra pause before first clear bonus
-		_reveal_tween.tween_property(_first_clear_container, "modulate:a", 1.0, 0.3).set_ease(Tween.EASE_OUT)
-		# Add a scale bounce for emphasis
-		_reveal_tween.parallel().tween_property(_first_clear_container, "scale", Vector2(1.0, 1.0), 0.3) \
-			.from(Vector2(0.8, 0.8)).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-
-	# Step 6: Reveal loot items
-	if not _loot_rows.is_empty():
-		_reveal_tween.tween_interval(0.15)
-		for loot_row in _loot_rows:
-			_reveal_tween.tween_property(loot_row, "modulate:a", 1.0, 0.15).set_ease(Tween.EASE_OUT)
-			_reveal_tween.tween_interval(0.1)  # 100ms delay
-
-	# Mark animation complete
-	_reveal_tween.tween_callback(_on_reveal_complete)
-
-func _on_reveal_complete():
-	"""Called when reward reveal animation is complete"""
-	_is_animating = false
+	# Reveal each element
+	for element in _animated_elements:
+		_reveal_tween.tween_property(element, "modulate:a", 1.0, 0.12).set_ease(Tween.EASE_OUT)
+		_reveal_tween.tween_interval(0.05)
 
 func hide_result():
-	"""Hide the overlay with animation"""
-	# Kill any running animation
 	if _reveal_tween and _reveal_tween.is_running():
 		_reveal_tween.kill()
-	_is_animating = false
-
-	# Set visible to false immediately to prevent showing stale overlays
 	visible = false
-	# Reset modulate for next time
 	modulate.a = 1.0
 
 func _on_return_pressed():
-	"""Handle return to map button press"""
 	return_to_map_pressed.emit()
 
 func _on_continue_pressed():
-	"""Handle continue button press"""
 	continue_pressed.emit()
 
-func show_continue_button(visible_state: bool = true):
-	"""Show or hide the continue button for multi-stage battles"""
-	if continue_button:
-		continue_button.visible = visible_state
+func show_continue_button(should_show: bool = true):
+	if _continue_button:
+		_continue_button.visible = should_show
+
+func _get_rating_color(rating: String) -> Color:
+	match rating:
+		"S": return Color(1.0, 0.85, 0.0)  # Gold
+		"A": return Color(0.7, 0.4, 0.9)   # Purple
+		"B": return Color(0.4, 0.6, 1.0)   # Blue
+		"C": return Color(0.4, 0.9, 0.4)   # Green
+		_: return COLOR_MUTED
+
+func _get_rarity_color(rarity: String) -> Color:
+	match rarity.to_lower():
+		"common": return Color(0.7, 0.7, 0.7)
+		"uncommon": return Color(0.4, 0.8, 0.4)
+		"rare": return Color(0.4, 0.6, 1.0)
+		"epic": return Color(0.7, 0.4, 0.9)
+		"legendary": return Color(1.0, 0.8, 0.2)
+		_: return COLOR_TEXT
+
+func _get_resource_color(resource_id: String) -> Color:
+	var id = resource_id.to_lower()
+	if "mana" in id: return Color(0.3, 0.5, 1.0)
+	if "crystal" in id: return Color(0.7, 0.4, 0.9)
+	if "gold" in id: return Color(1.0, 0.85, 0.3)
+	if "fire" in id: return Color(1.0, 0.4, 0.2)
+	if "water" in id: return Color(0.3, 0.6, 1.0)
+	if "earth" in id: return Color(0.6, 0.5, 0.3)
+	if "lightning" in id: return Color(1.0, 0.9, 0.3)
+	if "light" in id: return Color(1.0, 1.0, 0.7)
+	if "dark" in id: return Color(0.5, 0.3, 0.6)
+	return Color(0.6, 0.6, 0.6)
+
+func _format_resource_name(resource_id: String) -> String:
+	return resource_id.replace("_", " ").capitalize()
+
+func _format_number(num: int) -> String:
+	if num >= 1000000:
+		return "%.1fM" % (num / 1000000.0)
+	elif num >= 1000:
+		return "%.1fK" % (num / 1000.0)
+	return str(num)

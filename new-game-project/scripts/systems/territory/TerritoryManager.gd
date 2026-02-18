@@ -256,6 +256,17 @@ func lose_node(coord: HexCoord, reason: String = "unknown") -> bool:
 	node.assigned_workers.clear()
 	node.active_tasks.clear()
 
+	# Clear building when node is lost (destroyed by enemy recapture)
+	if not node.placed_building.is_empty():
+		node.placed_building = ""
+		node.building_level = 1
+		node.base_production = {}
+		node.max_workers = 3  # Reset to default
+		# Reset node name to blank tile if it was a built node
+		if node.node_type == "building" or node.node_type == "":
+			node.name = "Empty Tile (T%d)" % node.tier
+			node.node_type = ""
+
 	controlled_territories.erase(node.id)
 
 	territory_lost.emit(node.id)

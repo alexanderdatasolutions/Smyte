@@ -182,6 +182,13 @@ func place_building(node: HexNode, building_id: String) -> bool:
 	node.base_production = {}
 
 	building_placed.emit(node.id, building_id)
+
+	# Trigger save to persist the new building
+	var registry: Node = SystemRegistry.get_instance()
+	var event_bus: Node = registry.get_system("EventBus") if registry else null
+	if event_bus:
+		event_bus.save_requested.emit()
+
 	return true
 
 func remove_building(node: HexNode, refund_percent: float = 0.5) -> bool:
@@ -207,6 +214,12 @@ func remove_building(node: HexNode, refund_percent: float = 0.5) -> bool:
 	# Reset node name and type to blank tile
 	node.name = "Empty Tile (T%d)" % node.tier
 	node.node_type = ""
+
+	# Trigger save to persist the building removal
+	var registry: Node = SystemRegistry.get_instance()
+	var event_bus: Node = registry.get_system("EventBus") if registry else null
+	if event_bus:
+		event_bus.save_requested.emit()
 
 	return true
 

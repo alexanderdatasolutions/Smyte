@@ -20,6 +20,11 @@ class_name BattleResult extends Resource
 @export var skills_used: int = 0
 @export var critical_hits: int = 0
 
+# Combat highlights (for achievements, rare rewards, analytics)
+@export var max_single_hit: int = 0              # Highest damage in one hit
+@export var player_units_died: int = 0           # How many player gods died
+@export var lowest_surviving_hp_percent: float = 1.0  # Lowest HP% of surviving unit at end
+
 # Rewards and progression
 @export var rewards: Dictionary = {}
 @export var experience_gained: Dictionary = {}  # god_id -> exp_amount

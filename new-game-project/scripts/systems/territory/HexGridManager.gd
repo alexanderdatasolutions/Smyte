@@ -593,10 +593,29 @@ func load_save_data(save_data: Dictionary) -> void:
 	if _craft_manager:
 		_craft_manager.load_save_data(save_data)
 
+	# Post-load fix: Restore building names/types from placed_building data
+	_restore_building_names_from_save()
+
 	# Post-load fix: Ensure adjacent nodes to player-controlled nodes are revealed
 	_ensure_adjacent_nodes_revealed()
 
 	grid_updated.emit()
+
+func _restore_building_names_from_save() -> void:
+	"""Restore node names and types from placed_building after loading.
+	Building names aren't saved (to reduce save size), so we restore them from BuildingManager."""
+	var registry: Node = SystemRegistry.get_instance()
+	var building_manager: Node = registry.get_system("BuildingManager") if registry else null
+	if not building_manager:
+		return
+
+	for node: HexNode in _nodes.values():
+		if not node.placed_building.is_empty():
+			var building: Dictionary = building_manager.get_building(node.placed_building)
+			if not building.is_empty():
+				node.name = building.get("name", node.placed_building.replace("_", " ").capitalize())
+				node.node_type = building.get("category", "building")
+				node.max_workers = building_manager.get_max_workers(node.placed_building)
 
 func _ensure_adjacent_nodes_revealed() -> void:
 	"""Ensure all nodes adjacent to player-controlled nodes are revealed.

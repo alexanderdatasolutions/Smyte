@@ -106,9 +106,15 @@ func complete_craft(node_id: String, task_id: String) -> Dictionary:
 	var task_data: Dictionary = craft_data.get("task_data", {})
 	if task_data.has("equipment_type"):
 		_create_equipment_from_craft(task_data, task_id)
+		# Note: equipment craft already triggers save in _create_equipment_from_craft
 	else:
 		# Regular resource craft - award resources
 		_award_craft_rewards(task_data)
+		# Trigger save for regular crafts too
+		var registry: Variant = SystemRegistry.get_instance()
+		var event_bus: Variant = registry.get_system("EventBus") if registry else null
+		if event_bus:
+			event_bus.save_requested.emit()
 
 	# Emit completion signal
 	craft_completed.emit(node_id, task_id, task_data)

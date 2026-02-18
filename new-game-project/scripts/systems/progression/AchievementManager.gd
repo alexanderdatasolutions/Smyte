@@ -132,6 +132,26 @@ func _connect_to_events() -> void:
 	if _event_bus.has_signal("territory_captured"):
 		_event_bus.territory_captured.connect(_on_territory_captured)
 
+	# Sacrifice events
+	if _event_bus.has_signal("god_sacrifice_completed"):
+		_event_bus.god_sacrifice_completed.connect(_on_god_sacrifice_completed)
+
+	# Equipment events
+	if _event_bus.has_signal("equipment_equipped"):
+		_event_bus.equipment_equipped.connect(_on_equipment_equipped)
+
+	# Tower events
+	if _event_bus.has_signal("tower_floor_cleared"):
+		_event_bus.tower_floor_cleared.connect(_on_tower_floor_cleared)
+
+	# Arena events
+	if _event_bus.has_signal("arena_battle_completed"):
+		_event_bus.arena_battle_completed.connect(_on_arena_battle_completed)
+
+	# Awakening events
+	if _event_bus.has_signal("god_awakening_completed"):
+		_event_bus.god_awakening_completed.connect(_on_god_awakening_completed)
+
 	# Building events - connect to BuildingManager directly since it has local signals
 	var registry: Node = SystemRegistry.get_instance()
 	var building_manager: Node = registry.get_system("BuildingManager") if registry else null
@@ -143,9 +163,11 @@ func _connect_to_events() -> void:
 # ==============================================================================
 
 func _on_god_obtained(_god) -> void:
-	"""Handle god obtained - check god_count and legendary_count achievements"""
+	"""Handle god obtained - check god_count, legendary_count, epic_count, and all_elements achievements"""
 	_check_god_count_achievements()
 	_check_legendary_count_achievements()
+	_check_epic_count_achievements()
+	_check_all_elements_achievement()
 
 func _on_god_level_up(god_id: String, new_level: int, _old_level: int) -> void:
 	"""Handle god level up - check max_god_level and legendary_god_level_40 achievements"""
@@ -161,10 +183,11 @@ func _on_summon_performed(_banner_id: String, results: Array) -> void:
 	_check_summon_count_achievements_with_count(new_count)
 
 func _on_battle_ended(result) -> void:
-	"""Handle battle end - check battle_wins and legendary_team achievements"""
+	"""Handle battle end - check battle_wins, legendary_team, and battle condition achievements"""
 	if result and result.victory:
 		_check_battle_wins_achievements()
 		_check_legendary_team_achievement(result)
+		_check_battle_condition_achievements(result)
 
 func _on_dungeon_completed(_dungeon_id: String, _rewards: Array) -> void:
 	"""Handle dungeon completion - check dungeon_clears achievements"""
@@ -179,6 +202,28 @@ func _on_territory_captured(territory_id) -> void:
 func _on_building_placed(_node_id: String, _building_id: String) -> void:
 	"""Handle building placed - check building_count achievements"""
 	_check_building_count_achievements()
+
+func _on_god_sacrifice_completed(_sacrifice_data: Dictionary) -> void:
+	"""Handle god sacrifice - check sacrifice_count achievements"""
+	_check_sacrifice_count_achievements()
+
+func _on_equipment_equipped(_god, _equipment, _slot) -> void:
+	"""Handle equipment equipped - check equipment achievements"""
+	_check_equipment_count_achievements()
+	_check_full_equipment_achievement()
+
+func _on_tower_floor_cleared(floor_number: int) -> void:
+	"""Handle tower floor cleared - check tower_floor achievements"""
+	_check_tower_floor_achievements(floor_number)
+
+func _on_arena_battle_completed(arena_data: Dictionary) -> void:
+	"""Handle arena battle - check arena_wins achievements"""
+	if arena_data.get("victory", false):
+		_check_arena_wins_achievements()
+
+func _on_god_awakening_completed(_awakening_data: Dictionary) -> void:
+	"""Handle god awakening - check awakening_count achievements"""
+	_check_awakening_count_achievements()
 
 # ==============================================================================
 # ACHIEVEMENT CHECKING
@@ -412,15 +457,261 @@ func _check_legendary_team_achievement(result) -> void:
 	if legendary_count >= 4:
 		complete_achievement("full_team_legendary")
 
+func _check_battle_condition_achievements(result) -> void:
+	"""Check hidden battle condition achievements (speed_demon, flawless_victory, etc.)"""
+	if not result:
+		return
+
+	# Speed Demon - Win a battle in under 30 seconds
+	if not is_achievement_completed("speed_demon"):
+		var duration: float = result.duration if "duration" in result else 0.0
+		if duration > 0 and duration <= 30.0:
+			complete_achievement("speed_demon")
+
+	# Untouchable - Win without taking any damage
+	if not is_achievement_completed("no_damage"):
+		var damage_received: int = result.damage_received if "damage_received" in result else 0
+		if damage_received == 0:
+			complete_achievement("no_damage")
+
+	# One Punch God - Deal 10000+ damage in a single hit
+	if not is_achievement_completed("one_shot"):
+		var max_hit: int = result.max_single_hit if "max_single_hit" in result else 0
+		if max_hit >= 10000:
+			complete_achievement("one_shot")
+
+	# Comeback Kid - Win after 3 of your gods have fallen
+	if not is_achievement_completed("comeback_kid"):
+		var units_died: int = result.player_units_died if "player_units_died" in result else 0
+		if units_died >= 3:
+			complete_achievement("comeback_kid")
+
+	# Underdog Victory - Win with only 1 god surviving at 10% HP or less
+	if not is_achievement_completed("underdog"):
+		var lowest_hp: float = result.lowest_surviving_hp_percent if "lowest_surviving_hp_percent" in result else 1.0
+		var units_died: int = result.player_units_died if "player_units_died" in result else 0
+		var experience_gained: Dictionary = result.experience_gained if "experience_gained" in result else {}
+		var team_size: int = experience_gained.size()
+		# Only 1 survivor (team_size - units_died == 1) and that survivor at 10% or less
+		if team_size > 0 and (team_size - units_died) == 1 and lowest_hp <= 0.1:
+			complete_achievement("underdog")
+
+	# Check mono-element team achievements
+	_check_mono_element_achievement(result)
+
+	# Night Owl - Playing between 2 AM and 5 AM
+	if not is_achievement_completed("night_owl"):
+		var datetime: Dictionary = Time.get_datetime_dict_from_system()
+		var hour: int = datetime.get("hour", 12)
+		if hour >= 2 and hour < 5:
+			complete_achievement("night_owl")
+
+func _check_mono_element_achievement(result) -> void:
+	"""Check if the team was all one element"""
+	if not _collection_manager or not result:
+		return
+
+	var experience_gained: Dictionary = result.experience_gained if "experience_gained" in result else {}
+	if experience_gained.size() < 1:
+		return
+
+	var team_element: int = -1  # Use int for enum comparison
+	var all_same: bool = true
+
+	for god_id in experience_gained:
+		var god: God = _collection_manager.get_god_by_id(god_id)
+		if god:
+			if team_element == -1:
+				team_element = god.element
+			elif god.element != team_element:
+				all_same = false
+				break
+
+	if all_same and team_element >= 0:
+		# Map element enum to string for achievement ID
+		var element_names: Array = ["fire", "water", "earth", "lightning", "light", "dark"]
+		if team_element < element_names.size():
+			var element_name: String = element_names[team_element]
+			var achievement_id: String = "element_team_" + element_name
+			if _achievements.has(achievement_id) and not is_achievement_completed(achievement_id):
+				complete_achievement(achievement_id)
+
+func _check_sacrifice_count_achievements() -> void:
+	"""Check achievements with trigger type: sacrifice_count"""
+	if not _statistics_manager:
+		return
+
+	var sacrifice_count: int = _statistics_manager.resource_stats.get("gods_sacrificed", 0)
+
+	for achievement_id in _achievements:
+		var achievement: Dictionary = _achievements[achievement_id]
+		var trigger: Dictionary = achievement.get("trigger", {})
+
+		if trigger.get("type") == "sacrifice_count":
+			var target: int = trigger.get("target", 0)
+			if sacrifice_count >= target and not is_achievement_completed(achievement_id):
+				complete_achievement(achievement_id)
+
+func _check_equipment_count_achievements() -> void:
+	"""Check achievements with trigger type: equipment_count"""
+	if not _collection_manager:
+		return
+
+	# Count total equipped items across all gods
+	# equipment is an Array[Equipment or null] with 6 slots
+	var equipment_count: int = 0
+	for god in _collection_manager.gods:
+		if god and "equipment" in god and god.equipment is Array:
+			for item in god.equipment:
+				if item != null:
+					equipment_count += 1
+
+	for achievement_id in _achievements:
+		var achievement: Dictionary = _achievements[achievement_id]
+		var trigger: Dictionary = achievement.get("trigger", {})
+
+		if trigger.get("type") == "equipment_count":
+			var target: int = trigger.get("target", 0)
+			if equipment_count >= target and not is_achievement_completed(achievement_id):
+				complete_achievement(achievement_id)
+
+func _check_full_equipment_achievement() -> void:
+	"""Check if any god has all 6 equipment slots filled"""
+	if is_achievement_completed("full_equipment"):
+		return
+
+	if not _collection_manager:
+		return
+
+	for god in _collection_manager.gods:
+		if god and "equipment" in god and god.equipment is Array:
+			var filled_slots: int = 0
+			for item in god.equipment:
+				if item != null:
+					filled_slots += 1
+			if filled_slots >= 6:
+				complete_achievement("full_equipment")
+				return
+
+func _check_tower_floor_achievements(current_floor: int) -> void:
+	"""Check achievements with trigger type: tower_floor"""
+	# Also check TowerManager best_floor in case current_floor isn't the best
+	var registry: Node = SystemRegistry.get_instance()
+	var tower_manager: Node = registry.get_system("TowerManager") if registry else null
+	var best_floor: int = current_floor
+	if tower_manager and "best_floor" in tower_manager:
+		best_floor = maxi(best_floor, tower_manager.best_floor)
+
+	for achievement_id in _achievements:
+		var achievement: Dictionary = _achievements[achievement_id]
+		var trigger: Dictionary = achievement.get("trigger", {})
+
+		if trigger.get("type") == "tower_floor":
+			var target: int = trigger.get("target", 0)
+			if best_floor >= target and not is_achievement_completed(achievement_id):
+				complete_achievement(achievement_id)
+
+func _check_arena_wins_achievements() -> void:
+	"""Check achievements with trigger type: arena_wins"""
+	var registry: Node = SystemRegistry.get_instance()
+	var arena_manager: Node = registry.get_system("ArenaManager") if registry else null
+	if not arena_manager:
+		return
+
+	var arena_wins: int = 0
+	if "wins" in arena_manager:
+		arena_wins = arena_manager.wins
+
+	for achievement_id in _achievements:
+		var achievement: Dictionary = _achievements[achievement_id]
+		var trigger: Dictionary = achievement.get("trigger", {})
+
+		if trigger.get("type") == "arena_wins":
+			var target: int = trigger.get("target", 0)
+			if arena_wins >= target and not is_achievement_completed(achievement_id):
+				complete_achievement(achievement_id)
+
+func _check_awakening_count_achievements() -> void:
+	"""Check achievements with trigger type: awakening_count"""
+	if not _collection_manager:
+		return
+
+	# Count gods that have been awakened (tier > base tier or awakening_level > 0)
+	var awakening_count: int = 0
+	for god in _collection_manager.gods:
+		if god and "awakening_level" in god and god.awakening_level > 0:
+			awakening_count += 1
+
+	for achievement_id in _achievements:
+		var achievement: Dictionary = _achievements[achievement_id]
+		var trigger: Dictionary = achievement.get("trigger", {})
+
+		if trigger.get("type") == "awakening_count":
+			var target: int = trigger.get("target", 0)
+			if awakening_count >= target and not is_achievement_completed(achievement_id):
+				complete_achievement(achievement_id)
+
+func _check_epic_count_achievements() -> void:
+	"""Check achievements with trigger type: epic_count"""
+	if not _collection_manager:
+		return
+
+	var epic_count: int = 0
+	for god in _collection_manager.gods:
+		if god and god.tier == God.TierType.EPIC:
+			epic_count += 1
+
+	for achievement_id in _achievements:
+		var achievement: Dictionary = _achievements[achievement_id]
+		var trigger: Dictionary = achievement.get("trigger", {})
+
+		if trigger.get("type") == "epic_count":
+			var target: int = trigger.get("target", 0)
+			if epic_count >= target and not is_achievement_completed(achievement_id):
+				complete_achievement(achievement_id)
+
+func _check_all_elements_achievement() -> void:
+	"""Check if player has at least one god of each element"""
+	if is_achievement_completed("all_elements"):
+		return
+
+	if not _collection_manager:
+		return
+
+	var elements_found: Dictionary = {}
+	# ElementType enum: FIRE=0, WATER=1, EARTH=2, LIGHTNING=3, LIGHT=4, DARK=5
+	var all_elements: Array = [
+		God.ElementType.FIRE, God.ElementType.WATER, God.ElementType.EARTH,
+		God.ElementType.LIGHTNING, God.ElementType.LIGHT, God.ElementType.DARK
+	]
+
+	for god in _collection_manager.gods:
+		if god:
+			elements_found[god.element] = true
+
+	# Check if all 6 elements are represented
+	for element in all_elements:
+		if not elements_found.has(element):
+			return  # Missing at least one element
+
+	complete_achievement("all_elements")
+
 func _validate_all_achievements() -> void:
 	"""Check all achievements against current progress (catch-up on load)"""
 	_check_god_count_achievements()
 	_check_legendary_count_achievements()
+	_check_epic_count_achievements()
+	_check_all_elements_achievement()
 	_check_territory_count_achievements()
 	_check_building_count_achievements()
 	_check_battle_wins_achievements()
 	_check_dungeon_clears_achievements()
 	_check_summon_count_achievements()
+	_check_sacrifice_count_achievements()
+	_check_equipment_count_achievements()
+	_check_full_equipment_achievement()
+	_check_awakening_count_achievements()
+	_check_arena_wins_achievements()
 
 	# Check max god level
 	if _collection_manager:
@@ -447,6 +738,12 @@ func _validate_all_achievements() -> void:
 		if max_tier > 0:
 			# Pass dummy ID, the function will check max tier anyway
 			_check_max_territory_tier_achievements("")
+
+	# Check tower floor achievements
+	var registry: Node = SystemRegistry.get_instance()
+	var tower_manager: Node = registry.get_system("TowerManager") if registry else null
+	if tower_manager and "best_floor" in tower_manager and tower_manager.best_floor > 0:
+		_check_tower_floor_achievements(tower_manager.best_floor)
 
 # ==============================================================================
 # ACHIEVEMENT COMPLETION
@@ -679,6 +976,71 @@ func _get_current_value_for_trigger(trigger_type: String) -> int:
 			return total
 		"summon_count":
 			return _statistics_manager.resource_stats.get("total_summons_performed", 0) if _statistics_manager else 0
+		"sacrifice_count":
+			return _statistics_manager.resource_stats.get("gods_sacrificed", 0) if _statistics_manager else 0
+		"equipment_count":
+			if not _collection_manager:
+				return 0
+			var count: int = 0
+			for god in _collection_manager.gods:
+				if god and "equipment" in god and god.equipment is Array:
+					for item in god.equipment:
+						if item != null:
+							count += 1
+			return count
+		"full_equipment":
+			# Returns 1 if any god has all 6 slots, 0 otherwise
+			if not _collection_manager:
+				return 0
+			for god in _collection_manager.gods:
+				if god and "equipment" in god and god.equipment is Array:
+					var filled: int = 0
+					for item in god.equipment:
+						if item != null:
+							filled += 1
+					if filled >= 6:
+						return 1
+			return 0
+		"tower_floor":
+			var registry: Node = SystemRegistry.get_instance()
+			var tower_manager: Node = registry.get_system("TowerManager") if registry else null
+			if tower_manager and "best_floor" in tower_manager:
+				return tower_manager.best_floor
+			return 0
+		"arena_wins":
+			var registry: Node = SystemRegistry.get_instance()
+			var arena_manager: Node = registry.get_system("ArenaManager") if registry else null
+			if not arena_manager:
+				return 0
+			if "wins" in arena_manager:
+				return arena_manager.wins
+			return 0
+		"awakening_count":
+			if not _collection_manager:
+				return 0
+			var count: int = 0
+			for god in _collection_manager.gods:
+				if god and "awakening_level" in god and god.awakening_level > 0:
+					count += 1
+			return count
+		"epic_count":
+			if not _collection_manager:
+				return 0
+			var count: int = 0
+			for god in _collection_manager.gods:
+				if god and god.tier == God.TierType.EPIC:
+					count += 1
+			return count
+		"all_elements":
+			# Returns 1 if all 6 elements collected, 0 otherwise
+			if not _collection_manager:
+				return 0
+			var elements_found: Dictionary = {}
+			for god in _collection_manager.gods:
+				if god:
+					elements_found[god.element] = true
+			# Check if all 6 element types are present
+			return 1 if elements_found.size() >= 6 else 0
 
 	return 0
 

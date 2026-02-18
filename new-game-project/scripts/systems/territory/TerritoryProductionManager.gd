@@ -580,6 +580,11 @@ func collect_node_resources(node_id: String) -> Dictionary:
 	node.accumulated_resources.clear()
 	resources_generated.emit(node_id, collected_resources)
 
+	# Trigger save to persist the collected resources and cleared accumulation
+	var event_bus: Variant = registry.get_system("EventBus")
+	if event_bus:
+		event_bus.save_requested.emit()
+
 	return collected_resources
 
 # ==============================================================================

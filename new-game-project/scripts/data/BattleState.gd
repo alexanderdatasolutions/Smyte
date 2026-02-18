@@ -23,6 +23,10 @@ var total_damage_received: int = 0
 var units_defeated: int = 0
 var skills_used: int = 0
 
+# Combat highlights (for achievements, rare rewards)
+var max_single_hit: int = 0          # Highest damage in one hit
+var player_units_died: int = 0       # How many player gods died during battle
+
 # Team bonuses (calculated from team composition)
 var team_bonuses: Array = []
 
@@ -163,14 +167,31 @@ func get_battle_duration() -> float:
 ## Record damage dealt by player units
 func record_damage_dealt(damage: int) -> void:
 	total_damage_dealt += damage
+	# Track max single hit for achievements
+	if damage > max_single_hit:
+		max_single_hit = damage
 
 ## Record damage received by player units
 func record_damage_received(damage: int) -> void:
 	total_damage_received += damage
 
-## Record unit defeat
+## Record enemy unit defeat
 func record_unit_defeat() -> void:
 	units_defeated += 1
+
+## Record player unit death
+func record_player_unit_death() -> void:
+	player_units_died += 1
+
+## Get lowest HP percentage among surviving player units
+func get_lowest_surviving_hp_percent() -> float:
+	var lowest: float = 1.0
+	for unit: BattleUnit in player_units:
+		if unit.is_alive and unit.max_hp > 0:
+			var hp_percent: float = float(unit.current_hp) / float(unit.max_hp)
+			if hp_percent < lowest:
+				lowest = hp_percent
+	return lowest
 
 ## Record skill use
 func record_skill_use() -> void:

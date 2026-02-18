@@ -95,6 +95,8 @@ func _execute_attack(action: BattleAction, result: ActionResult) -> void:
 	# Check if target was defeated
 	if not target.is_alive:
 		battle_state.record_unit_defeat()
+		if target.is_player_unit:
+			battle_state.record_player_unit_death()
 
 	# Apply Despair petrify/stun effect (Gaze of Medusa)
 	if target.is_alive and attacker.should_petrify():
@@ -184,6 +186,8 @@ func _execute_skill(action: BattleAction, result: ActionResult) -> void:
 
 			if not target.is_alive:
 				battle_state.record_unit_defeat()
+				if target.is_player_unit:
+					battle_state.record_player_unit_death()
 				# Soul drinker bonus on kill
 				_apply_set_life_steal(caster, skill_result.total, false, result)
 			else:
@@ -492,6 +496,8 @@ func _apply_chain_lightning(attacker: BattleUnit, primary_target: BattleUnit, da
 
 	if not chain_target.is_alive:
 		battle_state.record_unit_defeat()
+		if chain_target.is_player_unit:
+			battle_state.record_player_unit_death()
 
 	result.message += " Chain Lightning hits %s for %d!" % [chain_target.display_name, chain_damage]
 
@@ -513,6 +519,8 @@ func _execute_counter_attack(counter_attacker: BattleUnit, original_attacker: Ba
 
 	if not original_attacker.is_alive:
 		battle_state.record_unit_defeat()
+		if original_attacker.is_player_unit:
+			battle_state.record_player_unit_death()
 
 	result.message += " %s counter-attacks for %d damage!" % [counter_attacker.display_name, counter_damage]
 
