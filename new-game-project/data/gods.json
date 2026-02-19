@@ -19,15 +19,21 @@
         "olympian_thunder"
       ],
       "leader_skill": {
-        "type": "speed",
-        "value": 33,
-        "area": "all"
+        "name": "Olympian Authority",
+        "area": "all",
+        "bonuses": {
+          "speed": 24,
+          "attack": 15,
+          "stun_chance": 10
+        }
       },
       "description": "King of the gods, master of lightning and thunder.",
       "summon_weight": 1,
       "tier": 4,
       "default_role": "fighter",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ]
     },
     "poseidon": {
       "id": "poseidon",
@@ -48,15 +54,21 @@
         "ocean_fury"
       ],
       "leader_skill": {
-        "type": "hp",
-        "value": 33,
-        "area": "water"
+        "name": "Ocean's Resilience",
+        "area": "water",
+        "bonuses": {
+          "hp": 40,
+          "defense": 20,
+          "freeze_chance": 12
+        }
       },
       "description": "God of the seas, earthquakes, and horses.",
       "summon_weight": 9,
       "tier": 3,
       "default_role": "fighter",
-      "role_affinities": ["gatherer"]
+      "role_affinities": [
+        "gatherer"
+      ]
     },
     "hades": {
       "id": "hades",
@@ -77,15 +89,21 @@
         "underworld_chains"
       ],
       "leader_skill": {
-        "type": "attack",
-        "value": 33,
-        "area": "dark"
+        "name": "Death's Embrace",
+        "area": "dark",
+        "bonuses": {
+          "attack": 30,
+          "crit_damage": 25,
+          "life_steal": 10
+        }
       },
       "description": "God of the underworld and the dead.",
       "summon_weight": 9,
       "tier": 3,
       "default_role": "scholar",
-      "role_affinities": ["gatherer"]
+      "role_affinities": [
+        "gatherer"
+      ]
     },
     "athena": {
       "id": "athena",
@@ -106,15 +124,21 @@
         "aegis_protection"
       ],
       "leader_skill": {
-        "type": "defense",
-        "value": 33,
-        "area": "light"
+        "name": "Strategic Dominance",
+        "area": "light",
+        "bonuses": {
+          "defense": 30,
+          "accuracy": 25,
+          "counter_chance": 12
+        }
       },
       "description": "Goddess of wisdom, warfare, and crafts.",
       "summon_weight": 30,
       "tier": 2,
       "default_role": "scholar",
-      "role_affinities": ["fighter"]
+      "role_affinities": [
+        "fighter"
+      ]
     },
     "apollo": {
       "id": "apollo",
@@ -135,15 +159,20 @@
         "healing_light"
       ],
       "leader_skill": {
-        "type": "crit_rate",
-        "value": 24,
-        "area": "all"
+        "name": "Solar Precision",
+        "area": "all",
+        "bonuses": {
+          "crit_rate": 20,
+          "speed": 15
+        }
       },
       "description": "God of the sun, music, poetry, and prophecy.",
       "summon_weight": 30,
       "tier": 2,
       "default_role": "support",
-      "role_affinities": ["fighter"]
+      "role_affinities": [
+        "fighter"
+      ]
     },
     "artemis": {
       "id": "artemis",
@@ -164,15 +193,20 @@
         "arrow_volley"
       ],
       "leader_skill": {
-        "type": "attack",
-        "value": 33,
-        "area": "earth"
+        "name": "Hunter's Mark",
+        "area": "earth",
+        "bonuses": {
+          "attack": 30,
+          "crit_rate": 18
+        }
       },
       "description": "Goddess of the hunt, wilderness, and the moon.",
       "summon_weight": 30,
       "tier": 2,
       "default_role": "gatherer",
-      "role_affinities": ["fighter"]
+      "role_affinities": [
+        "fighter"
+      ]
     },
     "ares": {
       "id": "ares",
@@ -196,7 +230,16 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "fighter",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "Blood of Battle",
+        "area": "fire",
+        "bonuses": {
+          "attack": 35,
+          "life_steal": 10,
+          "counter_chance": 10
+        }
+      }
     },
     "hermes": {
       "id": "hermes",
@@ -220,7 +263,17 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "support",
-      "role_affinities": ["gatherer"]
+      "role_affinities": [
+        "gatherer"
+      ],
+      "leader_skill": {
+        "name": "Fleet Messenger",
+        "area": "all",
+        "bonuses": {
+          "speed": 35,
+          "dodge_chance": 12
+        }
+      }
     },
     "odin": {
       "id": "odin",
@@ -241,15 +294,21 @@
         "ravens_wisdom"
       ],
       "leader_skill": {
-        "type": "resistance",
-        "value": 41,
-        "area": "all"
+        "name": "Allfather's Wisdom",
+        "area": "all",
+        "bonuses": {
+          "resistance": 35,
+          "hp": 20,
+          "dodge_chance": 8
+        }
       },
       "description": "The All-Father, god of wisdom, war, and death.",
       "summon_weight": 1,
       "tier": 4,
       "default_role": "scholar",
-      "role_affinities": ["fighter"]
+      "role_affinities": [
+        "fighter"
+      ]
     },
     "thor": {
       "id": "thor",
@@ -270,9 +329,13 @@
         "thunder_crash"
       ],
       "leader_skill": {
-        "type": "hp",
-        "value": 33,
-        "area": "lightning"
+        "name": "Mjolnir's Might",
+        "area": "lightning",
+        "bonuses": {
+          "hp": 30,
+          "attack": 25,
+          "stun_chance": 15
+        }
       },
       "description": "God of thunder, wielder of Mjolnir.",
       "summon_weight": 9,
@@ -299,15 +362,20 @@
         "battle_blessing"
       ],
       "leader_skill": {
-        "type": "accuracy",
-        "value": 41,
-        "area": "all"
+        "name": "Enchanting Presence",
+        "area": "all",
+        "bonuses": {
+          "accuracy": 35,
+          "crit_damage": 20
+        }
       },
       "description": "Goddess of love, beauty, fertility, and war.",
       "summon_weight": 9,
       "tier": 3,
       "default_role": "fighter",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ]
     },
     "loki": {
       "id": "loki",
@@ -328,15 +396,22 @@
         "chaos_field"
       ],
       "leader_skill": {
-        "type": "attack",
-        "value": 33,
-        "area": "fire"
+        "name": "Trickster's Gambit",
+        "area": "fire",
+        "bonuses": {
+          "attack": 25,
+          "speed": 20,
+          "crit_rate": 15,
+          "dodge_chance": 10
+        }
       },
       "description": "The trickster god, shapeshifter and master of lies.",
       "summon_weight": 30,
       "tier": 2,
       "default_role": "fighter",
-      "role_affinities": ["scholar"]
+      "role_affinities": [
+        "scholar"
+      ]
     },
     "baldur": {
       "id": "baldur",
@@ -394,7 +469,9 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "fighter",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ]
     },
     "heimdall": {
       "id": "heimdall",
@@ -418,7 +495,18 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "support",
-      "role_affinities": ["fighter"]
+      "role_affinities": [
+        "fighter"
+      ],
+      "leader_skill": {
+        "name": "Watchman Vigil",
+        "area": "lightning",
+        "bonuses": {
+          "accuracy": 35,
+          "speed": 22,
+          "counter_chance": 8
+        }
+      }
     },
     "frigg": {
       "id": "frigg",
@@ -442,7 +530,17 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "support",
-      "role_affinities": ["scholar"]
+      "role_affinities": [
+        "scholar"
+      ],
+      "leader_skill": {
+        "name": "Allmother Love",
+        "area": "all",
+        "bonuses": {
+          "hp": 30,
+          "resistance": 28
+        }
+      }
     },
     "ra": {
       "id": "ra",
@@ -463,15 +561,21 @@
         "solar_blessing"
       ],
       "leader_skill": {
-        "type": "attack",
-        "value": 44,
-        "area": "fire"
+        "name": "Blazing Sun",
+        "area": "fire",
+        "bonuses": {
+          "attack": 40,
+          "crit_rate": 18,
+          "burn_chance": 15
+        }
       },
       "description": "The sun god, king of the gods in Egyptian mythology.",
       "summon_weight": 1,
       "tier": 4,
       "default_role": "fighter",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ]
     },
     "anubis": {
       "id": "anubis",
@@ -492,15 +596,21 @@
         "death_sentence"
       ],
       "leader_skill": {
-        "type": "hp",
-        "value": 33,
-        "area": "dark"
+        "name": "Guardian of Souls",
+        "area": "dark",
+        "bonuses": {
+          "hp": 30,
+          "resistance": 25,
+          "life_steal": 8
+        }
       },
       "description": "God of mummification and the afterlife.",
       "summon_weight": 9,
       "tier": 3,
       "default_role": "scholar",
-      "role_affinities": ["crafter"]
+      "role_affinities": [
+        "crafter"
+      ]
     },
     "isis": {
       "id": "isis",
@@ -529,7 +639,9 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "support",
-      "role_affinities": ["scholar"]
+      "role_affinities": [
+        "scholar"
+      ]
     },
     "thoth": {
       "id": "thoth",
@@ -553,7 +665,15 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "scholar",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "Wisdom of Ages",
+        "area": "all",
+        "bonuses": {
+          "accuracy": 35,
+          "resistance": 25
+        }
+      }
     },
     "hera": {
       "id": "hera",
@@ -574,15 +694,20 @@
         "queen_authority"
       ],
       "leader_skill": {
-        "type": "hp",
-        "value": 44,
-        "area": "light"
+        "name": "Divine Majesty",
+        "area": "light",
+        "bonuses": {
+          "hp": 35,
+          "defense": 25
+        }
       },
       "description": "Queen of the gods, goddess of marriage and family.",
       "summon_weight": 1,
       "tier": 4,
       "default_role": "support",
-      "role_affinities": ["fighter"]
+      "role_affinities": [
+        "fighter"
+      ]
     },
     "hestia": {
       "id": "hestia",
@@ -611,7 +736,9 @@
       "summon_weight": 9,
       "tier": 3,
       "default_role": "support",
-      "role_affinities": ["gatherer"]
+      "role_affinities": [
+        "gatherer"
+      ]
     },
     "demeter": {
       "id": "demeter",
@@ -664,7 +791,18 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "gatherer",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ],
+      "leader_skill": {
+        "name": "Ecstatic Revels",
+        "area": "earth",
+        "bonuses": {
+          "attack": 25,
+          "crit_rate": 20,
+          "poison_chance": 10
+        }
+      }
     },
     "hephaestus": {
       "id": "hephaestus",
@@ -688,7 +826,18 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "crafter",
-      "role_affinities": ["gatherer"]
+      "role_affinities": [
+        "gatherer"
+      ],
+      "leader_skill": {
+        "name": "Divine Forge",
+        "area": "fire",
+        "bonuses": {
+          "defense": 35,
+          "hp": 25,
+          "reflect_damage": 8
+        }
+      }
     },
     "aphrodite": {
       "id": "aphrodite",
@@ -712,7 +861,16 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "support",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "Irresistible Charm",
+        "area": "water",
+        "bonuses": {
+          "accuracy": 30,
+          "resistance": 25,
+          "dodge_chance": 8
+        }
+      }
     },
     "persephone": {
       "id": "persephone",
@@ -736,7 +894,18 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "gatherer",
-      "role_affinities": ["scholar"]
+      "role_affinities": [
+        "scholar"
+      ],
+      "leader_skill": {
+        "name": "Queen of Spring",
+        "area": "dark",
+        "bonuses": {
+          "hp": 30,
+          "resistance": 25,
+          "poison_chance": 8
+        }
+      }
     },
     "jade_emperor": {
       "id": "jade_emperor",
@@ -757,15 +926,20 @@
         "heavenly_decree"
       ],
       "leader_skill": {
-        "type": "resistance",
-        "value": 55,
-        "area": "all"
+        "name": "Heavenly Mandate",
+        "area": "all",
+        "bonuses": {
+          "resistance": 40,
+          "defense": 25
+        }
       },
       "description": "Supreme ruler of heaven and all celestial beings.",
       "summon_weight": 1,
       "tier": 4,
       "default_role": "support",
-      "role_affinities": ["scholar"]
+      "role_affinities": [
+        "scholar"
+      ]
     },
     "dragon_king": {
       "id": "dragon_king",
@@ -794,7 +968,9 @@
       "summon_weight": 9,
       "tier": 3,
       "default_role": "fighter",
-      "role_affinities": ["gatherer"]
+      "role_affinities": [
+        "gatherer"
+      ]
     },
     "sun_wukong": {
       "id": "sun_wukong",
@@ -823,7 +999,9 @@
       "summon_weight": 9,
       "tier": 3,
       "default_role": "fighter",
-      "role_affinities": ["scholar"]
+      "role_affinities": [
+        "scholar"
+      ]
     },
     "chang_e": {
       "id": "chang_e",
@@ -847,7 +1025,18 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "support",
-      "role_affinities": ["scholar"]
+      "role_affinities": [
+        "scholar"
+      ],
+      "leader_skill": {
+        "name": "Lunar Grace",
+        "area": "dark",
+        "bonuses": {
+          "speed": 28,
+          "resistance": 25,
+          "dodge_chance": 10
+        }
+      }
     },
     "nezha": {
       "id": "nezha",
@@ -871,7 +1060,16 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "fighter",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "Lotus Warrior",
+        "area": "fire",
+        "bonuses": {
+          "speed": 30,
+          "attack": 25,
+          "burn_chance": 10
+        }
+      }
     },
     "guanyin": {
       "id": "guanyin",
@@ -895,7 +1093,15 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "support",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "Merciful One",
+        "area": "all",
+        "bonuses": {
+          "hp": 35,
+          "resistance": 30
+        }
+      }
     },
     "lei_gong": {
       "id": "lei_gong",
@@ -919,7 +1125,15 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "fighter",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "Thunder Drum",
+        "area": "lightning",
+        "bonuses": {
+          "attack": 30,
+          "stun_chance": 15
+        }
+      }
     },
     "guan_yu": {
       "id": "guan_yu",
@@ -943,7 +1157,18 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "fighter",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ],
+      "leader_skill": {
+        "name": "God of War",
+        "area": "earth",
+        "bonuses": {
+          "attack": 35,
+          "defense": 25,
+          "counter_chance": 12
+        }
+      }
     },
     "perun": {
       "id": "perun",
@@ -1001,7 +1226,9 @@
       "summon_weight": 9,
       "tier": 3,
       "default_role": "crafter",
-      "role_affinities": ["scholar"]
+      "role_affinities": [
+        "scholar"
+      ]
     },
     "mokosh": {
       "id": "mokosh",
@@ -1030,7 +1257,9 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "gatherer",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ]
     },
     "veles": {
       "id": "veles",
@@ -1054,7 +1283,18 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "scholar",
-      "role_affinities": ["gatherer"]
+      "role_affinities": [
+        "gatherer"
+      ],
+      "leader_skill": {
+        "name": "Lord of the Underworld",
+        "area": "dark",
+        "bonuses": {
+          "hp": 35,
+          "resistance": 28,
+          "poison_chance": 10
+        }
+      }
     },
     "lada": {
       "id": "lada",
@@ -1078,7 +1318,16 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "support",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "Spring Embrace",
+        "area": "light",
+        "bonuses": {
+          "hp": 28,
+          "resistance": 22,
+          "life_steal": 6
+        }
+      }
     },
     "domovoi": {
       "id": "domovoi",
@@ -1102,7 +1351,17 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "support",
-      "role_affinities": ["gatherer"]
+      "role_affinities": [
+        "gatherer"
+      ],
+      "leader_skill": {
+        "name": "Hearth Guardian",
+        "area": "earth",
+        "bonuses": {
+          "defense": 30,
+          "hp": 22
+        }
+      }
     },
     "jormungandr": {
       "id": "jormungandr",
@@ -1155,7 +1414,16 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "fighter",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "World Eater",
+        "area": "dark",
+        "bonuses": {
+          "attack": 40,
+          "crit_damage": 28,
+          "life_steal": 10
+        }
+      }
     },
     "vidar": {
       "id": "vidar",
@@ -1179,7 +1447,16 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "fighter",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "Silent Strength",
+        "area": "earth",
+        "bonuses": {
+          "attack": 30,
+          "defense": 25,
+          "counter_chance": 10
+        }
+      }
     },
     "bragi": {
       "id": "bragi",
@@ -1203,7 +1480,17 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "scholar",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ],
+      "leader_skill": {
+        "name": "Skaldic Verse",
+        "area": "light",
+        "bonuses": {
+          "accuracy": 28,
+          "resistance": 22
+        }
+      }
     },
     "osiris": {
       "id": "osiris",
@@ -1232,7 +1519,9 @@
       "summon_weight": 9,
       "tier": 3,
       "default_role": "scholar",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ]
     },
     "horus": {
       "id": "horus",
@@ -1261,7 +1550,9 @@
       "summon_weight": 9,
       "tier": 3,
       "default_role": "fighter",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ]
     },
     "bastet": {
       "id": "bastet",
@@ -1285,7 +1576,18 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "support",
-      "role_affinities": ["fighter"]
+      "role_affinities": [
+        "fighter"
+      ],
+      "leader_skill": {
+        "name": "Cat Grace",
+        "area": "earth",
+        "bonuses": {
+          "speed": 30,
+          "crit_rate": 20,
+          "dodge_chance": 12
+        }
+      }
     },
     "sobek": {
       "id": "sobek",
@@ -1309,7 +1611,18 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "fighter",
-      "role_affinities": ["gatherer"]
+      "role_affinities": [
+        "gatherer"
+      ],
+      "leader_skill": {
+        "name": "Crocodile Might",
+        "area": "water",
+        "bonuses": {
+          "hp": 35,
+          "attack": 20,
+          "counter_chance": 10
+        }
+      }
     },
     "set": {
       "id": "set",
@@ -1333,7 +1646,16 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "fighter",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "Lord of Chaos",
+        "area": "dark",
+        "bonuses": {
+          "attack": 35,
+          "crit_damage": 25,
+          "poison_chance": 12
+        }
+      }
     },
     "ptah": {
       "id": "ptah",
@@ -1357,7 +1679,17 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "crafter",
-      "role_affinities": ["scholar"]
+      "role_affinities": [
+        "scholar"
+      ],
+      "leader_skill": {
+        "name": "Creator Hand",
+        "area": "earth",
+        "bonuses": {
+          "defense": 35,
+          "hp": 20
+        }
+      }
     },
     "sekhmet": {
       "id": "sekhmet",
@@ -1381,7 +1713,16 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "fighter",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "Lioness Fury",
+        "area": "fire",
+        "bonuses": {
+          "attack": 40,
+          "life_steal": 10,
+          "burn_chance": 10
+        }
+      }
     },
     "nephthys": {
       "id": "nephthys",
@@ -1405,7 +1746,17 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "support",
-      "role_affinities": ["scholar"]
+      "role_affinities": [
+        "scholar"
+      ],
+      "leader_skill": {
+        "name": "Lady of the House",
+        "area": "dark",
+        "bonuses": {
+          "defense": 30,
+          "resistance": 25
+        }
+      }
     },
     "brahma": {
       "id": "brahma",
@@ -1426,15 +1777,20 @@
         "cosmic_knowledge"
       ],
       "leader_skill": {
-        "type": "hp",
-        "value": 50,
-        "area": "all"
+        "name": "Creator's Blessing",
+        "area": "all",
+        "bonuses": {
+          "hp": 40,
+          "resistance": 25
+        }
       },
       "description": "The Creator, first of the Hindu trinity.",
       "summon_weight": 1,
       "tier": 4,
       "default_role": "scholar",
-      "role_affinities": ["crafter"]
+      "role_affinities": [
+        "crafter"
+      ]
     },
     "vishnu": {
       "id": "vishnu",
@@ -1455,15 +1811,21 @@
         "preservation_shield"
       ],
       "leader_skill": {
-        "type": "defense",
-        "value": 50,
-        "area": "all"
+        "name": "Preserver's Shield",
+        "area": "all",
+        "bonuses": {
+          "defense": 40,
+          "hp": 25,
+          "reflect_damage": 8
+        }
       },
       "description": "The Preserver, maintainer of cosmic order.",
       "summon_weight": 1,
       "tier": 4,
       "default_role": "support",
-      "role_affinities": ["fighter"]
+      "role_affinities": [
+        "fighter"
+      ]
     },
     "shiva": {
       "id": "shiva",
@@ -1484,15 +1846,21 @@
         "cosmic_dance"
       ],
       "leader_skill": {
-        "type": "crit_damage",
-        "value": 38,
-        "area": "all"
+        "name": "Destroyer's Wrath",
+        "area": "all",
+        "bonuses": {
+          "crit_damage": 30,
+          "attack": 20,
+          "burn_chance": 10
+        }
       },
       "description": "The Destroyer, lord of dance and meditation.",
       "summon_weight": 1,
       "tier": 4,
       "default_role": "fighter",
-      "role_affinities": ["scholar"]
+      "role_affinities": [
+        "scholar"
+      ]
     },
     "ganesha": {
       "id": "ganesha",
@@ -1521,7 +1889,9 @@
       "summon_weight": 9,
       "tier": 3,
       "default_role": "scholar",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ]
     },
     "hanuman": {
       "id": "hanuman",
@@ -1550,7 +1920,9 @@
       "summon_weight": 9,
       "tier": 3,
       "default_role": "fighter",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ]
     },
     "durga": {
       "id": "durga",
@@ -1603,7 +1975,18 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "support",
-      "role_affinities": ["gatherer"]
+      "role_affinities": [
+        "gatherer"
+      ],
+      "leader_skill": {
+        "name": "Fortune Blessing",
+        "area": "all",
+        "bonuses": {
+          "hp": 30,
+          "defense": 20,
+          "life_steal": 6
+        }
+      }
     },
     "saraswati": {
       "id": "saraswati",
@@ -1627,7 +2010,15 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "scholar",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "River of Knowledge",
+        "area": "light",
+        "bonuses": {
+          "accuracy": 35,
+          "resistance": 25
+        }
+      }
     },
     "indra": {
       "id": "indra",
@@ -1651,7 +2042,18 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "fighter",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ],
+      "leader_skill": {
+        "name": "Storm King",
+        "area": "lightning",
+        "bonuses": {
+          "attack": 35,
+          "speed": 22,
+          "stun_chance": 15
+        }
+      }
     },
     "kali": {
       "id": "kali",
@@ -1675,7 +2077,16 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "fighter",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "Destroyer of Evil",
+        "area": "dark",
+        "bonuses": {
+          "attack": 40,
+          "crit_damage": 30,
+          "life_steal": 12
+        }
+      }
     },
     "surya": {
       "id": "surya",
@@ -1699,7 +2110,16 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "support",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "Solar Chariot",
+        "area": "fire",
+        "bonuses": {
+          "attack": 30,
+          "speed": 22,
+          "burn_chance": 12
+        }
+      }
     },
     "chandra": {
       "id": "chandra",
@@ -1723,7 +2143,17 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "scholar",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ],
+      "leader_skill": {
+        "name": "Moonlight Calm",
+        "area": "water",
+        "bonuses": {
+          "defense": 30,
+          "resistance": 22
+        }
+      }
     },
     "dagda": {
       "id": "dagda",
@@ -1744,15 +2174,21 @@
         "cauldron_plenty"
       ],
       "leader_skill": {
-        "type": "resistance",
-        "value": 55,
-        "area": "all"
+        "name": "Cauldron of Plenty",
+        "area": "all",
+        "bonuses": {
+          "resistance": 40,
+          "hp": 30,
+          "life_steal": 6
+        }
       },
       "description": "The Good God, master of all skills and keeper of the cauldron of plenty.",
       "summon_weight": 1,
       "tier": 4,
       "default_role": "support",
-      "role_affinities": ["crafter"]
+      "role_affinities": [
+        "crafter"
+      ]
     },
     "brigid": {
       "id": "brigid",
@@ -1781,7 +2217,9 @@
       "summon_weight": 9,
       "tier": 3,
       "default_role": "crafter",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ]
     },
     "lugh": {
       "id": "lugh",
@@ -1810,7 +2248,9 @@
       "summon_weight": 9,
       "tier": 3,
       "default_role": "crafter",
-      "role_affinities": ["gatherer"]
+      "role_affinities": [
+        "gatherer"
+      ]
     },
     "morrigan": {
       "id": "morrigan",
@@ -1839,7 +2279,9 @@
       "summon_weight": 9,
       "tier": 3,
       "default_role": "fighter",
-      "role_affinities": ["scholar"]
+      "role_affinities": [
+        "scholar"
+      ]
     },
     "cernunnos": {
       "id": "cernunnos",
@@ -1863,7 +2305,18 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "gatherer",
-      "role_affinities": ["fighter"]
+      "role_affinities": [
+        "fighter"
+      ],
+      "leader_skill": {
+        "name": "Lord of the Wild",
+        "area": "earth",
+        "bonuses": {
+          "hp": 35,
+          "defense": 20,
+          "life_steal": 8
+        }
+      }
     },
     "rhiannon": {
       "id": "rhiannon",
@@ -1887,7 +2340,17 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "support",
-      "role_affinities": ["gatherer"]
+      "role_affinities": [
+        "gatherer"
+      ],
+      "leader_skill": {
+        "name": "Mare Goddess",
+        "area": "water",
+        "bonuses": {
+          "speed": 30,
+          "dodge_chance": 12
+        }
+      }
     },
     "manannan": {
       "id": "manannan",
@@ -1911,7 +2374,18 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "fighter",
-      "role_affinities": ["gatherer"]
+      "role_affinities": [
+        "gatherer"
+      ],
+      "leader_skill": {
+        "name": "Sea Mist",
+        "area": "water",
+        "bonuses": {
+          "hp": 30,
+          "dodge_chance": 15,
+          "freeze_chance": 8
+        }
+      }
     },
     "belenus": {
       "id": "belenus",
@@ -1935,7 +2409,18 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "support",
-      "role_affinities": ["fighter"]
+      "role_affinities": [
+        "fighter"
+      ],
+      "leader_skill": {
+        "name": "Radiant Fire",
+        "area": "fire",
+        "bonuses": {
+          "attack": 30,
+          "crit_rate": 18,
+          "burn_chance": 10
+        }
+      }
     },
     "dian_cecht": {
       "id": "dian_cecht",
@@ -1959,7 +2444,17 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "support",
-      "role_affinities": ["scholar"]
+      "role_affinities": [
+        "scholar"
+      ],
+      "leader_skill": {
+        "name": "Divine Healer",
+        "area": "light",
+        "bonuses": {
+          "hp": 35,
+          "resistance": 25
+        }
+      }
     },
     "nuada": {
       "id": "nuada",
@@ -1979,11 +2474,22 @@
         "silver_strike",
         "royal_command"
       ],
-      "description": "Silver-armed king of the Tuatha Dé Danann.",
+      "description": "Silver-armed king of the Tuatha D\u00c3\u00a9 Danann.",
       "summon_weight": 60,
       "tier": 1,
       "default_role": "fighter",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ],
+      "leader_skill": {
+        "name": "Silver Arm",
+        "area": "lightning",
+        "bonuses": {
+          "attack": 30,
+          "speed": 20,
+          "stun_chance": 10
+        }
+      }
     },
     "amaterasu": {
       "id": "amaterasu",
@@ -2004,15 +2510,20 @@
         "divine_radiance"
       ],
       "leader_skill": {
-        "type": "hp",
-        "value": 44,
-        "area": "light"
+        "name": "Celestial Radiance",
+        "area": "light",
+        "bonuses": {
+          "hp": 35,
+          "crit_rate": 20
+        }
       },
       "description": "Supreme sun goddess, ruler of the heavens.",
       "summon_weight": 1,
       "tier": 4,
       "default_role": "support",
-      "role_affinities": ["fighter"]
+      "role_affinities": [
+        "fighter"
+      ]
     },
     "susanoo": {
       "id": "susanoo",
@@ -2070,7 +2581,9 @@
       "summon_weight": 9,
       "tier": 3,
       "default_role": "scholar",
-      "role_affinities": ["fighter"]
+      "role_affinities": [
+        "fighter"
+      ]
     },
     "inari": {
       "id": "inari",
@@ -2094,7 +2607,17 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "gatherer",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ],
+      "leader_skill": {
+        "name": "Fox Blessing",
+        "area": "earth",
+        "bonuses": {
+          "hp": 30,
+          "dodge_chance": 12
+        }
+      }
     },
     "raijin": {
       "id": "raijin",
@@ -2118,7 +2641,15 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "fighter",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "Thunder God",
+        "area": "lightning",
+        "bonuses": {
+          "attack": 30,
+          "stun_chance": 15
+        }
+      }
     },
     "fujin": {
       "id": "fujin",
@@ -2142,7 +2673,17 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "fighter",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ],
+      "leader_skill": {
+        "name": "Wind God",
+        "area": "lightning",
+        "bonuses": {
+          "speed": 35,
+          "dodge_chance": 10
+        }
+      }
     },
     "benzaiten": {
       "id": "benzaiten",
@@ -2166,7 +2707,17 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "scholar",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ],
+      "leader_skill": {
+        "name": "Flowing Arts",
+        "area": "water",
+        "bonuses": {
+          "accuracy": 28,
+          "resistance": 22
+        }
+      }
     },
     "hachiman": {
       "id": "hachiman",
@@ -2190,7 +2741,17 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "fighter",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ],
+      "leader_skill": {
+        "name": "Archer God",
+        "area": "earth",
+        "bonuses": {
+          "attack": 30,
+          "crit_rate": 22
+        }
+      }
     },
     "jizo": {
       "id": "jizo",
@@ -2214,7 +2775,15 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "support",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "Guardian of Children",
+        "area": "light",
+        "bonuses": {
+          "hp": 35,
+          "defense": 22
+        }
+      }
     },
     "tengu": {
       "id": "tengu",
@@ -2238,7 +2807,18 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "fighter",
-      "role_affinities": ["scholar"]
+      "role_affinities": [
+        "scholar"
+      ],
+      "leader_skill": {
+        "name": "Mountain Spirit",
+        "area": "lightning",
+        "bonuses": {
+          "speed": 28,
+          "crit_rate": 20,
+          "dodge_chance": 10
+        }
+      }
     },
     "marduk": {
       "id": "marduk",
@@ -2267,7 +2847,9 @@
       "summon_weight": 1,
       "tier": 4,
       "default_role": "fighter",
-      "role_affinities": ["scholar"]
+      "role_affinities": [
+        "scholar"
+      ]
     },
     "tiamat": {
       "id": "tiamat",
@@ -2296,7 +2878,9 @@
       "summon_weight": 1,
       "tier": 4,
       "default_role": "fighter",
-      "role_affinities": ["gatherer"]
+      "role_affinities": [
+        "gatherer"
+      ]
     },
     "enlil": {
       "id": "enlil",
@@ -2325,7 +2909,9 @@
       "summon_weight": 9,
       "tier": 3,
       "default_role": "fighter",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ]
     },
     "ereshkigal": {
       "id": "ereshkigal",
@@ -2354,7 +2940,9 @@
       "summon_weight": 9,
       "tier": 3,
       "default_role": "scholar",
-      "role_affinities": ["fighter"]
+      "role_affinities": [
+        "fighter"
+      ]
     },
     "shamash": {
       "id": "shamash",
@@ -2383,7 +2971,9 @@
       "summon_weight": 9,
       "tier": 3,
       "default_role": "scholar",
-      "role_affinities": ["fighter"]
+      "role_affinities": [
+        "fighter"
+      ]
     },
     "ishtar": {
       "id": "ishtar",
@@ -2407,7 +2997,18 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "fighter",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ],
+      "leader_skill": {
+        "name": "Queen of Heaven",
+        "area": "fire",
+        "bonuses": {
+          "attack": 35,
+          "crit_damage": 25,
+          "burn_chance": 10
+        }
+      }
     },
     "nergal": {
       "id": "nergal",
@@ -2431,7 +3032,16 @@
       "summon_weight": 30,
       "tier": 2,
       "default_role": "fighter",
-      "role_affinities": []
+      "role_affinities": [],
+      "leader_skill": {
+        "name": "Lord of Plague",
+        "area": "dark",
+        "bonuses": {
+          "attack": 35,
+          "poison_chance": 18,
+          "life_steal": 8
+        }
+      }
     },
     "ninlil": {
       "id": "ninlil",
@@ -2455,7 +3065,1490 @@
       "summon_weight": 60,
       "tier": 1,
       "default_role": "gatherer",
-      "role_affinities": ["support"]
+      "role_affinities": [
+        "support"
+      ],
+      "leader_skill": {
+        "name": "Wind Queen",
+        "area": "earth",
+        "bonuses": {
+          "speed": 28,
+          "resistance": 22
+        }
+      }
+    },
+    "cthulhu": {
+      "id": "cthulhu",
+      "name": "Cthulhu",
+      "pantheon": "eldritch",
+      "element": 5,
+      "base_hp": 140,
+      "base_attack": 72,
+      "base_defense": 85,
+      "base_speed": 45,
+      "base_crit_rate": 15,
+      "base_crit_damage": 50,
+      "base_resistance": 25,
+      "base_accuracy": 0,
+      "resource_generation": 15,
+      "ability_ids": [
+        "madness_gaze",
+        "call_of_the_deep"
+      ],
+      "leader_skill": {
+        "name": "Dreaming Death",
+        "area": "all",
+        "bonuses": {
+          "hp": 44,
+          "resistance": 30,
+          "poison_chance": 12
+        }
+      },
+      "description": "The Great Old One, slumbering in R'lyeh. Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn.",
+      "summon_weight": 1,
+      "tier": 4,
+      "default_role": "fighter",
+      "role_affinities": [
+        "scholar"
+      ]
+    },
+    "azathoth": {
+      "id": "azathoth",
+      "name": "Azathoth",
+      "pantheon": "eldritch",
+      "element": 5,
+      "base_hp": 150,
+      "base_attack": 80,
+      "base_defense": 60,
+      "base_speed": 40,
+      "base_crit_rate": 20,
+      "base_crit_damage": 75,
+      "base_resistance": 30,
+      "base_accuracy": 0,
+      "resource_generation": 15,
+      "ability_ids": [
+        "nuclear_chaos",
+        "blind_idiot_wrath"
+      ],
+      "leader_skill": {
+        "name": "Nuclear Chaos",
+        "area": "dark",
+        "bonuses": {
+          "attack": 50,
+          "crit_damage": 35,
+          "poison_chance": 15
+        }
+      },
+      "description": "The Blind Idiot God, the Nuclear Chaos at the center of infinity. Reality trembles at its mindless churning.",
+      "summon_weight": 1,
+      "tier": 4,
+      "default_role": "fighter",
+      "role_affinities": []
+    },
+    "yog_sothoth": {
+      "id": "yog_sothoth",
+      "name": "Yog-Sothoth",
+      "pantheon": "eldritch",
+      "element": 4,
+      "base_hp": 135,
+      "base_attack": 65,
+      "base_defense": 70,
+      "base_speed": 65,
+      "base_crit_rate": 15,
+      "base_crit_damage": 50,
+      "base_resistance": 35,
+      "base_accuracy": 10,
+      "resource_generation": 15,
+      "ability_ids": [
+        "key_and_gate",
+        "cosmic_omniscience"
+      ],
+      "leader_skill": {
+        "name": "The Key and the Gate",
+        "area": "all",
+        "bonuses": {
+          "speed": 30,
+          "accuracy": 40,
+          "dodge_chance": 10
+        }
+      },
+      "description": "The All-in-One, coterminous with all time and space. The key to the gate, and the gate itself.",
+      "summon_weight": 1,
+      "tier": 4,
+      "default_role": "scholar",
+      "role_affinities": [
+        "support"
+      ]
+    },
+    "nyarlathotep": {
+      "id": "nyarlathotep",
+      "name": "Nyarlathotep",
+      "pantheon": "eldritch",
+      "element": 5,
+      "base_hp": 105,
+      "base_attack": 68,
+      "base_defense": 72,
+      "base_speed": 70,
+      "base_crit_rate": 18,
+      "base_crit_damage": 55,
+      "base_resistance": 20,
+      "base_accuracy": 5,
+      "resource_generation": 12,
+      "ability_ids": [
+        "thousand_forms",
+        "crawling_chaos"
+      ],
+      "leader_skill": {
+        "name": "Crawling Chaos",
+        "area": "dark",
+        "bonuses": {
+          "speed": 35,
+          "crit_rate": 20,
+          "dodge_chance": 12
+        }
+      },
+      "description": "The Crawling Chaos, soul and messenger of the Outer Gods. The only one who walks among mortals.",
+      "summon_weight": 9,
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": [
+        "scholar"
+      ]
+    },
+    "shub_niggurath": {
+      "id": "shub_niggurath",
+      "name": "Shub-Niggurath",
+      "pantheon": "eldritch",
+      "element": 2,
+      "base_hp": 125,
+      "base_attack": 55,
+      "base_defense": 80,
+      "base_speed": 50,
+      "base_crit_rate": 15,
+      "base_crit_damage": 50,
+      "base_resistance": 25,
+      "base_accuracy": 0,
+      "resource_generation": 12,
+      "ability_ids": [
+        "dark_young_spawn",
+        "fertility_of_madness"
+      ],
+      "leader_skill": {
+        "name": "Black Goat's Blessing",
+        "area": "earth",
+        "bonuses": {
+          "hp": 40,
+          "defense": 25,
+          "life_steal": 8
+        }
+      },
+      "description": "The Black Goat of the Woods with a Thousand Young. Mother of dark spawn beyond comprehension.",
+      "summon_weight": 9,
+      "tier": 3,
+      "default_role": "support",
+      "role_affinities": [
+        "gatherer"
+      ]
+    },
+    "hastur": {
+      "id": "hastur",
+      "name": "Hastur",
+      "pantheon": "eldritch",
+      "element": 3,
+      "base_hp": 110,
+      "base_attack": 65,
+      "base_defense": 68,
+      "base_speed": 62,
+      "base_crit_rate": 18,
+      "base_crit_damage": 60,
+      "base_resistance": 20,
+      "base_accuracy": 0,
+      "resource_generation": 12,
+      "ability_ids": [
+        "yellow_sign",
+        "unspeakable_one"
+      ],
+      "leader_skill": {
+        "name": "The Yellow Sign",
+        "area": "lightning",
+        "bonuses": {
+          "attack": 35,
+          "crit_damage": 25,
+          "stun_chance": 12
+        }
+      },
+      "description": "The King in Yellow, the Unspeakable One. To speak his name invites madness.",
+      "summon_weight": 9,
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": [
+        "scholar"
+      ]
+    },
+    "dagon": {
+      "id": "dagon",
+      "name": "Dagon",
+      "pantheon": "eldritch",
+      "element": 1,
+      "base_hp": 115,
+      "base_attack": 58,
+      "base_defense": 75,
+      "base_speed": 52,
+      "base_crit_rate": 15,
+      "base_crit_damage": 50,
+      "base_resistance": 20,
+      "base_accuracy": 0,
+      "resource_generation": 8,
+      "ability_ids": [
+        "deep_one_call",
+        "tidal_horror"
+      ],
+      "leader_skill": {
+        "name": "Lord of the Deep",
+        "area": "water",
+        "bonuses": {
+          "hp": 35,
+          "defense": 20,
+          "freeze_chance": 10
+        }
+      },
+      "description": "Father of the Deep Ones, ancient lord of the sunken cities beneath the waves.",
+      "summon_weight": 30,
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": [
+        "gatherer"
+      ]
+    },
+    "tsathoggua": {
+      "id": "tsathoggua",
+      "name": "Tsathoggua",
+      "pantheon": "eldritch",
+      "element": 2,
+      "base_hp": 120,
+      "base_attack": 52,
+      "base_defense": 82,
+      "base_speed": 35,
+      "base_crit_rate": 12,
+      "base_crit_damage": 50,
+      "base_resistance": 25,
+      "base_accuracy": 0,
+      "resource_generation": 8,
+      "ability_ids": [
+        "sleeper_touch",
+        "formless_spawn"
+      ],
+      "leader_skill": {
+        "name": "Eternal Slumber",
+        "area": "earth",
+        "bonuses": {
+          "defense": 30,
+          "resistance": 25,
+          "stun_chance": 10
+        }
+      },
+      "description": "The Sleeper of N'kai, toad-like god of infinite laziness who dreams in lightless caverns.",
+      "summon_weight": 30,
+      "tier": 2,
+      "default_role": "support",
+      "role_affinities": [
+        "scholar"
+      ]
+    },
+    "ithaqua": {
+      "id": "ithaqua",
+      "name": "Ithaqua",
+      "pantheon": "eldritch",
+      "element": 1,
+      "base_hp": 95,
+      "base_attack": 62,
+      "base_defense": 65,
+      "base_speed": 72,
+      "base_crit_rate": 18,
+      "base_crit_damage": 55,
+      "base_resistance": 15,
+      "base_accuracy": 0,
+      "resource_generation": 8,
+      "ability_ids": [
+        "wind_walk",
+        "freezing_grasp"
+      ],
+      "leader_skill": {
+        "name": "Wendigo's Hunt",
+        "area": "water",
+        "bonuses": {
+          "speed": 28,
+          "attack": 20,
+          "freeze_chance": 15
+        }
+      },
+      "description": "The Wind Walker, the Wendigo. He stalks the frozen wastes and carries victims to the sky.",
+      "summon_weight": 30,
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": []
+    },
+    "deep_one": {
+      "id": "deep_one",
+      "name": "Deep One",
+      "pantheon": "eldritch",
+      "element": 1,
+      "base_hp": 85,
+      "base_attack": 48,
+      "base_defense": 70,
+      "base_speed": 55,
+      "base_crit_rate": 12,
+      "base_crit_damage": 45,
+      "base_resistance": 15,
+      "base_accuracy": 0,
+      "resource_generation": 5,
+      "ability_ids": [
+        "fish_strike",
+        "tidal_assault"
+      ],
+      "description": "Hybrid spawn of Dagon, dwelling in sunken cities. The Innsmouth look runs in their blood.",
+      "summon_weight": 60,
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": [
+        "gatherer"
+      ],
+      "leader_skill": {
+        "name": "Abyssal Kin",
+        "area": "water",
+        "bonuses": {
+          "hp": 25,
+          "freeze_chance": 10
+        }
+      }
+    },
+    "shoggoth": {
+      "id": "shoggoth",
+      "name": "Shoggoth",
+      "pantheon": "eldritch",
+      "element": 5,
+      "base_hp": 100,
+      "base_attack": 52,
+      "base_defense": 65,
+      "base_speed": 40,
+      "base_crit_rate": 10,
+      "base_crit_damage": 45,
+      "base_resistance": 20,
+      "base_accuracy": 0,
+      "resource_generation": 5,
+      "ability_ids": [
+        "protoplasmic_slam",
+        "absorb_mass"
+      ],
+      "description": "Shapeless horror of bubbling protoplasm. Tekeli-li! Created to serve, now they consume.",
+      "summon_weight": 60,
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": [
+        "crafter"
+      ],
+      "leader_skill": {
+        "name": "Formless Horror",
+        "area": "dark",
+        "bonuses": {
+          "hp": 30,
+          "poison_chance": 10
+        }
+      }
+    },
+    "mi_go": {
+      "id": "mi_go",
+      "name": "Mi-Go",
+      "pantheon": "eldritch",
+      "element": 3,
+      "base_hp": 75,
+      "base_attack": 55,
+      "base_defense": 55,
+      "base_speed": 68,
+      "base_crit_rate": 15,
+      "base_crit_damage": 50,
+      "base_resistance": 10,
+      "base_accuracy": 5,
+      "resource_generation": 5,
+      "ability_ids": [
+        "brain_cylinder",
+        "yuggoth_science"
+      ],
+      "description": "Fungi from Yuggoth. They seek human brains to preserve in metal cylinders for their collections.",
+      "summon_weight": 60,
+      "tier": 1,
+      "default_role": "scholar",
+      "role_affinities": [
+        "crafter"
+      ],
+      "leader_skill": {
+        "name": "Alien Science",
+        "area": "lightning",
+        "bonuses": {
+          "accuracy": 30,
+          "stun_chance": 10
+        }
+      }
+    },
+    "night_gaunt": {
+      "id": "night_gaunt",
+      "name": "Night Gaunt",
+      "pantheon": "eldritch",
+      "element": 5,
+      "base_hp": 70,
+      "base_attack": 50,
+      "base_defense": 60,
+      "base_speed": 75,
+      "base_crit_rate": 15,
+      "base_crit_damage": 50,
+      "base_resistance": 15,
+      "base_accuracy": 0,
+      "resource_generation": 5,
+      "ability_ids": [
+        "silent_flight",
+        "tickle_torment"
+      ],
+      "description": "Faceless, rubbery servants of Nodens. They carry sleepers through the Dreamlands in silence.",
+      "summon_weight": 60,
+      "tier": 1,
+      "default_role": "support",
+      "role_affinities": [
+        "gatherer"
+      ],
+      "leader_skill": {
+        "name": "Silent Wings",
+        "area": "dark",
+        "bonuses": {
+          "speed": 25,
+          "dodge_chance": 12
+        }
+      }
+    },
+    "elder_thing": {
+      "id": "elder_thing",
+      "name": "Elder Thing",
+      "pantheon": "eldritch",
+      "element": 1,
+      "base_hp": 90,
+      "base_attack": 45,
+      "base_defense": 72,
+      "base_speed": 50,
+      "base_crit_rate": 12,
+      "base_crit_damage": 45,
+      "base_resistance": 18,
+      "base_accuracy": 5,
+      "resource_generation": 8,
+      "ability_ids": [
+        "ancient_technology",
+        "star_memory"
+      ],
+      "leader_skill": {
+        "name": "Antarctic Wisdom",
+        "area": "water",
+        "bonuses": {
+          "resistance": 25,
+          "accuracy": 20
+        }
+      },
+      "description": "Ancient star-spawn from aeons past. They built the Shoggoths and ruled when Earth was young.",
+      "summon_weight": 30,
+      "tier": 2,
+      "default_role": "scholar",
+      "role_affinities": [
+        "crafter"
+      ]
+    },
+    "ghatanothoa": {
+      "id": "ghatanothoa",
+      "name": "Ghatanothoa",
+      "pantheon": "eldritch",
+      "element": 2,
+      "base_hp": 130,
+      "base_attack": 60,
+      "base_defense": 90,
+      "base_speed": 38,
+      "base_crit_rate": 15,
+      "base_crit_damage": 50,
+      "base_resistance": 30,
+      "base_accuracy": 0,
+      "resource_generation": 12,
+      "ability_ids": [
+        "petrifying_gaze",
+        "living_mummy"
+      ],
+      "leader_skill": {
+        "name": "Medusa's Kin",
+        "area": "earth",
+        "bonuses": {
+          "defense": 40,
+          "hp": 20
+        }
+      },
+      "description": "The God-Thing of the cyclopean fortress of Mu. To gaze upon it is to become a living mummy.",
+      "summon_weight": 9,
+      "tier": 3,
+      "default_role": "support",
+      "role_affinities": [
+        "fighter"
+      ]
+    },
+    "atlach_nacha": {
+      "id": "atlach_nacha",
+      "name": "Atlach-Nacha",
+      "pantheon": "eldritch",
+      "element": 5,
+      "base_hp": 95,
+      "base_attack": 60,
+      "base_defense": 70,
+      "base_speed": 58,
+      "base_crit_rate": 20,
+      "base_crit_damage": 60,
+      "base_resistance": 18,
+      "base_accuracy": 0,
+      "resource_generation": 8,
+      "ability_ids": [
+        "web_of_dreams",
+        "spider_god_strike"
+      ],
+      "leader_skill": {
+        "name": "Weaver of Dreams",
+        "area": "dark",
+        "bonuses": {
+          "crit_rate": 22,
+          "speed": 18,
+          "poison_chance": 10
+        }
+      },
+      "description": "The Spider God, eternally weaving a web between the waking world and the Dreamlands.",
+      "summon_weight": 30,
+      "tier": 2,
+      "default_role": "scholar",
+      "role_affinities": [
+        "crafter"
+      ]
+    },
+    "hercules": {
+      "id": "hercules",
+      "name": "Hercules",
+      "pantheon": "greek",
+      "element": 0,
+      "base_hp": 145,
+      "base_attack": 75,
+      "base_defense": 80,
+      "base_speed": 48,
+      "base_crit_rate": 15,
+      "base_crit_damage": 60,
+      "base_resistance": 30,
+      "base_accuracy": 0,
+      "resource_generation": 15,
+      "ability_ids": [
+        "club_smash",
+        "twelve_labors"
+      ],
+      "leader_skill": {
+        "name": "Strength of the Lion",
+        "area": "all",
+        "bonuses": {
+          "attack": 40,
+          "hp": 25,
+          "counter_chance": 10
+        }
+      },
+      "description": "Son of Zeus, mightiest of all Greek heroes. Completed the twelve impossible labors.",
+      "summon_weight": 1,
+      "tier": 4,
+      "default_role": "fighter",
+      "role_affinities": [
+        "gatherer"
+      ]
+    },
+    "achilles": {
+      "id": "achilles",
+      "name": "Achilles",
+      "pantheon": "greek",
+      "element": 4,
+      "base_hp": 115,
+      "base_attack": 82,
+      "base_defense": 70,
+      "base_speed": 68,
+      "base_crit_rate": 22,
+      "base_crit_damage": 75,
+      "base_resistance": 15,
+      "base_accuracy": 5,
+      "resource_generation": 15,
+      "ability_ids": [
+        "swift_spear",
+        "wrath_of_achilles"
+      ],
+      "leader_skill": {
+        "name": "Invincible Warrior",
+        "area": "light",
+        "bonuses": {
+          "crit_damage": 44,
+          "attack": 30,
+          "counter_chance": 15
+        }
+      },
+      "description": "Greatest warrior of the Trojan War. Invulnerable except for his heel.",
+      "summon_weight": 1,
+      "tier": 4,
+      "default_role": "fighter",
+      "role_affinities": []
+    },
+    "perseus": {
+      "id": "perseus",
+      "name": "Perseus",
+      "pantheon": "greek",
+      "element": 4,
+      "base_hp": 100,
+      "base_attack": 68,
+      "base_defense": 65,
+      "base_speed": 72,
+      "base_crit_rate": 20,
+      "base_crit_damage": 60,
+      "base_resistance": 15,
+      "base_accuracy": 10,
+      "resource_generation": 12,
+      "ability_ids": [
+        "winged_strike",
+        "medusa_head"
+      ],
+      "leader_skill": {
+        "name": "Gorgon Slayer",
+        "area": "light",
+        "bonuses": {
+          "speed": 28,
+          "crit_rate": 18,
+          "dodge_chance": 12
+        }
+      },
+      "description": "Slayer of Medusa, wielder of winged sandals and the reflective shield.",
+      "summon_weight": 9,
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": [
+        "scholar"
+      ]
+    },
+    "odysseus": {
+      "id": "odysseus",
+      "name": "Odysseus",
+      "pantheon": "greek",
+      "element": 1,
+      "base_hp": 95,
+      "base_attack": 58,
+      "base_defense": 62,
+      "base_speed": 70,
+      "base_crit_rate": 18,
+      "base_crit_damage": 50,
+      "base_resistance": 20,
+      "base_accuracy": 15,
+      "resource_generation": 8,
+      "ability_ids": [
+        "cunning_strike",
+        "trojan_stratagem"
+      ],
+      "leader_skill": {
+        "name": "Cunning Mind",
+        "area": "water",
+        "bonuses": {
+          "accuracy": 35,
+          "speed": 20
+        }
+      },
+      "description": "King of Ithaca, craftiest of the Greeks. Wandered ten years to return home.",
+      "summon_weight": 30,
+      "tier": 2,
+      "default_role": "scholar",
+      "role_affinities": [
+        "support"
+      ]
+    },
+    "atalanta": {
+      "id": "atalanta",
+      "name": "Atalanta",
+      "pantheon": "greek",
+      "element": 2,
+      "base_hp": 85,
+      "base_attack": 65,
+      "base_defense": 55,
+      "base_speed": 78,
+      "base_crit_rate": 22,
+      "base_crit_damage": 55,
+      "base_resistance": 10,
+      "base_accuracy": 10,
+      "resource_generation": 8,
+      "ability_ids": [
+        "swift_arrow",
+        "hunters_pursuit"
+      ],
+      "leader_skill": {
+        "name": "Fleet Footed",
+        "area": "earth",
+        "bonuses": {
+          "speed": 30,
+          "crit_rate": 15,
+          "dodge_chance": 15
+        }
+      },
+      "description": "Swift huntress raised by bears. No man could outrun her.",
+      "summon_weight": 30,
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": [
+        "gatherer"
+      ]
+    },
+    "orpheus": {
+      "id": "orpheus",
+      "name": "Orpheus",
+      "pantheon": "greek",
+      "element": 4,
+      "base_hp": 80,
+      "base_attack": 45,
+      "base_defense": 55,
+      "base_speed": 60,
+      "base_crit_rate": 12,
+      "base_crit_damage": 45,
+      "base_resistance": 20,
+      "base_accuracy": 0,
+      "resource_generation": 5,
+      "ability_ids": [
+        "soothing_melody",
+        "song_of_eurydice"
+      ],
+      "description": "Greatest musician who ever lived. His songs could charm even the gods of death.",
+      "summon_weight": 60,
+      "tier": 1,
+      "default_role": "support",
+      "role_affinities": [
+        "scholar"
+      ],
+      "leader_skill": {
+        "name": "Enchanting Melody",
+        "area": "light",
+        "bonuses": {
+          "resistance": 30,
+          "accuracy": 25
+        }
+      }
+    },
+    "theseus": {
+      "id": "theseus",
+      "name": "Theseus",
+      "pantheon": "greek",
+      "element": 2,
+      "base_hp": 90,
+      "base_attack": 55,
+      "base_defense": 60,
+      "base_speed": 55,
+      "base_crit_rate": 15,
+      "base_crit_damage": 50,
+      "base_resistance": 15,
+      "base_accuracy": 5,
+      "resource_generation": 5,
+      "ability_ids": [
+        "sword_thrust",
+        "labyrinth_navigator"
+      ],
+      "description": "Slayer of the Minotaur, king of Athens. Found his way through the impossible maze.",
+      "summon_weight": 60,
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": [
+        "scholar"
+      ],
+      "leader_skill": {
+        "name": "Labyrinth Slayer",
+        "area": "earth",
+        "bonuses": {
+          "attack": 28,
+          "counter_chance": 10
+        }
+      }
+    },
+    "sigurd": {
+      "id": "sigurd",
+      "name": "Sigurd",
+      "pantheon": "norse",
+      "element": 0,
+      "base_hp": 110,
+      "base_attack": 72,
+      "base_defense": 68,
+      "base_speed": 58,
+      "base_crit_rate": 20,
+      "base_crit_damage": 65,
+      "base_resistance": 25,
+      "base_accuracy": 5,
+      "resource_generation": 12,
+      "ability_ids": [
+        "gram_slash",
+        "dragon_heart"
+      ],
+      "leader_skill": {
+        "name": "Dragonbane",
+        "area": "fire",
+        "bonuses": {
+          "attack": 35,
+          "resistance": 25,
+          "burn_chance": 12
+        }
+      },
+      "description": "Slayer of Fafnir the dragon. Bathed in dragon blood, he fears nothing.",
+      "summon_weight": 9,
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": []
+    },
+    "beowulf": {
+      "id": "beowulf",
+      "name": "Beowulf",
+      "pantheon": "norse",
+      "element": 2,
+      "base_hp": 120,
+      "base_attack": 65,
+      "base_defense": 75,
+      "base_speed": 50,
+      "base_crit_rate": 15,
+      "base_crit_damage": 55,
+      "base_resistance": 20,
+      "base_accuracy": 0,
+      "resource_generation": 8,
+      "ability_ids": [
+        "mighty_grip",
+        "monster_slayer"
+      ],
+      "leader_skill": {
+        "name": "Grendel's Bane",
+        "area": "earth",
+        "bonuses": {
+          "hp": 35,
+          "defense": 20,
+          "counter_chance": 12
+        }
+      },
+      "description": "Geatish hero who slew Grendel with his bare hands and later, a dragon.",
+      "summon_weight": 30,
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": [
+        "gatherer"
+      ]
+    },
+    "brynhildr": {
+      "id": "brynhildr",
+      "name": "Brynhildr",
+      "pantheon": "norse",
+      "element": 4,
+      "base_hp": 100,
+      "base_attack": 62,
+      "base_defense": 70,
+      "base_speed": 60,
+      "base_crit_rate": 18,
+      "base_crit_damage": 55,
+      "base_resistance": 20,
+      "base_accuracy": 5,
+      "resource_generation": 8,
+      "ability_ids": [
+        "valkyrie_spear",
+        "shieldmaiden_stance"
+      ],
+      "leader_skill": {
+        "name": "Valkyrie's Blessing",
+        "area": "light",
+        "bonuses": {
+          "defense": 30,
+          "speed": 18
+        }
+      },
+      "description": "Fallen Valkyrie, greatest of shieldmaidens. Cursed by Odin to mortal love.",
+      "summon_weight": 30,
+      "tier": 2,
+      "default_role": "support",
+      "role_affinities": [
+        "fighter"
+      ]
+    },
+    "ragnar": {
+      "id": "ragnar",
+      "name": "Ragnar Lothbrok",
+      "pantheon": "norse",
+      "element": 1,
+      "base_hp": 85,
+      "base_attack": 58,
+      "base_defense": 55,
+      "base_speed": 62,
+      "base_crit_rate": 18,
+      "base_crit_damage": 50,
+      "base_resistance": 15,
+      "base_accuracy": 5,
+      "resource_generation": 5,
+      "ability_ids": [
+        "viking_axe",
+        "saga_of_ragnar"
+      ],
+      "description": "Legendary Viking king, scourge of England and France. Father of legends.",
+      "summon_weight": 60,
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": [
+        "gatherer"
+      ],
+      "leader_skill": {
+        "name": "Viking Legend",
+        "area": "water",
+        "bonuses": {
+          "attack": 30,
+          "hp": 22,
+          "life_steal": 8
+        }
+      }
+    },
+    "cu_chulainn": {
+      "id": "cu_chulainn",
+      "name": "C\u00c3\u00ba Chulainn",
+      "pantheon": "celtic",
+      "element": 0,
+      "base_hp": 105,
+      "base_attack": 75,
+      "base_defense": 60,
+      "base_speed": 65,
+      "base_crit_rate": 22,
+      "base_crit_damage": 70,
+      "base_resistance": 15,
+      "base_accuracy": 5,
+      "resource_generation": 12,
+      "ability_ids": [
+        "gae_bolg",
+        "warp_spasm"
+      ],
+      "leader_skill": {
+        "name": "Hound of Ulster",
+        "area": "fire",
+        "bonuses": {
+          "attack": 40,
+          "crit_rate": 22,
+          "burn_chance": 12
+        }
+      },
+      "description": "Ireland's greatest hero. In his warp spasm, he becomes an unstoppable monster.",
+      "summon_weight": 9,
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": []
+    },
+    "fionn": {
+      "id": "fionn",
+      "name": "Fionn mac Cumhaill",
+      "pantheon": "celtic",
+      "element": 1,
+      "base_hp": 95,
+      "base_attack": 55,
+      "base_defense": 65,
+      "base_speed": 58,
+      "base_crit_rate": 15,
+      "base_crit_damage": 50,
+      "base_resistance": 25,
+      "base_accuracy": 10,
+      "resource_generation": 8,
+      "ability_ids": [
+        "wisdom_thumb",
+        "fianna_call"
+      ],
+      "leader_skill": {
+        "name": "Salmon of Knowledge",
+        "area": "water",
+        "bonuses": {
+          "accuracy": 30,
+          "resistance": 22
+        }
+      },
+      "description": "Leader of the Fianna. Gained infinite wisdom from the Salmon of Knowledge.",
+      "summon_weight": 30,
+      "tier": 2,
+      "default_role": "scholar",
+      "role_affinities": [
+        "support"
+      ]
+    },
+    "boudicca": {
+      "id": "boudicca",
+      "name": "Boudicca",
+      "pantheon": "celtic",
+      "element": 0,
+      "base_hp": 88,
+      "base_attack": 60,
+      "base_defense": 58,
+      "base_speed": 55,
+      "base_crit_rate": 15,
+      "base_crit_damage": 50,
+      "base_resistance": 18,
+      "base_accuracy": 0,
+      "resource_generation": 5,
+      "ability_ids": [
+        "queens_fury",
+        "iceni_uprising"
+      ],
+      "description": "Warrior Queen of the Iceni. Led the greatest rebellion against Rome.",
+      "summon_weight": 60,
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": [
+        "support"
+      ],
+      "leader_skill": {
+        "name": "Rebel Queen",
+        "area": "fire",
+        "bonuses": {
+          "attack": 28,
+          "counter_chance": 12
+        }
+      }
+    },
+    "imhotep": {
+      "id": "imhotep",
+      "name": "Imhotep",
+      "pantheon": "egyptian",
+      "element": 2,
+      "base_hp": 95,
+      "base_attack": 48,
+      "base_defense": 72,
+      "base_speed": 52,
+      "base_crit_rate": 12,
+      "base_crit_damage": 45,
+      "base_resistance": 25,
+      "base_accuracy": 10,
+      "resource_generation": 8,
+      "ability_ids": [
+        "architects_blessing",
+        "pyramid_power"
+      ],
+      "leader_skill": {
+        "name": "Master Architect",
+        "area": "earth",
+        "bonuses": {
+          "defense": 35,
+          "hp": 22
+        }
+      },
+      "description": "First architect, physician, and sage. Later deified as a god of medicine.",
+      "summon_weight": 30,
+      "tier": 2,
+      "default_role": "support",
+      "role_affinities": [
+        "crafter",
+        "scholar"
+      ]
+    },
+    "cleopatra": {
+      "id": "cleopatra",
+      "name": "Cleopatra",
+      "pantheon": "egyptian",
+      "element": 5,
+      "base_hp": 90,
+      "base_attack": 60,
+      "base_defense": 58,
+      "base_speed": 68,
+      "base_crit_rate": 18,
+      "base_crit_damage": 55,
+      "base_resistance": 20,
+      "base_accuracy": 15,
+      "resource_generation": 12,
+      "ability_ids": [
+        "royal_charm",
+        "asps_embrace"
+      ],
+      "leader_skill": {
+        "name": "Queen of the Nile",
+        "area": "dark",
+        "bonuses": {
+          "speed": 25,
+          "accuracy": 30,
+          "poison_chance": 12
+        }
+      },
+      "description": "Last pharaoh of Egypt. Her beauty and cunning seduced empires.",
+      "summon_weight": 9,
+      "tier": 3,
+      "default_role": "support",
+      "role_affinities": [
+        "scholar"
+      ]
+    },
+    "musashi": {
+      "id": "musashi",
+      "name": "Miyamoto Musashi",
+      "pantheon": "japanese",
+      "element": 3,
+      "base_hp": 90,
+      "base_attack": 72,
+      "base_defense": 55,
+      "base_speed": 70,
+      "base_crit_rate": 25,
+      "base_crit_damage": 70,
+      "base_resistance": 10,
+      "base_accuracy": 15,
+      "resource_generation": 12,
+      "ability_ids": [
+        "niten_ichi_ryu",
+        "musashis_void"
+      ],
+      "leader_skill": {
+        "name": "Way of the Sword",
+        "area": "lightning",
+        "bonuses": {
+          "crit_rate": 28,
+          "crit_damage": 30,
+          "counter_chance": 15
+        }
+      },
+      "description": "Japan's greatest swordsman. Undefeated in 61 duels, master of two swords.",
+      "summon_weight": 9,
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": [
+        "scholar"
+      ]
+    },
+    "lu_bu": {
+      "id": "lu_bu",
+      "name": "Lu Bu",
+      "pantheon": "chinese",
+      "element": 5,
+      "base_hp": 100,
+      "base_attack": 80,
+      "base_defense": 50,
+      "base_speed": 60,
+      "base_crit_rate": 20,
+      "base_crit_damage": 75,
+      "base_resistance": 10,
+      "base_accuracy": 0,
+      "resource_generation": 8,
+      "ability_ids": [
+        "sky_piercer",
+        "unmatched_warrior"
+      ],
+      "leader_skill": {
+        "name": "Mightiest Under Heaven",
+        "area": "dark",
+        "bonuses": {
+          "attack": 44,
+          "crit_damage": 25,
+          "counter_chance": 12
+        }
+      },
+      "description": "Mightiest warrior of the Three Kingdoms. None could match him in combat.",
+      "summon_weight": 30,
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": []
+    },
+    "bishamonten": {
+      "id": "bishamonten",
+      "name": "Bishamonten",
+      "pantheon": "japanese",
+      "element": 4,
+      "base_hp": 115,
+      "base_attack": 70,
+      "base_defense": 78,
+      "base_speed": 52,
+      "base_crit_rate": 15,
+      "base_crit_damage": 55,
+      "base_resistance": 25,
+      "base_accuracy": 5,
+      "resource_generation": 12,
+      "ability_ids": [
+        "heavenly_spear",
+        "fortune_warriors_blessing"
+      ],
+      "leader_skill": {
+        "name": "Warrior God's Protection",
+        "area": "light",
+        "bonuses": {
+          "defense": 35,
+          "hp": 25,
+          "reflect_damage": 8
+        }
+      },
+      "description": "God of Warriors and Fortune, one of the Seven Lucky Gods. Protector of the righteous.",
+      "summon_weight": 9,
+      "tier": 3,
+      "default_role": "support",
+      "role_affinities": [
+        "fighter"
+      ]
+    },
+    "izanagi": {
+      "id": "izanagi",
+      "name": "Izanagi",
+      "pantheon": "japanese",
+      "element": 4,
+      "base_hp": 110,
+      "base_attack": 62,
+      "base_defense": 68,
+      "base_speed": 60,
+      "base_crit_rate": 15,
+      "base_crit_damage": 50,
+      "base_resistance": 25,
+      "base_accuracy": 10,
+      "resource_generation": 12,
+      "ability_ids": [
+        "heavenly_jeweled_spear",
+        "creation_divine"
+      ],
+      "leader_skill": {
+        "name": "Creator's Will",
+        "area": "light",
+        "bonuses": {
+          "hp": 30,
+          "defense": 25
+        }
+      },
+      "description": "Creator God who stirred the primordial seas. Father of Amaterasu, Tsukuyomi, and Susanoo.",
+      "summon_weight": 9,
+      "tier": 3,
+      "default_role": "support",
+      "role_affinities": [
+        "scholar"
+      ]
+    },
+    "kitsune": {
+      "id": "kitsune",
+      "name": "Kitsune",
+      "pantheon": "japanese",
+      "element": 0,
+      "base_hp": 75,
+      "base_attack": 55,
+      "base_defense": 50,
+      "base_speed": 72,
+      "base_crit_rate": 18,
+      "base_crit_damage": 50,
+      "base_resistance": 15,
+      "base_accuracy": 10,
+      "resource_generation": 5,
+      "ability_ids": [
+        "foxfire_blast",
+        "illusion_tails"
+      ],
+      "description": "A fox spirit with magical powers. The more tails, the older and wiser they are.",
+      "summon_weight": 60,
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": [
+        "scholar"
+      ],
+      "leader_skill": {
+        "name": "Nine Tails",
+        "area": "fire",
+        "bonuses": {
+          "speed": 28,
+          "dodge_chance": 15,
+          "burn_chance": 8
+        }
+      }
+    },
+    "oni": {
+      "id": "oni",
+      "name": "Oni",
+      "pantheon": "japanese",
+      "element": 0,
+      "base_hp": 95,
+      "base_attack": 62,
+      "base_defense": 58,
+      "base_speed": 45,
+      "base_crit_rate": 12,
+      "base_crit_damage": 55,
+      "base_resistance": 20,
+      "base_accuracy": 0,
+      "resource_generation": 5,
+      "ability_ids": [
+        "kanabo_smash",
+        "demon_rage"
+      ],
+      "description": "Fearsome demon with horns and a club. Oni are the punishers of the wicked.",
+      "summon_weight": 60,
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": [
+        "gatherer"
+      ],
+      "leader_skill": {
+        "name": "Demon Strength",
+        "area": "fire",
+        "bonuses": {
+          "attack": 30,
+          "hp": 20
+        }
+      }
+    },
+    "kappa": {
+      "id": "kappa",
+      "name": "Kappa",
+      "pantheon": "japanese",
+      "element": 1,
+      "base_hp": 85,
+      "base_attack": 50,
+      "base_defense": 65,
+      "base_speed": 55,
+      "base_crit_rate": 12,
+      "base_crit_damage": 45,
+      "base_resistance": 18,
+      "base_accuracy": 5,
+      "resource_generation": 5,
+      "ability_ids": [
+        "water_sumo",
+        "river_drag"
+      ],
+      "description": "Water imp with a dish-shaped head. They are excellent sumo wrestlers.",
+      "summon_weight": 60,
+      "tier": 1,
+      "default_role": "fighter",
+      "role_affinities": [
+        "gatherer"
+      ],
+      "leader_skill": {
+        "name": "River Guardian",
+        "area": "water",
+        "bonuses": {
+          "defense": 28,
+          "freeze_chance": 12
+        }
+      }
+    },
+    "yoshitsune": {
+      "id": "yoshitsune",
+      "name": "Minamoto no Yoshitsune",
+      "pantheon": "japanese",
+      "element": 3,
+      "base_hp": 95,
+      "base_attack": 70,
+      "base_defense": 55,
+      "base_speed": 80,
+      "base_crit_rate": 25,
+      "base_crit_damage": 65,
+      "base_resistance": 10,
+      "base_accuracy": 15,
+      "resource_generation": 12,
+      "ability_ids": [
+        "eight_boat_leap",
+        "tengu_training"
+      ],
+      "leader_skill": {
+        "name": "Genius of War",
+        "area": "lightning",
+        "bonuses": {
+          "speed": 30,
+          "crit_rate": 22,
+          "dodge_chance": 15
+        }
+      },
+      "description": "Legendary samurai general trained by the Tengu. His acrobatic fighting was unmatched.",
+      "summon_weight": 9,
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": []
+    },
+    "tomoe_gozen": {
+      "id": "tomoe_gozen",
+      "name": "Tomoe Gozen",
+      "pantheon": "japanese",
+      "element": 0,
+      "base_hp": 90,
+      "base_attack": 68,
+      "base_defense": 60,
+      "base_speed": 70,
+      "base_crit_rate": 22,
+      "base_crit_damage": 60,
+      "base_resistance": 15,
+      "base_accuracy": 10,
+      "resource_generation": 8,
+      "ability_ids": [
+        "naginata_strike",
+        "onna_musha"
+      ],
+      "leader_skill": {
+        "name": "Warrior Woman's Spirit",
+        "area": "fire",
+        "bonuses": {
+          "attack": 30,
+          "crit_rate": 18
+        }
+      },
+      "description": "One of the few female samurai in history. Her beauty was matched only by her ferocity.",
+      "summon_weight": 30,
+      "tier": 2,
+      "default_role": "fighter",
+      "role_affinities": []
+    },
+    "benkei": {
+      "id": "benkei",
+      "name": "Benkei",
+      "pantheon": "japanese",
+      "element": 2,
+      "base_hp": 130,
+      "base_attack": 60,
+      "base_defense": 80,
+      "base_speed": 40,
+      "base_crit_rate": 12,
+      "base_crit_damage": 50,
+      "base_resistance": 25,
+      "base_accuracy": 0,
+      "resource_generation": 8,
+      "ability_ids": [
+        "seven_weapons",
+        "standing_death"
+      ],
+      "leader_skill": {
+        "name": "Warrior Monk's Loyalty",
+        "area": "earth",
+        "bonuses": {
+          "hp": 35,
+          "defense": 25,
+          "reflect_damage": 10
+        }
+      },
+      "description": "Loyal warrior monk who served Yoshitsune. Died standing, defending his master to the end.",
+      "summon_weight": 30,
+      "tier": 2,
+      "default_role": "support",
+      "role_affinities": [
+        "fighter"
+      ]
+    },
+    "nobunaga": {
+      "id": "nobunaga",
+      "name": "Oda Nobunaga",
+      "pantheon": "japanese",
+      "element": 0,
+      "base_hp": 100,
+      "base_attack": 72,
+      "base_defense": 58,
+      "base_speed": 65,
+      "base_crit_rate": 20,
+      "base_crit_damage": 65,
+      "base_resistance": 15,
+      "base_accuracy": 10,
+      "resource_generation": 12,
+      "ability_ids": [
+        "demon_king_strike",
+        "unification_by_force"
+      ],
+      "leader_skill": {
+        "name": "Demon King of the Sixth Heaven",
+        "area": "fire",
+        "bonuses": {
+          "attack": 40,
+          "crit_damage": 25,
+          "burn_chance": 15
+        }
+      },
+      "description": "The Demon King who nearly unified Japan. Ruthless, innovative, and feared by all.",
+      "summon_weight": 9,
+      "tier": 3,
+      "default_role": "fighter",
+      "role_affinities": [
+        "scholar"
+      ]
     }
   },
   "elements": {

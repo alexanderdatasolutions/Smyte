@@ -618,8 +618,10 @@ func _create_expandable_team_details(opponent: Dictionary) -> VBoxContainer:
 	scroll.add_child(gods_hbox)
 
 	# Create compact detail card for each god with uniform set bonus space
-	for god_data in defense_team:
-		var god_card = _create_compact_god_detail_card(god_data, max_set_lines)
+	for i in range(defense_team.size()):
+		var god_data = defense_team[i]
+		var is_leader: bool = (i == 0)  # First god is the leader
+		var god_card = _create_compact_god_detail_card(god_data, max_set_lines, is_leader)
 		gods_hbox.add_child(god_card)
 
 	return container
@@ -655,7 +657,7 @@ func _create_fake_god_for_bonus_calc(god_data: Dictionary):
 		"id": god_data.get("id", god_data.get("template_id", ""))
 	}
 
-func _create_compact_god_detail_card(god_data: Dictionary, max_set_bonus_lines: int = 0) -> PanelContainer:
+func _create_compact_god_detail_card(god_data: Dictionary, max_set_bonus_lines: int = 0, is_leader: bool = false) -> PanelContainer:
 	"""Create a compact god card for the expandable section"""
 	var card: PanelContainer = PanelContainer.new()
 	card.custom_minimum_size = Vector2(180, 0)  # Width only, height auto
@@ -695,13 +697,19 @@ func _create_compact_god_detail_card(god_data: Dictionary, max_set_bonus_lines: 
 	header_hbox.add_child(name_vbox)
 
 	var name_label: Label = Label.new()
-	name_label.text = god_data.get("name", "Unknown")
-	name_label.add_theme_color_override("font_color", Color(0.95, 0.95, 1.0))
+	var god_name: String = god_data.get("name", "Unknown")
+	if is_leader:
+		god_name = "👑 " + god_name
+	name_label.text = god_name
+	name_label.add_theme_color_override("font_color", Color(0.95, 0.95, 1.0) if not is_leader else Color(1.0, 0.85, 0.4))
 	name_label.add_theme_font_size_override("font_size", 11)
 	name_vbox.add_child(name_label)
 
 	var level_label: Label = Label.new()
-	level_label.text = "Lv.%d %s" % [god_data.get("level", 1), _get_tier_name(god_data.get("tier", 0))]
+	var level_text: String = "Lv.%d %s" % [god_data.get("level", 1), _get_tier_name(god_data.get("tier", 0))]
+	if is_leader:
+		level_text += " [LEADER]"
+	level_label.text = level_text
 	level_label.add_theme_color_override("font_color", _get_tier_color(god_data.get("tier", 0)))
 	level_label.add_theme_font_size_override("font_size", 9)
 	name_vbox.add_child(level_label)
@@ -742,8 +750,9 @@ func _create_compact_god_detail_card(god_data: Dictionary, max_set_bonus_lines: 
 	vbox.add_child(equip_label)
 
 	var equipment = god_data.get("equipment", {})
-	var slot_types: Array = ["weapon", "armor", "helm", "boots", "amulet", "ring"]
-	var slot_icons: Dictionary = {"weapon": "⚔", "armor": "🛡", "helm": "⛑", "boots": "👢", "amulet": "📿", "ring": "💍"}
+	# Equipment stored with numeric indices: 0=weapon, 1=armor, 2=helm, 3=boots, 4=amulet, 5=ring
+	var slot_names: Array = ["weapon", "armor", "helm", "boots", "amulet", "ring"]
+	var slot_icons: Array = ["⚔", "🛡", "⛑", "👢", "📿", "💍"]
 
 	var equip_vbox: VBoxContainer = VBoxContainer.new()
 	equip_vbox.add_theme_constant_override("separation", 1)
@@ -752,17 +761,21 @@ func _create_compact_god_detail_card(god_data: Dictionary, max_set_bonus_lines: 
 	# Count sets for set bonuses
 	var set_counts: Dictionary = {}
 
-	for slot in slot_types:
+	for slot_idx in range(6):
+		var slot_key: String = str(slot_idx)
+		var slot_name: String = slot_names[slot_idx]
+		var slot_icon: String = slot_icons[slot_idx]
+
 		var eq_hbox: HBoxContainer = HBoxContainer.new()
 		eq_hbox.add_theme_constant_override("separation", 4)
 
 		var eq_text: Label = Label.new()
-		if equipment.has(slot) and equipment[slot] != null:
-			var eq = equipment[slot]
-			var eq_name: String = eq.get("name", slot)
+		if equipment.has(slot_key) and equipment[slot_key] != null:
+			var eq = equipment[slot_key]
+			var eq_name: String = eq.get("name", slot_name)
 			if eq_name.length() > 8:
 				eq_name = eq_name.substr(0, 8)
-			eq_text.text = "%s %s★%d" % [slot_icons.get(slot, "•"), eq_name, eq.get("tier", 0)]
+			eq_text.text = "%s %s★%d" % [slot_icon, eq_name, eq.get("tier", 0)]
 			eq_text.add_theme_color_override("font_color", _get_equipment_tier_color(eq.get("tier", 0)))
 
 			# Track set for set bonus calculation
@@ -770,7 +783,7 @@ func _create_compact_god_detail_card(god_data: Dictionary, max_set_bonus_lines: 
 			if eq_set != "":
 				set_counts[eq_set] = set_counts.get(eq_set, 0) + 1
 		else:
-			eq_text.text = "%s Empty" % slot_icons.get(slot, "•")
+			eq_text.text = "%s Empty" % slot_icon
 			eq_text.add_theme_color_override("font_color", Color(0.4, 0.4, 0.45))
 		eq_text.add_theme_font_size_override("font_size", 8)
 		eq_hbox.add_child(eq_text)
@@ -879,10 +892,11 @@ func _count_god_set_bonus_lines(god_data: Dictionary) -> int:
 	var equipment = god_data.get("equipment", {})
 	var set_counts: Dictionary = {}
 
-	# Count pieces per set
-	for slot in ["weapon", "armor", "helm", "boots", "amulet", "ring"]:
-		if equipment.has(slot) and equipment[slot] != null:
-			var eq = equipment[slot]
+	# Count pieces per set - equipment uses numeric indices "0"-"5"
+	for slot_idx in range(6):
+		var slot_key: String = str(slot_idx)
+		if equipment.has(slot_key) and equipment[slot_key] != null:
+			var eq = equipment[slot_key]
 			var eq_set = eq.get("equipment_set_name", eq.get("set", ""))
 			if eq_set != "":
 				set_counts[eq_set] = set_counts.get(eq_set, 0) + 1
@@ -1758,27 +1772,32 @@ func _create_full_god_detail_panel(god_data: Dictionary) -> PanelContainer:
 	vbox.add_child(_create_section_header("🛡️ EQUIPMENT"))
 
 	var equipment = god_data.get("equipment", {})
-	var slot_types: Array = ["weapon", "helmet", "armor", "boots", "accessory", "artifact"]
-	var slot_icons: Dictionary = {"weapon": "⚔️", "helmet": "🪖", "armor": "🛡️", "boots": "👢", "accessory": "💍", "artifact": "📿"}
+	# Equipment stored with numeric indices: 0=weapon, 1=armor, 2=helm, 3=boots, 4=amulet, 5=ring
+	var slot_names: Array = ["Weapon", "Armor", "Helm", "Boots", "Amulet", "Ring"]
+	var slot_icons: Array = ["⚔️", "🛡️", "🪖", "👢", "📿", "💍"]
 
 	var equip_vbox: VBoxContainer = VBoxContainer.new()
 	equip_vbox.add_theme_constant_override("separation", 3)
 	vbox.add_child(equip_vbox)
 
-	for slot in slot_types:
+	for slot_idx in range(6):
+		var slot_key: String = str(slot_idx)
+		var slot_name: String = slot_names[slot_idx]
+		var slot_icon: String = slot_icons[slot_idx]
+
 		var slot_hbox: HBoxContainer = HBoxContainer.new()
 		slot_hbox.add_theme_constant_override("separation", 6)
 
 		var icon: Label = Label.new()
-		icon.text = slot_icons.get(slot, "❓")
+		icon.text = slot_icon
 		icon.add_theme_font_size_override("font_size", 10)
 		icon.custom_minimum_size = Vector2(20, 0)
 		slot_hbox.add_child(icon)
 
 		var equip_info: Label = Label.new()
-		if equipment.has(slot) and equipment[slot] != null:
-			var eq = equipment[slot]
-			var eq_name = eq.get("name", slot.capitalize())
+		if equipment.has(slot_key) and equipment[slot_key] != null:
+			var eq = equipment[slot_key]
+			var eq_name = eq.get("name", slot_name)
 			var eq_tier = eq.get("tier", 0)
 			equip_info.text = "%s ★%d" % [eq_name, eq_tier]
 			equip_info.add_theme_color_override("font_color", _get_equipment_tier_color(eq_tier))
@@ -1929,10 +1948,10 @@ func _create_detailed_god_card(god_data: Dictionary) -> PanelContainer:
 	equip_header.add_theme_font_size_override("font_size", 11)
 	equip_vbox.add_child(equip_header)
 
-	# Equipment slots
+	# Equipment slots - stored with numeric indices: 0=weapon, 1=armor, 2=helm, 3=boots, 4=amulet, 5=ring
 	var equipment = god_data.get("equipment", {})
-	var slot_types: Array = ["weapon", "helmet", "armor", "boots", "accessory", "artifact"]
-	var slot_icons: Dictionary = {"weapon": "⚔️", "helmet": "🪖", "armor": "🛡️", "boots": "👢", "accessory": "💍", "artifact": "📿"}
+	var slot_names: Array = ["Weapon", "Armor", "Helm", "Boots", "Amulet", "Ring"]
+	var slot_icons: Array = ["⚔️", "🛡️", "🪖", "👢", "📿", "💍"]
 
 	var equip_grid: GridContainer = GridContainer.new()
 	equip_grid.columns = 2
@@ -1940,19 +1959,23 @@ func _create_detailed_god_card(god_data: Dictionary) -> PanelContainer:
 	equip_grid.add_theme_constant_override("v_separation", 3)
 	equip_vbox.add_child(equip_grid)
 
-	for slot in slot_types:
+	for slot_idx in range(6):
+		var slot_key: String = str(slot_idx)
+		var slot_name: String = slot_names[slot_idx]
+		var slot_icon: String = slot_icons[slot_idx]
+
 		var slot_hbox: HBoxContainer = HBoxContainer.new()
 		slot_hbox.add_theme_constant_override("separation", 4)
 
 		var icon: Label = Label.new()
-		icon.text = slot_icons.get(slot, "❓")
+		icon.text = slot_icon
 		icon.add_theme_font_size_override("font_size", 10)
 		slot_hbox.add_child(icon)
 
 		var equip_info: Label = Label.new()
-		if equipment.has(slot) and equipment[slot] != null:
-			var eq = equipment[slot]
-			var eq_name = eq.get("name", slot.capitalize())
+		if equipment.has(slot_key) and equipment[slot_key] != null:
+			var eq = equipment[slot_key]
+			var eq_name = eq.get("name", slot_name)
 			var eq_tier = eq.get("tier", 0)
 			equip_info.text = "%s ★%d" % [eq_name, eq_tier]
 			equip_info.add_theme_color_override("font_color", _get_equipment_tier_color(eq_tier))

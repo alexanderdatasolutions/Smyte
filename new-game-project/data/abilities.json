@@ -4239,6 +4239,2675 @@
       ],
       "cooldown": 5,
       "icon_path": "res://assets/abilities/all_seeing_wisdom.png"
+    },
+
+    "_eldritch_abilities_comment": "========== ELDRITCH PANTHEON ABILITIES ==========",
+
+    "madness_gaze": {
+      "id": "madness_gaze",
+      "name": "Madness Gaze",
+      "description": "Cthulhu's alien gaze shatters the enemy's sanity. Attacks an enemy with damage scaling on their MAX HP and applies Oblivion for 2 turns.",
+      "damage_multiplier": 2.0,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.0,
+          "scaling": "ATK",
+          "enemy_hp_scaling": 8
+        },
+        {
+          "type": "debuff",
+          "debuff": "oblivion",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/madness_gaze.png"
+    },
+    "call_of_the_deep": {
+      "id": "call_of_the_deep",
+      "name": "Call of the Deep",
+      "description": "Cthulhu rises from R'lyeh. Attacks all enemies 3 times, each hit has 50% chance to sleep for 1 turn. Damage increases by 15% for each sleeping enemy.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "hits": 3,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK",
+          "hits": 3,
+          "bonus_per_sleeping": 15
+        },
+        {
+          "type": "debuff",
+          "debuff": "sleep",
+          "chance": 50,
+          "duration": 1,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/call_of_the_deep.png"
+    },
+
+    "nuclear_chaos": {
+      "id": "nuclear_chaos",
+      "name": "Nuclear Chaos",
+      "description": "The Blind Idiot God unleashes pure chaos. Attacks all enemies with massive damage and inflicts random debuffs for 2 turns.",
+      "damage_multiplier": 2.8,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.8,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "random",
+          "chance": 100,
+          "duration": 2,
+          "count": 3
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/nuclear_chaos.png"
+    },
+    "blind_idiot_wrath": {
+      "id": "blind_idiot_wrath",
+      "name": "Blind Idiot's Wrath",
+      "description": "Azathoth's mindless fury obliterates everything. Attacks all enemies, ignoring 50% defense. Each kill resets cooldowns.",
+      "damage_multiplier": 4.5,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 4.5,
+          "scaling": "ATK",
+          "ignore_def_percent": 50
+        },
+        {
+          "type": "reset_cooldowns_on_kill"
+        }
+      ],
+      "cooldown": 6,
+      "icon_path": "res://assets/abilities/blind_idiot_wrath.png"
+    },
+
+    "key_and_gate": {
+      "id": "key_and_gate",
+      "name": "Key and Gate",
+      "description": "Yog-Sothoth opens dimensional gates. Attacks an enemy and steals 50% ATB. If enemy was at full ATB, steal all buffs.",
+      "damage_multiplier": 1.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.8,
+          "scaling": "ATK"
+        },
+        {
+          "type": "atb_steal",
+          "value": 50,
+          "chance": 100
+        },
+        {
+          "type": "steal_buffs_if_full_atb",
+          "count": 99
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/key_and_gate.png"
+    },
+    "cosmic_omniscience": {
+      "id": "cosmic_omniscience",
+      "name": "Cosmic Omniscience",
+      "description": "Yog-Sothoth reveals all timelines. Grants all allies 50% ATB, Immunity for 2 turns, and reveals all enemy cooldowns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "atb_increase",
+          "value": 50
+        },
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 2
+        },
+        {
+          "type": "reveal_cooldowns"
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/cosmic_omniscience.png"
+    },
+
+    "thousand_forms": {
+      "id": "thousand_forms",
+      "name": "Thousand Forms",
+      "description": "Nyarlathotep shifts between forms. Attacks an enemy with damage that changes element randomly. Has 75% chance to apply 2 random debuffs.",
+      "damage_multiplier": 2.0,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.0,
+          "scaling": "ATK",
+          "random_element": true
+        },
+        {
+          "type": "debuff",
+          "debuff": "random",
+          "chance": 75,
+          "duration": 2,
+          "count": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/thousand_forms.png"
+    },
+    "crawling_chaos": {
+      "id": "crawling_chaos",
+      "name": "Crawling Chaos",
+      "description": "The Crawling Chaos corrupts reality. Attacks all enemies, converts all buffs to debuffs for 2 turns, and inflicts Silence.",
+      "damage_multiplier": 2.5,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "convert_buffs_to_debuffs",
+          "duration": 2
+        },
+        {
+          "type": "debuff",
+          "debuff": "silence",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/crawling_chaos.png"
+    },
+
+    "dark_young_spawn": {
+      "id": "dark_young_spawn",
+      "name": "Dark Young Spawn",
+      "description": "Shub-Niggurath calls her thousand young. Attacks an enemy and summons a Dark Young minion for 3 turns that attacks each turn.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK"
+        },
+        {
+          "type": "summon",
+          "minion": "dark_young",
+          "duration": 3,
+          "stats_percent": 50
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/dark_young_spawn.png"
+    },
+    "fertility_of_madness": {
+      "id": "fertility_of_madness",
+      "name": "Fertility of Madness",
+      "description": "The Black Goat's fertility spreads chaos. Attacks all enemies and heals all allies by 25% MAX HP. Each kill grants an extra turn.",
+      "damage_multiplier": 2.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.2,
+          "scaling": "ATK"
+        },
+        {
+          "type": "heal_allies",
+          "value": 25,
+          "scaling": "MAX_HP"
+        },
+        {
+          "type": "extra_turn_on_kill"
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/fertility_of_madness.png"
+    },
+
+    "yellow_sign": {
+      "id": "yellow_sign",
+      "name": "Yellow Sign",
+      "description": "Hastur brands enemies with the Yellow Sign. Attacks an enemy and brands them for 3 turns. Branded enemies take 25% more damage.",
+      "damage_multiplier": 1.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.8,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "brand",
+          "chance": 100,
+          "duration": 3
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/yellow_sign.png"
+    },
+    "unspeakable_one": {
+      "id": "unspeakable_one",
+      "name": "The Unspeakable One",
+      "description": "Hastur's true form drives enemies mad. Attacks all enemies with irresistible damage. Silences and provokes for 2 turns.",
+      "damage_multiplier": 3.0,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 3.0,
+          "scaling": "ATK",
+          "irresistible": true
+        },
+        {
+          "type": "debuff",
+          "debuff": "silence",
+          "chance": 100,
+          "duration": 2,
+          "irresistible": true
+        },
+        {
+          "type": "debuff",
+          "debuff": "provoke",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/unspeakable_one.png"
+    },
+
+    "deep_one_call": {
+      "id": "deep_one_call",
+      "name": "Deep One Call",
+      "description": "Dagon commands the depths. Attacks an enemy and decreases ATB by 50%. If target has less than 30% ATB, stuns for 1 turn.",
+      "damage_multiplier": 1.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.8,
+          "scaling": "ATK"
+        },
+        {
+          "type": "atb_decrease",
+          "value": 50,
+          "chance": 100
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 100,
+          "duration": 1,
+          "conditional": "atb_below_30"
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/deep_one_call.png"
+    },
+    "tidal_horror": {
+      "id": "tidal_horror",
+      "name": "Tidal Horror",
+      "description": "Dagon unleashes a tidal wave of terror. Attacks all enemies, resets their ATB to 0, and decreases Attack Speed for 2 turns.",
+      "damage_multiplier": 2.5,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "atb_set",
+          "value": 0
+        },
+        {
+          "type": "debuff",
+          "debuff": "slow",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/tidal_horror.png"
+    },
+
+    "sleeper_touch": {
+      "id": "sleeper_touch",
+      "name": "Sleeper's Touch",
+      "description": "Tsathoggua's lazy swipe drains life. Attacks an enemy and drains 50% of damage as HP. Inflicts Unrecoverable for 2 turns.",
+      "damage_multiplier": 1.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.8,
+          "scaling": "ATK"
+        },
+        {
+          "type": "life_drain",
+          "value": 50
+        },
+        {
+          "type": "debuff",
+          "debuff": "heal_block",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/sleeper_touch.png"
+    },
+    "formless_spawn": {
+      "id": "formless_spawn",
+      "name": "Formless Spawn",
+      "description": "Tsathoggua's formless servants attack. Attacks all enemies and applies Continuous Damage for 3 turns. Heals self by 30% MAX HP.",
+      "damage_multiplier": 2.0,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.0,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 100,
+          "duration": 3
+        },
+        {
+          "type": "heal_self",
+          "value": 30,
+          "scaling": "MAX_HP"
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/formless_spawn.png"
+    },
+
+    "wind_walk": {
+      "id": "wind_walk",
+      "name": "Wind Walk",
+      "description": "Ithaqua stalks through the frozen winds. Attacks an enemy and decreases Speed for 2 turns. Increases own ATB by 25%.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "slow",
+          "chance": 100,
+          "duration": 2
+        },
+        {
+          "type": "atb_increase_self",
+          "value": 25
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/wind_walk.png"
+    },
+    "freezing_grasp": {
+      "id": "freezing_grasp",
+      "name": "Freezing Grasp",
+      "description": "The Wind-Walker freezes all. Attacks all enemies with 75% chance to freeze for 1 turn. Frozen enemies take 50% more damage from this attack.",
+      "damage_multiplier": 2.8,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.8,
+          "scaling": "ATK",
+          "bonus_vs_frozen": 50
+        },
+        {
+          "type": "debuff",
+          "debuff": "freeze",
+          "chance": 75,
+          "duration": 1
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/freezing_grasp.png"
+    },
+
+    "fish_strike": {
+      "id": "fish_strike",
+      "name": "Fish Strike",
+      "description": "The Deep One strikes with webbed claws. Attacks an enemy 2 times, each hit has 50% chance to decrease Defense for 2 turns.",
+      "damage_multiplier": 0.9,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 2,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.9,
+          "scaling": "ATK",
+          "hits": 2
+        },
+        {
+          "type": "debuff",
+          "debuff": "def_break",
+          "chance": 50,
+          "duration": 2,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/fish_strike.png"
+    },
+    "tidal_assault": {
+      "id": "tidal_assault",
+      "name": "Tidal Assault",
+      "description": "Deep Ones swarm the enemy. Attacks an enemy 4 times, ignoring 30% defense. Each hit heals self by 10% of damage.",
+      "damage_multiplier": 0.7,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 4,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.7,
+          "scaling": "ATK",
+          "hits": 4,
+          "ignore_def_percent": 30
+        },
+        {
+          "type": "life_drain",
+          "value": 10,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/tidal_assault.png"
+    },
+
+    "protoplasmic_slam": {
+      "id": "protoplasmic_slam",
+      "name": "Protoplasmic Slam",
+      "description": "The Shoggoth forms a massive pseudopod. Attacks an enemy with damage scaling on own MAX HP. Has 30% chance to stun.",
+      "damage_multiplier": 1.2,
+      "scaling_stat": "HP",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.2,
+          "scaling": "HP",
+          "hp_percent": 15
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 30,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/protoplasmic_slam.png"
+    },
+    "absorb_mass": {
+      "id": "absorb_mass",
+      "name": "Absorb Mass",
+      "description": "The Shoggoth absorbs enemies into its mass. Attacks all enemies and absorbs 20% of damage as shield for 2 turns. Shield stacks.",
+      "damage_multiplier": 2.0,
+      "scaling_stat": "HP",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.0,
+          "scaling": "ATK"
+        },
+        {
+          "type": "shield_from_damage",
+          "value": 20,
+          "duration": 2,
+          "stacks": true
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/absorb_mass.png"
+    },
+
+    "brain_cylinder": {
+      "id": "brain_cylinder",
+      "name": "Brain Cylinder",
+      "description": "Mi-Go extracts knowledge. Attacks an enemy and steals 1 buff. If successful, increases own ATB by 30%.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK"
+        },
+        {
+          "type": "steal_buff",
+          "count": 1
+        },
+        {
+          "type": "atb_increase_self_on_steal",
+          "value": 30
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/brain_cylinder.png"
+    },
+    "yuggoth_science": {
+      "id": "yuggoth_science",
+      "name": "Yuggoth Science",
+      "description": "Mi-Go uses alien technology. Attacks all enemies and strips all buffs. Grants self 1 random buff per buff stripped.",
+      "damage_multiplier": 2.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.2,
+          "scaling": "ATK"
+        },
+        {
+          "type": "strip_all_buffs"
+        },
+        {
+          "type": "gain_buff_per_strip",
+          "buff": "random"
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/yuggoth_science.png"
+    },
+
+    "silent_flight": {
+      "id": "silent_flight",
+      "name": "Silent Flight",
+      "description": "Night-Gaunt swoops silently. Attacks an enemy and reduces their ATB by 25%. Cannot be counterattacked.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK",
+          "no_counter": true
+        },
+        {
+          "type": "atb_decrease",
+          "value": 25,
+          "chance": 100
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/silent_flight.png"
+    },
+    "tickle_torment": {
+      "id": "tickle_torment",
+      "name": "Tickle Torment",
+      "description": "Night-Gaunts tickle their victim relentlessly. Attacks an enemy 5 times. Each hit has 20% chance to stun for 1 turn. Stuns refresh.",
+      "damage_multiplier": 0.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 5,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.5,
+          "scaling": "ATK",
+          "hits": 5
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 20,
+          "duration": 1,
+          "per_hit": true,
+          "refresh": true
+        }
+      ],
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/tickle_torment.png"
+    },
+
+    "ancient_technology": {
+      "id": "ancient_technology",
+      "name": "Ancient Technology",
+      "description": "Elder Thing activates ancient devices. Attacks an enemy and extends all debuffs by 1 turn. Inflicts Glancing Hit for 2 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "extend_debuffs",
+          "turns": 1
+        },
+        {
+          "type": "debuff",
+          "debuff": "glancing",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/ancient_technology.png"
+    },
+    "star_memory": {
+      "id": "star_memory",
+      "name": "Star Memory",
+      "description": "Elder Thing recalls aeons of knowledge. Resets all ally cooldowns by 1 turn and grants Skill Damage Increase buff for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "cooldown_reduction",
+          "value": 1
+        },
+        {
+          "type": "buff",
+          "buff": "skill_damage",
+          "duration": 2
+        },
+        {
+          "type": "atb_increase",
+          "value": 20
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/star_memory.png"
+    },
+
+    "petrifying_gaze": {
+      "id": "petrifying_gaze",
+      "name": "Petrifying Gaze",
+      "description": "Ghatanothoa's horrific visage petrifies. Attacks an enemy with 30% chance to petrify (stun) for 2 turns. Ignores immunity.",
+      "damage_multiplier": 1.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.8,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 30,
+          "duration": 2,
+          "ignore_immunity": true
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/petrifying_gaze.png"
+    },
+    "living_mummy": {
+      "id": "living_mummy",
+      "name": "Living Mummy",
+      "description": "Ghatanothoa mummifies the living. Attacks all enemies and has 50% chance to turn them into mummies (stun + heal block) for 1 turn.",
+      "damage_multiplier": 2.5,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 50,
+          "duration": 1
+        },
+        {
+          "type": "debuff",
+          "debuff": "heal_block",
+          "chance": 50,
+          "duration": 1
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/living_mummy.png"
+    },
+
+    "web_of_dreams": {
+      "id": "web_of_dreams",
+      "name": "Web of Dreams",
+      "description": "Atlach-Nacha spins her great web. Attacks an enemy and inflicts Sleep for 2 turns. Sleeping enemies take 30% increased damage.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "sleep",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/web_of_dreams.png"
+    },
+    "spider_god_strike": {
+      "id": "spider_god_strike",
+      "name": "Spider God's Strike",
+      "description": "Atlach-Nacha strikes with divine venom. Attacks all enemies with poison for 3 turns. Sleeping enemies are instantly awakened and stunned instead.",
+      "damage_multiplier": 2.4,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.4,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 100,
+          "duration": 3
+        },
+        {
+          "type": "convert_sleep_to_stun",
+          "duration": 1
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/spider_god_strike.png"
+    },
+
+    "_hero_abilities_comment": "========== HERO ABILITIES ==========",
+
+    "club_smash": {
+      "id": "club_smash",
+      "name": "Club Smash",
+      "description": "Hercules smashes with his mighty club. Attacks an enemy with damage scaling on own HP. 50% chance to stun for 1 turn.",
+      "damage_multiplier": 1.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.8,
+          "scaling": "ATK",
+          "hp_scaling": 10
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 50,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/club_smash.png"
+    },
+    "twelve_labors": {
+      "id": "twelve_labors",
+      "name": "Twelve Labors",
+      "description": "Hercules channels the strength of his legendary labors. Grants self Attack Buff, Defense Buff, and Immunity for 3 turns. Cleanses all debuffs.",
+      "damage_multiplier": 0,
+      "targets": "self",
+      "effects": [
+        {
+          "type": "cleanse_all"
+        },
+        {
+          "type": "buff",
+          "buff": "attack",
+          "duration": 3
+        },
+        {
+          "type": "buff",
+          "buff": "defense",
+          "duration": 3
+        },
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 3
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/twelve_labors.png"
+    },
+
+    "swift_spear": {
+      "id": "swift_spear",
+      "name": "Swift Spear",
+      "description": "Achilles strikes with blinding speed. Attacks an enemy 2 times, ignoring 30% defense. Increases own ATB by 20%.",
+      "damage_multiplier": 1.0,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 2,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.0,
+          "scaling": "ATK",
+          "hits": 2,
+          "ignore_def_percent": 30
+        },
+        {
+          "type": "atb_increase_self",
+          "value": 20
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/swift_spear.png"
+    },
+    "wrath_of_achilles": {
+      "id": "wrath_of_achilles",
+      "name": "Wrath of Achilles",
+      "description": "Achilles unleashes his legendary rage. Attacks all enemies, ignoring 50% defense. Damage increases by 30% for each dead ally.",
+      "damage_multiplier": 3.5,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 3.5,
+          "scaling": "ATK",
+          "ignore_def_percent": 50,
+          "bonus_per_dead_ally": 30
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/wrath_of_achilles.png"
+    },
+
+    "winged_strike": {
+      "id": "winged_strike",
+      "name": "Winged Strike",
+      "description": "Perseus swoops in with winged sandals. Attacks an enemy and decreases ATB by 30%. Cannot be counterattacked.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK",
+          "no_counter": true
+        },
+        {
+          "type": "atb_decrease",
+          "value": 30,
+          "chance": 100
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/winged_strike.png"
+    },
+    "medusa_head": {
+      "id": "medusa_head",
+      "name": "Medusa's Head",
+      "description": "Perseus reveals the Gorgon's head. Attacks all enemies with 40% chance to petrify (stun) for 1 turn. Petrified enemies take 50% more damage.",
+      "damage_multiplier": 2.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.2,
+          "scaling": "ATK",
+          "bonus_vs_stunned": 50
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 40,
+          "duration": 1
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/medusa_head.png"
+    },
+
+    "cunning_strike": {
+      "id": "cunning_strike",
+      "name": "Cunning Strike",
+      "description": "Odysseus strikes with tactical precision. Attacks an enemy and strips 1 buff. If successful, decreases skill cooldowns by 1.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK"
+        },
+        {
+          "type": "strip_buff",
+          "count": 1
+        },
+        {
+          "type": "cooldown_reduction_on_strip",
+          "value": 1
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/cunning_strike.png"
+    },
+    "trojan_stratagem": {
+      "id": "trojan_stratagem",
+      "name": "Trojan Stratagem",
+      "description": "Odysseus executes a brilliant plan. Decreases all enemy ATB by 50% and inflicts Defense Break for 2 turns. Increases all ally ATB by 30%.",
+      "damage_multiplier": 0,
+      "targets": "all",
+      "effects": [
+        {
+          "type": "atb_decrease_enemies",
+          "value": 50
+        },
+        {
+          "type": "debuff_enemies",
+          "debuff": "def_break",
+          "chance": 100,
+          "duration": 2
+        },
+        {
+          "type": "atb_increase_allies",
+          "value": 30
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/trojan_stratagem.png"
+    },
+
+    "swift_arrow": {
+      "id": "swift_arrow",
+      "name": "Swift Arrow",
+      "description": "Atalanta fires with deadly accuracy. Attacks an enemy with increased crit rate. Speed scaling damage.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "SPD",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "SPD",
+          "crit_rate_bonus": 25
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/swift_arrow.png"
+    },
+    "hunters_pursuit": {
+      "id": "hunters_pursuit",
+      "name": "Hunter's Pursuit",
+      "description": "Atalanta chases down prey. Attacks an enemy 4 times. Each hit increases own ATB by 10%. Gains extra turn if target dies.",
+      "damage_multiplier": 0.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 4,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.6,
+          "scaling": "ATK",
+          "hits": 4
+        },
+        {
+          "type": "atb_increase_self",
+          "value": 10,
+          "per_hit": true
+        },
+        {
+          "type": "extra_turn_on_kill"
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/hunters_pursuit.png"
+    },
+
+    "soothing_melody": {
+      "id": "soothing_melody",
+      "name": "Soothing Melody",
+      "description": "Orpheus plays a calming song. Heals an ally by 20% HP and cleanses 1 debuff.",
+      "damage_multiplier": 0,
+      "targets": "single_ally",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 20,
+          "scaling": "TARGET_HP"
+        },
+        {
+          "type": "cleanse",
+          "count": 1
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/soothing_melody.png"
+    },
+    "song_of_eurydice": {
+      "id": "song_of_eurydice",
+      "name": "Song of Eurydice",
+      "description": "Orpheus sings of his lost love. Heals all allies by 25% HP and grants Recovery buff for 2 turns. Revives one dead ally with 30% HP.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 25,
+          "scaling": "MAX_HP"
+        },
+        {
+          "type": "buff",
+          "buff": "recovery",
+          "duration": 2
+        },
+        {
+          "type": "revive",
+          "hp_percent": 30,
+          "count": 1
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/song_of_eurydice.png"
+    },
+
+    "sword_thrust": {
+      "id": "sword_thrust",
+      "name": "Sword Thrust",
+      "description": "Theseus strikes with his father's sword. Attacks an enemy with 30% chance to inflict Bleed for 2 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 30,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/sword_thrust.png"
+    },
+    "labyrinth_navigator": {
+      "id": "labyrinth_navigator",
+      "name": "Labyrinth Navigator",
+      "description": "Theseus finds the true path. Grants all allies Accuracy buff and removes inability effects. Reveals enemy buffs and cooldowns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "accuracy",
+          "duration": 2
+        },
+        {
+          "type": "cleanse_inability"
+        },
+        {
+          "type": "reveal_enemy_state"
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/labyrinth_navigator.png"
+    },
+
+    "gram_slash": {
+      "id": "gram_slash",
+      "name": "Gram Slash",
+      "description": "Sigurd strikes with the legendary sword Gram. Attacks an enemy, ignoring 25% defense. Bonus damage vs dragons/beasts.",
+      "damage_multiplier": 1.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.8,
+          "scaling": "ATK",
+          "ignore_def_percent": 25,
+          "bonus_vs_type": ["dragon", "beast"],
+          "bonus_damage": 50
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/gram_slash.png"
+    },
+    "dragon_heart": {
+      "id": "dragon_heart",
+      "name": "Dragon Heart",
+      "description": "Sigurd's dragon blood protects him. Grants self Immunity and increases resistance by 50% for 3 turns. Reflects 30% damage taken.",
+      "damage_multiplier": 0,
+      "targets": "self",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 3
+        },
+        {
+          "type": "buff",
+          "buff": "reflect",
+          "value": 30,
+          "duration": 3
+        },
+        {
+          "type": "stat_buff",
+          "stat": "resistance",
+          "value": 50,
+          "duration": 3
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/dragon_heart.png"
+    },
+
+    "mighty_grip": {
+      "id": "mighty_grip",
+      "name": "Mighty Grip",
+      "description": "Beowulf grapples with tremendous strength. Attacks an enemy and provokes for 1 turn. Damage scales on own defense.",
+      "damage_multiplier": 1.2,
+      "scaling_stat": "DEF",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.2,
+          "scaling": "DEF"
+        },
+        {
+          "type": "debuff",
+          "debuff": "provoke",
+          "chance": 100,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/mighty_grip.png"
+    },
+    "monster_slayer": {
+      "id": "monster_slayer",
+      "name": "Monster Slayer",
+      "description": "Beowulf attacks with heroic fury. Attacks an enemy with massive damage. Bonus 100% damage vs bosses. Heals self by 30% of damage dealt.",
+      "damage_multiplier": 3.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 3.5,
+          "scaling": "ATK",
+          "bonus_vs_boss": 100
+        },
+        {
+          "type": "life_drain",
+          "value": 30
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/monster_slayer.png"
+    },
+
+    "valkyrie_spear": {
+      "id": "valkyrie_spear",
+      "name": "Valkyrie Spear",
+      "description": "Brynhildr throws her divine spear. Attacks an enemy and decreases ATB by 25%. If target has buffs, steals one.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "atb_decrease",
+          "value": 25,
+          "chance": 100
+        },
+        {
+          "type": "steal_buff",
+          "count": 1
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/valkyrie_spear.png"
+    },
+    "shieldmaiden_stance": {
+      "id": "shieldmaiden_stance",
+      "name": "Shieldmaiden Stance",
+      "description": "Brynhildr takes a defensive stance. Grants all allies Defense buff and Shield equal to 15% of her max HP for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "defense",
+          "duration": 2
+        },
+        {
+          "type": "shield",
+          "value": 15,
+          "scaling": "CASTER_HP",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/shieldmaiden_stance.png"
+    },
+
+    "viking_axe": {
+      "id": "viking_axe",
+      "name": "Viking Axe",
+      "description": "Ragnar strikes with his battleaxe. Attacks an enemy and inflicts Bleed for 2 turns. Damage increases vs bleeding enemies.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK",
+          "bonus_vs_bleeding": 30
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 75,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/viking_axe.png"
+    },
+    "saga_of_ragnar": {
+      "id": "saga_of_ragnar",
+      "name": "Saga of Ragnar",
+      "description": "Ragnar's legend inspires his allies. Grants all allies Attack buff for 2 turns. If Ragnar is below 50% HP, also grants Endure buff.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "attack",
+          "duration": 2
+        },
+        {
+          "type": "buff",
+          "buff": "endure",
+          "duration": 1,
+          "conditional": "caster_below_50_hp"
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/saga_of_ragnar.png"
+    },
+
+    "gae_bolg": {
+      "id": "gae_bolg",
+      "name": "Gáe Bolg",
+      "description": "Cú Chulainn hurls his cursed spear. Attacks an enemy, ignoring 100% defense. This attack always lands a critical hit.",
+      "damage_multiplier": 2.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.5,
+          "scaling": "ATK",
+          "ignore_def_percent": 100,
+          "always_crit": true
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/gae_bolg.png"
+    },
+    "warp_spasm": {
+      "id": "warp_spasm",
+      "name": "Warp Spasm",
+      "description": "Cú Chulainn transforms into a berserker. Attacks all enemies 3 times. Gains 50% more damage but loses 10% HP per attack.",
+      "damage_multiplier": 1.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "hits": 3,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.2,
+          "scaling": "ATK",
+          "hits": 3,
+          "damage_bonus": 50
+        },
+        {
+          "type": "self_damage",
+          "value": 10,
+          "scaling": "MAX_HP",
+          "per_hit": true
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/warp_spasm.png"
+    },
+
+    "wisdom_thumb": {
+      "id": "wisdom_thumb",
+      "name": "Wisdom of the Thumb",
+      "description": "Fionn consults his wisdom. Attacks an enemy and reveals all their stats, buffs, and cooldowns. Increases own accuracy by 50% for 2 turns.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK"
+        },
+        {
+          "type": "reveal_target"
+        },
+        {
+          "type": "buff_self",
+          "buff": "accuracy",
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/wisdom_thumb.png"
+    },
+    "fianna_call": {
+      "id": "fianna_call",
+      "name": "Call of the Fianna",
+      "description": "Fionn summons his warriors. Grants all allies Speed buff and increases ATB by 25%. Removes inability effects from all allies.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "speed",
+          "duration": 2
+        },
+        {
+          "type": "atb_increase",
+          "value": 25
+        },
+        {
+          "type": "cleanse_inability"
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/fianna_call.png"
+    },
+
+    "queens_fury": {
+      "id": "queens_fury",
+      "name": "Queen's Fury",
+      "description": "Boudicca attacks with righteous anger. Attacks an enemy with damage that increases as her HP decreases.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK",
+          "low_hp_bonus": true,
+          "max_bonus": 100
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/queens_fury.png"
+    },
+    "iceni_uprising": {
+      "id": "iceni_uprising",
+      "name": "Iceni Uprising",
+      "description": "Boudicca rallies her people. Attacks all enemies and grants all allies Attack buff for 2 turns. Damage increases per ally.",
+      "damage_multiplier": 1.8,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.8,
+          "scaling": "ATK",
+          "bonus_per_ally": 20
+        },
+        {
+          "type": "buff_allies",
+          "buff": "attack",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/iceni_uprising.png"
+    },
+
+    "architects_blessing": {
+      "id": "architects_blessing",
+      "name": "Architect's Blessing",
+      "description": "Imhotep designs divine protection. Grants an ally a Shield equal to 25% of their max HP for 3 turns.",
+      "damage_multiplier": 0,
+      "targets": "single_ally",
+      "effects": [
+        {
+          "type": "shield",
+          "value": 25,
+          "scaling": "TARGET_HP",
+          "duration": 3
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/architects_blessing.png"
+    },
+    "pyramid_power": {
+      "id": "pyramid_power",
+      "name": "Pyramid Power",
+      "description": "Imhotep channels ancient architecture. Grants all allies Shield equal to 20% HP and Defense buff for 3 turns. Extends all ally buffs by 1 turn.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "shield",
+          "value": 20,
+          "scaling": "CASTER_HP",
+          "duration": 3
+        },
+        {
+          "type": "buff",
+          "buff": "defense",
+          "duration": 3
+        },
+        {
+          "type": "extend_buffs",
+          "turns": 1
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/pyramid_power.png"
+    },
+
+    "royal_charm": {
+      "id": "royal_charm",
+      "name": "Royal Charm",
+      "description": "Cleopatra beguiles an enemy. Attacks an enemy with 75% chance to provoke for 1 turn. Steals 1 buff.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "provoke",
+          "chance": 75,
+          "duration": 1
+        },
+        {
+          "type": "steal_buff",
+          "count": 1
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/royal_charm.png"
+    },
+    "asps_embrace": {
+      "id": "asps_embrace",
+      "name": "Asp's Embrace",
+      "description": "Cleopatra summons deadly serpents. Attacks all enemies with poison for 3 turns. Enemies with poison take 25% more damage.",
+      "damage_multiplier": 2.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.2,
+          "scaling": "ATK",
+          "bonus_vs_poisoned": 25
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 100,
+          "duration": 3,
+          "stacks": 2
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/asps_embrace.png"
+    },
+
+    "ruyi_jingu_bang": {
+      "id": "ruyi_jingu_bang",
+      "name": "Ruyi Jingu Bang",
+      "description": "Sun Wukong swings his magical staff. Attacks an enemy 3 times. Each hit has 30% chance to stun for 1 turn.",
+      "damage_multiplier": 0.9,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 3,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.9,
+          "scaling": "ATK",
+          "hits": 3
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 30,
+          "duration": 1,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/ruyi_jingu_bang.png"
+    },
+    "seventy_two_transformations": {
+      "id": "seventy_two_transformations",
+      "name": "72 Transformations",
+      "description": "Sun Wukong creates clones of himself. Summons 2 clones that attack random enemies. Grants self Immunity and 50% ATB.",
+      "damage_multiplier": 2.0,
+      "scaling_stat": "ATK",
+      "targets": "random_enemies",
+      "hits": 3,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.0,
+          "scaling": "ATK",
+          "hits": 3,
+          "random_target": true
+        },
+        {
+          "type": "buff_self",
+          "buff": "immunity",
+          "duration": 2
+        },
+        {
+          "type": "atb_increase_self",
+          "value": 50
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/seventy_two_transformations.png"
+    },
+
+    "green_dragon_blade": {
+      "id": "green_dragon_blade",
+      "name": "Green Dragon Crescent Blade",
+      "description": "Guan Yu sweeps with his legendary polearm. Attacks all enemies with 50% chance to decrease Defense for 2 turns.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "def_break",
+          "chance": 50,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/green_dragon_blade.png"
+    },
+    "warrior_gods_fury": {
+      "id": "warrior_gods_fury",
+      "name": "Warrior God's Fury",
+      "description": "Guan Yu unleashes divine wrath. Attacks an enemy with massive damage, ignoring 50% defense. Grants self Attack buff for 2 turns.",
+      "damage_multiplier": 4.0,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 4.0,
+          "scaling": "ATK",
+          "ignore_def_percent": 50
+        },
+        {
+          "type": "buff_self",
+          "buff": "attack",
+          "duration": 2
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/warrior_gods_fury.png"
+    },
+
+    "niten_ichi_ryu": {
+      "id": "niten_ichi_ryu",
+      "name": "Niten Ichi-ryū",
+      "description": "Musashi strikes with two swords. Attacks an enemy 2 times. Each attack has 50% increased crit rate.",
+      "damage_multiplier": 1.1,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 2,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.1,
+          "scaling": "ATK",
+          "hits": 2,
+          "crit_rate_bonus": 50
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/niten_ichi_ryu.png"
+    },
+    "musashis_void": {
+      "id": "musashis_void",
+      "name": "Musashi's Void",
+      "description": "Musashi achieves perfect emptiness. Attacks an enemy, ignoring all buffs and defense. Guaranteed critical hit. Resets if target survives.",
+      "damage_multiplier": 4.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 4.5,
+          "scaling": "ATK",
+          "ignore_def_percent": 100,
+          "ignore_buffs": true,
+          "always_crit": true
+        },
+        {
+          "type": "reset_cooldown_if_no_kill"
+        }
+      ],
+      "cooldown": 6,
+      "icon_path": "res://assets/abilities/musashis_void.png"
+    },
+
+    "sky_piercer": {
+      "id": "sky_piercer",
+      "name": "Sky Piercer",
+      "description": "Lu Bu thrusts with his halberd. Attacks an enemy with massive damage. Ignores 40% defense.",
+      "damage_multiplier": 2.2,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.2,
+          "scaling": "ATK",
+          "ignore_def_percent": 40
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/sky_piercer.png"
+    },
+    "unmatched_warrior": {
+      "id": "unmatched_warrior",
+      "name": "Unmatched Warrior",
+      "description": "Lu Bu fights with unrivaled ferocity. Attacks all enemies with devastating force. Damage increases by 50% but cannot be healed for 2 turns.",
+      "damage_multiplier": 4.0,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 4.0,
+          "scaling": "ATK",
+          "damage_bonus": 50
+        },
+        {
+          "type": "self_debuff",
+          "debuff": "heal_block",
+          "duration": 2
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/unmatched_warrior.png"
+    },
+
+    "_japanese_abilities_comment": "========== JAPANESE PANTHEON ABILITIES ==========",
+
+    "divine_radiance": {
+      "id": "divine_radiance",
+      "name": "Divine Radiance",
+      "description": "Amaterasu shines her light upon an ally. Heals by 20% HP and grants Immunity for 1 turn.",
+      "damage_multiplier": 0,
+      "targets": "single_ally",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 20,
+          "scaling": "TARGET_HP"
+        },
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 1
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/divine_radiance.png"
+    },
+    "heavenly_illumination": {
+      "id": "heavenly_illumination",
+      "name": "Heavenly Illumination",
+      "description": "The Sun Goddess reveals her true glory. Heals all allies by 30% HP, cleanses all debuffs, and grants Attack buff for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 30,
+          "scaling": "MAX_HP"
+        },
+        {
+          "type": "cleanse_all"
+        },
+        {
+          "type": "buff",
+          "buff": "attack",
+          "duration": 2
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/heavenly_illumination.png"
+    },
+
+    "storm_blade": {
+      "id": "storm_blade",
+      "name": "Storm Blade",
+      "description": "Susanoo strikes with the Kusanagi sword. Attacks an enemy 2 times with 40% chance to stun per hit.",
+      "damage_multiplier": 1.0,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 2,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.0,
+          "scaling": "ATK",
+          "hits": 2
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 40,
+          "duration": 1,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/storm_blade.png"
+    },
+    "yamata_no_orochi": {
+      "id": "yamata_no_orochi",
+      "name": "Yamata no Orochi",
+      "description": "Susanoo summons the eight-headed serpent's fury. Attacks all enemies 3 times with lightning damage. Each hit decreases ATB by 15%.",
+      "damage_multiplier": 1.0,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "hits": 3,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.0,
+          "scaling": "ATK",
+          "hits": 3
+        },
+        {
+          "type": "atb_decrease",
+          "value": 15,
+          "chance": 100,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/yamata_no_orochi.png"
+    },
+
+    "moonlight_slash": {
+      "id": "moonlight_slash",
+      "name": "Moonlight Slash",
+      "description": "Tsukuyomi cuts with cold moonlight. Attacks an enemy and decreases their Speed for 2 turns. Ignores 20% defense.",
+      "damage_multiplier": 1.7,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.7,
+          "scaling": "ATK",
+          "ignore_def_percent": 20
+        },
+        {
+          "type": "debuff",
+          "debuff": "slow",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/moonlight_slash.png"
+    },
+    "eternal_night": {
+      "id": "eternal_night",
+      "name": "Eternal Night",
+      "description": "Tsukuyomi plunges the battlefield into darkness. Attacks all enemies, putting them to sleep for 1 turn. Sleeping enemies take 50% more damage.",
+      "damage_multiplier": 2.5,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.5,
+          "scaling": "ATK",
+          "bonus_vs_sleeping": 50
+        },
+        {
+          "type": "debuff",
+          "debuff": "sleep",
+          "chance": 85,
+          "duration": 1
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/eternal_night.png"
+    },
+
+    "thunder_drum": {
+      "id": "thunder_drum",
+      "name": "Thunder Drum",
+      "description": "Raijin beats his drums of thunder. Attacks an enemy with 50% chance to stun for 1 turn. Increases own ATB by 20%.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 50,
+          "duration": 1
+        },
+        {
+          "type": "atb_increase_self",
+          "value": 20
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/thunder_drum.png"
+    },
+    "divine_lightning": {
+      "id": "divine_lightning",
+      "name": "Divine Lightning",
+      "description": "Raijin calls down heaven's wrath. Attacks all enemies with 75% chance to stun for 1 turn. Critical hits extend stun by 1 turn.",
+      "damage_multiplier": 2.8,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.8,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 75,
+          "duration": 1,
+          "extend_on_crit": 1
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/divine_lightning.png"
+    },
+
+    "wind_bag": {
+      "id": "wind_bag",
+      "name": "Wind Bag",
+      "description": "Fujin releases wind from his bag. Attacks an enemy and decreases ATB by 35%. Increases own Speed for 2 turns.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK"
+        },
+        {
+          "type": "atb_decrease",
+          "value": 35,
+          "chance": 100
+        },
+        {
+          "type": "buff_self",
+          "buff": "speed",
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/wind_bag.png"
+    },
+    "divine_tempest": {
+      "id": "divine_tempest",
+      "name": "Divine Tempest",
+      "description": "Fujin unleashes all his winds. Attacks all enemies and resets their ATB to 0. Increases all ally ATB by 25%.",
+      "damage_multiplier": 2.2,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.2,
+          "scaling": "ATK"
+        },
+        {
+          "type": "atb_set",
+          "value": 0
+        },
+        {
+          "type": "atb_increase_allies",
+          "value": 25
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/divine_tempest.png"
+    },
+
+    "heavenly_spear": {
+      "id": "heavenly_spear",
+      "name": "Heavenly Spear",
+      "description": "Bishamonten strikes with divine authority. Attacks an enemy and grants self Defense buff for 2 turns.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK"
+        },
+        {
+          "type": "buff_self",
+          "buff": "defense",
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/heavenly_spear.png"
+    },
+    "fortune_warriors_blessing": {
+      "id": "fortune_warriors_blessing",
+      "name": "Fortune Warrior's Blessing",
+      "description": "Bishamonten blesses his allies with fortune. Grants all allies Defense buff and Shield equal to 20% HP for 3 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "defense",
+          "duration": 3
+        },
+        {
+          "type": "shield",
+          "value": 20,
+          "scaling": "CASTER_HP",
+          "duration": 3
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/fortune_warriors_blessing.png"
+    },
+
+    "heavenly_jeweled_spear": {
+      "id": "heavenly_jeweled_spear",
+      "name": "Heavenly Jeweled Spear",
+      "description": "Izanagi stirs creation. Attacks an enemy and creates a shield on the lowest HP ally equal to damage dealt.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "shield_lowest_ally",
+          "value": 100,
+          "scaling": "damage_dealt",
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/heavenly_jeweled_spear.png"
+    },
+    "creation_divine": {
+      "id": "creation_divine",
+      "name": "Divine Creation",
+      "description": "Izanagi calls upon the power of creation. Revives all dead allies with 25% HP and grants them Immunity for 1 turn.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "revive_all",
+          "hp_percent": 25
+        },
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 1,
+          "apply_to_revived": true
+        }
+      ],
+      "cooldown": 6,
+      "icon_path": "res://assets/abilities/creation_divine.png"
+    },
+
+    "fox_fire": {
+      "id": "fox_fire",
+      "name": "Fox Fire",
+      "description": "Inari summons ghostly flames. Attacks an enemy with 50% chance to inflict Continuous Damage for 2 turns.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 50,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/fox_fire.png"
+    },
+    "blessing_of_prosperity": {
+      "id": "blessing_of_prosperity",
+      "name": "Blessing of Prosperity",
+      "description": "Inari grants divine fortune. Heals all allies by 20% HP and increases their ATB by 20%. Grants Recovery buff for 2 turns.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 20,
+          "scaling": "MAX_HP"
+        },
+        {
+          "type": "atb_increase",
+          "value": 20
+        },
+        {
+          "type": "buff",
+          "buff": "recovery",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/blessing_of_prosperity.png"
+    },
+
+    "war_gods_arrow": {
+      "id": "war_gods_arrow",
+      "name": "War God's Arrow",
+      "description": "Hachiman fires a divine arrow. Attacks an enemy with guaranteed hit. Damage increases by 20% per buff on self.",
+      "damage_multiplier": 1.7,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.7,
+          "scaling": "ATK",
+          "always_hit": true,
+          "bonus_per_self_buff": 20
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/war_gods_arrow.png"
+    },
+    "divine_protection": {
+      "id": "divine_protection",
+      "name": "Divine Protection",
+      "description": "Hachiman shields his warriors. Grants all allies Defense buff and Endure for 2 turns. Cleanses 2 debuffs from each.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "defense",
+          "duration": 2
+        },
+        {
+          "type": "buff",
+          "buff": "endure",
+          "duration": 2
+        },
+        {
+          "type": "cleanse",
+          "count": 2
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/divine_protection.png"
+    },
+
+    "divine_music": {
+      "id": "divine_music",
+      "name": "Divine Music",
+      "description": "Benzaiten plays her biwa. Heals an ally by 15% HP and increases their ATB by 30%.",
+      "damage_multiplier": 0,
+      "targets": "single_ally",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 15,
+          "scaling": "TARGET_HP"
+        },
+        {
+          "type": "atb_increase_target",
+          "value": 30
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/divine_music.png"
+    },
+    "river_of_fortune": {
+      "id": "river_of_fortune",
+      "name": "River of Fortune",
+      "description": "Benzaiten's music flows like water. Heals all allies by 25% HP and grants Speed buff for 2 turns. Cleanses all debuffs.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "heal",
+          "value": 25,
+          "scaling": "MAX_HP"
+        },
+        {
+          "type": "buff",
+          "buff": "speed",
+          "duration": 2
+        },
+        {
+          "type": "cleanse_all"
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/river_of_fortune.png"
+    },
+
+    "foxfire_blast": {
+      "id": "foxfire_blast",
+      "name": "Foxfire Blast",
+      "description": "Kitsune hurls mystical fire. Attacks an enemy with 40% chance to inflict Continuous Damage for 2 turns.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "continuous_damage",
+          "chance": 40,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/foxfire_blast.png"
+    },
+    "illusion_tails": {
+      "id": "illusion_tails",
+      "name": "Illusion Tails",
+      "description": "Kitsune creates illusory copies. Attacks all enemies with 30% chance to provoke for 1 turn. Increases own evasion for 2 turns.",
+      "damage_multiplier": 1.8,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.8,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "provoke",
+          "chance": 30,
+          "duration": 1
+        },
+        {
+          "type": "buff_self",
+          "buff": "evasion",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/illusion_tails.png"
+    },
+
+    "wind_slash": {
+      "id": "wind_slash",
+      "name": "Wind Slash",
+      "description": "Tengu slashes with the wind. Attacks an enemy and decreases Speed for 2 turns. Cannot be counterattacked.",
+      "damage_multiplier": 1.5,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.5,
+          "scaling": "ATK",
+          "no_counter": true
+        },
+        {
+          "type": "debuff",
+          "debuff": "slow",
+          "chance": 100,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/wind_slash.png"
+    },
+    "mountain_warrior": {
+      "id": "mountain_warrior",
+      "name": "Mountain Warrior",
+      "description": "Tengu demonstrates mountain combat. Attacks an enemy 3 times. Each hit has 25% chance to decrease Defense for 1 turn.",
+      "damage_multiplier": 0.7,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 3,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.7,
+          "scaling": "ATK",
+          "hits": 3
+        },
+        {
+          "type": "debuff",
+          "debuff": "def_break",
+          "chance": 25,
+          "duration": 1,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 3,
+      "icon_path": "res://assets/abilities/mountain_warrior.png"
+    },
+
+    "kanabo_smash": {
+      "id": "kanabo_smash",
+      "name": "Kanabo Smash",
+      "description": "Oni smashes with its iron club. Attacks an enemy with damage scaling on own HP. 30% chance to stun.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK",
+          "hp_scaling": 8
+        },
+        {
+          "type": "debuff",
+          "debuff": "stun",
+          "chance": 30,
+          "duration": 1
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/kanabo_smash.png"
+    },
+    "demon_rage": {
+      "id": "demon_rage",
+      "name": "Demon Rage",
+      "description": "Oni goes berserk. Attacks all enemies with 50% increased damage but takes 15% recoil damage.",
+      "damage_multiplier": 2.5,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.5,
+          "scaling": "ATK",
+          "damage_bonus": 50
+        },
+        {
+          "type": "self_damage",
+          "value": 15,
+          "scaling": "MAX_HP"
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/demon_rage.png"
+    },
+
+    "water_sumo": {
+      "id": "water_sumo",
+      "name": "Water Sumo",
+      "description": "Kappa challenges an enemy to sumo. Attacks and provokes for 1 turn. Heals self by 15% if provoke succeeds.",
+      "damage_multiplier": 1.3,
+      "scaling_stat": "DEF",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.3,
+          "scaling": "DEF"
+        },
+        {
+          "type": "debuff",
+          "debuff": "provoke",
+          "chance": 100,
+          "duration": 1
+        },
+        {
+          "type": "heal_self_on_provoke",
+          "value": 15
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/water_sumo.png"
+    },
+    "river_drag": {
+      "id": "river_drag",
+      "name": "River Drag",
+      "description": "Kappa drags enemies into the water. Attacks all enemies and decreases ATB by 25%. Heals self by 20% HP.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK"
+        },
+        {
+          "type": "atb_decrease",
+          "value": 25,
+          "chance": 100
+        },
+        {
+          "type": "heal_self",
+          "value": 20,
+          "scaling": "MAX_HP"
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/river_drag.png"
+    },
+
+    "_japanese_hero_abilities_comment": "========== JAPANESE HERO ABILITIES ==========",
+
+    "eight_boat_leap": {
+      "id": "eight_boat_leap",
+      "name": "Eight Boat Leap",
+      "description": "Yoshitsune performs his legendary leap. Attacks an enemy 4 times, ignoring 25% defense. Each hit increases own ATB by 10%.",
+      "damage_multiplier": 0.65,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 4,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.65,
+          "scaling": "ATK",
+          "hits": 4,
+          "ignore_def_percent": 25
+        },
+        {
+          "type": "atb_increase_self",
+          "value": 10,
+          "per_hit": true
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/eight_boat_leap.png"
+    },
+    "tengu_training": {
+      "id": "tengu_training",
+      "name": "Tengu Training",
+      "description": "Yoshitsune uses techniques taught by the Tengu. Attacks all enemies and grants self Evasion and Speed buff for 2 turns.",
+      "damage_multiplier": 2.5,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 2.5,
+          "scaling": "ATK"
+        },
+        {
+          "type": "buff_self",
+          "buff": "evasion",
+          "duration": 2
+        },
+        {
+          "type": "buff_self",
+          "buff": "speed",
+          "duration": 2
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/tengu_training.png"
+    },
+
+    "naginata_strike": {
+      "id": "naginata_strike",
+      "name": "Naginata Strike",
+      "description": "Tomoe strikes with her polearm. Attacks an enemy with 35% chance to decrease Defense for 2 turns.",
+      "damage_multiplier": 1.6,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.6,
+          "scaling": "ATK"
+        },
+        {
+          "type": "debuff",
+          "debuff": "def_break",
+          "chance": 35,
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/naginata_strike.png"
+    },
+    "onna_musha": {
+      "id": "onna_musha",
+      "name": "Onna-Musha",
+      "description": "Tomoe fights with the fury of a warrior woman. Attacks an enemy 3 times. Gains extra turn if enemy dies.",
+      "damage_multiplier": 0.9,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "hits": 3,
+      "effects": [
+        {
+          "type": "damage",
+          "value": 0.9,
+          "scaling": "ATK",
+          "hits": 3
+        },
+        {
+          "type": "extra_turn_on_kill"
+        }
+      ],
+      "cooldown": 4,
+      "icon_path": "res://assets/abilities/onna_musha.png"
+    },
+
+    "seven_weapons": {
+      "id": "seven_weapons",
+      "name": "Seven Weapons",
+      "description": "Benkei attacks with one of his collected weapons. Attacks an enemy and grants self a random buff for 2 turns.",
+      "damage_multiplier": 1.4,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.4,
+          "scaling": "ATK"
+        },
+        {
+          "type": "buff_self",
+          "buff": "random",
+          "duration": 2
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/seven_weapons.png"
+    },
+    "standing_death": {
+      "id": "standing_death",
+      "name": "Standing Death",
+      "description": "Benkei stands unbreakable. Grants self Endure for 2 turns and provokes all enemies for 1 turn. Reflects 30% damage.",
+      "damage_multiplier": 0,
+      "targets": "self",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "endure",
+          "duration": 2
+        },
+        {
+          "type": "provoke_all",
+          "duration": 1
+        },
+        {
+          "type": "buff",
+          "buff": "reflect",
+          "value": 30,
+          "duration": 2
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/standing_death.png"
+    },
+
+    "demon_king_strike": {
+      "id": "demon_king_strike",
+      "name": "Demon King Strike",
+      "description": "Nobunaga strikes with ruthless efficiency. Attacks an enemy, ignoring 35% defense. Extends all debuffs by 1 turn.",
+      "damage_multiplier": 1.8,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 1.8,
+          "scaling": "ATK",
+          "ignore_def_percent": 35
+        },
+        {
+          "type": "extend_debuffs",
+          "turns": 1
+        }
+      ],
+      "cooldown": 0,
+      "icon_path": "res://assets/abilities/demon_king_strike.png"
+    },
+    "unification_by_force": {
+      "id": "unification_by_force",
+      "name": "Unification by Force",
+      "description": "Nobunaga conquers all who oppose. Attacks all enemies with devastating force. Damage increases by 30% for each enemy with debuffs.",
+      "damage_multiplier": 3.0,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 3.0,
+          "scaling": "ATK",
+          "bonus_per_debuffed_enemy": 30
+        },
+        {
+          "type": "debuff",
+          "debuff": "def_break",
+          "chance": 75,
+          "duration": 2
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/unification_by_force.png"
     }
   }
 }

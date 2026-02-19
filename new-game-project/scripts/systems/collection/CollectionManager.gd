@@ -67,6 +67,23 @@ func remove_god(god: God) -> bool:
 func get_god_by_id(god_id: String) -> God:
 	return gods_by_id.get(god_id, null)
 
+## Get god by template ID (finds first matching god with that template)
+func get_god_by_template_id(template_id: String) -> God:
+	for god: God in gods:
+		var god_template: String = god.template_id if god.template_id else god.id
+		if god_template.to_lower() == template_id.to_lower():
+			return god
+	return null
+
+## Get all gods with a specific template ID (for duplicate checking)
+func get_gods_by_template_id(template_id: String) -> Array:
+	var matches: Array = []
+	for god: God in gods:
+		var god_template: String = god.template_id if god.template_id else god.id
+		if god_template.to_lower() == template_id.to_lower():
+			matches.append(god)
+	return matches
+
 ## Get all gods
 func get_all_gods() -> Array:
 	return gods.duplicate()

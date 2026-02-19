@@ -103,8 +103,10 @@
         "celtic": {"token": "celtic_token", "weight_multiplier": 5.0},
         "japanese": {"token": "japanese_token", "weight_multiplier": 5.0},
         "hindu": {"token": "hindu_token", "weight_multiplier": 5.0},
-        "aztec": {"token": "aztec_token", "weight_multiplier": 5.0},
-        "slavic": {"token": "slavic_token", "weight_multiplier": 5.0}
+        "chinese": {"token": "chinese_token", "weight_multiplier": 5.0},
+        "slavic": {"token": "slavic_token", "weight_multiplier": 5.0},
+        "mesopotamian": {"token": "mesopotamian_token", "weight_multiplier": 5.0},
+        "eldritch": {"token": "eldritch_token", "weight_multiplier": 5.0}
       },
       "rates": {
         "common": 55.0,
@@ -216,7 +218,11 @@
       "egyptian_token": "Egyptian-themed events, shop",
       "celtic_token": "Celtic-themed events, shop",
       "japanese_token": "Japanese-themed events, shop",
-      "hindu_token": "Hindu-themed events, shop"
+      "hindu_token": "Hindu-themed events, shop",
+      "chinese_token": "Chinese-themed events, shop",
+      "slavic_token": "Slavic-themed events, shop",
+      "mesopotamian_token": "Mesopotamian-themed events, shop",
+      "eldritch_token": "Cosmic horror events, rare drops"
     }
   }
 }

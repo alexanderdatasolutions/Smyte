@@ -59,6 +59,11 @@ func _execute_attack(action: BattleAction, result: ActionResult) -> void:
 		result.message = attacker.display_name + " attacks " + target.display_name + ", but they are already defeated!"
 		return
 
+	# Check for team bonus dodge (player units only)
+	if _check_team_dodge(target):
+		result.message = attacker.display_name + " attacks " + target.display_name + ", but they dodge the attack!"
+		return
+
 	# Use existing CombatCalculator for authentic SW combat
 	var damage_result: DamageResult = CombatCalculator.calculate_damage(attacker, target, null, battle_state)
 	var damage_amount: int = damage_result.total
@@ -86,8 +91,17 @@ func _execute_attack(action: BattleAction, result: ActionResult) -> void:
 		attacker.take_damage(damage_info.reflect_damage)
 		result.message += " Reflected %d damage!" % damage_info.reflect_damage
 
+	# Handle team bonus reflect damage
+	var team_reflect: int = _get_team_reflect_damage(target, damage_amount)
+	if team_reflect > 0 and attacker.is_alive:
+		attacker.take_damage(team_reflect)
+		result.message += " Team synergy reflects %d damage!" % team_reflect
+
 	# Handle Styx life steal
 	_apply_set_life_steal(attacker, damage_amount, target.is_alive, result)
+
+	# Handle team bonus life steal
+	_apply_team_life_steal(attacker, damage_amount, result)
 
 	# Handle Tempest chain lightning
 	_apply_chain_lightning(attacker, target, damage_result, result)
@@ -107,9 +121,12 @@ func _execute_attack(action: BattleAction, result: ActionResult) -> void:
 			target.add_status_effect(stun_effect)
 			result.message += " %s is petrified!" % target.display_name
 
-	# Handle counter-attack (Fury of the Erinyes / Revenge set OR status effect)
+	# Apply team bonus status effects (stun, burn, freeze, poison chance)
+	_apply_team_status_effects(attacker, target, result)
+
+	# Handle counter-attack (Fury of the Erinyes / Revenge set OR status effect OR team bonus)
 	if target.is_alive and attacker.is_alive:
-		if target.should_counter_attack() or target.has_counter_attack_buff():
+		if target.should_counter_attack() or target.has_counter_attack_buff() or _check_team_counter_attack(target):
 			_execute_counter_attack(target, attacker, result)
 
 	# Create damage result for tracking
@@ -151,6 +168,11 @@ func _execute_skill(action: BattleAction, result: ActionResult) -> void:
 			continue
 
 		if skill.targets_enemies:
+			# Check for team bonus dodge (player units only)
+			if _check_team_dodge(target):
+				result.message += " %s dodges the attack!" % target.display_name
+				continue
+
 			# Multi-hit support: loop for each hit
 			var hit_count: int = skill.multi_hit if skill.multi_hit > 0 else 1
 			var total_skill_damage: int = 0
@@ -186,6 +208,12 @@ func _execute_skill(action: BattleAction, result: ActionResult) -> void:
 					caster.take_damage(damage_info.reflect_damage)
 					result.message += " Reflected %d!" % damage_info.reflect_damage
 
+				# Handle team bonus reflect damage
+				var team_reflect: int = _get_team_reflect_damage(target, skill_result.total)
+				if team_reflect > 0 and caster.is_alive:
+					caster.take_damage(team_reflect)
+					result.message += " Team synergy reflects %d!" % team_reflect
+
 				# Handle chain lightning (only on first target, first hit)
 				if target == targets[0] and hit_num == 0:
 					_apply_chain_lightning(caster, target, skill_result, result)
@@ -203,6 +231,13 @@ func _execute_skill(action: BattleAction, result: ActionResult) -> void:
 			else:
 				# Normal life steal
 				_apply_set_life_steal(caster, total_skill_damage, true, result)
+
+			# Apply team bonus life steal
+			_apply_team_life_steal(caster, total_skill_damage, result)
+
+			# Apply team bonus status effects (stun, burn, freeze, poison chance)
+			if target.is_alive:
+				_apply_team_status_effects(caster, target, result)
 		else:
 			# Healing or buff skill
 			var heal_amount: int = int(caster.attack * skill.damage_multiplier)
@@ -760,3 +795,101 @@ func _apply_smart_heal_effect(effect_data: Dictionary, caster: BattleUnit, resul
 	if lowest_ally:
 		lowest_ally.heal(heal_amount)
 		result.message += " %s healed for %d!" % [lowest_ally.display_name, heal_amount]
+
+# ============================================================================
+# TEAM BONUS EFFECT HOOKS
+# ============================================================================
+
+## Apply team bonus life steal (separate from equipment set life steal)
+func _apply_team_life_steal(attacker: BattleUnit, damage_dealt: int, result: ActionResult) -> void:
+	if not battle_state or not attacker.is_player_unit:
+		return
+
+	var life_steal_pct: float = battle_state.team_bonus_effects.get("life_steal", 0.0)
+	if life_steal_pct <= 0:
+		return
+
+	var heal_amount: int = int(damage_dealt * life_steal_pct)
+	if heal_amount > 0:
+		attacker.heal(heal_amount)
+		result.message += " Team synergy drains %d HP!" % heal_amount
+
+## Apply team bonus status effects (stun, burn, freeze, poison chance on attack)
+func _apply_team_status_effects(attacker: BattleUnit, target: BattleUnit, result: ActionResult) -> void:
+	if not battle_state or not attacker.is_player_unit or not target.is_alive:
+		return
+
+	var effects: Dictionary = battle_state.team_bonus_effects
+
+	# Stun chance
+	if effects.get("stun_chance", 0.0) > 0:
+		if randf() < effects.stun_chance:
+			if not target.try_block_debuff():
+				var stun_effect: StatusEffect = StatusEffect.create_stun(attacker, 1)
+				stun_effect.target_name = target.display_name
+				stun_effect.caster_name = attacker.display_name
+				target.add_status_effect(stun_effect)
+				result.message += " Team synergy stuns %s!" % target.display_name
+
+	# Burn chance
+	if effects.get("burn_chance", 0.0) > 0:
+		if randf() < effects.burn_chance:
+			if not target.try_block_debuff():
+				var burn_effect: StatusEffect = StatusEffect.create_burn(attacker, 2)
+				burn_effect.target_name = target.display_name
+				burn_effect.caster_name = attacker.display_name
+				target.add_status_effect(burn_effect)
+				result.message += " Team synergy burns %s!" % target.display_name
+
+	# Freeze chance
+	if effects.get("freeze_chance", 0.0) > 0:
+		if randf() < effects.freeze_chance:
+			if not target.try_block_debuff():
+				var freeze_effect: StatusEffect = StatusEffect.create_freeze(attacker, 1)
+				freeze_effect.target_name = target.display_name
+				freeze_effect.caster_name = attacker.display_name
+				target.add_status_effect(freeze_effect)
+				result.message += " Team synergy freezes %s!" % target.display_name
+
+	# Poison chance
+	if effects.get("poison_chance", 0.0) > 0:
+		if randf() < effects.poison_chance:
+			if not target.try_block_debuff():
+				var poison_effect: StatusEffect = StatusEffect.create_poison(attacker, 2)
+				poison_effect.target_name = target.display_name
+				poison_effect.caster_name = attacker.display_name
+				target.add_status_effect(poison_effect)
+				result.message += " Team synergy poisons %s!" % target.display_name
+
+## Check if attack should be dodged due to team bonus evasion
+func _check_team_dodge(target: BattleUnit) -> bool:
+	if not battle_state or not target.is_player_unit:
+		return false
+
+	var dodge_chance: float = battle_state.team_bonus_effects.get("dodge_chance", 0.0)
+	if dodge_chance <= 0:
+		return false
+
+	return randf() < dodge_chance
+
+## Check if target should counter-attack due to team bonus
+func _check_team_counter_attack(target: BattleUnit) -> bool:
+	if not battle_state or not target.is_player_unit:
+		return false
+
+	var counter_chance: float = battle_state.team_bonus_effects.get("counter_chance", 0.0)
+	if counter_chance <= 0:
+		return false
+
+	return randf() < counter_chance
+
+## Get team bonus reflect damage amount
+func _get_team_reflect_damage(target: BattleUnit, damage_taken: int) -> int:
+	if not battle_state or not target.is_player_unit:
+		return 0
+
+	var reflect_pct: float = battle_state.team_bonus_effects.get("reflect_damage", 0.0)
+	if reflect_pct <= 0:
+		return 0
+
+	return int(damage_taken * reflect_pct)

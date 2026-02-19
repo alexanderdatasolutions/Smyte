@@ -116,6 +116,12 @@ const DEFAULT_ACCURACY: int = 0
 @export var passive_ability: String = ""
 
 # ==============================================================================
+# LEADER SKILL - Summoners War style (first god in team applies bonus)
+# ==============================================================================
+# Structure: {"type": "attack", "value": 33, "area": "all"} or {"area": "fire"}
+@export var leader_skill: Dictionary = {}
+
+# ==============================================================================
 # TRAIT SYSTEM - Palworld-style innate abilities
 # ==============================================================================
 @export var innate_traits: Array[String] = []  # Traits from god_innate_traits (permanent)

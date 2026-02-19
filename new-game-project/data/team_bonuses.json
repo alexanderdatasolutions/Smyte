@@ -16,15 +16,15 @@
         "production": 0.25,
         "defense": 0.25,
         "attack": 0.15,
-        "speed": 0.10
+        "speed": 0.1
       }
     },
     "majority_match": {
       "description": "3+ team members from the same pantheon",
       "required_count": 3,
       "bonuses": {
-        "production": 0.10,
-        "defense": 0.10,
+        "production": 0.1,
+        "defense": 0.1,
         "attack": 0.05,
         "speed": 0.05
       }
@@ -46,8 +46,8 @@
       "description": "All team members share the same element",
       "required_count": "all",
       "bonuses": {
-        "elemental_damage": 0.30,
-        "elemental_resistance": 0.20,
+        "elemental_damage": 0.3,
+        "elemental_resistance": 0.2,
         "production": 0.15
       }
     },
@@ -56,15 +56,15 @@
       "required_count": 3,
       "bonuses": {
         "elemental_damage": 0.15,
-        "elemental_resistance": 0.10,
-        "production": 0.10
+        "elemental_resistance": 0.1,
+        "production": 0.1
       }
     },
     "duo_match": {
       "description": "2 team members share the same element",
       "required_count": 2,
       "bonuses": {
-        "elemental_damage": 0.10,
+        "elemental_damage": 0.1,
         "production": 0.05
       }
     }
@@ -77,8 +77,7 @@
       "description": "Team has tank, healer, and DPS roles covered",
       "required_roles": ["tank", "healer", "dps"],
       "bonuses": {
-        "survivability": 0.15,
-        "healing_received": 0.10
+        "hp": 0.25
       }
     },
     "all_attackers": {
@@ -86,8 +85,8 @@
       "required_count": "all",
       "required_role": "dps",
       "bonuses": {
-        "attack": 0.20,
-        "crit_chance": 0.10
+        "attack": 0.2,
+        "crit_rate": 0.1
       }
     },
     "fortress_team": {
@@ -95,8 +94,8 @@
       "required_count": 2,
       "required_role": "tank",
       "bonuses": {
-        "defense": 0.25,
-        "taunt_effectiveness": 0.15
+        "defense": 0.4,
+        "reflect_damage": 0.1
       }
     }
   },
@@ -109,7 +108,7 @@
       "required_tier": 4,
       "required_count": "all",
       "bonuses": {
-        "all_stats": 0.10,
+        "all_stats": 0.1,
         "skill_damage": 0.15
       }
     },
@@ -117,7 +116,7 @@
       "description": "Team has gods from at least 3 different tiers",
       "min_unique_tiers": 3,
       "bonuses": {
-        "experience_gain": 0.20
+        "production": 0.2
       }
     }
   },
@@ -130,14 +129,14 @@
       "required_gods": ["zeus", "poseidon", "hades"],
       "bonuses": {
         "all_stats": 0.15,
-        "ultimate_charge": 0.25
+        "skill_damage": 0.25
       }
     },
     "norse_brothers": {
       "description": "Odin, Thor, and Loki together",
       "required_gods": ["odin", "thor", "loki"],
       "bonuses": {
-        "attack": 0.20,
+        "attack": 0.2,
         "crit_damage": 0.15
       }
     },
@@ -146,25 +145,653 @@
       "required_gods": ["ra", "osiris", "anubis"],
       "bonuses": {
         "defense": 0.15,
-        "healing_power": 0.20
+        "hp": 0.2
       }
     },
     "sun_gods": {
       "description": "Multiple sun deities (Ra, Apollo, Amaterasu, etc.)",
-      "required_traits": ["sun_deity"],
+      "required_gods_any": ["ra", "apollo", "amaterasu", "surya"],
       "required_count": 2,
       "bonuses": {
         "light_damage": 0.25,
-        "burn_chance": 0.15
+        "crit_rate": 0.15
       }
     },
     "death_gods": {
-      "description": "Multiple death deities (Hades, Anubis, Hel, etc.)",
-      "required_traits": ["death_deity"],
+      "description": "Multiple death deities united",
+      "required_gods_any": ["hades", "anubis", "morrigan", "ereshkigal", "osiris", "kali"],
       "required_count": 2,
       "bonuses": {
         "dark_damage": 0.25,
-        "life_steal": 0.10
+        "hp": 0.1,
+        "life_steal": 0.1
+      }
+    },
+
+    "_comment_heroes": "========== HERO SYNERGIES ==========",
+
+    "greek_legends": {
+      "description": "Hercules, Achilles, and Perseus - the greatest Greek heroes",
+      "required_gods": ["hercules", "achilles", "perseus"],
+      "bonuses": {
+        "attack": 0.25,
+        "crit_damage": 0.35
+      }
+    },
+    "monster_slayers": {
+      "description": "Perseus and Theseus - slayers of legendary beasts",
+      "required_gods": ["perseus", "theseus"],
+      "bonuses": {
+        "crit_damage": 0.55
+      }
+    },
+    "swift_hunters": {
+      "description": "Achilles and Atalanta - none can outrun them",
+      "required_gods": ["achilles", "atalanta"],
+      "bonuses": {
+        "speed": 0.65,
+        "dodge_chance": 0.15
+      }
+    },
+    "divine_musicians": {
+      "description": "Orpheus and Apollo - music that moves the heavens",
+      "required_gods": ["orpheus", "apollo"],
+      "bonuses": {
+        "hp": 0.25,
+        "skill_damage": 0.3,
+        "resistance": 0.2
+      }
+    },
+    "odyssey_crew": {
+      "description": "Odysseus, Athena, and Hermes - cunning wins the day",
+      "required_gods": ["odysseus", "athena", "hermes"],
+      "bonuses": {
+        "speed": 0.35,
+        "accuracy": 0.25
+      }
+    },
+    "dragon_slayers": {
+      "description": "Sigurd and Beowulf - legendary dragonslayers",
+      "required_gods": ["sigurd", "beowulf"],
+      "bonuses": {
+        "crit_damage": 0.35,
+        "defense": 0.15,
+        "attack": 1,
+        "life_steal": 0.1
+      }
+    },
+    "valkyries_chosen": {
+      "description": "Brynhildr with Freya or any valkyrie",
+      "required_gods": ["brynhildr"],
+      "required_gods_any": ["freya", "odin"],
+      "bonuses": {
+        "hp": 0.25,
+        "attack": 0.2,
+        "counter_chance": 0.15
+      }
+    },
+    "viking_legends": {
+      "description": "Ragnar and Beowulf - tales sung for eternity",
+      "required_gods": ["ragnar", "beowulf"],
+      "bonuses": {
+        "attack": 0.3,
+        "hp": 0.15
+      }
+    },
+    "celtic_warriors": {
+      "description": "Cu Chulainn, Fionn, and Boudicca - Celtic legends unite",
+      "required_gods": ["cu_chulainn", "fionn", "boudicca"],
+      "bonuses": {
+        "attack": 0.75
+      }
+    },
+    "hound_and_crow": {
+      "description": "Cu Chulainn and Morrigan - death follows the hound",
+      "required_gods": ["cu_chulainn", "morrigan"],
+      "bonuses": {
+        "crit_rate": 0.45,
+        "hp": 0.15,
+        "life_steal": 0.08
+      }
+    },
+    "architects_of_eternity": {
+      "description": "Imhotep and Cleopatra - builders of legacy",
+      "required_gods": ["imhotep", "cleopatra"],
+      "bonuses": {
+        "production": 0.55,
+        "defense": 0.2
+      }
+    },
+    "sengoku_allstars": {
+      "description": "Musashi, Yoshitsune, and Nobunaga - masters of war",
+      "required_gods": ["musashi", "yoshitsune", "nobunaga"],
+      "bonuses": {
+        "attack": 0.3,
+        "speed": 0.45
+      }
+    },
+    "loyal_retainers": {
+      "description": "Yoshitsune and Benkei - loyalty unto death",
+      "required_gods": ["yoshitsune", "benkei"],
+      "bonuses": {
+        "defense": 0.75,
+        "counter_chance": 0.25
+      }
+    },
+    "warrior_women": {
+      "description": "Tomoe Gozen and Boudicca - queens of the battlefield",
+      "required_gods": ["tomoe_gozen", "boudicca"],
+      "bonuses": {
+        "attack": 0.45,
+        "speed": 0.15
+      }
+    },
+    "demon_kings": {
+      "description": "Nobunaga and any Oni - embrace the demon path",
+      "required_gods": ["nobunaga", "oni"],
+      "bonuses": {
+        "attack": 0.6,
+        "fire_damage": 0.2,
+        "burn_chance": 0.15
+      }
+    },
+
+    "_comment_thunder": "========== ELEMENTAL DEITY GROUPS ==========",
+
+    "thunder_gods_convention": {
+      "description": "Zeus, Thor, and Raijin - the storm assembles",
+      "required_gods": ["zeus", "thor", "raijin"],
+      "bonuses": {
+        "lightning_damage": 0.4,
+        "crit_rate": 0.4,
+        "stun_chance": 0.15
+      }
+    },
+    "storm_lords": {
+      "description": "Any two thunder gods together",
+      "required_gods_any": ["zeus", "thor", "raijin", "susanoo", "indra", "perun"],
+      "required_count": 2,
+      "bonuses": {
+        "lightning_damage": 0.25,
+        "crit_rate": 0.15,
+        "stun_chance": 0.08
+      }
+    },
+    "ocean_masters": {
+      "description": "Poseidon, Dagon, and Susanoo - rulers of the deep",
+      "required_gods": ["poseidon", "dagon", "susanoo"],
+      "bonuses": {
+        "water_damage": 0.35,
+        "crit_rate": 0.45,
+        "freeze_chance": 0.15
+      }
+    },
+    "sea_kings": {
+      "description": "Any two sea deities",
+      "required_gods_any": ["poseidon", "dagon", "susanoo", "sobek", "dragon_king"],
+      "required_count": 2,
+      "bonuses": {
+        "water_damage": 0.2,
+        "hp": 0.15,
+        "freeze_chance": 0.08
+      }
+    },
+    "inferno_lords": {
+      "description": "Multiple fire deities bring the heat",
+      "required_gods_any": ["ares", "surya", "svarog", "ra", "nobunaga", "sekhmet"],
+      "required_count": 2,
+      "bonuses": {
+        "fire_damage": 0.25,
+        "attack": 0.2,
+        "crit_rate": 0.1,
+        "burn_chance": 0.12
+      }
+    },
+    "earth_shakers": {
+      "description": "Earth deities working in harmony",
+      "required_gods_any": ["thor", "dagda", "enlil", "fionn", "ganesha"],
+      "required_count": 2,
+      "bonuses": {
+        "earth_damage": 0.2,
+        "defense": 0.25,
+        "hp": 0.15,
+        "reflect_damage": 0.08
+      }
+    },
+
+    "_comment_eldritch": "========== ELDRITCH SYNERGIES ==========",
+
+    "beneath_the_waves": {
+      "description": "Cthulhu, Dagon, and Deep One - Ph'nglui mglw'nafh",
+      "required_gods": ["cthulhu", "dagon", "deep_one"],
+      "bonuses": {
+        "water_damage": 0.3,
+        "crit_rate": 0.35,
+        "attack": 0.25,
+        "poison_chance": 0.12
+      }
+    },
+    "cosmic_truth": {
+      "description": "Azathoth and Yog-Sothoth - reality bends",
+      "required_gods": ["azathoth", "yog_sothoth"],
+      "bonuses": {
+        "elemental_damage": 0.45,
+        "crit_rate": 0.3
+      }
+    },
+    "outer_gods": {
+      "description": "Azathoth, Yog-Sothoth, and Nyarlathotep together",
+      "required_gods": ["azathoth", "yog_sothoth", "nyarlathotep"],
+      "bonuses": {
+        "all_stats": 0.2,
+        "crit_rate": 0.4,
+        "elemental_damage": 0.35
+      }
+    },
+    "king_and_messenger": {
+      "description": "Hastur and Nyarlathotep - whispers in the void",
+      "required_gods": ["hastur", "nyarlathotep"],
+      "bonuses": {
+        "attack": 0.35,
+        "crit_rate": 0.55
+      }
+    },
+    "black_goat_cult": {
+      "description": "Shub-Niggurath with any two eldritch minions",
+      "required_gods": ["shub_niggurath"],
+      "required_gods_any": ["deep_one", "shoggoth", "mi_go", "night_gaunt"],
+      "required_count": 2,
+      "bonuses": {
+        "attack": 0.4,
+        "hp": 0.45,
+        "poison_chance": 0.15
+      }
+    },
+    "definitely_not_aliens": {
+      "description": "Mi-Go, Elder Thing, and Shoggoth - totally terrestrial",
+      "required_gods": ["mi_go", "elder_thing", "shoggoth"],
+      "bonuses": {
+        "skill_damage": 0.3,
+        "defense": 0.45
+      }
+    },
+    "sanity_is_optional": {
+      "description": "Full team of eldritch horrors",
+      "required_pantheon": "eldritch",
+      "required_count": 4,
+      "bonuses": {
+        "elemental_damage": 0.4,
+        "crit_rate": 0.5,
+        "attack": 0.2
+      }
+    },
+    "nightmare_fuel": {
+      "description": "Night Gaunt and Ithaqua - terrors of sleep and cold",
+      "required_gods": ["night_gaunt", "ithaqua"],
+      "bonuses": {
+        "crit_rate": 0.6,
+        "dark_damage": 0.3,
+        "freeze_chance": 0.18
+      }
+    },
+
+    "_comment_tricksters": "========== CROSS-PANTHEON FUN ==========",
+
+    "trickster_union": {
+      "description": "Loki, Set, and Kitsune - chaos incarnate",
+      "required_gods_any": ["loki", "set", "kitsune", "hermes", "nyarlathotep", "sun_wukong"],
+      "required_count": 2,
+      "bonuses": {
+        "speed": 0.45,
+        "crit_rate": 0.15,
+        "dodge_chance": 0.12
+      }
+    },
+    "beauty_contest": {
+      "description": "Aphrodite, Freya, and Ishtar - divine allure",
+      "required_gods": ["aphrodite", "freya", "ishtar"],
+      "bonuses": {
+        "crit_rate": 0.4,
+        "resistance": 0.25,
+        "all_stats": 0.2
+      }
+    },
+    "love_goddesses": {
+      "description": "Any two love/beauty deities",
+      "required_gods_any": ["aphrodite", "freya", "ishtar", "benzaiten", "lakshmi"],
+      "required_count": 2,
+      "bonuses": {
+        "crit_rate": 0.25,
+        "hp": 0.2
+      }
+    },
+    "anger_management_issues": {
+      "description": "Ares, Thor, and Cu Chulainn - pure rage",
+      "required_gods": ["ares", "thor", "cu_chulainn"],
+      "bonuses": {
+        "attack": 0.95,
+        "counter_chance": 0.2
+      }
+    },
+    "war_council": {
+      "description": "Multiple war deities strategizing",
+      "required_gods_any": ["ares", "athena", "tyr", "odin", "hachiman", "bishamonten", "morrigan"],
+      "required_count": 3,
+      "bonuses": {
+        "attack": 0.4,
+        "defense": 0.2
+      }
+    },
+    "strongest_vs_strongest": {
+      "description": "Hercules and Lu Bu - titans clash",
+      "required_gods": ["hercules", "lu_bu"],
+      "bonuses": {
+        "attack": 0.55,
+        "crit_damage": 0.3
+      }
+    },
+    "monkey_business": {
+      "description": "Sun Wukong and Hanuman - primate chaos",
+      "required_gods": ["sun_wukong", "hanuman"],
+      "bonuses": {
+        "speed": 0.75,
+        "stun_chance": 0.1,
+        "dodge_chance": 0.1
+      }
+    },
+    "good_boys": {
+      "description": "Fenrir and Anubis - who's a good mythical beast?",
+      "required_gods": ["fenrir", "anubis"],
+      "bonuses": {
+        "attack": 0.25,
+        "speed": 0.2,
+        "crit_damage": 0.15
+      }
+    },
+    "party_crashers": {
+      "description": "Dionysus and Loki - chaos at every gathering",
+      "required_gods": ["dionysus", "loki"],
+      "bonuses": {
+        "crit_rate": 0.6,
+        "resistance": 0.2
+      }
+    },
+    "united_nations_of_gods": {
+      "description": "4 gods from 4 different pantheons - diversity is strength",
+      "unique_pantheons": 4,
+      "bonuses": {
+        "all_stats": 0.15,
+        "production": 0.25,
+        "resistance": 0.1
+      }
+    },
+    "forge_masters": {
+      "description": "Hephaestus and any dwarf/smith deity",
+      "required_gods_any": ["hephaestus", "ptah", "svarog", "brigid"],
+      "required_count": 2,
+      "bonuses": {
+        "crafting_speed": 0.6,
+        "resistance": 0.2
+      }
+    },
+    "wisdom_seekers": {
+      "description": "Athena, Odin, and Thoth - knowledge is power",
+      "required_gods": ["athena", "odin", "thoth"],
+      "bonuses": {
+        "skill_damage": 0.25,
+        "speed": 0.2,
+        "production": 0.3
+      }
+    },
+
+    "_comment_japanese": "========== JAPANESE SYNERGIES ==========",
+
+    "divine_siblings": {
+      "description": "Amaterasu, Tsukuyomi, and Susanoo - children of Izanagi",
+      "required_gods": ["amaterasu", "tsukuyomi", "susanoo"],
+      "bonuses": {
+        "all_stats": 0.45,
+        "defense": 0.15
+      }
+    },
+    "shinto_trinity": {
+      "description": "Amaterasu, Susanoo, and Raijin - forces of nature",
+      "required_gods": ["amaterasu", "susanoo", "raijin"],
+      "bonuses": {
+        "elemental_damage": 0.5,
+        "production": 0.15
+      }
+    },
+    "fox_and_storm": {
+      "description": "Kitsune and Raijin - mischief in the tempest",
+      "required_gods": ["kitsune", "raijin"],
+      "bonuses": {
+        "speed": 0.3,
+        "lightning_damage": 0.25,
+        "crit_rate": 0.2
+      }
+    },
+    "yokai_brigade": {
+      "description": "Kitsune, Oni, Kappa, and Tengu - spirits unite",
+      "required_gods_any": ["kitsune", "oni", "kappa", "tengu"],
+      "required_count": 3,
+      "bonuses": {
+        "crit_rate": 0.3,
+        "elemental_damage": 0.25,
+        "all_stats": 0.2,
+        "dodge_chance": 0.1
+      }
+    },
+    "seven_lucky_gods": {
+      "description": "Bishamonten, Benzaiten, and Inari - blessings of fortune",
+      "required_gods": ["bishamonten", "benzaiten", "inari"],
+      "bonuses": {
+        "crit_rate": 0.35,
+        "rare_drop_chance": 0.3,
+        "production": 0.25
+      }
+    },
+    "creation_myth": {
+      "description": "Izanagi with Amaterasu or Susanoo",
+      "required_gods": ["izanagi"],
+      "required_gods_any": ["amaterasu", "susanoo", "tsukuyomi"],
+      "bonuses": {
+        "all_stats": 0.3,
+        "hp": 0.3
+      }
+    },
+
+    "_comment_mesopotamian": "========== MESOPOTAMIAN SYNERGIES ==========",
+
+    "first_pantheon": {
+      "description": "Marduk, Enlil, and Tiamat - the primordial powers",
+      "required_gods": ["marduk", "enlil", "tiamat"],
+      "bonuses": {
+        "all_stats": 0.6
+      }
+    },
+    "descent_to_underworld": {
+      "description": "Ishtar and Ereshkigal - sisters of heaven and hell",
+      "required_gods": ["ishtar", "ereshkigal"],
+      "bonuses": {
+        "resistance": 0.3,
+        "hp": 0.25,
+        "dark_damage": 0.2
+      }
+    },
+    "war_and_love": {
+      "description": "Ishtar and Nergal - passion meets destruction",
+      "required_gods": ["ishtar", "nergal"],
+      "bonuses": {
+        "attack": 0.4,
+        "hp": 0.2
+      }
+    },
+    "order_and_chaos": {
+      "description": "Marduk and Tiamat - creator vs primordial chaos",
+      "required_gods": ["marduk", "tiamat"],
+      "bonuses": {
+        "elemental_damage": 0.25,
+        "defense": 0.2,
+        "all_stats": 0.15
+      }
+    },
+
+    "_comment_hindu": "========== HINDU SYNERGIES ==========",
+
+    "trimurti": {
+      "description": "Brahma, Vishnu, and Shiva - the supreme trinity",
+      "required_gods": ["brahma", "vishnu", "shiva"],
+      "bonuses": {
+        "all_stats": 0.55,
+        "skill_damage": 0.35
+      }
+    },
+    "divine_consorts": {
+      "description": "Shiva and Durga - destruction and protection",
+      "required_gods": ["shiva", "durga"],
+      "bonuses": {
+        "attack": 0.25,
+        "defense": 0.25,
+        "all_stats": 0.2
+      }
+    },
+    "preserver_and_servant": {
+      "description": "Vishnu and Hanuman - the devoted guardian",
+      "required_gods": ["vishnu", "hanuman"],
+      "bonuses": {
+        "all_stats": 0.3,
+        "speed": 0.25,
+        "attack": 0.2
+      }
+    },
+    "demon_slayers": {
+      "description": "Durga and Kali - wrath incarnate",
+      "required_gods": ["durga", "kali"],
+      "bonuses": {
+        "attack": 1.75,
+        "life_steal": 0.15
+      }
+    },
+    "celestial_musicians": {
+      "description": "Saraswati and Benzaiten - divine arts",
+      "required_gods": ["saraswati", "benzaiten"],
+      "bonuses": {
+        "skill_damage": 0.55,
+        "hp": 0.2
+      }
+    },
+
+    "_comment_slavic": "========== SLAVIC SYNERGIES ==========",
+
+    "slavic_duality": {
+      "description": "Perun and Veles - eternal conflict",
+      "required_gods": ["perun", "veles"],
+      "bonuses": {
+        "attack": 0.25,
+        "defense": 0.25,
+        "all_stats": 0.2
+      }
+    },
+    "earth_and_love": {
+      "description": "Lada and Mokosh - spring love and earth mother",
+      "required_gods": ["lada", "mokosh"],
+      "bonuses": {
+        "hp": 0.45,
+        "production": 0.15
+      }
+    },
+
+    "_comment_chinese": "========== CHINESE SYNERGIES ==========",
+
+    "celestial_court": {
+      "description": "Jade Emperor and Dragon King - rulers of heaven and sea",
+      "required_gods": ["jade_emperor", "dragon_king"],
+      "bonuses": {
+        "all_stats": 0.45,
+        "crit_rate": 0.15
+      }
+    },
+    "journey_to_the_west": {
+      "description": "Sun Wukong and Guan Yu - legendary companions",
+      "required_gods": ["sun_wukong", "guan_yu"],
+      "bonuses": {
+        "attack": 0.25,
+        "speed": 0.35
+      }
+    },
+    "heavenly_warriors": {
+      "description": "Nezha and Lei Gong - divine enforcers",
+      "required_gods": ["nezha", "lei_gong"],
+      "bonuses": {
+        "attack": 0.4,
+        "lightning_damage": 0.2
+      }
+    },
+    "mercy_and_might": {
+      "description": "Guanyin and Guan Yu - compassion meets valor",
+      "required_gods": ["guanyin", "guan_yu"],
+      "bonuses": {
+        "hp": 0.25,
+        "defense": 0.35
+      }
+    },
+
+    "_comment_memes": "========== MEME TIER SYNERGIES ==========",
+
+    "terrible_fathers_club": {
+      "description": "Zeus, Odin, and Izanagi - questionable parenting choices",
+      "required_gods_any": ["zeus", "odin", "izanagi", "shiva"],
+      "required_count": 2,
+      "bonuses": {
+        "hp": 0.25,
+        "attack": 0.35
+      }
+    },
+    "marriage_counseling_needed": {
+      "description": "Zeus and Hera - it's complicated",
+      "required_gods": ["zeus", "hera"],
+      "bonuses": {
+        "all_stats": 0.15,
+        "attack": 0.25,
+        "defense": 0.2
+      }
+    },
+    "underestimated_underdogs": {
+      "description": "Tier 1-2 gods showing their worth",
+      "max_tier": 2,
+      "required_count": 4,
+      "bonuses": {
+        "attack": 0.5,
+        "crit_rate": 0.25
+      }
+    },
+    "elemental_rainbow": {
+      "description": "One god of each element - avatar state activated",
+      "unique_elements": 4,
+      "bonuses": {
+        "elemental_damage": 0.2,
+        "elemental_resistance": 0.2,
+        "all_stats": 0.15
+      }
+    },
+    "awkward_family_reunion": {
+      "description": "Gods who are related but hate each other",
+      "required_gods_any": ["zeus", "hera", "poseidon", "hades", "odin", "loki", "thor", "set", "osiris"],
+      "required_count": 3,
+      "bonuses": {
+        "all_stats": 0.15,
+        "attack": 0.3
+      }
+    },
+    "clash_of_titans": {
+      "description": "Four legendary gods from four different pantheons",
+      "required_tier": 4,
+      "required_count": 4,
+      "unique_pantheons": 4,
+      "bonuses": {
+        "all_stats": 0.45,
+        "skill_damage": 0.3
       }
     }
   },
@@ -178,7 +805,7 @@
       "required_count": 2,
       "node_types": ["forge"],
       "bonuses": {
-        "crafting_speed": 0.20,
+        "crafting_speed": 0.2,
         "resource_production": 0.15
       }
     },
@@ -189,7 +816,7 @@
       "node_types": ["mine", "quarry", "farm"],
       "bonuses": {
         "resource_production": 0.25,
-        "rare_drop_chance": 0.10
+        "rare_drop_chance": 0.1
       }
     },
     "water_workers": {
@@ -198,8 +825,8 @@
       "required_count": 2,
       "node_types": ["farm", "grove", "spring"],
       "bonuses": {
-        "resource_production": 0.20,
-        "quality_bonus": 0.10
+        "resource_production": 0.2,
+        "quality_bonus": 0.1
       }
     },
     "light_workers": {
@@ -208,8 +835,7 @@
       "required_count": 2,
       "node_types": ["shrine", "temple", "sanctum"],
       "bonuses": {
-        "mana_production": 0.25,
-        "divine_essence_production": 0.20
+        "mana_production": 0.45
       }
     },
     "dark_workers": {
@@ -217,8 +843,8 @@
       "required_elements": ["dark"],
       "required_count": 2,
       "bonuses": {
-        "rare_drop_chance": 0.20,
-        "resource_production": 0.10
+        "rare_drop_chance": 0.2,
+        "resource_production": 0.1
       }
     },
     "lightning_workers": {
@@ -227,7 +853,7 @@
       "required_count": 2,
       "bonuses": {
         "crafting_speed": 0.15,
-        "resource_production": 0.10
+        "resource_production": 0.1
       }
     }
   },

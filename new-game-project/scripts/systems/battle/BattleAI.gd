@@ -127,7 +127,11 @@ static func _evaluate_skill_action(unit: BattleUnit, skill: Skill, _skill_index:
 				targets = [target]
 				score = _score_heal_action(skill, target, allies)
 
-		SkillCategory.HEAL_AOE, SkillCategory.BUFF_TEAM:
+		SkillCategory.HEAL_AOE:
+			targets = allies.duplicate()
+			score = _score_team_heal_action(skill, allies)
+
+		SkillCategory.BUFF_TEAM:
 			targets = allies.duplicate()
 			score = _score_team_buff_action(skill, allies)
 
@@ -541,6 +545,61 @@ static func _score_heal_action(skill: Skill, target: BattleUnit, allies: Array[B
 		if float(ally.current_hp) / float(ally.max_hp) < 0.7:
 			hurt_allies += 1
 	score += hurt_allies * 10.0
+
+	return score
+
+## Score a team heal action (AOE heal like Dagda's Cauldron)
+static func _score_team_heal_action(_skill: Skill, allies: Array[BattleUnit]) -> float:
+	if allies.is_empty():
+		return -100.0
+
+	var score: float = 0.0
+	var total_missing_hp_percent: float = 0.0
+	var critically_low_count: int = 0  # Below 25%
+	var danger_count: int = 0          # Below 40%
+	var hurt_count: int = 0            # Below 60%
+
+	for ally: BattleUnit in allies:
+		if not ally.is_alive:
+			continue
+		var hp_percent: float = float(ally.current_hp) / float(ally.max_hp)
+		total_missing_hp_percent += (1.0 - hp_percent)
+
+		if hp_percent < 0.25:
+			critically_low_count += 1
+		elif hp_percent < 0.40:
+			danger_count += 1
+		elif hp_percent < 0.60:
+			hurt_count += 1
+
+	# PRIORITY 1: Someone is about to die - MUST HEAL NOW
+	if critically_low_count > 0:
+		score += 300.0  # Massive priority - saving lives trumps everything
+		score += critically_low_count * 100.0  # More dying = more urgent
+
+	# PRIORITY 2: Someone is in danger zone
+	if danger_count > 0:
+		score += 150.0  # High priority
+		score += danger_count * 50.0
+
+	# PRIORITY 3: General team damage
+	score += hurt_count * 25.0
+	score += total_missing_hp_percent * 40.0
+
+	# Bonus for healing multiple hurt allies (efficient use)
+	var total_hurt: int = critically_low_count + danger_count + hurt_count
+	if total_hurt >= 2:
+		score += 30.0
+	if total_hurt >= 3:
+		score += 20.0
+
+	# Only penalize if team is VERY healthy and no one is hurt
+	if total_hurt == 0:
+		var avg_missing: float = total_missing_hp_percent / allies.size()
+		if avg_missing < 0.15:
+			score -= 80.0  # Team above 85% - don't waste the heal
+		elif avg_missing < 0.25:
+			score -= 40.0  # Team above 75%
 
 	return score
 

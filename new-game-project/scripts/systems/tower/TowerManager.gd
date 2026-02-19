@@ -608,10 +608,17 @@ func get_team_health_status() -> Dictionary:
 	"""Get current HP status of the team (persists between floors)"""
 	var status = {}
 	for god in current_team:
-		var max_hp = god.base_hp if god.has_method("get") else god.get("base_hp", 100)
+		var max_hp: int
+		var current_hp: int
+		if god is God:
+			max_hp = god.base_hp
+			current_hp = god.current_hp
+		else:
+			max_hp = god.get("base_hp", 100)
+			current_hp = god.get("current_hp", max_hp)
 		status[god.id] = {
-			"current_hp": god.get("current_hp") if god.has_method("get") else max_hp,
+			"current_hp": current_hp,
 			"max_hp": max_hp,
-			"is_alive": (god.get("current_hp") if god.has_method("get") else max_hp) > 0
+			"is_alive": current_hp > 0
 		}
 	return status

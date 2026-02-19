@@ -129,7 +129,10 @@ static func _get_attack(caster: Variant) -> int:
 		else:
 			return caster.base_attack
 	else:
-		return caster.get("attack", 100)  # Fallback for enemies
+		# Fallback for enemies - check property exists
+		if "attack" in caster:
+			return caster.attack
+		return 100
 
 # Factory methods for common effects - ALL SCALED TO SUMMONERS WAR SPECS
 static func create_stun(_caster: Variant, turns: int = 1) -> StatusEffect:

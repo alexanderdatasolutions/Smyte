@@ -693,6 +693,33 @@
       "source": "slavic_dungeon",
       "icon": "slavic_token_icon",
       "category": "pantheon_token"
+    },
+    "chinese_token": {
+      "id": "chinese_token",
+      "name": "Chinese Token",
+      "description": "Focus summons on Chinese pantheon gods",
+      "pantheon": "chinese",
+      "source": "chinese_dungeon",
+      "icon": "chinese_token_icon",
+      "category": "pantheon_token"
+    },
+    "mesopotamian_token": {
+      "id": "mesopotamian_token",
+      "name": "Mesopotamian Token",
+      "description": "Focus summons on Mesopotamian pantheon gods",
+      "pantheon": "mesopotamian",
+      "source": "mesopotamian_dungeon",
+      "icon": "mesopotamian_token_icon",
+      "category": "pantheon_token"
+    },
+    "eldritch_token": {
+      "id": "eldritch_token",
+      "name": "Eldritch Token",
+      "description": "Focus summons on Eldritch cosmic horrors",
+      "pantheon": "eldritch",
+      "source": "eldritch_dungeon",
+      "icon": "eldritch_token_icon",
+      "category": "pantheon_token"
     }
   },
 

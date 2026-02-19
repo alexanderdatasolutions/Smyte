@@ -85,6 +85,130 @@ static func get_bonuses_summary(team: Array) -> String:
 		summary_parts.append(bonus.name)
 	return ", ".join(summary_parts)
 
+## Get leader skill info from the first god in the team
+## Returns Dictionary with god_name, leader_skill, description, and applicable_count
+static func get_leader_skill_info(team: Array) -> Dictionary:
+	var valid_team = _get_valid_team(team)
+	if valid_team.is_empty():
+		return {}
+
+	var leader: God = valid_team[0]
+	if leader.leader_skill.is_empty():
+		return {}
+
+	var skill_area: String = leader.leader_skill.get("area", "all")
+
+	# Check for new "bonuses" format OR legacy "type"/"value" format
+	var has_bonuses: bool = leader.leader_skill.has("bonuses") and not leader.leader_skill.bonuses.is_empty()
+	var skill_type: String = leader.leader_skill.get("type", "")
+	var skill_value: int = int(leader.leader_skill.get("value", 0))
+
+	# Must have either new bonuses format or legacy type/value format
+	if not has_bonuses and (skill_type == "" or skill_value == 0):
+		return {}
+
+	# Count how many team members this applies to
+	var applicable_count: int = 0
+	for god: God in valid_team:
+		if _leader_skill_applies_to(leader.leader_skill, god):
+			applicable_count += 1
+
+	var skill_name: String = leader.leader_skill.get("name", "")
+	if skill_name.is_empty():
+		skill_name = skill_type.capitalize() + " Boost" if skill_type else "Leader Skill"
+
+	return {
+		"leader": leader,
+		"leader_name": leader.get_display_name(),
+		"skill": leader.leader_skill,
+		"skill_name": skill_name,
+		"type": skill_type,
+		"value": skill_value,
+		"area": skill_area,
+		"description": _format_leader_skill_description(leader.leader_skill),
+		"applicable_count": applicable_count,
+		"total_count": valid_team.size()
+	}
+
+## Check if leader skill applies to a specific god
+static func _leader_skill_applies_to(leader_skill: Dictionary, god: God) -> bool:
+	var area: String = leader_skill.get("area", "all")
+	if area == "all":
+		return true
+	# Check if god's element matches the area
+	var god_element: String = God.element_to_string(god.element).to_lower()
+	return god_element == area.to_lower()
+
+## Format leader skill for display
+static func _format_leader_skill_description(leader_skill: Dictionary) -> String:
+	var skill_area: String = leader_skill.get("area", "all")
+
+	# Format area
+	var area_display: String = ""
+	if skill_area == "all":
+		area_display = "All allies"
+	else:
+		area_display = skill_area.capitalize() + " allies"
+
+	# Multi-stat format (new)
+	if leader_skill.has("bonuses"):
+		var parts: Array = []
+		var skill_bonuses: Dictionary = leader_skill.bonuses
+		for stat: String in skill_bonuses:
+			var val: int = int(skill_bonuses[stat])
+			var stat_display: String = stat.replace("_", " ").capitalize()
+			parts.append("+%d%% %s" % [val, stat_display])
+		return "%s: %s" % [area_display, ", ".join(parts)]
+
+	# Legacy single-stat format
+	var skill_type: String = leader_skill.get("type", "")
+	var skill_value: int = int(leader_skill.get("value", 0))
+	var type_display: String = skill_type.replace("_", " ").capitalize()
+
+	return "%s: +%d%% %s" % [area_display, skill_value, type_display]
+
+## Calculate leader skill stat bonuses for a specific god
+static func get_leader_skill_bonuses(leader_skill: Dictionary, target_god: God) -> Dictionary:
+	"""Returns stat multipliers from leader skill if applicable to target god."""
+	if leader_skill.is_empty():
+		return {}
+
+	if not _leader_skill_applies_to(leader_skill, target_god):
+		return {}
+
+	var bonuses: Dictionary = {}
+
+	# Support for multi-stat leader skills (new "bonuses" format)
+	if leader_skill.has("bonuses"):
+		var skill_bonuses: Dictionary = leader_skill.bonuses
+		for stat: String in skill_bonuses:
+			bonuses[stat] = float(skill_bonuses[stat]) / 100.0
+		return bonuses
+
+	# Legacy single-stat format
+	var skill_type: String = leader_skill.get("type", "")
+	var skill_value: float = float(leader_skill.get("value", 0)) / 100.0  # Convert percentage
+
+	match skill_type:
+		"attack":
+			bonuses["attack"] = skill_value
+		"defense":
+			bonuses["defense"] = skill_value
+		"hp":
+			bonuses["hp"] = skill_value
+		"speed":
+			bonuses["speed"] = skill_value
+		"crit_rate":
+			bonuses["crit_rate"] = skill_value
+		"crit_damage":
+			bonuses["crit_damage"] = skill_value
+		"resistance":
+			bonuses["resistance"] = skill_value
+		"accuracy":
+			bonuses["accuracy"] = skill_value
+
+	return bonuses
+
 ## Filter out null entries from team
 static func _get_valid_team(team: Array) -> Array:
 	var valid = []
@@ -288,9 +412,39 @@ static func _check_special_synergies(team: Array) -> Array:
 		return bonuses
 
 	var special_data = _bonus_data.special_synergies
-	var god_ids = []
+
+	# Build team info once
+	var god_ids: Array = []
+	var god_pantheons: Array = []
+	var god_elements: Array = []
+	var god_tiers: Array = []
+
 	for god in team:
-		god_ids.append(god.id.to_lower())
+		# Use template_id for synergy matching (id is the unique instance ID)
+		# Handle both God objects and Dictionary (from PvP serialization)
+		var god_template: String
+		var pantheon: String
+		var element: Variant
+		var tier: int
+
+		if god is Dictionary:
+			god_template = god.get("template_id", god.get("id", ""))
+			pantheon = god.get("pantheon", "unknown")
+			element = god.get("element", 0)
+			tier = god.get("tier", 0)
+		else:
+			god_template = god.template_id if god.template_id else god.id
+			pantheon = god.pantheon if "pantheon" in god else "unknown"
+			element = god.element
+			tier = god.tier
+
+		god_ids.append(god_template.to_lower())
+		god_pantheons.append(pantheon.to_lower() if pantheon else "unknown")
+		god_elements.append(element)
+		god_tiers.append(tier)
+
+	var unique_pantheons: int = _count_unique(god_pantheons)
+	var unique_elements: int = _count_unique(god_elements)
 
 	# Check each special synergy
 	for synergy_id in special_data:
@@ -299,25 +453,116 @@ static func _check_special_synergies(team: Array) -> Array:
 
 		var synergy = special_data[synergy_id]
 
-		# Check required_gods
-		if synergy.has("required_gods"):
-			var required = synergy.required_gods
-			var all_present = true
-			for req_god in required:
-				if req_god not in god_ids:
-					all_present = false
-					break
-
-			if all_present:
-				bonuses.append({
-					"id": synergy_id,
-					"name": synergy.description.split(" ")[0] if synergy.has("description") else synergy_id.capitalize(),
-					"desc": _format_bonus_desc(synergy.bonuses),
-					"bonus": _get_primary_bonus(synergy.bonuses),
-					"bonuses": synergy.bonuses
-				})
+		if _check_synergy_match(synergy, god_ids, god_pantheons, god_elements, god_tiers, unique_pantheons, unique_elements, team.size()):
+			var synergy_name: String = _extract_synergy_name(synergy, synergy_id)
+			bonuses.append({
+				"id": synergy_id,
+				"name": synergy_name,
+				"desc": _format_bonus_desc(synergy.bonuses),
+				"bonus": _get_primary_bonus(synergy.bonuses),
+				"bonuses": synergy.bonuses
+			})
 
 	return bonuses
+
+## Check if a synergy matches the current team
+static func _check_synergy_match(synergy: Dictionary, god_ids: Array, god_pantheons: Array, god_elements: Array, god_tiers: Array, unique_pantheons: int, unique_elements: int, team_size: int) -> bool:
+	# Check required_gods (all must be present)
+	if synergy.has("required_gods"):
+		for req_god in synergy.required_gods:
+			if req_god not in god_ids:
+				return false
+
+	# Check required_gods_any (at least N from the list)
+	if synergy.has("required_gods_any"):
+		var required_count: int = synergy.get("required_count", 2)
+		var match_count: int = 0
+		for req_god in synergy.required_gods_any:
+			if req_god in god_ids:
+				match_count += 1
+		if match_count < required_count:
+			return false
+
+	# Check required_pantheon (all/N from a specific pantheon)
+	if synergy.has("required_pantheon"):
+		var req_pantheon: String = synergy.required_pantheon.to_lower()
+		var required_count: int = _parse_required_count(synergy.get("required_count", team_size), team_size)
+		var match_count: int = 0
+		for pantheon in god_pantheons:
+			if pantheon == req_pantheon:
+				match_count += 1
+		if match_count < required_count:
+			return false
+
+	# Check unique_pantheons (team has N different pantheons)
+	if synergy.has("unique_pantheons"):
+		if unique_pantheons < int(synergy.unique_pantheons):
+			return false
+
+	# Check unique_elements (team has N different elements)
+	if synergy.has("unique_elements"):
+		if unique_elements < int(synergy.unique_elements):
+			return false
+
+	# Check max_tier (all/N gods at or below this tier)
+	if synergy.has("max_tier"):
+		var max_tier: int = int(synergy.max_tier)
+		var required_count: int = _parse_required_count(synergy.get("required_count", team_size), team_size)
+		var match_count: int = 0
+		for tier in god_tiers:
+			if tier <= max_tier:
+				match_count += 1
+		if match_count < required_count:
+			return false
+
+	# Check required_tier (all/N gods at exactly this tier)
+	if synergy.has("required_tier"):
+		var req_tier: int = int(synergy.required_tier)
+		var required_count: int = _parse_required_count(synergy.get("required_count", team_size), team_size)
+		var match_count: int = 0
+		for tier in god_tiers:
+			if tier == req_tier:
+				match_count += 1
+		if match_count < required_count:
+			return false
+
+	# If we reach here and synergy had no requirements, it shouldn't match
+	# (needs at least one condition)
+	var has_condition: bool = (
+		synergy.has("required_gods") or
+		synergy.has("required_gods_any") or
+		synergy.has("required_pantheon") or
+		synergy.has("unique_pantheons") or
+		synergy.has("unique_elements") or
+		synergy.has("max_tier") or
+		synergy.has("required_tier")
+	)
+
+	return has_condition
+
+## Count unique values in an array
+static func _count_unique(arr: Array) -> int:
+	var unique: Dictionary = {}
+	for item in arr:
+		unique[item] = true
+	return unique.size()
+
+## Parse required_count which can be "all" or an int
+static func _parse_required_count(value, team_size: int) -> int:
+	if value is String and value == "all":
+		return team_size
+	return int(value)
+
+## Extract a nice display name from synergy
+static func _extract_synergy_name(synergy: Dictionary, synergy_id: String) -> String:
+	if synergy.has("description"):
+		var desc: String = synergy.description
+		# Try to get the name before the dash or use first few words
+		var dash_pos: int = desc.find(" - ")
+		if dash_pos > 0:
+			return desc.substr(0, dash_pos)
+		# Otherwise use synergy_id formatted nicely
+	return synergy_id.replace("_", " ").capitalize()
 
 ## Check for territory-specific synergies
 static func _check_territory_synergies(team: Array, node_type: String) -> Array:
@@ -381,4 +626,3 @@ static func _get_primary_bonus(bonuses: Dictionary) -> float:
 ## Format synergy name from ID
 static func _format_synergy_name(synergy_id: String) -> String:
 	return synergy_id.replace("_", " ").capitalize()
-

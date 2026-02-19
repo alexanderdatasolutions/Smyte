@@ -31,31 +31,39 @@ func add_message(message: String):
 
 func add_damage_log(attacker, target, damage_info):
 	"""Add a damage log entry"""
-	var attacker_name = attacker.name if attacker is God else attacker.get("name", "Unknown")
-	var target_name = target.name if target is God else target.get("name", "Unknown")
+	var attacker_name = _get_unit_name(attacker)
+	var target_name = _get_unit_name(target)
 	var damage = damage_info.get("total", damage_info) if damage_info is Dictionary else damage_info
-	
+
 	var message = "%s attacks %s for %s damage!" % [attacker_name, target_name, damage]
 	add_message(message)
 
 func add_skill_log(caster, skill_name: String, targets: Array):
 	"""Add a skill usage log entry"""
-	var caster_name = caster.name if caster is God else caster.get("name", "Unknown")
+	var caster_name = _get_unit_name(caster)
 	var target_names = []
-	
+
 	for target in targets:
-		var target_name = target.name if target is God else target.get("name", "Unknown")
-		target_names.append(target_name)
-	
+		target_names.append(_get_unit_name(target))
+
 	var message = "%s uses %s on %s!" % [caster_name, skill_name, ", ".join(target_names)]
 	add_message(message)
 
 func add_status_log(target, effect_name: String, applied: bool):
 	"""Add a status effect log entry"""
-	var target_name = target.name if target is God else target.get("name", "Unknown")
+	var target_name = _get_unit_name(target)
 	var action = "gains" if applied else "loses"
 	var message = "%s %s %s!" % [target_name, action, effect_name]
 	add_message(message)
+
+func _get_unit_name(unit) -> String:
+	if unit is God:
+		return unit.name
+	elif unit is Dictionary:
+		return unit.get("name", "Unknown")
+	elif "name" in unit:
+		return unit.name
+	return "Unknown"
 
 func _update_display():
 	"""Update the visual log display"""

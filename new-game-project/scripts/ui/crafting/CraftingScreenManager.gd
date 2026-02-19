@@ -39,6 +39,13 @@ static var _buildings_config: Dictionary = {}
 static var _crafting_recipes: Dictionary = {}
 static var _config_loaded: bool = false
 
+static func clear_config_cache() -> void:
+	"""Clear static config cache (call when config files change)"""
+	_config_loaded = false
+	_equipment_config = {}
+	_buildings_config = {}
+	_crafting_recipes = {}
+
 static func _load_config() -> void:
 	if _config_loaded:
 		return

@@ -295,6 +295,17 @@ func _update_crafting_section() -> void:
 	var shown_any: bool = false
 	var shown_node_ids: Dictionary = {}  # Track which nodes we've shown crafts for
 
+	# Count crafts per node for slot display
+	var crafts_per_node: Dictionary = {}  # node_id -> count
+	for craft_key: String in active_crafts:
+		var craft: Dictionary = active_crafts[craft_key]
+		var craft_node_id: String = str(craft.get("node_id", ""))
+		if forge_node_ids.has(craft_node_id):
+			crafts_per_node[craft_node_id] = crafts_per_node.get(craft_node_id, 0) + 1
+
+	# Track forges with available slots (for showing +Craft button)
+	var forges_with_slots: Dictionary = {}  # node_id -> {max_slots, used_slots, node}
+
 	# FIRST: Show active crafts only from actual forges
 	for craft_key: String in active_crafts:
 		var craft: Dictionary = active_crafts[craft_key]
@@ -306,6 +317,16 @@ func _update_crafting_section() -> void:
 
 		shown_node_ids[craft_node_id] = true
 
+		var forge_node = forge_node_ids[craft_node_id]
+		var node_tier: int = int(forge_node.tier) if "tier" in forge_node else 1
+		var max_slots: int = _get_max_crafts_for_tier(node_tier)
+		var used_slots: int = crafts_per_node.get(craft_node_id, 1)
+		var slot_info: String = "(%d/%d)" % [used_slots, max_slots]
+
+		# Track if this forge has available slots
+		if used_slots < max_slots:
+			forges_with_slots[craft_node_id] = {"max": max_slots, "used": used_slots, "node": forge_node}
+
 		var task_data: Dictionary = craft.get("task_data", {})
 		var task_id: String = str(craft.get("task_id", ""))
 		var task_name: String = str(task_data.get("name", task_data.get("task_id", "Crafting"))).replace("_", " ").capitalize()
@@ -315,19 +336,26 @@ func _update_crafting_section() -> void:
 		var elapsed: int = current_time - start_time
 		var progress: float = clampf(float(elapsed) / float(duration), 0.0, 1.0) if duration > 0 else 1.0
 		var time_left: int = maxi(0, end_time - current_time)
-		_add_craft_progress_row(_crafting_container, task_name, progress, time_left, craft_node_id, task_id)
+		_add_craft_progress_row(_crafting_container, task_name + " " + slot_info, progress, time_left, craft_node_id, task_id)
 		shown_any = true
 
-	# SECOND: Show idle forges (those with workers but no active craft)
+	# SECOND: Show "+Craft" buttons for forges that have active crafts but still have slots
+	for node_id: String in forges_with_slots:
+		var info: Dictionary = forges_with_slots[node_id]
+		var remaining: int = info.max - info.used
+		_add_forge_add_craft_row(_crafting_container, node_id, remaining)
+
+	# THIRD: Show idle forges (those with workers but no active craft)
 	for node in forge_nodes:
 		var node_id: String = str(node.id) if "id" in node else ""
 		var node_name: String = str(node.name) if "name" in node else "Forge"
+		var node_tier: int = int(node.tier) if "tier" in node else 1
 
 		# Skip if we already showed a craft for this node
 		if shown_node_ids.has(node_id):
 			continue
 
-		_add_forge_idle_row(_crafting_container, node_name, node_id)
+		_add_forge_idle_row(_crafting_container, node_name, node_id, node_tier)
 		shown_any = true
 
 	if not shown_any:
@@ -366,13 +394,20 @@ func _get_forge_nodes() -> Array:
 
 	return forge_nodes
 
-func _add_forge_idle_row(container: Control, node_name: String, node_id: String) -> void:
+func _get_max_crafts_for_tier(tier: int) -> int:
+	"""Get max concurrent crafts for a tier (T1=1, T2=2, T3=3, T4=4)"""
+	return maxi(1, tier)
+
+func _add_forge_idle_row(container: Control, node_name: String, node_id: String, tier: int = 1) -> void:
 	"""Add a row for an idle forge with Start Craft button"""
 	var row: HBoxContainer = HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 
+	var max_slots: int = _get_max_crafts_for_tier(tier)
+	var tier_stars: String = "★".repeat(tier)
+
 	var label: Label = Label.new()
-	label.text = node_name + " - Idle"
+	label.text = "%s %s (0/%d slots)" % [node_name, tier_stars, max_slots]
 	label.add_theme_font_size_override("font_size", 11)
 	label.add_theme_color_override("font_color", COLOR_MUTED)
 	row.add_child(label)
@@ -386,6 +421,24 @@ func _add_forge_idle_row(container: Control, node_name: String, node_id: String)
 	button.add_theme_font_size_override("font_size", 10)
 	# Store node_id in metadata for the callback
 	button.set_meta("node_id", node_id)
+	button.pressed.connect(_on_forge_start_craft_pressed.bind(node_id))
+	row.add_child(button)
+
+	container.add_child(row)
+
+func _add_forge_add_craft_row(container: Control, node_id: String, remaining_slots: int) -> void:
+	"""Add a compact '+Craft' row for forges with available slots"""
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+
+	var spacer: Control = Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(spacer)
+
+	var button: Button = Button.new()
+	button.text = "+%d more" % remaining_slots if remaining_slots > 1 else "+1 craft"
+	button.add_theme_font_size_override("font_size", 10)
+	button.add_theme_color_override("font_color", Color(0.7, 0.9, 0.7))
 	button.pressed.connect(_on_forge_start_craft_pressed.bind(node_id))
 	row.add_child(button)
 

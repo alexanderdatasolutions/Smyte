@@ -743,14 +743,23 @@ func _create_equipment_card(equipment: Equipment) -> Control:
 	icon.texture = _load_equipment_texture(equipment)
 	icon_container.add_child(icon)
 
-	# Equipment name
+	# Equipment name (full name, smaller font if long)
 	var name_label: Label = Label.new()
-	var display_name = equipment.name if equipment.name.length() <= 14 else equipment.name.substr(0, 12) + ".."
-	name_label.text = display_name
-	name_label.add_theme_font_size_override("font_size", 11)
+	name_label.text = equipment.name
+	name_label.add_theme_font_size_override("font_size", 10 if equipment.name.length() > 16 else 11)
 	name_label.add_theme_color_override("font_color", rarity_color)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(name_label)
+
+	# Set name (if exists)
+	if equipment.equipment_set_name != "":
+		var set_label: Label = Label.new()
+		set_label.text = "[%s]" % equipment.equipment_set_name
+		set_label.add_theme_font_size_override("font_size", 9)
+		set_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.6))
+		set_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vbox.add_child(set_label)
 
 	# Main stat
 	if equipment.main_stat_type != "":

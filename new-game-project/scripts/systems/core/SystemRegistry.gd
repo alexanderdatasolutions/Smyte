@@ -370,6 +370,10 @@ func _register_ui_equipment_and_meta() -> void:
 		var tower_manager := preload("res://scripts/systems/tower/TowerManager.gd").new()
 		register_system("TowerManager", tower_manager)
 
+	if ResourceLoader.exists("res://scripts/systems/progression/TeamSaveManager.gd"):
+		var team_save_manager := preload("res://scripts/systems/progression/TeamSaveManager.gd").new()
+		register_system("TeamSaveManager", team_save_manager)
+
 	if ResourceLoader.exists("res://scripts/systems/firebase/FirebaseIntegration.gd"):
 		var firebase_integration := preload("res://scripts/systems/firebase/FirebaseIntegration.gd").new()
 		register_system("FirebaseIntegration", firebase_integration)

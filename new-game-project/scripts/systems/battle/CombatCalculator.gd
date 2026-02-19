@@ -118,7 +118,7 @@ static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Sk
 
 	# Apply team bonus damage modifiers (for player attacks)
 	if battle_state and attacker.is_player_unit:
-		var team_damage_mult: float = _get_team_damage_multiplier(battle_state.team_bonuses)
+		var team_damage_mult: float = _get_team_damage_multiplier(battle_state.team_bonuses, attacker_element)
 		base_damage *= team_damage_mult
 
 	# Apply team resistance (reduces damage for enemy attacks on players)
@@ -161,7 +161,8 @@ static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Sk
 	return result
 
 ## Get team damage multiplier from team bonuses
-static func _get_team_damage_multiplier(team_bonuses: Array) -> float:
+## Now includes element-specific damage bonuses (fire_damage, water_damage, etc.)
+static func _get_team_damage_multiplier(team_bonuses: Array, attacker_element: God.ElementType = God.ElementType.LIGHT) -> float:
 	var mult: float = 1.0
 	for bonus: Dictionary in team_bonuses:
 		var bonuses: Dictionary = bonus.get("bonuses", {})
@@ -169,6 +170,27 @@ static func _get_team_damage_multiplier(team_bonuses: Array) -> float:
 			mult += bonuses.elemental_damage
 		if bonuses.has("skill_damage"):
 			mult += bonuses.skill_damage
+
+		# Apply element-specific damage bonuses
+		match attacker_element:
+			God.ElementType.FIRE:
+				if bonuses.has("fire_damage"):
+					mult += bonuses.fire_damage
+			God.ElementType.WATER:
+				if bonuses.has("water_damage"):
+					mult += bonuses.water_damage
+			God.ElementType.EARTH:
+				if bonuses.has("earth_damage"):
+					mult += bonuses.earth_damage
+			God.ElementType.LIGHTNING:
+				if bonuses.has("lightning_damage"):
+					mult += bonuses.lightning_damage
+			God.ElementType.LIGHT:
+				if bonuses.has("light_damage"):
+					mult += bonuses.light_damage
+			God.ElementType.DARK:
+				if bonuses.has("dark_damage"):
+					mult += bonuses.dark_damage
 	return mult
 
 ## Get team resistance from team bonuses (caps at 50%)

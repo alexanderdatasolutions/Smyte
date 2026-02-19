@@ -178,13 +178,12 @@ func create_equipment_button(equipment: Equipment):
 	info_container.size = Vector2(104, 62)
 	info_container.add_theme_constant_override("separation", 2)
 	
-	# Equipment name (shortened if needed)
+	# Equipment name (full name with word wrap)
 	var name_label = Label.new()
 	name_label.text = equipment.name
-	if equipment.name.length() > 12:
-		name_label.text = equipment.name.substr(0, 10) + "..."
-	name_label.add_theme_font_size_override("font_size", 10)
+	name_label.add_theme_font_size_override("font_size", 9 if equipment.name.length() > 14 else 10)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_label.modulate = rarity_color
 	info_container.add_child(name_label)
 	

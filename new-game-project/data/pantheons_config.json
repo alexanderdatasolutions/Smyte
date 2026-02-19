@@ -1,12 +1,12 @@
 {
   "_metadata": {
-    "version": "1.0.0",
-    "description": "Pantheon configuration - enable/disable pantheons for MVP",
-    "last_updated": "2026-02-10",
+    "version": "1.1.0",
+    "description": "Pantheon configuration - all pantheons enabled",
+    "last_updated": "2026-02-18",
     "note": "Team bonuses moved to team_bonuses.json"
   },
 
-  "enabled_pantheons": ["greek", "norse", "egyptian"],
+  "enabled_pantheons": ["greek", "norse", "egyptian", "chinese", "slavic", "hindu", "celtic", "japanese", "mesopotamian", "eldritch"],
 
   "all_pantheons": {
     "greek": {
@@ -29,39 +29,45 @@
     },
     "chinese": {
       "name": "Chinese",
-      "enabled": false,
+      "enabled": true,
       "color": "#FF4500",
       "description": "Gods of the Celestial Empire"
     },
     "slavic": {
       "name": "Slavic",
-      "enabled": false,
+      "enabled": true,
       "color": "#228B22",
       "description": "Gods of the Slavic peoples"
     },
     "hindu": {
       "name": "Hindu",
-      "enabled": false,
+      "enabled": true,
       "color": "#9400D3",
       "description": "Gods of the Hindu tradition"
     },
     "celtic": {
       "name": "Celtic",
-      "enabled": false,
+      "enabled": true,
       "color": "#32CD32",
       "description": "Gods of the Celtic peoples"
     },
     "japanese": {
       "name": "Japanese",
-      "enabled": false,
+      "enabled": true,
       "color": "#DC143C",
       "description": "Kami of Shinto tradition"
     },
     "mesopotamian": {
       "name": "Mesopotamian",
-      "enabled": false,
+      "enabled": true,
       "color": "#8B4513",
       "description": "Gods of ancient Mesopotamia"
+    },
+    "eldritch": {
+      "name": "Eldritch",
+      "enabled": true,
+      "color": "#4B0082",
+      "description": "Cosmic horrors from beyond the stars"
     }
   }
 }

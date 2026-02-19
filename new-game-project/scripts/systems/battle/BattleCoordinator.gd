@@ -479,7 +479,7 @@ func _log_battle_analytics(result: BattleResult):
 	# Get battle stats
 	var stats: Dictionary = battle_state.get_battle_statistics() if battle_state else {}
 	var battle_type_name: String = current_battle_config.get_battle_type_name() if current_battle_config else "unknown"
-	var difficulty: String = current_battle_config.difficulty_name if current_battle_config and current_battle_config.has_method("get") else ""
+	var difficulty: String = current_battle_config.difficulty_name if current_battle_config and "difficulty_name" in current_battle_config else ""
 
 	# Calculate team power
 	var team_power: int = 0

@@ -30,6 +30,19 @@ var player_units_died: int = 0       # How many player gods died during battle
 # Team bonuses (calculated from team composition)
 var team_bonuses: Array = []
 
+# Team bonus effects (status effect chances, life steal, etc.)
+# These are extracted separately for combat hooks
+var team_bonus_effects: Dictionary = {
+	"life_steal": 0.0,         # % of damage healed
+	"stun_chance": 0.0,        # % chance to stun on attack
+	"burn_chance": 0.0,        # % chance to burn on attack
+	"freeze_chance": 0.0,      # % chance to freeze on attack
+	"poison_chance": 0.0,      # % chance to poison on attack
+	"dodge_chance": 0.0,       # % chance to dodge attacks (evasion)
+	"counter_chance": 0.0,     # % chance to counter-attack when hit
+	"reflect_damage": 0.0,     # % of damage reflected back
+}
+
 func _init():
 	battle_start_time = Time.get_ticks_msec()
 
@@ -272,32 +285,138 @@ func _calculate_and_apply_team_bonuses(attacker_team: Array) -> void:
 	# Get team bonuses from TeamStatsCalculator
 	team_bonuses = TeamStatsCalculator.get_team_bonuses(attacker_team)
 
-	if team_bonuses.is_empty():
-		return
+	# Get leader skill info from first god
+	var leader_skill_info: Dictionary = TeamStatsCalculator.get_leader_skill_info(attacker_team)
+	var leader_skill: Dictionary = leader_skill_info.get("skill", {})
 
 	# Aggregate all stat bonuses from team bonuses
 	var stat_mults: Dictionary = {"attack": 1.0, "defense": 1.0, "speed": 1.0, "hp": 1.0}
+	var stat_adds: Dictionary = {"crit_rate": 0.0, "crit_damage": 0.0, "resistance": 0.0, "accuracy": 0.0}
+
+	# Reset team bonus effects
+	team_bonus_effects = {
+		"life_steal": 0.0,
+		"stun_chance": 0.0,
+		"burn_chance": 0.0,
+		"freeze_chance": 0.0,
+		"poison_chance": 0.0,
+		"dodge_chance": 0.0,
+		"counter_chance": 0.0,
+		"reflect_damage": 0.0,
+	}
+
+	# Extract leader skill effects (applied to all qualifying units)
+	# Leader skill bonuses are stored as integers (e.g., 12 = 12%), convert to decimal
+	var leader_bonuses_raw: Dictionary = leader_skill.get("bonuses", {})
+	if leader_bonuses_raw.has("life_steal"):
+		team_bonus_effects.life_steal += float(leader_bonuses_raw.life_steal) / 100.0
+	if leader_bonuses_raw.has("stun_chance"):
+		team_bonus_effects.stun_chance += float(leader_bonuses_raw.stun_chance) / 100.0
+	if leader_bonuses_raw.has("burn_chance"):
+		team_bonus_effects.burn_chance += float(leader_bonuses_raw.burn_chance) / 100.0
+	if leader_bonuses_raw.has("freeze_chance"):
+		team_bonus_effects.freeze_chance += float(leader_bonuses_raw.freeze_chance) / 100.0
+	if leader_bonuses_raw.has("poison_chance"):
+		team_bonus_effects.poison_chance += float(leader_bonuses_raw.poison_chance) / 100.0
+	if leader_bonuses_raw.has("dodge_chance"):
+		team_bonus_effects.dodge_chance += float(leader_bonuses_raw.dodge_chance) / 100.0
+	if leader_bonuses_raw.has("counter_chance"):
+		team_bonus_effects.counter_chance += float(leader_bonuses_raw.counter_chance) / 100.0
+	if leader_bonuses_raw.has("reflect_damage"):
+		team_bonus_effects.reflect_damage += float(leader_bonuses_raw.reflect_damage) / 100.0
 
 	for bonus: Dictionary in team_bonuses:
 		var bonuses: Dictionary = bonus.get("bonuses", {})
+		# Multiplicative stats
 		if bonuses.has("attack"):
 			stat_mults.attack += bonuses.attack
 		if bonuses.has("defense"):
 			stat_mults.defense += bonuses.defense
 		if bonuses.has("speed"):
 			stat_mults.speed += bonuses.speed
+		if bonuses.has("hp"):
+			stat_mults.hp += bonuses.hp
 		if bonuses.has("all_stats"):
 			stat_mults.attack += bonuses.all_stats
 			stat_mults.defense += bonuses.all_stats
 			stat_mults.speed += bonuses.all_stats
 			stat_mults.hp += bonuses.all_stats
 
-	# Apply stat multipliers to each player unit
-	for unit: BattleUnit in player_units:
-		unit.attack = int(unit.attack * stat_mults.attack)
-		unit.defense = int(unit.defense * stat_mults.defense)
-		unit.speed = int(unit.speed * stat_mults.speed)
-		unit.max_hp = int(unit.max_hp * stat_mults.hp)
+		# Additive stats (percentage points)
+		if bonuses.has("crit_rate"):
+			stat_adds.crit_rate += bonuses.crit_rate
+		if bonuses.has("crit_damage"):
+			stat_adds.crit_damage += bonuses.crit_damage
+		if bonuses.has("resistance"):
+			stat_adds.resistance += bonuses.resistance
+		if bonuses.has("accuracy"):
+			stat_adds.accuracy += bonuses.accuracy
+
+		# Extract effect-type bonuses (status effect chances, life steal, etc.)
+		if bonuses.has("life_steal"):
+			team_bonus_effects.life_steal += bonuses.life_steal
+		if bonuses.has("stun_chance"):
+			team_bonus_effects.stun_chance += bonuses.stun_chance
+		if bonuses.has("burn_chance"):
+			team_bonus_effects.burn_chance += bonuses.burn_chance
+		if bonuses.has("freeze_chance"):
+			team_bonus_effects.freeze_chance += bonuses.freeze_chance
+		if bonuses.has("poison_chance"):
+			team_bonus_effects.poison_chance += bonuses.poison_chance
+		if bonuses.has("dodge_chance"):
+			team_bonus_effects.dodge_chance += bonuses.dodge_chance
+		if bonuses.has("counter_chance"):
+			team_bonus_effects.counter_chance += bonuses.counter_chance
+		if bonuses.has("reflect_damage"):
+			team_bonus_effects.reflect_damage += bonuses.reflect_damage
+
+	# Apply stat multipliers to each player unit (including leader skill bonuses)
+	for i: int in range(player_units.size()):
+		var unit: BattleUnit = player_units[i]
+		var source_god: God = attacker_team[i] if i < attacker_team.size() else null
+
+		# Start with team bonuses
+		var unit_attack_mult: float = stat_mults.attack
+		var unit_defense_mult: float = stat_mults.defense
+		var unit_speed_mult: float = stat_mults.speed
+		var unit_hp_mult: float = stat_mults.hp
+
+		# Apply leader skill bonuses if applicable to this unit
+		if source_god and not leader_skill.is_empty():
+			var leader_bonuses: Dictionary = TeamStatsCalculator.get_leader_skill_bonuses(leader_skill, source_god)
+			if leader_bonuses.has("attack"):
+				unit_attack_mult += leader_bonuses.attack
+			if leader_bonuses.has("defense"):
+				unit_defense_mult += leader_bonuses.defense
+			if leader_bonuses.has("speed"):
+				unit_speed_mult += leader_bonuses.speed
+			if leader_bonuses.has("hp"):
+				unit_hp_mult += leader_bonuses.hp
+			# Apply other leader skill bonuses (crit_rate, resistance, accuracy)
+			if leader_bonuses.has("crit_rate"):
+				unit.crit_rate = int(unit.crit_rate + leader_bonuses.crit_rate * 100)
+			if leader_bonuses.has("crit_damage"):
+				unit.crit_damage = int(unit.crit_damage + leader_bonuses.crit_damage * 100)
+			if leader_bonuses.has("resistance"):
+				unit.resistance = int(unit.resistance + leader_bonuses.resistance * 100)
+			if leader_bonuses.has("accuracy"):
+				unit.accuracy = int(unit.accuracy + leader_bonuses.accuracy * 100)
+
+		# Apply team bonus additive stats (crit_rate, crit_damage, resistance, accuracy)
+		unit.crit_rate = int(unit.crit_rate + stat_adds.crit_rate * 100)
+		unit.crit_damage = int(unit.crit_damage + stat_adds.crit_damage * 100)
+		unit.resistance = int(unit.resistance + stat_adds.resistance * 100)
+		unit.accuracy = int(unit.accuracy + stat_adds.accuracy * 100)
+
+		# Store original HP for comparison
+		var original_max_hp: int = unit.max_hp
+
+		# Apply multipliers
+		unit.attack = int(unit.attack * unit_attack_mult)
+		unit.defense = int(unit.defense * unit_defense_mult)
+		unit.speed = int(unit.speed * unit_speed_mult)
+		unit.max_hp = int(unit.max_hp * unit_hp_mult)
+
 		# Only refresh HP if not using HP overrides (Tower mode)
-		if unit.current_hp == unit.max_hp / stat_mults.hp:
+		if unit.current_hp == original_max_hp:
 			unit.current_hp = unit.max_hp

@@ -114,11 +114,16 @@ func _refresh_selected_team_data() -> void:
 				selected_team[i] = fresh_god
 
 func _update_ui_for_context() -> void:
-	match battle_context.get("type", ""):
+	var battle_type: String = battle_context.get("type", "")
+	match battle_type:
 		"territory", "dungeon", "pvp", "hex_capture", "tower", \
 		"pvp_territory_attack", "pvp_territory_defense":
 			max_team_size = 4
 			_refresh_team_slots()
+
+	# Hide enemies section for dungeon battles (saves vertical space)
+	if _stats_panel_helper:
+		_stats_panel_helper.set_enemy_section_visible(battle_type != "dungeon")
 
 	# Update enemy and rewards preview via delegate
 	if _battle_preview:
@@ -248,8 +253,13 @@ func _create_team_slot(index: int) -> Control:
 
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.12, 0.2, 0.8)
-	style.border_color = Color(0.4, 0.35, 0.5, 0.6)
-	style.set_border_width_all(1)
+	# First slot (leader) gets a gold border
+	if index == 0:
+		style.border_color = Color(1.0, 0.85, 0.4, 0.9)  # Gold border
+		style.set_border_width_all(2)
+	else:
+		style.border_color = Color(0.4, 0.35, 0.5, 0.6)
+		style.set_border_width_all(1)
 	style.set_corner_radius_all(4)
 	slot.add_theme_stylebox_override("panel", style)
 
@@ -259,6 +269,17 @@ func _create_team_slot(index: int) -> Control:
 	vbox.add_theme_constant_override("separation", 2)
 	vbox.mouse_filter = Control.MOUSE_FILTER_PASS  # Pass clicks to slot
 	slot.add_child(vbox)
+
+	# Leader badge for first slot
+	if index == 0:
+		var leader_badge: Label = Label.new()
+		leader_badge.name = "LeaderBadge"
+		leader_badge.text = "👑 LEADER"
+		leader_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		leader_badge.add_theme_font_size_override("font_size", 9)
+		leader_badge.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))  # Gold
+		leader_badge.mouse_filter = Control.MOUSE_FILTER_PASS
+		vbox.add_child(leader_badge)
 
 	var god_display: Control = Control.new()
 	god_display.name = "GodDisplay"
@@ -963,7 +984,9 @@ func _create_full_ui(parent: Control) -> void:
 		_show_equipment,
 		_show_enemies,
 		_show_rewards,
-		_custom_top_section
+		_custom_top_section,
+		_show_save_team_popup,
+		_load_team_by_name
 	)
 	left_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content_hbox.add_child(left_panel)
@@ -1106,3 +1129,163 @@ func inject_top_section(content: Control) -> void:
 	# If panel already exists, update it dynamically
 	if _stats_panel_helper:
 		_stats_panel_helper.update_custom_top_section(content)
+
+# ============================================================================
+# TEAM SAVE/LOAD
+# ============================================================================
+
+var _save_popup: CanvasLayer = null
+
+func _show_save_team_popup() -> void:
+	"""Show popup to save current team."""
+	# Get current team template IDs
+	var team_ids: Array = []
+	for god: Variant in selected_team:
+		if god != null and god is God:
+			team_ids.append(god.template_id if god.template_id else god.id)
+
+	if team_ids.is_empty():
+		var registry: Node = SystemRegistry.get_instance()
+		if registry:
+			var notification_manager: Node = registry.get_system("NotificationManager")
+			if notification_manager:
+				notification_manager.show_error("No gods selected to save")
+		return
+
+	_create_save_popup(team_ids)
+
+func _load_team_by_name(team_name: String) -> void:
+	"""Load a saved team by name (called from dropdown)."""
+	var registry: Node = SystemRegistry.get_instance()
+	var team_save_manager: Node = registry.get_system("TeamSaveManager") if registry else null
+	if not team_save_manager:
+		return
+
+	var gods: Array = team_save_manager.resolve_team_to_gods(team_name)
+
+	# Clear current team
+	_clear_team()
+
+	# Add each god to team slots
+	var slot_index: int = 0
+	for god: God in gods:
+		if god and slot_index < max_team_size:
+			_assign_god_to_slot(god, slot_index)
+			slot_index += 1
+
+	# Show notification
+	if registry:
+		var notification_manager: Node = registry.get_system("NotificationManager")
+		if notification_manager:
+			notification_manager.show_notification("Loaded team '%s' (%d gods)" % [team_name, slot_index], "success")
+
+func _create_save_popup(team_ids: Array) -> void:
+	if _save_popup:
+		_save_popup.queue_free()
+
+	var registry: Node = SystemRegistry.get_instance()
+	var team_save_manager: Node = registry.get_system("TeamSaveManager") if registry else null
+	if not team_save_manager:
+		return
+
+	# Use CanvasLayer for proper overlay positioning
+	_save_popup = CanvasLayer.new()
+	_save_popup.layer = 100
+	get_tree().current_scene.add_child(_save_popup)
+
+	# Dark overlay background
+	var overlay: ColorRect = ColorRect.new()
+	overlay.color = Color(0, 0, 0, 0.7)
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed:
+			_close_save_popup()
+	)
+	_save_popup.add_child(overlay)
+
+	# Create centered container
+	var center: CenterContainer = CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(center)
+
+	# Create panel inside the center container
+	var panel: PanelContainer = PanelContainer.new()
+	panel.custom_minimum_size = Vector2(350, 180)
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	_style_panel(panel)
+	center.add_child(panel)
+
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_top", 15)
+	margin.add_theme_constant_override("margin_bottom", 15)
+	panel.add_child(margin)
+
+	var vbox: VBoxContainer = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 15)
+	margin.add_child(vbox)
+
+	# Header
+	var header: Label = Label.new()
+	header.text = "SAVE TEAM"
+	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_color_override("font_color", Color(0.9, 0.85, 0.6))
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(header)
+
+	# Team name input
+	var name_row: HBoxContainer = HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 10)
+	vbox.add_child(name_row)
+
+	var name_label: Label = Label.new()
+	name_label.text = "Name:"
+	name_label.add_theme_font_size_override("font_size", 12)
+	name_row.add_child(name_label)
+
+	var name_input: LineEdit = LineEdit.new()
+	name_input.placeholder_text = "Enter team name..."
+	name_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_input.add_theme_font_size_override("font_size", 12)
+	name_row.add_child(name_input)
+
+	# Buttons
+	var btn_row: HBoxContainer = HBoxContainer.new()
+	btn_row.add_theme_constant_override("separation", 10)
+	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(btn_row)
+
+	var save_btn: Button = Button.new()
+	save_btn.text = "Save"
+	save_btn.custom_minimum_size = Vector2(80, 35)
+	save_btn.pressed.connect(func() -> void:
+		var team_name: String = name_input.text.strip_edges()
+		if team_name.is_empty():
+			return
+		if team_save_manager.save_team(team_name, team_ids):
+			var notification_manager: Node = registry.get_system("NotificationManager")
+			if notification_manager:
+				notification_manager.show_notification("Team '%s' saved!" % team_name, "success")
+			# Refresh the dropdown
+			if _stats_panel_helper:
+				_stats_panel_helper.refresh_saved_teams()
+			_close_save_popup()
+	)
+	_style_button(save_btn)
+	btn_row.add_child(save_btn)
+
+	var cancel_btn: Button = Button.new()
+	cancel_btn.text = "Cancel"
+	cancel_btn.custom_minimum_size = Vector2(80, 35)
+	cancel_btn.pressed.connect(_close_save_popup)
+	_style_button(cancel_btn)
+	btn_row.add_child(cancel_btn)
+
+	# Focus the input
+	name_input.call_deferred("grab_focus")
+
+func _close_save_popup() -> void:
+	if _save_popup:
+		_save_popup.queue_free()
+		_save_popup = null

@@ -200,12 +200,17 @@ func _show_blacksmith_list(blacksmith_nodes: Array, hex_grid_manager: Variant) -
 		if hex_grid_manager.has_method("get_active_crafts_for_node"):
 			active_crafts_for_node = hex_grid_manager.get_active_crafts_for_node(node.id)
 
+		var max_slots: int = _get_max_crafts_for_tier(node.tier)
+		var active_count: int = active_crafts_for_node.size()
+
 		if active_crafts_for_node.is_empty():
 			var item: HBoxContainer = _create_idle_blacksmith_item(node)
 			_craft_list.add_child(item)
 		else:
+			# Show first craft with slot info
 			var craft_data: Dictionary = active_crafts_for_node[0]
-			var item: HBoxContainer = _create_craft_progress_item(craft_data, current_time, node.name)
+			var slot_info: String = "%d/%d" % [active_count, max_slots]
+			var item: HBoxContainer = _create_craft_progress_item(craft_data, current_time, node.name, slot_info)
 			_craft_list.add_child(item)
 
 		count += 1
@@ -221,20 +226,28 @@ func _show_blacksmith_list(blacksmith_nodes: Array, hex_grid_manager: Variant) -
 # BLACKSMITH ITEMS
 # ==============================================================================
 
+func _get_max_crafts_for_tier(tier: int) -> int:
+	"""Get max concurrent crafts for a tier from config"""
+	var forge_cfg: Dictionary = _equipment_config.get("forge_config", {})
+	var max_crafts_cfg: Dictionary = forge_cfg.get("max_crafts_per_tier", {})
+	return int(max_crafts_cfg.get(str(tier), 1))
+
 func _create_idle_blacksmith_item(node: HexNode) -> HBoxContainer:
 	var item: HBoxContainer = HBoxContainer.new()
 	item.add_theme_constant_override("separation", 8)
 
-	var node_name: String = node.name if node.name.length() <= 16 else node.name.substr(0, 14) + ".."
+	var max_slots: int = _get_max_crafts_for_tier(node.tier)
+	var tier_stars: String = "★".repeat(node.tier)
+	var node_name: String = node.name if node.name.length() <= 12 else node.name.substr(0, 10) + ".."
 	var name_label: Label = Label.new()
 	name_label.text = "⚒️ " + node_name
 	name_label.add_theme_font_size_override("font_size", 10)
 	name_label.add_theme_color_override("font_color", COLOR_MUTED)
-	name_label.custom_minimum_size.x = 120
+	name_label.custom_minimum_size.x = 100
 	item.add_child(name_label)
 
 	var status_label: Label = Label.new()
-	status_label.text = "Idle"
+	status_label.text = "%s 0/%d" % [tier_stars, max_slots]
 	status_label.add_theme_font_size_override("font_size", 10)
 	status_label.add_theme_color_override("font_color", COLOR_MUTED)
 	status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -249,7 +262,7 @@ func _create_idle_blacksmith_item(node: HexNode) -> HBoxContainer:
 
 	return item
 
-func _create_craft_progress_item(craft_data: Dictionary, current_time: int, node_name: String = "") -> HBoxContainer:
+func _create_craft_progress_item(craft_data: Dictionary, current_time: int, node_name: String = "", slot_info: String = "") -> HBoxContainer:
 	var item: HBoxContainer = HBoxContainer.new()
 	item.add_theme_constant_override("separation", 8)
 
@@ -265,14 +278,15 @@ func _create_craft_progress_item(craft_data: Dictionary, current_time: int, node
 	var is_complete: bool = progress >= 1.0
 
 	var display_name: String = node_name if node_name != "" else task_name
-	if display_name.length() > 14:
-		display_name = display_name.substr(0, 12) + ".."
+	if display_name.length() > 12:
+		display_name = display_name.substr(0, 10) + ".."
 
 	var node_label: Label = Label.new()
-	node_label.text = "⚒️ " + display_name
+	var slot_text: String = " [%s]" % slot_info if slot_info != "" else ""
+	node_label.text = "⚒️ " + display_name + slot_text
 	node_label.add_theme_font_size_override("font_size", 10)
 	node_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.7))
-	node_label.custom_minimum_size.x = 100
+	node_label.custom_minimum_size.x = 115
 	item.add_child(node_label)
 
 	var progress_container: Panel = Panel.new()

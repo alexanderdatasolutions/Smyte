@@ -59,7 +59,12 @@ static func create_from_json(god_id: String) -> God:
 			if ability_id != "":
 				extracted_ids.append(ability_id)
 		god.abilities = extracted_ids
-	
+
+	# Leader skill - applies when this god is first in team (like Summoners War)
+	var leader_skill_data: Variant = god_data.get("leader_skill", {})
+	if leader_skill_data is Dictionary:
+		god.leader_skill = leader_skill_data
+
 	# Awakening data
 	god.awakened_name = god_data.get("awakened_name", god.name)
 	god.awakened_title = god_data.get("awakened_title", "")

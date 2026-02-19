@@ -496,8 +496,8 @@ func _god_matches_node_element(god_data: God) -> bool:
 	if not current_node or not god_data:
 		return false
 	# Check if HexNode has element property
-	var node_element = current_node.get("element") if current_node.has_method("get") else null
-	if node_element == null and "element" in current_node:
+	var node_element = null
+	if "element" in current_node:
 		node_element = current_node.element
 	if node_element == null:
 		return false

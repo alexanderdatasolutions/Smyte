@@ -262,4 +262,4 @@ func _unequip_all_equipment(god: God, equipment_manager: Variant) -> void:
 		if equipment_manager.has_method("unequip_equipment_from_god"):
 			var unequipped: Variant = equipment_manager.unequip_equipment_from_god(god, slot)
 			if unequipped:
-				print("SacrificeSystem: Returned %s to inventory from sacrificed god %s" % [unequipped.name if unequipped.has_method("get") else str(unequipped), god.name])
+				print("SacrificeSystem: Returned %s to inventory from sacrificed god %s" % [unequipped.name if "name" in unequipped else str(unequipped), god.name])

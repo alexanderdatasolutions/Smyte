@@ -65,9 +65,11 @@ func start_craft(node_id: String, task_id: String, task_data: Dictionary, auto_r
 
 	var duration_seconds: int = task_data.get("base_duration_seconds", 60)
 	var current_time: int = int(Time.get_unix_time_from_system())
-	var craft_key: String = "%s:%s" % [node_id, task_id]
+	# Use timestamp in key to allow multiple of same recipe
+	var craft_key: String = "%s:%s:%d" % [node_id, task_id, current_time]
 
 	_active_crafts[craft_key] = {
+		"craft_key": craft_key,  # Store for later lookup
 		"task_id": task_id,
 		"node_id": node_id,
 		"start_time": current_time,
@@ -88,14 +90,32 @@ func start_craft(node_id: String, task_id: String, task_data: Dictionary, auto_r
 
 	return true
 
+func _find_craft_key(node_id: String, task_id: String) -> String:
+	"""Find the craft key for a node/task combo (returns oldest/first match).
+	Keys are now formatted as node_id:task_id:timestamp to allow duplicates."""
+	var oldest_time: int = 9999999999
+	var found_key: String = ""
+
+	for key: String in _active_crafts.keys():
+		var craft: Dictionary = _active_crafts[key]
+		if craft.get("node_id", "") == node_id and craft.get("task_id", "") == task_id:
+			var start_time: int = craft.get("start_time", 0)
+			if start_time < oldest_time:
+				oldest_time = start_time
+				found_key = key
+
+	return found_key
+
 func complete_craft(node_id: String, task_id: String) -> Dictionary:
-	"""Complete a craft and return its data, or empty dict if not found"""
-	var craft_key: String = "%s:%s" % [node_id, task_id]
-	if not _active_crafts.has(craft_key):
+	"""Complete a craft and return its data, or empty dict if not found.
+	Finds the first matching craft for this node/task combo (oldest first)."""
+	var craft_key: String = _find_craft_key(node_id, task_id)
+	if craft_key.is_empty():
 		return {}
 
 	var craft_data: Dictionary = _active_crafts[craft_key]
 	_active_crafts.erase(craft_key)
+	_auto_repeat_crafts.erase(craft_key)
 
 	# Remove from node's active_tasks
 	var node: HexNode = _grid_manager.get_node_by_id(node_id)
@@ -122,9 +142,10 @@ func complete_craft(node_id: String, task_id: String) -> Dictionary:
 	return craft_data
 
 func cancel_craft(node_id: String, task_id: String) -> bool:
-	"""Cancel a specific craft. Returns true if craft was cancelled."""
-	var craft_key: String = "%s:%s" % [node_id, task_id]
-	if not _active_crafts.has(craft_key):
+	"""Cancel a specific craft. Returns true if craft was cancelled.
+	Cancels the oldest matching craft for this node/task combo."""
+	var craft_key: String = _find_craft_key(node_id, task_id)
+	if craft_key.is_empty():
 		return false
 
 	_active_crafts.erase(craft_key)
@@ -173,22 +194,26 @@ func get_active_crafts_for_node(node_id: String) -> Array:
 	return result
 
 func set_auto_repeat(node_id: String, task_id: String, enabled: bool) -> void:
-	"""Enable or disable auto-repeat for a craft"""
-	var craft_key: String = "%s:%s" % [node_id, task_id]
+	"""Enable or disable auto-repeat for a craft (affects oldest matching craft)"""
+	var craft_key: String = _find_craft_key(node_id, task_id)
+	if craft_key.is_empty():
+		return
+
 	if enabled:
 		_auto_repeat_crafts[craft_key] = true
-		# Also update the active craft data if it exists
-		if _active_crafts.has(craft_key):
-			_active_crafts[craft_key]["auto_repeat"] = true
+		_active_crafts[craft_key]["auto_repeat"] = true
 	else:
 		_auto_repeat_crafts.erase(craft_key)
-		if _active_crafts.has(craft_key):
-			_active_crafts[craft_key]["auto_repeat"] = false
+		_active_crafts[craft_key]["auto_repeat"] = false
 
 func is_auto_repeat_enabled(node_id: String, task_id: String) -> bool:
-	"""Check if auto-repeat is enabled for a craft"""
-	var craft_key: String = "%s:%s" % [node_id, task_id]
-	return _auto_repeat_crafts.has(craft_key)
+	"""Check if auto-repeat is enabled for any craft of this type on this node"""
+	for key: String in _active_crafts.keys():
+		var craft: Dictionary = _active_crafts[key]
+		if craft.get("node_id", "") == node_id and craft.get("task_id", "") == task_id:
+			if craft.get("auto_repeat", false) or _auto_repeat_crafts.has(key):
+				return true
+	return false
 
 # ==============================================================================
 # SAVE/LOAD
@@ -236,23 +261,45 @@ func _check_auto_repeat_crafts() -> void:
 			if is_auto_repeat:
 				crafts_to_restart.append(craft_data)
 
-	# Cancel crafts with no workers
+	# Cancel crafts with no workers (use stored craft_key for direct removal)
 	for craft_data: Dictionary in crafts_to_cancel:
-		var node_id: String = craft_data.get("node_id", "")
-		var task_id: String = craft_data.get("task_id", "")
-		cancel_craft(node_id, task_id)
+		var stored_key: String = craft_data.get("craft_key", "")
+		if stored_key != "" and _active_crafts.has(stored_key):
+			_active_crafts.erase(stored_key)
+			_auto_repeat_crafts.erase(stored_key)
+			var node_id: String = craft_data.get("node_id", "")
+			var task_id: String = craft_data.get("task_id", "")
+			var node: HexNode = _grid_manager.get_node_by_id(node_id)
+			if node and node.active_tasks.has(task_id):
+				# Only remove from active_tasks if no other crafts of this type
+				var still_has_task: bool = false
+				for key: String in _active_crafts.keys():
+					var c: Dictionary = _active_crafts[key]
+					if c.get("node_id", "") == node_id and c.get("task_id", "") == task_id:
+						still_has_task = true
+						break
+				if not still_has_task:
+					node.active_tasks.erase(task_id)
 
 	# Process auto-restarts
 	for craft_data: Dictionary in crafts_to_restart:
+		var old_craft_key: String = craft_data.get("craft_key", "")
 		var node_id: String = craft_data.get("node_id", "")
 		var task_id: String = craft_data.get("task_id", "")
 		var task_data: Dictionary = craft_data.get("task_data", {})
 
+		# Remove the completed craft first
+		if old_craft_key != "":
+			_active_crafts.erase(old_craft_key)
+			_auto_repeat_crafts.erase(old_craft_key)
+
 		# Double-check node still has workers (might have been cancelled above)
 		var node: HexNode = _grid_manager.get_node_by_id(node_id)
 		if not node or node.assigned_workers.is_empty():
-			var cancel_key: String = "%s:%s" % [node_id, task_id]
-			_auto_repeat_crafts.erase(cancel_key)
+			# Find and remove any auto-repeat entries for this node/task
+			for ar_key: String in _auto_repeat_crafts.keys():
+				if ar_key.begins_with("%s:%s:" % [node_id, task_id]):
+					_auto_repeat_crafts.erase(ar_key)
 			continue
 
 		# Check if we can afford the cost
@@ -263,11 +310,12 @@ func _check_auto_repeat_crafts() -> void:
 			# Award the rewards
 			_award_craft_rewards(task_data)
 
-			# Restart the craft
+			# Restart the craft with new timestamp-based key
 			var duration_seconds: int = task_data.get("base_duration_seconds", 60)
-			var craft_key: String = "%s:%s" % [node_id, task_id]
+			var new_craft_key: String = "%s:%s:%d" % [node_id, task_id, current_time]
 
-			_active_crafts[craft_key] = {
+			_active_crafts[new_craft_key] = {
+				"craft_key": new_craft_key,
 				"task_id": task_id,
 				"node_id": node_id,
 				"start_time": current_time,
@@ -275,20 +323,27 @@ func _check_auto_repeat_crafts() -> void:
 				"task_data": task_data,
 				"auto_repeat": true
 			}
+			_auto_repeat_crafts[new_craft_key] = true
 
 			craft_auto_restarted.emit(node_id, task_id)
 		else:
-			# Can't afford, disable auto-repeat
-			var disable_key: String = "%s:%s" % [node_id, task_id]
-			_auto_repeat_crafts.erase(disable_key)
+			# Can't afford, disable auto-repeat for all matching crafts
+			for ar_key: String in _auto_repeat_crafts.keys().duplicate():
+				if ar_key.begins_with("%s:%s:" % [node_id, task_id]):
+					_auto_repeat_crafts.erase(ar_key)
 
 # ==============================================================================
 # RESOURCE HELPERS
 # ==============================================================================
 
-func _get_max_crafts_for_node(_node: HexNode) -> int:
-	"""Get maximum concurrent crafts allowed for a node based on tier"""
-	return 1
+func _get_max_crafts_for_node(node: HexNode) -> int:
+	"""Get maximum concurrent crafts allowed for a node based on tier.
+	Higher tier buildings allow more simultaneous crafts:
+	T1 = 1 craft, T2 = 2 crafts, T3 = 3 crafts, T4 = 4 crafts"""
+	if not node:
+		return 1
+	# Tier is 1-indexed in HexNode (1-4)
+	return maxi(1, node.tier)
 
 func _can_afford_craft_cost(task_data: Dictionary) -> bool:
 	"""Check if player can afford the craft costs (including accumulated node resources)"""

@@ -1694,8 +1694,23 @@ func _update_tasks() -> void:
 	# Get available recipes for this building
 	_available_tasks = _get_available_recipes(craft_tier, craft_type)
 
-	# Show active crafts first (with progress bars)
+	# Calculate craft slot info (tier-based: T1=1, T2=2, T3=3, T4=4)
+	var max_craft_slots: int = maxi(1, current_node.tier)
 	var active_for_this_node = _get_active_crafts_for_node(current_node.id)
+	var active_count: int = active_for_this_node.size()
+
+	# Show craft slot status
+	var slot_label: Label = Label.new()
+	var tier_stars: String = "★".repeat(current_node.tier)
+	slot_label.text = "  %s Craft Slots: %d/%d" % [tier_stars, active_count, max_craft_slots]
+	slot_label.add_theme_font_size_override("font_size", 11)
+	if active_count >= max_craft_slots:
+		slot_label.add_theme_color_override("font_color", Color(0.9, 0.6, 0.3))  # Orange - full
+	else:
+		slot_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.6))  # Green - available
+	_tasks_container.add_child(slot_label)
+
+	# Show active crafts (with progress bars)
 	if not active_for_this_node.is_empty():
 		var active_label: Label = Label.new()
 		active_label.text = "  🔨 Active Crafting:"
@@ -1722,7 +1737,8 @@ func _update_tasks() -> void:
 
 	# Show recipe count and Craft button
 	var info_label: Label = Label.new()
-	info_label.text = "  %d recipes available" % _available_tasks.size()
+	var slots_text: String = " (%d slots free)" % (max_craft_slots - active_count) if active_count < max_craft_slots else " (FULL)"
+	info_label.text = "  %d recipes available%s" % [_available_tasks.size(), slots_text]
 	info_label.add_theme_font_size_override("font_size", 11)
 	info_label.add_theme_color_override("font_color", Color(0.8, 0.85, 0.7))
 	_tasks_container.add_child(info_label)
