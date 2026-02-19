@@ -141,7 +141,8 @@ func fetch_opponents() -> void:
 		_generate_mock_opponents()
 
 func update_defense_team(team: Array) -> void:
-	"""Update the player's defense team"""
+	"""Update the player's defense team locally (does NOT upload to Firebase)
+	Use post_defense_to_firebase() to explicitly post to arena"""
 	defense_team.clear()
 	for god: God in team:
 		defense_team.append(god)
@@ -149,11 +150,9 @@ func update_defense_team(team: Array) -> void:
 	for god: God in team:
 		if god != null:
 			defense_team_ids.append(god.id)
-
-	if _data_sync != null and _data_sync.is_ready():
-		_data_sync.upload_defense_team(_serialize_defense_team(defense_team))
-	else:
-		defense_updated.emit(true)
+	# Just emit success - team is saved locally only
+	# User must click "Post to Arena" to upload to Firebase
+	defense_updated.emit(true)
 
 func get_defense_team() -> Array[God]:
 	"""Get the current defense team"""
@@ -198,9 +197,19 @@ func can_attack_opponent(opponent_uid: String, opponent_data: Dictionary = {}) -
 	if not attack_cooldowns.has(opponent_uid):
 		return true
 
-	var cooldown_data: Dictionary = attack_cooldowns[opponent_uid]
-	var last_attack_time: float = cooldown_data.get("timestamp", 0.0)
-	var last_team_version: float = cooldown_data.get("team_version", 0.0)
+	# Handle migration from old format (float timestamp) to new format (Dictionary)
+	var raw_data: Variant = attack_cooldowns[opponent_uid]
+	var last_attack_time: float = 0.0
+	var last_team_version: float = 0.0
+
+	if raw_data is Dictionary:
+		last_attack_time = raw_data.get("timestamp", 0.0)
+		last_team_version = raw_data.get("team_version", 0.0)
+	else:
+		# Old format - just a timestamp (float/int)
+		last_attack_time = float(raw_data) if raw_data else 0.0
+		# Migrate to new format
+		attack_cooldowns[opponent_uid] = {"timestamp": last_attack_time, "team_version": 0.0}
 
 	# Check if 24h cooldown has expired
 	var elapsed: float = Time.get_unix_time_from_system() - last_attack_time
@@ -219,9 +228,18 @@ func get_attack_cooldown_remaining(opponent_uid: String, opponent_data: Dictiona
 	if not attack_cooldowns.has(opponent_uid):
 		return 0.0
 
-	var cooldown_data: Dictionary = attack_cooldowns[opponent_uid]
-	var last_attack_time: float = cooldown_data.get("timestamp", 0.0)
-	var last_team_version: float = cooldown_data.get("team_version", 0.0)
+	# Handle migration from old format (float timestamp) to new format (Dictionary)
+	var raw_data: Variant = attack_cooldowns[opponent_uid]
+	var last_attack_time: float = 0.0
+	var last_team_version: float = 0.0
+
+	if raw_data is Dictionary:
+		last_attack_time = raw_data.get("timestamp", 0.0)
+		last_team_version = raw_data.get("team_version", 0.0)
+	else:
+		# Old format - just a timestamp
+		last_attack_time = float(raw_data) if raw_data else 0.0
+		attack_cooldowns[opponent_uid] = {"timestamp": last_attack_time, "team_version": 0.0}
 
 	# If team changed, no cooldown
 	var current_team_version: float = opponent_data.get("last_defense_update", 0.0)

@@ -337,10 +337,22 @@ func _create_god_header():
 	name_label.add_theme_font_size_override("font_size", 18)
 	info_container.add_child(name_label)
 	
-	var tier_label: Label = Label.new()
-	var tier_stars: String = "★".repeat(current_god_data.get("tier", 1))
-	tier_label.text = tier_stars + " (" + str(current_god_data.get("tier", 1)) + " Star)"
-	info_container.add_child(tier_label)
+	var tier_value: int = current_god_data.get("tier", 0)
+	var tier_enum: God.TierType = tier_value as God.TierType
+
+	var tier_row := HBoxContainer.new()
+	tier_row.add_theme_constant_override("separation", 4)
+	info_container.add_child(tier_row)
+
+	var tier_stars_label := Label.new()
+	tier_stars_label.text = GodUIHelpers.get_tier_stars(tier_enum)
+	tier_stars_label.add_theme_color_override("font_color", GodUIHelpers.get_tier_color(tier_enum))
+	tier_row.add_child(tier_stars_label)
+
+	var tier_name_label := Label.new()
+	tier_name_label.text = "(%s)" % GodUIHelpers.get_tier_name(tier_enum)
+	tier_name_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	tier_row.add_child(tier_name_label)
 	
 	# Element and level
 	var element_label: Label = Label.new()

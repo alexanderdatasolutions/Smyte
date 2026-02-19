@@ -772,13 +772,14 @@ func _update_button_states():
 	if sacrifice_button:
 		sacrifice_button.disabled = not locked_in
 
-func refresh_god_list():
-	"""Refresh the god list display - uses caching for performance"""
+func refresh_god_list(force_rebuild: bool = true):
+	"""Refresh the god list display
+	force_rebuild: If true, rebuilds all cards (needed after sacrifice to show updated levels)"""
 	if not god_list or not collection_manager:
 		return
 
-	# Only do full rebuild when needed (first load, after sacrifice, sort change)
-	if _needs_full_rebuild or _cached_gods.is_empty():
+	# Full rebuild when forced, first load, or after sacrifice/sort change
+	if force_rebuild or _needs_full_rebuild or _cached_gods.is_empty():
 		_do_full_god_list_rebuild()
 	else:
 		# Just update visual state of existing cards

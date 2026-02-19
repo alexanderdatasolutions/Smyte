@@ -157,6 +157,24 @@ static func get_tier_stars_emoji(tier: God.TierType) -> String:
 static func get_tier_name_with_stars(tier: God.TierType) -> String:
 	return "%s %s" % [get_tier_name(tier), get_tier_stars(tier)]
 
+# Creates a Label node with colored tier stars
+static func create_colored_tier_stars_label(tier: God.TierType, font_size: int = 12) -> Label:
+	var label := Label.new()
+	label.text = get_tier_stars(tier)
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", get_tier_color(tier))
+	return label
+
+# Get tier color from numeric tier (for buildings/nodes - uses gold gradient)
+static func get_numeric_tier_color(tier: int) -> Color:
+	match tier:
+		1: return Color(0.5, 0.5, 0.5)      # Gray
+		2: return Color(0.4, 0.7, 0.4)      # Green
+		3: return Color(0.5, 0.5, 0.9)      # Blue
+		4: return Color(0.7, 0.4, 0.9)      # Purple
+		5: return Color(1.0, 0.8, 0.2)      # Gold
+		_: return Color(1.0, 0.6, 0.2) if tier > 5 else Color(0.5, 0.5, 0.5)  # Orange for T6+
+
 # =============================================================================
 # RARITY COLORS - For equipment (Equipment.Rarity enum)
 # =============================================================================

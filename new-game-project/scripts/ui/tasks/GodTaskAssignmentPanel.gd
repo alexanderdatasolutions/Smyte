@@ -210,12 +210,21 @@ func _create_god_card(god: God) -> Control:
 	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(info_vbox)
 
-	# Name + level + tier stars (consistent with standardized GodCard)
+	# Name + level + colored tier stars (consistent with standardized GodCard)
+	var name_row = HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 4)
+	info_vbox.add_child(name_row)
+
 	var name_label = Label.new()
-	var tier_stars: String = GodUIHelpers.get_tier_stars(god.tier)
-	name_label.text = "%s | Lv.%d %s" % [god.get_display_name(), god.level, tier_stars]
+	name_label.text = "%s | Lv.%d" % [god.get_display_name(), god.level]
 	name_label.add_theme_font_size_override("font_size", 14)
-	info_vbox.add_child(name_label)
+	name_row.add_child(name_label)
+
+	var tier_stars_label = Label.new()
+	tier_stars_label.text = GodUIHelpers.get_tier_stars(god.tier)
+	tier_stars_label.add_theme_font_size_override("font_size", 14)
+	tier_stars_label.add_theme_color_override("font_color", GodUIHelpers.get_tier_color(god.tier))
+	name_row.add_child(tier_stars_label)
 
 	# Traits
 	var traits_text = "Traits: " + ", ".join(god.get_all_traits()) if god.get_trait_count() > 0 else "No traits"

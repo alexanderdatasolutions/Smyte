@@ -8,6 +8,7 @@ var team_bonuses_container: VBoxContainer = null
 var enemy_preview_container: VBoxContainer = null
 var rewards_preview_container: VBoxContainer = null
 var stats_panel: Control = null
+var custom_section_container: VBoxContainer = null  # Container for dynamic top section updates
 
 # Callback for clear team action
 var on_clear_team: Callable
@@ -60,9 +61,12 @@ func create_stats_panel(
 	team_slots_container.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_child(team_slots_container)
 
-	# Inject custom top section if provided (e.g., tower floor info)
+	# Container for custom top section (e.g., tower floor info) - always created for dynamic updates
+	custom_section_container = VBoxContainer.new()
+	custom_section_container.add_theme_constant_override("separation", 0)
+	vbox.add_child(custom_section_container)
 	if custom_top_section:
-		vbox.add_child(custom_top_section)
+		custom_section_container.add_child(custom_top_section)
 
 	# Combat power display
 	var power_hbox: HBoxContainer = HBoxContainer.new()
@@ -184,6 +188,19 @@ func _update_team_bonuses_display(selected_team: Array) -> void:
 			bonus_row.add_child(desc_label)
 
 			team_bonuses_container.add_child(bonus_row)
+
+func update_custom_top_section(new_content: Control) -> void:
+	"""Replace the content of the custom top section (e.g., tower floor info refresh)."""
+	if not custom_section_container:
+		return
+
+	# Remove old content
+	for child: Node in custom_section_container.get_children():
+		child.queue_free()
+
+	# Add new content
+	if new_content:
+		custom_section_container.add_child(new_content)
 
 # ============================================================================
 # HELPERS

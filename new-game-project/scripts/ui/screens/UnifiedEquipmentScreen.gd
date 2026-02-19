@@ -53,6 +53,7 @@ var right_panel: PanelContainer
 var god_portrait: TextureRect
 var god_name_label: Label
 var god_info_label: Label
+var god_tier_label: Label  # Colored tier stars
 var stats_grid: GridContainer
 var equipment_slots_grid: GridContainer
 var set_bonus_container: VBoxContainer
@@ -190,11 +191,19 @@ func _create_left_panel() -> PanelContainer:
 	god_name_label.add_theme_color_override("font_color", COLOR_HEADER)
 	info_vbox.add_child(god_name_label)
 
+	var info_row := HBoxContainer.new()
+	info_row.add_theme_constant_override("separation", 4)
+	info_vbox.add_child(info_row)
+
 	god_info_label = Label.new()
 	god_info_label.text = "from the right panel"
 	god_info_label.add_theme_font_size_override("font_size", 10)
 	god_info_label.add_theme_color_override("font_color", COLOR_MUTED)
-	info_vbox.add_child(god_info_label)
+	info_row.add_child(god_info_label)
+
+	god_tier_label = Label.new()
+	god_tier_label.add_theme_font_size_override("font_size", 10)
+	info_row.add_child(god_tier_label)
 
 	# Compact stats row next to portrait
 	stats_grid = _create_stats_grid()
@@ -844,6 +853,7 @@ func _refresh_god_display():
 	if not selected_god:
 		god_name_label.text = "Select a God"
 		god_info_label.text = "from the right panel"
+		god_tier_label.text = ""
 		god_portrait.texture = null
 		_clear_stats()
 		if auto_equip_btn:
@@ -855,7 +865,9 @@ func _refresh_god_display():
 		auto_equip_btn.disabled = false
 
 	god_name_label.text = selected_god.name
-	god_info_label.text = "Lv.%d | %s | %s" % [selected_god.level, God.element_to_string(selected_god.element).capitalize(), "★".repeat(selected_god.tier + 1)]
+	god_info_label.text = "Lv.%d | %s |" % [selected_god.level, God.element_to_string(selected_god.element).capitalize()]
+	god_tier_label.text = GodUIHelpers.get_tier_stars(selected_god.tier)
+	god_tier_label.add_theme_color_override("font_color", GodUIHelpers.get_tier_color(selected_god.tier))
 
 	# Load portrait - use template_id like GodCard does
 	var god_template = selected_god.template_id if selected_god.template_id else selected_god.id

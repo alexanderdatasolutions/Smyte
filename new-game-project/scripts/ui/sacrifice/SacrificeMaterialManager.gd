@@ -405,13 +405,23 @@ func create_god_selection_card(god: God) -> Control:
 	name_label.add_theme_color_override("font_color", Color.WHITE)
 	vbox.add_child(name_label)
 	
-	# Level and tier
+	# Level and tier with colored stars
+	var level_row = HBoxContainer.new()
+	level_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	level_row.add_theme_constant_override("separation", 2)
+	vbox.add_child(level_row)
+
 	var level_label = Label.new()
-	level_label.text = "Lv.%d %s" % [god.level, get_tier_short_name(god.tier)]
+	level_label.text = "Lv.%d" % god.level
 	level_label.add_theme_font_size_override("font_size", 10)
-	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	level_label.modulate = Color.CYAN
-	vbox.add_child(level_label)
+	level_label.add_theme_color_override("font_color", Color.CYAN)
+	level_row.add_child(level_label)
+
+	var tier_stars_label = Label.new()
+	tier_stars_label.text = GodUIHelpers.get_tier_stars(god.tier)
+	tier_stars_label.add_theme_font_size_override("font_size", 10)
+	tier_stars_label.add_theme_color_override("font_color", GodUIHelpers.get_tier_color(god.tier))
+	level_row.add_child(tier_stars_label)
 	
 	# Sacrifice XP value
 	var sacrifice_value = calculate_sacrifice_value(god)

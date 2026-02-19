@@ -38,6 +38,8 @@ var sort_ascending: bool = false
 # Caching for performance (500+ gods)
 var _god_card_map: Dictionary = {}  # god.id -> card Control
 var _needs_full_rebuild: bool = true  # Flag to force rebuild
+var _batch_loading: bool = false  # Flag for batch loading in progress
+var _loading_placeholder: Control = null  # Loading indicator
 
 # Confirm button customization
 var _confirm_button_text: String = "START BATTLE"
@@ -394,13 +396,30 @@ func _refresh_gods_grid() -> void:
 		_update_card_visibility()
 
 func _do_full_grid_rebuild() -> void:
-	"""Full rebuild of gods grid - expensive, use sparingly"""
+	"""Full rebuild of gods grid - uses batched loading for 100+ gods"""
+	if _batch_loading:
+		return  # Already loading
+
 	for child: Node in available_gods_grid.get_children():
 		child.queue_free()
 	_god_card_map.clear()
 
 	var sorted_gods: Array = _sort_gods(available_gods)
+	var sorted_unavailable: Array = unavailable_gods.duplicate()
+	sorted_unavailable.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.god.name < b.god.name)
 
+	# For small collections, load synchronously
+	var total_count: int = sorted_gods.size() + sorted_unavailable.size()
+	if total_count < 100:
+		_load_gods_sync(sorted_gods, sorted_unavailable)
+	else:
+		# For large collections, batch load across frames
+		_load_gods_batched(sorted_gods, sorted_unavailable)
+
+	_needs_full_rebuild = false
+
+func _load_gods_sync(sorted_gods: Array, sorted_unavailable: Array) -> void:
+	"""Synchronous loading for small collections"""
 	for god: God in sorted_gods:
 		var already_selected: bool = _is_god_in_team(god)
 		var card_container: Control = _create_god_card_for_grid(god, "")
@@ -408,15 +427,80 @@ func _do_full_grid_rebuild() -> void:
 		available_gods_grid.add_child(card_container)
 		_god_card_map[god.id] = card_container
 
-	var sorted_unavailable: Array = unavailable_gods.duplicate()
-	sorted_unavailable.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.god.name < b.god.name)
-
 	for entry: Dictionary in sorted_unavailable:
 		var card_container: Control = _create_god_card_for_grid(entry.god, entry.assignment)
 		available_gods_grid.add_child(card_container)
 		_god_card_map[entry.god.id] = card_container
 
-	_needs_full_rebuild = false
+func _load_gods_batched(sorted_gods: Array, sorted_unavailable: Array) -> void:
+	"""Batched loading across frames for large collections (100+ gods)"""
+	_batch_loading = true
+
+	# Show loading indicator
+	_loading_placeholder = Label.new()
+	_loading_placeholder.text = "Loading %d gods..." % (sorted_gods.size() + sorted_unavailable.size())
+	_loading_placeholder.add_theme_font_size_override("font_size", 14)
+	_loading_placeholder.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
+	_loading_placeholder.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	available_gods_grid.add_child(_loading_placeholder)
+
+	# Start batched loading coroutine
+	_batch_load_coroutine(sorted_gods, sorted_unavailable)
+
+func _batch_load_coroutine(sorted_gods: Array, sorted_unavailable: Array) -> void:
+	"""Coroutine-style batched loading"""
+	const BATCH_SIZE: int = 25  # Cards per frame
+	var index: int = 0
+	var total: int = sorted_gods.size()
+
+	# Load available gods in batches
+	while index < total:
+		if not is_instance_valid(available_gods_grid):
+			_batch_loading = false
+			return
+
+		var batch_end: int = mini(index + BATCH_SIZE, total)
+		for i in range(index, batch_end):
+			var god: God = sorted_gods[i]
+			var already_selected: bool = _is_god_in_team(god)
+			var card_container: Control = _create_god_card_for_grid(god, "")
+			card_container.visible = not already_selected
+			available_gods_grid.add_child(card_container)
+			_god_card_map[god.id] = card_container
+
+		index = batch_end
+
+		# Update loading text
+		if is_instance_valid(_loading_placeholder):
+			_loading_placeholder.text = "Loading... %d/%d" % [index, total + sorted_unavailable.size()]
+
+		# Yield to next frame
+		await get_tree().process_frame
+
+	# Load unavailable gods
+	index = 0
+	total = sorted_unavailable.size()
+	while index < total:
+		if not is_instance_valid(available_gods_grid):
+			_batch_loading = false
+			return
+
+		var batch_end: int = mini(index + BATCH_SIZE, total)
+		for i in range(index, batch_end):
+			var entry: Dictionary = sorted_unavailable[i]
+			var card_container: Control = _create_god_card_for_grid(entry.god, entry.assignment)
+			available_gods_grid.add_child(card_container)
+			_god_card_map[entry.god.id] = card_container
+
+		index = batch_end
+		await get_tree().process_frame
+
+	# Remove loading indicator
+	if is_instance_valid(_loading_placeholder):
+		_loading_placeholder.queue_free()
+		_loading_placeholder = null
+
+	_batch_loading = false
 
 func _update_card_visibility() -> void:
 	"""Update visibility of cards based on selection state"""
@@ -495,7 +579,9 @@ func _create_god_card_for_grid(god: God, assignment: String = "") -> Control:
 		assignment_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		container.add_child(assignment_label)
 
-		container.tooltip_text = god.name + " is assigned to " + assignment + "\nRemove from node to use in battle"
+		container.tooltip_text = god.name + " is assigned to " + assignment + "\nClick to remove and add to team"
+		# Make garrisoned gods clickable for removal
+		container.gui_input.connect(_on_unavailable_god_clicked.bind(god, assignment, container))
 	else:
 		container.gui_input.connect(_on_god_card_clicked.bind(god, container))
 
@@ -504,6 +590,179 @@ func _create_god_card_for_grid(god: God, assignment: String = "") -> Control:
 func _on_god_card_clicked(event: InputEvent, god: God, _container: Control) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_on_god_selected(god)
+
+func _on_unavailable_god_clicked(event: InputEvent, god: God, assignment: String, _container: Control) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_show_ungarrison_confirmation(god, assignment)
+
+func _show_ungarrison_confirmation(god: God, assignment: String) -> void:
+	"""Show confirmation popup to remove god from garrison"""
+	# Check if team is full
+	var has_empty_slot: bool = false
+	for slot: Variant in selected_team:
+		if slot == null:
+			has_empty_slot = true
+			break
+
+	if not has_empty_slot:
+		var registry: Node = SystemRegistry.get_instance()
+		if registry:
+			var notification_manager: Node = registry.get_system("NotificationManager")
+			if notification_manager:
+				notification_manager.show_error("Team is full! Remove a god first.")
+		return
+
+	# Create confirmation popup
+	var popup: Control = _create_confirmation_popup(god, assignment)
+
+	# Find a suitable parent (the main UI root)
+	var parent: Node = available_gods_grid
+	while parent and not parent is Control:
+		parent = parent.get_parent()
+	if parent:
+		# Go up to find the root overlay parent
+		while parent.get_parent() and parent.get_parent() is Control:
+			parent = parent.get_parent()
+		parent.add_child(popup)
+
+func _create_confirmation_popup(god: God, assignment: String) -> Control:
+	"""Create the ungarrison confirmation popup"""
+	# Overlay background
+	var overlay: ColorRect = ColorRect.new()
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.color = Color(0, 0, 0, 0.7)
+	overlay.z_index = 100
+
+	# Click overlay to cancel
+	overlay.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed:
+			overlay.queue_free()
+	)
+
+	# Panel
+	var panel: PanelContainer = PanelContainer.new()
+	panel.custom_minimum_size = Vector2(350, 200)
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left = -175
+	panel.offset_right = 175
+	panel.offset_top = -100
+	panel.offset_bottom = 100
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	overlay.add_child(panel)
+
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.1, 0.16, 0.98)
+	style.border_color = Color(0.5, 0.4, 0.6, 0.9)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	panel.add_theme_stylebox_override("panel", style)
+
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_top", 15)
+	margin.add_theme_constant_override("margin_bottom", 15)
+	panel.add_child(margin)
+
+	var vbox: VBoxContainer = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 15)
+	margin.add_child(vbox)
+
+	# Title
+	var title: Label = Label.new()
+	title.text = "Remove from Assignment?"
+	title.add_theme_font_size_override("font_size", 16)
+	title.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	# God info
+	var info: Label = Label.new()
+	info.text = "%s is currently assigned to:\n%s" % [god.name, assignment]
+	info.add_theme_font_size_override("font_size", 13)
+	info.add_theme_color_override("font_color", Color(0.8, 0.8, 0.85))
+	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(info)
+
+	# Question
+	var question: Label = Label.new()
+	question.text = "Remove and add to battle team?"
+	question.add_theme_font_size_override("font_size", 12)
+	question.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+	question.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(question)
+
+	# Buttons
+	var buttons: HBoxContainer = HBoxContainer.new()
+	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+	buttons.add_theme_constant_override("separation", 20)
+	vbox.add_child(buttons)
+
+	var cancel_btn: Button = Button.new()
+	cancel_btn.text = "Cancel"
+	cancel_btn.custom_minimum_size = Vector2(100, 35)
+	cancel_btn.pressed.connect(func() -> void: overlay.queue_free())
+	_style_button(cancel_btn, false)
+	buttons.add_child(cancel_btn)
+
+	var confirm_btn: Button = Button.new()
+	confirm_btn.text = "Yes, Remove"
+	confirm_btn.custom_minimum_size = Vector2(120, 35)
+	confirm_btn.pressed.connect(func() -> void:
+		overlay.queue_free()
+		_ungarrison_and_add_to_team(god, assignment)
+	)
+	_style_button(confirm_btn, true)
+	buttons.add_child(confirm_btn)
+
+	return overlay
+
+func _ungarrison_and_add_to_team(god: God, assignment: String) -> void:
+	"""Remove god from garrison/worker and add to team"""
+	var registry: Node = SystemRegistry.get_instance()
+	if not registry:
+		return
+
+	var territory_manager: Node = registry.get_system("TerritoryManager")
+	if not territory_manager:
+		return
+
+	# Find and remove from the node
+	var controlled_nodes: Array = territory_manager.get_controlled_nodes()
+	for hex_node: Variant in controlled_nodes:
+		# Check garrison
+		var garrison_idx: int = hex_node.garrison.find(god.id)
+		if garrison_idx != -1:
+			hex_node.garrison.remove_at(garrison_idx)
+			god.stationed_territory = ""
+			break
+
+		# Check workers
+		var worker_idx: int = hex_node.assigned_workers.find(god.id)
+		if worker_idx != -1:
+			hex_node.assigned_workers.remove_at(worker_idx)
+			god.stationed_territory = ""
+			break
+
+	# Move god from unavailable to available
+	for i: int in range(unavailable_gods.size()):
+		if unavailable_gods[i].god.id == god.id:
+			unavailable_gods.remove_at(i)
+			available_gods.append(god)
+			break
+
+	# Add to team
+	_on_god_selected(god)
+
+	# Rebuild grid to reflect the change
+	_needs_full_rebuild = true
+	_refresh_gods_grid()
+
+	# Show notification
+	var notification_manager: Node = registry.get_system("NotificationManager")
+	if notification_manager:
+		notification_manager.show_notification("%s removed from %s and added to team" % [god.name, assignment], "success")
 
 func _on_god_selected(god: God) -> void:
 	for i: int in range(selected_team.size()):
@@ -844,3 +1103,6 @@ func hide_section(section: String) -> void:
 func inject_top_section(content: Control) -> void:
 	"""Inject a custom section at the top of the left panel (e.g., tower floor info)."""
 	_custom_top_section = content
+	# If panel already exists, update it dynamically
+	if _stats_panel_helper:
+		_stats_panel_helper.update_custom_top_section(content)

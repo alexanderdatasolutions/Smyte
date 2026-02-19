@@ -157,6 +157,7 @@ func _parse_opponent_results(result: Variant, min_elo: int, max_elo: int, count:
 		var defense_power: Variant = _get_doc_value(doc, "defense_power")
 		var opp_wins: Variant = _get_doc_value(doc, "wins")
 		var opp_losses: Variant = _get_doc_value(doc, "losses")
+		var last_defense_update: Variant = _get_doc_value(doc, "last_defense_update")
 
 		var opponent: Dictionary = {
 			"user_id": user_id,
@@ -166,7 +167,8 @@ func _parse_opponent_results(result: Variant, min_elo: int, max_elo: int, count:
 			"defense_team": defense_team,
 			"defense_power": int(defense_power) if defense_power != null else 0,
 			"wins": int(opp_wins) if opp_wins != null else 0,
-			"losses": int(opp_losses) if opp_losses != null else 0
+			"losses": int(opp_losses) if opp_losses != null else 0,
+			"last_defense_update": float(last_defense_update) if last_defense_update != null else 0.0
 		}
 
 		# Validate defense team exists

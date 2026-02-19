@@ -246,7 +246,8 @@ func _on_skin_chosen(skin_id: String) -> void:
 	# Equip it
 	_skin_manager.equip_skin(_god_id, skin_id)
 
-	# Clear pending
+	# Mark free skin as claimed and clear pending
+	_skin_manager.set_free_skin_claimed()
 	_skin_manager.clear_pending_free_skin_god()
 
 	print("FreeSkinPickPopup: Player chose skin '%s' for god '%s'" % [skin_id, _god_id])
@@ -257,6 +258,8 @@ func _on_skin_chosen(skin_id: String) -> void:
 func _on_skip_pressed() -> void:
 	"""Handle skip button - player can choose later from collection"""
 	if _skin_manager:
+		# Mark as claimed even if skipped (they chose to skip)
+		_skin_manager.set_free_skin_claimed()
 		_skin_manager.clear_pending_free_skin_god()
 
 	popup_closed.emit()

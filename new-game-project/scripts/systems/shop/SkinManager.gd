@@ -20,6 +20,7 @@ var _equipped_skins: Dictionary = {}  # god_id (instance) -> skin_id
 
 # Pending free skin pick (set when legendary reaches L40)
 var _pending_free_skin_god: String = ""
+var _free_skin_claimed: bool = false  # Track if the free skin reward was claimed
 
 # System references
 var _resource_manager: Node = null
@@ -119,7 +120,7 @@ func _get_god_template_id(god_id: String) -> String:
 # ==============================================================================
 
 func equip_skin(god_id: String, skin_id: String) -> bool:
-	"""Equip a skin on a god"""
+	"""Equip a skin on a specific god instance"""
 	if not is_skin_owned(skin_id):
 		push_warning("SkinManager: Cannot equip unowned skin: %s" % skin_id)
 		return false
@@ -134,7 +135,7 @@ func equip_skin(god_id: String, skin_id: String) -> bool:
 		push_warning("SkinManager: Skin %s is not for god template %s" % [skin_id, template_id])
 		return false
 
-	# Update god's equipped_skin_id
+	# Update this specific god instance
 	if _collection_manager:
 		var god: God = _collection_manager.get_god_by_id(god_id)
 		if god:
@@ -146,7 +147,7 @@ func equip_skin(god_id: String, skin_id: String) -> bool:
 	return true
 
 func unequip_skin(god_id: String) -> bool:
-	"""Remove equipped skin from a god"""
+	"""Remove equipped skin from a specific god instance"""
 	if _collection_manager:
 		var god: God = _collection_manager.get_god_by_id(god_id)
 		if god:
@@ -272,7 +273,8 @@ func purchase_skin(skin_id: String) -> bool:
 func get_save_data() -> Dictionary:
 	return {
 		"owned_skins": _owned_skins.duplicate(),
-		"equipped_skins": _equipped_skins.duplicate()
+		"equipped_skins": _equipped_skins.duplicate(),
+		"free_skin_claimed": _free_skin_claimed
 	}
 
 func load_save_data(data: Dictionary) -> void:
@@ -280,9 +282,18 @@ func load_save_data(data: Dictionary) -> void:
 		_owned_skins = data.owned_skins.duplicate()
 	if data.has("equipped_skins"):
 		_equipped_skins = data.equipped_skins.duplicate()
+	if data.has("free_skin_claimed"):
+		_free_skin_claimed = data.free_skin_claimed
 
 	# Sync equipped skins to God objects (deferred to ensure CollectionManager is ready)
 	call_deferred("_sync_equipped_skins_to_gods")
+
+func is_free_skin_claimed() -> bool:
+	return _free_skin_claimed
+
+func set_free_skin_claimed() -> void:
+	_free_skin_claimed = true
+	print("SkinManager: Free skin claimed!")
 
 func _sync_equipped_skins_to_gods() -> void:
 	"""Sync equipped_skins dictionary to God.equipped_skin_id on load"""

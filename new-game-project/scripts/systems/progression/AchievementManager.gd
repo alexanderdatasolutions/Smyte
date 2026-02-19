@@ -259,22 +259,30 @@ func _check_max_god_level_achievements(current_max_level: int) -> void:
 
 func _check_legendary_god_level_40_achievement(god_id: String, new_level: int) -> void:
 	"""Check if a legendary god reached level 40 - triggers skin unlock"""
+	print("AchievementManager: _check_legendary_god_level_40 called for god '%s' level %d" % [god_id, new_level])
+
 	if new_level < 40:
+		print("AchievementManager: Level %d < 40, skipping" % new_level)
 		return
 
 	if is_achievement_completed("legendary_champion"):
+		print("AchievementManager: legendary_champion already completed")
 		return
 
 	if not _collection_manager:
+		print("AchievementManager: No collection manager!")
 		return
 
 	# Get the god that just leveled up
 	var god: God = _collection_manager.get_god_by_id(god_id)
 	if not god:
+		print("AchievementManager: God not found by id '%s'" % god_id)
 		return
 
 	# Check if this god is legendary (tier 3 = LEGENDARY in enum)
+	print("AchievementManager: God tier is %d (LEGENDARY=%d)" % [god.tier, God.TierType.LEGENDARY])
 	if god.tier != God.TierType.LEGENDARY:
+		print("AchievementManager: God is not legendary, skipping")
 		return
 
 	# This is a legendary god at level 40+, complete the achievement

@@ -203,6 +203,10 @@ func _load_recipes_for_current_forge() -> void:
 	# Load crafting recipes from cached data
 	_load_config()
 
+	print("[CraftingScreen] Loading recipes for forge: %s (tile tier: %d, building: %s)" % [
+		_current_node.name, _current_node.tier, _current_node.placed_building])
+
+	var t2_equipment_count: int = 0
 	for recipe_id: String in _crafting_recipes:
 		var recipe: Dictionary = _crafting_recipes[recipe_id].duplicate()
 		recipe["id"] = recipe_id
@@ -211,6 +215,10 @@ func _load_recipes_for_current_forge() -> void:
 		var required_tier: int = recipe.get("tier", 1)
 		if _current_node.tier >= required_tier:
 			_all_recipes.append(recipe)
+			if required_tier == 2 and recipe.has("equipment_type"):
+				t2_equipment_count += 1
+
+	print("[CraftingScreen] Loaded %d total recipes, %d T2 equipment recipes" % [_all_recipes.size(), t2_equipment_count])
 
 	_filtered_recipes = _all_recipes.duplicate()
 
@@ -709,9 +717,25 @@ func _format_set_bonus(bonus_data: Dictionary) -> String:
 		elif stat == "crit_damage":
 			parts.append("+%d%% CritDmg" % value)
 		elif stat == "resistance":
-			parts.append("+%d RES" % value)
+			parts.append("+%d%% RES" % value)
 		elif stat == "accuracy":
-			parts.append("+%d ACC" % value)
+			parts.append("+%d%% ACC" % value)
+		elif stat == "lifesteal":
+			parts.append("+%d%% Lifesteal" % value)
+		elif stat == "stun_chance":
+			parts.append("+%d%% Stun" % value)
+		elif stat == "extra_turn_chance":
+			parts.append("+%d%% Extra Turn" % value)
+		elif stat == "counter_chance":
+			parts.append("+%d%% Counter" % value)
+		elif stat == "immunity_turns":
+			parts.append("+%d Turn Immunity" % value)
+		elif stat == "pvp_attack":
+			parts.append("+%d%% PvP ATK" % value)
+		elif stat == "pvp_defense":
+			parts.append("+%d%% PvP DEF" % value)
+		elif stat == "defense_ignore":
+			parts.append("Ignore %d%% DEF" % value)
 		else:
 			parts.append("+%d %s" % [value, stat_name])
 	return ", ".join(parts)

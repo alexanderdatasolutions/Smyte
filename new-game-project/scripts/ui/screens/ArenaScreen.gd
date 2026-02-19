@@ -43,6 +43,10 @@ var is_showing_leaderboard: bool = false
 var _waiting_for_post_result: bool = false
 var _pvp_battle_callback: Callable  # Stores bound callable for proper disconnect
 
+# Auto-refresh timer
+var _auto_refresh_timer: Timer = null
+const AUTO_REFRESH_INTERVAL: float = 10.0  # Refresh opponents every 10 seconds
+
 # System reference helper
 func _get_system_registry():
 	var registry_script = load("res://scripts/systems/core/SystemRegistry.gd")
@@ -55,7 +59,24 @@ func _ready() -> void:
 	_init_systems()
 	_build_ui()
 	_setup_unified_header()
+	_setup_auto_refresh_timer()
 	_refresh_data()
+
+func _setup_auto_refresh_timer() -> void:
+	"""Create timer for auto-refreshing opponents while screen is visible"""
+	_auto_refresh_timer = Timer.new()
+	_auto_refresh_timer.wait_time = AUTO_REFRESH_INTERVAL
+	_auto_refresh_timer.one_shot = false
+	_auto_refresh_timer.timeout.connect(_on_auto_refresh_timeout)
+	add_child(_auto_refresh_timer)
+	# Start if already visible
+	if visible:
+		_auto_refresh_timer.start()
+
+func _on_auto_refresh_timeout() -> void:
+	"""Called every 10 seconds to refresh opponent list"""
+	if arena_manager and visible:
+		arena_manager.fetch_opponents()
 
 func _setup_fullscreen() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -91,6 +112,13 @@ func _on_visibility_changed() -> void:
 		_update_header_for_screen()
 		_refresh_data()
 		_check_intro_tutorial()
+		# Start auto-refresh timer when screen becomes visible
+		if _auto_refresh_timer:
+			_auto_refresh_timer.start()
+	else:
+		# Stop auto-refresh when screen is hidden
+		if _auto_refresh_timer:
+			_auto_refresh_timer.stop()
 
 func _check_intro_tutorial() -> void:
 	"""Check if intro tutorial should be shown for this screen."""

@@ -215,6 +215,116 @@
         "4": {"defense": 55, "hp": 275, "attack": 25},
         "6": {"defense": 80, "hp": 450, "attack": 50, "special_effect": "counter_attack", "effect_chance": 0.20, "effect_comment": "20% chance to counter-attack when hit"}
       }
+    },
+    "zephyr": {
+      "name": "Breath of Zephyros",
+      "description": "The west wind grants swiftness beyond mortal limits",
+      "focus": "Speed",
+      "bonuses": {
+        "2": {"speed": 20},
+        "4": {"speed": 35, "attack": 20},
+        "6": {"speed": 50, "attack": 45, "special_effect": "wind_dancer", "effect_comment": "15% chance to dodge attacks; +25% damage on turn after dodging"}
+      }
+    },
+    "fury": {
+      "name": "Rage of the Titans",
+      "description": "Channel the primordial fury of the Titans into devastating strikes",
+      "focus": "Crit Damage",
+      "bonuses": {
+        "2": {"crit_damage": 20},
+        "4": {"crit_damage": 40, "attack": 25},
+        "6": {"crit_damage": 65, "attack": 50, "special_effect": "titan_wrath", "effect_comment": "Critical hits deal +30% bonus damage and reduce target DEF by 15% for 2 turns"}
+      }
+    },
+    "precision": {
+      "name": "Eyes of Argus",
+      "description": "The hundred-eyed giant sees every weakness",
+      "focus": "Crit Rate",
+      "bonuses": {
+        "2": {"crit_rate": 12},
+        "4": {"crit_rate": 20, "accuracy": 15},
+        "6": {"crit_rate": 30, "accuracy": 25, "special_effect": "all_seeing", "effect_comment": "Attacks cannot miss; crits ignore 20% of enemy defense"}
+      }
+    },
+    "fortitude": {
+      "name": "Blessing of Asclepius",
+      "description": "The healing god's blessing wards against afflictions",
+      "focus": "Resistance",
+      "bonuses": {
+        "2": {"resistance": 20, "hp": 100},
+        "4": {"resistance": 35, "hp": 225, "defense": 20},
+        "6": {"resistance": 50, "hp": 400, "defense": 40, "special_effect": "divine_cure", "effect_comment": "Cleanse 1 debuff at start of each turn; +30% healing received"}
+      }
+    },
+    "siphon": {
+      "name": "Embrace of Thanatos",
+      "description": "Death's touch drains the life force of your enemies",
+      "focus": "Lifesteal",
+      "bonuses": {
+        "2": {"attack": 18, "special_effect": "life_steal", "effect_value": 0.10},
+        "4": {"attack": 40, "hp": 200, "special_effect": "life_steal", "effect_value": 0.18},
+        "6": {"attack": 70, "hp": 375, "special_effect": "death_embrace", "effect_value": 0.25, "effect_comment": "25% lifesteal; killing blows heal for additional 20% max HP"}
+      }
+    },
+    "thunderstrike": {
+      "name": "Wrath of Talos",
+      "description": "The bronze giant's crushing blows stun all who oppose",
+      "focus": "Stun",
+      "bonuses": {
+        "2": {"attack": 20, "accuracy": 10},
+        "4": {"attack": 45, "accuracy": 18, "special_effect": "stun_chance", "effect_value": 0.15},
+        "6": {"attack": 75, "accuracy": 28, "special_effect": "colossus_strike", "effect_chance": 0.25, "effect_comment": "25% chance to stun for 1 turn; stunned enemies take +25% damage"}
+      }
+    },
+    "relentless": {
+      "name": "Hunt of Orion",
+      "description": "The tireless hunter strikes again and again",
+      "focus": "Extra Turns",
+      "bonuses": {
+        "2": {"speed": 12, "attack": 15},
+        "4": {"speed": 22, "attack": 35, "special_effect": "extra_turn", "effect_value": 0.12},
+        "6": {"speed": 35, "attack": 60, "special_effect": "eternal_hunt", "effect_value": 0.22, "effect_comment": "22% chance for extra turn after attacking; +15% damage on extra turns"}
+      }
+    },
+    "nemesis": {
+      "name": "Scales of Nemesis",
+      "description": "Divine retribution answers every attack in kind",
+      "focus": "Counter",
+      "bonuses": {
+        "2": {"defense": 25, "attack": 15},
+        "4": {"defense": 45, "attack": 35, "special_effect": "counter", "effect_value": 0.18},
+        "6": {"defense": 70, "attack": 55, "hp": 300, "special_effect": "divine_judgment", "effect_chance": 0.30, "effect_comment": "30% counter chance; counters deal 120% damage and cannot be evaded"}
+      }
+    },
+    "resolve": {
+      "name": "Shield of Perseus",
+      "description": "The legendary shield that turned aside even Medusa's gaze",
+      "focus": "Immunity",
+      "bonuses": {
+        "2": {"defense": 30, "resistance": 15},
+        "4": {"defense": 55, "resistance": 25, "hp": 200},
+        "6": {"defense": 85, "resistance": 40, "hp": 400, "special_effect": "mirror_shield", "effect_comment": "Immune to debuffs for first 2 turns; reflect first CC effect back to attacker"}
+      }
+    },
+    "conquest": {
+      "name": "March of Achilles",
+      "description": "The greatest warrior's fury dominates the arena",
+      "focus": "PvP Offense",
+      "bonuses": {
+        "2": {"attack": 25, "speed": 10},
+        "4": {"attack": 55, "speed": 18, "crit_rate": 8},
+        "6": {"attack": 95, "speed": 28, "crit_rate": 15, "special_effect": "champions_fury", "effect_comment": "In PvP: +20% damage, ignore 15% enemy DEF, first kill grants extra turn"}
+      }
+    },
+    "eternal": {
+      "name": "Armor of Hephaestus",
+      "description": "Divine craftsmanship creates impenetrable protection",
+      "focus": "PvP Defense",
+      "bonuses": {
+        "2": {"defense": 35, "hp": 150},
+        "4": {"defense": 65, "hp": 325, "resistance": 15},
+        "6": {"defense": 100, "hp": 550, "resistance": 28, "special_effect": "divine_aegis", "effect_comment": "In PvP: +25% damage reduction, start with 20% HP shield, immune to 1-shot kills"}
+      }
     }
   },
   "stat_ranges": {

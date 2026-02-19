@@ -233,11 +233,9 @@ func _on_feature_unlocked(_feature_name: String, _feature_data: Dictionary):
 
 func _on_achievement_completed(achievement_id: String, _achievement_data: Dictionary):
 	"""Handle achievement completion - may unlock features"""
+	print("WorldView: Achievement completed received: %s" % achievement_id)
 	_update_button_visibility()
-
-	# Show free skin pick popup for legendary_champion achievement
-	if achievement_id == "legendary_champion":
-		_show_free_skin_popup()
+	# Note: Free skin popup is now handled by MainUIOverlay (always visible)
 
 func _update_button_visibility():
 	"""Update button visibility based on unlocked features"""
@@ -528,19 +526,25 @@ func get_button_for_tutorial(button_id: String) -> Control:
 
 func _show_free_skin_popup() -> void:
 	"""Show the free skin selection popup when legendary_champion achievement is completed"""
+	print("WorldView: _show_free_skin_popup called")
 	var system_registry = _get_system_registry()
 	if not system_registry:
+		print("WorldView: No system registry!")
 		return
 
 	var skin_manager: Node = system_registry.get_system("SkinManager")
 	if not skin_manager:
+		print("WorldView: No skin manager!")
 		return
 
 	var pending_god_id: String = skin_manager.get_pending_free_skin_god()
+	print("WorldView: Pending god ID = '%s'" % pending_god_id)
 	if pending_god_id.is_empty():
+		print("WorldView: No pending god ID, aborting popup")
 		return
 
 	# Create and show the popup
+	print("WorldView: Creating FreeSkinPickPopup for god '%s'" % pending_god_id)
 	var popup: FreeSkinPickPopup = FreeSkinPickPopup.new()
 	add_child(popup)
 	popup.show_for_god(pending_god_id)

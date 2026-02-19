@@ -157,7 +157,10 @@ func _style_tab_container():
 	tab_container.add_theme_constant_override("h_separation", 12)  # Add 12px horizontal spacing between tabs
 
 func _on_sacrifice_completed(_xp_gained: int):
-	"""Handle sacrifice completion - refresh awakening tab if needed"""
+	"""Handle sacrifice completion - refresh both tabs"""
+	# Refresh sacrifice tab to show updated god levels
+	if sacrifice_tab_builder:
+		sacrifice_tab_builder.refresh_god_list()
 	# Refresh awakening tab in case sacrifice affects awakening options
 	if awakening_tab_builder:
 		awakening_tab_builder.refresh_awakening_god_list()

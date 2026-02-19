@@ -108,7 +108,7 @@ func _build_popup() -> void:
 
 	# Subtitle
 	var subtitle: Label = Label.new()
-	subtitle.text = "Select a god to change their skin"
+	subtitle.text = "Legendary gods at L40+ can equip skins"
 	subtitle.add_theme_font_size_override("font_size", 14)
 	subtitle.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
 	main_vbox.add_child(subtitle)
@@ -213,22 +213,29 @@ func _populate_god_list() -> void:
 		child.queue_free()
 
 	var gods: Array = _collection_manager.get_all_gods()
-	var gods_with_skins: Array = []
+	var eligible_gods: Array = []
 
-	# Filter to gods that have OWNED skins (unowned skins are secret/hidden)
+	# Only show legendary gods at level 40+ (skin-eligible)
 	for god: God in gods:
+		if god.tier != God.TierType.LEGENDARY or god.level < 40:
+			continue  # Must be legendary L40+ to use skins
+
 		var owned_skins: Array = _skin_manager.get_owned_skins_for_god(god.id)
 		if not owned_skins.is_empty():
-			gods_with_skins.append(god)
+			eligible_gods.append(god)
 
-	if gods_with_skins.is_empty():
+	if eligible_gods.is_empty():
 		var no_gods_label: Label = Label.new()
-		no_gods_label.text = "No skins unlocked yet"
+		no_gods_label.text = "No eligible gods\n(Legendary L40+ with skins)"
+		no_gods_label.add_theme_font_size_override("font_size", 12)
 		no_gods_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
 		_god_list_container.add_child(no_gods_label)
 		return
 
-	for god: God in gods_with_skins:
+	# Sort by name for consistent display
+	eligible_gods.sort_custom(func(a: God, b: God) -> bool: return a.name < b.name)
+
+	for god: God in eligible_gods:
 		var god_btn: Button = Button.new()
 		god_btn.text = god.name
 		god_btn.custom_minimum_size = Vector2(180, 40)

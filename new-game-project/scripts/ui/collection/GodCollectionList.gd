@@ -34,6 +34,8 @@ enum SortType { POWER, LEVEL, TIER, ELEMENT, NAME }
 var current_sort: SortType = SortType.POWER
 var sort_ascending: bool = false
 var current_filters: Dictionary = {}
+var _batch_loading: bool = false
+var _loading_label: Label = null
 
 # UI Components
 var sort_buttons: Array = []
@@ -129,36 +131,84 @@ func _setup_god_list():
 
 func refresh_display():
 	"""Refresh the god list display - RULE 4: Read-only data access"""
-	
+
 	if not collection_manager:
 		return
-	
+
 	# Make sure UI is ready
 	if not god_grid:
 		return
-	
+
+	# Don't refresh if batch loading in progress
+	if _batch_loading:
+		return
+
 	# Clear existing cards
 	for child in god_grid.get_children():
 		child.queue_free()
-	
+
 	# Get gods from collection manager
 	var gods_result = collection_manager.get_owned_gods()
 	if not gods_result.success:
 		return
-	
+
 	var gods = gods_result.data
-	
+
 	# Apply current filters
 	gods = _apply_filters(gods)
-	
+
 	# Sort gods
 	gods = _sort_gods(gods)
-	
-	# Create god cards
-	for god in gods:
-		var card = _create_god_card(god)
-		if card:
-			god_grid.add_child(card)
+
+	# Use batched loading for large collections
+	if gods.size() > 100:
+		_load_gods_batched(gods)
+	else:
+		for god in gods:
+			var card = _create_god_card(god)
+			if card:
+				god_grid.add_child(card)
+
+func _load_gods_batched(gods: Array) -> void:
+	"""Load gods in batches to prevent UI freeze"""
+	_batch_loading = true
+
+	# Show loading indicator
+	_loading_label = Label.new()
+	_loading_label.text = "Loading %d gods..." % gods.size()
+	_loading_label.add_theme_font_size_override("font_size", 14)
+	_loading_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
+	god_grid.add_child(_loading_label)
+
+	const BATCH_SIZE: int = 25
+	var index: int = 0
+	var total: int = gods.size()
+
+	while index < total:
+		if not is_instance_valid(god_grid):
+			_batch_loading = false
+			return
+
+		var batch_end: int = mini(index + BATCH_SIZE, total)
+		for i in range(index, batch_end):
+			var card = _create_god_card(gods[i])
+			if card:
+				god_grid.add_child(card)
+
+		index = batch_end
+
+		# Update loading text
+		if is_instance_valid(_loading_label):
+			_loading_label.text = "Loading... %d/%d" % [index, total]
+
+		await get_tree().process_frame
+
+	# Remove loading indicator
+	if is_instance_valid(_loading_label):
+		_loading_label.queue_free()
+		_loading_label = null
+
+	_batch_loading = false
 	
 
 func apply_filters(filters: Dictionary):
@@ -300,13 +350,23 @@ func _create_god_card(god: Dictionary):
 	name_label.add_theme_color_override("font_color", Color.WHITE)
 	vbox.add_child(name_label)
 	
-	# Level and tier (compact, SW style)
+	# Level and tier (compact, SW style) with colored stars
+	var level_row = HBoxContainer.new()
+	level_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	level_row.add_theme_constant_override("separation", 2)
+	vbox.add_child(level_row)
+
 	var level_label = Label.new()
-	level_label.text = "Lv.%d %s" % [god.get("level", 1), GodUIHelpers.get_tier_stars(tier_enum)]
+	level_label.text = "Lv.%d" % god.get("level", 1)
 	level_label.add_theme_font_size_override("font_size", 10)
-	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	level_label.modulate = Color.CYAN
-	vbox.add_child(level_label)
+	level_label.add_theme_color_override("font_color", Color.CYAN)
+	level_row.add_child(level_label)
+
+	var tier_stars_label = Label.new()
+	tier_stars_label.text = GodUIHelpers.get_tier_stars(tier_enum)
+	tier_stars_label.add_theme_font_size_override("font_size", 10)
+	tier_stars_label.add_theme_color_override("font_color", GodUIHelpers.get_tier_color(tier_enum))
+	level_row.add_child(tier_stars_label)
 	
 	# Element and power (compact with emojis)
 	var info_label = Label.new()

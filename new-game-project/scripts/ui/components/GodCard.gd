@@ -20,11 +20,14 @@ enum CardStyle { NORMAL, SELECTED, AWAKENING_READY, BATTLE_READY }
 # Internal references
 var god_data: God = null
 var current_style: CardStyle = CardStyle.NORMAL
+var _image_loaded: bool = false  # Lazy loading flag
+var _sprite_path: String = ""    # Cached path for lazy load
 
 # UI Elements
 var god_image: TextureRect
 var info_panel: PanelContainer  # Container for text info
-var name_row_label: Label      # "Lv.X Name ★★★"
+var name_row_label: Label      # "Lv.X Name"
+var tier_stars_label: Label    # Colored tier stars
 var stats_row_label: Label     # "⚔Power 🛡X/6"
 var location_label: Label      # "📍Location"
 var awakening_indicator: Label
@@ -83,11 +86,18 @@ func _setup_card_structure():
 	info_vbox.add_theme_constant_override("separation", 0)
 	info_panel.add_child(info_vbox)
 
-	# Name row: "Lv.X Name ★★★"
+	# Name row: "Lv.X Name" + colored stars
+	var name_row := HBoxContainer.new()
+	name_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	name_row.add_theme_constant_override("separation", 2)
+	info_vbox.add_child(name_row)
+
 	name_row_label = Label.new()
-	name_row_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_row_label.add_theme_color_override("font_color", Color.WHITE)
-	info_vbox.add_child(name_row_label)
+	name_row.add_child(name_row_label)
+
+	tier_stars_label = Label.new()
+	name_row.add_child(tier_stars_label)
 
 	# Stats row: "⚔Power 🛡X/6"
 	if show_power_rating or show_equipment_status:
@@ -126,6 +136,8 @@ func _apply_card_size():
 			_set_margins(1, 1, 1, 1)
 			god_image.custom_minimum_size = Vector2(98, 98)
 			name_row_label.add_theme_font_size_override("font_size", 10)
+			if tier_stars_label:
+				tier_stars_label.add_theme_font_size_override("font_size", 10)
 			if stats_row_label:
 				stats_row_label.add_theme_font_size_override("font_size", 9)
 			if location_label:
@@ -136,6 +148,8 @@ func _apply_card_size():
 			_set_margins(1, 1, 1, 1)
 			god_image.custom_minimum_size = Vector2(118, 118)
 			name_row_label.add_theme_font_size_override("font_size", 11)
+			if tier_stars_label:
+				tier_stars_label.add_theme_font_size_override("font_size", 11)
 			if stats_row_label:
 				stats_row_label.add_theme_font_size_override("font_size", 10)
 			if location_label:
@@ -146,6 +160,8 @@ func _apply_card_size():
 			_set_margins(1, 1, 1, 1)
 			god_image.custom_minimum_size = Vector2(143, 143)
 			name_row_label.add_theme_font_size_override("font_size", 13)
+			if tier_stars_label:
+				tier_stars_label.add_theme_font_size_override("font_size", 13)
 			if stats_row_label:
 				stats_row_label.add_theme_font_size_override("font_size", 11)
 			if location_label:
@@ -163,23 +179,26 @@ func _populate_god_data():
 	if not god_data:
 		return
 
-	# Load god image (with skin support)
+	# Store sprite path for lazy loading - don't load texture yet
 	if god_image:
-		var sprite_path: String = GodPortraitHelper.get_portrait_path(god_data)
-		if ResourceLoader.exists(sprite_path):
-			god_image.texture = load(sprite_path)
-		else:
-			var placeholder_image = ImageTexture.new()
-			var image = Image.create(100, 100, false, Image.FORMAT_RGB8)
-			var element_color := GodUIHelpers.get_element_color(god_data.element)
-			image.fill(element_color)
-			placeholder_image.set_image(image)
-			god_image.texture = placeholder_image
+		_sprite_path = GodPortraitHelper.get_portrait_path(god_data)
+		_image_loaded = false
+		# Set placeholder color immediately (very fast)
+		var placeholder_image = ImageTexture.new()
+		var image = Image.create(8, 8, false, Image.FORMAT_RGB8)
+		var element_color := GodUIHelpers.get_element_color(god_data.element)
+		image.fill(element_color)
+		placeholder_image.set_image(image)
+		god_image.texture = placeholder_image
+		# Schedule lazy load
+		_schedule_lazy_load()
 
-	# Name row: "Lv.X Name ★★★"
+	# Name row: "Lv.X Name" + colored stars
 	if name_row_label:
-		var tier_stars: String = GodUIHelpers.get_tier_stars(god_data.tier)
-		name_row_label.text = "Lv.%d %s %s" % [god_data.level, god_data.name, tier_stars]
+		name_row_label.text = "Lv.%d %s" % [god_data.level, god_data.name]
+	if tier_stars_label:
+		tier_stars_label.text = GodUIHelpers.get_tier_stars(god_data.tier)
+		tier_stars_label.add_theme_color_override("font_color", GodUIHelpers.get_tier_color(god_data.tier))
 
 	# Stats row: "⚔Power 🛡X/6"
 	if stats_row_label:
@@ -212,6 +231,21 @@ func _populate_god_data():
 			awakening_indicator.visible = true
 		else:
 			awakening_indicator.visible = false
+
+func _schedule_lazy_load() -> void:
+	"""Schedule texture loading for next frame to avoid blocking"""
+	if _image_loaded or _sprite_path.is_empty():
+		return
+	# Use call_deferred to load texture after current frame
+	call_deferred("_do_lazy_load")
+
+func _do_lazy_load() -> void:
+	"""Actually load the texture (called deferred)"""
+	if _image_loaded or not is_instance_valid(god_image):
+		return
+	if ResourceLoader.exists(_sprite_path):
+		god_image.texture = load(_sprite_path)
+	_image_loaded = true
 
 func _apply_card_style():
 	var style = StyleBoxFlat.new()

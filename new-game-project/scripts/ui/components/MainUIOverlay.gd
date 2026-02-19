@@ -109,6 +109,18 @@ func _connect_to_systems():
 		if notification_manager and notification_manager.has_signal("notification_shown"):
 			notification_manager.notification_shown.connect(_on_notification_shown)
 
+		# Connect to AchievementManager for skin unlock popup
+		var achievement_manager = system_registry.get_system("AchievementManager")
+		if achievement_manager and achievement_manager.has_signal("achievement_completed"):
+			if not achievement_manager.achievement_completed.is_connected(_on_achievement_completed):
+				achievement_manager.achievement_completed.connect(_on_achievement_completed)
+
+		# Connect to EventBus for game_loaded to check unclaimed free skin
+		var event_bus = system_registry.get_system("EventBus")
+		if event_bus and event_bus.has_signal("game_loaded"):
+			if not event_bus.game_loaded.is_connected(_on_game_loaded):
+				event_bus.game_loaded.connect(_on_game_loaded)
+
 	# Load and setup persistent UI elements that should always be on top
 	_setup_persistent_ui()
 
@@ -227,6 +239,72 @@ func _on_notification_shown(type: String, message: String):
 	var toast = _create_notification_toast(type, message)
 	if toast:
 		add_to_notification_layer(toast)
+
+func _on_achievement_completed(achievement_id: String, _achievement_data: Dictionary):
+	"""Handle achievement completion - show skin popup for legendary_champion"""
+	print("MainUIOverlay: Achievement completed: %s" % achievement_id)
+	if achievement_id == "legendary_champion":
+		_show_free_skin_popup()
+
+func _on_game_loaded():
+	"""Check for unclaimed free skin on game load"""
+	# Delay check to ensure all systems are ready
+	await get_tree().create_timer(0.5).timeout
+	_check_unclaimed_free_skin()
+
+func _check_unclaimed_free_skin() -> void:
+	"""Check if player has legendary_champion achievement but hasn't claimed free skin"""
+	var system_registry = SystemRegistry.get_instance()
+	if not system_registry:
+		return
+
+	var achievement_manager = system_registry.get_system("AchievementManager")
+	var skin_manager = system_registry.get_system("SkinManager")
+
+	if not achievement_manager or not skin_manager:
+		return
+
+	# Check if achievement is complete but free skin not claimed
+	var has_achievement: bool = achievement_manager.is_achievement_completed("legendary_champion")
+	var skin_claimed: bool = skin_manager.is_free_skin_claimed() if skin_manager.has_method("is_free_skin_claimed") else true
+
+	print("MainUIOverlay: Checking unclaimed skin - achievement=%s, claimed=%s" % [has_achievement, skin_claimed])
+
+	if has_achievement and not skin_claimed:
+		print("MainUIOverlay: Player has legendary_champion but hasn't claimed free skin!")
+		# Find a legendary god at level 40+ to use for the popup
+		var collection_manager = system_registry.get_system("CollectionManager")
+		if collection_manager:
+			for god in collection_manager.gods:
+				if god.tier == God.TierType.LEGENDARY and god.level >= 40:
+					skin_manager.set_pending_free_skin_god(god.id)
+					_show_free_skin_popup()
+					break
+
+func _show_free_skin_popup() -> void:
+	"""Show the free skin selection popup when legendary_champion achievement is completed"""
+	print("MainUIOverlay: _show_free_skin_popup called")
+	var system_registry = SystemRegistry.get_instance()
+	if not system_registry:
+		print("MainUIOverlay: No system registry!")
+		return
+
+	var skin_manager: Node = system_registry.get_system("SkinManager")
+	if not skin_manager:
+		print("MainUIOverlay: No skin manager!")
+		return
+
+	var pending_god_id: String = skin_manager.get_pending_free_skin_god()
+	print("MainUIOverlay: Pending god ID = '%s'" % pending_god_id)
+	if pending_god_id.is_empty():
+		print("MainUIOverlay: No pending god ID, aborting popup")
+		return
+
+	# Create and show the popup in modal layer
+	print("MainUIOverlay: Creating FreeSkinPickPopup for god '%s'" % pending_god_id)
+	var popup: FreeSkinPickPopup = FreeSkinPickPopup.new()
+	add_to_modal_layer(popup)
+	popup.show_for_god(pending_god_id)
 
 func _create_notification_toast(type: String, message: String) -> Control:
 	"""Create a notification toast UI element"""

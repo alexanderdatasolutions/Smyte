@@ -116,14 +116,23 @@ func _create_god_card(god: God) -> PanelContainer:
 	info_vbox.add_theme_constant_override("separation", 0)
 	info_panel.add_child(info_vbox)
 
-	# Name row: "Lv.1 Name ★★" (matching GodCard format)
-	var tier_stars := GodUIHelpers.get_tier_stars(god.tier)
+	# Name row: "Lv.1 Name" + colored stars (matching GodCard format)
+	var name_row := HBoxContainer.new()
+	name_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	name_row.add_theme_constant_override("separation", 2)
+	info_vbox.add_child(name_row)
+
 	var name_label = Label.new()
-	name_label.text = "Lv.%d %s %s" % [god.level, god.name, tier_stars]
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.text = "Lv.%d %s" % [god.level, god.name]
 	name_label.add_theme_font_size_override("font_size", 11)
 	name_label.add_theme_color_override("font_color", Color.WHITE)
-	info_vbox.add_child(name_label)
+	name_row.add_child(name_label)
+
+	var stars_label = Label.new()
+	stars_label.text = GodUIHelpers.get_tier_stars(god.tier)
+	stars_label.add_theme_font_size_override("font_size", 11)
+	stars_label.add_theme_color_override("font_color", GodUIHelpers.get_tier_color(god.tier))
+	name_row.add_child(stars_label)
 
 	# Stats row: "⚔Power Element" (tier-colored)
 	var power = GodCalculator.get_power_rating(god)
