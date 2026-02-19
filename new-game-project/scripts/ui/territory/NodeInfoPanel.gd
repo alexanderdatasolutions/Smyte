@@ -36,7 +36,7 @@ signal demolish_building_requested(hex_node: HexNode)
 const PANEL_WIDTH = 380
 const PANEL_HEIGHT = 600
 const BUTTON_HEIGHT = 40
-const SLOT_SIZE = 54  # Slightly smaller to fit 5 slots with spacing
+const SLOT_SIZE = 62  # Bigger slots for better visibility
 const SLOT_SPACING = 4
 const MAX_GARRISON_SLOTS = 4
 
@@ -88,7 +88,6 @@ var _production_container: VBoxContainer = null
 var _garrison_container: VBoxContainer = null
 var _workers_container: VBoxContainer = null
 var _defense_label: Label = null
-var _requirements_container: VBoxContainer = null
 var _tasks_container: VBoxContainer = null
 var _craft_popup: Control = null
 var _crafting_screen_manager: CraftingScreenManager = null
@@ -103,6 +102,9 @@ var _attack_timer_progress_bar: ProgressBar = null
 var _attack_timer_label: Label = null
 var _attack_timer_fill_style: StyleBoxFlat = null
 var _attack_timer_update_timer: float = 0.0
+
+# Collapsible section state (persists across UI rebuilds)
+var _collapsed_sections: Dictionary = {}  # section_key -> is_collapsed (true = collapsed)
 
 # ==============================================================================
 # INITIALIZATION
@@ -208,23 +210,14 @@ func _build_ui() -> void:
 	# Separator
 	_add_separator()
 
-	# Pending Resources section (above production)
-	_build_pending_resources_section()
-
-	# Production section
-	_build_production_section()
-
-	# Garrison section
+	# Garrison section (with combat power inline)
 	_build_garrison_section()
 
 	# Workers section
 	_build_workers_section()
 
-	# Defense section
-	_build_defense_section()
-
-	# Requirements section (shown when locked)
-	_build_requirements_section()
+	# Production section (includes pending resources + collect button)
+	_build_production_section()
 
 	# Tasks/Crafting section (for forges with workers)
 	_build_tasks_section()
@@ -249,28 +242,41 @@ func _build_header() -> void:
 	_type_tier_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8, 1))
 	_main_container.add_child(_type_tier_label)
 
-func _build_pending_resources_section() -> void:
-	"""Build pending resources section with collect button"""
-	var section_label = _create_section_label("Pending Resources")
-	_main_container.add_child(section_label)
-
-	_pending_resources_container = VBoxContainer.new()
-	_pending_resources_container.add_theme_constant_override("separation", 4)
-	_main_container.add_child(_pending_resources_container)
-
 func _build_production_section() -> void:
-	"""Build production info section"""
-	var section_label = _create_section_label("Production")
+	"""Build combined production + pending resources section"""
+	var section_label = _create_section_label("📦 Production")
 	_main_container.add_child(section_label)
 
 	_production_container = VBoxContainer.new()
 	_production_container.add_theme_constant_override("separation", 4)
 	_main_container.add_child(_production_container)
 
+	# Pending resources container (within production section)
+	_pending_resources_container = VBoxContainer.new()
+	_pending_resources_container.name = "PendingResourcesContainer"
+	_pending_resources_container.add_theme_constant_override("separation", 4)
+	_main_container.add_child(_pending_resources_container)
+
 func _build_garrison_section() -> void:
-	"""Build garrison info section with slot boxes"""
-	var section_label = _create_section_label("Garrison (Defense)")
-	_main_container.add_child(section_label)
+	"""Build garrison info section with slot boxes and combat power in header"""
+	# Header row with title and combat power
+	var header_row: HBoxContainer = HBoxContainer.new()
+	header_row.name = "GarrisonHeader"
+	header_row.add_theme_constant_override("separation", 8)
+	_main_container.add_child(header_row)
+
+	var section_label = Label.new()
+	section_label.text = "🛡️ Garrison"
+	section_label.add_theme_font_size_override("font_size", 16)
+	section_label.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0, 1))
+	header_row.add_child(section_label)
+
+	# Combat power inline (will be updated dynamically)
+	_defense_label = Label.new()
+	_defense_label.name = "CombatPowerLabel"
+	_defense_label.add_theme_font_size_override("font_size", 12)
+	_defense_label.add_theme_color_override("font_color", Color.GOLD)
+	header_row.add_child(_defense_label)
 
 	_garrison_container = VBoxContainer.new()
 	_garrison_container.add_theme_constant_override("separation", 4)
@@ -278,31 +284,12 @@ func _build_garrison_section() -> void:
 
 func _build_workers_section() -> void:
 	"""Build workers info section with slot boxes"""
-	var section_label = _create_section_label("Workers (Production)")
+	var section_label = _create_section_label("👷 Workers")
 	_main_container.add_child(section_label)
 
 	_workers_container = VBoxContainer.new()
 	_workers_container.add_theme_constant_override("separation", 4)
 	_main_container.add_child(_workers_container)
-
-func _build_defense_section() -> void:
-	"""Build defense info section"""
-	var section_label = _create_section_label("Combat Power")
-	_main_container.add_child(section_label)
-
-	_defense_label = Label.new()
-	_defense_label.add_theme_font_size_override("font_size", 12)
-	_defense_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1))
-	_main_container.add_child(_defense_label)
-
-func _build_requirements_section() -> void:
-	"""Build requirements section (shown when locked)"""
-	var section_label = _create_section_label("Requirements")
-	_main_container.add_child(section_label)
-
-	_requirements_container = VBoxContainer.new()
-	_requirements_container.add_theme_constant_override("separation", 4)
-	_main_container.add_child(_requirements_container)
 
 func _build_tasks_section() -> void:
 	"""Build tasks/crafting section (shown for forges with workers)"""
@@ -332,6 +319,45 @@ func _create_section_label(text: String) -> Label:
 	label.add_theme_font_size_override("font_size", 16)
 	label.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0, 1))
 	return label
+
+func _create_collapsible_section(header_text: String, parent: Control, section_key: String = "") -> Dictionary:
+	"""Create a collapsible section with clickable header. Returns {header, content, toggle}
+	section_key: Unique key for state persistence. If empty, uses header_text."""
+	var key: String = section_key if section_key != "" else header_text
+
+	var container: VBoxContainer = VBoxContainer.new()
+	container.add_theme_constant_override("separation", 4)
+	parent.add_child(container)
+
+	# Header button (clickable)
+	var header_btn: Button = Button.new()
+	header_btn.flat = true
+	header_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	header_btn.add_theme_font_size_override("font_size", 14)
+	header_btn.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9))
+	header_btn.add_theme_color_override("font_hover_color", Color(0.9, 0.95, 1.0))
+	header_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	container.add_child(header_btn)
+
+	# Content container - restore previous state or default to expanded
+	var content: VBoxContainer = VBoxContainer.new()
+	content.add_theme_constant_override("separation", 4)
+	var is_collapsed: bool = _collapsed_sections.get(key, false)  # Default: expanded
+	content.visible = not is_collapsed
+	container.add_child(content)
+
+	# Update header to show current state
+	header_btn.text = ("▸ " if is_collapsed else "▾ ") + header_text
+
+	# Toggle function - saves state
+	var toggle_func = func():
+		content.visible = not content.visible
+		_collapsed_sections[key] = not content.visible  # Save state
+		header_btn.text = ("▾ " if content.visible else "▸ ") + header_text
+
+	header_btn.pressed.connect(toggle_func)
+
+	return {"header": header_btn, "content": content, "toggle": toggle_func, "container": container}
 
 func _add_separator() -> void:
 	"""Add a horizontal separator"""
@@ -395,12 +421,9 @@ func show_crafting_tab() -> void:
 func _update_all_displays() -> void:
 	"""Update all display sections"""
 	_update_header()
-	_update_pending_resources()
-	_update_production()
 	_update_garrison()
 	_update_workers()
-	_update_defense()
-	_update_requirements()
+	_update_production()  # Now includes pending resources
 	_update_tasks()
 	_update_action_buttons()
 
@@ -423,7 +446,7 @@ func _update_header() -> void:
 	_type_tier_label.add_theme_color_override("font_color", tier_color)
 
 func _update_pending_resources() -> void:
-	"""Update pending resources display with collect button"""
+	"""Update pending resources display with collect button (part of production section)"""
 	# Clear existing
 	for child in _pending_resources_container.get_children():
 		child.queue_free()
@@ -433,21 +456,44 @@ func _update_pending_resources() -> void:
 
 	# Only show for player-controlled nodes
 	if not current_node.is_controlled_by_player():
-		var not_available_label: Label = Label.new()
-		not_available_label.text = "  Capture node to accumulate resources"
-		not_available_label.add_theme_font_size_override("font_size", 11)
-		not_available_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
-		_pending_resources_container.add_child(not_available_label)
-		return
+		return  # No pending resources message for uncontrolled nodes
 
 	# Check if there are accumulated resources
-	if current_node.accumulated_resources.is_empty() or _get_total_accumulated() <= 0:
-		var no_resources_label: Label = Label.new()
-		no_resources_label.text = "  No pending resources (assign workers to begin)"
-		no_resources_label.add_theme_font_size_override("font_size", 11)
-		no_resources_label.add_theme_color_override("font_color", Color(0.6, 0.7, 0.6))
-		_pending_resources_container.add_child(no_resources_label)
-		return
+	var total_accumulated = _get_total_accumulated()
+	if current_node.accumulated_resources.is_empty() or total_accumulated <= 0:
+		return  # Don't show section if nothing pending
+
+	# Separator before pending section
+	var sep: HSeparator = HSeparator.new()
+	sep.add_theme_constant_override("separation", 6)
+	_pending_resources_container.add_child(sep)
+
+	# Header row with total and collect button
+	var header_row: HBoxContainer = HBoxContainer.new()
+	header_row.add_theme_constant_override("separation", 8)
+	_pending_resources_container.add_child(header_row)
+
+	var pending_label: Label = Label.new()
+	pending_label.text = "💰 Ready to Collect"
+	pending_label.add_theme_font_size_override("font_size", 13)
+	pending_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.5))
+	pending_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_row.add_child(pending_label)
+
+	# Collect button (compact)
+	var collect_btn = Button.new()
+	collect_btn.text = "Collect"
+	collect_btn.custom_minimum_size = Vector2(70, 28)
+	var btn_style: StyleBoxFlat = StyleBoxFlat.new()
+	btn_style.bg_color = Color(0.3, 0.6, 0.35, 1)
+	btn_style.set_corner_radius_all(4)
+	collect_btn.add_theme_stylebox_override("normal", btn_style)
+	var btn_hover: StyleBoxFlat = btn_style.duplicate()
+	btn_hover.bg_color = Color(0.35, 0.7, 0.4, 1)
+	collect_btn.add_theme_stylebox_override("hover", btn_hover)
+	collect_btn.add_theme_font_size_override("font_size", 11)
+	collect_btn.pressed.connect(_on_collect_resources_pressed)
+	header_row.add_child(collect_btn)
 
 	# Check if we're approaching max storage
 	var time_since_last_production: float = 0.0
@@ -461,34 +507,26 @@ func _update_pending_resources() -> void:
 	# Show warning if at or near max storage
 	if time_since_last_production >= max_storage_hours:
 		var warning_label: Label = Label.new()
-		warning_label.text = "  ⚠️ Max storage reached (%.0f hours)" % max_storage_hours
-		warning_label.add_theme_font_size_override("font_size", 11)
-		warning_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
+		warning_label.text = "⚠️ Max storage reached!"
+		warning_label.add_theme_font_size_override("font_size", 10)
+		warning_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.3))
 		_pending_resources_container.add_child(warning_label)
 
-		var spacer: Control = Control.new()
-		spacer.custom_minimum_size = Vector2(0, 4)
-		_pending_resources_container.add_child(spacer)
-
-	# Display accumulated resources
+	# Display accumulated resources in compact single-line format
+	var resource_parts: Array[String] = []
 	for resource_id in current_node.accumulated_resources.keys():
 		var amount = current_node.accumulated_resources[resource_id]
 		if amount > 0:
-			var resource_label: Label = Label.new()
-			resource_label.text = "  %s: %.1f" % [resource_id.replace("_", " ").capitalize(), amount]
-			resource_label.add_theme_font_size_override("font_size", 12)
-			resource_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.7, 1))
-			_pending_resources_container.add_child(resource_label)
+			resource_parts.append("%s: %.1f" % [resource_id.replace("_", " ").capitalize(), amount])
 
-	# Spacer
-	var spacer: Control = Control.new()
-	spacer.custom_minimum_size = Vector2(0, 6)
-	_pending_resources_container.add_child(spacer)
-
-	# Collect button
-	var collect_btn = _create_button("Collect Resources", Color(0.3, 0.7, 0.4, 1))
-	collect_btn.pressed.connect(_on_collect_resources_pressed)
-	_pending_resources_container.add_child(collect_btn)
+	if not resource_parts.is_empty():
+		var resources_label: Label = Label.new()
+		resources_label.text = "  " + " | ".join(resource_parts)
+		resources_label.add_theme_font_size_override("font_size", 11)
+		resources_label.add_theme_color_override("font_color", Color(0.85, 0.9, 0.7))
+		resources_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		resources_label.custom_minimum_size = Vector2(PANEL_WIDTH - 40, 0)
+		_pending_resources_container.add_child(resources_label)
 
 func _get_total_accumulated() -> float:
 	"""Get total accumulated resources across all types"""
@@ -556,54 +594,8 @@ func _update_production() -> void:
 				building_consumes = building.get("consumes", {})
 
 			if not building_consumes.is_empty():
-				# Show conversion format for processing buildings
-				var input_parts: Array = []
-				var output_parts: Array = []
-				for res_id in building_consumes:
-					input_parts.append("%d %s" % [building_consumes[res_id], res_id.replace("_", " ")])
-				for res_id in production_data.keys():
-					output_parts.append("%.0f %s" % [production_data[res_id], res_id.replace("_", " ")])
-
-				var convert_label: Label = Label.new()
-				convert_label.text = "  Converts: %s → %s/hr" % [", ".join(input_parts), ", ".join(output_parts)]
-				convert_label.add_theme_font_size_override("font_size", 12)
-				convert_label.add_theme_color_override("font_color", Color(0.9, 0.8, 0.5))  # Orange for conversion
-				_production_container.add_child(convert_label)
-
-				# Show input resource availability
-				var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager")
-				var hex_grid_manager = SystemRegistry.get_instance().get_system("HexGridManager")
-				var status_parts: Array = []
-				var all_available: bool = true
-
-				for res_id in building_consumes:
-					var needed = building_consumes[res_id]
-					var available_accumulated: float = 0.0
-					var available_inventory: int = 0
-
-					# Count accumulated across all player nodes
-					if hex_grid_manager:
-						for check_node in hex_grid_manager.get_player_nodes():
-							available_accumulated += check_node.accumulated_resources.get(res_id, 0)
-
-					if resource_manager:
-						available_inventory = resource_manager.get_resource(res_id)
-
-					var total = available_accumulated + available_inventory
-					var has_enough = total >= needed
-					if not has_enough:
-						all_available = false
-					var check_mark: String = "✓" if has_enough else "✗"
-					status_parts.append("%s %s: %.0f" % [check_mark, res_id.replace("_", " "), total])
-
-				var status_label: Label = Label.new()
-				status_label.text = "  Input: " + ", ".join(status_parts)
-				status_label.add_theme_font_size_override("font_size", 10)
-				if all_available:
-					status_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.6))
-				else:
-					status_label.add_theme_color_override("font_color", Color(0.8, 0.5, 0.5))
-				_production_container.add_child(status_label)
+				# Show visual conversion boxes for processing buildings
+				_show_conversion_boxes(building_consumes, production_data)
 			else:
 				# Display each resource production normally
 				for resource_id in production_data.keys():
@@ -614,13 +606,11 @@ func _update_production() -> void:
 					resource_label.add_theme_color_override("font_color", Color(0.8, 0.9, 0.8, 1))
 					_production_container.add_child(resource_label)
 
-			# Spacer before bonuses
-			var spacer2: Control = Control.new()
-			spacer2.custom_minimum_size = Vector2(0, 4)
-			_production_container.add_child(spacer2)
-
-			# Show production bonuses breakdown
-			_show_production_bonuses()
+			# Show production bonuses in collapsible (if any)
+			var prod_bonuses = _get_production_bonuses()
+			if not prod_bonuses.is_empty():
+				var collapsible = _create_collapsible_section("Bonuses", _production_container)
+				_add_production_bonuses_content(prod_bonuses, collapsible.content)
 
 			# Show defense drops for player-controlled nodes (loot from defending)
 			_show_defense_drops()
@@ -638,13 +628,15 @@ func _update_production() -> void:
 		# Show BASE PRODUCTION for uncaptured nodes - this is what you'll get!
 		_show_potential_production()
 
-func _show_production_bonuses() -> void:
-	"""Show compact production bonuses summary"""
-	if not current_node or not production_manager:
-		return
+	# Update pending resources (integrated into production section)
+	_update_pending_resources()
 
-	# Calculate total bonus for compact display
+func _get_production_bonuses() -> Array[String]:
+	"""Get production bonuses as string array"""
 	var bonuses: Array[String] = []
+
+	if not current_node or not production_manager:
+		return bonuses
 
 	if current_node.production_level > 1:
 		var upgrade_bonus = (current_node.production_level - 1) * 0.10
@@ -660,19 +652,150 @@ func _show_production_bonuses() -> void:
 		elif connected_count == 2:
 			connected_bonus = 0.10
 		if connected_bonus > 0:
-			bonuses.append("+%.0f%% conn" % [connected_bonus * 100])
+			bonuses.append("+%.0f%% connections" % [connected_bonus * 100])
 
 	if not current_node.assigned_workers.is_empty():
 		var worker_efficiency = _calculate_worker_efficiency_display()
 		if worker_efficiency > 0:
 			bonuses.append("+%.0f%% workers" % [worker_efficiency * 100])
 
-	if not bonuses.is_empty():
+	return bonuses
+
+func _add_production_bonuses_content(bonuses: Array[String], content: VBoxContainer) -> void:
+	"""Add production bonuses to collapsible content"""
+	for bonus_text in bonuses:
 		var bonus_label: Label = Label.new()
-		bonus_label.text = "  Bonuses: " + ", ".join(bonuses)
-		bonus_label.add_theme_font_size_override("font_size", 10)
-		bonus_label.add_theme_color_override("font_color", Color(0.7, 0.9, 0.7))
-		_production_container.add_child(bonus_label)
+		bonus_label.text = "• " + bonus_text
+		bonus_label.add_theme_font_size_override("font_size", 11)
+		bonus_label.add_theme_color_override("font_color", Color(0.6, 0.85, 0.6))
+		content.add_child(bonus_label)
+
+func _show_conversion_boxes(building_consumes: Dictionary, production_data: Dictionary) -> void:
+	"""Show visual conversion boxes: [Input] → [Output]"""
+	# Get resource availability
+	var resource_manager_ref = SystemRegistry.get_instance().get_system("ResourceManager")
+	var hex_grid_manager_ref = SystemRegistry.get_instance().get_system("HexGridManager")
+
+	# Calculate availability for each input
+	var input_availability: Dictionary = {}  # res_id -> {needed, available, has_enough}
+	for res_id in building_consumes:
+		var needed = building_consumes[res_id]
+		var available_accumulated: float = 0.0
+		var available_inventory: int = 0
+
+		if hex_grid_manager_ref:
+			for check_node in hex_grid_manager_ref.get_player_nodes():
+				available_accumulated += check_node.accumulated_resources.get(res_id, 0)
+
+		if resource_manager_ref:
+			available_inventory = resource_manager_ref.get_resource(res_id)
+
+		var total = available_accumulated + available_inventory
+		input_availability[res_id] = {
+			"needed": needed,
+			"available": total,
+			"has_enough": total >= needed
+		}
+
+	# Main row container: [Input Column] → [Output Column]
+	var flow_row: HBoxContainer = HBoxContainer.new()
+	flow_row.add_theme_constant_override("separation", 6)
+	_production_container.add_child(flow_row)
+
+	# === INPUT COLUMN ===
+	var input_box: PanelContainer = PanelContainer.new()
+	input_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var input_style: StyleBoxFlat = StyleBoxFlat.new()
+	input_style.bg_color = Color(0.15, 0.12, 0.1, 0.95)
+	input_style.border_color = Color(0.4, 0.35, 0.25, 0.8)
+	input_style.set_border_width_all(2)
+	input_style.set_corner_radius_all(6)
+	input_style.set_content_margin_all(8)
+	input_box.add_theme_stylebox_override("panel", input_style)
+	flow_row.add_child(input_box)
+
+	var input_vbox: VBoxContainer = VBoxContainer.new()
+	input_vbox.add_theme_constant_override("separation", 2)
+	input_box.add_child(input_vbox)
+
+	# Input header
+	var input_header: Label = Label.new()
+	input_header.text = "INPUT"
+	input_header.add_theme_font_size_override("font_size", 9)
+	input_header.add_theme_color_override("font_color", Color(0.5, 0.45, 0.4))
+	input_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	input_vbox.add_child(input_header)
+
+	# Input items
+	for res_id in building_consumes:
+		var info = input_availability[res_id]
+		var res_name = res_id.replace("_", " ").capitalize()
+
+		var item_label: Label = Label.new()
+		var check_mark = "✓" if info.has_enough else "✗"
+		item_label.text = "%s %d %s" % [check_mark, info.needed, res_name]
+		item_label.add_theme_font_size_override("font_size", 11)
+		item_label.add_theme_color_override("font_color", Color(0.4, 0.8, 0.4) if info.has_enough else Color(0.9, 0.5, 0.5))
+		item_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		input_vbox.add_child(item_label)
+
+		var avail_label: Label = Label.new()
+		avail_label.text = "(have %.0f)" % info.available
+		avail_label.add_theme_font_size_override("font_size", 9)
+		avail_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		avail_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		input_vbox.add_child(avail_label)
+
+	# === ARROW ===
+	var arrow_label: Label = Label.new()
+	arrow_label.text = "→"
+	arrow_label.add_theme_font_size_override("font_size", 18)
+	arrow_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+	arrow_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	flow_row.add_child(arrow_label)
+
+	# === OUTPUT COLUMN ===
+	var output_box: PanelContainer = PanelContainer.new()
+	output_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var output_style: StyleBoxFlat = StyleBoxFlat.new()
+	output_style.bg_color = Color(0.1, 0.15, 0.12, 0.95)
+	output_style.border_color = Color(0.3, 0.5, 0.35, 0.8)
+	output_style.set_border_width_all(2)
+	output_style.set_corner_radius_all(6)
+	output_style.set_content_margin_all(8)
+	output_box.add_theme_stylebox_override("panel", output_style)
+	flow_row.add_child(output_box)
+
+	var output_vbox: VBoxContainer = VBoxContainer.new()
+	output_vbox.add_theme_constant_override("separation", 2)
+	output_box.add_child(output_vbox)
+
+	# Output header
+	var output_header: Label = Label.new()
+	output_header.text = "OUTPUT"
+	output_header.add_theme_font_size_override("font_size", 9)
+	output_header.add_theme_color_override("font_color", Color(0.4, 0.55, 0.45))
+	output_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	output_vbox.add_child(output_header)
+
+	# Output items
+	for res_id in production_data.keys():
+		var amount = production_data[res_id]
+		var res_name = res_id.replace("_", " ").capitalize()
+
+		var res_label: Label = Label.new()
+		res_label.text = "%.0f %s" % [amount, res_name]
+		res_label.add_theme_font_size_override("font_size", 11)
+		res_label.add_theme_color_override("font_color", Color(0.7, 0.95, 0.75))
+		res_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		output_vbox.add_child(res_label)
+
+	var rate_label: Label = Label.new()
+	rate_label.text = "/hour"
+	rate_label.add_theme_font_size_override("font_size", 9)
+	rate_label.add_theme_color_override("font_color", Color(0.5, 0.6, 0.5))
+	rate_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	output_vbox.add_child(rate_label)
 
 func _show_defense_drops() -> void:
 	"""Show defense battle drops for player-controlled nodes (loot from garrison battles)"""
@@ -944,7 +1067,11 @@ func _update_garrison() -> void:
 		child.queue_free()
 
 	if not current_node:
+		_defense_label.text = ""
 		return
+
+	# Update combat power in header
+	_update_combat_power_label()
 
 	# Check if node is captured - garrison is only available for player-controlled nodes
 	var is_captured = current_node.is_controlled_by_player()
@@ -981,125 +1108,90 @@ func _update_garrison() -> void:
 			slot = _create_empty_slot(current_node, "garrison", i, not is_captured)
 		slots_row.add_child(slot)
 
-	# Show leader skill (even with 1 god)
+	# Show bonuses in collapsible section (if there are any)
 	if garrison_gods.size() >= 1:
-		_show_garrison_leader_skill(garrison_gods)
+		var has_leader_skill = not TeamStatsCalculator.get_leader_skill_info(garrison_gods).is_empty()
+		var has_team_bonuses = garrison_gods.size() >= 2 and not TeamStatsCalculator.get_team_bonuses(garrison_gods, current_node.node_type).is_empty()
 
-	# Show team bonuses if garrison has 2+ gods
-	if garrison_gods.size() >= 2:
-		_show_garrison_team_bonuses(garrison_gods)
+		if has_leader_skill or has_team_bonuses:
+			var collapsible = _create_collapsible_section("Team Bonuses", _garrison_container)
+			var content = collapsible.content
 
-func _show_garrison_leader_skill(garrison_gods: Array) -> void:
-	"""Display leader skill from first garrison god"""
+			# Add leader skill to collapsible content
+			if has_leader_skill:
+				_add_garrison_leader_skill_content(garrison_gods, content)
+
+			# Add team bonuses to collapsible content
+			if has_team_bonuses:
+				_add_garrison_team_bonuses_content(garrison_gods, content)
+
+func _add_garrison_leader_skill_content(garrison_gods: Array, content: VBoxContainer) -> void:
+	"""Add leader skill info to collapsible content"""
 	var leader_info: Dictionary = TeamStatsCalculator.get_leader_skill_info(garrison_gods)
 
-	# Spacer
-	var spacer: Control = Control.new()
-	spacer.custom_minimum_size = Vector2(0, 4)
-	_garrison_container.add_child(spacer)
-
 	if leader_info.is_empty():
-		# Show "No leader skill" when first slot god has no leader skill
-		var no_skill = Label.new()
-		no_skill.text = "Leader - 👑 No leader skill"
-		no_skill.add_theme_font_size_override("font_size", 10)
-		no_skill.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-		_garrison_container.add_child(no_skill)
 		return
 
-	# Leader name row with crown
+	# Leader name row with crown (compact)
 	var header_row = HBoxContainer.new()
 	header_row.add_theme_constant_override("separation", 4)
-	_garrison_container.add_child(header_row)
-
-	var leader_prefix = Label.new()
-	leader_prefix.text = "Leader -"
-	leader_prefix.add_theme_font_size_override("font_size", 11)
-	leader_prefix.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-	header_row.add_child(leader_prefix)
+	content.add_child(header_row)
 
 	var crown_label = Label.new()
 	crown_label.text = "👑"
-	crown_label.add_theme_font_size_override("font_size", 11)
+	crown_label.add_theme_font_size_override("font_size", 12)
 	header_row.add_child(crown_label)
 
 	var leader_label = Label.new()
-	leader_label.text = "%s" % leader_info.leader_name
-	leader_label.add_theme_font_size_override("font_size", 11)
+	leader_label.text = "%s - %s" % [leader_info.leader_name, leader_info.skill_name]
+	leader_label.add_theme_font_size_override("font_size", 12)
 	leader_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))  # Gold
 	header_row.add_child(leader_label)
-
-	# Skill name
-	var skill_name_label = Label.new()
-	skill_name_label.text = "  「%s」" % leader_info.skill_name
-	skill_name_label.add_theme_font_size_override("font_size", 10)
-	skill_name_label.add_theme_color_override("font_color", Color(0.9, 0.75, 0.4))
-	_garrison_container.add_child(skill_name_label)
 
 	# Description
 	var desc_label = Label.new()
 	desc_label.text = "  %s" % leader_info.description
-	desc_label.add_theme_font_size_override("font_size", 9)
+	desc_label.add_theme_font_size_override("font_size", 11)
 	desc_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_label.custom_minimum_size = Vector2(PANEL_WIDTH - 50, 0)
-	_garrison_container.add_child(desc_label)
+	desc_label.custom_minimum_size = Vector2(PANEL_WIDTH - 60, 0)
+	content.add_child(desc_label)
 
-	# Show applicability count if not all team members benefit
-	if leader_info.applicable_count < leader_info.total_count:
-		var applies_label = Label.new()
-		applies_label.text = "  Applies to %d/%d" % [leader_info.applicable_count, leader_info.total_count]
-		applies_label.add_theme_font_size_override("font_size", 9)
-		applies_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-		_garrison_container.add_child(applies_label)
-
-func _show_garrison_team_bonuses(garrison_gods: Array) -> void:
-	"""Display team bonuses from garrison (applies to workers too)"""
+func _add_garrison_team_bonuses_content(garrison_gods: Array, content: VBoxContainer) -> void:
+	"""Add team bonuses info to collapsible content"""
 	var node_type = current_node.node_type if current_node else ""
 	var bonuses = TeamStatsCalculator.get_team_bonuses(garrison_gods, node_type)
 
 	if bonuses.is_empty():
 		return
 
-	# Spacer
+	# Spacer between leader and team bonuses
 	var spacer: Control = Control.new()
 	spacer.custom_minimum_size = Vector2(0, 4)
-	_garrison_container.add_child(spacer)
+	content.add_child(spacer)
 
-	# Team bonuses header
+	# Team bonuses header (compact)
 	var header: Label = Label.new()
-	header.text = "⚔️ Team Bonuses (affects workers):"
-	header.add_theme_font_size_override("font_size", 11)
+	header.text = "⚔️ Team Synergies:"
+	header.add_theme_font_size_override("font_size", 12)
 	header.add_theme_color_override("font_color", Color(0.8, 0.75, 0.5))
-	_garrison_container.add_child(header)
+	content.add_child(header)
 
-	# List each bonus (stacked vertically to prevent overflow)
+	# List each bonus compactly
 	for bonus in bonuses:
-		var bonus_row: VBoxContainer = VBoxContainer.new()
-		bonus_row.add_theme_constant_override("separation", 1)
-		_garrison_container.add_child(bonus_row)
-
-		var bonus_name: Label = Label.new()
+		var bonus_label: Label = Label.new()
 		var element_text: String = ""
 		if bonus.has("element"):
 			element_text = " (%s)" % bonus.element
-		bonus_name.text = "  • %s%s" % [bonus.name, element_text]
-		bonus_name.add_theme_font_size_override("font_size", 10)
-		bonus_name.add_theme_color_override("font_color", Color(0.7, 0.85, 0.7))
-		bonus_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		bonus_name.clip_text = true
-		bonus_row.add_child(bonus_name)
+		bonus_label.text = "  • %s%s: %s" % [bonus.name, element_text, bonus.desc]
+		bonus_label.add_theme_font_size_override("font_size", 11)
+		bonus_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.6))
+		bonus_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		bonus_label.clip_text = true
+		content.add_child(bonus_label)
 
-		var bonus_desc: Label = Label.new()
-		bonus_desc.text = "    %s" % bonus.desc
-		bonus_desc.add_theme_font_size_override("font_size", 9)
-		bonus_desc.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
-		bonus_desc.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		bonus_desc.clip_text = true
-		bonus_row.add_child(bonus_desc)
-
-func _show_worker_received_bonuses() -> void:
-	"""Display production-relevant bonuses workers receive from garrison"""
+func _get_worker_bonuses_from_garrison() -> Array:
+	"""Get production-relevant bonuses workers receive from garrison"""
 	# Get garrison gods to calculate their bonuses
 	var garrison_gods: Array = []
 	for god_id in current_node.garrison:
@@ -1109,45 +1201,26 @@ func _show_worker_received_bonuses() -> void:
 
 	# Only show if garrison has bonuses
 	if garrison_gods.size() < 2:
-		return
+		return []
 
 	var node_type = current_node.node_type if current_node else ""
 	var bonuses = TeamStatsCalculator.get_team_bonuses(garrison_gods, node_type)
 	if bonuses.is_empty():
-		return
+		return []
 
 	# Filter to only production-relevant bonuses
-	var worker_bonuses = _filter_worker_relevant_bonuses(bonuses)
-	if worker_bonuses.is_empty():
-		return
+	return _filter_worker_relevant_bonuses(bonuses)
 
-	# Spacer
-	var spacer: Control = Control.new()
-	spacer.custom_minimum_size = Vector2(0, 4)
-	_workers_container.add_child(spacer)
-
-	# Receiving bonuses header
-	var header: Label = Label.new()
-	header.text = "📈 Garrison Production Bonus:"
-	header.add_theme_font_size_override("font_size", 11)
-	header.add_theme_color_override("font_color", Color(0.6, 0.8, 0.9))
-	_workers_container.add_child(header)
-
-	# Compact list of bonuses received
-	var bonus_text: String = ""
-	for i in range(worker_bonuses.size()):
-		var bonus = worker_bonuses[i]
-		if i > 0:
-			bonus_text += ", "
-		bonus_text += "%s" % bonus.desc
-
-	var bonus_label: Label = Label.new()
-	bonus_label.text = "  " + bonus_text
-	bonus_label.add_theme_font_size_override("font_size", 10)
-	bonus_label.add_theme_color_override("font_color", Color(0.5, 0.75, 0.5))
-	bonus_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	bonus_label.custom_minimum_size = Vector2(PANEL_WIDTH - 50, 0)
-	_workers_container.add_child(bonus_label)
+func _add_worker_bonuses_content(worker_bonuses: Array, content: VBoxContainer) -> void:
+	"""Add worker bonuses to collapsible content"""
+	for bonus in worker_bonuses:
+		var bonus_label: Label = Label.new()
+		bonus_label.text = "• %s: %s" % [bonus.name, bonus.desc]
+		bonus_label.add_theme_font_size_override("font_size", 11)
+		bonus_label.add_theme_color_override("font_color", Color(0.5, 0.75, 0.5))
+		bonus_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		bonus_label.clip_text = true
+		content.add_child(bonus_label)
 
 func _filter_worker_relevant_bonuses(bonuses: Array) -> Array:
 	"""Filter bonuses to only include production-relevant ones for workers"""
@@ -1261,54 +1334,33 @@ func _update_workers() -> void:
 			slot = _create_empty_slot(current_node, "worker", i, not can_use_workers)
 		slots_row.add_child(slot)
 
-	# Show what bonuses workers receive from garrison (only if workers are active)
-	if current_node.assigned_workers.size() > 0 and can_use_workers:
-		_show_worker_received_bonuses()
-	elif current_node.assigned_workers.size() > 0 and not can_use_workers:
+	# Show worker status/bonuses
+	if current_node.assigned_workers.size() > 0 and not can_use_workers:
 		# Show that workers are inactive
 		var inactive_label: Label = Label.new()
 		inactive_label.text = "⚠️ Workers inactive - not producing"
 		inactive_label.add_theme_font_size_override("font_size", 10)
 		inactive_label.add_theme_color_override("font_color", Color(0.8, 0.5, 0.3))
 		_workers_container.add_child(inactive_label)
+	elif current_node.assigned_workers.size() > 0 and can_use_workers:
+		# Show bonuses in collapsible (only if there are any)
+		var worker_bonuses = _get_worker_bonuses_from_garrison()
+		if not worker_bonuses.is_empty():
+			var collapsible = _create_collapsible_section("From Garrison", _workers_container)
+			_add_worker_bonuses_content(worker_bonuses, collapsible.content)
 
-func _update_defense() -> void:
-	"""Update combat power display"""
+func _update_combat_power_label() -> void:
+	"""Update combat power display inline with garrison header"""
 	if not current_node or not territory_manager:
-		_defense_label.text = "Defense: N/A"
+		_defense_label.text = ""
 		return
 
 	var defense_rating = territory_manager.get_node_defense_rating(current_node.coord)
-	var distance_penalty = territory_manager.calculate_distance_penalty(current_node.coord)
 
-	_defense_label.text = "Rating: %.0f | Distance Penalty: -%.0f%%" % [defense_rating, distance_penalty * 100]
-
-func _update_requirements() -> void:
-	"""Update requirements display (shown when locked)"""
-	# Clear existing
-	for child in _requirements_container.get_children():
-		child.queue_free()
-
-	_requirements_container.visible = is_locked
-
-	if not is_locked or not current_node or not node_requirement_checker:
-		return
-
-	var missing_reqs = node_requirement_checker.get_missing_requirements(current_node)
-
-	if missing_reqs.is_empty():
-		var met_label: Label = Label.new()
-		met_label.text = "All requirements met!"
-		met_label.add_theme_font_size_override("font_size", 12)
-		met_label.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3, 1))
-		_requirements_container.add_child(met_label)
+	if defense_rating > 0:
+		_defense_label.text = "⚔️ %.0f" % defense_rating
 	else:
-		for req_text in missing_reqs:
-			var req_label: Label = Label.new()
-			req_label.text = "  ✗ %s" % req_text
-			req_label.add_theme_font_size_override("font_size", 11)
-			req_label.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3, 1))
-			_requirements_container.add_child(req_label)
+		_defense_label.text = ""
 
 func _update_action_buttons() -> void:
 	"""Update action buttons based on node state"""

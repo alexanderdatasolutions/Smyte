@@ -371,13 +371,15 @@ static func calculate_synergy_score(candidate: God, current_team: Array, node_el
 	var role_penalty: float = _calculate_role_penalty(candidate, current_team)
 	score -= role_penalty * 20.0
 
-	# 6. Base power contribution (smaller weight - we want synergy over raw power)
-	score += get_combat_power(candidate) * 0.01
+	# 6. Base power contribution - weight more heavily when team is empty
+	var power_weight: float = 0.05 if current_team.is_empty() else 0.01
+	score += get_combat_power(candidate) * power_weight
 
 	# 7. Leader skill potential - if team has no leader, prefer gods with good leader skills
+	# But don't let this override raw power completely
 	if current_team.is_empty() and not candidate.leader_skill.is_empty():
 		var leader_value: float = _estimate_leader_skill_value(candidate.leader_skill)
-		score += leader_value * 40.0
+		score += leader_value * 15.0  # Reduced from 40 to balance with power
 
 	return score
 
