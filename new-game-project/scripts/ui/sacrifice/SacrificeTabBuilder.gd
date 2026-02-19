@@ -50,6 +50,11 @@ var sort_ascending: bool = false
 var sort_dropdown: OptionButton = null
 var sort_direction_btn: Button = null
 
+# Caching for performance (500+ gods)
+var _cached_gods: Array = []  # Cached god list
+var _card_map: Dictionary = {}  # god.id -> card Control for in-place updates
+var _needs_full_rebuild: bool = true  # Flag to force rebuild when needed
+
 # System references
 var collection_manager: CollectionManager
 
@@ -338,11 +343,13 @@ func _create_sorting_controls(parent: HBoxContainer):
 
 func _on_sort_changed(index: int):
 	current_sort = index as SortType
+	_needs_full_rebuild = true  # Sort requires full rebuild
 	refresh_god_list()
 
 func _toggle_sort_direction():
 	sort_ascending = not sort_ascending
 	sort_direction_btn.text = "▲" if sort_ascending else "▼"
+	_needs_full_rebuild = true  # Sort requires full rebuild
 	refresh_god_list()
 
 func _sort_gods(gods: Array) -> Array:
@@ -386,18 +393,30 @@ func _on_god_clicked(god: God):
 	if locked_in:
 		return
 
+	# Track which cards need visual update
+	var cards_to_update: Array[God] = []
+
 	# If no target selected, this becomes the target
 	if selected_target == null:
 		selected_target = god
-		_update_all_displays()
+		cards_to_update.append(god)
+		_update_left_panel_displays()
+		_update_cards_efficiently(cards_to_update)
 		god_selected.emit(god)
 		return
 
 	# If clicking the target, clear it
 	if god == selected_target:
+		var old_target = selected_target
+		var old_sacrifices = selected_sacrifices.duplicate()
 		selected_target = null
 		selected_sacrifices.clear()
-		_update_all_displays()
+		# Update old target and all old sacrifices
+		cards_to_update.append(old_target)
+		for sac in old_sacrifices:
+			cards_to_update.append(sac)
+		_update_left_panel_displays()
+		_update_cards_efficiently(cards_to_update)
 		return
 
 	# Otherwise toggle as sacrifice material
@@ -405,30 +424,44 @@ func _on_god_clicked(god: God):
 		selected_sacrifices.erase(god)
 	else:
 		selected_sacrifices.append(god)
+	cards_to_update.append(god)
 
-	_update_all_displays()
+	_update_left_panel_displays()
+	_update_cards_efficiently(cards_to_update)
 
 func _on_clear_target():
 	"""Clear target god selection"""
 	if locked_in:
 		return
+	var cards_to_update: Array[God] = []
+	if selected_target:
+		cards_to_update.append(selected_target)
+	for sac in selected_sacrifices:
+		cards_to_update.append(sac)
 	selected_target = null
 	selected_sacrifices.clear()
-	_update_all_displays()
+	_update_left_panel_displays()
+	_update_cards_efficiently(cards_to_update)
 
 func _on_clear_sacrifices():
 	"""Clear sacrifice selections"""
 	if locked_in:
 		return
+	var cards_to_update: Array[God] = selected_sacrifices.duplicate()
 	selected_sacrifices.clear()
-	_update_all_displays()
+	_update_left_panel_displays()
+	_update_cards_efficiently(cards_to_update)
 
 func _on_select_duplicates():
 	"""Select all duplicate gods as sacrifices"""
 	if locked_in or selected_target == null:
 		return
 
-	var gods = collection_manager.get_all_gods()
+	# Use cached gods for performance
+	var gods = _cached_gods if not _cached_gods.is_empty() else collection_manager.get_all_gods()
+
+	# Track old sacrifices to update their cards
+	var old_sacrifices = selected_sacrifices.duplicate()
 
 	# Count gods by template_id
 	var template_counts: Dictionary = {}
@@ -457,7 +490,16 @@ func _on_select_duplicates():
 			for i in range(1, template_gods.size()):
 				selected_sacrifices.append(template_gods[i])
 
-	_update_all_displays()
+	# Update cards efficiently - both old and new sacrifices
+	var cards_to_update: Array[God] = []
+	for god in old_sacrifices:
+		if not selected_sacrifices.has(god):
+			cards_to_update.append(god)
+	for god in selected_sacrifices:
+		cards_to_update.append(god)
+
+	_update_left_panel_displays()
+	_update_cards_efficiently(cards_to_update)
 
 func _on_lock_in_pressed():
 	"""Lock in selection"""
@@ -467,7 +509,10 @@ func _on_lock_in_pressed():
 	locked_in = true
 	lock_in_button.text = "LOCKED (%d gods)" % selected_sacrifices.size()
 	lock_in_button.disabled = true
-	_update_all_displays()
+	# Only need to update buttons and make cards non-clickable
+	_update_button_states()
+	# Cards become non-clickable when locked, but we don't need to rebuild them
+	# The button overlays already check locked_in state
 
 func _on_sacrifice_pressed():
 	"""Perform the sacrifice"""
@@ -495,12 +540,13 @@ func _on_sacrifice_pressed():
 # ==============================================================================
 
 func _update_all_displays():
-	"""Update all UI displays"""
+	"""Update all UI displays - uses efficient in-place card updates"""
 	_update_target_display()
 	_update_xp_preview()
 	_update_sacrifice_list()
 	_update_button_states()
-	refresh_god_list()
+	# Use efficient in-place updates instead of full rebuild
+	_update_all_card_styles()
 
 func _update_target_display():
 	"""Update target god display"""
@@ -727,21 +773,157 @@ func _update_button_states():
 		sacrifice_button.disabled = not locked_in
 
 func refresh_god_list():
-	"""Refresh the god list display"""
+	"""Refresh the god list display - uses caching for performance"""
 	if not god_list or not collection_manager:
 		return
 
+	# Only do full rebuild when needed (first load, after sacrifice, sort change)
+	if _needs_full_rebuild or _cached_gods.is_empty():
+		_do_full_god_list_rebuild()
+	else:
+		# Just update visual state of existing cards
+		_update_all_card_styles()
+
+func _do_full_god_list_rebuild():
+	"""Full rebuild of god list - expensive, use sparingly"""
 	# Clear existing
 	for child in god_list.get_children():
 		child.queue_free()
+	_card_map.clear()
 
-	# Get gods, sort, and create cards
-	var gods = collection_manager.get_all_gods()
-	var sorted_gods = _sort_gods(gods)
+	# Get gods and cache them
+	_cached_gods = collection_manager.get_all_gods()
+	var sorted_gods = _sort_gods(_cached_gods)
 
 	for god in sorted_gods:
 		var card = _create_god_card(god)
 		god_list.add_child(card)
+		_card_map[god.id] = card
+
+	_needs_full_rebuild = false
+
+func _update_all_card_styles():
+	"""Update visual state of all cards without rebuilding"""
+	for god_id in _card_map:
+		var card = _card_map[god_id]
+		if is_instance_valid(card):
+			var god = _find_god_by_id(god_id)
+			if god:
+				_update_card_visual_state(card, god)
+
+func _update_card_visual_state(container: Control, god: God):
+	"""Update a single card's visual state (selection, borders) without rebuilding"""
+	var is_target = (god == selected_target)
+	var is_sacrifice = selected_sacrifices.has(god)
+	var location = _get_god_location(god)
+	var is_assigned = location != ""
+
+	# Find the GodCard child
+	var card: Control = null
+	for child in container.get_children():
+		if child is PanelContainer or child.get_script() == GodCardScript:
+			card = child
+			break
+
+	if not card:
+		return
+
+	# Update card style
+	var style: StyleBoxFlat
+	if is_target:
+		style = StyleBoxFlat.new()
+		style.bg_color = Color(0.15, 0.12, 0.08, 0.95)
+		style.border_color = Color.GOLD
+		style.set_border_width_all(3)
+	elif is_sacrifice:
+		style = StyleBoxFlat.new()
+		style.bg_color = Color(0.18, 0.1, 0.12, 0.95)
+		style.border_color = COLOR_SACRIFICE_BORDER
+		style.set_border_width_all(3)
+	else:
+		# Normal state - get tier color
+		style = StyleBoxFlat.new()
+		style.bg_color = GodUIHelpers.get_subtle_tier_color(god.tier) if god else COLOR_PANEL_BG
+		style.border_color = GodUIHelpers.get_tier_border_color(god.tier) if god else COLOR_PANEL_BORDER
+		style.set_border_width_all(2)
+
+	style.set_corner_radius_all(8)
+	card.add_theme_stylebox_override("panel", style)
+
+	# Update dimming for assigned gods
+	if is_assigned:
+		card.modulate = Color(0.5, 0.5, 0.5)
+	else:
+		card.modulate = Color.WHITE
+
+	# Update indicator labels
+	_update_indicator_labels(container, is_target, is_sacrifice, is_assigned, location)
+
+func _update_indicator_labels(container: Control, is_target: bool, is_sacrifice: bool, is_assigned: bool, location: String):
+	"""Update or create indicator labels on a card"""
+	# Remove old indicator labels
+	for child in container.get_children():
+		if child is Label and child.name.begins_with("Indicator"):
+			child.queue_free()
+
+	# Add selection indicator label at top
+	if is_target or is_sacrifice:
+		var indicator = Label.new()
+		indicator.name = "IndicatorTop"
+		indicator.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		indicator.offset_top = 2
+		indicator.offset_bottom = 16
+		indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		indicator.add_theme_font_size_override("font_size", 10)
+		indicator.z_index = 10
+
+		if is_target:
+			indicator.text = "TARGET"
+			indicator.add_theme_color_override("font_color", Color.GOLD)
+		else:
+			indicator.text = "SACRIFICE"
+			indicator.add_theme_color_override("font_color", COLOR_SACRIFICE_BORDER)
+
+		container.add_child(indicator)
+
+	# Add assignment indicator for assigned gods
+	if is_assigned:
+		var assign_label = Label.new()
+		assign_label.name = "IndicatorBottom"
+		assign_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+		assign_label.offset_top = -16
+		assign_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		assign_label.add_theme_font_size_override("font_size", 9)
+		assign_label.add_theme_color_override("font_color", COLOR_WARNING)
+		assign_label.text = location.split(":")[0]
+		assign_label.z_index = 10
+		container.add_child(assign_label)
+
+func _find_god_by_id(god_id: String) -> God:
+	"""Find a god in the cache by ID"""
+	for god in _cached_gods:
+		if god.id == god_id:
+			return god
+	return null
+
+func _update_single_card(god: God):
+	"""Update a single card's visual state"""
+	if _card_map.has(god.id):
+		var card = _card_map[god.id]
+		if is_instance_valid(card):
+			_update_card_visual_state(card, god)
+
+func _update_left_panel_displays():
+	"""Update only the left panel (target, XP, sacrifice list, buttons) - no card rebuilding"""
+	_update_target_display()
+	_update_xp_preview()
+	_update_sacrifice_list()
+	_update_button_states()
+
+func _update_cards_efficiently(gods_to_update: Array[God]):
+	"""Update only specific cards that changed state"""
+	for god in gods_to_update:
+		_update_single_card(god)
 
 func _create_god_card(god: God) -> Control:
 	"""Create a god card using the standard GodCard component with selection overlay"""
@@ -944,11 +1126,35 @@ func _show_error_popup(error_message: String):
 	content.add_child(message)
 
 func _reset_state():
-	"""Reset state after successful sacrifice"""
+	"""Reset state after successful sacrifice - efficiently removes sacrificed gods"""
+	# Remove sacrificed gods from cache and grid (efficient removal)
+	var sacrificed_ids: Array[String] = []
+	for god in selected_sacrifices:
+		sacrificed_ids.append(god.id)
+		# Remove card from grid
+		if _card_map.has(god.id):
+			var card = _card_map[god.id]
+			if is_instance_valid(card):
+				card.queue_free()
+			_card_map.erase(god.id)
+
+	# Remove from cached gods
+	_cached_gods = _cached_gods.filter(func(g): return not sacrificed_ids.has(g.id))
+
+	# Update target card if it still exists (it should, since target wasn't sacrificed)
+	var old_target = selected_target
+
+	# Clear selection state
 	selected_target = null
 	selected_sacrifices.clear()
 	locked_in = false
-	_update_all_displays()
+
+	# Update UI
+	_update_left_panel_displays()
+
+	# Update the old target's card to remove TARGET indicator
+	if old_target:
+		_update_single_card(old_target)
 
 # ==============================================================================
 # STYLING HELPERS

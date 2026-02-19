@@ -521,11 +521,13 @@ func _create_opponent_card(opponent: Dictionary) -> PanelContainer:
 	if arena_manager and not arena_manager.can_attack_opponent(opp_uid, opponent):
 		fight_btn.disabled = true
 		var remaining = arena_manager.get_attack_cooldown_remaining(opp_uid, opponent)
-		# Format as hours if > 1 hour
+		# Format time display based on remaining duration
 		if remaining > 3600:
 			fight_btn.text = "%dh" % int(remaining / 3600)
-		else:
+		elif remaining > 60:
 			fight_btn.text = "%dm" % int(remaining / 60)
+		else:
+			fight_btn.text = "<1m"  # Less than 1 minute remaining
 
 	fight_btn.pressed.connect(_on_fight_pressed.bind(opponent))
 	buttons_vbox.add_child(fight_btn)

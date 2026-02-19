@@ -35,6 +35,10 @@ enum SortType { POWER, LEVEL, TIER, ELEMENT, NAME }
 var current_sort: SortType = SortType.POWER
 var sort_ascending: bool = false
 
+# Caching for performance (500+ gods)
+var _god_card_map: Dictionary = {}  # god.id -> card Control
+var _needs_full_rebuild: bool = true  # Flag to force rebuild
+
 # Confirm button customization
 var _confirm_button_text: String = "START BATTLE"
 var _confirm_callback: Callable = Callable()
@@ -83,6 +87,7 @@ func refresh() -> void:
 	"""Refresh the available gods list and selected team (call when returning to screen)"""
 	# Refresh selected team with fresh god data from CollectionManager
 	_refresh_selected_team_data()
+	_needs_full_rebuild = true  # Full reload requires rebuild
 	_load_available_gods()
 	_update_team_stats()
 	# Update slot displays with fresh god data
@@ -168,11 +173,13 @@ func create_sorting_controls() -> HBoxContainer:
 
 func _on_sort_changed(index: int) -> void:
 	current_sort = index as SortType
+	_needs_full_rebuild = true  # Sort requires full rebuild
 	_refresh_gods_grid()
 
 func _toggle_sort_direction() -> void:
 	sort_ascending = not sort_ascending
 	sort_direction_btn.text = "▲" if sort_ascending else "▼"
+	_needs_full_rebuild = true  # Sort requires full rebuild
 	_refresh_gods_grid()
 
 func _sort_gods(gods: Array) -> Array:
@@ -284,17 +291,24 @@ func _set_mouse_filter_recursive(node: Control, filter: Control.MouseFilter) -> 
 			_set_mouse_filter_recursive(child, filter)
 
 func _clear_slot(slot_index: int) -> void:
+	var god: Variant = selected_team[slot_index]
 	selected_team[slot_index] = null
 	_update_slot_display(slot_index)
-	_refresh_gods_grid()
+	if god != null:
+		_show_god_card(god)  # Efficient: just show the card
 	_update_team_stats()
 	team_changed.emit(selected_team)
 
 func _clear_team() -> void:
+	var gods_to_show: Array = []
 	for i: int in range(selected_team.size()):
+		if selected_team[i] != null:
+			gods_to_show.append(selected_team[i])
 		selected_team[i] = null
 		_update_slot_display(i)
-	_refresh_gods_grid()
+	# Show all cleared gods efficiently
+	for god: God in gods_to_show:
+		_show_god_card(god)
 	_update_team_stats()
 	team_changed.emit(selected_team)
 
@@ -372,21 +386,27 @@ func _refresh_gods_grid() -> void:
 	if not available_gods_grid:
 		return
 
+	# Only do full rebuild when needed (first load, sort change)
+	if _needs_full_rebuild or _god_card_map.is_empty():
+		_do_full_grid_rebuild()
+	else:
+		# Just update visibility of existing cards
+		_update_card_visibility()
+
+func _do_full_grid_rebuild() -> void:
+	"""Full rebuild of gods grid - expensive, use sparingly"""
 	for child: Node in available_gods_grid.get_children():
 		child.queue_free()
+	_god_card_map.clear()
 
 	var sorted_gods: Array = _sort_gods(available_gods)
 
 	for god: God in sorted_gods:
-		var already_selected: bool = false
-		for selected: Variant in selected_team:
-			if selected != null and selected.id == god.id:
-				already_selected = true
-				break
-
-		if not already_selected:
-			var card_container: Control = _create_god_card_for_grid(god, "")
-			available_gods_grid.add_child(card_container)
+		var already_selected: bool = _is_god_in_team(god)
+		var card_container: Control = _create_god_card_for_grid(god, "")
+		card_container.visible = not already_selected
+		available_gods_grid.add_child(card_container)
+		_god_card_map[god.id] = card_container
 
 	var sorted_unavailable: Array = unavailable_gods.duplicate()
 	sorted_unavailable.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.god.name < b.god.name)
@@ -394,6 +414,42 @@ func _refresh_gods_grid() -> void:
 	for entry: Dictionary in sorted_unavailable:
 		var card_container: Control = _create_god_card_for_grid(entry.god, entry.assignment)
 		available_gods_grid.add_child(card_container)
+		_god_card_map[entry.god.id] = card_container
+
+	_needs_full_rebuild = false
+
+func _update_card_visibility() -> void:
+	"""Update visibility of cards based on selection state"""
+	for god_id: String in _god_card_map:
+		var card: Control = _god_card_map[god_id]
+		if is_instance_valid(card):
+			var is_selected: bool = false
+			for god: Variant in selected_team:
+				if god != null and god.id == god_id:
+					is_selected = true
+					break
+			card.visible = not is_selected
+
+func _is_god_in_team(god: God) -> bool:
+	"""Check if god is in the selected team"""
+	for selected: Variant in selected_team:
+		if selected != null and selected.id == god.id:
+			return true
+	return false
+
+func _hide_god_card(god: God) -> void:
+	"""Hide a specific god's card (when selected)"""
+	if _god_card_map.has(god.id):
+		var card: Control = _god_card_map[god.id]
+		if is_instance_valid(card):
+			card.visible = false
+
+func _show_god_card(god: God) -> void:
+	"""Show a specific god's card (when unselected)"""
+	if _god_card_map.has(god.id):
+		var card: Control = _god_card_map[god.id]
+		if is_instance_valid(card):
+			card.visible = true
 
 func _create_god_card_for_grid(god: God, assignment: String = "") -> Control:
 	var is_unavailable: bool = not assignment.is_empty()
@@ -458,7 +514,7 @@ func _on_god_selected(god: God) -> void:
 func _assign_god_to_slot(god: God, slot_index: int) -> void:
 	selected_team[slot_index] = god
 	_update_slot_display(slot_index)
-	_refresh_gods_grid()
+	_hide_god_card(god)  # Efficient: just hide the card
 	_update_team_stats()
 	team_changed.emit(selected_team)
 

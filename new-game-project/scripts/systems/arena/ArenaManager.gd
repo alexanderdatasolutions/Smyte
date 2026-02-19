@@ -18,7 +18,7 @@ var BASE_ELO: int = 1000
 var K_FACTOR_BASE: int = 32
 var K_FACTOR_NEW_PLAYER: int = 40
 var NEW_PLAYER_GAMES: int = 30
-var ATTACK_COOLDOWN: float = 60.0
+var ATTACK_COOLDOWN: float = 86400.0  # 24 hours default
 var MAX_ELO_RANGE: int = 300
 var OPPONENTS_TO_FETCH: int = 10
 var HIGH_ELO_K_FACTOR_MULT: float = 0.75
@@ -95,6 +95,7 @@ func _load_arena_config() -> void:
 
 	var cooldowns: Dictionary = config.get("cooldowns", {})
 	ATTACK_COOLDOWN = cooldowns.get("attack_cooldown_seconds", ATTACK_COOLDOWN)
+	print("[ArenaManager] Config loaded - attack cooldown: %d seconds (%.1f hours)" % [int(ATTACK_COOLDOWN), ATTACK_COOLDOWN / 3600.0])
 
 	var leagues: Dictionary = config.get("leagues", {})
 	var thresholds: Dictionary = leagues.get("thresholds", {})
