@@ -150,6 +150,63 @@ func remove_status_effect(effect_id: String) -> bool:
 			return true
 	return false
 
+## Remove a random debuff (for cleanse effects)
+func remove_random_debuff() -> bool:
+	var debuffs: Array = []
+	for effect: StatusEffect in status_effects:
+		if effect.effect_type == StatusEffect.EffectType.DEBUFF or effect.effect_type == StatusEffect.EffectType.DOT:
+			debuffs.append(effect)
+
+	if debuffs.is_empty():
+		return false
+
+	var to_remove: StatusEffect = debuffs[randi() % debuffs.size()]
+	status_effects.erase(to_remove)
+	return true
+
+## Remove a random buff (for strip effects)
+func remove_random_buff() -> bool:
+	var buffs: Array = []
+	for effect: StatusEffect in status_effects:
+		if effect.effect_type == StatusEffect.EffectType.BUFF or effect.effect_type == StatusEffect.EffectType.HOT:
+			buffs.append(effect)
+
+	if buffs.is_empty():
+		return false
+
+	var to_remove: StatusEffect = buffs[randi() % buffs.size()]
+	status_effects.erase(to_remove)
+	return true
+
+## Remove all buffs (for strip all effects)
+func remove_all_buffs() -> int:
+	var count: int = 0
+	var to_remove: Array = []
+
+	for effect: StatusEffect in status_effects:
+		if effect.effect_type == StatusEffect.EffectType.BUFF or effect.effect_type == StatusEffect.EffectType.HOT:
+			to_remove.append(effect)
+
+	for effect in to_remove:
+		status_effects.erase(effect)
+		count += 1
+
+	return count
+
+## Steal a random buff (remove from self and return it)
+func steal_random_buff() -> StatusEffect:
+	var buffs: Array = []
+	for effect: StatusEffect in status_effects:
+		if effect.effect_type == StatusEffect.EffectType.BUFF or effect.effect_type == StatusEffect.EffectType.HOT:
+			buffs.append(effect)
+
+	if buffs.is_empty():
+		return null
+
+	var stolen: StatusEffect = buffs[randi() % buffs.size()]
+	status_effects.erase(stolen)
+	return stolen
+
 ## Process status effects (called at start of turn)
 func process_status_effects() -> Dictionary:
 	var effects_to_remove = []

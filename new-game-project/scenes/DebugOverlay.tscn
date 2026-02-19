@@ -156,7 +156,7 @@ layout_mode = 2
 
 [node name="InfoLabel" type="Label" parent="DebugPanel/VBoxContainer/InfoSection"]
 layout_mode = 2
-text = "ℹ️ Press F1 to toggle this debug panel"
+text = "ℹ️ F7=Odin40 | F9=Mats | F10=Panel"
 horizontal_alignment = 1
 
 [connection signal="pressed" from="DebugPanel/VBoxContainer/ProgressionSection/XPButtonsContainer/AddXP100" to="." method="_on_add_xp_100_pressed"]

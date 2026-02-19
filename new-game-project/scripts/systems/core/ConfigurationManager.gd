@@ -148,13 +148,15 @@ func get_god_config(god_id: String) -> Dictionary:
 				return god_data
 	
 	# Check awakened gods data too
-	var awakened_gods = _load_json_file("res://data/awakened_gods.json")
-	if awakened_gods.has("awakened_gods") and awakened_gods.awakened_gods is Array:
-		for god_data in awakened_gods.awakened_gods:
-			if god_data.get("id", "") == god_id:
-				return god_data
-	elif awakened_gods.has(god_id):
-		return awakened_gods[god_id]
+	var awakened_data = _load_json_file("res://data/awakened_gods.json")
+	if awakened_data.has("awakened_gods"):
+		var awakened_gods = awakened_data.get("awakened_gods", {})
+		if awakened_gods is Dictionary and awakened_gods.has(god_id):
+			return awakened_gods[god_id]
+		elif awakened_gods is Array:
+			for god_data in awakened_gods:
+				if god_data.get("id", "") == god_id:
+					return god_data
 
 	return {}
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dimpgg7f7yri1"
-path="res://.godot/imported/odin_awakened_nobg.png-28a7f439af4008ff5678200c24f1b022.ctex"
+uid="uid://cmcius7dknduj"
+path="res://.godot/imported/odin_awakened.png-603663d288794c1420b2ba3054e6b090.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/gods/odin_awakened_nobg.png"
-dest_files=["res://.godot/imported/odin_awakened_nobg.png-28a7f439af4008ff5678200c24f1b022.ctex"]
+source_file="res://assets/gods/odin_awakened.png"
+dest_files=["res://.godot/imported/odin_awakened.png-603663d288794c1420b2ba3054e6b090.ctex"]
 
 [params]
 

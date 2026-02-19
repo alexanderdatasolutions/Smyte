@@ -483,6 +483,19 @@
       "max_level": 5,
       "upgrade_cost_multiplier": 1.7
     },
+    "awakening_shrine": {
+      "id": "awakening_shrine",
+      "name": "Awakening Shrine",
+      "category": "divine",
+      "tier": 3,
+      "description": "A sacred altar that channels divine power for god awakening",
+      "production": {"awakening_essence": 3, "divine_essence": 8},
+      "build_cost": {"mana": 18000, "gold": 4000, "mana_crystals": 150, "blessed_oil": 25},
+      "build_time_minutes": 300,
+      "max_workers": 5,
+      "max_level": 5,
+      "upgrade_cost_multiplier": 1.8
+    },
     "day_care": {
       "id": "day_care",
       "name": "Day Care",

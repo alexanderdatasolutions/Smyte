@@ -51,6 +51,14 @@ static func create_from_json(god_id: String) -> God:
 	var ability_ids: Array = god_data.get("ability_ids", [])
 	if not ability_ids.is_empty():
 		god.abilities = ability_ids  # BattleUnit still uses this field
+	elif not god.active_abilities.is_empty():
+		# Extract IDs from active_abilities (for awakened gods with inline ability definitions)
+		var extracted_ids: Array = []
+		for ability: Dictionary in god.active_abilities:
+			var ability_id: String = ability.get("id", "")
+			if ability_id != "":
+				extracted_ids.append(ability_id)
+		god.abilities = extracted_ids
 	
 	# Awakening data
 	god.awakened_name = god_data.get("awakened_name", god.name)

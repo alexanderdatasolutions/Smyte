@@ -1203,9 +1203,6 @@ func _reset_state():
 	# Remove from cached gods
 	_cached_gods = _cached_gods.filter(func(g): return not sacrificed_ids.has(g.id))
 
-	# Update target card if it still exists (it should, since target wasn't sacrificed)
-	var old_target = selected_target
-
 	# Clear selection state
 	selected_target = null
 	selected_sacrifices.clear()
@@ -1214,9 +1211,8 @@ func _reset_state():
 	# Update UI
 	_update_left_panel_displays()
 
-	# Update the old target's card to remove TARGET indicator
-	if old_target:
-		_update_single_card(old_target)
+	# Full refresh and re-sort the god list
+	refresh_god_list(true)
 
 # ==============================================================================
 # STYLING HELPERS

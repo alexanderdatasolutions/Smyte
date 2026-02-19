@@ -110,7 +110,7 @@ func display_god(god_id: String):
 		"total_power": GodCalculator.get_power_rating(god),
 		"stationed_territory": god.stationed_territory,
 		"equipped_skin_id": god.equipped_skin_id,
-		"abilities": god.active_abilities if god.has_meta("active_abilities") else []
+		"abilities": god.active_abilities
 	}
 	_build_god_details()
 

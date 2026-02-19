@@ -20,6 +20,8 @@ func _get_system_registry():
 
 func _ready() -> void:
 	visible = false
+	# Keep processing input even when not visible (for F key shortcuts)
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	player_level_info_label = $DebugPanel/VBoxContainer/ProgressionSection/PlayerLevelInfo
 
 func _ensure_managers() -> void:
@@ -162,3 +164,65 @@ func _on_add_crystals_pressed() -> void:
 	var resource_manager = registry.get_system("ResourceManager")
 	if resource_manager:
 		resource_manager.add_resource("divine_crystals", 100)
+
+# ==============================================================================
+# KEYBOARD DEBUG SHORTCUTS (F keys work even when overlay is hidden)
+# ==============================================================================
+
+func _input(_event: InputEvent) -> void:
+	# Debug shortcuts disabled for release
+	return
+	#if event is InputEventKey and event.pressed and not event.echo:
+	#	match event.keycode:
+	#		KEY_F7:
+	#			_spawn_level_40_odin()
+	#			get_viewport().set_input_as_handled()
+	#		KEY_F9:
+	#			_add_awakening_materials()
+	#			get_viewport().set_input_as_handled()
+	#		KEY_F10:
+	#			toggle_debug_panel()
+	#			get_viewport().set_input_as_handled()
+
+func _spawn_level_40_odin() -> void:
+	var registry = _get_system_registry()
+	if not registry:
+		print("[DEBUG] No registry")
+		return
+	var collection_manager = registry.get_system("CollectionManager")
+	if not collection_manager:
+		print("[DEBUG] No collection manager")
+		return
+
+	# Create Odin using GodFactory
+	var odin = GodFactory.create_from_json("odin")
+	if not odin:
+		print("[DEBUG] Failed to create Odin")
+		return
+
+	# Set to level 40
+	odin.level = 40
+	odin.experience = 0
+
+	# Add to collection properly (also updates gods_by_id index)
+	collection_manager.add_god(odin)
+
+	print("[DEBUG] Spawned Level 40 Odin: " + odin.id)
+
+func _add_awakening_materials() -> void:
+	var registry = _get_system_registry()
+	if not registry:
+		print("[DEBUG] No registry")
+		return
+	var resource_manager = registry.get_system("ResourceManager")
+	if not resource_manager:
+		print("[DEBUG] No resource manager")
+		return
+
+	# Add awakening materials
+	resource_manager.add_resource("awakening_essence", 50)
+	resource_manager.add_resource("divine_essence", 30)
+	resource_manager.add_resource("ascension_crystal", 10)
+	resource_manager.add_resource("mana", 100000)
+
+	print("[DEBUG] Added awakening materials: 50 awakening_essence, 30 divine_essence, 10 ascension_crystal, 100k mana")

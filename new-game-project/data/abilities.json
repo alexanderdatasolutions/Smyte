@@ -4165,6 +4165,80 @@
       ],
       "cooldown": 4,
       "icon_path": "res://assets/abilities/earth_nurture.png"
+    },
+    "call_of_valhalla": {
+      "id": "call_of_valhalla",
+      "name": "Call of Valhalla",
+      "description": "Summons the spirits of Valhalla to fight alongside the team, granting invincibility and reviving fallen allies.",
+      "damage_multiplier": 3.8,
+      "scaling_stat": "ATK",
+      "targets": "all_enemies",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 3.8,
+          "scaling": "ATK"
+        },
+        {
+          "type": "team_buff",
+          "buff": "invincible",
+          "duration": 1
+        },
+        {
+          "type": "team_revive",
+          "value": 75
+        }
+      ],
+      "cooldown": 8,
+      "icon_path": "res://assets/abilities/call_of_valhalla.png"
+    },
+    "gungnir_mastery": {
+      "id": "gungnir_mastery",
+      "name": "Gungnir Mastery",
+      "description": "Throws Gungnir with perfect accuracy, always hitting and ignoring all defenses.",
+      "damage_multiplier": 5.2,
+      "scaling_stat": "ATK",
+      "targets": "single",
+      "effects": [
+        {
+          "type": "damage",
+          "value": 5.2,
+          "scaling": "ATK",
+          "always_hit": true,
+          "ignore_def_percent": 100
+        },
+        {
+          "type": "debuff",
+          "debuff": "brand",
+          "chance": 100,
+          "duration": 3
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/gungnir_mastery.png"
+    },
+    "all_seeing_wisdom": {
+      "id": "all_seeing_wisdom",
+      "name": "All-Seeing Wisdom",
+      "description": "Grants divine wisdom to all allies, providing immunity and cleansing all debuffs.",
+      "damage_multiplier": 0,
+      "targets": "all_allies",
+      "effects": [
+        {
+          "type": "buff",
+          "buff": "immunity",
+          "duration": 2
+        },
+        {
+          "type": "cleanse_all"
+        },
+        {
+          "type": "atb_increase",
+          "value": 30
+        }
+      ],
+      "cooldown": 5,
+      "icon_path": "res://assets/abilities/all_seeing_wisdom.png"
     }
   }
 }

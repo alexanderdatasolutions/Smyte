@@ -134,8 +134,9 @@ func _create_god_display_box(parent: Control):
 
 	god_portrait = TextureRect.new()
 	god_portrait.custom_minimum_size = Vector2(96, 96)
-	god_portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	god_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	god_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	god_portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	god_portrait.visible = false
 	portrait_vbox.add_child(god_portrait)
 
@@ -338,11 +339,12 @@ func _create_god_card(god: God) -> Control:
 
 	var portrait = TextureRect.new()
 	portrait.custom_minimum_size = Vector2(50, 50)
-	portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 
-	var template_id = god.template_id if god.template_id else god.id
-	var sprite_path = "res://assets/gods/" + template_id + ".png"
+	# Use GodPortraitHelper for proper skin/awakened portrait support
+	var sprite_path = GodPortraitHelper.get_portrait_path(god)
 	if ResourceLoader.exists(sprite_path):
 		portrait.texture = load(sprite_path)
 	portrait_center.add_child(portrait)
@@ -408,9 +410,8 @@ func _update_god_display():
 	if not has_god:
 		return
 
-	# Update portrait
-	var template_id = awakening_selected_god.template_id if awakening_selected_god.template_id else awakening_selected_god.id
-	var portrait_path = "res://assets/gods/" + template_id + ".png"
+	# Update portrait using GodPortraitHelper for skin/awakened support
+	var portrait_path = GodPortraitHelper.get_portrait_path(awakening_selected_god)
 	if ResourceLoader.exists(portrait_path):
 		god_portrait.texture = load(portrait_path)
 	else:
@@ -579,14 +580,24 @@ func _on_awaken_god_pressed():
 	if not awakening_selected_god or not awakening_system:
 		return
 
+	# Store the index before awakening (the god object will be replaced)
+	var old_god_index: int = -1
+	for i in range(collection_manager.gods.size()):
+		if collection_manager.gods[i] == awakening_selected_god:
+			old_god_index = i
+			break
+
 	if awakening_system.attempt_awakening(awakening_selected_god):
-		var awakened_god = awakening_selected_god
-		# Keep the god selected to show awakened state
+		# Get the NEW awakened god from the collection (it replaced the old one)
+		if old_god_index >= 0 and old_god_index < collection_manager.gods.size():
+			awakening_selected_god = collection_manager.gods[old_god_index]
+
+		# Update display with the new awakened god
 		_update_god_display()
 		_update_materials_display()
 		_update_awakening_button()
 		refresh_awakening_god_list()
-		god_awakened.emit(awakened_god)
+		god_awakened.emit(awakening_selected_god)
 
 func get_selected_god() -> God:
 	"""Get the currently selected awakening god"""

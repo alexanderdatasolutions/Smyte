@@ -33,6 +33,7 @@ var location_label: Label      # "📍Location"
 var awakening_indicator: Label
 
 func _ready():
+	clip_contents = true  # Prevent image from spilling outside card bounds
 	if not god_image:
 		_setup_card_structure()
 		_apply_card_size()
@@ -62,11 +63,12 @@ func _setup_card_structure():
 	vbox.add_theme_constant_override("separation", 1)
 	margin.add_child(vbox)
 
-	# God image - no extra container, just the image
+	# God image - same settings as working AwakeningTabBuilder
 	god_image = TextureRect.new()
 	god_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	god_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	god_image.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	god_image.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(god_image)
 
 	# Info panel - wraps all text labels

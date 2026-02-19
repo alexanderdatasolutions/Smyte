@@ -234,87 +234,11 @@
         "accuracy": 0.0
       },
       "resource_generation": 18.0,
-      "active_abilities": [
-        {
-          "id": "valhalla_\u53ec\u5524",
-          "name": "Call of Valhalla",
-          "description": "Summons the spirits of Valhalla to fight alongside the team.",
-          "damage_multiplier": 380.0,
-          "scaling_stat": "ATK",
-          "targets": "all_enemies",
-          "effects": [
-            {
-              "type": "damage",
-              "value": 380.0,
-              "scaling": "ATK"
-            },
-            {
-              "type": "team_buff",
-              "buff": "invincible",
-              "duration": 1.0
-            },
-            {
-              "type": "team_revive",
-              "value": 75.0
-            }
-          ],
-          "cooldown": 8.0,
-          "awakened_only": true
-        },
-        {
-          "id": "gungnir_mastery",
-          "name": "Gungnir Mastery",
-          "description": "Throws Gungnir with perfect accuracy, always hitting and ignoring all defenses.",
-          "damage_multiplier": 520.0,
-          "scaling_stat": "ATK",
-          "targets": "single",
-          "effects": [
-            {
-              "type": "damage",
-              "value": 520.0,
-              "scaling": "ATK",
-              "always_hit": true,
-              "ignore_def_percent": 100.0
-            },
-            {
-              "type": "debuff",
-              "debuff": "brand",
-              "chance": 100.0,
-              "duration": 3.0
-            }
-          ],
-          "cooldown": 5.0
-        },
-        {
-          "id": "all_seeing_wisdom",
-          "name": "All-Seeing Wisdom",
-          "description": "Grants divine wisdom to all allies, providing immunity and perfect vision.",
-          "damage_multiplier": 0.0,
-          "targets": "all_allies",
-          "effects": [
-            {
-              "type": "buff",
-              "buff": "immunity",
-              "duration": 2.0
-            },
-            {
-              "type": "cleanse_all"
-            },
-            {
-              "type": "buff",
-              "buff": "crit_rate_buff",
-              "duration": 4.0
-            },
-            {
-              "type": "buff",
-              "buff": "accuracy_buff",
-              "duration": 4.0
-            }
-          ],
-          "cooldown": 6.0
-        }
+      "ability_ids": [
+        "call_of_valhalla",
+        "gungnir_mastery",
+        "all_seeing_wisdom"
       ],
-      "passive_abilities": [],
       "leader_skill": {
         "type": "resistance",
         "value": 60.0,
@@ -322,15 +246,7 @@
       },
       "description": "The awakened form of Odin, wielding ultimate wisdom and power.",
       "summon_weight": 0.0,
-      "base_god_id": "odin",
-      "awakening_materials": {
-        "dark_powder_high": 20.0,
-        "magic_powder_high": 10.0,
-        "dark_powder_mid": 40.0,
-        "magic_powder_mid": 20.0,
-        "dark_powder_low": 15.0,
-        "magic_powder_low": 10.0
-      }
+      "base_god_id": "odin"
     },
     "ra_awakened": {
       "id": "ra_awakened",

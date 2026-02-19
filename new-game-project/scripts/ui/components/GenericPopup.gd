@@ -125,6 +125,10 @@ static func show_popup(parent: Node, config: Dictionary) -> GenericPopup:
 # ==============================================================================
 
 func _ready() -> void:
+	# Set full screen size explicitly (anchors don't work if parent is Node2D)
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	position = Vector2.ZERO
+	size = viewport_size
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	z_index = 100

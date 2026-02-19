@@ -46,11 +46,21 @@ static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Sk
 	var formula: Dictionary = _get_damage_formula()
 	var hit_config: Dictionary = _get_hit_types()
 
-	# Use modified attack (includes status effects, Wrath fury scaling, Nemesis vengeance stacks)
+	# Determine base stat for damage calculation
 	var base_attack: int = attacker.get_modified_attack()
+	var scaling_stat: String = skill.scaling_stat if skill else "attack"
+
+	# HP Scaling: Use caster's max HP instead of attack (Jormungandr, etc.)
+	if scaling_stat == "MAX_HP":
+		base_attack = attacker.max_hp
+
 	# Use modified defense (includes status effect buffs/debuffs)
 	var defense: int = target.get_modified_defense()
 	var multiplier: float = skill.get_damage_multiplier() if skill else 1.0
+
+	# Apply skill's defense ignore (e.g., 30% ignore_def_percent)
+	if skill and skill.ignore_def_percent > 0:
+		defense = int(defense * (1.0 - skill.ignore_def_percent))
 
 	# Apply Artemis Hunt marked_prey effect - if target is marked, ignore defense %
 	if attacker.is_target_marked(target.unit_id):
@@ -63,6 +73,11 @@ static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Sk
 	var dmg_denom_base: float = formula.get("denominator_base", 1140.0)
 	var dmg_def_scale: float = formula.get("defense_scale", 3.5)
 	var base_damage: float = base_attack * multiplier * (dmg_numerator / (dmg_denom_base + dmg_def_scale * defense))
+
+	# Target Max HP Scaling: Add bonus damage based on enemy's max HP (Anubis-style)
+	if scaling_stat == "target_max_hp" and skill:
+		var hp_bonus: float = float(target.max_hp) * skill.target_hp_percent
+		base_damage += hp_bonus
 
 	# Apply Hermes Ambush effect - first attack deals +40% damage
 	if not attacker.first_attack_done and attacker.has_set_effect("ambush"):
@@ -86,8 +101,10 @@ static func calculate_damage(attacker: BattleUnit, target: BattleUnit, skill: Sk
 			attacker.mark_target(target.unit_id)
 
 	# Check for glancing hit (opposite of critical)
+	# Skills with always_hit cannot glance
 	var glancing_chance: float = hit_config.get("glancing_chance", 0.15)
-	var is_glancing: bool = not is_critical and randf() < glancing_chance
+	var always_hit: bool = skill.always_hit if skill else false
+	var is_glancing: bool = not is_critical and not always_hit and randf() < glancing_chance
 	var glancing_mult: float = 1.0
 	if is_glancing:
 		glancing_mult = hit_config.get("glancing_damage_mult", 0.7)

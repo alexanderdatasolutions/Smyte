@@ -40,9 +40,13 @@ static func get_required_level() -> int:
 static func get_awakened_level_cap() -> int:
 	return int(_config.get("awakened_level_cap", 50))
 
-static func get_costs_for_tier(tier_name: String) -> Dictionary:
-	var costs_by_tier: Dictionary = _config.get("costs_by_tier", {})
-	return costs_by_tier.get(tier_name, {})
+static func get_awakening_cost() -> Dictionary:
+	return _config.get("awakening_cost", {
+		"awakening_essence": 20,
+		"divine_essence": 10,
+		"ascension_crystal": 3,
+		"mana": 50000
+	})
 
 static func get_stat_bonuses() -> Dictionary:
 	return _config.get("stat_bonuses", {
@@ -84,8 +88,9 @@ func can_awaken_god(god: God) -> Dictionary:
 		"awakened_god_id": ""
 	}
 
-	# Check if awakened version exists for this god
-	var awakened_god_id: String = god.id + "_awakened"
+	# Check if awakened version exists for this god (use template_id, not instance id)
+	var base_template: String = god.template_id if god.template_id else god.id
+	var awakened_god_id: String = base_template + "_awakened"
 	var awakened_gods: Dictionary = awakening_data.get("awakened_gods", {})
 	var awakened_god_data: Dictionary = awakened_gods.get(awakened_god_id, {})
 	if awakened_god_data.is_empty():
@@ -130,11 +135,9 @@ func get_awakening_requirements(god: God) -> Dictionary:
 	var god_awakening: Dictionary = awakening_data.get("awakened_gods", {}).get(god.id, {})
 	return god_awakening.get("awakening_requirements", {})
 
-func get_awakening_materials_cost(god: God) -> Dictionary:
-	# Always use tier-based costs from awakening_config.json (per-god materials in
-	# awakened_gods.json use legacy/invalid material IDs)
-	var tier_name: String = God.tier_to_string(god.tier)
-	return get_costs_for_tier(tier_name)
+func get_awakening_materials_cost(_god: God) -> Dictionary:
+	# Flat cost for all gods - tier doesn't matter, just level and materials
+	return get_awakening_cost()
 
 func attempt_awakening(god: God) -> bool:
 	var requirements_check: Dictionary = can_awaken_god(god)
@@ -208,7 +211,7 @@ func replace_god_with_awakened(old_god: God, awakened_data: Dictionary) -> bool:
 	if not awakened_god:
 		return false
 
-	# Preserve some stats from the original god
+	# Preserve stats from the original god
 	awakened_god.level = old_god.level
 	awakened_god.experience = old_god.experience
 	awakened_god.ascension_level = old_god.ascension_level
@@ -217,6 +220,12 @@ func replace_god_with_awakened(old_god: God, awakened_data: Dictionary) -> bool:
 		dup_skill_levels.append(sl)
 	awakened_god.skill_levels = dup_skill_levels
 	awakened_god.stationed_territory = old_god.stationed_territory
+
+	# Preserve equipment - copy the equipment array
+	awakened_god.equipment = old_god.equipment.duplicate()
+
+	# Preserve skin
+	awakened_god.equipped_skin_id = old_god.equipped_skin_id
 
 	# Mark as awakened
 	awakened_god.is_awakened = true
@@ -229,8 +238,10 @@ func replace_god_with_awakened(old_god: God, awakened_data: Dictionary) -> bool:
 func create_awakened_god_from_data(awakened_data: Dictionary) -> God:
 	var god := God.new()
 
-	# Basic info
-	god.id = awakened_data.get("id", "")
+	# Basic info - use awakened ID as template_id for portrait loading
+	var awakened_id: String = awakened_data.get("id", "")
+	god.id = awakened_id + "_" + str(Time.get_unix_time_from_system())  # Unique instance ID
+	god.template_id = awakened_id  # For portrait: res://assets/gods/odin_awakened.png
 	god.name = awakened_data.get("name", "")
 	god.pantheon = awakened_data.get("pantheon", "")
 	god.element = God.string_to_element(awakened_data.get("element", "light"))
@@ -248,6 +259,15 @@ func create_awakened_god_from_data(awakened_data: Dictionary) -> God:
 	# Abilities
 	god.active_abilities = awakened_data.get("active_abilities", [])
 	god.passive_abilities = awakened_data.get("passive_abilities", [])
+
+	# Extract ability IDs for legacy battle system compatibility
+	# BattleUnit.gd uses god.abilities (array of ID strings)
+	var ability_ids: Array = []
+	for ability: Dictionary in god.active_abilities:
+		var ability_id: String = ability.get("id", "")
+		if ability_id != "":
+			ability_ids.append(ability_id)
+	god.abilities = ability_ids
 
 	return god
 

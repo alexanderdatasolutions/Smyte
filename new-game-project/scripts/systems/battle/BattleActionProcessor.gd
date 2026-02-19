@@ -151,55 +151,65 @@ func _execute_skill(action: BattleAction, result: ActionResult) -> void:
 			continue
 
 		if skill.targets_enemies:
-			# Use existing skill damage calculation
-			var skill_result: DamageResult = CombatCalculator.calculate_damage(caster, target, skill, battle_state)
+			# Multi-hit support: loop for each hit
+			var hit_count: int = skill.multi_hit if skill.multi_hit > 0 else 1
+			var total_skill_damage: int = 0
 
-			# Apply damage using new system (handles shields, death defiance, thorns, reflect, immunity)
-			var damage_info: Dictionary = target.apply_damage(skill_result.total)
-			target.on_damage_received()  # Track vengeance stacks
+			for hit_num: int in range(hit_count):
+				if not target.is_alive:
+					break  # Stop hitting dead targets
 
-			# Check if damage was blocked by immunity
-			if damage_info.get("damage_immune", false):
-				result.message += " %s is immune to damage!" % target.display_name
-				continue
+				# Use existing skill damage calculation
+				var skill_result: DamageResult = CombatCalculator.calculate_damage(caster, target, skill, battle_state)
 
-			# Handle sleep broken
-			if damage_info.get("sleep_broken", false):
-				result.message += " %s wakes up!" % target.display_name
+				# Apply damage using new system (handles shields, death defiance, thorns, reflect, immunity)
+				var damage_info: Dictionary = target.apply_damage(skill_result.total)
+				target.on_damage_received()  # Track vengeance stacks
+				total_skill_damage += skill_result.total
 
-			# Handle thorns damage (Aegis set)
-			if damage_info.thorns_damage > 0 and caster.is_alive:
-				caster.take_damage(damage_info.thorns_damage)
-				result.message += " Thorns deals %d back!" % damage_info.thorns_damage
+				# Check if damage was blocked by immunity
+				if damage_info.get("damage_immune", false):
+					result.message += " %s is immune to damage!" % target.display_name
+					break
 
-			# Handle reflect damage (from status effect)
-			if damage_info.get("reflect_damage", 0) > 0 and caster.is_alive:
-				caster.take_damage(damage_info.reflect_damage)
-				result.message += " Reflected %d!" % damage_info.reflect_damage
+				# Handle sleep broken
+				if damage_info.get("sleep_broken", false):
+					result.message += " %s wakes up!" % target.display_name
 
-			# Handle chain lightning (only on first target)
-			if target == targets[0]:
-				_apply_chain_lightning(caster, target, skill_result, result)
+				# Handle thorns damage (Aegis set)
+				if damage_info.thorns_damage > 0 and caster.is_alive:
+					caster.take_damage(damage_info.thorns_damage)
+					result.message += " Thorns deals %d back!" % damage_info.thorns_damage
 
-			var skill_damage := DamageResult.new(skill_result.total, skill_result.is_critical, skill_result.is_glancing)
-			result.add_damage_result(skill_damage)
+				# Handle reflect damage (from status effect)
+				if damage_info.get("reflect_damage", 0) > 0 and caster.is_alive:
+					caster.take_damage(damage_info.reflect_damage)
+					result.message += " Reflected %d!" % damage_info.reflect_damage
 
+				# Handle chain lightning (only on first target, first hit)
+				if target == targets[0] and hit_num == 0:
+					_apply_chain_lightning(caster, target, skill_result, result)
+
+				var skill_damage := DamageResult.new(skill_result.total, skill_result.is_critical, skill_result.is_glancing)
+				result.add_damage_result(skill_damage)
+
+			# Check kill and apply life steal based on total damage
 			if not target.is_alive:
 				battle_state.record_unit_defeat()
 				if target.is_player_unit:
 					battle_state.record_player_unit_death()
 				# Soul drinker bonus on kill
-				_apply_set_life_steal(caster, skill_result.total, false, result)
+				_apply_set_life_steal(caster, total_skill_damage, false, result)
 			else:
 				# Normal life steal
-				_apply_set_life_steal(caster, skill_result.total, true, result)
+				_apply_set_life_steal(caster, total_skill_damage, true, result)
 		else:
 			# Healing or buff skill
 			var heal_amount: int = int(caster.attack * skill.damage_multiplier)
 			target.heal(heal_amount)
 			result.message += target.display_name + " healed for " + str(heal_amount) + "! "
 
-		# Apply status effects from skill
+		# Apply status effects from skill (only once per target, not per hit)
 		_apply_skill_status_effects(skill, caster, target, result)
 
 	result.message = caster.display_name + " uses " + skill.name + "!"
@@ -240,12 +250,36 @@ func _apply_skill_status_effects(skill: Skill, caster: BattleUnit, target: Battl
 				_apply_debuff_effect(effect_dict, caster, target, result)
 			"buff":
 				_apply_buff_effect(effect_dict, caster, target, result)
+			"self_buff":
+				_apply_buff_effect(effect_dict, caster, caster, result)
+			"team_buff":
+				_apply_team_buff_effect(effect_dict, caster, result)
+			"team_heal":
+				_apply_team_heal_effect(effect_dict, caster, result)
+			"smart_heal":
+				_apply_smart_heal_effect(effect_dict, caster, result)
 			"atb_decrease":
 				_apply_atb_decrease(effect_dict, caster, target, result)
 			"atb_steal":
 				_apply_atb_steal(effect_dict, caster, target, result)
+			"atb_increase":
+				_apply_atb_increase(effect_dict, caster, target, result)
 			"life_drain":
 				_apply_life_drain(effect_dict, caster, target, result)
+			"heal":
+				_apply_heal_effect(effect_dict, caster, target, result)
+			"shield":
+				_apply_shield_effect(effect_dict, caster, target, result)
+			"cleanse":
+				_apply_cleanse_effect(effect_dict, caster, target, result)
+			"strip":
+				_apply_strip_effect(effect_dict, caster, target, result)
+			"strip_all":
+				_apply_strip_all_effect(effect_dict, caster, target, result)
+			"steal_buff":
+				_apply_steal_buff_effect(effect_dict, caster, target, result)
+			"additional_turn":
+				_apply_additional_turn(effect_dict, caster, result)
 
 func _get_ability_data(skill_id: String) -> Dictionary:
 	"""Look up ability data from cached abilities dictionary"""
@@ -527,3 +561,202 @@ func _execute_counter_attack(counter_attacker: BattleUnit, original_attacker: Ba
 	# Add counter damage to results
 	var counter_result := DamageResult.new(counter_damage, false, false)
 	result.add_damage_result(counter_result)
+
+## Apply ATB increase effect (boost turn bar)
+func _apply_atb_increase(effect_data: Dictionary, _caster: BattleUnit, target: BattleUnit, result: ActionResult) -> void:
+	var chance: int = effect_data.get("chance", 100)
+	var amount: int = effect_data.get("amount", 30)  # Percentage to increase
+
+	if randf() * 100 > chance:
+		return
+
+	var threshold: float = TurnManager.get_turn_bar_threshold()
+	var increase_amount: float = threshold * (amount / 100.0)
+	target.current_turn_bar = minf(threshold, target.current_turn_bar + increase_amount)
+	result.message += " %s's turn bar increased by %d%%!" % [target.display_name, amount]
+
+## Apply heal effect
+func _apply_heal_effect(effect_data: Dictionary, caster: BattleUnit, target: BattleUnit, result: ActionResult) -> void:
+	var heal_percent: float = effect_data.get("value", 0.3)  # Percentage of caster ATK
+	var scaling: String = effect_data.get("scaling", "attack")
+
+	var base_value: int = caster.attack
+	if scaling == "MAX_HP":
+		base_value = caster.max_hp
+	elif scaling == "target_max_hp":
+		base_value = target.max_hp
+
+	var heal_amount: int = int(base_value * heal_percent)
+	target.heal(heal_amount)
+	result.message += " %s healed for %d!" % [target.display_name, heal_amount]
+
+## Apply shield effect (absorbs damage)
+func _apply_shield_effect(effect_data: Dictionary, caster: BattleUnit, target: BattleUnit, result: ActionResult) -> void:
+	var shield_percent: float = effect_data.get("value", 0.2)  # Percentage of caster ATK/HP
+	var scaling: String = effect_data.get("scaling", "attack")
+	var duration: int = effect_data.get("duration", 3)
+
+	var base_value: int = caster.attack
+	if scaling == "MAX_HP":
+		base_value = caster.max_hp
+
+	var shield_amount: int = int(base_value * shield_percent)
+
+	# Create shield status effect
+	var shield_effect: StatusEffect = StatusEffect.create_shield(caster, duration)
+	shield_effect.shield_value = shield_amount
+	shield_effect.target_name = target.display_name
+	shield_effect.caster_name = caster.display_name
+	shield_effect.description = "Absorbs %d damage" % shield_amount
+	target.add_status_effect(shield_effect)
+
+	result.message += " %s gains a %d HP shield!" % [target.display_name, shield_amount]
+
+## Apply cleanse effect (remove debuffs from target)
+func _apply_cleanse_effect(effect_data: Dictionary, _caster: BattleUnit, target: BattleUnit, result: ActionResult) -> void:
+	var count: int = effect_data.get("count", 1)  # Number of debuffs to remove
+
+	var removed: int = 0
+	for i: int in range(count):
+		if target.remove_random_debuff():
+			removed += 1
+		else:
+			break
+
+	if removed > 0:
+		result.message += " %s cleansed %d debuff(s)!" % [target.display_name, removed]
+
+## Apply strip effect (remove buffs from enemy)
+func _apply_strip_effect(effect_data: Dictionary, _caster: BattleUnit, target: BattleUnit, result: ActionResult) -> void:
+	var chance: int = effect_data.get("chance", 100)
+	var count: int = effect_data.get("count", 1)
+
+	if randf() * 100 > chance:
+		return
+
+	var removed: int = 0
+	for i: int in range(count):
+		if target.remove_random_buff():
+			removed += 1
+		else:
+			break
+
+	if removed > 0:
+		result.message += " %s stripped %d buff(s)!" % [target.display_name, removed]
+
+## Apply strip all effect (remove all buffs from enemy)
+func _apply_strip_all_effect(effect_data: Dictionary, _caster: BattleUnit, target: BattleUnit, result: ActionResult) -> void:
+	var chance: int = effect_data.get("chance", 100)
+
+	if randf() * 100 > chance:
+		return
+
+	var removed: int = target.remove_all_buffs()
+	if removed > 0:
+		result.message += " All buffs stripped from %s!" % target.display_name
+
+## Apply steal buff effect (take a buff from enemy)
+func _apply_steal_buff_effect(effect_data: Dictionary, caster: BattleUnit, target: BattleUnit, result: ActionResult) -> void:
+	var chance: int = effect_data.get("chance", 100)
+	var count: int = effect_data.get("count", 1)
+
+	if randf() * 100 > chance:
+		return
+
+	var stolen: int = 0
+	for i: int in range(count):
+		var buff: StatusEffect = target.steal_random_buff()
+		if buff:
+			buff.target_name = caster.display_name
+			caster.add_status_effect(buff)
+			stolen += 1
+		else:
+			break
+
+	if stolen > 0:
+		result.message += " %s stole %d buff(s) from %s!" % [caster.display_name, stolen, target.display_name]
+
+## Apply additional turn effect (grants extra turn)
+func _apply_additional_turn(effect_data: Dictionary, caster: BattleUnit, result: ActionResult) -> void:
+	var chance: int = effect_data.get("chance", 100)
+
+	if randf() * 100 > chance:
+		return
+
+	# Fill turn bar to threshold for immediate next turn
+	var threshold: float = TurnManager.get_turn_bar_threshold()
+	caster.current_turn_bar = threshold
+	result.message += " %s gains an additional turn!" % caster.display_name
+
+## Apply team buff effect (buff all allies)
+func _apply_team_buff_effect(effect_data: Dictionary, caster: BattleUnit, result: ActionResult) -> void:
+	if not battle_state:
+		return
+
+	var allies: Array[BattleUnit] = []
+	if caster.is_player_unit:
+		allies = battle_state.get_living_player_units()
+	else:
+		allies = battle_state.get_living_enemy_units()
+
+	for ally: BattleUnit in allies:
+		_apply_buff_effect(effect_data, caster, ally, result)
+
+## Apply team heal effect (heal all allies)
+func _apply_team_heal_effect(effect_data: Dictionary, caster: BattleUnit, result: ActionResult) -> void:
+	if not battle_state:
+		return
+
+	var heal_percent: float = effect_data.get("value", 0.2)
+	var scaling: String = effect_data.get("scaling", "attack")
+
+	var base_value: int = caster.attack
+	if scaling == "MAX_HP":
+		base_value = caster.max_hp
+
+	var heal_amount: int = int(base_value * heal_percent)
+
+	var allies: Array[BattleUnit] = []
+	if caster.is_player_unit:
+		allies = battle_state.get_living_player_units()
+	else:
+		allies = battle_state.get_living_enemy_units()
+
+	for ally: BattleUnit in allies:
+		ally.heal(heal_amount)
+
+	result.message += " All allies healed for %d!" % heal_amount
+
+## Apply smart heal effect (heal lowest HP ally)
+func _apply_smart_heal_effect(effect_data: Dictionary, caster: BattleUnit, result: ActionResult) -> void:
+	if not battle_state:
+		return
+
+	var heal_percent: float = effect_data.get("value", 0.3)
+	var scaling: String = effect_data.get("scaling", "attack")
+
+	var base_value: int = caster.attack
+	if scaling == "MAX_HP":
+		base_value = caster.max_hp
+
+	var heal_amount: int = int(base_value * heal_percent)
+
+	var allies: Array[BattleUnit] = []
+	if caster.is_player_unit:
+		allies = battle_state.get_living_player_units()
+	else:
+		allies = battle_state.get_living_enemy_units()
+
+	# Find ally with lowest HP percentage
+	var lowest_ally: BattleUnit = null
+	var lowest_hp_pct: float = 1.0
+
+	for ally: BattleUnit in allies:
+		var hp_pct: float = float(ally.current_hp) / float(ally.max_hp)
+		if hp_pct < lowest_hp_pct:
+			lowest_hp_pct = hp_pct
+			lowest_ally = ally
+
+	if lowest_ally:
+		lowest_ally.heal(heal_amount)
+		result.message += " %s healed for %d!" % [lowest_ally.display_name, heal_amount]
