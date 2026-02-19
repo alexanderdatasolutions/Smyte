@@ -166,6 +166,45 @@
         "legendary": 1
       }
     },
+    "equipment_drop_beginner": {
+      "id": "equipment_drop_beginner",
+      "resource_type": "equipment",
+      "min_amount": 1,
+      "max_amount": 1,
+      "rarity_weights": {
+        "common": 70,
+        "uncommon": 20,
+        "rare": 8,
+        "epic": 2,
+        "legendary": 0
+      }
+    },
+    "equipment_drop_intermediate": {
+      "id": "equipment_drop_intermediate",
+      "resource_type": "equipment",
+      "min_amount": 1,
+      "max_amount": 2,
+      "rarity_weights": {
+        "common": 40,
+        "uncommon": 35,
+        "rare": 18,
+        "epic": 6,
+        "legendary": 1
+      }
+    },
+    "equipment_drop_advanced": {
+      "id": "equipment_drop_advanced",
+      "resource_type": "equipment",
+      "min_amount": 1,
+      "max_amount": 2,
+      "rarity_weights": {
+        "common": 15,
+        "uncommon": 30,
+        "rare": 35,
+        "epic": 15,
+        "legendary": 5
+      }
+    },
     "random_consumable": {
       "id": "random_consumable",
       "resource_type": "random_consumable",

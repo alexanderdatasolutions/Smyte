@@ -301,7 +301,7 @@ func _create_god_card(god: God) -> PanelContainer:
 	vbox.add_child(stats_label)
 
 	# Power rating
-	var power = GodCalculator.get_power_rating(god)
+	var power = GodCalculator.get_combat_power(god)
 	var power_label = Label.new()
 	power_label.text = str(power)
 	power_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

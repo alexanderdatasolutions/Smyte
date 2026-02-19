@@ -1,0 +1,413 @@
+{
+  "_metadata": {
+    "description": "Dungeon-exclusive equipment - cannot be crafted, only obtained from drops",
+    "version": "1.1.0"
+  },
+  "set_bonus_reference": {
+    "cursed": {
+      "theme": "High risk/reward - massive offense at defensive cost",
+      "2pc": "+25% ATK, -10% DEF",
+      "4pc": "+50% ATK, -20% DEF, +15% Lifesteal",
+      "6pc": "+75% ATK, -25% DEF, +25% Lifesteal, Attacks ignore 10% resistance"
+    },
+    "ancient": {
+      "theme": "Balanced all-rounder from a forgotten age",
+      "2pc": "+10% to all base stats",
+      "4pc": "+20% to all base stats",
+      "6pc": "+30% to all base stats, +10% Extra Turn chance"
+    },
+    "abyssal": {
+      "theme": "Pure destruction from the depths",
+      "2pc": "+35% Crit Damage",
+      "4pc": "+60% Crit Damage, +15% Crit Rate",
+      "6pc": "+80% Crit Damage, +25% Crit Rate, Crits deal splash (25% damage to adjacent enemies)"
+    },
+    "phantom": {
+      "theme": "Evasion and disruption",
+      "2pc": "+15% Dodge Chance",
+      "4pc": "+30% Dodge Chance, successful dodges grant +15% ATK for 1 turn",
+      "6pc": "+40% Dodge Chance, successful dodges grant +30% ATK and 30% chance to reset attacker's cooldowns"
+    }
+  },
+
+  "_comment_cursed": "=== CURSED SET (Dungeon-only T2 rare, high risk/reward) ===",
+  "cursed_blade": {
+    "id": "cursed_blade",
+    "name": "Cursed Blade of the Fallen",
+    "description": "A blade cursed by fallen gods - immense power at a cost",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "cursed",
+    "source": "dungeon_drop",
+    "base_stats": {"attack": 180},
+    "possible_substats": ["crit_rate", "crit_damage", "speed"]
+  },
+  "cursed_armor": {
+    "id": "cursed_armor",
+    "name": "Cursed Plate of Torment",
+    "description": "Armor that feeds on pain to grant strength",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "cursed",
+    "source": "dungeon_drop",
+    "base_stats": {"defense": 90, "attack": 60},
+    "possible_substats": ["hp", "crit_damage", "speed"]
+  },
+  "cursed_helm": {
+    "id": "cursed_helm",
+    "name": "Cursed Visage",
+    "description": "A helm that whispers dark secrets",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "cursed",
+    "source": "dungeon_drop",
+    "base_stats": {"hp": 700, "attack": 45},
+    "possible_substats": ["defense", "crit_rate", "speed"]
+  },
+  "cursed_boots": {
+    "id": "cursed_boots",
+    "name": "Cursed Striders",
+    "description": "Boots that leave a trail of corrupted souls",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "cursed",
+    "source": "dungeon_drop",
+    "base_stats": {"speed": 16, "attack": 40},
+    "possible_substats": ["hp", "crit_rate", "crit_damage"]
+  },
+  "cursed_amulet": {
+    "id": "cursed_amulet",
+    "name": "Cursed Pendant",
+    "description": "Whispers promises of power in exchange for vitality",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "cursed",
+    "source": "dungeon_drop",
+    "base_stats": {"attack": 65, "crit_rate": 8},
+    "possible_substats": ["hp", "crit_damage", "speed"]
+  },
+  "cursed_ring": {
+    "id": "cursed_ring",
+    "name": "Ring of the Damned",
+    "description": "A ring that binds souls to its wearer",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "cursed",
+    "source": "dungeon_drop",
+    "base_stats": {"attack": 55, "crit_damage": 18},
+    "possible_substats": ["hp", "speed", "crit_rate"]
+  },
+
+  "_comment_ancient": "=== ANCIENT SET (Dungeon-only T3 epic, balanced stats) ===",
+  "ancient_relic_blade": {
+    "id": "ancient_relic_blade",
+    "name": "Ancient Relic Blade",
+    "description": "A weapon from a forgotten age, still sharp as ever",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "ancient",
+    "source": "dungeon_drop",
+    "base_stats": {"attack": 220, "hp": 400},
+    "guaranteed_substats": [
+      {"stat": "crit_rate", "value": 12}
+    ],
+    "possible_substats": ["defense", "speed", "crit_damage"]
+  },
+  "ancient_guardian_plate": {
+    "id": "ancient_guardian_plate",
+    "name": "Ancient Guardian Plate",
+    "description": "Armor worn by the guardians of lost temples",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "ancient",
+    "source": "dungeon_drop",
+    "base_stats": {"defense": 180, "hp": 1100},
+    "guaranteed_substats": [
+      {"stat": "resistance", "value": 18}
+    ],
+    "possible_substats": ["attack", "speed"]
+  },
+  "ancient_helm": {
+    "id": "ancient_helm",
+    "name": "Ancient Crown of Wisdom",
+    "description": "Holds the knowledge of civilizations long forgotten",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "ancient",
+    "source": "dungeon_drop",
+    "base_stats": {"hp": 950, "defense": 80},
+    "guaranteed_substats": [
+      {"stat": "accuracy", "value": 15}
+    ],
+    "possible_substats": ["attack", "speed", "resistance"]
+  },
+  "ancient_boots": {
+    "id": "ancient_boots",
+    "name": "Ancient Treads",
+    "description": "Sandals that have walked through millennia",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "ancient",
+    "source": "dungeon_drop",
+    "base_stats": {"speed": 24, "hp": 600},
+    "guaranteed_substats": [
+      {"stat": "defense", "value": 50}
+    ],
+    "possible_substats": ["attack", "crit_rate", "resistance"]
+  },
+  "ancient_amulet": {
+    "id": "ancient_amulet",
+    "name": "Amulet of the Ancients",
+    "description": "Contains the wisdom of civilizations long past",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "ancient",
+    "source": "dungeon_drop",
+    "base_stats": {"hp": 850, "attack": 80},
+    "guaranteed_substats": [
+      {"stat": "accuracy", "value": 20}
+    ],
+    "possible_substats": ["defense", "speed", "crit_rate"]
+  },
+  "ancient_ring": {
+    "id": "ancient_ring",
+    "name": "Signet of the Ancients",
+    "description": "A ring bearing the seal of a forgotten dynasty",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "ancient",
+    "source": "dungeon_drop",
+    "base_stats": {"hp": 700, "defense": 60},
+    "guaranteed_substats": [
+      {"stat": "speed", "value": 12}
+    ],
+    "possible_substats": ["attack", "crit_rate", "resistance"]
+  },
+
+  "_comment_abyssal": "=== ABYSSAL SET (Dungeon-only T4 legendary, extreme power) ===",
+  "abyssal_edge": {
+    "id": "abyssal_edge",
+    "name": "Edge of the Abyss",
+    "description": "Forged in the deepest dungeons where light never reaches",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "abyssal",
+    "source": "dungeon_drop",
+    "base_stats": {"attack": 480},
+    "guaranteed_substats": [
+      {"stat": "crit_rate", "value": 25},
+      {"stat": "crit_damage", "value": 50}
+    ],
+    "possible_substats": ["hp", "speed"]
+  },
+  "abyssal_armor": {
+    "id": "abyssal_armor",
+    "name": "Abyssal Shroud",
+    "description": "Armor woven from the darkness itself",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "abyssal",
+    "source": "dungeon_drop",
+    "base_stats": {"defense": 320, "hp": 2200},
+    "guaranteed_substats": [
+      {"stat": "attack", "value": 120},
+      {"stat": "resistance", "value": 30}
+    ],
+    "possible_substats": ["speed", "crit_rate"]
+  },
+  "abyssal_helm": {
+    "id": "abyssal_helm",
+    "name": "Abyssal Crown",
+    "description": "A crown forged in eternal darkness",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "abyssal",
+    "source": "dungeon_drop",
+    "base_stats": {"hp": 2000, "attack": 150},
+    "guaranteed_substats": [
+      {"stat": "crit_rate", "value": 20},
+      {"stat": "crit_damage", "value": 35}
+    ],
+    "possible_substats": ["speed", "defense"]
+  },
+  "abyssal_boots": {
+    "id": "abyssal_boots",
+    "name": "Abyssal Striders",
+    "description": "Boots that walk between shadow and void",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "abyssal",
+    "source": "dungeon_drop",
+    "base_stats": {"speed": 38, "attack": 130},
+    "guaranteed_substats": [
+      {"stat": "crit_rate", "value": 18},
+      {"stat": "hp", "value": 800}
+    ],
+    "possible_substats": ["crit_damage", "defense"]
+  },
+  "abyssal_amulet": {
+    "id": "abyssal_amulet",
+    "name": "Heart of the Abyss",
+    "description": "Pulses with the darkness of a thousand years",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "abyssal",
+    "source": "dungeon_drop",
+    "base_stats": {"attack": 200, "crit_damage": 45},
+    "guaranteed_substats": [
+      {"stat": "crit_rate", "value": 22},
+      {"stat": "hp", "value": 900}
+    ],
+    "possible_substats": ["speed", "defense"]
+  },
+  "abyssal_ring": {
+    "id": "abyssal_ring",
+    "name": "Ring of the Void",
+    "description": "A ring that channels pure destructive energy",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "abyssal",
+    "source": "dungeon_drop",
+    "base_stats": {"crit_rate": 28, "crit_damage": 55},
+    "guaranteed_substats": [
+      {"stat": "attack", "value": 140},
+      {"stat": "speed", "value": 15}
+    ],
+    "possible_substats": ["hp", "defense"]
+  },
+
+  "_comment_phantom": "=== PHANTOM SET (Dungeon-only T3 epic, evasion/disruption) ===",
+  "phantom_dagger": {
+    "id": "phantom_dagger",
+    "name": "Phantom Blade",
+    "description": "A blade that phases through armor and shields",
+    "equipment_type": "weapon",
+    "equipment_slot": 0,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "phantom",
+    "source": "dungeon_drop",
+    "base_stats": {"attack": 210, "speed": 12},
+    "guaranteed_substats": [
+      {"stat": "crit_rate", "value": 15}
+    ],
+    "possible_substats": ["crit_damage", "hp", "accuracy"]
+  },
+  "phantom_cloak": {
+    "id": "phantom_cloak",
+    "name": "Phantom Shroud",
+    "description": "A cloak that blurs the wearer's form",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "phantom",
+    "source": "dungeon_drop",
+    "base_stats": {"hp": 1000, "speed": 15},
+    "guaranteed_substats": [
+      {"stat": "defense", "value": 80}
+    ],
+    "possible_substats": ["attack", "crit_rate", "resistance"]
+  },
+  "phantom_mask": {
+    "id": "phantom_mask",
+    "name": "Phantom Mask",
+    "description": "A mask that makes the wearer nearly invisible",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "phantom",
+    "source": "dungeon_drop",
+    "base_stats": {"hp": 800, "speed": 10},
+    "guaranteed_substats": [
+      {"stat": "attack", "value": 50}
+    ],
+    "possible_substats": ["crit_rate", "defense", "accuracy"]
+  },
+  "phantom_boots": {
+    "id": "phantom_boots",
+    "name": "Phantom Steps",
+    "description": "Boots that leave no footprints",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "phantom",
+    "source": "dungeon_drop",
+    "base_stats": {"speed": 28},
+    "guaranteed_substats": [
+      {"stat": "hp", "value": 450},
+      {"stat": "attack", "value": 40}
+    ],
+    "possible_substats": ["crit_rate", "defense"]
+  },
+  "phantom_amulet": {
+    "id": "phantom_amulet",
+    "name": "Phantom Heart",
+    "description": "Grants the ethereal power of displacement",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "phantom",
+    "source": "dungeon_drop",
+    "base_stats": {"hp": 750, "attack": 70},
+    "guaranteed_substats": [
+      {"stat": "speed", "value": 12}
+    ],
+    "possible_substats": ["crit_rate", "crit_damage", "defense"]
+  },
+  "phantom_ring": {
+    "id": "phantom_ring",
+    "name": "Ring of Shadows",
+    "description": "A ring that phases between dimensions",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "phantom",
+    "source": "dungeon_drop",
+    "base_stats": {"speed": 15, "attack": 55},
+    "guaranteed_substats": [
+      {"stat": "crit_rate", "value": 10}
+    ],
+    "possible_substats": ["hp", "crit_damage", "defense"]
+  }
+}

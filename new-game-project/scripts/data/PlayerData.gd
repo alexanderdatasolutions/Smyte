@@ -293,7 +293,7 @@ func get_god_by_id(god_id: String) -> Variant:
 func get_total_power() -> int:
 	var total: int = 0
 	for god: God in gods:
-		total += GodCalculator.get_power_rating(god)
+		total += GodCalculator.get_combat_power(god)
 	return total
 
 func get_gods_by_element(element: int) -> Array:

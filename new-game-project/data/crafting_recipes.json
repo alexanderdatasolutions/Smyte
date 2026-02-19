@@ -13,21 +13,82 @@
       "naming_theme": "Smyte mythological flavor - gods, titans, divine powers"
     },
     "set_bonus_reference": {
-      "wrath": {"2pc": "+15% ATK", "4pc": "+30% ATK"},
-      "aegis": {"2pc": "+15% DEF", "4pc": "+30% DEF, +15% HP"},
-      "zephyr": {"2pc": "+25 SPD", "4pc": "+50 SPD"},
-      "titan": {"2pc": "+15% HP", "4pc": "+30% HP"},
-      "precision": {"2pc": "+12% Crit Rate", "4pc": "+25% Crit Rate"},
-      "fury": {"2pc": "+20% Crit Damage", "4pc": "+40% Crit Damage"},
-      "oracle": {"2pc": "+20% Accuracy", "4pc": "+40% Accuracy"},
-      "fortitude": {"2pc": "+20% Resistance", "4pc": "+40% Resistance"},
-      "siphon": {"2pc": "+10% Lifesteal", "4pc": "+25% Lifesteal"},
-      "thunderstrike": {"2pc": "+15% Stun Chance", "4pc": "+25% Stun Chance"},
-      "relentless": {"2pc": "+10% Extra Turn", "4pc": "+22% Extra Turn"},
-      "nemesis": {"2pc": "+15% Counter", "4pc": "+30% Counter"},
-      "resolve": {"2pc": "+1 turn immunity", "4pc": "+2 turn immunity at battle start"},
-      "conquest": {"2pc": "+20% ATK in PvP", "4pc": "+40% ATK in PvP, ignore 15% DEF"},
-      "eternal": {"2pc": "+20% DEF in PvP", "4pc": "+40% DEF in PvP, +25% HP"}
+      "_comment": "6pc bonuses encourage full set commitment with powerful capstone effects",
+      "wrath": {
+        "2pc": "+15% ATK",
+        "4pc": "+30% ATK",
+        "6pc": "+45% ATK, +10% chance to deal double damage"
+      },
+      "aegis": {
+        "2pc": "+15% DEF",
+        "4pc": "+30% DEF, +15% HP",
+        "6pc": "+45% DEF, +25% HP, 20% chance to reduce incoming damage by 50%"
+      },
+      "zephyr": {
+        "2pc": "+25 SPD",
+        "4pc": "+50 SPD",
+        "6pc": "+75 SPD, 15% chance to take an extra turn"
+      },
+      "titan": {
+        "2pc": "+15% HP",
+        "4pc": "+30% HP",
+        "6pc": "+45% HP, heal 5% max HP at start of turn"
+      },
+      "precision": {
+        "2pc": "+12% Crit Rate",
+        "4pc": "+25% Crit Rate",
+        "6pc": "+35% Crit Rate, crits ignore 15% defense"
+      },
+      "fury": {
+        "2pc": "+20% Crit Damage",
+        "4pc": "+40% Crit Damage",
+        "6pc": "+60% Crit Damage, +15% Crit Rate"
+      },
+      "oracle": {
+        "2pc": "+20% Accuracy",
+        "4pc": "+40% Accuracy",
+        "6pc": "+55% Accuracy, attacks cannot be resisted"
+      },
+      "fortitude": {
+        "2pc": "+20% Resistance",
+        "4pc": "+40% Resistance",
+        "6pc": "+60% Resistance, immune to debuff duration increases"
+      },
+      "siphon": {
+        "2pc": "+10% Lifesteal",
+        "4pc": "+25% Lifesteal",
+        "6pc": "+40% Lifesteal, overheal becomes shield (max 20% HP)"
+      },
+      "thunderstrike": {
+        "2pc": "+15% Stun Chance",
+        "4pc": "+25% Stun Chance",
+        "6pc": "+35% Stun Chance, stunned enemies take +25% damage"
+      },
+      "relentless": {
+        "2pc": "+10% Extra Turn",
+        "4pc": "+22% Extra Turn",
+        "6pc": "+30% Extra Turn, extra turns grant +20% ATK"
+      },
+      "nemesis": {
+        "2pc": "+15% Counter",
+        "4pc": "+30% Counter",
+        "6pc": "+45% Counter, counters deal 150% damage"
+      },
+      "resolve": {
+        "2pc": "+1 turn immunity",
+        "4pc": "+2 turn immunity at battle start",
+        "6pc": "+3 turn immunity at battle start, cleanse 1 debuff per turn"
+      },
+      "conquest": {
+        "2pc": "+20% ATK in PvP",
+        "4pc": "+40% ATK in PvP, ignore 15% DEF",
+        "6pc": "+60% ATK in PvP, ignore 25% DEF, +15% Crit Rate"
+      },
+      "eternal": {
+        "2pc": "+20% DEF in PvP",
+        "4pc": "+40% DEF in PvP, +25% HP",
+        "6pc": "+60% DEF in PvP, +40% HP, revive once at 30% HP"
+      }
     }
   },
 
@@ -602,6 +663,196 @@
     "possible_substats": ["attack", "crit_rate", "hp"],
     "icon": "zephyr_ring"
   },
+  "wrath_ring": {
+    "id": "wrath_ring",
+    "name": "Band of Wrath",
+    "description": "A ring that pulses with barely contained fury",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "wrath",
+    "level": 1,
+    "materials": {
+      "refined_metal": 10,
+      "rare_herbs": 6,
+      "monster_parts": 5,
+      "mana": 400
+    },
+    "territory_required": false,
+    "base_stats": {"attack": 12, "crit_rate": 4},
+    "possible_substats": ["hp", "speed", "crit_damage"],
+    "icon": "wrath_ring"
+  },
+  "aegis_amulet": {
+    "id": "aegis_amulet",
+    "name": "Aegis Medallion",
+    "description": "A medallion bearing Athena's protective blessing",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "aegis",
+    "level": 1,
+    "materials": {
+      "refined_metal": 12,
+      "rare_herbs": 8,
+      "monster_parts": 6,
+      "mana": 420
+    },
+    "territory_required": false,
+    "base_stats": {"hp": 120, "defense": 10},
+    "possible_substats": ["resistance", "speed", "attack"],
+    "icon": "aegis_amulet"
+  },
+  "zephyr_amulet": {
+    "id": "zephyr_amulet",
+    "name": "Windchime Pendant",
+    "description": "Chimes softly with the whispers of the west wind",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "zephyr",
+    "level": 1,
+    "materials": {
+      "quality_timber": 12,
+      "rare_herbs": 10,
+      "monster_parts": 4,
+      "mana": 400
+    },
+    "territory_required": false,
+    "base_stats": {"speed": 10, "hp": 80},
+    "possible_substats": ["attack", "crit_rate", "accuracy"],
+    "icon": "zephyr_amulet"
+  },
+  "titan_amulet": {
+    "id": "titan_amulet",
+    "name": "Heart of the Titan",
+    "description": "Contains a fragment of primordial titan essence",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "titan",
+    "level": 1,
+    "materials": {
+      "rare_herbs": 14,
+      "refined_metal": 8,
+      "monster_parts": 5,
+      "mana": 420
+    },
+    "territory_required": false,
+    "base_stats": {"hp": 200, "defense": 8},
+    "possible_substats": ["attack", "speed", "resistance"],
+    "icon": "titan_amulet"
+  },
+  "titan_ring": {
+    "id": "titan_ring",
+    "name": "Titan's Signet",
+    "description": "A ring of primordial power that strengthens vitality",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "titan",
+    "level": 1,
+    "materials": {
+      "rare_herbs": 10,
+      "refined_metal": 6,
+      "monster_parts": 4,
+      "mana": 380
+    },
+    "territory_required": false,
+    "base_stats": {"hp": 150, "resistance": 5},
+    "possible_substats": ["defense", "speed", "attack"],
+    "icon": "titan_ring"
+  },
+  "precision_helm": {
+    "id": "precision_helm",
+    "name": "Sharpshooter's Visor",
+    "description": "Enhances visual acuity for perfect strikes",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "precision",
+    "level": 1,
+    "materials": {
+      "refined_metal": 14,
+      "quality_timber": 6,
+      "monster_parts": 5,
+      "basic_flame": 1,
+      "mana": 480
+    },
+    "territory_required": false,
+    "base_stats": {"hp": 100, "crit_rate": 6},
+    "possible_substats": ["attack", "accuracy", "speed"],
+    "icon": "precision_helm"
+  },
+  "precision_boots": {
+    "id": "precision_boots",
+    "name": "Stalker's Treads",
+    "description": "Silent boots for approaching prey undetected",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "precision",
+    "level": 1,
+    "materials": {
+      "quality_timber": 14,
+      "monster_parts": 6,
+      "basic_flame": 1,
+      "mana": 450
+    },
+    "territory_required": false,
+    "base_stats": {"speed": 12, "crit_rate": 4},
+    "possible_substats": ["attack", "accuracy", "hp"],
+    "icon": "precision_boots"
+  },
+  "precision_amulet": {
+    "id": "precision_amulet",
+    "name": "Amulet of True Sight",
+    "description": "Reveals weak points invisible to ordinary eyes",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "precision",
+    "level": 1,
+    "materials": {
+      "rare_herbs": 12,
+      "refined_metal": 8,
+      "monster_parts": 5,
+      "mana": 420
+    },
+    "territory_required": false,
+    "base_stats": {"crit_rate": 8, "accuracy": 6},
+    "possible_substats": ["attack", "speed", "crit_damage"],
+    "icon": "precision_amulet"
+  },
+  "precision_ring": {
+    "id": "precision_ring",
+    "name": "Sniper's Band",
+    "description": "Steadies the hand for lethal accuracy",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 1,
+    "rarity": "common",
+    "equipment_set": "precision",
+    "level": 1,
+    "materials": {
+      "refined_metal": 10,
+      "rare_herbs": 6,
+      "monster_parts": 4,
+      "mana": 380
+    },
+    "territory_required": false,
+    "base_stats": {"crit_rate": 5, "crit_damage": 8},
+    "possible_substats": ["attack", "speed", "accuracy"],
+    "icon": "precision_ring"
+  },
 
   "_comment_t2": "=== T2 EQUIPMENT (Rare) ===",
 
@@ -909,6 +1160,259 @@
     "possible_substats": ["defense", "speed", "attack"],
     "icon": "fortitude_amulet"
   },
+  "fury_amulet": {
+    "id": "fury_amulet",
+    "name": "Fury's Heart",
+    "description": "A blazing amulet that amplifies critical strikes",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "fury",
+    "level": 20,
+    "materials": {
+      "steel_ingot": 10,
+      "alchemical_extract": 12,
+      "beast_scales": 6,
+      "forging_flame": 2,
+      "mana": 4800
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"attack": 65, "crit_damage": 18},
+    "possible_substats": ["crit_rate", "hp", "speed"],
+    "icon": "fury_amulet"
+  },
+  "fury_ring": {
+    "id": "fury_ring",
+    "name": "Band of Fury",
+    "description": "A ring that channels raw destructive power",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "fury",
+    "level": 20,
+    "materials": {
+      "steel_ingot": 8,
+      "alchemical_extract": 8,
+      "beast_scales": 5,
+      "forging_flame": 1,
+      "mana": 4200
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"crit_damage": 15, "attack": 45},
+    "possible_substats": ["crit_rate", "hp", "speed"],
+    "icon": "fury_ring"
+  },
+  "oracle_boots": {
+    "id": "oracle_boots",
+    "name": "Oracle's Steps",
+    "description": "Boots that walk the paths of fate unseen",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "oracle",
+    "level": 20,
+    "materials": {
+      "treated_lumber": 14,
+      "alchemical_extract": 10,
+      "beast_scales": 6,
+      "forging_flame": 1,
+      "mana": 4500
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"speed": 18, "accuracy": 12},
+    "possible_substats": ["hp", "attack", "crit_rate"],
+    "icon": "oracle_boots"
+  },
+  "oracle_amulet": {
+    "id": "oracle_amulet",
+    "name": "Oracle's Eye",
+    "description": "An amulet containing a fragment of prophecy",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "oracle",
+    "level": 20,
+    "materials": {
+      "alchemical_extract": 16,
+      "treated_lumber": 8,
+      "beast_scales": 6,
+      "forging_flame": 1,
+      "mana": 4600
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"accuracy": 22, "hp": 450},
+    "possible_substats": ["attack", "speed", "crit_rate"],
+    "icon": "oracle_amulet"
+  },
+  "oracle_ring": {
+    "id": "oracle_ring",
+    "name": "Ring of Foresight",
+    "description": "Grants glimpses of what's to come",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "oracle",
+    "level": 20,
+    "materials": {
+      "alchemical_extract": 12,
+      "treated_lumber": 6,
+      "beast_scales": 5,
+      "forging_flame": 1,
+      "mana": 4200
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"accuracy": 16, "crit_rate": 8},
+    "possible_substats": ["attack", "speed", "hp"],
+    "icon": "oracle_ring"
+  },
+  "siphon_helm": {
+    "id": "siphon_helm",
+    "name": "Siphon Crown",
+    "description": "A dark crown that drinks in life energy",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "siphon",
+    "level": 20,
+    "materials": {
+      "alchemical_extract": 14,
+      "steel_ingot": 10,
+      "beast_scales": 8,
+      "forging_flame": 2,
+      "mana": 5000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"hp": 700, "attack": 40},
+    "possible_substats": ["defense", "speed", "crit_rate"],
+    "icon": "siphon_helm"
+  },
+  "siphon_boots": {
+    "id": "siphon_boots",
+    "name": "Siphon Stalkers",
+    "description": "Silent boots that leave a trail of drained essence",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "siphon",
+    "level": 20,
+    "materials": {
+      "alchemical_extract": 12,
+      "treated_lumber": 10,
+      "beast_scales": 6,
+      "forging_flame": 1,
+      "mana": 4600
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"speed": 16, "hp": 400},
+    "possible_substats": ["attack", "crit_rate", "defense"],
+    "icon": "siphon_boots"
+  },
+  "siphon_amulet": {
+    "id": "siphon_amulet",
+    "name": "Siphon Heart",
+    "description": "Pulses with stolen life force",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "siphon",
+    "level": 20,
+    "materials": {
+      "alchemical_extract": 16,
+      "steel_ingot": 8,
+      "beast_scales": 7,
+      "forging_flame": 2,
+      "mana": 5200
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"attack": 70, "hp": 500},
+    "possible_substats": ["crit_rate", "speed", "defense"],
+    "icon": "siphon_amulet"
+  },
+  "fortitude_helm": {
+    "id": "fortitude_helm",
+    "name": "Helm of Fortitude",
+    "description": "Protects the mind from all afflictions",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "fortitude",
+    "level": 20,
+    "materials": {
+      "steel_ingot": 14,
+      "alchemical_extract": 10,
+      "beast_scales": 7,
+      "forging_flame": 2,
+      "mana": 4800
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"hp": 600, "resistance": 18},
+    "possible_substats": ["defense", "speed", "attack"],
+    "icon": "fortitude_helm"
+  },
+  "fortitude_boots": {
+    "id": "fortitude_boots",
+    "name": "Boots of Fortitude",
+    "description": "Stand firm against any curse or hex",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "fortitude",
+    "level": 20,
+    "materials": {
+      "steel_ingot": 12,
+      "alchemical_extract": 8,
+      "beast_scales": 6,
+      "forging_flame": 1,
+      "mana": 4400
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"speed": 14, "resistance": 14, "hp": 350},
+    "possible_substats": ["defense", "attack"],
+    "icon": "fortitude_boots"
+  },
+  "fortitude_ring": {
+    "id": "fortitude_ring",
+    "name": "Ring of Fortitude",
+    "description": "A ring blessed against all ailments",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 2,
+    "rarity": "rare",
+    "equipment_set": "fortitude",
+    "level": 20,
+    "materials": {
+      "alchemical_extract": 12,
+      "steel_ingot": 8,
+      "beast_scales": 5,
+      "forging_flame": 1,
+      "mana": 4000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 2,
+    "base_stats": {"resistance": 20, "hp": 400},
+    "possible_substats": ["defense", "speed", "attack"],
+    "icon": "fortitude_ring"
+  },
 
   "_comment_t3": "=== T3 EQUIPMENT (Epic) ===",
 
@@ -995,6 +1499,87 @@
     "possible_substats": ["attack", "defense", "crit_rate"],
     "icon": "relentless_boots"
   },
+  "relentless_helm": {
+    "id": "relentless_helm",
+    "name": "Helm of the Relentless",
+    "description": "A helm that refuses to yield to any foe",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "relentless",
+    "level": 35,
+    "materials": {
+      "prometheum": 12,
+      "astral_shard": 5,
+      "elemental_cores": 6,
+      "divine_flame": 2,
+      "mana": 23000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"hp": 1000, "attack": 80},
+    "guaranteed_substats": [
+      {"stat": "speed", "value": 10}
+    ],
+    "possible_substats": ["defense", "crit_rate", "crit_damage"],
+    "icon": "relentless_helm"
+  },
+  "relentless_amulet": {
+    "id": "relentless_amulet",
+    "name": "Amulet of the Relentless",
+    "description": "Pulses with energy that demands another strike",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "relentless",
+    "level": 35,
+    "materials": {
+      "astral_shard": 10,
+      "mystic_bloom": 8,
+      "elemental_cores": 5,
+      "divine_flame": 2,
+      "mana": 24000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"attack": 100, "hp": 600},
+    "guaranteed_substats": [
+      {"stat": "speed", "value": 12}
+    ],
+    "possible_substats": ["crit_rate", "crit_damage", "defense"],
+    "icon": "relentless_amulet"
+  },
+  "relentless_ring": {
+    "id": "relentless_ring",
+    "name": "Ring of the Relentless",
+    "description": "Grants its bearer unyielding momentum",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "relentless",
+    "level": 35,
+    "materials": {
+      "astral_shard": 8,
+      "prometheum": 6,
+      "elemental_cores": 4,
+      "divine_flame": 2,
+      "mana": 22000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"speed": 18, "attack": 70},
+    "guaranteed_substats": [
+      {"stat": "crit_rate", "value": 12}
+    ],
+    "possible_substats": ["hp", "crit_damage", "defense"],
+    "icon": "relentless_ring"
+  },
 
   "_comment_t3_thunderstrike": "=== T3 THUNDERSTRIKE SET (Stun Chance focused) ===",
   "thunderstrike_staff": {
@@ -1048,6 +1633,114 @@
     "base_stats": {"defense": 180, "hp": 1400, "accuracy": 15},
     "possible_substats": ["attack", "speed", "resistance"],
     "icon": "thunderstrike_robe"
+  },
+  "thunderstrike_helm": {
+    "id": "thunderstrike_helm",
+    "name": "Thunderstrike Crown",
+    "description": "A crown wreathed in divine lightning",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "thunderstrike",
+    "level": 35,
+    "materials": {
+      "prometheum": 10,
+      "mystic_bloom": 10,
+      "elemental_cores": 6,
+      "divine_flame": 2,
+      "mana": 24000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"hp": 900, "accuracy": 20},
+    "guaranteed_substats": [
+      {"stat": "attack", "value": 60}
+    ],
+    "possible_substats": ["speed", "defense", "crit_rate"],
+    "icon": "thunderstrike_helm"
+  },
+  "thunderstrike_boots": {
+    "id": "thunderstrike_boots",
+    "name": "Thunderstrike Striders",
+    "description": "Boots that move with the speed of lightning",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "thunderstrike",
+    "level": 35,
+    "materials": {
+      "enchanted_wood": 14,
+      "mystic_bloom": 8,
+      "elemental_cores": 5,
+      "divine_flame": 2,
+      "mana": 22000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"speed": 25, "accuracy": 15},
+    "guaranteed_substats": [
+      {"stat": "hp", "value": 450}
+    ],
+    "possible_substats": ["attack", "defense", "crit_rate"],
+    "icon": "thunderstrike_boots"
+  },
+  "thunderstrike_amulet": {
+    "id": "thunderstrike_amulet",
+    "name": "Stormcaller's Pendant",
+    "description": "Channels the fury of thunderstorms into stunning blows",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "thunderstrike",
+    "level": 35,
+    "materials": {
+      "astral_shard": 10,
+      "mystic_bloom": 10,
+      "elemental_cores": 6,
+      "divine_flame": 2,
+      "mana": 25000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"attack": 90, "accuracy": 25},
+    "guaranteed_substats": [
+      {"stat": "hp", "value": 500}
+    ],
+    "possible_substats": ["speed", "crit_rate", "defense"],
+    "icon": "thunderstrike_amulet"
+  },
+  "thunderstrike_ring": {
+    "id": "thunderstrike_ring",
+    "name": "Ring of the Tempest",
+    "description": "Crackles with paralyzing energy",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "thunderstrike",
+    "level": 35,
+    "materials": {
+      "astral_shard": 8,
+      "mystic_bloom": 6,
+      "elemental_cores": 4,
+      "divine_flame": 2,
+      "mana": 22000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"accuracy": 20, "attack": 60},
+    "guaranteed_substats": [
+      {"stat": "speed", "value": 10}
+    ],
+    "possible_substats": ["hp", "crit_rate", "crit_damage"],
+    "icon": "thunderstrike_ring"
   },
 
   "_comment_t3_nemesis": "=== T3 NEMESIS SET (Counter focused) ===",
@@ -1104,6 +1797,114 @@
     "possible_substats": ["speed", "crit_rate", "resistance"],
     "icon": "nemesis_shield"
   },
+  "nemesis_helm": {
+    "id": "nemesis_helm",
+    "name": "Visage of Nemesis",
+    "description": "A helm that marks aggressors for retribution",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "nemesis",
+    "level": 35,
+    "materials": {
+      "prometheum": 14,
+      "astral_shard": 6,
+      "elemental_cores": 7,
+      "divine_flame": 2,
+      "mana": 25000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"hp": 1100, "defense": 100},
+    "guaranteed_substats": [
+      {"stat": "attack", "value": 70}
+    ],
+    "possible_substats": ["speed", "crit_rate", "resistance"],
+    "icon": "nemesis_helm"
+  },
+  "nemesis_boots": {
+    "id": "nemesis_boots",
+    "name": "Greaves of Nemesis",
+    "description": "Stand firm and punish those who strike",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "nemesis",
+    "level": 35,
+    "materials": {
+      "prometheum": 12,
+      "enchanted_wood": 8,
+      "elemental_cores": 5,
+      "divine_flame": 2,
+      "mana": 23000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"speed": 22, "defense": 80},
+    "guaranteed_substats": [
+      {"stat": "hp", "value": 500}
+    ],
+    "possible_substats": ["attack", "crit_rate", "resistance"],
+    "icon": "nemesis_boots"
+  },
+  "nemesis_amulet": {
+    "id": "nemesis_amulet",
+    "name": "Amulet of Retribution",
+    "description": "Every blow received is returned tenfold",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "nemesis",
+    "level": 35,
+    "materials": {
+      "astral_shard": 10,
+      "prometheum": 8,
+      "elemental_cores": 6,
+      "divine_flame": 2,
+      "mana": 26000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"attack": 110, "defense": 90},
+    "guaranteed_substats": [
+      {"stat": "hp", "value": 550}
+    ],
+    "possible_substats": ["speed", "crit_rate", "crit_damage"],
+    "icon": "nemesis_amulet"
+  },
+  "nemesis_ring": {
+    "id": "nemesis_ring",
+    "name": "Ring of Vengeance",
+    "description": "Channels divine retribution into devastating counters",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "nemesis",
+    "level": 35,
+    "materials": {
+      "astral_shard": 8,
+      "prometheum": 6,
+      "elemental_cores": 4,
+      "divine_flame": 2,
+      "mana": 23000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"attack": 75, "defense": 60},
+    "guaranteed_substats": [
+      {"stat": "crit_damage", "value": 20}
+    ],
+    "possible_substats": ["hp", "speed", "crit_rate"],
+    "icon": "nemesis_ring"
+  },
 
   "_comment_t3_resolve": "=== T3 RESOLVE SET (Immunity focused) ===",
   "resolve_scepter": {
@@ -1159,6 +1960,114 @@
     ],
     "possible_substats": ["speed", "attack"],
     "icon": "resolve_amulet"
+  },
+  "resolve_armor": {
+    "id": "resolve_armor",
+    "name": "Armor of Resolve",
+    "description": "Armor blessed with divine immunity at battle's start",
+    "equipment_type": "armor",
+    "equipment_slot": 1,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "resolve",
+    "level": 35,
+    "materials": {
+      "prometheum": 16,
+      "astral_shard": 8,
+      "elemental_cores": 10,
+      "divine_flame": 3,
+      "mana": 27000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"defense": 220, "hp": 1300},
+    "guaranteed_substats": [
+      {"stat": "resistance", "value": 25}
+    ],
+    "possible_substats": ["attack", "speed"],
+    "icon": "resolve_armor"
+  },
+  "resolve_helm": {
+    "id": "resolve_helm",
+    "name": "Helm of Resolve",
+    "description": "Grants clarity that cannot be clouded",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "resolve",
+    "level": 35,
+    "materials": {
+      "astral_shard": 10,
+      "mystic_bloom": 8,
+      "elemental_cores": 6,
+      "divine_flame": 2,
+      "mana": 24000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"hp": 950, "resistance": 22},
+    "guaranteed_substats": [
+      {"stat": "defense", "value": 55}
+    ],
+    "possible_substats": ["attack", "speed"],
+    "icon": "resolve_helm"
+  },
+  "resolve_boots": {
+    "id": "resolve_boots",
+    "name": "Boots of Resolve",
+    "description": "Walk unimpeded through any affliction",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "resolve",
+    "level": 35,
+    "materials": {
+      "enchanted_wood": 12,
+      "mystic_bloom": 8,
+      "elemental_cores": 5,
+      "divine_flame": 2,
+      "mana": 22000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"speed": 24, "hp": 650},
+    "guaranteed_substats": [
+      {"stat": "resistance", "value": 18}
+    ],
+    "possible_substats": ["defense", "attack"],
+    "icon": "resolve_boots"
+  },
+  "resolve_ring": {
+    "id": "resolve_ring",
+    "name": "Ring of Resolve",
+    "description": "A ring that purifies all who would harm its bearer",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 3,
+    "rarity": "epic",
+    "equipment_set": "resolve",
+    "level": 35,
+    "materials": {
+      "astral_shard": 8,
+      "mystic_bloom": 6,
+      "elemental_cores": 4,
+      "divine_flame": 2,
+      "mana": 22000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 3,
+    "god_level_requirement": 30,
+    "base_stats": {"resistance": 28, "hp": 550},
+    "guaranteed_substats": [
+      {"stat": "defense", "value": 45}
+    ],
+    "possible_substats": ["attack", "speed"],
+    "icon": "resolve_ring"
   },
 
   "_comment_t4": "=== T4 EQUIPMENT (Legendary, PvP Required) ===",
@@ -1225,6 +2134,126 @@
     "possible_substats": ["crit_damage", "resistance"],
     "icon": "conquest_armor"
   },
+  "conquest_helm": {
+    "id": "conquest_helm",
+    "name": "Crown of Conquest",
+    "description": "A crown worn by arena legends",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "conquest",
+    "level": 50,
+    "materials": {
+      "divine_metal": 22,
+      "prometheum": 10,
+      "dragon_parts": 18,
+      "eternal_flame": 4,
+      "mana": 100000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 4,
+    "god_level_requirement": 45,
+    "pvp_required": true,
+    "base_stats": {"hp": 2000, "attack": 180},
+    "guaranteed_substats": [
+      {"stat": "crit_rate", "value": 18},
+      {"stat": "crit_damage", "value": 35}
+    ],
+    "guaranteed_sockets": 2,
+    "possible_substats": ["speed", "defense"],
+    "icon": "conquest_helm"
+  },
+  "conquest_boots": {
+    "id": "conquest_boots",
+    "name": "Striders of Conquest",
+    "description": "Swift boots for dominating the arena",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "conquest",
+    "level": 50,
+    "materials": {
+      "divine_metal": 18,
+      "enchanted_wood": 15,
+      "dragon_parts": 15,
+      "eternal_flame": 4,
+      "mana": 95000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 4,
+    "god_level_requirement": 45,
+    "pvp_required": true,
+    "base_stats": {"speed": 40, "attack": 120},
+    "guaranteed_substats": [
+      {"stat": "crit_rate", "value": 15},
+      {"stat": "hp", "value": 800}
+    ],
+    "guaranteed_sockets": 2,
+    "possible_substats": ["crit_damage", "defense"],
+    "icon": "conquest_boots"
+  },
+  "conquest_amulet": {
+    "id": "conquest_amulet",
+    "name": "Amulet of Conquest",
+    "description": "The heart of a true arena champion",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "conquest",
+    "level": 50,
+    "materials": {
+      "astral_shard": 20,
+      "divine_metal": 15,
+      "dragon_parts": 18,
+      "eternal_flame": 4,
+      "mana": 105000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 4,
+    "god_level_requirement": 45,
+    "pvp_required": true,
+    "base_stats": {"attack": 200, "hp": 1500},
+    "guaranteed_substats": [
+      {"stat": "crit_damage", "value": 45},
+      {"stat": "speed", "value": 15}
+    ],
+    "guaranteed_sockets": 2,
+    "possible_substats": ["crit_rate", "defense"],
+    "icon": "conquest_amulet"
+  },
+  "conquest_ring": {
+    "id": "conquest_ring",
+    "name": "Ring of Conquest",
+    "description": "Grants dominion over all opponents",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "conquest",
+    "level": 50,
+    "materials": {
+      "astral_shard": 16,
+      "divine_metal": 12,
+      "dragon_parts": 14,
+      "eternal_flame": 3,
+      "mana": 90000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 4,
+    "god_level_requirement": 45,
+    "pvp_required": true,
+    "base_stats": {"crit_rate": 25, "crit_damage": 40},
+    "guaranteed_substats": [
+      {"stat": "attack", "value": 100},
+      {"stat": "speed", "value": 12}
+    ],
+    "guaranteed_sockets": 2,
+    "possible_substats": ["hp", "defense"],
+    "icon": "conquest_ring"
+  },
 
   "_comment_t4_eternal": "=== T4 ETERNAL SET (Ultimate PvP Defense) ===",
   "eternal_aegis": {
@@ -1285,5 +2314,124 @@
     "guaranteed_sockets": 3,
     "possible_substats": ["attack", "speed"],
     "icon": "eternal_plate"
+  },
+  "eternal_helm": {
+    "id": "eternal_helm",
+    "name": "Eternal Crown",
+    "description": "A crown of divine protection that never fades",
+    "equipment_type": "helm",
+    "equipment_slot": 2,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "eternal",
+    "level": 50,
+    "materials": {
+      "divine_metal": 24,
+      "prometheum": 10,
+      "dragon_parts": 20,
+      "eternal_flame": 4,
+      "mana": 105000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 4,
+    "god_level_requirement": 45,
+    "pvp_required": true,
+    "base_stats": {"hp": 2500, "defense": 200},
+    "guaranteed_substats": [
+      {"stat": "resistance", "value": 30},
+      {"stat": "hp", "value": 600}
+    ],
+    "guaranteed_sockets": 2,
+    "possible_substats": ["attack", "speed"],
+    "icon": "eternal_helm"
+  },
+  "eternal_boots": {
+    "id": "eternal_boots",
+    "name": "Eternal Treads",
+    "description": "Boots that endure through all eternity",
+    "equipment_type": "boots",
+    "equipment_slot": 3,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "eternal",
+    "level": 50,
+    "materials": {
+      "divine_metal": 20,
+      "enchanted_wood": 15,
+      "dragon_parts": 18,
+      "eternal_flame": 4,
+      "mana": 100000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 4,
+    "god_level_requirement": 45,
+    "pvp_required": true,
+    "base_stats": {"speed": 35, "hp": 1800, "defense": 150},
+    "guaranteed_substats": [
+      {"stat": "resistance", "value": 25}
+    ],
+    "guaranteed_sockets": 2,
+    "possible_substats": ["attack"],
+    "icon": "eternal_boots"
+  },
+  "eternal_amulet": {
+    "id": "eternal_amulet",
+    "name": "Eternal Heart",
+    "description": "The immortal heart that protects forever",
+    "equipment_type": "amulet",
+    "equipment_slot": 4,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "eternal",
+    "level": 50,
+    "materials": {
+      "astral_shard": 22,
+      "divine_metal": 16,
+      "dragon_parts": 20,
+      "eternal_flame": 5,
+      "mana": 115000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 4,
+    "god_level_requirement": 45,
+    "pvp_required": true,
+    "base_stats": {"hp": 2200, "defense": 180},
+    "guaranteed_substats": [
+      {"stat": "resistance", "value": 35},
+      {"stat": "hp", "value": 700}
+    ],
+    "guaranteed_sockets": 2,
+    "possible_substats": ["attack", "speed"],
+    "icon": "eternal_amulet"
+  },
+  "eternal_ring": {
+    "id": "eternal_ring",
+    "name": "Ring of Eternity",
+    "description": "A ring that grants near-immortal protection",
+    "equipment_type": "ring",
+    "equipment_slot": 5,
+    "tier": 4,
+    "rarity": "legendary",
+    "equipment_set": "eternal",
+    "level": 50,
+    "materials": {
+      "astral_shard": 18,
+      "divine_metal": 14,
+      "dragon_parts": 16,
+      "eternal_flame": 4,
+      "mana": 95000
+    },
+    "territory_required": true,
+    "territory_tier_requirement": 4,
+    "god_level_requirement": 45,
+    "pvp_required": true,
+    "base_stats": {"hp": 1600, "resistance": 35},
+    "guaranteed_substats": [
+      {"stat": "defense", "value": 100},
+      {"stat": "hp", "value": 500}
+    ],
+    "guaranteed_sockets": 2,
+    "possible_substats": ["attack", "speed"],
+    "icon": "eternal_ring"
   }
 }

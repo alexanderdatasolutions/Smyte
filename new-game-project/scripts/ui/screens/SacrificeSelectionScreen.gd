@@ -264,8 +264,8 @@ func _sort_gods(gods: Array) -> Array:
 	match current_sort:
 		SortType.POWER:
 			sorted.sort_custom(func(a, b):
-				var pa = GodCalculator.get_power_rating(a)
-				var pb = GodCalculator.get_power_rating(b)
+				var pa = GodCalculator.get_combat_power(a)
+				var pb = GodCalculator.get_combat_power(b)
 				return pa < pb if sort_ascending else pa > pb)
 		SortType.LEVEL:
 			sorted.sort_custom(func(a, b):
@@ -680,7 +680,7 @@ func update_target_display():
 	info_vbox.add_child(level_label)
 
 	var details_label: Label = Label.new()
-	details_label.text = "%s %s - Power: %d" % [God.tier_to_string(target_god.tier), God.element_to_string(target_god.element), GodCalculator.get_power_rating(target_god)]
+	details_label.text = "%s %s - Power: %d" % [God.tier_to_string(target_god.tier), God.element_to_string(target_god.element), GodCalculator.get_combat_power(target_god)]
 	details_label.add_theme_font_size_override("font_size", 12)
 	details_label.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
 	info_vbox.add_child(details_label)

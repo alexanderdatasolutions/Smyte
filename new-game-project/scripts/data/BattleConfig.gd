@@ -29,6 +29,8 @@ enum BattleType {
 @export var territory_id: String = ""
 @export var stage_number: int = 1
 @export var dungeon_name: String = ""
+@export var dungeon_id: String = ""
+@export var difficulty: String = ""
 @export var floor_number: int = 1
 @export var boss_fight: bool = false
 @export var arena_tier: String = ""

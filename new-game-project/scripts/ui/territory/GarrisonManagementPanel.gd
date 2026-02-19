@@ -440,19 +440,11 @@ func _is_god_working_anywhere(god_id: String) -> bool:
 	return false
 
 func _calculate_god_power(god_data: God) -> float:
-	"""Calculate combat power of a god"""
+	"""Calculate combat power using unified GodCalculator system"""
 	if not god_data:
 		return 0.0
-
-	# Use GodCalculator for consistent power calculation
-	var calculator = SystemRegistry.get_instance().get_system("GodCalculator")
-	if calculator and calculator.has_method("get_power_rating"):
-		return calculator.get_power_rating(god_data)
-
-	# Fallback if calculator not available
-	var base_power = god_data.base_hp + god_data.base_attack * 2.0 + god_data.base_defense * 1.5
-	var level_multiplier = 1.0 + (god_data.level - 1) * 0.1
-	return base_power * level_multiplier
+	# Use get_combat_power for full individual combat potential
+	return float(GodCalculator.get_combat_power(god_data))
 
 func _sort_gods(gods: Array) -> Array:
 	"""Sort gods based on current sort settings"""

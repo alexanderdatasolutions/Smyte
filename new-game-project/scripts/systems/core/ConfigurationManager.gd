@@ -55,7 +55,7 @@ func _load_gods_config():
 
 ## Load equipment configuration
 func _load_equipment_config():
-	equipment_config = _load_json_file("res://data/equipment.json")
+	equipment_config = _load_json_file("res://data/equipment_config.json")
 	if not equipment_config.is_empty():
 		configuration_loaded.emit("equipment")
 

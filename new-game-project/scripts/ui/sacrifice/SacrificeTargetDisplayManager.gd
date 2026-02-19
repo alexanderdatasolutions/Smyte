@@ -102,7 +102,7 @@ func setup_target_display():
 	details_label.text = "%s %s - Power: %d" % [
 		God.tier_to_string(current_target_god.tier),
 		God.element_to_string(current_target_god.element),
-		GodCalculator.get_power_rating(current_target_god)
+		GodCalculator.get_combat_power(current_target_god)
 	]
 	details_label.add_theme_font_size_override("font_size", 14)
 	details_label.modulate = Color.LIGHT_GRAY

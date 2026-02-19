@@ -135,7 +135,7 @@ func _create_god_card(god: God) -> PanelContainer:
 	name_row.add_child(stars_label)
 
 	# Stats row: "⚔Power Element" (tier-colored)
-	var power = GodCalculator.get_power_rating(god)
+	var power = GodCalculator.get_combat_power(god)
 	var stats_label = Label.new()
 	stats_label.text = "⚔%d %s" % [power, God.element_to_string(god.element)]
 	stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

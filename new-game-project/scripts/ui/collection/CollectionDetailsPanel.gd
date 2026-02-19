@@ -155,7 +155,7 @@ static func _create_identity_section(god: God) -> VBoxContainer:
 	var power_row: HBoxContainer = HBoxContainer.new()
 	power_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	var power_label: Label = Label.new()
-	power_label.text = "⚔ Combat Power: %s" % _format_number(GodCalculator.get_power_rating(god))
+	power_label.text = "⚔ Combat Power: %s" % _format_number(GodCalculator.get_combat_power(god))
 	power_label.add_theme_font_size_override("font_size", 14)
 	power_label.add_theme_color_override("font_color", Color.GOLD)
 	power_row.add_child(power_label)

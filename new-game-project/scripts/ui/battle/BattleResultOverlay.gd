@@ -233,11 +233,6 @@ func _populate_rewards(result: BattleResult):
 	for child in _rewards_grid.get_children():
 		child.queue_free()
 
-	# Debug: Print what's in the result
-	print("BattleResultOverlay: rewards = ", result.rewards)
-	print("BattleResultOverlay: experience_gained = ", result.experience_gained)
-	print("BattleResultOverlay: loot_obtained = ", result.loot_obtained)
-
 	# Collect all rewards (resources + experience)
 	var all_rewards: Array = []
 
@@ -427,6 +422,21 @@ func _get_resource_color(resource_id: String) -> Color:
 	return Color(0.6, 0.6, 0.6)
 
 func _format_resource_name(resource_id: String) -> String:
+	# Try to get proper display name from resources config
+	var config_manager = SystemRegistry.get_instance().get_system("ConfigurationManager") if SystemRegistry.get_instance() else null
+	if config_manager:
+		var resources_config = config_manager.get_resources_config()
+		# Check all resource categories
+		for category in resources_config:
+			if category.begins_with("_"):
+				continue
+			var category_data = resources_config.get(category, {})
+			if category_data is Dictionary and category_data.has(resource_id):
+				var resource_data = category_data[resource_id]
+				if resource_data is Dictionary:
+					return resource_data.get("name", resource_id.replace("_", " ").capitalize())
+
+	# Fallback to formatted ID
 	return resource_id.replace("_", " ").capitalize()
 
 func _format_number(num: int) -> String:

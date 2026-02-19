@@ -298,12 +298,12 @@
     },
     
     "equipment_dungeon_beginner": {
-      "template_id": "equipment_dungeon_beginner", 
+      "template_id": "equipment_dungeon_beginner",
       "name": "{equipment_type} Forge - Beginner",
       "description": "Basic {equipment_type} crafting and materials",
       "guaranteed_drops": [
         {
-          "loot_item_id": "equipment_drop",
+          "loot_item_id": "equipment_drop_beginner",
           "chance": 1.0,
           "equipment_type_specific": true
         },
@@ -334,11 +334,11 @@
     
     "equipment_dungeon_intermediate": {
       "template_id": "equipment_dungeon_intermediate",
-      "name": "{equipment_type} Forge - Intermediate", 
+      "name": "{equipment_type} Forge - Intermediate",
       "description": "Enhanced {equipment_type} crafting with superior materials",
       "guaranteed_drops": [
         {
-          "loot_item_id": "equipment_drop",
+          "loot_item_id": "equipment_drop_intermediate",
           "chance": 1.0,
           "equipment_type_specific": true
         },
@@ -374,10 +374,10 @@
     "equipment_dungeon_advanced": {
       "template_id": "equipment_dungeon_advanced",
       "name": "{equipment_type} Forge - Advanced",
-      "description": "Master-tier {equipment_type} crafting with legendary materials", 
+      "description": "Master-tier {equipment_type} crafting with legendary materials",
       "guaranteed_drops": [
         {
-          "loot_item_id": "equipment_drop",
+          "loot_item_id": "equipment_drop_advanced",
           "chance": 1.0,
           "equipment_type_specific": true
         },

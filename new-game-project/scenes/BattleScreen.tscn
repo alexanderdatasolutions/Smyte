@@ -182,6 +182,16 @@ layout_mode = 2
 toggle_mode = true
 text = "3x"
 
+[node name="Speed5xButton" type="Button" parent="BottomContainer/ButtonContainer/SpeedControlContainer"]
+layout_mode = 2
+toggle_mode = true
+text = "5x"
+
+[node name="Speed10xButton" type="Button" parent="BottomContainer/ButtonContainer/SpeedControlContainer"]
+layout_mode = 2
+toggle_mode = true
+text = "10x"
+
 [node name="AutoButton" type="Button" parent="BottomContainer/ButtonContainer"]
 layout_mode = 2
 toggle_mode = true

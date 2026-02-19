@@ -501,6 +501,7 @@ func _serialize_god_for_pvp(god: God) -> Dictionary:
 		"is_awakened": god.is_awakened,
 		"awakened_name": god.awakened_name,
 		"equipped_skin_id": god.equipped_skin_id,  # God skin - visible to opponents
+		"combat_power": GodCalculator.get_combat_power(god),  # Pre-calculated for consistent display
 		"base_hp": god.base_hp,
 		"base_attack": god.base_attack,
 		"base_defense": god.base_defense,

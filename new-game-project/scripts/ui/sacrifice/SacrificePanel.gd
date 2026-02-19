@@ -303,7 +303,7 @@ func _update_target_display():
 	vbox.add_child(name_label)
 	
 	var details_label = Label.new()
-	details_label.text = "%s - Power: %d" % [God.tier_to_string(current_target_god.tier), GodCalculator.get_power_rating(current_target_god)]
+	details_label.text = "%s - Power: %d" % [God.tier_to_string(current_target_god.tier), GodCalculator.get_combat_power(current_target_god)]
 	details_label.add_theme_font_size_override("font_size", 10)
 	details_label.modulate = Color.LIGHT_GRAY
 	vbox.add_child(details_label)
@@ -363,7 +363,7 @@ func _sort_gods(gods: Array):
 
 		var result = false
 		match current_sort:
-			SortType.POWER: result = GodCalculator.get_power_rating(a) > GodCalculator.get_power_rating(b)
+			SortType.POWER: result = GodCalculator.get_combat_power(a) > GodCalculator.get_combat_power(b)
 			SortType.LEVEL: result = a.level > b.level
 			SortType.TIER: result = a.tier > b.tier
 			SortType.ELEMENT: result = a.element < b.element

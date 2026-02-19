@@ -29,7 +29,8 @@ func initialize(territory_manager: Node) -> void:
 # GARRISON POWER AND DEFENSE
 # ==============================================================================
 
-## Calculate total combat power of gods in garrison (includes equipment!)
+## Calculate total combat power of gods in garrison using unified GodCalculator system
+## Includes: individual combat power + equipment set bonuses + team bonuses + leader skills
 func calculate_garrison_power(node: HexNode) -> float:
 	if not node or node.garrison.size() == 0:
 		return 0.0
@@ -39,45 +40,18 @@ func calculate_garrison_power(node: HexNode) -> float:
 	if not collection_manager:
 		return 0.0
 
-	var total_power: float = 0.0
-	var garrison_gods: Array[God] = []
-
+	var garrison_gods: Array = []
 	for god_id: String in node.garrison:
 		var god_obj: God = collection_manager.get_god_by_id(god_id)
 		if god_obj:
-			# Use GodCalculator for proper stats including equipment
-			total_power += GodCalculator.get_power_rating(god_obj)
 			garrison_gods.append(god_obj)
 
-	# Apply team bonuses to garrison power (element/pantheon synergies)
-	if garrison_gods.size() >= 2:
-		var team_bonus_mult: float = _calculate_garrison_team_bonus(garrison_gods)
-		total_power *= (1.0 + team_bonus_mult)
-
-	return total_power
-
-## Calculate team bonus multiplier for garrison defense
-func _calculate_garrison_team_bonus(gods: Array[God]) -> float:
-	if gods.size() < 2:
+	if garrison_gods.is_empty():
 		return 0.0
 
-	var team_bonuses: Array = TeamStatsCalculator.get_team_bonuses(gods)
-	var total_bonus: float = 0.0
-
-	for bonus: Dictionary in team_bonuses:
-		var bonuses: Dictionary = bonus.get("bonuses", {})
-		# Defense-relevant bonuses
-		if bonuses.has("defense"):
-			total_bonus += bonuses.defense
-		if bonuses.has("hp"):
-			total_bonus += bonuses.hp * 0.5  # HP bonus contributes half
-		if bonuses.has("all_stats"):
-			total_bonus += bonuses.all_stats
-		# Elemental resistance helps defense
-		if bonuses.has("elemental_resistance"):
-			total_bonus += bonuses.elemental_resistance
-
-	return total_bonus
+	# Use unified team power calculation from GodCalculator
+	# This includes: combat power + crit effectiveness + equipment sets + team bonuses + leader skills
+	return float(GodCalculator.get_team_power(garrison_gods))
 
 ## Get minimum garrison power required for workers based on node tier (from config)
 func get_min_garrison_power_for_tier(tier: int) -> int:

@@ -43,7 +43,9 @@ func _connect_to_systems() -> void:
 	if battle_coordinator:
 		battle_coordinator.battle_ended.connect(_on_battle_completed)
 
-func start_dungeon_battle(dungeon_id: String, difficulty: String, team: Array) -> Dictionary:
+## Register a dungeon battle for tracking (called before battle screen starts the battle)
+## This sets up the tracking state so rewards are processed when battle completes
+func register_dungeon_battle(dungeon_id: String, difficulty: String, team: Array) -> Dictionary:
 	# Validate not already in battle
 	if battle_in_progress:
 		return {"success": false, "error": "Battle already in progress"}
@@ -53,19 +55,7 @@ func start_dungeon_battle(dungeon_id: String, difficulty: String, team: Array) -
 	if not team_validation.success:
 		return team_validation
 
-	# Get dungeon battle data
-	var registry: SystemRegistry = SystemRegistry.get_instance()
-	if not registry:
-		return {"success": false, "error": "System registry not available"}
-	var dungeon_manager: Node = registry.get_system("DungeonManager")
-	if not dungeon_manager:
-		return {"success": false, "error": "Dungeon manager not available"}
-
-	var battle_config: Dictionary = dungeon_manager.get_battle_configuration(dungeon_id, difficulty)
-	if battle_config.is_empty():
-		return {"success": false, "error": "Invalid dungeon configuration"}
-
-	# Setup battle state
+	# Setup battle state for tracking
 	current_dungeon_battle = {
 		"dungeon_id": dungeon_id,
 		"difficulty": difficulty,
@@ -75,34 +65,69 @@ func start_dungeon_battle(dungeon_id: String, difficulty: String, team: Array) -
 
 	battle_in_progress = true
 
-	# Start battle through BattleCoordinator
-	if battle_coordinator:
-		var battle_result: Dictionary = battle_coordinator.start_battle(team, battle_config.enemies, battle_config)
-		if not battle_result.success:
-			_reset_battle_state()
-			return battle_result
-
 	# Emit signal for UI
 	dungeon_battle_started.emit(dungeon_id, difficulty)
+
+	return {"success": true, "message": "Dungeon battle registered"}
+
+## Start a dungeon battle (legacy method - use register_dungeon_battle + battle_screen.start_battle instead)
+func start_dungeon_battle(dungeon_id: String, difficulty: String, team: Array) -> Dictionary:
+	# Register the battle for tracking
+	var register_result = register_dungeon_battle(dungeon_id, difficulty, team)
+	if not register_result.success:
+		return register_result
+
+	# Get dungeon battle data
+	var registry: SystemRegistry = SystemRegistry.get_instance()
+	if not registry:
+		_reset_battle_state()
+		return {"success": false, "error": "System registry not available"}
+	var dungeon_manager_ref: Node = registry.get_system("DungeonManager")
+	if not dungeon_manager_ref:
+		_reset_battle_state()
+		return {"success": false, "error": "Dungeon manager not available"}
+
+	var dungeon_battle_data: Dictionary = dungeon_manager_ref.get_battle_configuration(dungeon_id, difficulty)
+	if dungeon_battle_data.is_empty():
+		_reset_battle_state()
+		return {"success": false, "error": "Invalid dungeon configuration"}
+
+	# Build proper BattleConfig object
+	var battle_config = BattleConfig.new()
+	battle_config.battle_type = BattleConfig.BattleType.DUNGEON
+	battle_config.attacker_team = team
+	battle_config.dungeon_name = dungeon_id
+	battle_config.dungeon_id = dungeon_id
+	battle_config.difficulty = difficulty
+
+	# Set enemy waves from dungeon configuration
+	var waves = dungeon_battle_data.get("enemy_waves", [])
+	if waves.is_empty():
+		waves = [[{"name": "Dungeon Monster", "level": 5, "hp": 500, "attack": 100, "defense": 50, "speed": 80}]]
+	battle_config.enemy_waves = waves
+
+	# Start battle through BattleCoordinator
+	if battle_coordinator:
+		var battle_started: bool = battle_coordinator.start_battle(battle_config)
+		if not battle_started:
+			_reset_battle_state()
+			return {"success": false, "error": "Failed to start battle"}
 
 	return {"success": true, "message": "Dungeon battle started"}
 
 func _validate_battle_team(team: Array) -> Dictionary:
 	if team.is_empty():
 		return {"success": false, "error": "Team cannot be empty"}
-	
+
 	if team.size() > DungeonConstants.MAX_TEAM_SIZE:
 		return {"success": false, "error": "Team cannot exceed %d gods" % DungeonConstants.MAX_TEAM_SIZE}
-	
+
 	# Validate each god
 	for god in team:
 		if not god or not god is God:
 			return {"success": false, "error": "Invalid god in team"}
-		
-		# Check god health
-		if god.current_hp <= 0:
-			return {"success": false, "error": "Dead gods cannot battle"}
-	
+		# Note: Don't check current_hp - HP is reset at battle start
+
 	return {"success": true}
 
 func _on_battle_completed(result: BattleResult) -> void:
@@ -130,6 +155,11 @@ func _handle_dungeon_victory(battle_result: BattleResult) -> void:
 
 	if dungeon_manager:
 		dungeon_manager.record_completion(dungeon_id, difficulty, completion_time)
+
+	# Track in StatisticsManager for leaderboard
+	var statistics_manager: Node = registry.get_system("StatisticsManager") if registry else null
+	if statistics_manager:
+		statistics_manager.record_dungeon_clear(dungeon_id)
 
 	dungeon_completed.emit(dungeon_id, difficulty)
 
@@ -162,7 +192,25 @@ func _generate_victory_rewards(dungeon_id: String, difficulty: String, dungeon_m
 
 		# Award all loot through LootSystem (updates ResourceManager)
 		if not all_rewards.is_empty():
-			loot_system.award_loot(all_rewards)
+			var generated_equipment: Array = loot_system.award_loot(all_rewards)
+
+			# Remove equipment markers from rewards (not displayable as resource)
+			var keys_to_erase: Array = []
+			for key: String in all_rewards:
+				if key.begins_with("_equipment_drop_:"):
+					keys_to_erase.append(key)
+			for key: String in keys_to_erase:
+				all_rewards.erase(key)
+
+			# Add generated equipment to battle result for UI display
+			for equip_info: Dictionary in generated_equipment:
+				battle_result.add_loot_item({
+					"type": "equipment",
+					"name": equip_info.get("name", "Equipment"),
+					"rarity": equip_info.get("rarity", "common"),
+					"equipment_type": equip_info.get("equipment_type", "weapon"),
+					"source": "loot_table"
+				})
 
 	elif dungeon_manager:
 		# Fallback if LootSystem not available
@@ -175,6 +223,11 @@ func _generate_victory_rewards(dungeon_id: String, difficulty: String, dungeon_m
 
 func _merge_rewards(all_rewards: Dictionary, new_rewards: Dictionary, battle_result: BattleResult, source: String) -> void:
 	for resource_id: String in new_rewards:
+		# Skip equipment marker - equipment is handled separately
+		if resource_id.begins_with("_equipment_drop_:"):
+			all_rewards[resource_id] = all_rewards.get(resource_id, 0) + new_rewards[resource_id]
+			continue
+
 		var amount: int = new_rewards[resource_id]
 		all_rewards[resource_id] = all_rewards.get(resource_id, 0) + amount
 		battle_result.add_reward(resource_id, amount)
@@ -185,12 +238,15 @@ func _merge_rewards(all_rewards: Dictionary, new_rewards: Dictionary, battle_res
 		})
 
 func _award_team_experience(difficulty: String, battle_result: BattleResult) -> void:
-	if not collection_manager:
+	var registry: SystemRegistry = SystemRegistry.get_instance()
+	var god_progression = registry.get_system("GodProgressionManager") if registry else null
+	if not god_progression:
 		return
+
 	var exp_per_god: int = _calculate_experience_reward(difficulty)
 	var team: Array = current_dungeon_battle.get("team", [])
 	for god: God in team:
-		collection_manager.award_experience(god.id, exp_per_god)
+		god_progression.add_experience_to_god(god, exp_per_god)
 		battle_result.add_experience_gained(god.id, exp_per_god)
 
 func _handle_dungeon_defeat(_battle_result: BattleResult) -> void:

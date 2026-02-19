@@ -281,14 +281,15 @@ func _do_upload_defense(serialized_team: Array) -> void:
 	defense_uploaded.emit(success)
 
 func _calculate_serialized_team_power(team: Array) -> int:
-	"""Calculate power from serialized god data"""
+	"""Calculate power from serialized god data using pre-calculated combat_power"""
 	var power: int = 0
 	for god_data: Dictionary in team:
-		power += god_data.get("base_hp", 0) / 10
-		power += god_data.get("base_attack", 0)
-		power += god_data.get("base_defense", 0)
-		power += god_data.get("base_speed", 0) * 2
-		power += god_data.get("level", 1) * 100
+		# Use pre-calculated combat power if available (from ArenaManager._serialize_god_for_pvp)
+		if god_data.has("combat_power"):
+			power += int(god_data.get("combat_power", 0))
+		else:
+			# Fallback for legacy data without combat_power
+			power += god_data.get("base_hp", 0) + god_data.get("base_attack", 0) + god_data.get("base_defense", 0) + god_data.get("base_speed", 0)
 	return power
 
 func withdraw_from_arena() -> void:

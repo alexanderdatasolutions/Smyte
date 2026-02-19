@@ -57,7 +57,7 @@ var god_tier_label: Label  # Colored tier stars
 var stats_grid: GridContainer
 var equipment_slots_grid: GridContainer
 var set_bonus_container: VBoxContainer
-var god_selector_grid: HBoxContainer  # HBox of VBox columns for 2-row layout
+var god_selector_grid: GridContainer  # Grid layout matching rest of game
 var god_selector_scroll: ScrollContainer
 var inventory_grid: GridContainer
 var inventory_scroll: ScrollContainer
@@ -429,17 +429,20 @@ func _create_god_selector_section() -> Control:
 	_style_small_button(sort_dir_btn)
 	header_row.add_child(sort_dir_btn)
 
-	# God cards scroll - 2 rows with horizontal scrolling
+	# God cards scroll - vertical scrolling grid (matches rest of game)
 	god_selector_scroll = ScrollContainer.new()
 	god_selector_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	god_selector_scroll.custom_minimum_size = Vector2(0, 258)  # Two row height (120px per row + spacing)
-	god_selector_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	god_selector_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	god_selector_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	god_selector_scroll.custom_minimum_size = Vector2(0, 200)
+	god_selector_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	god_selector_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	section.add_child(god_selector_scroll)
 
-	# HBox of VBox columns for exactly 2 rows with horizontal scroll
-	god_selector_grid = HBoxContainer.new()
-	god_selector_grid.add_theme_constant_override("separation", 8)
+	# Grid layout like TeamSelectionManager (7 columns for wider display)
+	god_selector_grid = GridContainer.new()
+	god_selector_grid.columns = 7
+	god_selector_grid.add_theme_constant_override("h_separation", 8)
+	god_selector_grid.add_theme_constant_override("v_separation", 8)
 	god_selector_scroll.add_child(god_selector_grid)
 
 	return section
@@ -586,30 +589,17 @@ func _is_god_assigned(god: God) -> bool:
 	return false
 
 func _calculate_power(god: God) -> int:
-	return god.base_hp + god.base_attack * 5 + god.base_defense * 3 + god.base_speed * 2
+	# Use GodCalculator for full combat power including crit effectiveness and set bonuses
+	return GodCalculator.get_combat_power(god)
 
 func _populate_god_selector():
 	for child in god_selector_grid.get_children():
 		child.queue_free()
 
-	# 2-row layout: Create VBox columns with 2 cards each
-	# Pair gods: [0,1], [2,3], [4,5]... for 2 rows per column
-	var i: int = 0
-	while i < all_gods.size():
-		var column: VBoxContainer = VBoxContainer.new()
-		column.add_theme_constant_override("separation", 8)
-		god_selector_grid.add_child(column)
-
-		# Top row card
-		var card_top = _create_god_card(all_gods[i])
-		column.add_child(card_top)
-
-		# Bottom row card (if exists)
-		if i + 1 < all_gods.size():
-			var card_bottom = _create_god_card(all_gods[i + 1])
-			column.add_child(card_bottom)
-
-		i += 2
+	# Simple grid layout - cards added directly
+	for god in all_gods:
+		var card = _create_god_card(god)
+		god_selector_grid.add_child(card)
 
 func _create_god_card(god: God) -> Control:
 	# Use GodCard component for proper portraits - MEDIUM size for readability
@@ -1168,6 +1158,7 @@ func _get_equipment_config() -> Dictionary:
 	return _cached_equipment_config
 
 func _refresh_all():
+	_sort_gods()  # Re-sort in case power/stats changed
 	_populate_god_selector()
 	_refresh_god_display()
 	_refresh_inventory()

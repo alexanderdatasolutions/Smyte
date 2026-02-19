@@ -65,14 +65,15 @@ func generate_loot(table_id: String, multiplier: float = 1.0, element: String = 
 
 	# Process guaranteed drops (always drop if chance roll succeeds)
 	for item_data in table.get("guaranteed_drops", []):
-		if _roll_chance(item_data.get("chance", 1.0)):
-			var loot_item_id = item_data.get("loot_item_id", "")
-			var is_element_specific = item_data.get("element_specific", false)
-			var resource_id = _resolve_resource_id(loot_item_id, element if is_element_specific else "")
-			var amount = _calculate_loot_amount(loot_item_id, multiplier)
+		var chance = item_data.get("chance", 1.0)
+		var roll_success = _roll_chance(chance)
+		var loot_item_id = item_data.get("loot_item_id", "")
+		var is_element_specific = item_data.get("element_specific", false)
+		var resource_id = _resolve_resource_id(loot_item_id, element if is_element_specific else "")
+		var amount = _calculate_loot_amount(loot_item_id, multiplier)
 
-			if amount > 0 and resource_id != "":
-				results[resource_id] = results.get(resource_id, 0) + amount
+		if roll_success and amount > 0 and resource_id != "":
+			results[resource_id] = results.get(resource_id, 0) + amount
 
 	# Process rare drops (chance-based)
 	for item_data in table.get("rare_drops", []):
@@ -104,19 +105,26 @@ func _resolve_resource_id(loot_item_id: String, _element: String) -> String:
 		return loot_item_id
 
 	var item_def = loot_items[loot_item_id]
+	var resource_type: String = item_def.get("resource_type", "")
+
+	# Equipment drops are handled specially - return marker with loot_item_id for rarity lookup
+	if resource_type == "equipment":
+		return "_equipment_drop_:" + loot_item_id
 
 	# Element-based items now resolve to generic resources (v3.0 simplification)
 	# Element dungeons grant Element Favor buff instead of element-specific materials
-	if item_def.get("resource_type", "") == "element_based":
+	if resource_type == "element_based":
 		var base_resource = item_def.get("base_resource", "")
 		# Map old element-based resources to new generic ones
 		match base_resource:
-			"powder_low", "powder_medium", "powder_high":
-				return "enhancement_powder"
+			"powder_low", "powder_medium", "powder_high", "powder":
+				return "divine_essence"  # Use divine_essence since no powder resource exists
 			"essence":
 				return "divine_essence"
+			"soul":
+				return "common_soul"
 			_:
-				return base_resource if base_resource != "" else loot_item_id
+				return "divine_essence" if base_resource != "" else loot_item_id
 
 	# Standard resource_id lookup
 	return item_def.get("resource_id", loot_item_id)
@@ -134,18 +142,80 @@ func _calculate_loot_amount(loot_item_id: String, multiplier: float) -> int:
 	return int(base_amount * multiplier)
 
 ## Award loot to player through ResourceManager
-func award_loot(loot_results: Dictionary):
+## Returns array of generated equipment for UI display
+func award_loot(loot_results: Dictionary) -> Array:
+	var generated_equipment: Array = []
+
 	if loot_results.is_empty():
-		return
-	
-	var resource_manager = SystemRegistry.get_instance().get_system("ResourceManager") if SystemRegistry.get_instance() else null
+		return generated_equipment
+
+	var registry = SystemRegistry.get_instance()
+	if not registry:
+		push_error("LootSystem: SystemRegistry not available")
+		return generated_equipment
+
+	var resource_manager = registry.get_system("ResourceManager")
 	if not resource_manager:
 		push_error("LootSystem: ResourceManager not available")
-		return
-	
+		return generated_equipment
+
 	for resource_id in loot_results:
 		var amount = loot_results[resource_id]
-		resource_manager.add_resource(resource_id, amount)
+
+		# Handle equipment drops specially - marker format: _equipment_drop_:loot_item_id
+		if resource_id.begins_with("_equipment_drop_:"):
+			var loot_item_id: String = resource_id.substr(17)  # Skip "_equipment_drop_:"
+			var equipment_list: Array = _generate_equipment_drops(amount, registry, loot_item_id)
+			generated_equipment.append_array(equipment_list)
+		else:
+			resource_manager.add_resource(resource_id, amount)
+
+	return generated_equipment
+
+## Generate actual equipment items for equipment drops
+## Returns array of generated equipment info for UI display
+func _generate_equipment_drops(count: int, registry: SystemRegistry, loot_item_id: String = "equipment_drop") -> Array:
+	var generated: Array = []
+	var equipment_manager = registry.get_system("EquipmentManager")
+	if not equipment_manager:
+		push_warning("LootSystem: EquipmentManager not available for equipment drops")
+		return generated
+
+	# Get rarity weights from the specific loot_item (tiered equipment drops have different weights)
+	var equip_def = loot_items.get(loot_item_id, loot_items.get("equipment_drop", {}))
+	var rarity_weights = equip_def.get("rarity_weights", {
+		"common": 60, "uncommon": 25, "rare": 10, "epic": 4, "legendary": 1
+	})
+
+	for i in range(count):
+		var rarity: String = _roll_rarity(rarity_weights)
+		var equipment = equipment_manager.generate_random_equipment(rarity)
+		if equipment:
+			equipment_manager.add_equipment_to_inventory(equipment)
+			generated.append({
+				"type": "equipment",
+				"name": equipment.name,
+				"rarity": rarity,
+				"equipment_type": Equipment.type_to_string(equipment.type)
+			})
+
+	return generated
+
+## Roll for rarity based on weights
+func _roll_rarity(weights: Dictionary) -> String:
+	var total_weight: int = 0
+	for rarity in weights:
+		total_weight += int(weights[rarity])
+
+	var roll: int = randi() % total_weight
+	var cumulative: int = 0
+
+	for rarity in weights:
+		cumulative += int(weights[rarity])
+		if roll < cumulative:
+			return rarity
+
+	return "common"  # Fallback
 
 
 ## Get loot table preview (for UI)

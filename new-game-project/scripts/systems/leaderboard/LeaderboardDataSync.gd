@@ -283,7 +283,7 @@ func _collect_stats() -> Dictionary:
 		const MAX_GOD_LEVEL: int = 100  # Adjust if your cap is different
 		for god in gods:
 			if god:
-				var god_power: int = GodCalculator.get_power_rating(god)
+				var god_power: int = GodCalculator.get_combat_power(god)
 				total_power += god_power
 				god_powers.append(god_power)
 				if god_power > highest_god_power:

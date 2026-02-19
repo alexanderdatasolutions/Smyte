@@ -393,8 +393,8 @@ func _sort_gods(gods: Array) -> Array:
 		# Within same group, sort by selected criteria
 		match current_sort:
 			SortType.POWER:
-				var pa = GodCalculator.get_power_rating(a)
-				var pb = GodCalculator.get_power_rating(b)
+				var pa = GodCalculator.get_combat_power(a)
+				var pb = GodCalculator.get_combat_power(b)
 				return pa < pb if sort_ascending else pa > pb
 			SortType.LEVEL:
 				return a.level < b.level if sort_ascending else a.level > b.level
@@ -683,7 +683,7 @@ func _update_target_display():
 	info_vbox.add_child(level_label)
 
 	var power_label = Label.new()
-	power_label.text = "Power: %d" % GodCalculator.get_power_rating(selected_target)
+	power_label.text = "Power: %d" % GodCalculator.get_combat_power(selected_target)
 	power_label.add_theme_font_size_override("font_size", 10)
 	power_label.add_theme_color_override("font_color", COLOR_MUTED)
 	info_vbox.add_child(power_label)

@@ -1173,6 +1173,8 @@ func _connect_speed_buttons():
 	var speed_1x = speed_container.get_node_or_null("Speed1xButton")
 	var speed_2x = speed_container.get_node_or_null("Speed2xButton")
 	var speed_3x = speed_container.get_node_or_null("Speed3xButton")
+	var speed_5x = speed_container.get_node_or_null("Speed5xButton")
+	var speed_10x = speed_container.get_node_or_null("Speed10xButton")
 
 	if speed_1x:
 		speed_1x.pressed.connect(_on_speed_pressed.bind(1.0))
@@ -1180,6 +1182,10 @@ func _connect_speed_buttons():
 		speed_2x.pressed.connect(_on_speed_pressed.bind(2.0))
 	if speed_3x:
 		speed_3x.pressed.connect(_on_speed_pressed.bind(3.0))
+	if speed_5x:
+		speed_5x.pressed.connect(_on_speed_pressed.bind(5.0))
+	if speed_10x:
+		speed_10x.pressed.connect(_on_speed_pressed.bind(10.0))
 
 	_update_speed_button_visuals()
 
@@ -1198,7 +1204,9 @@ func _update_speed_button_visuals():
 	var buttons = [
 		[speed_container.get_node_or_null("Speed1xButton"), 1.0],
 		[speed_container.get_node_or_null("Speed2xButton"), 2.0],
-		[speed_container.get_node_or_null("Speed3xButton"), 3.0]
+		[speed_container.get_node_or_null("Speed3xButton"), 3.0],
+		[speed_container.get_node_or_null("Speed5xButton"), 5.0],
+		[speed_container.get_node_or_null("Speed10xButton"), 10.0]
 	]
 
 	for button_data in buttons:

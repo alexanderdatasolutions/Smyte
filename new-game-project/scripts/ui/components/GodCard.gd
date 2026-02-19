@@ -206,7 +206,7 @@ func _populate_god_data():
 	if stats_row_label:
 		var parts: Array = []
 		if show_power_rating:
-			var power = GodCalculator.get_power_rating(god_data)
+			var power = GodCalculator.get_combat_power(god_data)
 			parts.append("⚔%d" % power)
 		if show_equipment_status:
 			var equipped_count: int = 0

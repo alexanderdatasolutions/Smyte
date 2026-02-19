@@ -124,18 +124,18 @@ func get_garrison_combat_power(garrison_gods: Array) -> int:
 
 	NOTE: Caller must resolve god IDs to God objects and pass them in.
 	This keeps data class free of system dependencies (RULE 3).
-	Uses GodCalculator.get_power_rating() for each god.
+	Uses GodCalculator.get_combat_power() for full individual combat potential.
 
 	Args:
 		garrison_gods: Array of God resources corresponding to garrison IDs
 
 	Returns:
-		Total combat power (HP + Attack + Defense + Speed for all gods)
+		Total combat power (includes crit effectiveness and set bonuses)
 	"""
 	var total = 0
 	for god in garrison_gods:
 		if god and god is God:
-			total += GodCalculator.get_power_rating(god)
+			total += GodCalculator.get_combat_power(god)
 	return total
 
 func get_worker_count() -> int:

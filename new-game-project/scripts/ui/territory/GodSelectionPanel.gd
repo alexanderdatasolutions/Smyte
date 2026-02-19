@@ -635,21 +635,12 @@ func _god_matches_node_element(god: God) -> bool:
 	return false
 
 func _calculate_god_power(god: God) -> float:
-	"""Calculate combat power of a god"""
+	"""Calculate combat power using unified GodCalculator system"""
 	if not god:
 		return 0.0
-
-	# Use GodCalculator for consistent power calculation
-	var registry = SystemRegistry.get_instance()
-	if registry:
-		var calculator = registry.get_system("GodCalculator")
-		if calculator and calculator.has_method("get_power_rating"):
-			return calculator.get_power_rating(god)
-
-	# Fallback if calculator not available
-	var base_power = god.base_hp + god.base_attack * 2.0 + god.base_defense * 1.5
-	var level_multiplier = 1.0 + (god.level - 1) * 0.1
-	return base_power * level_multiplier
+	# Use get_combat_power for full individual combat potential
+	# (includes crit effectiveness, equipment set bonuses, etc.)
+	return float(GodCalculator.get_combat_power(god))
 
 func _get_garrison_gods() -> Array:
 	"""Get the gods currently in the node's garrison"""
@@ -664,34 +655,18 @@ func _get_garrison_gods() -> Array:
 	return gods
 
 func _calculate_synergy_score(god: God, garrison_gods: Array) -> float:
-	"""Calculate how much adding this god improves team synergies"""
+	"""Calculate synergy score using unified GodCalculator system.
+	Considers: team bonuses, special synergies, element matching, role diversity, leader skills"""
 	if not god:
 		return 0.0
 
-	# If garrison is empty, no synergy to calculate
-	if garrison_gods.is_empty():
-		return 0.0
+	# Get node element for matching bonus
+	var node_element: int = -1
+	if _current_node and "element" in _current_node:
+		node_element = _current_node.element
 
-	# Calculate bonuses without this god
-	var current_bonuses = TeamStatsCalculator.get_team_bonuses(garrison_gods)
-	var current_bonus_value = _sum_bonus_values(current_bonuses)
-
-	# Calculate bonuses with this god added
-	var test_team = garrison_gods.duplicate()
-	test_team.append(god)
-	var new_bonuses = TeamStatsCalculator.get_team_bonuses(test_team)
-	var new_bonus_value = _sum_bonus_values(new_bonuses)
-
-	# Return the improvement
-	return new_bonus_value - current_bonus_value
-
-func _sum_bonus_values(bonuses: Array) -> float:
-	"""Sum up all bonus values from a bonuses array"""
-	var total: float = 0.0
-	for bonus in bonuses:
-		if bonus.has("bonus"):
-			total += bonus.bonus
-	return total
+	# Use the unified synergy calculation from GodCalculator
+	return GodCalculator.calculate_synergy_score(god, garrison_gods, node_element)
 
 func _on_sort_changed(index: int) -> void:
 	"""Handle sort dropdown selection change"""

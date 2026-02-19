@@ -554,10 +554,10 @@ func _on_battle_setup_complete(context: Dictionary):
 		push_error("DungeonScreen: Cannot start battle - ScreenManager not available")
 		return
 
-	# Get battle coordinator to start the battle
-	var battle_coordinator = SystemRegistry.get_instance().get_system("BattleCoordinator")
-	if not battle_coordinator:
-		push_error("DungeonScreen: BattleCoordinator not available")
+	# Get DungeonCoordinator to track the battle (handles rewards and stats)
+	var dungeon_coordinator = SystemRegistry.get_instance().get_system("DungeonCoordinator")
+	if not dungeon_coordinator:
+		push_error("DungeonScreen: DungeonCoordinator not available")
 		return
 
 	# Build battle configuration for dungeon
@@ -575,30 +575,40 @@ func _on_battle_setup_complete(context: Dictionary):
 		push_error("DungeonScreen: No valid gods in selected team")
 		return
 
-	# Build proper BattleConfig
+	# Register dungeon battle with DungeonCoordinator for tracking/rewards
+	var tracking_result = dungeon_coordinator.register_dungeon_battle(dungeon_id, difficulty, valid_team)
+	if not tracking_result.success:
+		push_error("DungeonScreen: Failed to register dungeon battle - " + tracking_result.get("error", ""))
+		return
+
+	# Build proper BattleConfig for the battle screen
 	var battle_config = BattleConfig.new()
 	battle_config.battle_type = BattleConfig.BattleType.DUNGEON
 	battle_config.attacker_team = valid_team
 	battle_config.dungeon_name = dungeon_id
+	battle_config.dungeon_id = dungeon_id
+	battle_config.difficulty = difficulty
 
-	# Get enemy waves from dungeon manager using get_battle_configuration
+	# Get enemy waves from dungeon manager
 	if dungeon_manager:
 		var dungeon_battle_config = dungeon_manager.get_battle_configuration(dungeon_id, difficulty)
 		var waves = dungeon_battle_config.get("enemy_waves", [])
 		if waves.is_empty():
-			# Create default enemy wave if none defined
 			waves = [[{"name": "Dungeon Monster", "level": 5, "hp": 500, "attack": 100, "defense": 50, "speed": 80}]]
 		battle_config.enemy_waves = waves
 
-	# Navigate to battle screen first
+	# Navigate to battle screen and start battle
 	if screen_manager.change_screen("battle"):
-		# Get battle screen and start battle
 		var battle_screen = screen_manager.get_current_screen()
 		if battle_screen and battle_screen.has_method("start_battle"):
 			battle_screen.start_battle(battle_config)
 		else:
 			# Fallback: start battle directly through coordinator
-			battle_coordinator.start_battle(battle_config)
+			var battle_coordinator = SystemRegistry.get_instance().get_system("BattleCoordinator")
+			if battle_coordinator:
+				battle_coordinator.start_battle(battle_config)
+	else:
+		print("DungeonScreen: Failed to change screen!")
 
 func _on_battle_setup_cancelled():
 	"""Handle battle setup cancellation - return to dungeon screen"""

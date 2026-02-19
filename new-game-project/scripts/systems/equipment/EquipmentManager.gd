@@ -362,6 +362,134 @@ func _create_equipment_from_data(data: Dictionary) -> Equipment:
 	
 	return equipment
 
+## Generate random equipment with specified rarity
+func generate_random_equipment(rarity_name: String) -> Equipment:
+	"""Pick a random equipment piece matching the rarity from all equipment sources"""
+	# Load all droppable equipment (crafting recipes + dungeon exclusives)
+	var all_equipment: Array = _get_all_droppable_equipment()
+	if all_equipment.is_empty():
+		push_warning("EquipmentManager: No droppable equipment found")
+		return null
+
+	# Map rarity name for filtering
+	var target_rarity: String = rarity_name.to_lower()
+	if target_rarity == "uncommon":
+		target_rarity = "common"  # Treat uncommon as common
+
+	# Filter by rarity
+	var matching: Array = []
+	for equip_data: Dictionary in all_equipment:
+		var equip_rarity: String = equip_data.get("rarity", "common").to_lower()
+		if equip_rarity == target_rarity:
+			matching.append(equip_data)
+
+	if matching.is_empty():
+		push_warning("EquipmentManager: No equipment found for rarity: " + rarity_name)
+		return null
+
+	# Pick random equipment
+	var equip_data: Dictionary = matching[randi() % matching.size()]
+	return _create_equipment_from_recipe(equip_data)
+
+func _get_all_droppable_equipment() -> Array:
+	"""Get all equipment that can drop - from crafting recipes AND dungeon exclusives"""
+	var all_equipment: Array = []
+
+	# Load crafting recipes (all craftable equipment can also drop)
+	var recipes: Dictionary = _load_crafting_recipes()
+	for recipe_id: String in recipes:
+		if recipe_id.begins_with("_"):
+			continue
+		var recipe: Dictionary = recipes[recipe_id]
+		if recipe.has("equipment_type"):
+			all_equipment.append(recipe)
+
+	# Load dungeon-exclusive equipment if file exists
+	var dungeon_equip: Dictionary = _load_dungeon_equipment()
+	for equip_id: String in dungeon_equip:
+		if equip_id.begins_with("_"):
+			continue
+		var equip: Dictionary = dungeon_equip[equip_id]
+		if equip.has("equipment_type"):
+			all_equipment.append(equip)
+
+	return all_equipment
+
+func _load_crafting_recipes() -> Dictionary:
+	"""Load crafting recipes from JSON"""
+	var file := FileAccess.open("res://data/crafting_recipes.json", FileAccess.READ)
+	if not file:
+		return {}
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	file.close()
+	if parsed is Dictionary:
+		return parsed
+	return {}
+
+func _load_dungeon_equipment() -> Dictionary:
+	"""Load dungeon-exclusive equipment (non-craftable drops)"""
+	var file := FileAccess.open("res://data/dungeon_equipment.json", FileAccess.READ)
+	if not file:
+		return {}  # File doesn't exist yet - that's fine
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	file.close()
+	if parsed is Dictionary:
+		return parsed.get("equipment", parsed)  # Support both {equipment: {}} and flat {}
+	return {}
+
+func _create_equipment_from_recipe(recipe: Dictionary) -> Equipment:
+	"""Create an Equipment instance from a crafting recipe"""
+	var equipment: Equipment = Equipment.new()
+	equipment.id = "equip_" + str(Time.get_ticks_msec()) + "_" + str(randi())
+	equipment.name = recipe.get("name", "Unknown Equipment")
+
+	# Map equipment_type string to enum
+	var type_str: String = recipe.get("equipment_type", "weapon")
+	match type_str:
+		"weapon": equipment.type = Equipment.EquipmentType.WEAPON
+		"armor": equipment.type = Equipment.EquipmentType.ARMOR
+		"helm": equipment.type = Equipment.EquipmentType.HELM
+		"boots": equipment.type = Equipment.EquipmentType.BOOTS
+		"amulet": equipment.type = Equipment.EquipmentType.AMULET
+		"ring": equipment.type = Equipment.EquipmentType.RING
+
+	# Map rarity string to enum
+	var rarity_str: String = recipe.get("rarity", "common")
+	match rarity_str:
+		"common": equipment.rarity = Equipment.Rarity.COMMON
+		"rare": equipment.rarity = Equipment.Rarity.RARE
+		"epic": equipment.rarity = Equipment.Rarity.EPIC
+		"legendary": equipment.rarity = Equipment.Rarity.LEGENDARY
+		"mythic": equipment.rarity = Equipment.Rarity.MYTHIC
+
+	equipment.slot = int(recipe.get("equipment_slot", 0))
+	equipment.equipment_set_type = recipe.get("equipment_set", "")
+	equipment.equipment_set_name = recipe.get("equipment_set", "").capitalize()
+
+	# Set main stat from base_stats (first stat is main)
+	var base_stats: Dictionary = recipe.get("base_stats", {})
+	for stat_type: String in base_stats:
+		equipment.main_stat_type = stat_type
+		equipment.main_stat_base = int(base_stats[stat_type])
+		equipment.main_stat_value = equipment.main_stat_base
+		break  # Just use first stat as main
+
+	# Add remaining base_stats as substats
+	equipment.substats = []
+	var first: bool = true
+	for stat_type: String in base_stats:
+		if first:
+			first = false
+			continue  # Skip main stat
+		equipment.substats.append({"type": stat_type, "value": int(base_stats[stat_type])})
+
+	# Add guaranteed substats if present
+	var guaranteed: Array = recipe.get("guaranteed_substats", [])
+	for sub: Dictionary in guaranteed:
+		equipment.substats.append({"type": sub.get("stat", "hp"), "value": int(sub.get("value", 0))})
+
+	return equipment
+
 # === UTILITY METHODS ===
 
 func get_equipment_summary() -> Dictionary:

@@ -304,7 +304,7 @@ static func get_detailed_speed_breakdown(god: God) -> Dictionary:
 		"final_value": base_speed + level_bonus + equipment_bonus + buff_bonus
 	}
 
-## Calculate total power rating for a god
-## Uses GodCalculator stats (HP + ATK + DEF + SPD) with proper tier/level/equipment scaling
+## Calculate total combat power for a god using unified GodCalculator system
+## Includes: base stats + equipment + crit effectiveness + equipment set bonuses
 static func calculate_total_power(god: God) -> int:
-	return GodCalculator.get_power_rating(god)
+	return GodCalculator.get_combat_power(god)

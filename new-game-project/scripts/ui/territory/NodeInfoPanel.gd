@@ -981,9 +981,77 @@ func _update_garrison() -> void:
 			slot = _create_empty_slot(current_node, "garrison", i, not is_captured)
 		slots_row.add_child(slot)
 
+	# Show leader skill (even with 1 god)
+	if garrison_gods.size() >= 1:
+		_show_garrison_leader_skill(garrison_gods)
+
 	# Show team bonuses if garrison has 2+ gods
 	if garrison_gods.size() >= 2:
 		_show_garrison_team_bonuses(garrison_gods)
+
+func _show_garrison_leader_skill(garrison_gods: Array) -> void:
+	"""Display leader skill from first garrison god"""
+	var leader_info: Dictionary = TeamStatsCalculator.get_leader_skill_info(garrison_gods)
+
+	# Spacer
+	var spacer: Control = Control.new()
+	spacer.custom_minimum_size = Vector2(0, 4)
+	_garrison_container.add_child(spacer)
+
+	if leader_info.is_empty():
+		# Show "No leader skill" when first slot god has no leader skill
+		var no_skill = Label.new()
+		no_skill.text = "Leader - 👑 No leader skill"
+		no_skill.add_theme_font_size_override("font_size", 10)
+		no_skill.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		_garrison_container.add_child(no_skill)
+		return
+
+	# Leader name row with crown
+	var header_row = HBoxContainer.new()
+	header_row.add_theme_constant_override("separation", 4)
+	_garrison_container.add_child(header_row)
+
+	var leader_prefix = Label.new()
+	leader_prefix.text = "Leader -"
+	leader_prefix.add_theme_font_size_override("font_size", 11)
+	leader_prefix.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	header_row.add_child(leader_prefix)
+
+	var crown_label = Label.new()
+	crown_label.text = "👑"
+	crown_label.add_theme_font_size_override("font_size", 11)
+	header_row.add_child(crown_label)
+
+	var leader_label = Label.new()
+	leader_label.text = "%s" % leader_info.leader_name
+	leader_label.add_theme_font_size_override("font_size", 11)
+	leader_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))  # Gold
+	header_row.add_child(leader_label)
+
+	# Skill name
+	var skill_name_label = Label.new()
+	skill_name_label.text = "  「%s」" % leader_info.skill_name
+	skill_name_label.add_theme_font_size_override("font_size", 10)
+	skill_name_label.add_theme_color_override("font_color", Color(0.9, 0.75, 0.4))
+	_garrison_container.add_child(skill_name_label)
+
+	# Description
+	var desc_label = Label.new()
+	desc_label.text = "  %s" % leader_info.description
+	desc_label.add_theme_font_size_override("font_size", 9)
+	desc_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_label.custom_minimum_size = Vector2(PANEL_WIDTH - 50, 0)
+	_garrison_container.add_child(desc_label)
+
+	# Show applicability count if not all team members benefit
+	if leader_info.applicable_count < leader_info.total_count:
+		var applies_label = Label.new()
+		applies_label.text = "  Applies to %d/%d" % [leader_info.applicable_count, leader_info.total_count]
+		applies_label.add_theme_font_size_override("font_size", 9)
+		applies_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+		_garrison_container.add_child(applies_label)
 
 func _show_garrison_team_bonuses(garrison_gods: Array) -> void:
 	"""Display team bonuses from garrison (applies to workers too)"""
@@ -1290,18 +1358,48 @@ func _create_empty_slot(node: HexNode, slot_type: String, slot_index: int, disab
 	slot.set_meta("is_empty", true)
 	slot.set_meta("slot_type", slot_type)
 
-	# Greyed out style if disabled
-	var border_color: Color = Color(0.3, 0.3, 0.35, 0.5) if disabled else Color(0.4, 0.4, 0.45, 0.7)
-	slot.add_theme_stylebox_override("panel", _create_slot_style(border_color, 2))
+	# Leader slot (first garrison OR first worker) gets golden border
+	var is_leader: bool = (slot_type == "garrison" and slot_index == 0)
+
+	# Style based on leader status and disabled
+	var border_color: Color
+	var border_width: int = 2
+	var bg_color: Color = Color(0.15, 0.15, 0.18, 0.9)
+
+	if is_leader and not disabled:
+		border_color = Color(0.7, 0.6, 0.2)  # Muted gold for empty leader
+		border_width = 3
+		bg_color = Color(0.18, 0.15, 0.08, 0.95)  # Warm tint
+	elif disabled:
+		border_color = Color(0.3, 0.3, 0.35, 0.5)
+	else:
+		border_color = Color(0.4, 0.4, 0.45, 0.7)
+
+	var style = _create_slot_style(border_color, border_width)
+	style.bg_color = bg_color
+	slot.add_theme_stylebox_override("panel", style)
+
+	# Crown indicator for leader slot (even when empty)
+	if is_leader and not disabled:
+		var crown = Label.new()
+		crown.text = "👑"
+		crown.add_theme_font_size_override("font_size", 12)
+		crown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		crown.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		crown.offset_top = 2
+		crown.offset_bottom = 16
+		slot.add_child(crown)
 
 	# Plus icon or lock icon if disabled
 	var plus_label: Label = Label.new()
 	plus_label.text = "🔒" if disabled else "+"
 	plus_label.add_theme_font_size_override("font_size", 20 if disabled else 24)
-	plus_label.add_theme_color_override("font_color", Color(0.4, 0.35, 0.3) if disabled else Color(0.5, 0.5, 0.55))
+	plus_label.add_theme_color_override("font_color", Color(0.4, 0.35, 0.3) if disabled else (Color(0.6, 0.5, 0.2) if is_leader else Color(0.5, 0.5, 0.55)))
 	plus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	plus_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	plus_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if is_leader and not disabled:
+		plus_label.offset_top = 12  # Make room for crown
 	slot.add_child(plus_label)
 
 	# Tappable button (only if not disabled)
@@ -1316,17 +1414,43 @@ func _create_filled_slot(node: HexNode, slot_type: String, slot_index: int, god:
 	# Mark as filled for tutorial highlighting
 	slot.set_meta("is_empty", false)
 	slot.set_meta("slot_type", slot_type)
-	var border_color = ELEMENT_COLORS.get(god.element, Color.GRAY) if god else Color(0.5, 0.5, 0.5)
+
+	# Leader slot (first garrison OR first worker) gets golden border
+	var is_leader: bool = (slot_type == "garrison" and slot_index == 0)
+	var border_color: Color
+	var border_width: int = 3
+
+	if is_leader and not inactive:
+		border_color = Color(1.0, 0.85, 0.2)  # Gold for leader
+		border_width = 4
+	else:
+		border_color = ELEMENT_COLORS.get(god.element, Color.GRAY) if god else Color(0.5, 0.5, 0.5)
+
 	if inactive:
 		border_color = border_color * 0.5  # Dim the border color
-	slot.add_theme_stylebox_override("panel", _create_slot_style(border_color, 3))
+
+	var style = _create_slot_style(border_color, border_width)
+	if is_leader and not inactive:
+		style.bg_color = Color(0.2, 0.18, 0.1, 0.95)  # Warm tint for leader
+	slot.add_theme_stylebox_override("panel", style)
 
 	if god:
+		# Crown indicator for leader
+		if is_leader and not inactive:
+			var crown = Label.new()
+			crown.text = "👑"
+			crown.add_theme_font_size_override("font_size", 10)
+			crown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			crown.set_anchors_preset(Control.PRESET_TOP_WIDE)
+			crown.offset_top = 1
+			crown.offset_bottom = 12
+			slot.add_child(crown)
+
 		var portrait = _create_god_portrait(god)
 		portrait.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		portrait.offset_left = 4
 		portrait.offset_right = -4
-		portrait.offset_top = 4
+		portrait.offset_top = 4 if not is_leader else 10  # Make room for crown
 		portrait.offset_bottom = -14
 		if inactive:
 			portrait.modulate = Color(0.5, 0.5, 0.5, 0.7)  # Grayscale/dim effect

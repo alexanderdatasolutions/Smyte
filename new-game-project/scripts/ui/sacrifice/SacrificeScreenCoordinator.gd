@@ -25,6 +25,16 @@ func _ready():
 	_initialize_systems()
 	_setup_ui_components()
 	_connect_signals()
+	_setup_visibility_refresh()
+
+func _setup_visibility_refresh():
+	"""Refresh god list when screen becomes visible (e.g., after summoning)"""
+	if not visibility_changed.is_connected(_on_visibility_changed):
+		visibility_changed.connect(_on_visibility_changed)
+
+func _on_visibility_changed():
+	if visible:
+		_refresh_displays()
 
 func _initialize_systems():
 	"""Initialize system references through SystemRegistry"""

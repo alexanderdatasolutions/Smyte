@@ -448,7 +448,7 @@ func _calculate_garrison_power(node: HexNode) -> int:
 	for god_id in node.garrison:
 		var god = _get_god(god_id)
 		if god:
-			total += GodCalculator.get_power_rating(god)
+			total += GodCalculator.get_combat_power(god)
 	return total
 
 func _create_power_badge(power: int) -> Panel:
@@ -515,23 +515,44 @@ func _create_mini_slot(node: HexNode, slot_type: String, idx: int, god: God, ina
 	var slot: Panel = Panel.new()
 	slot.custom_minimum_size = Vector2(44, 52)
 
-	var border_color = ELEMENT_COLORS.get(god.element, Color.GRAY) if god else Color(0.4, 0.4, 0.4)
+	# Leader slot (first garrison OR first worker) gets golden border
+	var is_leader: bool = (slot_type == "garrison" and idx == 0)
+	var border_color: Color
+	var border_width: int = 2
+
+	if is_leader:
+		border_color = Color(1.0, 0.85, 0.2)  # Gold for leader
+		border_width = 3
+	else:
+		border_color = ELEMENT_COLORS.get(god.element, Color.GRAY) if god else Color(0.4, 0.4, 0.4)
+
 	if inactive:
 		border_color = border_color * 0.5  # Dim the border
 
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.15, 0.15, 0.17) if inactive else Color(0.18, 0.18, 0.2)
+	style.bg_color = Color(0.2, 0.18, 0.1) if is_leader else (Color(0.15, 0.15, 0.17) if inactive else Color(0.18, 0.18, 0.2))
 	style.border_color = border_color
-	style.set_border_width_all(2)
+	style.set_border_width_all(border_width)
 	style.set_corner_radius_all(3)
 	slot.add_theme_stylebox_override("panel", style)
 
 	if god:
+		# Crown indicator for leader
+		if is_leader:
+			var crown = Label.new()
+			crown.text = "👑"
+			crown.add_theme_font_size_override("font_size", 8)
+			crown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			crown.set_anchors_preset(Control.PRESET_TOP_WIDE)
+			crown.offset_top = 1
+			crown.offset_bottom = 12
+			slot.add_child(crown)
+
 		var portrait = _create_portrait(god)
 		portrait.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		portrait.offset_left = 2
 		portrait.offset_right = -2
-		portrait.offset_top = 2
+		portrait.offset_top = 2 if not is_leader else 10  # Make room for crown
 		portrait.offset_bottom = -16
 		if inactive:
 			portrait.modulate = Color(0.5, 0.5, 0.5, 0.7)  # Gray out inactive workers
@@ -539,7 +560,7 @@ func _create_mini_slot(node: HexNode, slot_type: String, idx: int, god: God, ina
 
 		# Combined Lv + Power label
 		var info: Label = Label.new()
-		var power = GodCalculator.get_power_rating(god)
+		var power = GodCalculator.get_combat_power(god)
 		info.text = "L%d %s" % [god.level, _format_power(power)]
 		info.add_theme_font_size_override("font_size", 7)
 		info.add_theme_color_override("font_color", Color(0.6, 0.5, 0.3) if inactive else Color(1.0, 0.85, 0.3))
@@ -574,20 +595,41 @@ func _create_mini_empty_slot(node: HexNode, slot_type: String, idx: int, disable
 	var slot: Panel = Panel.new()
 	slot.custom_minimum_size = Vector2(44, 52)
 
+	# Leader slot (first garrison OR first worker) gets golden border
+	var is_leader: bool = (slot_type == "garrison" and idx == 0)
+
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.1, 0.1, 0.12) if disabled else Color(0.12, 0.12, 0.14)
-	style.border_color = Color(0.2, 0.2, 0.25) if disabled else Color(0.25, 0.25, 0.3)
-	style.set_border_width_all(1)
+	if is_leader and not disabled:
+		style.bg_color = Color(0.15, 0.13, 0.08)  # Warm tint for leader
+		style.border_color = Color(0.7, 0.6, 0.2)  # Muted gold for empty leader
+		style.set_border_width_all(2)
+	else:
+		style.bg_color = Color(0.1, 0.1, 0.12) if disabled else Color(0.12, 0.12, 0.14)
+		style.border_color = Color(0.2, 0.2, 0.25) if disabled else Color(0.25, 0.25, 0.3)
+		style.set_border_width_all(1)
 	style.set_corner_radius_all(3)
 	slot.add_theme_stylebox_override("panel", style)
+
+	# Crown indicator for leader slot (even when empty)
+	if is_leader and not disabled:
+		var crown = Label.new()
+		crown.text = "👑"
+		crown.add_theme_font_size_override("font_size", 8)
+		crown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		crown.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		crown.offset_top = 1
+		crown.offset_bottom = 10
+		slot.add_child(crown)
 
 	var plus: Label = Label.new()
 	plus.text = "🔒" if disabled else "+"
 	plus.add_theme_font_size_override("font_size", 14 if disabled else 16)
-	plus.add_theme_color_override("font_color", Color(0.3, 0.25, 0.25) if disabled else Color(0.35, 0.35, 0.4))
+	plus.add_theme_color_override("font_color", Color(0.3, 0.25, 0.25) if disabled else (Color(0.6, 0.5, 0.2) if is_leader else Color(0.35, 0.35, 0.4)))
 	plus.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	plus.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	plus.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if is_leader and not disabled:
+		plus.offset_top = 8  # Make room for crown
 	slot.add_child(plus)
 
 	# Only add clickable button if not disabled
@@ -845,20 +887,41 @@ func _create_empty_slot(node: HexNode, slot_type: String, idx: int) -> Panel:
 	var slot: Panel = Panel.new()
 	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
 
+	# Leader slot (first garrison OR first worker) gets golden border
+	var is_leader: bool = (slot_type == "garrison" and idx == 0)
+
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.15, 0.15, 0.18)
-	style.border_color = Color(0.35, 0.35, 0.4)
-	style.set_border_width_all(1)
+	if is_leader:
+		style.bg_color = Color(0.18, 0.15, 0.08)  # Warm tint for leader
+		style.border_color = Color(0.7, 0.6, 0.2)  # Muted gold for empty leader
+		style.set_border_width_all(2)
+	else:
+		style.bg_color = Color(0.15, 0.15, 0.18)
+		style.border_color = Color(0.35, 0.35, 0.4)
+		style.set_border_width_all(1)
 	style.set_corner_radius_all(4)
 	slot.add_theme_stylebox_override("panel", style)
+
+	# Crown indicator for leader slot (even when empty)
+	if is_leader:
+		var crown = Label.new()
+		crown.text = "👑"
+		crown.add_theme_font_size_override("font_size", 10)
+		crown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		crown.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		crown.offset_top = 2
+		crown.offset_bottom = 14
+		slot.add_child(crown)
 
 	var plus: Label = Label.new()
 	plus.text = "+"
 	plus.add_theme_font_size_override("font_size", 20)
-	plus.add_theme_color_override("font_color", Color(0.4, 0.4, 0.45))
+	plus.add_theme_color_override("font_color", Color(0.6, 0.5, 0.2) if is_leader else Color(0.4, 0.4, 0.45))
 	plus.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	plus.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	plus.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if is_leader:
+		plus.offset_top = 10  # Make room for crown
 	slot.add_child(plus)
 
 	var btn: Button = Button.new()
@@ -873,21 +936,41 @@ func _create_filled_slot(node: HexNode, slot_type: String, idx: int, god: God) -
 	var slot: Panel = Panel.new()
 	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
 
-	var border_color = ELEMENT_COLORS.get(god.element, Color.GRAY) if god else Color(0.4, 0.4, 0.4)
+	# Leader slot (first garrison OR first worker) gets golden border
+	var is_leader: bool = (slot_type == "garrison" and idx == 0)
+	var border_color: Color
+	var border_width: int = 2
+
+	if is_leader:
+		border_color = Color(1.0, 0.85, 0.2)  # Gold for leader
+		border_width = 3
+	else:
+		border_color = ELEMENT_COLORS.get(god.element, Color.GRAY) if god else Color(0.4, 0.4, 0.4)
 
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.18, 0.18, 0.2)
+	style.bg_color = Color(0.2, 0.18, 0.1) if is_leader else Color(0.18, 0.18, 0.2)
 	style.border_color = border_color
-	style.set_border_width_all(2)
+	style.set_border_width_all(border_width)
 	style.set_corner_radius_all(4)
 	slot.add_theme_stylebox_override("panel", style)
 
 	if god:
+		# Crown indicator for leader
+		if is_leader:
+			var crown = Label.new()
+			crown.text = "👑"
+			crown.add_theme_font_size_override("font_size", 10)
+			crown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			crown.set_anchors_preset(Control.PRESET_TOP_WIDE)
+			crown.offset_top = 2
+			crown.offset_bottom = 14
+			slot.add_child(crown)
+
 		var portrait = _create_portrait(god)
 		portrait.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		portrait.offset_left = 3
 		portrait.offset_right = -3
-		portrait.offset_top = 3
+		portrait.offset_top = 3 if not is_leader else 12  # Make room for crown
 		portrait.offset_bottom = -20
 		slot.add_child(portrait)
 
@@ -907,7 +990,7 @@ func _create_filled_slot(node: HexNode, slot_type: String, idx: int, god: God) -
 
 		# Combat power label
 		var cp: Label = Label.new()
-		var power = GodCalculator.get_power_rating(god)
+		var power = GodCalculator.get_combat_power(god)
 		cp.text = _format_power(power)
 		cp.add_theme_font_size_override("font_size", 7)
 		cp.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))

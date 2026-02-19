@@ -185,7 +185,7 @@ func _calculate_god_power(god) -> int:
 
 	# Use GodCalculator for consistent power calculation across the game
 	if god is God:
-		return GodCalculator.get_power_rating(god)
+		return GodCalculator.get_combat_power(god)
 
 	# Fallback for dictionary-based god data (shouldn't happen normally)
 	return int(god.get("base_hp", 0) + god.get("base_attack", 0) + god.get("base_defense", 0) + god.get("base_speed", 0))

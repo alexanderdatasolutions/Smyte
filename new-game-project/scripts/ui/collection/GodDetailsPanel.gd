@@ -107,7 +107,7 @@ func display_god(god_id: String):
 		"attack": god.base_attack,
 		"defense": god.base_defense,
 		"speed": god.base_speed,
-		"total_power": GodCalculator.get_power_rating(god),
+		"total_power": GodCalculator.get_combat_power(god),
 		"stationed_territory": god.stationed_territory,
 		"equipped_skin_id": god.equipped_skin_id,
 		"abilities": god.active_abilities

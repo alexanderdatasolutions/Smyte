@@ -204,14 +204,31 @@ func _calculate_worker_efficiency(node: HexNode) -> float:
 		worker_bonus += (god.level * level_bonus_rate)
 
 		# Equipment/Power bonus from config (default: +0.5% per 100 power rating)
-		var power_rating: int = GodCalculator.get_power_rating(god)
+		var power_rating: int = GodCalculator.get_combat_power(god)
 		var power_rate: float = _config.get("production_bonuses", {}).get("power_bonus_rate", 0.005)
 		var power_bonus: float = (power_rating / 100.0) * power_rate
 		worker_bonus += power_bonus
 
 		total_bonus += worker_bonus
 
-	# Apply team bonuses from TeamStatsCalculator (element/pantheon synergies)
+	# Get garrison gods for team/leader bonus application to workers
+	var garrison_gods: Array[God] = []
+	for god_id: String in node.garrison:
+		var god: Variant = collection_manager.get_god_by_id(god_id)
+		if god:
+			garrison_gods.append(god)
+
+	# Apply GARRISON team bonuses to workers (garrison protects and buffs workers)
+	if garrison_gods.size() >= 2:
+		var garrison_team_bonus: float = _calculate_worker_team_bonus(garrison_gods)
+		total_bonus += garrison_team_bonus
+
+	# Apply GARRISON leader skill bonus to workers
+	if garrison_gods.size() >= 1:
+		var leader_bonus: float = _calculate_worker_leader_bonus(garrison_gods)
+		total_bonus += leader_bonus
+
+	# Apply worker team bonuses (workers synergizing with each other)
 	if worker_gods.size() >= 2:
 		var team_bonus: float = _calculate_worker_team_bonus(worker_gods)
 		total_bonus += team_bonus
@@ -238,6 +255,33 @@ func _calculate_worker_team_bonus(gods: Array[God]) -> float:
 		# All stats helps a bit
 		if bonuses.has("all_stats"):
 			total_bonus += bonuses.all_stats * prod_cfg.get("all_stats_multiplier", 0.5)
+
+	return total_bonus
+
+## Calculate leader skill bonus for workers from garrison leader
+func _calculate_worker_leader_bonus(garrison_gods: Array[God]) -> float:
+	if garrison_gods.is_empty():
+		return 0.0
+
+	var leader_info: Dictionary = TeamStatsCalculator.get_leader_skill_info(garrison_gods)
+	if leader_info.is_empty():
+		return 0.0
+
+	var total_bonus: float = 0.0
+	var prod_cfg: Dictionary = _config.get("production_bonuses", {})
+
+	# Extract production-relevant bonuses from leader skill
+	if leader_info.has("bonuses"):
+		var bonuses: Dictionary = leader_info.bonuses
+		# Production bonus directly
+		if bonuses.has("production"):
+			total_bonus += float(bonuses.production)
+		# Speed helps gathering
+		if bonuses.has("speed"):
+			total_bonus += float(bonuses.speed) * prod_cfg.get("speed_multiplier", 0.3)
+		# All stats contribution
+		if bonuses.has("all_stats"):
+			total_bonus += float(bonuses.all_stats) * prod_cfg.get("all_stats_multiplier", 0.5)
 
 	return total_bonus
 

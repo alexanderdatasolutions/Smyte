@@ -359,8 +359,8 @@ func _sort_gods(gods: Array) -> Array:
 	match current_sort:
 		SortType.POWER:
 			sorted.sort_custom(func(a, b):
-				var pa = GodCalculator.get_power_rating(a)
-				var pb = GodCalculator.get_power_rating(b)
+				var pa = GodCalculator.get_combat_power(a)
+				var pb = GodCalculator.get_combat_power(b)
 				return pa < pb if sort_ascending else pa > pb)
 		SortType.LEVEL:
 			sorted.sort_custom(func(a, b):
