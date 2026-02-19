@@ -156,10 +156,35 @@ func _create_left_panel(parent: Control):
 	sacrifice_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sacrifice_header.add_child(sacrifice_title)
 
+	# Quick select buttons for tiers
+	var star1_btn = Button.new()
+	star1_btn.text = "1★"
+	star1_btn.custom_minimum_size = Vector2(35, 26)
+	star1_btn.tooltip_text = "Select all 1-star gods"
+	star1_btn.pressed.connect(_on_select_tier.bind(God.TierType.COMMON))
+	_style_button(star1_btn, false)
+	sacrifice_header.add_child(star1_btn)
+
+	var star2_btn = Button.new()
+	star2_btn.text = "2★"
+	star2_btn.custom_minimum_size = Vector2(35, 26)
+	star2_btn.tooltip_text = "Select all 2-star gods"
+	star2_btn.pressed.connect(_on_select_tier.bind(God.TierType.RARE))
+	_style_button(star2_btn, false)
+	sacrifice_header.add_child(star2_btn)
+
+	var star3_btn = Button.new()
+	star3_btn.text = "3★"
+	star3_btn.custom_minimum_size = Vector2(35, 26)
+	star3_btn.tooltip_text = "Select all 3-star gods"
+	star3_btn.pressed.connect(_on_select_tier.bind(God.TierType.EPIC))
+	_style_button(star3_btn, false)
+	sacrifice_header.add_child(star3_btn)
+
 	# Select Duplicates button
 	var select_dupes_btn = Button.new()
 	select_dupes_btn.text = "Dupes"
-	select_dupes_btn.custom_minimum_size = Vector2(55, 26)
+	select_dupes_btn.custom_minimum_size = Vector2(50, 26)
 	select_dupes_btn.tooltip_text = "Select all duplicate gods"
 	select_dupes_btn.pressed.connect(_on_select_duplicates)
 	_style_button(select_dupes_btn, false)
@@ -167,7 +192,7 @@ func _create_left_panel(parent: Control):
 
 	clear_sacrifices_btn = Button.new()
 	clear_sacrifices_btn.text = "Clear"
-	clear_sacrifices_btn.custom_minimum_size = Vector2(55, 26)
+	clear_sacrifices_btn.custom_minimum_size = Vector2(50, 26)
 	clear_sacrifices_btn.pressed.connect(_on_clear_sacrifices)
 	_style_button(clear_sacrifices_btn, false)
 	sacrifice_header.add_child(clear_sacrifices_btn)
@@ -489,6 +514,42 @@ func _on_select_duplicates():
 			template_gods.sort_custom(func(a, b): return a.level > b.level)
 			for i in range(1, template_gods.size()):
 				selected_sacrifices.append(template_gods[i])
+
+	# Update cards efficiently - both old and new sacrifices
+	var cards_to_update: Array[God] = []
+	for god in old_sacrifices:
+		if not selected_sacrifices.has(god):
+			cards_to_update.append(god)
+	for god in selected_sacrifices:
+		cards_to_update.append(god)
+
+	_update_left_panel_displays()
+	_update_cards_efficiently(cards_to_update)
+
+func _on_select_tier(tier: int):
+	"""Select all gods of a specific tier as sacrifices"""
+	if locked_in or selected_target == null:
+		return
+
+	# Use cached gods for performance
+	var gods = _cached_gods if not _cached_gods.is_empty() else collection_manager.get_all_gods()
+
+	# Track old sacrifices to update their cards
+	var old_sacrifices = selected_sacrifices.duplicate()
+
+	# Add all gods of this tier that aren't already selected
+	for god in gods:
+		if god == selected_target:
+			continue
+		if god.tier != tier:
+			continue
+		# Skip assigned gods
+		var location = _get_god_location(god)
+		if location != "":
+			continue
+		# Add if not already selected
+		if not selected_sacrifices.has(god):
+			selected_sacrifices.append(god)
 
 	# Update cards efficiently - both old and new sacrifices
 	var cards_to_update: Array[God] = []

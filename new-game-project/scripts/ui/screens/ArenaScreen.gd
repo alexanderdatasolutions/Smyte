@@ -679,13 +679,12 @@ func _create_compact_god_detail_card(god_data: Dictionary, max_set_bonus_lines: 
 	header_hbox.add_theme_constant_override("separation", 8)
 	vbox.add_child(header_hbox)
 
-	# Portrait
+	# Portrait (supports god skins)
 	var texture_rect: TextureRect = TextureRect.new()
 	texture_rect.custom_minimum_size = Vector2(40, 40)
 	texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	var template_id = god_data.get("template_id", god_data.get("id", ""))
-	var sprite_path: String = "res://assets/gods/" + template_id + ".png"
+	var sprite_path: String = GodPortraitHelper.get_portrait_path_from_data(god_data)
 	if ResourceLoader.exists(sprite_path):
 		texture_rect.texture = load(sprite_path)
 	header_hbox.add_child(texture_rect)
@@ -915,14 +914,13 @@ func _create_mini_god_preview(god_data: Dictionary) -> PanelContainer:
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	slot.add_child(vbox)
 
-	# God portrait
+	# God portrait (supports god skins)
 	var texture_rect: TextureRect = TextureRect.new()
 	texture_rect.custom_minimum_size = Vector2(36, 36)
 	texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
-	var template_id = god_data.get("template_id", god_data.get("id", ""))
-	var sprite_path: String = "res://assets/gods/" + template_id + ".png"
+	var sprite_path: String = GodPortraitHelper.get_portrait_path_from_data(god_data)
 	if ResourceLoader.exists(sprite_path):
 		texture_rect.texture = load(sprite_path)
 	else:
@@ -1261,14 +1259,13 @@ func _populate_god_slot(slot: PanelContainer, god: God) -> void:
 	vbox.add_theme_constant_override("separation", 2)
 	slot.add_child(vbox)
 
-	# God portrait
+	# God portrait (supports god skins)
 	var texture_rect: TextureRect = TextureRect.new()
 	texture_rect.custom_minimum_size = Vector2(40, 40)
 	texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
-	var template_id = god.template_id if god.template_id else god.id
-	var sprite_path: String = "res://assets/gods/" + template_id + ".png"
+	var sprite_path: String = GodPortraitHelper.get_portrait_path(god)
 	if ResourceLoader.exists(sprite_path):
 		texture_rect.texture = load(sprite_path)
 
@@ -1687,8 +1684,7 @@ func _create_full_god_detail_panel(god_data: Dictionary) -> PanelContainer:
 	texture_rect.custom_minimum_size = Vector2(60, 60)
 	texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	var template_id = god_data.get("template_id", god_data.get("id", ""))
-	var sprite_path: String = "res://assets/gods/" + template_id + ".png"
+	var sprite_path: String = GodPortraitHelper.get_portrait_path_from_data(god_data)
 	if ResourceLoader.exists(sprite_path):
 		texture_rect.texture = load(sprite_path)
 	var center: CenterContainer = CenterContainer.new()
@@ -1888,14 +1884,13 @@ func _create_detailed_god_card(god_data: Dictionary) -> PanelContainer:
 	god_info.custom_minimum_size = Vector2(150, 0)
 	hbox.add_child(god_info)
 
-	# Portrait
+	# Portrait (supports god skins)
 	var texture_rect: TextureRect = TextureRect.new()
 	texture_rect.custom_minimum_size = Vector2(60, 60)
 	texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
-	var template_id = god_data.get("template_id", god_data.get("id", ""))
-	var sprite_path: String = "res://assets/gods/" + template_id + ".png"
+	var sprite_path: String = GodPortraitHelper.get_portrait_path_from_data(god_data)
 	if ResourceLoader.exists(sprite_path):
 		texture_rect.texture = load(sprite_path)
 	god_info.add_child(texture_rect)
