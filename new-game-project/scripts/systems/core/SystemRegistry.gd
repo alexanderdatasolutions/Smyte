@@ -381,3 +381,12 @@ func _register_ui_equipment_and_meta() -> void:
 	if ResourceLoader.exists("res://scripts/systems/leaderboard/LeaderboardDataSync.gd"):
 		var leaderboard_data_sync := preload("res://scripts/systems/leaderboard/LeaderboardDataSync.gd").new()
 		register_system("LeaderboardDataSync", leaderboard_data_sync)
+
+	# PvP Territory systems
+	if ResourceLoader.exists("res://scripts/systems/pvp_territory/PvPSignupManager.gd"):
+		var pvp_signup_manager := preload("res://scripts/systems/pvp_territory/PvPSignupManager.gd").new()
+		register_system("PvPSignupManager", pvp_signup_manager)
+
+	if ResourceLoader.exists("res://scripts/systems/pvp_territory/PvPTerritoryDataSync.gd"):
+		var pvp_data_sync := preload("res://scripts/systems/pvp_territory/PvPTerritoryDataSync.gd").new()
+		register_system("PvPTerritoryDataSync", pvp_data_sync)

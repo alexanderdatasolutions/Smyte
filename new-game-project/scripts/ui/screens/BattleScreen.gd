@@ -55,6 +55,7 @@ var auto_battle_enabled: bool = false
 # Battle speed
 var battle_speed: float = 1.0
 var _current_battle_type: String = ""  # Track battle type for persistence
+var _current_battle_config: Variant = null  # Store battle config for return navigation
 
 # Battle result overlay
 var battle_result_overlay = null  # BattleResultOverlay instance
@@ -228,6 +229,9 @@ func start_battle(battle_config):
 
 func _on_battle_started(config):
 	"""Handle battle start event - populate UI with units"""
+	# Store config for return navigation (needed for is_pvp_territory check)
+	_current_battle_config = config
+
 	# Track battle type for speed persistence between floors
 	if config is Dictionary:
 		_current_battle_type = config.get("battle_type", "").to_lower()
@@ -820,14 +824,35 @@ func _on_return_to_map_pressed():
 	if battle_result_overlay and battle_result_overlay.battle_result:
 		var battle_type = battle_result_overlay.battle_result.battle_type
 
+		# Check if this is a PvP territory battle (has pvp metadata on stored config)
+		var is_pvp_territory := false
+		if _current_battle_config:
+			print("[BattleScreen] _current_battle_config exists, type: ", typeof(_current_battle_config))
+			if _current_battle_config.has_meta("is_pvp_territory"):
+				is_pvp_territory = _current_battle_config.get_meta("is_pvp_territory")
+				print("[BattleScreen] is_pvp_territory = ", is_pvp_territory)
+		else:
+			print("[BattleScreen] _current_battle_config is null!")
+
+		print("[BattleScreen] battle_type = '%s', is_pvp = %s" % [battle_type, is_pvp_territory])
+
 		# Navigate to appropriate screen based on battle origin
 		match battle_type.to_upper():
 			"TERRITORY":
-				return_screen = "hex_territory"
+				if is_pvp_territory:
+					return_screen = "pvp_territory"
+				else:
+					return_screen = "hex_territory"
 			"DUNGEON":
 				return_screen = "dungeon"
+			"TOWER":
+				return_screen = "tower"
+			"ARENA":
+				return_screen = "arena"
 			_:
 				return_screen = "WorldView"
+
+		print("[BattleScreen] return_screen = ", return_screen)
 
 
 	# Hide the overlay

@@ -48,6 +48,14 @@ func setup_for_pvp_battle(opponent_data: Dictionary):
 func setup_for_hex_node_capture(hex_node: HexNode):
 	setup_coordinator.setup_for_hex_node_capture(hex_node)
 
+func setup_for_pvp_attack(hex_node) -> void:
+	"""Setup for PvP territory attack"""
+	setup_coordinator.setup_for_pvp_attack(hex_node)
+
+func setup_for_pvp_defense(hex_node) -> void:
+	"""Setup for PvP territory defense team selection"""
+	setup_coordinator.setup_for_pvp_defense(hex_node)
+
 func _on_battle_setup_complete(context: Dictionary):
 	battle_setup_complete.emit(context)
 

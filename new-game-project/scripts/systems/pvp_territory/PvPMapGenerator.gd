@@ -30,6 +30,14 @@ const INITIAL_RINGS := 16  # Rings 0-16 = ~817 hexes
 const SPAWN_RING_OFFSET := 11  # Players spawn at ring 11 (middle of map)
 const STARTER_HEXES := 5  # Additional hexes around spawn point
 
+# ==== 4-PLAYER MAP CONSTANTS ====
+const FOUR_PLAYER_CONFIG := {
+	"rings": 10,           # Smaller map: rings 0-10 = ~331 hexes
+	"spawn_ring": 8,       # Players spawn at ring 8
+	"player_count": 4,
+	"starter_hexes": 4     # Starter hexes per player
+}
+
 # Objective node templates for center rings
 const CENTER_OBJECTIVES := [
 	{
@@ -76,8 +84,59 @@ const TERRITORY_NAMES := {
 	2: ["Plains", "Hills", "Woods", "Crossing", "Ford", "Vale", "Glen"],
 	3: ["Highlands", "Forest", "Basin", "Ridge", "Hollow", "Marsh", "Glade"],
 	4: ["Domain", "Stronghold", "Fortress", "Citadel", "Bastion", "Keep"],
-	5: ["Sanctum", "Nexus", "Throne", "Crown", "Pinnacle", "Apex"]
+	5: ["Sanctum", "Nexus", "Throne", "Crown", "Pinnacle", "Apex"],
+	6: ["Ancient Sanctum", "Elder Grove", "Titan's Rest", "Primordial Gate"],
+	7: ["Primordial Nexus", "World Tree Root", "Genesis Point"]
 }
+
+# ==== T6/T7 MEGA NODE OBJECTIVES (4-Player Maps) ====
+const T7_CENTER_OBJECTIVE := {
+	"name": "Primordial Nexus",
+	"value": 500,
+	"tier": 7,
+	"production": {"primordial_essence": 10, "mythic_flame": 5, "legendary_soul": 3},
+	"capture_power": 100000,
+	"passive_bonuses": {
+		"garrison_xp_per_hour": 1500,
+		"garrison_power_boost": 0.25,
+		"all_gods_xp_per_hour": 200
+	}
+}
+
+const T6_OBJECTIVES := [
+	{
+		"name": "Ancient Sanctum",
+		"value": 200,
+		"tier": 6,
+		"production": {"primordial_ore": 20, "divine_essence": 100},
+		"capture_power": 50000,
+		"passive_bonuses": {"garrison_xp_per_hour": 500, "garrison_power_boost": 0.1}
+	},
+	{
+		"name": "Elder Grove",
+		"value": 200,
+		"tier": 6,
+		"production": {"primordial_ore": 15, "legendary_soul": 2},
+		"capture_power": 55000,
+		"passive_bonuses": {"garrison_xp_per_hour": 600, "garrison_power_boost": 0.12}
+	},
+	{
+		"name": "Titan's Rest",
+		"value": 180,
+		"tier": 6,
+		"production": {"primordial_ore": 18, "primordial_flame": 8},
+		"capture_power": 52000,
+		"passive_bonuses": {"garrison_xp_per_hour": 550, "garrison_power_boost": 0.11}
+	},
+	{
+		"name": "Primordial Gate",
+		"value": 190,
+		"tier": 6,
+		"production": {"primordial_ore": 16, "celestial_essence": 50},
+		"capture_power": 53000,
+		"passive_bonuses": {"garrison_xp_per_hour": 580, "garrison_power_boost": 0.12}
+	}
+]
 
 
 # ==============================================================================
@@ -223,6 +282,184 @@ static func generate_initial_map() -> Dictionary:
 	}
 
 	return {"hexes": hexes, "config": config}
+
+
+# ==============================================================================
+# 4-PLAYER MAP GENERATION
+# ==============================================================================
+
+static func generate_4player_map() -> Dictionary:
+	"""Generate a compact 4-player PvP map with T6/T7 mega objectives in center
+
+	Map Structure (~331 hexes for 4 players):
+	- Ring 0: T7 Primordial Nexus (THE ultimate objective)
+	- Ring 1-2: T6 mega objectives (Ancient Sanctums, Elder Groves)
+	- Ring 3-4: T5 contested zone
+	- Ring 5-6: T4 expansion territory
+	- Ring 7-8: T3 spawn buffer (players spawn at ring 8)
+	- Ring 9-10: T2 outer frontier
+
+	Players spawn at 90-degree intervals (0, 90, 180, 270 degrees) on ring 8.
+	"""
+	var hexes: Dictionary = {}
+	var name_counters: Dictionary = {}
+
+	# ==== RING 0: T7 PRIMORDIAL NEXUS (Ultimate objective) ====
+	var center_node: PvPHexNode = _create_t7_center_objective()
+	hexes[center_node.id] = center_node
+
+	# ==== RING 1: T6 MEGA OBJECTIVES (6 nodes) ====
+	var ring_1_coords: Array[Vector2i] = HexRingGenerator.generate_ring(1)
+	for i in range(ring_1_coords.size()):
+		var coord: Vector2i = ring_1_coords[i]
+		var template: Dictionary = T6_OBJECTIVES[i % T6_OBJECTIVES.size()]
+		var node: PvPHexNode = _create_mega_objective(coord, template)
+		hexes[node.id] = node
+
+	# ==== RING 2: T6 MEGA OBJECTIVES + T6 TERRITORIES (12 nodes) ====
+	var ring_2_coords: Array[Vector2i] = HexRingGenerator.generate_ring(2)
+	for i in range(ring_2_coords.size()):
+		var coord: Vector2i = ring_2_coords[i]
+		if i % 3 == 0:  # 4 objectives
+			var template: Dictionary = T6_OBJECTIVES[i % T6_OBJECTIVES.size()]
+			var node: PvPHexNode = _create_mega_objective(coord, template)
+			hexes[node.id] = node
+		else:
+			var node: PvPHexNode = _create_named_territory(coord.x, coord.y, 6, name_counters)
+			node.is_mega_node = true
+			hexes[node.id] = node
+
+	# ==== RINGS 3-4: T5 CONTESTED ZONE (18 + 24 = 42 nodes) ====
+	for ring: int in range(3, 5):
+		var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(ring)
+		for i in range(ring_coords.size()):
+			var coord: Vector2i = ring_coords[i]
+			if i % 6 == 0:  # Occasional objectives
+				var template: Dictionary = RING_1_OBJECTIVES[i % RING_1_OBJECTIVES.size()]
+				var node: PvPHexNode = PvPHexNode.create_objective_node(
+					coord.x, coord.y,
+					template["name"],
+					template["value"],
+					template["production"]
+				)
+				node.tier = 5
+				hexes[node.id] = node
+			else:
+				var node: PvPHexNode = _create_named_territory(coord.x, coord.y, 5, name_counters)
+				hexes[node.id] = node
+
+	# ==== RINGS 5-6: T4 EXPANSION (30 + 36 = 66 nodes) ====
+	for ring: int in range(5, 7):
+		var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(ring)
+		for i in range(ring_coords.size()):
+			var coord: Vector2i = ring_coords[i]
+			if i % 8 == 0:  # Rare objectives
+				var template: Dictionary = OUTER_OBJECTIVES[i % OUTER_OBJECTIVES.size()]
+				var node: PvPHexNode = PvPHexNode.create_objective_node(
+					coord.x, coord.y,
+					template["name"],
+					template["value"],
+					template["production"]
+				)
+				node.tier = 4
+				hexes[node.id] = node
+			else:
+				var node: PvPHexNode = _create_named_territory(coord.x, coord.y, 4, name_counters)
+				hexes[node.id] = node
+
+	# ==== RINGS 7-8: T3 SPAWN BUFFER (42 + 48 = 90 nodes) ====
+	for ring: int in range(7, 9):
+		var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(ring)
+		for coord: Vector2i in ring_coords:
+			var node: PvPHexNode = _create_named_territory(coord.x, coord.y, 3, name_counters)
+			hexes[node.id] = node
+
+	# ==== RINGS 9-10: T2 OUTER FRONTIER (54 + 60 = 114 nodes) ====
+	for ring: int in range(9, 11):
+		var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(ring)
+		for coord: Vector2i in ring_coords:
+			var node: PvPHexNode = _create_named_territory(coord.x, coord.y, 2, name_counters)
+			hexes[node.id] = node
+
+	var config := {
+		"current_max_ring": FOUR_PLAYER_CONFIG.rings,
+		"player_count": 0,
+		"max_players": FOUR_PLAYER_CONFIG.player_count,
+		"spawn_positions": _calculate_4player_spawn_positions(),
+		"created_at": Time.get_unix_time_from_system(),
+		"map_type": "4player"
+	}
+
+	return {"hexes": hexes, "config": config}
+
+
+static func _create_t7_center_objective() -> PvPHexNode:
+	"""Create the T7 Primordial Nexus - THE ultimate objective"""
+	var node := PvPHexNode.create_objective_node(
+		0, 0,
+		T7_CENTER_OBJECTIVE["name"],
+		T7_CENTER_OBJECTIVE["value"],
+		T7_CENTER_OBJECTIVE["production"]
+	)
+	node.id = "primordial_nexus"
+	node.tier = 7
+	node.is_mega_node = true
+	node.capture_power_required = T7_CENTER_OBJECTIVE["capture_power"]
+	node.passive_bonuses = T7_CENTER_OBJECTIVE["passive_bonuses"]
+	return node
+
+
+static func _create_mega_objective(coord: Vector2i, template: Dictionary) -> PvPHexNode:
+	"""Create a T6 mega objective node"""
+	var node := PvPHexNode.create_objective_node(
+		coord.x, coord.y,
+		template["name"],
+		template["value"],
+		template["production"]
+	)
+	node.tier = template.get("tier", 6)
+	node.is_mega_node = true
+	node.capture_power_required = template.get("capture_power", 50000)
+	node.passive_bonuses = template.get("passive_bonuses", {})
+	return node
+
+
+static func _calculate_4player_spawn_positions() -> Array[Vector2i]:
+	"""Calculate 4 spawn positions at 90-degree intervals on ring 8"""
+	var positions: Array[Vector2i] = []
+	var spawn_ring: int = FOUR_PLAYER_CONFIG.spawn_ring
+	var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(spawn_ring)
+
+	if ring_coords.is_empty():
+		return positions
+
+	# 4 players at 90-degree intervals = positions at 0%, 25%, 50%, 75% around ring
+	var ring_size: int = ring_coords.size()
+	var spacing: int = ring_size / 4
+
+	for i: int in range(4):
+		var index: int = (i * spacing) % ring_size
+		positions.append(ring_coords[index])
+
+	return positions
+
+
+static func get_spawn_position_for_4player(player_index: int, existing_spawns: Array[Vector2i]) -> Vector2i:
+	"""Get spawn position for a player in 4-player map"""
+	var spawn_positions: Array[Vector2i] = _calculate_4player_spawn_positions()
+
+	if player_index < spawn_positions.size():
+		var position: Vector2i = spawn_positions[player_index]
+		if position not in existing_spawns:
+			return position
+
+	# Fallback: find any available position on spawn ring
+	var ring_coords: Array[Vector2i] = HexRingGenerator.generate_ring(FOUR_PLAYER_CONFIG.spawn_ring)
+	for coord: Vector2i in ring_coords:
+		if coord not in existing_spawns:
+			return coord
+
+	return Vector2i.ZERO
 
 
 static func _create_center_objective() -> PvPHexNode:

@@ -20,8 +20,8 @@ Shows:
 # SIGNALS
 # ==============================================================================
 signal close_requested()
-signal garrison_assigned(node: HexNode, god_id: String)
-signal garrison_unassigned(node: HexNode, god_id: String)
+signal garrison_assigned(node: Variant, god_id: String)  # HexNode or PvPHexNode
+signal garrison_unassigned(node: Variant, god_id: String)  # HexNode or PvPHexNode
 
 # ==============================================================================
 # ENUMS
@@ -31,7 +31,7 @@ enum SortType { RECOMMENDED, POWER, LEVEL, TIER, ELEMENT, NAME }
 # ==============================================================================
 # PROPERTIES
 # ==============================================================================
-var current_node: HexNode = null
+var current_node: Variant = null  # HexNode or PvPHexNode (duck typed)
 
 # System references
 var collection_manager = null
@@ -207,8 +207,9 @@ func _build_ui() -> void:
 # PUBLIC API
 # ==============================================================================
 
-func show_garrison(hex_node: HexNode) -> void:
-	"""Show garrison management for a node"""
+func show_garrison(hex_node: Variant) -> void:
+	"""Show garrison management for a node
+	hex_node: HexNode or PvPHexNode (duck typed)"""
 	if not hex_node:
 		push_error("GarrisonManagementPanel: Cannot show garrison for null node")
 		return

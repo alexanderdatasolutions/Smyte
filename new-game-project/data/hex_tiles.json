@@ -60,6 +60,19 @@
       "attack_timer_hours": 2,
       "defense_drops": {"beast_scales": {"min": 12, "max": 30}, "elemental_cores": {"min": 3, "max": 8}, "dragon_parts": {"min": 1, "max": 4}},
       "description": "Highly contested PvP territory. Build whatever you can defend."
+    },
+    "tier_5": {
+      "tier": 5,
+      "is_pvp_territory": true,
+      "names": ["Ascendant Grounds", "Divine Crossing", "Celestial Borderlands", "Warden's Domain"],
+      "capture_power_required": 40000,
+      "base_defenders": ["Cyclops Elder", "Herald of Surtr", "Norns' Champion"],
+      "defender_count": {"min": 5, "max": 6},
+      "max_garrison": 6,
+      "max_workers": 5,
+      "attack_timer_hours": 1.5,
+      "defense_drops": {"dragon_parts": {"min": 5, "max": 15}, "elemental_cores": {"min": 5, "max": 12}, "celestial_ore": {"min": 2, "max": 6}},
+      "description": "High-value PvP territory with increased resource potential."
     }
   },
 
@@ -150,6 +163,76 @@
       "defense_drops": {"dragon_parts": {"min": 10, "max": 30}, "legendary_soul": {"min": 0, "max": 1}},
       "spawn_count": 1,
       "description": "The rarest of all nodes. Produces legendary souls. There is only one."
+    },
+
+    "_t6_t7_note": "T6/T7 are MEGA nodes for 4-player PvP maps. Center objectives that provide massive rewards.",
+
+    "ancient_sanctum": {
+      "id": "ancient_sanctum",
+      "name": "Ancient Sanctum",
+      "tier": 6,
+      "is_pvp_territory": true,
+      "is_buildable": false,
+      "is_mega_node": true,
+      "fixed_production": {"primordial_ore": 20, "divine_essence": 100},
+      "capture_power_required": 50000,
+      "base_defenders": ["Typhon Father of Monsters", "Nyx Primordial Night", "Chaos Avatar"],
+      "defender_count": {"min": 6, "max": 8},
+      "max_garrison": 6,
+      "max_workers": 6,
+      "attack_timer_hours": 0.5,
+      "defense_drops": {"primordial_ore": {"min": 5, "max": 10}, "divine_flame": {"min": 3, "max": 5}},
+      "passive_bonuses": {
+        "garrison_xp_per_hour": 500,
+        "garrison_power_boost": 0.1
+      },
+      "spawn_count": 4,
+      "description": "Ancient seat of power. Garrison gains XP over time. Highly contested."
+    },
+    "elder_grove": {
+      "id": "elder_grove",
+      "name": "Elder Grove",
+      "tier": 6,
+      "is_pvp_territory": true,
+      "is_buildable": false,
+      "is_mega_node": true,
+      "fixed_production": {"primordial_ore": 15, "legendary_soul": 2},
+      "capture_power_required": 55000,
+      "base_defenders": ["Yggdrasil's Guardian", "Norns' Champion", "Jord Aspect"],
+      "defender_count": {"min": 6, "max": 8},
+      "max_garrison": 6,
+      "max_workers": 6,
+      "attack_timer_hours": 0.5,
+      "defense_drops": {"primordial_ore": {"min": 4, "max": 8}, "legendary_soul": {"min": 0, "max": 1}},
+      "passive_bonuses": {
+        "garrison_xp_per_hour": 600,
+        "garrison_power_boost": 0.12
+      },
+      "spawn_count": 2,
+      "description": "Sacred grove of the world tree. Produces legendary souls and empowers garrison."
+    },
+    "primordial_nexus": {
+      "id": "primordial_nexus",
+      "name": "Primordial Nexus",
+      "tier": 7,
+      "is_pvp_territory": true,
+      "is_buildable": false,
+      "is_mega_node": true,
+      "fixed_production": {"primordial_essence": 10, "mythic_flame": 5, "legendary_soul": 3},
+      "capture_power_required": 100000,
+      "base_defenders": ["Primordial Titan", "Chaos Incarnate", "Void Harbinger", "Erebus Lord of Darkness"],
+      "defender_count": {"min": 8, "max": 10},
+      "max_garrison": 8,
+      "max_workers": 8,
+      "attack_timer_hours": 0.25,
+      "defense_drops": {"primordial_essence": {"min": 3, "max": 5}, "mythic_flame": {"min": 1, "max": 2}},
+      "passive_bonuses": {
+        "garrison_xp_per_hour": 1500,
+        "garrison_power_boost": 0.25,
+        "all_gods_xp_per_hour": 200
+      },
+      "spawn_count": 1,
+      "description": "THE ultimate objective. Only one exists. ALL your gods gain XP while you hold it. Wars end here."
     }
   },
 

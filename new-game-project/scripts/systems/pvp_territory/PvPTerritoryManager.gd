@@ -89,15 +89,18 @@ func can_attack_hex(hex: PvPHexNode) -> Dictionary:
 
 	# Can't attack your own hex
 	if hex.controller_uid == _current_user_uid:
+		print("[PvPTerritoryManager] Can't attack %s - it's yours" % hex.id)
 		return {"can_attack": false, "reason": "This is your territory"}
 
 	# Can't attack protected spawn nodes
 	if hex.is_spawn_node and not hex.is_capturable:
+		print("[PvPTerritoryManager] Can't attack %s - protected spawn" % hex.id)
 		return {"can_attack": false, "reason": "Spawn nodes are protected"}
 
 	# Check per-hex cooldown
 	if hex.is_on_cooldown_for(_current_user_uid):
 		var remaining := hex.get_cooldown_remaining_for(_current_user_uid)
+		print("[PvPTerritoryManager] Can't attack %s - hex cooldown %.1fs" % [hex.id, remaining])
 		return {
 			"can_attack": false,
 			"reason": "Hex on cooldown",
@@ -109,6 +112,7 @@ func can_attack_hex(hex: PvPHexNode) -> Dictionary:
 		var defender_uid := hex.controller_uid
 		if _is_player_on_cooldown(defender_uid):
 			var remaining := _get_player_cooldown_remaining(defender_uid)
+			print("[PvPTerritoryManager] Can't attack %s - player cooldown %.1fs" % [hex.id, remaining])
 			return {
 				"can_attack": false,
 				"reason": "Recently attacked this player",
@@ -117,6 +121,7 @@ func can_attack_hex(hex: PvPHexNode) -> Dictionary:
 
 	# Must have adjacent hex to attack (expansion rule)
 	if not _map_instance or not _map_instance.has_adjacent_controlled_hex(hex, _current_user_uid):
+		print("[PvPTerritoryManager] Can't attack %s - no adjacent territory (user: %s)" % [hex.id, _current_user_uid])
 		return {"can_attack": false, "reason": "Must expand from adjacent territory"}
 
 	return {"can_attack": true, "reason": ""}
@@ -184,10 +189,14 @@ func process_attack_result(hex_id: String, victory: bool) -> void:
 		hex_id: The hex that was attacked
 		victory: True if attacker won
 	"""
+	print("[PvPTerritoryManager] process_attack_result called - hex_id: %s, victory: %s" % [hex_id, victory])
+
 	if not _map_instance:
+		push_error("[PvPTerritoryManager] _map_instance is null!")
 		return
 	var hex: PvPHexNode = _map_instance.get_hex(hex_id)
 	if hex == null:
+		push_error("[PvPTerritoryManager] Hex not found: %s" % hex_id)
 		return
 
 	if victory:
@@ -203,12 +212,21 @@ func _process_capture(hex: PvPHexNode) -> void:
 	"""Process successful hex capture"""
 	var old_owner: String = hex.controller_uid
 
+	print("[PvPTerritoryManager] _process_capture - hex: %s, new_owner: %s (%s)" % [hex.id, _current_user_uid, _current_user_name])
+
 	# Update local state
 	_map_instance.process_capture(hex.id, _current_user_uid, _current_user_name)
 
-	# Sync to Firebase
-	if _data_sync and _data_sync.is_ready():
-		_data_sync.update_hex_capture(hex.id, _current_user_uid, _current_user_name)
+	# Sync to Firebase with real-time update
+	if _data_sync:
+		if _data_sync.is_ready():
+			_data_sync.update_hex_capture_realtime(hex.id, _current_user_uid, _current_user_name)
+		else:
+			# Test mode - just log
+			print("PvPTerritoryManager: Captured %s (test mode)" % hex.id)
+
+	# Check if match ended (only one player remains)
+	check_match_end()
 
 
 # ==============================================================================
@@ -412,5 +430,171 @@ func get_my_hexes_needing_defense() -> Array[PvPHexNode]:
 	return result
 
 
+func get_my_hexes() -> Array[PvPHexNode]:
+	"""Get all hexes controlled by current player"""
+	if not _map_instance:
+		return []
+	return _map_instance.get_my_hexes()
+
+
 func get_current_user_uid() -> String:
 	return _current_user_uid
+
+
+# ==============================================================================
+# MATCH END LOGIC
+# ==============================================================================
+
+signal match_ended(winner_uid: String, winner_name: String, is_current_user_winner: bool)
+
+var _match_ended: bool = false
+
+
+func check_match_end() -> void:
+	"""Check if match has ended (only one player with territory remaining)"""
+	if _match_ended:
+		return
+
+	if not _map_instance:
+		return
+
+	var active_players: Array = _get_active_players()
+
+	# Match ends when only 1 player remains with territory
+	if active_players.size() <= 1:
+		var winner_uid: String = ""
+		var winner_name: String = ""
+
+		if active_players.size() == 1:
+			winner_uid = active_players[0].get("uid", "")
+			winner_name = active_players[0].get("name", "Unknown")
+		else:
+			# Shouldn't happen, but handle no winners case
+			winner_name = "No one"
+
+		_end_match(winner_uid, winner_name)
+
+
+func _get_active_players() -> Array:
+	"""Get list of players who still have territory"""
+	var active: Array = []
+	var player_hex_counts: Dictionary = {}
+
+	if not _map_instance:
+		return active
+
+	# Count hexes per player
+	for hex: PvPHexNode in _map_instance.get_all_hexes():
+		if hex.controller_uid.is_empty():
+			continue
+		if not player_hex_counts.has(hex.controller_uid):
+			player_hex_counts[hex.controller_uid] = 0
+		player_hex_counts[hex.controller_uid] += 1
+
+	# Get players with at least 1 hex
+	for player: Dictionary in _map_instance.get_all_players():
+		var uid: String = player.get("player_uid", player.get("uid", ""))
+		if player_hex_counts.get(uid, 0) > 0:
+			active.append({
+				"uid": uid,
+				"name": player.get("display_name", "Unknown"),
+				"hex_count": player_hex_counts[uid]
+			})
+
+	return active
+
+
+func _end_match(winner_uid: String, winner_name: String) -> void:
+	"""Process match end"""
+	_match_ended = true
+
+	var is_winner: bool = winner_uid == _current_user_uid
+
+	print("PvPTerritoryManager: Match ended! Winner: %s (%s)" % [winner_name, winner_uid])
+
+	# Award rewards
+	_award_match_rewards(is_winner, winner_uid)
+
+	# Update match status in Firebase
+	_update_match_status_ended(winner_uid)
+
+	# Emit signal for UI
+	match_ended.emit(winner_uid, winner_name, is_winner)
+
+
+func _award_match_rewards(is_winner: bool, winner_uid: String) -> void:
+	"""Award rewards based on match performance"""
+	var system_registry: Variant = _get_system_registry()
+	if not system_registry:
+		return
+
+	var resource_manager: Variant = system_registry.get_system("ResourceManager")
+	var event_bus: Variant = system_registry.get_system("EventBus")
+	if not resource_manager:
+		return
+
+	# Calculate rewards based on placement
+	var my_hex_count: int = 0
+	var my_rank: int = 1
+
+	if _map_instance:
+		my_hex_count = _map_instance.get_my_hex_count()
+		my_rank = _map_instance.get_my_rank()
+
+	# Base reward: participation + territory held
+	var crystal_reward: int = 50 + (my_hex_count * 5)
+
+	# Placement bonus
+	var placement_bonus: Dictionary = {
+		1: 500,  # Winner
+		2: 250,
+		3: 150,
+		4: 100
+	}
+	crystal_reward += placement_bonus.get(my_rank, 50)
+
+	# Victory bonus
+	if is_winner:
+		crystal_reward += 200
+
+	# Award resources
+	if resource_manager.has_method("add_resource"):
+		resource_manager.add_resource("divine_crystals", crystal_reward)
+
+	# Show notification
+	if event_bus and event_bus.has_method("emit_notification"):
+		var msg: String = ""
+		if is_winner:
+			msg = "🏆 VICTORY! +%d Divine Crystals" % crystal_reward
+			event_bus.emit_notification(msg, "success", 5.0)
+		else:
+			msg = "Match ended (Rank #%d) +%d Divine Crystals" % [my_rank, crystal_reward]
+			event_bus.emit_notification(msg, "info", 4.0)
+
+
+func _update_match_status_ended(winner_uid: String) -> void:
+	"""Update match status to ended in Firebase"""
+	if not _data_sync or not _data_sync.is_ready():
+		return
+
+	# This would update the pvp_maps document status to "ended"
+	# For now, just log it - full implementation depends on Firebase structure
+	print("PvPTerritoryManager: Would update match status to ended with winner: %s" % winner_uid)
+
+
+func is_match_ended() -> bool:
+	"""Check if current match has ended"""
+	return _match_ended
+
+
+func get_match_status() -> Dictionary:
+	"""Get current match status info"""
+	var active_players := _get_active_players()
+
+	return {
+		"ended": _match_ended,
+		"active_player_count": active_players.size(),
+		"active_players": active_players,
+		"current_user_rank": _map_instance.get_my_rank() if _map_instance else 0,
+		"current_user_hexes": _map_instance.get_my_hex_count() if _map_instance else 0
+	}

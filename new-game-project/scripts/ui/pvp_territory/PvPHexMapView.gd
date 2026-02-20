@@ -792,3 +792,62 @@ func _animate_capture(tile: Control) -> void:
 	tween.set_loops(3).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(tile, "scale", Vector2(1.2, 1.2), 0.2)
 	tween.tween_property(tile, "scale", Vector2.ONE, 0.2)
+
+
+func play_capture_animation(hex_node: Variant) -> void:
+	"""Play capture animation for a hex node (duck typed - works with HexNode or PvPHexNode)"""
+	if not hex_node or not hex_node.coord:
+		return
+
+	var key := _coord_to_key(hex_node.coord)
+	if _hex_tiles.has(key):
+		var tile: Control = _hex_tiles[key]
+		# Update visual first
+		if hex_node is PvPHexNode:
+			_update_tile_visual(tile, hex_node)
+		_animate_capture(tile)
+
+
+func play_remote_capture_animation(hex_id: String, new_owner_uid: String) -> void:
+	"""Play capture animation for a remote player's capture (more dramatic)"""
+	if not _map_instance:
+		return
+
+	var hex := _map_instance.get_hex(hex_id)
+	if not hex:
+		return
+
+	var key := _coord_to_key(hex.coord)
+	if not _hex_tiles.has(key):
+		return
+
+	var tile: Control = _hex_tiles[key]
+
+	# Update tile visual with new owner color
+	_update_tile_visual(tile, hex)
+
+	# Play animation - different for enemy capture vs neutral
+	var is_enemy_capture: bool = new_owner_uid != _current_user_uid
+	if is_enemy_capture:
+		_animate_enemy_capture(tile)
+	else:
+		_animate_capture(tile)
+
+
+func _animate_enemy_capture(tile: Control) -> void:
+	"""Play enemy capture animation (red flash + pulse)"""
+	# Flash red briefly
+	var tween := create_tween()
+	tween.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+
+	# Scale up with red tint
+	tween.tween_property(tile, "scale", Vector2(1.3, 1.3), 0.15)
+	tween.parallel().tween_property(tile, "modulate", Color(1.5, 0.5, 0.5), 0.15)
+
+	# Scale back with normal color
+	tween.tween_property(tile, "scale", Vector2.ONE, 0.15)
+	tween.parallel().tween_property(tile, "modulate", Color.WHITE, 0.15)
+
+	# Small pulse to settle
+	tween.tween_property(tile, "scale", Vector2(1.1, 1.1), 0.1)
+	tween.tween_property(tile, "scale", Vector2.ONE, 0.1)

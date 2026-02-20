@@ -79,7 +79,8 @@ func _start_generation_cycle() -> void:
 func _process_all_territory_generation() -> void:
 	_process_hex_node_generation()
 
-func calculate_node_production(node: HexNode) -> Dictionary:
+## Calculate production for a node (accepts HexNode or PvPHexNode via duck typing)
+func calculate_node_production(node: Variant) -> Dictionary:
 	if not node or not node.is_controlled_by_player():
 		return {}
 
@@ -111,7 +112,7 @@ func calculate_node_production(node: HexNode) -> Dictionary:
 
 	return production
 
-func _get_node_base_production(node: HexNode) -> Dictionary:
+func _get_node_base_production(node: Variant) -> Dictionary:
 	# Special nodes have fixed production
 	if node.is_special_node and not node.fixed_production.is_empty():
 		return node.fixed_production
@@ -145,7 +146,7 @@ func _get_resource_manager() -> Variant:
 		return registry.get_system("ResourceManager")
 	return null
 
-func apply_connected_bonus(node: HexNode) -> float:
+func apply_connected_bonus(node: Variant) -> float:
 	if not node:
 		return 0.0
 
@@ -170,7 +171,7 @@ func apply_connected_bonus(node: HexNode) -> float:
 	else:
 		return 0.0
 
-func _calculate_worker_efficiency(node: HexNode) -> float:
+func _calculate_worker_efficiency(node: Variant) -> float:
 	if not node or node.assigned_workers.is_empty():
 		return 0.0
 
@@ -285,7 +286,7 @@ func _calculate_worker_leader_bonus(garrison_gods: Array[God]) -> float:
 
 	return total_bonus
 
-func get_node_hourly_production(node: HexNode) -> Dictionary:
+func get_node_hourly_production(node: Variant) -> Dictionary:
 	return calculate_node_production(node)
 
 func get_all_hex_nodes_production() -> Dictionary:
@@ -397,7 +398,7 @@ func _process_hex_node_generation() -> void:
 		# Process Day Care XP for assigned gods
 		_process_day_care_xp(node)
 
-func _process_extraction_building(node: HexNode, current_time: float) -> void:
+func _process_extraction_building(node: Variant, current_time: float) -> void:
 	# Base node (Divine Sanctum) always produces, other nodes need garrison + workers
 	if node.node_type != "base":
 		# Check if node has garrison (required for all non-base nodes)
@@ -426,7 +427,7 @@ func _process_extraction_building(node: HexNode, current_time: float) -> void:
 
 	node.last_production_time = int(current_time)
 
-func _process_conversion_building(node: HexNode, all_nodes: Array, current_time: float) -> void:
+func _process_conversion_building(node: Variant, all_nodes: Array, current_time: float) -> void:
 	var building_manager: Variant = _get_building_manager()
 	if not building_manager:
 		return
@@ -478,7 +479,7 @@ func _process_conversion_building(node: HexNode, all_nodes: Array, current_time:
 
 	node.last_production_time = int(current_time)
 
-func _get_building_consumes(node: HexNode) -> Dictionary:
+func _get_building_consumes(node: Variant) -> Dictionary:
 	if node.placed_building.is_empty():
 		return {}
 
@@ -533,7 +534,7 @@ func _consume_resource(res_id: String, amount: float, all_nodes: Array) -> void:
 		if resource_manager:
 			resource_manager.spend(res_id, int(ceil(remaining)))
 
-func calculate_offline_hex_production(node: HexNode) -> Dictionary:
+func calculate_offline_hex_production(node: Variant) -> Dictionary:
 	if not node or not node.is_controlled_by_player():
 		return {}
 
@@ -635,7 +636,7 @@ func collect_node_resources(node_id: String) -> Dictionary:
 # DAY CARE XP PROCESSING
 # ==============================================================================
 
-func _process_day_care_xp(node: HexNode) -> void:
+func _process_day_care_xp(node: Variant) -> void:
 	"""Process XP gain for gods assigned to Day Care buildings"""
 	if not node or node.placed_building != "day_care":
 		return

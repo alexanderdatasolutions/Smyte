@@ -269,15 +269,19 @@ func _award_tower_god_experience(final_floor: int) -> void:
 		return
 
 	# Base XP per floor + bonus for boss floors (from config)
+	# XP scales with floor number to reward pushing higher
 	var xp_cfg: Dictionary = _tower_config.get("god_xp_rewards", {})
 	var base_xp_per_floor: int = xp_cfg.get("base_xp_per_floor", 50)
 	var boss_bonus: int = xp_cfg.get("boss_xp_bonus", 100)
+	var xp_scaling_per_floor: float = xp_cfg.get("xp_scaling_per_floor", 0.02)  # 2% more XP per floor
 	var total_xp: int = 0
 
 	for floor_num in range(1, final_floor + 1):
-		total_xp += base_xp_per_floor
+		# Scale XP with floor number (floor 10 = 1.2x, floor 50 = 2x, floor 100 = 3x)
+		var floor_multiplier: float = 1.0 + (floor_num * xp_scaling_per_floor)
+		total_xp += int(base_xp_per_floor * floor_multiplier)
 		if floor_num % BOSS_FLOOR_INTERVAL == 0:
-			total_xp += boss_bonus
+			total_xp += int(boss_bonus * floor_multiplier)
 
 	# Award XP to each god in the team
 	for god in current_team:

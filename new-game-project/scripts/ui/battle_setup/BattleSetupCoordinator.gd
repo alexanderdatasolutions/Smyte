@@ -187,9 +187,9 @@ func _on_battle_start_requested(team: Array):
 	var context_type: String = battle_context.get("type", "")
 
 	# Handle different battle types
+	# Note: "hex_capture" and "pvp_territory_attack" are handled by their respective
+	# screen's battle_setup_complete handler via NodeCaptureHandler (unified flow)
 	match context_type:
-		"pvp_territory_attack":
-			_start_pvp_territory_battle(team)
 		"":
 			# If no specific context was set, start a test battle
 			_start_battle_directly(team)
@@ -231,9 +231,11 @@ func _start_pvp_territory_battle(team: Array) -> void:
 	battle_config.attacker_team = valid_team
 	battle_config.defender_team = defender_team
 
-	# Store PvP context for result handling
+	# Store PvP context for result handling and return navigation
 	if pvp_hex:
 		battle_config.territory_id = pvp_hex.id
+		battle_config.set_meta("is_pvp_territory", true)
+		battle_config.set_meta("pvp_hex_id", pvp_hex.id)
 
 	# Set rewards based on tier (PvP territory battles)
 	battle_config.base_rewards = _calculate_pvp_territory_rewards(tier)

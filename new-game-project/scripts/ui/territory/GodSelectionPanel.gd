@@ -48,10 +48,12 @@ var _sort_ascending: bool = false  # false = descending (highest first)
 var _excluded_god_ids: Array[String] = []
 var _is_visible: bool = false
 var _slide_tween: Tween = null
-var _current_node: HexNode = null  # Node context for element matching
+var _current_node: Variant = null  # Node context for element matching (HexNode or PvPHexNode)
 
 # Systems
 var collection_manager = null
+var territory_manager = null
+var pvp_territory_manager = null
 
 func _ready() -> void:
 	_setup_fullscreen()
@@ -72,6 +74,8 @@ func _init_systems() -> void:
 	var registry = SystemRegistry.get_instance()
 	if registry:
 		collection_manager = registry.get_system("CollectionManager")
+		territory_manager = registry.get_system("TerritoryManager")
+		pvp_territory_manager = registry.get_system("PvPTerritoryManager")
 
 func _build_ui() -> void:
 	"""Build the complete UI structure"""
@@ -420,7 +424,7 @@ func _update_affinity_buttons() -> void:
 # PUBLIC API
 # =============================================================================
 
-func show_for_garrison(excluded_ids: Array[String] = [], node: HexNode = null) -> void:
+func show_for_garrison(excluded_ids: Array[String] = [], node: Variant = null) -> void:
 	"""Show panel filtered for garrison selection (combat-ready gods)"""
 	_title_label.text = "Select Garrison Defender"
 	_current_context = SelectionContext.GARRISON
@@ -437,7 +441,7 @@ func show_for_garrison(excluded_ids: Array[String] = [], node: HexNode = null) -
 	_update_affinity_buttons()
 	_show_panel()
 
-func show_for_worker(excluded_ids: Array[String] = [], node: HexNode = null) -> void:
+func show_for_worker(excluded_ids: Array[String] = [], node: Variant = null) -> void:
 	"""Show panel filtered for worker selection"""
 	_title_label.text = "Select Worker"
 	_current_context = SelectionContext.WORKER
@@ -454,7 +458,7 @@ func show_for_worker(excluded_ids: Array[String] = [], node: HexNode = null) -> 
 	_update_affinity_buttons()
 	_show_panel()
 
-func show_all(excluded_ids: Array[String] = [], title: String = "Select God", node: HexNode = null) -> void:
+func show_all(excluded_ids: Array[String] = [], title: String = "Select God", node: Variant = null) -> void:
 	"""Show panel with all gods"""
 	_title_label.text = title
 	_current_context = SelectionContext.ALL
@@ -587,9 +591,9 @@ func _sort_gods(gods: Array) -> Array:
 			# Get current garrison gods for synergy calculation
 			var garrison_gods = _get_garrison_gods()
 			sorted.sort_custom(func(a, b):
-				# First priority: unassigned gods first
-				var a_assigned = a.id in _excluded_god_ids
-				var b_assigned = b.id in _excluded_god_ids
+				# First priority: unassigned gods first (check ALL assignments, not just current node)
+				var a_assigned = not _get_god_assignment(a).is_empty() or a.id in _excluded_god_ids
+				var b_assigned = not _get_god_assignment(b).is_empty() or b.id in _excluded_god_ids
 				if a_assigned != b_assigned:
 					return not a_assigned  # unassigned comes first
 				# Second priority: team synergy score (how much this god improves team bonuses)
@@ -705,12 +709,16 @@ func _create_god_card(god: God) -> Control:
 	card.custom_minimum_size = Vector2(80, 100)
 	card.name = "GodCard_" + god.id
 
-	# Check if god is already assigned - either to this node (in exclusion list) or stationed elsewhere
-	var is_assigned = god.id in _excluded_god_ids
+	# Check if god is already assigned - check actual hex assignments first
+	var assignment: String = _get_god_assignment(god)
+	var is_assigned_to_hex: bool = not assignment.is_empty()
+
+	# Also check exclusion list and other status flags
+	var is_in_exclusion_list = god.id in _excluded_god_ids
 	var current_node_id = _current_node.id if _current_node else ""
 	var is_stationed_elsewhere = god.stationed_territory != "" and god.stationed_territory != current_node_id
 	var is_working = god.is_working_on_task() if god.has_method("is_working_on_task") else false
-	var is_unavailable = is_assigned or is_stationed_elsewhere or is_working
+	var is_unavailable = is_in_exclusion_list or is_stationed_elsewhere or is_working or is_assigned_to_hex
 
 	# Style with element border (dimmed if unavailable)
 	var element_color = GodUIHelpers.get_element_color(god.element)
@@ -748,17 +756,24 @@ func _create_god_card(god: God) -> Control:
 	portrait_container.add_child(portrait)
 	vbox.add_child(portrait_container)
 
-	# Status indicator badge for unavailable gods
+	# Status indicator badge for unavailable gods - show actual assignment location
 	if is_unavailable:
 		var status_badge: Label = Label.new()
-		if is_stationed_elsewhere:
-			status_badge.text = "STATIONED"
+		if is_assigned_to_hex:
+			# Show truncated assignment: "Garrison: NodeName" -> "Garr: Node..."
+			var parts := assignment.split(": ", true, 1)
+			if parts.size() == 2:
+				var type_short := parts[0].substr(0, 4)  # "Garr" or "Work"
+				var node_name := _truncate_name(parts[1], 6)
+				status_badge.text = type_short + ": " + node_name
+			else:
+				status_badge.text = _truncate_name(assignment, 12)
 		elif is_working:
 			status_badge.text = "WORKING"
 		else:
 			status_badge.text = "ASSIGNED"
 		status_badge.add_theme_font_size_override("font_size", 8)
-		status_badge.add_theme_color_override("font_color", Color(1.0, 0.6, 0.3, 0.9))  # Orange warning color
+		status_badge.add_theme_color_override("font_color", Color(1.0, 0.7, 0.4, 0.9))  # Orange like TeamSelectionManager
 		status_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vbox.add_child(status_badge)
 
@@ -843,6 +858,28 @@ func _truncate_name(text: String, max_length: int) -> String:
 	if text.length() <= max_length:
 		return text
 	return text.substr(0, max_length - 2) + ".."
+
+func _get_god_assignment(god: God) -> String:
+	"""Get where god is assigned (Garrison: X or Worker: X)"""
+	# Check regular territory
+	if territory_manager:
+		var controlled_nodes: Array = territory_manager.get_controlled_nodes()
+		for hex_node: Variant in controlled_nodes:
+			if hex_node.garrison.find(god.id) != -1:
+				return "Garrison: " + hex_node.name
+			if hex_node.assigned_workers.find(god.id) != -1:
+				return "Worker: " + hex_node.name
+
+	# Check PvP territory
+	if pvp_territory_manager:
+		var pvp_hexes: Array = pvp_territory_manager.get_my_hexes()
+		for pvp_hex: Variant in pvp_hexes:
+			if pvp_hex.garrison.find(god.id) != -1:
+				return "Garrison: " + pvp_hex.name
+			if pvp_hex.assigned_workers.find(god.id) != -1:
+				return "Worker: " + pvp_hex.name
+
+	return ""
 
 func _get_element_icon(element: God.ElementType) -> String:
 	"""Get element icon for display"""

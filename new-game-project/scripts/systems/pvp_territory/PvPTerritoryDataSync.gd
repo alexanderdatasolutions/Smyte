@@ -32,6 +32,7 @@ signal player_joined_map(player_uid: String, player_data: Dictionary)
 # ==============================================================================
 
 const COLLECTION_PVP_MAPS := "pvp_maps"
+const COLLECTION_REALTIME_MAPS := "pvp_realtime_maps"  # 4-player matches from PvPSignupManager
 const SUBCOLLECTION_HEXES := "hexes"
 const SUBCOLLECTION_PLAYERS := "players"
 const SUBCOLLECTION_BATTLES := "battles"
@@ -48,6 +49,12 @@ var _user_id: String = ""
 var _display_name: String = ""
 var _current_map_id: String = ""
 var _is_listening: bool = false
+
+# Test/offline mode data
+var _test_map_hexes: Dictionary = {}
+var _test_map_players: Array = []
+var _is_test_mode: bool = false
+var _test_user_uid: String = ""  # User UID when in test mode
 
 
 # ==============================================================================
@@ -98,7 +105,38 @@ func is_ready() -> bool:
 	return _firestore != null and not _user_id.is_empty()
 
 
+func ensure_firebase_ready() -> bool:
+	"""Force Firebase initialization if not ready (for immediate use after scene load)"""
+	if is_ready():
+		return true
+
+	# Try to initialize synchronously
+	_initialize_firebase()
+
+	# If still not ready, try getting Firebase directly
+	if not is_ready():
+		if Firebase and Firebase.Firestore:
+			_firestore = Firebase.Firestore
+
+		# Get user from FirebaseIntegration
+		var system_registry: Variant = _get_system_registry()
+		if system_registry:
+			var firebase_integration: Variant = system_registry.get_system("FirebaseIntegration")
+			if firebase_integration:
+				if firebase_integration.has_method("get_user_id"):
+					_user_id = firebase_integration.get_user_id()
+				if _display_name.is_empty() and firebase_integration.has_method("get_user_email"):
+					var email: String = firebase_integration.get_user_email()
+					if not email.is_empty() and "@" in email:
+						_display_name = email.split("@")[0]
+
+	return is_ready()
+
+
 func get_user_id() -> String:
+	# In test mode, return the test user UID
+	if _is_test_mode and not _test_user_uid.is_empty():
+		return _test_user_uid
 	# In offline mode, use fallback ID that matches mock data
 	if _user_id.is_empty():
 		return "player_1"
@@ -111,6 +149,46 @@ func get_display_name() -> String:
 
 func get_current_map_id() -> String:
 	return _current_map_id
+
+
+func is_test_mode() -> bool:
+	return _is_test_mode
+
+
+# ==============================================================================
+# TEST/OFFLINE MODE
+# ==============================================================================
+
+func set_test_map_data(map_id: String, hexes: Dictionary, players: Array, test_user_uid: String = "") -> void:
+	"""Store test map data for offline play"""
+	_current_map_id = map_id
+	_test_map_hexes = hexes
+	_test_map_players = players
+	_is_test_mode = true
+	if not test_user_uid.is_empty():
+		_test_user_uid = test_user_uid
+	elif players.size() > 0:
+		# Use first player's UID as the test user
+		_test_user_uid = players[0].get("player_uid", players[0].get("uid", ""))
+	print("PvPTerritoryDataSync: Test map data stored - %d hexes, %d players, user: %s" % [hexes.size(), players.size(), _test_user_uid])
+
+
+func get_test_map_data() -> Dictionary:
+	"""Get stored test map data"""
+	return {
+		"map_id": _current_map_id,
+		"hexes": _test_map_hexes,
+		"players": _test_map_players
+	}
+
+
+func clear_test_data() -> void:
+	"""Clear test mode data"""
+	_test_map_hexes.clear()
+	_test_map_players.clear()
+	_is_test_mode = false
+	_current_map_id = ""
+	_test_user_uid = ""
 
 
 # ==============================================================================
@@ -402,6 +480,80 @@ func _fetch_full_map_state(map_id: String) -> Dictionary:
 	}
 
 
+# ==============================================================================
+# REALTIME MAP JOINING (for 4-player matches from PvPSignupManager)
+# ==============================================================================
+
+func join_realtime_map(map_id: String) -> void:
+	"""Join a specific realtime map (4-player match from signup queue)"""
+	# Try to ensure Firebase is ready before joining
+	if not ensure_firebase_ready():
+		push_warning("PvPTerritoryDataSync: Firebase not ready after ensure, cannot join realtime map")
+		map_joined.emit({}, false)
+		return
+
+	_do_join_realtime_map.call_deferred(map_id)
+
+
+func _do_join_realtime_map(map_id: String) -> void:
+	"""Async realtime map join operation"""
+	if not _firestore:
+		map_joined.emit({}, false)
+		return
+
+	print("PvPTerritoryDataSync: Joining realtime map %s" % map_id)
+
+	# Fetch from pvp_realtime_maps collection
+	var map_collection: Variant = _firestore.collection(COLLECTION_REALTIME_MAPS)
+	if not map_collection:
+		map_joined.emit({}, false)
+		return
+
+	var map_doc: Variant = await map_collection.get_doc(map_id)
+	if map_doc == null:
+		push_error("PvPTerritoryDataSync: Map %s not found" % map_id)
+		map_joined.emit({"error": "Map not found"}, false)
+		return
+
+	# Parse the map document
+	var map_data: Dictionary = _doc_to_dict(map_doc)
+	if map_data.is_empty():
+		map_joined.emit({"error": "Empty map data"}, false)
+		return
+
+	# Convert hexes from dictionary format to PvPHexNode objects
+	var hexes_raw: Dictionary = map_data.get("hexes", {})
+	var hexes: Dictionary = {}
+	var owned_count: int = 0
+	var user_owned_count: int = 0
+	for hex_id: String in hexes_raw:
+		var hex_data: Dictionary = hexes_raw[hex_id]
+		if hex_data is Dictionary:
+			var hex: PvPHexNode = PvPHexNode.from_dict(hex_data)
+			if hex:
+				hexes[hex_id] = hex
+				if not hex.controller_uid.is_empty():
+					owned_count += 1
+					if hex.controller_uid == _user_id:
+						user_owned_count += 1
+
+	print("PvPTerritoryDataSync: Hex ownership - total owned: %d, user owns: %d (user_id=%s)" % [owned_count, user_owned_count, _user_id])
+
+	var players: Array = map_data.get("players", [])
+
+	_current_map_id = map_id
+	_is_test_mode = false  # Real multiplayer mode
+
+	var result := {
+		"map_id": map_id,
+		"hexes": hexes,
+		"players": players
+	}
+
+	print("PvPTerritoryDataSync: Loaded realtime map - %d hexes, %d players" % [hexes.size(), players.size()])
+	map_joined.emit(result, true)
+
+
 func _fetch_hexes(map_id: String) -> Dictionary:
 	"""Fetch all hexes for a map"""
 	var hexes: Dictionary = {}
@@ -562,8 +714,184 @@ func _assign_mock_territory(hexes: Dictionary, player_info: Dictionary, spawn_co
 				hex.controller_uid = uid
 				hex.controller_display_name = player_name
 				hex.last_captured_at = int(Time.get_unix_time_from_system()) - (randi() % 86400)
+
+				# Generate defense team for AI players (not player_1 which is the human)
+				if uid != "player_1" and uid != _user_id:
+					var defense_result := _generate_mock_defense_team(hex.tier)
+					hex.defense_team_serialized = defense_result["team"]
+					hex.defense_power = defense_result["power"]
+
 				claimed += 1
 				frontier.append(neighbor)  # Add to frontier for further expansion
+
+
+func _generate_mock_defense_team(tier: int) -> Dictionary:
+	"""Generate a defense team for AI mock territory using real god templates"""
+	var team: Array = []
+	var team_size: int = mini(tier + 1, 4)  # 2-4 gods based on tier
+
+	# Try to use real god templates for proper portraits
+	var template_ids := _get_available_god_templates()
+	template_ids.shuffle()
+
+	var total_power: int = 0
+
+	for i in range(team_size):
+		var level: int = tier * 10 + i * 2
+		var is_leader: bool = (i == 0)
+
+		# Try to create from real template
+		var god: God = null
+		if i < template_ids.size():
+			god = _create_god_from_template(template_ids[i], level)
+
+		if god:
+			# Use real god data with proper template_id for portraits
+			var god_data := {
+				"id": god.id,
+				"template_id": god.template_id,  # Critical for portraits!
+				"name": god.name,
+				"level": level,
+				"tier": god.tier,
+				"pantheon": god.pantheon,
+				"element": god.element,
+				"base_hp": god.base_hp,
+				"base_attack": god.base_attack,
+				"base_defense": god.base_defense,
+				"base_speed": god.base_speed,
+				"base_crit_rate": god.base_crit_rate,
+				"base_crit_damage": god.base_crit_damage,
+				"hp": god.base_hp,
+				"attack": god.base_attack,
+				"defense": god.base_defense,
+				"speed": god.base_speed,
+				"is_leader": is_leader,
+				"leader_skill": god.leader_skill,
+				"abilities": god.abilities,
+				"is_awakened": god.is_awakened,
+				"awakened_name": god.awakened_name,
+				"equipment": _generate_mock_equipment(tier),
+				"skills": []
+			}
+			team.append(god_data)
+
+			# Calculate power
+			total_power += god.base_hp / 10
+			total_power += god.base_attack
+			total_power += god.base_defense
+			total_power += god.base_speed * 2
+			total_power += level * 50
+			if is_leader:
+				total_power += 200
+		else:
+			# Fallback to generated data if no template available
+			var names := ["Guardian", "Sentinel", "Warden", "Defender"]
+			var elements := ["fire", "water", "earth", "lightning", "light", "dark"]
+			var pantheons := ["greek", "norse", "egyptian", "celtic", "japanese"]
+			var mult: float = 1.15 if is_leader else 1.0
+
+			var hp: int = int((150 + tier * 50 + i * 20) * mult)
+			var atk: int = int((50 + tier * 15 + i * 5) * mult)
+			var def: int = int((40 + tier * 12 + i * 4) * mult)
+			var spd: int = int((50 + tier * 5 + i * 2) * mult)
+
+			var god_data := {
+				"id": "ai_defender_%d_%d_%d" % [tier, i, randi()],
+				"template_id": "ai_defender",  # Generic fallback
+				"name": names[i % names.size()],
+				"level": level,
+				"tier": tier,
+				"pantheon": pantheons[randi() % pantheons.size()],
+				"element": elements[randi() % elements.size()],
+				"base_hp": hp,
+				"base_attack": atk,
+				"base_defense": def,
+				"base_speed": spd,
+				"hp": hp,
+				"attack": atk,
+				"defense": def,
+				"speed": spd,
+				"is_leader": is_leader,
+				"equipment": _generate_mock_equipment(tier),
+				"skills": []
+			}
+			team.append(god_data)
+
+			total_power += hp / 10
+			total_power += atk
+			total_power += def
+			total_power += spd * 2
+			total_power += level * 50
+			if is_leader:
+				total_power += 200
+
+	return {"team": team, "power": total_power}
+
+
+func _generate_mock_equipment(tier: int) -> Dictionary:
+	"""Generate mock equipment for an AI defender"""
+	var equipment: Dictionary = {}
+	var slots := ["weapon", "armor", "accessory"]
+
+	for slot: String in slots:
+		# 60% chance to have equipment in each slot
+		if randf() > 0.6:
+			continue
+
+		var stat_base: int = tier * 5 + randi_range(0, 10)
+		equipment[slot] = {
+			"id": "mock_%s_t%d" % [slot, tier],
+			"name": "%s T%d" % [slot.capitalize(), tier],
+			"tier": tier,
+			"hp_bonus": stat_base * 3 if slot == "armor" else stat_base,
+			"attack_bonus": stat_base * 2 if slot == "weapon" else stat_base / 2,
+			"defense_bonus": stat_base if slot == "armor" else stat_base / 2,
+			"speed_bonus": stat_base / 2 if slot == "accessory" else 0
+		}
+
+	return equipment
+
+
+func _get_available_god_templates() -> Array:
+	"""Get list of god template IDs that can be used for AI defenders"""
+	var template_ids: Array = []
+
+	var registry: Variant = _get_system_registry()
+	if not registry:
+		return template_ids
+
+	var config_manager: Variant = registry.get_system("ConfigurationManager")
+	if not config_manager:
+		return template_ids
+
+	var gods_config: Dictionary = config_manager.get_gods_config()
+	if gods_config.is_empty():
+		return template_ids
+
+	# Handle dictionary format
+	if gods_config.has("gods") and gods_config.gods is Dictionary:
+		for god_id: String in gods_config.gods:
+			template_ids.append(god_id)
+	# Handle legacy array format
+	elif gods_config.has("gods") and gods_config.gods is Array:
+		for god_data: Dictionary in gods_config.gods:
+			var god_id: String = god_data.get("id", "")
+			if not god_id.is_empty():
+				template_ids.append(god_id)
+
+	return template_ids
+
+
+func _create_god_from_template(template_id: String, level: int) -> God:
+	"""Create a God instance from template with specified level"""
+	var god: God = GodFactory.create_from_json(template_id)
+	if not god:
+		return null
+
+	# Set level and scale stats accordingly
+	god.level = level
+
+	return god
 
 
 # ==============================================================================
@@ -684,5 +1012,269 @@ func _doc_to_dict(doc: Variant) -> Dictionary:
 
 func leave_current_map() -> void:
 	"""Leave the current map (stop listening)"""
+	stop_realtime_sync()
 	_current_map_id = ""
 	_is_listening = false
+
+
+# ==============================================================================
+# REAL-TIME SYNC (Using RTDB for instant updates)
+# ==============================================================================
+
+# New signals for real-time updates
+signal hex_captured_remotely(hex_id: String, new_owner_uid: String, new_owner_name: String)
+signal player_left_map(player_uid: String)
+signal map_status_changed(new_status: String)
+
+# RTDB path for lightweight real-time triggers
+const RTDB_SYNC_PATH := "pvp_maps_sync"
+
+var _rtdb_hex_listener: Variant = null
+var _rtdb_players_listener: Variant = null
+var _is_realtime_active: bool = false
+
+
+func start_realtime_sync(map_id: String) -> void:
+	"""Start listening for real-time hex ownership changes via RTDB"""
+	if _is_realtime_active:
+		stop_realtime_sync()
+
+	_current_map_id = map_id
+	_is_realtime_active = true
+
+	# Get RTDB reference
+	var rtdb: Variant = _get_rtdb()
+	if not rtdb:
+		print("PvPTerritoryDataSync: RTDB not available, falling back to polling")
+		return
+
+	# Listen for hex changes
+	var hex_path: String = "%s/%s/hexes" % [RTDB_SYNC_PATH, map_id]
+	_rtdb_hex_listener = rtdb.get_database_reference(hex_path, {})
+	if _rtdb_hex_listener:
+		if _rtdb_hex_listener.has_signal("new_data_update"):
+			_rtdb_hex_listener.new_data_update.connect(_on_rtdb_hex_update)
+		if _rtdb_hex_listener.has_signal("patch_data_update"):
+			_rtdb_hex_listener.patch_data_update.connect(_on_rtdb_hex_update)
+		print("PvPTerritoryDataSync: Started real-time hex listener for map %s" % map_id)
+
+	# Listen for player changes
+	var players_path: String = "%s/%s/players" % [RTDB_SYNC_PATH, map_id]
+	_rtdb_players_listener = rtdb.get_database_reference(players_path, {})
+	if _rtdb_players_listener:
+		if _rtdb_players_listener.has_signal("new_data_update"):
+			_rtdb_players_listener.new_data_update.connect(_on_rtdb_player_update)
+
+
+func stop_realtime_sync() -> void:
+	"""Stop all real-time listeners"""
+	if _rtdb_hex_listener:
+		if _rtdb_hex_listener.has_signal("new_data_update"):
+			if _rtdb_hex_listener.new_data_update.is_connected(_on_rtdb_hex_update):
+				_rtdb_hex_listener.new_data_update.disconnect(_on_rtdb_hex_update)
+		if _rtdb_hex_listener.has_signal("patch_data_update"):
+			if _rtdb_hex_listener.patch_data_update.is_connected(_on_rtdb_hex_update):
+				_rtdb_hex_listener.patch_data_update.disconnect(_on_rtdb_hex_update)
+		_rtdb_hex_listener = null
+
+	if _rtdb_players_listener:
+		if _rtdb_players_listener.has_signal("new_data_update"):
+			if _rtdb_players_listener.new_data_update.is_connected(_on_rtdb_player_update):
+				_rtdb_players_listener.new_data_update.disconnect(_on_rtdb_player_update)
+		_rtdb_players_listener = null
+
+	_is_realtime_active = false
+	print("PvPTerritoryDataSync: Stopped real-time listeners")
+
+
+func _get_rtdb() -> Variant:
+	"""Get Firebase Realtime Database reference"""
+	if not Firebase:
+		return null
+	if not Firebase.Database:
+		return null
+	return Firebase.Database
+
+
+func _on_rtdb_hex_update(resource: Variant) -> void:
+	"""Handle real-time hex update from RTDB"""
+	if not resource:
+		return
+
+	var hex_id: String = ""
+	var data: Dictionary = {}
+
+	# Handle different resource formats
+	if resource is Dictionary:
+		hex_id = resource.get("key", "")
+		data = resource.get("data", {})
+	elif resource.has_method("get"):
+		hex_id = resource.key if "key" in resource else ""
+		data = resource.data if "data" in resource else {}
+	else:
+		return
+
+	if hex_id.is_empty() or data.is_empty():
+		return
+
+	var new_owner_uid: String = data.get("controller_uid", "")
+	var new_owner_name: String = data.get("controller_name", "")
+
+	# Don't emit if this is our own capture
+	if new_owner_uid == _user_id:
+		return
+
+	print("PvPTerritoryDataSync: Remote capture - %s now owned by %s" % [hex_id, new_owner_name])
+	hex_captured_remotely.emit(hex_id, new_owner_uid, new_owner_name)
+
+
+func _on_rtdb_player_update(resource: Variant) -> void:
+	"""Handle real-time player update from RTDB"""
+	if not resource:
+		return
+
+	var player_uid: String = ""
+	var data: Dictionary = {}
+
+	if resource is Dictionary:
+		player_uid = resource.get("key", "")
+		data = resource.get("data", {})
+	elif resource.has_method("get"):
+		player_uid = resource.key if "key" in resource else ""
+		data = resource.data if "data" in resource else {}
+	else:
+		return
+
+	if player_uid.is_empty():
+		return
+
+	# Check if player left
+	if data.get("left", false) or data.get("disconnected", false):
+		player_left_map.emit(player_uid)
+	else:
+		player_joined_map.emit(player_uid, data)
+
+
+func update_hex_capture_realtime(hex_id: String, new_owner_uid: String, new_owner_name: String, defense_team: Array = []) -> void:
+	"""Update hex capture with real-time sync to all players
+
+	This writes to BOTH:
+	1. Firestore (full data for persistence)
+	2. RTDB (lightweight trigger for instant sync)
+	"""
+	if _current_map_id.is_empty():
+		capture_recorded.emit(hex_id, false)
+		return
+
+	# Determine which collection to use based on map ID
+	var collection_name: String = COLLECTION_REALTIME_MAPS if _current_map_id.begins_with("pvp4_") or _current_map_id.begins_with("test_pvp4_") else COLLECTION_PVP_MAPS
+
+	# Write to Firestore for persistence
+	if is_ready():
+		_do_update_capture_to_collection(hex_id, new_owner_uid, new_owner_name, collection_name)
+
+	# Write to RTDB for real-time trigger
+	var rtdb: Variant = _get_rtdb()
+	if rtdb:
+		var rtdb_path: String = "%s/%s/hexes/%s" % [RTDB_SYNC_PATH, _current_map_id, hex_id]
+		var rtdb_ref: Variant = rtdb.get_database_reference(rtdb_path, {})
+		if not rtdb_ref or not rtdb_ref.has_method("put"):
+			return
+		var rtdb_data: Dictionary = {
+			"controller_uid": new_owner_uid,
+			"controller_name": new_owner_name,
+			"captured_at": Time.get_unix_time_from_system(),
+			"has_defense": defense_team.size() > 0
+		}
+		rtdb_ref.put("", rtdb_data)
+
+
+func _do_update_capture_to_collection(hex_id: String, new_owner_uid: String, new_owner_name: String, collection_name: String) -> void:
+	"""Async capture update to specific collection
+
+	GodotFirebase API:
+	- collection.update(document: FirestoreDocument) - takes a document object, not ID+dict
+	- document.add_or_update_field(field_path, value) - sets top-level fields
+
+	For nested fields like hexes.hex_1_1.controller_uid, we must:
+	1. Fetch the full document
+	2. Extract and modify the hexes dictionary
+	3. Set the whole hexes field back
+	4. Call collection.update(document)
+	"""
+	if not _firestore:
+		capture_recorded.emit(hex_id, false)
+		return
+
+	var map_collection: Variant = _firestore.collection(collection_name)
+	if not map_collection:
+		capture_recorded.emit(hex_id, false)
+		return
+
+	# Fetch the document first
+	var doc: Variant = await map_collection.get_doc(_current_map_id)
+	if not doc:
+		print("PvPTerritoryDataSync: Failed to fetch document %s for capture update" % _current_map_id)
+		capture_recorded.emit(hex_id, false)
+		return
+
+	# Extract hexes dictionary from document
+	var hexes: Variant = doc.get_value("hexes")
+	if hexes == null or not (hexes is Dictionary):
+		print("PvPTerritoryDataSync: No hexes found in document %s" % _current_map_id)
+		capture_recorded.emit(hex_id, false)
+		return
+
+	# Update the specific hex in the hexes dictionary
+	if not hexes.has(hex_id):
+		print("PvPTerritoryDataSync: Hex %s not found in document" % hex_id)
+		capture_recorded.emit(hex_id, false)
+		return
+
+	hexes[hex_id]["controller_uid"] = new_owner_uid
+	hexes[hex_id]["controller_display_name"] = new_owner_name
+	hexes[hex_id]["last_captured_at"] = int(Time.get_unix_time_from_system())
+
+	# Set the entire hexes field back on the document
+	doc.add_or_update_field("hexes", hexes)
+
+	# Call collection.update(document) to persist
+	var result: Variant = await map_collection.update(doc)
+	if result:
+		print("PvPTerritoryDataSync: Firestore capture saved for %s -> %s" % [hex_id, new_owner_name])
+		capture_recorded.emit(hex_id, true)
+	else:
+		print("PvPTerritoryDataSync: Firestore update failed for hex %s" % hex_id)
+		capture_recorded.emit(hex_id, false)
+
+
+func update_player_presence(is_online: bool) -> void:
+	"""Update player presence in RTDB for disconnect detection"""
+	if _current_map_id.is_empty() or _user_id.is_empty():
+		return
+
+	var rtdb: Variant = _get_rtdb()
+	if not rtdb:
+		return
+
+	var presence_path: String = "%s/%s/players/%s" % [RTDB_SYNC_PATH, _current_map_id, _user_id]
+	var presence_ref: Variant = rtdb.get_database_reference(presence_path, {})
+	if presence_ref and presence_ref.has_method("set_value"):
+		var presence_data: Dictionary = {
+			"online": is_online,
+			"last_seen": Time.get_unix_time_from_system(),
+			"display_name": _display_name
+		}
+		presence_ref.set_value(presence_data)
+
+		# Set on_disconnect behavior (mark as offline when connection lost)
+		if presence_ref.has_method("on_disconnect_set_value"):
+			presence_ref.on_disconnect_set_value({
+				"online": false,
+				"last_seen": Time.get_unix_time_from_system(),
+				"disconnected": true
+			})
+
+
+func is_realtime_active() -> bool:
+	return _is_realtime_active

@@ -31,7 +31,8 @@ func initialize(territory_manager: Node) -> void:
 
 ## Calculate total combat power of gods in garrison using unified GodCalculator system
 ## Includes: individual combat power + equipment set bonuses + team bonuses + leader skills
-func calculate_garrison_power(node: HexNode) -> float:
+## Accepts HexNode or PvPHexNode (duck typing)
+func calculate_garrison_power(node: Variant) -> float:
 	if not node or node.garrison.size() == 0:
 		return 0.0
 
@@ -60,7 +61,8 @@ func get_min_garrison_power_for_tier(tier: int) -> int:
 	return int(requirements.get(str(tier), 500))
 
 ## Check if a node's garrison meets the minimum power requirement for workers
-func can_assign_workers(node: HexNode) -> bool:
+## Accepts HexNode or PvPHexNode (duck typing)
+func can_assign_workers(node: Variant) -> bool:
 	if not node:
 		return false
 	if not node.is_controlled_by_player():
@@ -71,7 +73,8 @@ func can_assign_workers(node: HexNode) -> bool:
 	return garrison_power >= required_power
 
 ## Get garrison power status for UI display
-func get_garrison_worker_status(node: HexNode) -> Dictionary:
+## Accepts HexNode or PvPHexNode (duck typing)
+func get_garrison_worker_status(node: Variant) -> Dictionary:
 	if not node:
 		return {"can_assign": false, "current": 0, "required": 0, "reason": "Invalid node"}
 

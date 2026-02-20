@@ -291,6 +291,84 @@
       "category": "crafting_material"
     },
 
+    "_comment8b": "=== T6 RAW MATERIALS (PvP 4-player mega nodes) ===",
+    "primordial_ore": {
+      "id": "primordial_ore",
+      "name": "Primordial Ore",
+      "description": "Ancient ore from T6 mega nodes in PvP territory wars",
+      "tier": 6,
+      "material_type": "raw",
+      "source": "t6_pvp_mega_node",
+      "pvp_gated": true,
+      "icon": "primordial_ore_icon",
+      "category": "crafting_material"
+    },
+
+    "_comment8c": "=== T6 PROCESSED MATERIALS ===",
+    "primordial_metal": {
+      "id": "primordial_metal",
+      "name": "Primordial Metal",
+      "description": "Mythic metal for T6 'Primordial' equipment - requires primordial ore + divine metal",
+      "tier": 6,
+      "material_type": "processed",
+      "source": "conversion",
+      "conversion_from": ["primordial_ore", "divine_metal"],
+      "pvp_gated": true,
+      "icon": "primordial_metal_icon",
+      "category": "crafting_material"
+    },
+
+    "_comment8d": "=== T7 RAW MATERIALS (PvP center objective - single node) ===",
+    "primordial_essence": {
+      "id": "primordial_essence",
+      "name": "Primordial Essence",
+      "description": "Pure creation energy from the T7 Primordial Nexus - rarest material in the game",
+      "tier": 7,
+      "material_type": "raw",
+      "source": "t7_pvp_nexus",
+      "pvp_gated": true,
+      "icon": "primordial_essence_icon",
+      "category": "crafting_material"
+    },
+
+    "_comment8e": "=== T7 PROCESSED MATERIALS ===",
+    "mythic_alloy": {
+      "id": "mythic_alloy",
+      "name": "Mythic Alloy",
+      "description": "Ultimate metal for T7 'Mythic' equipment - requires primordial essence + primordial metal",
+      "tier": 7,
+      "material_type": "processed",
+      "source": "conversion",
+      "conversion_from": ["primordial_essence", "primordial_metal"],
+      "pvp_gated": true,
+      "icon": "mythic_alloy_icon",
+      "category": "crafting_material"
+    },
+
+    "_comment8f": "=== T6/T7 FORGING FLAMES ===",
+    "primordial_flame": {
+      "id": "primordial_flame",
+      "name": "Primordial Flame",
+      "description": "Ancient fire for T6 Primordial equipment crafting",
+      "tier": 6,
+      "material_type": "flame",
+      "source": "t6_pvp_mega_node",
+      "pvp_gated": true,
+      "icon": "primordial_flame_icon",
+      "category": "crafting_material"
+    },
+    "mythic_flame": {
+      "id": "mythic_flame",
+      "name": "Mythic Flame",
+      "description": "The ultimate forging flame for T7 Mythic equipment",
+      "tier": 7,
+      "material_type": "flame",
+      "source": "t7_pvp_nexus",
+      "pvp_gated": true,
+      "icon": "mythic_flame_icon",
+      "category": "crafting_material"
+    },
+
     "_comment9": "=== DEFENSE DROPS (tiered by node defended) ===",
     "monster_parts": {
       "id": "monster_parts",
@@ -741,7 +819,14 @@
       "t4_processed": ["divine_metal"],
       "t4_defense": ["dragon_parts"],
       "t4_flame": ["eternal_flame"],
-      "t4_pvp_gated": ["celestial_ore", "divine_metal", "dragon_parts", "eternal_flame", "ascension_crystal"]
+      "t4_pvp_gated": ["celestial_ore", "divine_metal", "dragon_parts", "eternal_flame", "ascension_crystal"],
+      "t6_raw": ["primordial_ore"],
+      "t6_processed": ["primordial_metal"],
+      "t6_flame": ["primordial_flame"],
+      "t7_raw": ["primordial_essence"],
+      "t7_processed": ["mythic_alloy"],
+      "t7_flame": ["mythic_flame"],
+      "t6_t7_pvp_mega": ["primordial_ore", "primordial_metal", "primordial_flame", "primordial_essence", "mythic_alloy", "mythic_flame"]
     },
     "by_material_type": {
       "raw": ["ore", "wood", "herbs", "fine_ore", "hardwood", "exotic_herbs", "arcane_ore", "ancient_wood", "mystic_herbs", "magic_crystals", "celestial_ore"],
@@ -754,7 +839,9 @@
         "t1": {"input": ["ore"], "output": "refined_metal"},
         "t2": {"input": ["fine_ore", "ore"], "output": "steel_ingot"},
         "t3": {"input": ["arcane_ore", "fine_ore"], "output": "prometheum"},
-        "t4": {"input": ["celestial_ore", "arcane_ore"], "output": "divine_metal"}
+        "t4": {"input": ["celestial_ore", "arcane_ore"], "output": "divine_metal"},
+        "t6": {"input": ["primordial_ore", "divine_metal"], "output": "primordial_metal"},
+        "t7": {"input": ["primordial_essence", "primordial_metal"], "output": "mythic_alloy"}
       },
       "wood": {
         "t1": {"input": ["wood"], "output": "quality_timber"},
@@ -791,6 +878,20 @@
         "defense": "dragon_parts",
         "flame": "eternal_flame",
         "pvp_required": true
+      },
+      "t6_primordial": {
+        "materials": ["primordial_metal"],
+        "defense": "dragon_parts",
+        "flame": "primordial_flame",
+        "pvp_required": true,
+        "note": "Requires holding T6 mega nodes in 4-player PvP"
+      },
+      "t7_mythic": {
+        "materials": ["mythic_alloy"],
+        "defense": "dragon_parts",
+        "flame": "mythic_flame",
+        "pvp_required": true,
+        "note": "Requires holding the T7 Primordial Nexus in 4-player PvP"
       }
     }
   }

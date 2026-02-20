@@ -307,16 +307,16 @@ func create_battle_config(attacker_team: Array) -> Object:
 
 	var config = BattleConfigClass.new()
 
-	# Set battle type (need to add PVP_TERRITORY to enum)
-	# For now, use ARENA type as it has similar flow
-	config.battle_type = 5  # ARENA type, closest to PvP
+	# Use TERRITORY battle type for PvP territory battles
+	config.battle_type = BattleConfigClass.BattleType.TERRITORY
 	config.attacker_team = attacker_team
 	config.defender_team = get_defender_team(_current_hex)
 
-	# Add PvP context
+	# Add PvP context metadata so BattleScreen knows to return to PvP territory
 	if config.has_method("set_meta"):
 		config.set_meta("pvp_hex_id", _current_hex.id)
 		config.set_meta("pvp_defender_uid", _current_hex.controller_uid)
+		config.set_meta("is_pvp_territory", true)  # Flag to distinguish from regular territory
 
 	return config
 

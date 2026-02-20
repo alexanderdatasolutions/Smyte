@@ -20,8 +20,8 @@ Follows popup pattern from UI_DESIGN_PATTERNS.md:
 # ==============================================================================
 # SIGNALS
 # ==============================================================================
-signal building_selected(hex_node: HexNode, building_id: String)
-signal selection_cancelled(hex_node: HexNode)
+signal building_selected(hex_node: Variant, building_id: String)  # HexNode or PvPHexNode
+signal selection_cancelled(hex_node: Variant)  # HexNode or PvPHexNode
 signal popup_closed()
 
 # ==============================================================================
@@ -103,7 +103,7 @@ const BUILDING_ICONS = {
 # ==============================================================================
 # PROPERTIES
 # ==============================================================================
-var current_node: HexNode = null
+var current_node: Variant = null  # HexNode or PvPHexNode (duck typed)
 var building_manager = null
 var selected_category: String = "extraction"  # Default category
 var all_buildings: Array = []
@@ -143,8 +143,9 @@ func _init_systems() -> void:
 # ==============================================================================
 # PUBLIC API
 # ==============================================================================
-func show_for_node(hex_node: HexNode) -> void:
-	"""Show building selection popup for a captured blank tile"""
+func show_for_node(hex_node: Variant) -> void:
+	"""Show building selection popup for a captured blank tile
+	hex_node: HexNode or PvPHexNode (duck typed)"""
 	if not hex_node:
 		push_error("BuildingSelectionPopup: No node provided")
 		return

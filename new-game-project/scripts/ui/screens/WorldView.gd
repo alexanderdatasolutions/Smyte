@@ -350,7 +350,8 @@ func _on_arena_building_pressed():
 
 func _on_pvp_territory_building_pressed():
 	_emit_tutorial_action("pvp_territory_button_pressed")
-	_navigate_to_screen("pvp_territory")
+	# Go to signup screen first - it will redirect to the map if already in a match
+	_navigate_to_screen("pvp_signup")
 
 func _on_leaderboard_building_pressed():
 	_emit_tutorial_action("leaderboard_button_pressed")

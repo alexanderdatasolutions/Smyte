@@ -322,10 +322,10 @@ func get_connected_node_count(coord: HexCoord) -> int:
 func get_min_garrison_power_for_tier(tier: int) -> int:
 	return _defense_manager.get_min_garrison_power_for_tier(tier)
 
-func can_assign_workers(node: HexNode) -> bool:
+func can_assign_workers(node: Variant) -> bool:
 	return _defense_manager.can_assign_workers(node)
 
-func get_garrison_worker_status(node: HexNode) -> Dictionary:
+func get_garrison_worker_status(node: Variant) -> Dictionary:
 	return _defense_manager.get_garrison_worker_status(node)
 
 func update_attack_timers() -> void:

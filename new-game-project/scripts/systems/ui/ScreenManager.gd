@@ -44,6 +44,7 @@ func _register_screen_scenes():
 		"shop": "res://scenes/ShopScreen.tscn",
 		"tower": "res://scenes/TowerScreen.tscn",
 		"arena": "res://scenes/ArenaScreen.tscn",
+		"pvp_signup": "res://scenes/PvPSignupScreen.tscn",
 		"pvp_territory": "res://scenes/PvPHexTerritoryScreen.tscn",
 		"leaderboard": "res://scenes/LeaderboardScreen.tscn"
 	}
@@ -75,6 +76,8 @@ func _normalize_screen_name(screen_name: String) -> String:
 		"pvphexterritoryscreen": "pvp_territory",
 		"pvpmapselection": "pvp_territory",
 		"pvpmapselectionscreen": "pvp_territory",
+		"pvpsignup": "pvp_signup",
+		"pvpsignupscreen": "pvp_signup",
 		"leaderboardscreen": "leaderboard",
 		"leaderboards": "leaderboard"
 	}
@@ -131,6 +134,8 @@ const MAIN_SCREENS: Array[String] = [
 	"shop",           # Shop screen
 	"tower",          # Tower screen
 	"arena",          # PvP Arena
+	"pvp_signup",     # PvP signup/queue
+	"pvp_territory",  # PvP territory map
 	"leaderboard"     # Leaderboard
 ]
 

@@ -20,15 +20,17 @@ Shows:
 """
 
 # ==============================================================================
-# SIGNALS
+# SIGNALS (Using Variant to support both HexNode and PvPHexNode)
 # ==============================================================================
-signal capture_requested(hex_node: HexNode)
+signal capture_requested(hex_node: Variant)  # HexNode or PvPHexNode
+signal attack_requested(hex_node: Variant)  # For PvP mode - attack enemy player
 signal close_requested()
-signal slot_tapped(node: HexNode, slot_type: String, slot_index: int)
-signal filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God)
-signal task_started(node: HexNode, task_id: String)
-signal select_building_requested(hex_node: HexNode)
-signal demolish_building_requested(hex_node: HexNode)
+signal slot_tapped(node: Variant, slot_type: String, slot_index: int)
+signal filled_slot_tapped(node: Variant, slot_type: String, slot_index: int, god: God)
+signal task_started(node: Variant, task_id: String)
+signal select_building_requested(hex_node: Variant)
+signal demolish_building_requested(hex_node: Variant)
+signal set_defense_requested(hex_node: Variant)  # For PvP mode - set garrison defense
 
 # ==============================================================================
 # CONSTANTS
@@ -65,11 +67,15 @@ const ELEMENT_COLORS = {
 # ==============================================================================
 # PROPERTIES
 # ==============================================================================
-var current_node: HexNode = null
+var current_node: Variant = null  # HexNode or PvPHexNode - duck typed
 var is_locked: bool = false
+var is_pvp_mode: bool = false  # True when showing PvPHexNode
+var _pvp_territory_manager: Variant = null  # PvPTerritoryManager for attack validation
+var _current_user_uid: String = ""  # For PvP ownership checks
 
 # System references
 var territory_manager = null
+var defense_manager = null  # TerritoryDefenseManager for garrison power (works with both node types)
 var production_manager = null
 var collection_manager = null
 var node_requirement_checker = null
@@ -87,6 +93,8 @@ var _pending_resources_container: VBoxContainer = null
 var _production_container: VBoxContainer = null
 var _garrison_container: VBoxContainer = null
 var _workers_container: VBoxContainer = null
+var _workers_section_label: Label = null
+var _production_section_label: Label = null
 var _defense_label: Label = null
 var _tasks_container: VBoxContainer = null
 var _craft_popup: Control = null
@@ -149,6 +157,7 @@ func _init_systems() -> void:
 		return
 
 	territory_manager = registry.get_system("TerritoryManager")
+	defense_manager = registry.get_system("TerritoryDefenseManager")
 	production_manager = registry.get_system("TerritoryProductionManager")
 	collection_manager = registry.get_system("CollectionManager")
 	node_requirement_checker = registry.get_system("NodeRequirementChecker")
@@ -244,8 +253,8 @@ func _build_header() -> void:
 
 func _build_production_section() -> void:
 	"""Build combined production + pending resources section"""
-	var section_label = _create_section_label("📦 Production")
-	_main_container.add_child(section_label)
+	_production_section_label = _create_section_label("📦 Production")
+	_main_container.add_child(_production_section_label)
 
 	_production_container = VBoxContainer.new()
 	_production_container.add_theme_constant_override("separation", 4)
@@ -284,8 +293,8 @@ func _build_garrison_section() -> void:
 
 func _build_workers_section() -> void:
 	"""Build workers info section with slot boxes"""
-	var section_label = _create_section_label("👷 Workers")
-	_main_container.add_child(section_label)
+	_workers_section_label = _create_section_label("👷 Workers")
+	_main_container.add_child(_workers_section_label)
 
 	_workers_container = VBoxContainer.new()
 	_workers_container.add_theme_constant_override("separation", 4)
@@ -368,10 +377,27 @@ func _add_separator() -> void:
 # ==============================================================================
 # PUBLIC METHODS
 # ==============================================================================
-func show_node(hex_node: HexNode, locked: bool = false) -> void:
-	"""Show panel with node data"""
+func initialize_pvp(pvp_territory_manager: Variant, user_uid: String) -> void:
+	"""Initialize for PvP mode with PvPTerritoryManager"""
+	_pvp_territory_manager = pvp_territory_manager
+	_current_user_uid = user_uid
+	is_pvp_mode = true
+
+
+func show_node(hex_node: Variant, locked: bool = false) -> void:
+	"""Show panel with node data (HexNode or PvPHexNode)"""
 	current_node = hex_node
 	is_locked = locked
+
+	# Detect if this is a PvPHexNode
+	if current_node and current_node.has_method("set_current_viewer"):
+		is_pvp_mode = true
+		# Set the current viewer for ownership checks
+		current_node.set_current_viewer(_current_user_uid)
+	else:
+		# Only reset pvp_mode if we don't have a manager set
+		if not _pvp_territory_manager:
+			is_pvp_mode = false
 
 	# Clear attack timer references (will be recreated in _update_all_displays)
 	_attack_timer_progress_bar = null
@@ -386,7 +412,15 @@ func show_node(hex_node: HexNode, locked: bool = false) -> void:
 	visible = true
 
 	# Check for garrison tutorial when showing a controlled node with no garrison
-	_check_garrison_tutorial()
+	if not is_pvp_mode:
+		_check_garrison_tutorial()
+
+
+# Alias for PvP compatibility - same as show_node
+func show_hex(hex_node: Variant) -> void:
+	"""Alias for show_node, used by PvP territory screen"""
+	show_node(hex_node, false)
+
 
 func hide_panel() -> void:
 	"""Hide the panel"""
@@ -546,6 +580,22 @@ func _update_production() -> void:
 
 	if not current_node:
 		return
+
+	# PvP Mode: Hide production for enemy nodes (not relevant)
+	var is_captured = current_node.is_controlled_by_player()
+	if is_pvp_mode and not is_captured and not current_node.is_neutral():
+		_production_container.visible = false
+		if _production_section_label:
+			_production_section_label.visible = false
+		if _pending_resources_container:
+			_pending_resources_container.visible = false
+		return
+	else:
+		_production_container.visible = true
+		if _production_section_label:
+			_production_section_label.visible = true
+		if _pending_resources_container:
+			_pending_resources_container.visible = true
 
 	# Show production category and type info
 	if node_production_info and node_production_info.has_production_info(current_node.node_type):
@@ -1076,6 +1126,11 @@ func _update_garrison() -> void:
 	# Check if node is captured - garrison is only available for player-controlled nodes
 	var is_captured = current_node.is_controlled_by_player()
 
+	# PvP Mode: Show enemy defense team details when attacking an enemy node
+	if is_pvp_mode and not is_captured and not current_node.is_neutral():
+		_show_enemy_defense_team()
+		return
+
 	# Show lock message if not captured
 	if not is_captured:
 		var lock_label: Label = Label.new()
@@ -1260,6 +1315,450 @@ func _filter_worker_relevant_bonuses(bonuses: Array) -> Array:
 
 	return filtered
 
+
+# ==============================================================================
+# PVP ENEMY DEFENSE TEAM DISPLAY
+# ==============================================================================
+
+func _show_enemy_defense_team() -> void:
+	"""Show enemy defense team using slot boxes like regular garrison display"""
+	if not current_node:
+		return
+
+	# Get owner name
+	var owner_name: String = ""
+	if current_node.has_method("get") or "controller_display_name" in current_node:
+		owner_name = current_node.controller_display_name
+	else:
+		owner_name = "Enemy"
+
+	# Header with owner name and combat power
+	var header_row := HBoxContainer.new()
+	header_row.add_theme_constant_override("separation", 8)
+	_garrison_container.add_child(header_row)
+
+	var header := Label.new()
+	header.text = "🛡️ %s's Garrison" % owner_name
+	header.add_theme_font_size_override("font_size", 13)
+	header.add_theme_color_override("font_color", Color(0.9, 0.5, 0.5))
+	header_row.add_child(header)
+
+	# Combat power badge
+	var power: int = 0
+	if "defense_power" in current_node:
+		power = current_node.defense_power
+	if power > 0:
+		var power_label := Label.new()
+		power_label.text = "⚔️ %d" % power
+		power_label.add_theme_font_size_override("font_size", 11)
+		power_label.add_theme_color_override("font_color", Color.GOLD)
+		header_row.add_child(power_label)
+
+	# Get defense team
+	var defense_team: Array = []
+	if "defense_team_serialized" in current_node:
+		defense_team = current_node.defense_team_serialized
+
+	if defense_team.is_empty():
+		var undefended := Label.new()
+		undefended.text = "⚠️ Undefended territory!"
+		undefended.add_theme_font_size_override("font_size", 12)
+		undefended.add_theme_color_override("font_color", Color(0.9, 0.8, 0.4))
+		_garrison_container.add_child(undefended)
+		return
+
+	# Convert serialized gods to God objects for display
+	var garrison_gods: Array = []
+	for god_data: Dictionary in defense_team:
+		var god := _deserialize_god_for_display(god_data)
+		if god:
+			garrison_gods.append(god)
+
+	# Create slot boxes row (same style as regular garrison)
+	var slots_row := HBoxContainer.new()
+	slots_row.add_theme_constant_override("separation", SLOT_SPACING)
+	_garrison_container.add_child(slots_row)
+
+	for i in range(MAX_GARRISON_SLOTS):
+		var slot: Control
+		if i < garrison_gods.size():
+			var god: God = garrison_gods[i]
+			slot = _create_enemy_filled_slot(god, i == 0)
+		else:
+			slot = _create_enemy_empty_slot()
+		slots_row.add_child(slot)
+
+	# Show bonuses in collapsible section (matching regular garrison style)
+	if garrison_gods.size() >= 1:
+		var has_leader_skill := not TeamStatsCalculator.get_leader_skill_info(garrison_gods).is_empty()
+		var has_team_bonuses := garrison_gods.size() >= 2 and not TeamStatsCalculator.get_team_bonuses(garrison_gods, "").is_empty()
+
+		if has_leader_skill or has_team_bonuses:
+			var collapsible := _create_collapsible_section("Team Bonuses", _garrison_container)
+			var content: VBoxContainer = collapsible.content
+
+			# Add leader skill
+			if has_leader_skill:
+				_add_garrison_leader_skill_content(garrison_gods, content)
+
+			# Add team bonuses
+			if has_team_bonuses:
+				_add_garrison_team_bonuses_content(garrison_gods, content)
+
+
+func _create_enemy_filled_slot(god: God, is_leader: bool) -> Control:
+	"""Create a filled slot for enemy garrison (non-interactive)"""
+	var slot := Panel.new()
+	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
+
+	# Border color based on element, gold for leader
+	var border_color: Color
+	var border_width: int = 3
+
+	if is_leader:
+		border_color = Color(1.0, 0.85, 0.2)  # Gold for leader
+		border_width = 4
+	else:
+		border_color = ELEMENT_COLORS.get(god.element, Color(0.5, 0.5, 0.5))
+
+	var style := _create_slot_style(border_color, border_width)
+	if is_leader:
+		style.bg_color = Color(0.2, 0.18, 0.1, 0.95)  # Warm tint for leader
+	slot.add_theme_stylebox_override("panel", style)
+
+	# Crown for leader
+	if is_leader:
+		var crown := Label.new()
+		crown.text = "👑"
+		crown.add_theme_font_size_override("font_size", 10)
+		crown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		crown.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		crown.offset_top = 1
+		crown.offset_bottom = 12
+		slot.add_child(crown)
+
+	# God portrait
+	var portrait := _create_god_portrait(god)
+	portrait.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	portrait.offset_left = 4
+	portrait.offset_right = -4
+	portrait.offset_top = 4 if not is_leader else 10
+	portrait.offset_bottom = -14
+	slot.add_child(portrait)
+
+	# Level label
+	var level_label := Label.new()
+	level_label.text = "Lv.%d" % god.level
+	level_label.add_theme_font_size_override("font_size", 9)
+	level_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	level_label.anchor_left = 0
+	level_label.anchor_right = 1
+	level_label.anchor_top = 1
+	level_label.anchor_bottom = 1
+	level_label.offset_top = -14
+	level_label.offset_bottom = -2
+	slot.add_child(level_label)
+
+	return slot
+
+
+func _create_enemy_empty_slot() -> Control:
+	"""Create an empty slot for enemy garrison (grayed out)"""
+	var slot := Panel.new()
+	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
+
+	var style := _create_slot_style(Color(0.3, 0.3, 0.35, 0.5), 2)
+	style.bg_color = Color(0.12, 0.12, 0.14, 0.8)
+	slot.add_theme_stylebox_override("panel", style)
+
+	var empty_label := Label.new()
+	empty_label.text = "–"
+	empty_label.add_theme_font_size_override("font_size", 20)
+	empty_label.add_theme_color_override("font_color", Color(0.35, 0.35, 0.4))
+	empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	empty_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	slot.add_child(empty_label)
+
+	return slot
+
+
+func _create_enemy_god_card(god_data: Dictionary, is_leader: bool) -> Control:
+	"""Create a detailed god card for enemy garrison"""
+	var card := Panel.new()
+	card.custom_minimum_size = Vector2(PANEL_WIDTH - 40, 85)
+
+	# Get element for border color
+	var element_val: Variant = god_data.get("element", 0)
+	var element_str: String = _element_variant_to_string(element_val)
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.14, 0.12, 0.18, 0.95)
+	style.border_color = ELEMENT_COLORS.get(element_str, Color(0.4, 0.35, 0.5))
+	style.set_border_width_all(2)
+	if is_leader:
+		style.border_color = Color.GOLD
+		style.border_width_top = 3
+	style.set_corner_radius_all(6)
+	card.add_theme_stylebox_override("panel", style)
+
+	var hbox := HBoxContainer.new()
+	hbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	hbox.set_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 6)
+	hbox.add_theme_constant_override("separation", 8)
+	card.add_child(hbox)
+
+	# Left: Element icon and tier
+	var left_vbox := VBoxContainer.new()
+	left_vbox.custom_minimum_size = Vector2(50, 0)
+	left_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox.add_child(left_vbox)
+
+	var element_icons := {"fire": "🔥", "water": "💧", "earth": "🌍", "lightning": "⚡", "light": "✨", "dark": "🌑"}
+	var icon_label := Label.new()
+	icon_label.text = element_icons.get(element_str, "❓")
+	icon_label.add_theme_font_size_override("font_size", 24)
+	icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	left_vbox.add_child(icon_label)
+
+	# Tier stars
+	var tier_raw: Variant = god_data.get("tier", 0)
+	var tier_val: int = 0
+	if tier_raw is String:
+		tier_val = GodFactory.string_to_tier(tier_raw)
+	elif tier_raw is int:
+		tier_val = tier_raw
+	else:
+		tier_val = int(tier_raw)
+	var tier_label := Label.new()
+	var stars := ""
+	for _s in range(mini(tier_val + 1, 4)):
+		stars += "★"
+	tier_label.text = stars
+	tier_label.add_theme_font_size_override("font_size", 10)
+	tier_label.add_theme_color_override("font_color", TIER_COLORS.get(tier_val + 1, Color.WHITE))
+	tier_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	left_vbox.add_child(tier_label)
+
+	# Middle: Name, level, pantheon, stats
+	var mid_vbox := VBoxContainer.new()
+	mid_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mid_vbox.add_theme_constant_override("separation", 2)
+	hbox.add_child(mid_vbox)
+
+	# Name with leader badge
+	var name_row := HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 4)
+	mid_vbox.add_child(name_row)
+
+	if is_leader:
+		var leader_badge := Label.new()
+		leader_badge.text = "👑"
+		leader_badge.add_theme_font_size_override("font_size", 11)
+		name_row.add_child(leader_badge)
+
+	var name_label := Label.new()
+	name_label.text = god_data.get("name", "Unknown")
+	name_label.add_theme_font_size_override("font_size", 13)
+	name_label.add_theme_color_override("font_color", Color.WHITE)
+	name_row.add_child(name_label)
+
+	# Level and Pantheon
+	var info_label := Label.new()
+	var pantheon: String = god_data.get("pantheon", "unknown")
+	info_label.text = "Lv%d • %s" % [god_data.get("level", 1), pantheon.capitalize()]
+	info_label.add_theme_font_size_override("font_size", 10)
+	info_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
+	mid_vbox.add_child(info_label)
+
+	# Stats row
+	var stats_row := HBoxContainer.new()
+	stats_row.add_theme_constant_override("separation", 8)
+	mid_vbox.add_child(stats_row)
+
+	var hp: int = god_data.get("base_hp", god_data.get("hp", 100))
+	var atk: int = god_data.get("base_attack", god_data.get("attack", 50))
+	var def: int = god_data.get("base_defense", god_data.get("defense", 40))
+	var spd: int = god_data.get("base_speed", god_data.get("speed", 50))
+
+	_add_stat_icon(stats_row, "❤️", hp, Color(0.9, 0.5, 0.5))
+	_add_stat_icon(stats_row, "⚔️", atk, Color(0.9, 0.7, 0.4))
+	_add_stat_icon(stats_row, "🛡️", def, Color(0.5, 0.7, 0.9))
+	_add_stat_icon(stats_row, "💨", spd, Color(0.5, 0.9, 0.7))
+
+	# Equipment indicator
+	var equipment: Variant = god_data.get("equipment", [])
+	var equip_count: int = 0
+	if equipment is Array:
+		for eq in equipment:
+			if eq != null:
+				equip_count += 1
+	elif equipment is Dictionary:
+		equip_count = equipment.size()
+
+	if equip_count > 0:
+		var equip_label := Label.new()
+		equip_label.text = "🎒 %d equipped" % equip_count
+		equip_label.add_theme_font_size_override("font_size", 9)
+		equip_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.6))
+		mid_vbox.add_child(equip_label)
+
+	return card
+
+
+func _add_stat_icon(container: Control, icon: String, value: int, color: Color) -> void:
+	"""Add a stat icon + value to container"""
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 1)
+	container.add_child(hbox)
+
+	var icon_lbl := Label.new()
+	icon_lbl.text = icon
+	icon_lbl.add_theme_font_size_override("font_size", 9)
+	hbox.add_child(icon_lbl)
+
+	var val_lbl := Label.new()
+	val_lbl.text = str(value)
+	val_lbl.add_theme_font_size_override("font_size", 9)
+	val_lbl.add_theme_color_override("font_color", color)
+	hbox.add_child(val_lbl)
+
+
+func _create_enemy_team_bonuses(defense_team: Array) -> Control:
+	"""Create display for enemy team bonuses"""
+	# Convert serialized gods to God objects for TeamStatsCalculator
+	var god_objects: Array = []
+	for god_data: Dictionary in defense_team:
+		var god := _deserialize_god_for_display(god_data)
+		if god:
+			god_objects.append(god)
+
+	if god_objects.is_empty():
+		return null
+
+	var bonuses: Array = TeamStatsCalculator.get_team_bonuses(god_objects)
+
+	if bonuses.is_empty():
+		return null
+
+	var container := VBoxContainer.new()
+	container.add_theme_constant_override("separation", 3)
+
+	# Header
+	var header := Label.new()
+	header.text = "⚡ Team Bonuses"
+	header.add_theme_font_size_override("font_size", 12)
+	header.add_theme_color_override("font_color", Color(0.8, 0.9, 0.5))
+	container.add_child(header)
+
+	# List bonuses
+	for bonus: Dictionary in bonuses:
+		var bonus_lbl := Label.new()
+		bonus_lbl.text = "  • %s: %s" % [bonus.get("name", "Bonus"), bonus.get("desc", "")]
+		bonus_lbl.add_theme_font_size_override("font_size", 10)
+		bonus_lbl.add_theme_color_override("font_color", Color(0.6, 0.75, 0.5))
+		container.add_child(bonus_lbl)
+
+	# Leader skill
+	var leader_info: Dictionary = TeamStatsCalculator.get_leader_skill_info(god_objects)
+	if not leader_info.is_empty():
+		var leader_lbl := Label.new()
+		leader_lbl.text = "  👑 %s: %s" % [leader_info.get("skill_name", "Leader"), leader_info.get("description", "")]
+		leader_lbl.add_theme_font_size_override("font_size", 10)
+		leader_lbl.add_theme_color_override("font_color", Color.GOLD)
+		container.add_child(leader_lbl)
+
+	return container
+
+
+func _create_enemy_power_breakdown(total_power: int) -> Control:
+	"""Create power breakdown display for enemy"""
+	var container := VBoxContainer.new()
+	container.add_theme_constant_override("separation", 3)
+
+	var power_row := HBoxContainer.new()
+	power_row.add_theme_constant_override("separation", 6)
+	container.add_child(power_row)
+
+	var icon := Label.new()
+	icon.text = "⚔️"
+	icon.add_theme_font_size_override("font_size", 16)
+	power_row.add_child(icon)
+
+	var label := Label.new()
+	label.text = "Defense Power:"
+	label.add_theme_font_size_override("font_size", 13)
+	label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
+	power_row.add_child(label)
+
+	var value := Label.new()
+	value.text = str(total_power)
+	value.add_theme_font_size_override("font_size", 16)
+	value.add_theme_color_override("font_color", Color(0.9, 0.4, 0.4))
+	power_row.add_child(value)
+
+	var tip := Label.new()
+	tip.text = "(Includes synergies & equipment)"
+	tip.add_theme_font_size_override("font_size", 9)
+	tip.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
+	container.add_child(tip)
+
+	return container
+
+
+func _deserialize_god_for_display(data: Dictionary) -> God:
+	"""Convert serialized god data to God object for bonus calculation"""
+	var god := God.new()
+	god.id = data.get("id", "display_%d" % randi())
+	god.template_id = data.get("template_id", data.get("id", ""))
+	god.name = data.get("name", "Unknown")
+	god.level = data.get("level", 1)
+	god.pantheon = data.get("pantheon", "unknown")
+
+	# Handle tier
+	var tier_val: Variant = data.get("tier", 0)
+	if tier_val is int:
+		god.tier = tier_val as God.TierType
+	elif tier_val is String:
+		god.tier = GodFactory.string_to_tier(tier_val)
+	else:
+		god.tier = God.TierType.COMMON
+
+	# Handle element
+	var element_val: Variant = data.get("element", 0)
+	if element_val is int:
+		god.element = element_val as God.ElementType
+	elif element_val is String:
+		god.element = GodFactory.string_to_element(element_val)
+	else:
+		god.element = God.ElementType.FIRE
+
+	god.base_hp = data.get("base_hp", data.get("hp", 100))
+	god.base_attack = data.get("base_attack", data.get("attack", 50))
+	god.base_defense = data.get("base_defense", data.get("defense", 40))
+	god.base_speed = data.get("base_speed", data.get("speed", 50))
+	god.leader_skill = data.get("leader_skill", {})
+
+	return god
+
+
+func _element_variant_to_string(element: Variant) -> String:
+	"""Convert element (int, enum, or string) to string"""
+	if element is String:
+		return element.to_lower()
+	if element is int:
+		match element:
+			0: return "fire"
+			1: return "water"
+			2: return "earth"
+			3: return "lightning"
+			4: return "light"
+			5: return "dark"
+			_: return "fire"
+	return "fire"
+
+
 func _update_workers() -> void:
 	"""Update workers display WITH SLOT BOXES and received bonuses"""
 	# Clear existing
@@ -1272,7 +1771,19 @@ func _update_workers() -> void:
 	# Check if node is captured - workers are only available for player-controlled nodes
 	var is_captured = current_node.is_controlled_by_player()
 
-	# Show lock message if not captured
+	# PvP Mode: Hide workers entirely for enemy nodes (not relevant)
+	if is_pvp_mode and not is_captured and not current_node.is_neutral():
+		# Enemy node - workers section not applicable
+		_workers_container.visible = false
+		if _workers_section_label:
+			_workers_section_label.visible = false
+		return
+	else:
+		_workers_container.visible = true
+		if _workers_section_label:
+			_workers_section_label.visible = true
+
+	# Show lock message if not captured (neutral node)
 	if not is_captured:
 		var lock_label: Label = Label.new()
 		lock_label.text = "🔒 Capture this node to assign workers"
@@ -1297,9 +1808,14 @@ func _update_workers() -> void:
 	# Check garrison power requirement for workers (only matters if captured)
 	var can_use_workers = is_captured
 	var garrison_status: Dictionary = {}
-	if territory_manager and is_captured:
-		garrison_status = territory_manager.get_garrison_worker_status(current_node)
-		can_use_workers = garrison_status.get("can_assign", true)
+	if is_captured:
+		# Use defense_manager for garrison power (works with both HexNode and PvPHexNode)
+		if defense_manager:
+			garrison_status = defense_manager.get_garrison_worker_status(current_node)
+			can_use_workers = garrison_status.get("can_assign", true)
+		elif territory_manager and territory_manager.has_method("get_garrison_worker_status"):
+			garrison_status = territory_manager.get_garrison_worker_status(current_node)
+			can_use_workers = garrison_status.get("can_assign", true)
 
 	# Show garrison power requirement warning if not met
 	if not can_use_workers:
@@ -1351,14 +1867,20 @@ func _update_workers() -> void:
 
 func _update_combat_power_label() -> void:
 	"""Update combat power display inline with garrison header"""
-	if not current_node or not territory_manager:
+	if not current_node:
 		_defense_label.text = ""
 		return
 
-	var defense_rating = territory_manager.get_node_defense_rating(current_node.coord)
+	# Use defense_manager for garrison power (works with both HexNode and PvPHexNode)
+	var garrison_power: float = 0.0
+	if defense_manager:
+		garrison_power = defense_manager.calculate_garrison_power(current_node)
+	elif territory_manager and territory_manager.has_method("get_node_defense_rating"):
+		# Fallback to territory manager's defense rating
+		garrison_power = territory_manager.get_node_defense_rating(current_node.coord)
 
-	if defense_rating > 0:
-		_defense_label.text = "⚔️ %.0f" % defense_rating
+	if garrison_power > 0:
+		_defense_label.text = "⚔️ %.0f" % garrison_power
 	else:
 		_defense_label.text = ""
 
@@ -1376,7 +1898,12 @@ func _update_action_buttons() -> void:
 	close_btn.pressed.connect(_on_close_pressed)
 	_action_buttons.add_child(close_btn)
 
-	# Context-specific buttons
+	# PvP Mode action buttons
+	if is_pvp_mode:
+		_update_pvp_action_buttons()
+		return
+
+	# Context-specific buttons (regular territory mode)
 	if not is_locked and not current_node.is_controlled_by_player():
 		# Neutral/Enemy - show capture button
 		var can_capture = node_requirement_checker and node_requirement_checker.can_player_capture_node(current_node)
@@ -1399,10 +1926,72 @@ func _update_action_buttons() -> void:
 		demolish_btn.pressed.connect(_on_demolish_pressed)
 		_action_buttons.add_child(demolish_btn)
 
+
+func _update_pvp_action_buttons() -> void:
+	"""Update action buttons for PvP territory mode"""
+	if not current_node:
+		return
+
+	var is_neutral: bool = current_node.is_neutral() if current_node.has_method("is_neutral") else (current_node.controller == "neutral")
+	var is_mine: bool = current_node.is_controlled_by_player()
+
+	if is_neutral:
+		# Neutral node - show Capture button
+		var capture_btn = _create_button("⚔️ Capture", Color(0.3, 0.7, 0.4, 1))
+		capture_btn.pressed.connect(_on_pvp_attack_pressed)
+		_action_buttons.add_child(capture_btn)
+
+	elif is_mine:
+		# Own node - show building buttons (garrison is handled via slot taps/slide-out panel)
+		if current_node.can_place_building():
+			var build_btn = _create_button("🏗️ Build", Color(0.5, 0.4, 0.2, 1))
+			build_btn.pressed.connect(_on_select_building_pressed)
+			_action_buttons.add_child(build_btn)
+		elif current_node.has_building():
+			var demolish_btn = _create_button("🔄 Change", Color(0.6, 0.3, 0.2, 1))
+			demolish_btn.pressed.connect(_on_demolish_pressed)
+			_action_buttons.add_child(demolish_btn)
+
+	else:
+		# Enemy node - show Attack button (with validation)
+		var can_attack := true
+		var attack_reason := ""
+
+		if _pvp_territory_manager and _pvp_territory_manager.has_method("can_attack_hex"):
+			var validation: Dictionary = _pvp_territory_manager.can_attack_hex(current_node)
+			can_attack = validation.get("can_attack", false)
+			attack_reason = validation.get("reason", "")
+
+		var attack_btn = _create_button("⚔️ Attack", Color(0.8, 0.3, 0.3, 1))
+		attack_btn.pressed.connect(_on_pvp_attack_pressed)
+		attack_btn.disabled = not can_attack
+		_action_buttons.add_child(attack_btn)
+
+		# Show reason if can't attack
+		if not can_attack and not attack_reason.is_empty():
+			var reason_label := Label.new()
+			reason_label.text = attack_reason
+			reason_label.add_theme_font_size_override("font_size", 10)
+			reason_label.add_theme_color_override("font_color", Color(0.7, 0.5, 0.5))
+			reason_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			_action_buttons.add_child(reason_label)
+
+
+func _on_pvp_attack_pressed() -> void:
+	"""Handle PvP attack/capture button press"""
+	if current_node:
+		attack_requested.emit(current_node)
+
+
+func _on_set_defense_pressed() -> void:
+	"""Handle set defense button press in PvP mode"""
+	if current_node:
+		set_defense_requested.emit(current_node)
+
 # ==============================================================================
 # SLOT CREATION METHODS (copied from TerritoryOverviewScreen)
 # ==============================================================================
-func _create_empty_slot(node: HexNode, slot_type: String, slot_index: int, disabled: bool = false) -> Control:
+func _create_empty_slot(node: Variant, slot_type: String, slot_index: int, disabled: bool = false) -> Control:
 	"""Create an empty slot with '+' icon (60x60px tap target)"""
 	var slot: Panel = Panel.new()
 	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
@@ -1459,7 +2048,7 @@ func _create_empty_slot(node: HexNode, slot_type: String, slot_index: int, disab
 		_add_slot_button(slot, node, slot_type, slot_index)
 	return slot
 
-func _create_filled_slot(node: HexNode, slot_type: String, slot_index: int, god: God, inactive: bool = false) -> Control:
+func _create_filled_slot(node: Variant, slot_type: String, slot_index: int, god: God, inactive: bool = false) -> Control:
 	"""Create a filled slot showing god portrait (60x60px). Inactive shows grayed out."""
 	var slot: Panel = Panel.new()
 	slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
@@ -1553,7 +2142,7 @@ func _create_slot_style(border_color: Color, border_width: int) -> StyleBoxFlat:
 	style.set_corner_radius_all(6)
 	return style
 
-func _add_slot_button(slot: Panel, node: HexNode, slot_type: String, slot_index: int) -> void:
+func _add_slot_button(slot: Panel, node: Variant, slot_type: String, slot_index: int) -> void:
 	"""Add tappable button overlay to empty slot"""
 	var button: Button = Button.new()
 	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -1561,7 +2150,7 @@ func _add_slot_button(slot: Panel, node: HexNode, slot_type: String, slot_index:
 	button.pressed.connect(_on_slot_tapped.bind(node, slot_type, slot_index))
 	slot.add_child(button)
 
-func _add_filled_slot_button(slot: Panel, node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
+func _add_filled_slot_button(slot: Panel, node: Variant, slot_type: String, slot_index: int, god: God) -> void:
 	"""Add tappable button overlay to filled slot (emits different signal)"""
 	var button: Button = Button.new()
 	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -1704,14 +2293,14 @@ func _on_close_pressed() -> void:
 	hide_panel()
 
 
-func _on_slot_tapped(node: HexNode, slot_type: String, slot_index: int) -> void:
+func _on_slot_tapped(node: Variant, slot_type: String, slot_index: int) -> void:
 	"""Handle empty slot tap - emit signal for parent to open god selection"""
 	# Emit tutorial action for garrison slot tap
 	if slot_type == "garrison":
 		_emit_tutorial_action("garrison_slot_tapped")
 	slot_tapped.emit(node, slot_type, slot_index)
 
-func _on_filled_slot_tapped(node: HexNode, slot_type: String, slot_index: int, god: God) -> void:
+func _on_filled_slot_tapped(node: Variant, slot_type: String, slot_index: int, god: God) -> void:
 	"""Handle filled slot tap - emit signal for parent to show remove confirmation"""
 	filled_slot_tapped.emit(node, slot_type, slot_index, god)
 
@@ -2175,7 +2764,7 @@ func _show_craft_popup() -> void:
 		self
 	)
 
-func _on_craft_started_from_screen(node: HexNode, task_id: String) -> void:
+func _on_craft_started_from_screen(node: Variant, task_id: String) -> void:
 	"""Handle craft started from new crafting screen"""
 	task_started.emit(node, task_id)
 	_update_tasks()

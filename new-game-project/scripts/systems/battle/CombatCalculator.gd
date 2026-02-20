@@ -206,9 +206,15 @@ static func _get_team_resistance(team_bonuses: Array) -> float:
 static func _get_unit_element(unit: BattleUnit) -> God.ElementType:
 	if unit.source_god:
 		return unit.source_god.element
-	var element_str: String = unit.source_enemy.get("element", "")
-	if not element_str.is_empty() and element_str != "neutral":
-		return God.string_to_element(element_str)
+	# Handle element as either int (enum) or string
+	var element_val: Variant = unit.source_enemy.get("element", "")
+	if element_val is int:
+		# Direct enum value
+		return element_val as God.ElementType
+	if element_val is String:
+		var element_str: String = element_val
+		if not element_str.is_empty() and element_str != "neutral":
+			return God.string_to_element(element_str)
 	return God.ElementType.LIGHT  # Default fallback (neutral)
 
 ## Get element multiplier for damage calculation

@@ -10,8 +10,9 @@
 		"max_turns": 100
 	},
 	"god_xp_rewards": {
-		"base_xp_per_floor": 50,
-		"boss_xp_bonus": 100
+		"base_xp_per_floor": 100,
+		"boss_xp_bonus": 200,
+		"xp_scaling_per_floor": 0.03
 	},
 	"material_drop_rates": {
 		"tier_1": {"ore": 0.4, "wood": 0.3, "herbs": 0.3},
