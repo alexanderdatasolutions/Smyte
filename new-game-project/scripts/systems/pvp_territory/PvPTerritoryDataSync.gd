@@ -1048,15 +1048,23 @@ func start_realtime_sync(map_id: String) -> void:
 		print("PvPTerritoryDataSync: RTDB not available, falling back to polling")
 		return
 
+	print("PvPTerritoryDataSync: Setting up RTDB listeners for map %s" % map_id)
+
 	# Listen for hex changes
 	var hex_path: String = "%s/%s/hexes" % [RTDB_SYNC_PATH, map_id]
+	print("PvPTerritoryDataSync: Hex listener path: %s" % hex_path)
 	_rtdb_hex_listener = rtdb.get_database_reference(hex_path, {})
 	if _rtdb_hex_listener:
-		if _rtdb_hex_listener.has_signal("new_data_update"):
+		var has_new: bool = _rtdb_hex_listener.has_signal("new_data_update")
+		var has_patch: bool = _rtdb_hex_listener.has_signal("patch_data_update")
+		print("PvPTerritoryDataSync: Listener signals - new_data_update: %s, patch_data_update: %s" % [has_new, has_patch])
+		if has_new:
 			_rtdb_hex_listener.new_data_update.connect(_on_rtdb_hex_update)
-		if _rtdb_hex_listener.has_signal("patch_data_update"):
+		if has_patch:
 			_rtdb_hex_listener.patch_data_update.connect(_on_rtdb_hex_update)
 		print("PvPTerritoryDataSync: Started real-time hex listener for map %s" % map_id)
+	else:
+		print("PvPTerritoryDataSync: Failed to create hex listener!")
 
 	# Listen for player changes
 	var players_path: String = "%s/%s/players" % [RTDB_SYNC_PATH, map_id]
@@ -1101,18 +1109,25 @@ func _on_rtdb_hex_update(resource: Variant) -> void:
 	if not resource:
 		return
 
+	print("PvPTerritoryDataSync: RTDB update received - type: %s" % typeof(resource))
+
 	var hex_id: String = ""
 	var data: Dictionary = {}
 
 	# Handle different resource formats
+	# FirebaseResource has .key and .data properties
 	if resource is Dictionary:
 		hex_id = resource.get("key", "")
 		data = resource.get("data", {})
-	elif resource.has_method("get"):
-		hex_id = resource.key if "key" in resource else ""
-		data = resource.data if "data" in resource else {}
+	elif "key" in resource and "data" in resource:
+		# FirebaseResource object - access properties directly
+		hex_id = str(resource.key) if resource.key else ""
+		data = resource.data if resource.data is Dictionary else {}
 	else:
+		print("PvPTerritoryDataSync: Unknown resource format: %s" % resource)
 		return
+
+	print("PvPTerritoryDataSync: Parsed RTDB update - hex_id: %s, data keys: %s" % [hex_id, data.keys() if data else "empty"])
 
 	if hex_id.is_empty() or data.is_empty():
 		return
@@ -1122,6 +1137,7 @@ func _on_rtdb_hex_update(resource: Variant) -> void:
 
 	# Don't emit if this is our own capture
 	if new_owner_uid == _user_id:
+		print("PvPTerritoryDataSync: Ignoring own capture for %s" % hex_id)
 		return
 
 	print("PvPTerritoryDataSync: Remote capture - %s now owned by %s" % [hex_id, new_owner_name])
@@ -1139,9 +1155,10 @@ func _on_rtdb_player_update(resource: Variant) -> void:
 	if resource is Dictionary:
 		player_uid = resource.get("key", "")
 		data = resource.get("data", {})
-	elif resource.has_method("get"):
-		player_uid = resource.key if "key" in resource else ""
-		data = resource.data if "data" in resource else {}
+	elif "key" in resource and "data" in resource:
+		# FirebaseResource object - access properties directly
+		player_uid = str(resource.key) if resource.key else ""
+		data = resource.data if resource.data is Dictionary else {}
 	else:
 		return
 
