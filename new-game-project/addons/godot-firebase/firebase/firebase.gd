@@ -126,6 +126,7 @@ func _load_config() -> void:
 			_print("Config file not found, using embedded config")
 			_config["apiKey"] = "AIzaSyDCFl8VwwZPnLKJrWgwY6pC5b0lReZEbGg"
 			_config["authDomain"] = "smyte-1f475.firebaseapp.com"
+			_config["databaseURL"] = "https://smyte-1f475-default-rtdb.firebaseio.com"
 			_config["projectId"] = "smyte-1f475"
 			_config["databaseName"] = "(default)"
 			_config["storageBucket"] = "smyte-1f475.firebasestorage.app"
